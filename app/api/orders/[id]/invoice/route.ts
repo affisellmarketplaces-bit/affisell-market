@@ -7,6 +7,8 @@ import {
   resolveSupplierSellerName,
 } from "@/lib/legal/affiliate-commissionnaire.server"
 import { affiliateSaleAmountsFromOrder } from "@/lib/legal/affiliate-commissionnaire-shared"
+import { listingDisplayTitle } from "@/lib/affiliate-listing-display"
+import { invoiceAddressLines, resolveInvoiceLocale } from "@/lib/invoices/invoice-labels"
 import { resolveOrderAccessRole } from "@/lib/order-access"
 import { affisellFeeBaseCentsFromOrder } from "@/lib/marketplace-order-settlement"
 import { prisma } from "@/lib/prisma"
@@ -38,6 +40,7 @@ export async function GET(req: Request, { params }: Params) {
     where: { id },
     include: {
       product: { select: { name: true } },
+      affiliateProduct: { select: { customTitle: true } },
       affiliateSale: true,
     },
   })
@@ -79,7 +82,11 @@ export async function GET(req: Request, { params }: Params) {
 
   const pdfInput = {
     orderId: order.id,
-    productName: order.product.name,
+    // Buyer document: the clean listing title the buyer saw; supplier/affiliate documents keep the catalogue name.
+    productName:
+      type === "CUSTOMER"
+        ? listingDisplayTitle(order.affiliateProduct?.customTitle, order.product.name)
+        : order.product.name,
     createdAt: order.createdAt.toISOString().slice(0, 10),
     supplierPayoutCents: order.supplierPayoutCents,
     affiliateEarningCents: type === "SUPPLIER" ? 0 : affiliateEarningCents,
@@ -94,7 +101,19 @@ export async function GET(req: Request, { params }: Params) {
     commissionAmountCents: type === "SUPPLIER" ? 0 : saleSnapshot.commissionAmountCents,
     resalePriceCents: type === "SUPPLIER" ? 0 : saleSnapshot.resalePriceCents,
     pricingFreedom: saleSnapshot.pricingFreedom,
-    locale: (order.buyerLocale?.startsWith("en") ? "en" : "fr") as "fr" | "en",
+    locale: resolveInvoiceLocale(order.buyerLocale),
+    ...(type === "CUSTOMER"
+      ? {
+          quantity: order.quantity,
+          // Unit price as charged (incl. VAT when applicable): paid line / quantity.
+          unitPriceCents: Math.round((order.totalCents ?? subtotalCents + (order.taxCents ?? 0)) / Math.max(1, order.quantity)),
+          variantLabel: order.variantLabel,
+          paidAt: order.paidAt ? order.paidAt.toISOString().slice(0, 10) : null,
+          buyerAddressLines: invoiceAddressLines(order.shippingAddress),
+          taxRatePercent:
+            order.taxRate != null ? (Number(order.taxRate) <= 1 ? Number(order.taxRate) * 100 : Number(order.taxRate)) : null,
+        }
+      : {}),
   }
 
   const pdf = await renderOrderInvoicePdf(type, pdfInput)

@@ -7,6 +7,7 @@ import {
 } from "@/lib/legal/affiliate-commissionnaire-shared"
 import { isAffisellVatFranchise, readCompanyLegal } from "@/lib/legal/company-env"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { invoiceLabels, type InvoiceLocale } from "@/lib/invoices/invoice-labels"
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: "Helvetica" },
@@ -15,6 +16,15 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
   total: { marginTop: 12, paddingTop: 8, borderTopWidth: 1, borderTopColor: "#ccc" },
   footer: { position: "absolute", bottom: 30, left: 40, right: 40, fontSize: 8, color: "#666" },
+  table: { marginTop: 18, borderTopWidth: 1, borderTopColor: "#ccc" },
+  th: { flexDirection: "row", paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: "#ddd", color: "#555", fontSize: 9 },
+  tr: { flexDirection: "row", paddingVertical: 6 },
+  cItem: { flexGrow: 1, flexBasis: 0, paddingRight: 8 },
+  cQty: { width: 34, textAlign: "right" },
+  cUnit: { width: 76, textAlign: "right" },
+  cAmt: { width: 76, textAlign: "right" },
+  block: { marginBottom: 10, lineHeight: 1.35 },
+  blockTitle: { color: "#555", fontSize: 8, marginBottom: 2 },
   legalNote: { marginTop: 16, fontSize: 8, color: "#555", lineHeight: 1.4 },
 })
 
@@ -39,7 +49,14 @@ type OrderInvoiceData = {
   commissionAmountCents?: number
   resalePriceCents?: number
   pricingFreedom?: boolean
-  locale?: "fr" | "en"
+  locale?: InvoiceLocale
+  /** Customer invoice detail (all optional — older callers keep the compact layout). */
+  quantity?: number
+  unitPriceCents?: number
+  variantLabel?: string | null
+  paidAt?: string | null
+  buyerAddressLines?: string[]
+  taxRatePercent?: number | null
 }
 
 function money(cents: number) {
@@ -50,8 +67,9 @@ function InvoiceDocument({ type, order }: { type: InvoiceType; order: OrderInvoi
   const company = readCompanyLegal()
   const franchise = isAffisellVatFranchise(company)
   const locale = order.locale ?? "fr"
+  const L = invoiceLabels(locale)
   const commissionnaireFooter =
-    locale === "en" ? INVOICE_COMMISSIONNAIRE_FOOTER_EN : INVOICE_COMMISSIONNAIRE_FOOTER_FR
+    locale === "fr" ? INVOICE_COMMISSIONNAIRE_FOOTER_FR : INVOICE_COMMISSIONNAIRE_FOOTER_EN
 
   const vatBit = company.tva.trim()
     ? ` · TVA FR${company.tva.replace(/^FR/i, "")}`
@@ -97,16 +115,20 @@ function InvoiceDocument({ type, order }: { type: InvoiceType; order: OrderInvoi
       },
     ]
   } else {
-    title = locale === "en" ? "Customer invoice" : "Facture client"
+    title = L.title
     issuerLine = order.commissionnaireSellerName?.trim() || company.name
     if (franchise || order.taxCents <= 0) {
-      lines = [{ label: locale === "en" ? "Total" : "Total", amount: money(order.totalCents) }]
+      lines = [{ label: L.total, amount: money(order.totalCents) }]
       customerVatNote = company.vatRegime || "TVA non applicable, art. 293 B du CGI"
     } else {
+      const rate =
+        order.taxRatePercent != null && order.taxRatePercent > 0
+          ? ` (${String(Math.round(order.taxRatePercent * 100) / 100).replace(".", ",")} %)`
+          : ""
       lines = [
-        { label: locale === "en" ? "Amount excl. VAT" : "Montant HT", amount: money(order.subtotalCents) },
-        { label: "TVA", amount: money(order.taxCents) },
-        { label: locale === "en" ? "Total incl. VAT" : "Total TTC", amount: money(order.totalCents) },
+        { label: L.exclVat, amount: money(order.subtotalCents) },
+        { label: `${L.vat}${rate}`, amount: money(order.taxCents) },
+        { label: L.inclVat, amount: money(order.totalCents) },
       ]
     }
     legalFooter = [
@@ -124,16 +146,57 @@ function InvoiceDocument({ type, order }: { type: InvoiceType; order: OrderInvoi
     <Document>
       <Page size="A4" style={styles.page}>
         <Text style={styles.title}>{title}</Text>
-        <Text style={styles.meta}>
-          {issuerLine} · Commande {order.orderId.slice(0, 12)} · {order.createdAt}
-        </Text>
-        <Text style={styles.meta}>Produit : {order.productName}</Text>
-        {type === "CUSTOMER" ? <Text style={styles.meta}>Client : {order.customerEmail}</Text> : null}
-        {type === "CUSTOMER" && order.supplierSellerName ? (
-          <Text style={styles.meta}>
-            {locale === "en" ? "Delivered by" : "Livré par"} : {order.supplierSellerName}
-          </Text>
-        ) : null}
+        {type === "CUSTOMER" ? (
+          <>
+            <Text style={styles.meta}>{issuerLine}</Text>
+            <View style={styles.block}>
+              <Text>
+                {L.orderRef} : {order.orderId} · {L.issuedOn} : {order.createdAt}
+                {order.paidAt ? ` · ${L.paidOn} : ${order.paidAt}` : ""}
+              </Text>
+            </View>
+            <View style={styles.block}>
+              <Text style={styles.blockTitle}>{L.billedTo}</Text>
+              {(order.buyerAddressLines ?? []).map((l, i) => (
+                <Text key={i}>{l}</Text>
+              ))}
+              <Text>{order.customerEmail}</Text>
+            </View>
+            {order.supplierSellerName ? (
+              <Text style={styles.meta}>
+                {L.deliveredBy} : {order.supplierSellerName}
+              </Text>
+            ) : null}
+            {order.quantity != null && order.unitPriceCents != null ? (
+              <View style={styles.table}>
+                <View style={styles.th}>
+                  <Text style={styles.cItem}>{L.item}</Text>
+                  <Text style={styles.cQty}>{L.quantity}</Text>
+                  <Text style={styles.cUnit}>{L.unitPrice}</Text>
+                  <Text style={styles.cAmt}>{L.amount}</Text>
+                </View>
+                <View style={styles.tr}>
+                  <Text style={styles.cItem}>
+                    {order.productName}
+                    {order.variantLabel ? ` — ${order.variantLabel}` : ""}
+                  </Text>
+                  <Text style={styles.cQty}>{order.quantity}</Text>
+                  <Text style={styles.cUnit}>{money(order.unitPriceCents)}</Text>
+                  <Text style={styles.cAmt}>{money(order.unitPriceCents * order.quantity)}</Text>
+                </View>
+              </View>
+            ) : (
+              <Text style={styles.meta}>{order.productName}</Text>
+            )}
+          </>
+        ) : (
+          <>
+            <Text style={styles.meta}>
+              {issuerLine} · Commande {order.orderId.slice(0, 12)} · {order.createdAt}
+            </Text>
+            <Text style={styles.meta}>Produit : {order.productName}</Text>
+          </>
+        )}
         {customerVatNote ? <Text style={styles.meta}>{customerVatNote}</Text> : null}
 
         <View style={{ marginTop: 24 }}>
@@ -147,15 +210,17 @@ function InvoiceDocument({ type, order }: { type: InvoiceType; order: OrderInvoi
 
         {type === "CUSTOMER" && order.pricingFreedom ? (
           <Text style={styles.legalNote}>
-            {locale === "en"
-              ? "Pricing freedom attested — resale HT basis recorded at checkout (anti L134-1 reclassification)."
-              : "Liberté de prix attestée — base HT de revente enregistrée au checkout (anti-requalification L134-1)."}
+            {locale === "fr"
+              ? "Liberté de prix attestée — base HT de revente enregistrée au checkout (anti-requalification L134-1)."
+              : "Pricing freedom attested — resale HT basis recorded at checkout (anti L134-1 reclassification)."}
           </Text>
         ) : null}
 
         <View style={styles.total}>
           <View style={styles.row}>
-            <Text style={{ fontWeight: "bold" }}>{locale === "en" ? "Amount due" : "Montant dû"}</Text>
+            <Text style={{ fontWeight: "bold" }}>
+              {type === "CUSTOMER" ? L.amountPaid : locale === "fr" ? "Montant dû" : "Amount due"}
+            </Text>
             <Text style={{ fontWeight: "bold" }}>
               {type === "SUPPLIER"
                 ? money(order.supplierPayoutCents)
@@ -165,6 +230,12 @@ function InvoiceDocument({ type, order }: { type: InvoiceType; order: OrderInvoi
             </Text>
           </View>
         </View>
+
+        {type === "CUSTOMER" && order.paidAt ? (
+          <Text style={styles.legalNote}>
+            {L.paymentCard} — {order.paidAt}
+          </Text>
+        ) : null}
 
         <Text style={styles.footer}>{legalFooter}</Text>
       </Page>

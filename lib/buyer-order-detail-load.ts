@@ -1,5 +1,7 @@
 import "server-only"
 
+import { listingDisplayTitle } from "@/lib/affiliate-listing-display"
+import { buyerOrdersOwnerFilter } from "@/lib/account-orders-payload"
 import { buyerVisibleMarketplaceOrderWhere } from "@/lib/buyer-order-visibility"
 import { carrierTrackingUrl, estimateBuyerDeliveryAt } from "@/lib/buyer-carrier-tracking"
 import { formatBuyerSafeReturnAddress } from "@/lib/buyer-return-address"
@@ -53,17 +55,20 @@ export type BuyerOrderDetailDto = {
 
 export async function loadBuyerOrderDetail(
   orderId: string,
-  customerEmail: string
+  customerEmail: string,
+  buyerUserId?: string | null
 ): Promise<BuyerOrderDetailDto | null> {
   const normalized = normalizeOrderEmail(customerEmail)
   const order = await prisma.order.findFirst({
     where: {
       id: orderId,
-      customerEmail: { equals: normalized, mode: "insensitive" },
+      // Same ownership rule as the list: the account that placed the order OR the checkout e-mail.
+      ...buyerOrdersOwnerFilter(normalized, buyerUserId),
       ...buyerVisibleMarketplaceOrderWhere,
     },
     include: {
       product: { select: { name: true, images: true } },
+      affiliateProduct: { select: { customTitle: true } },
       returns: { orderBy: { createdAt: "desc" } },
       supplier: {
         select: {
@@ -104,7 +109,8 @@ export async function loadBuyerOrderDetail(
     quantity: order.quantity,
     totalPaidCents: orderChargedTotalCents(order),
     product: {
-      name: order.product.name,
+      // The clean title the buyer saw on the listing, not the raw catalogue name.
+      name: listingDisplayTitle(order.affiliateProduct?.customTitle, order.product.name),
       imageUrl: order.product.images[0] ?? null,
     },
     statusLabelKey: order.status,

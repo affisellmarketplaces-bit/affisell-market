@@ -66,6 +66,7 @@ export function BuyerOrderDetailView({ order, backHref }: Props) {
   )
   const [reasonDetail, setReasonDetail] = useState("")
   const [localOrder, setLocalOrder] = useState(order)
+  const [nowMs] = useState(() => Date.now())
 
   const reasonOptions = useMemo(
     () =>
@@ -336,7 +337,7 @@ export function BuyerOrderDetailView({ order, backHref }: Props) {
             {t("returnCta")}
           </Button>
         </BentoCard>
-      ) : localOrder.withdrawalEndsAt ? (
+      ) : localOrder.withdrawalEndsAt && new Date(localOrder.withdrawalEndsAt).getTime() < nowMs ? (
         <p className="text-sm text-zinc-500">
           {t("withdrawalEnded", { date: withdrawalEndLabel ?? "" })}
         </p>

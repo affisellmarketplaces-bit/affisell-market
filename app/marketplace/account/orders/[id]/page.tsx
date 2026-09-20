@@ -16,7 +16,7 @@ export default async function MarketplaceBuyerOrderDetailPage({ params }: Props)
   }
 
   const { id } = await params
-  const order = await loadBuyerOrderDetail(id, session.user.email)
+  const order = await loadBuyerOrderDetail(id, session.user.email, session.user.id)
   if (!order) notFound()
 
   return (
