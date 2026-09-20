@@ -2444,6 +2444,7 @@
       "graduatedShipsToToastBody": "Toont producten die naar jou verzenden — altijd aan te passen in de filters.",
       "viewStores": "Winkelmand",
       "listingCount": "{count, plural, one {# artikel} other {# artikelen}}",
+      "listingCountMore": "{count, plural, one {# meer aanbod} other {# meer aanbiedingen}}",
       "listingCountForQuery": " voor « {query} »",
       "dbEmptyTitle": "Database tijdelijk niet beschikbaar",
       "dbDevHint": "Locaal dev: run npm run db:local:setup en zet DATABASE_URL in .env.local op postgresql://affisell:affisell@localhost:5433/affisell",

@@ -2444,6 +2444,7 @@
       "graduatedShipsToToastBody": "Produits livrables vers votre pays — modifiable via les filtres.",
       "viewStores": "Voir les boutiques",
       "listingCount": "{count, plural, one {# annonce} other {# annonces}}",
+      "listingCountMore": "{count, plural, one {# autre annonce} other {# autres annonces}}",
       "listingCountForQuery": " pour « {query} »",
       "dbEmptyTitle": "Base de données temporairement indisponible",
       "dbDevHint": "En local : lancez npm run db:local:setup et définissez DATABASE_URL dans .env.local sur postgresql://affisell:affisell@localhost:5433/affisell",

@@ -198,6 +198,18 @@ export function MarketplaceView({
     [catalogData?.products, useInitialFallback, initialBrowse?.products]
   )
 
+  // Desktop shows a "Featured products" showcase (first 8 at lg, 9 at xl) above the grid: in the default view the grid
+  // hides exactly those, so the same products are not shown twice. Mobile has no showcase → nothing hidden there.
+  const featuredRank = useMemo(() => {
+    const rank = new Map<string, number>()
+    if (!embedded || !isCustomerBrowse || !initialBrowse || searchParams.toString() !== "") return rank
+    initialBrowse.products.slice(0, 9).forEach((p, i) => {
+      const id = String((p as { listingId?: unknown; id?: unknown }).listingId ?? (p as { id?: unknown }).id)
+      rank.set(id, i)
+    })
+    return rank
+  }, [embedded, isCustomerBrowse, initialBrowse, searchParams])
+
   const productGridRef = useViewportRoutePrefetch<HTMLUListElement>({
     enabled: isCustomerBrowse,
     max: 24,
@@ -747,14 +759,20 @@ export function MarketplaceView({
             ) : (
               <div className="mb-4 hidden items-center gap-3 md:flex">
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  <strong className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    {t("listingCount", {
-                      count:
-                        !hasFilters && !searchQuery.trim() && (categoriesPayload?.catalogTotal ?? 0) > products.length
-                          ? (categoriesPayload?.catalogTotal ?? products.length)
-                          : products.length,
-                    })}
-                  </strong>
+{(() => {
+                    const total =
+                      !hasFilters && !searchQuery.trim() && (categoriesPayload?.catalogTotal ?? 0) > products.length
+                        ? (categoriesPayload?.catalogTotal ?? products.length)
+                        : products.length
+                    if (featuredRank.size === 0) return <strong className="font-semibold text-zinc-900 dark:text-zinc-100">{t("listingCount", { count: total })}</strong>
+                    return (
+                      <strong className="font-semibold text-zinc-900 dark:text-zinc-100">
+                        <span className="lg:hidden">{t("listingCount", { count: total })}</span>
+                        <span className="hidden lg:inline xl:hidden">{t("listingCountMore", { count: Math.max(0, total - 8) })}</span>
+                        <span className="hidden xl:inline">{t("listingCountMore", { count: Math.max(0, total - 9) })}</span>
+                      </strong>
+                    )
+                  })()}
                   {searchQuery.trim() ? t("listingCountForQuery", { query: searchQuery.trim() }) : null}
                   {hasFilters && !searchQuery.trim() ? (
                     <span className="text-zinc-500 dark:text-zinc-400"> · {activeFilterLabel}</span>
@@ -793,7 +811,16 @@ export function MarketplaceView({
                   if (!isRenderableCatalogProduct(product)) return null
                   return (
                   <Fragment key={String(product.listingId ?? product.id)}>
-                    <li className="flex h-full min-w-0">
+                    <li
+                      className={cn(
+                        "flex h-full min-w-0",
+                        (() => {
+                          const r = featuredRank.get(String(product.listingId ?? product.id))
+                          if (r === undefined) return ""
+                          return r < 8 ? "lg:hidden" : "xl:hidden"
+                        })()
+                      )}
+                    >
                       <ProductCard
                         product={product}
                         mode={productCardMode}
