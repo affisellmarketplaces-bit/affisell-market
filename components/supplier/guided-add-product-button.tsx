@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { CheckCircle2, ChevronLeft, ChevronRight, ImagePlus, Loader2, Sparkles, X, XCircle } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
@@ -29,6 +29,8 @@ import {
 import { isGpsrCompliant } from "@/lib/legal/gpsr-compliance-shared"
 import { blockIfHoneypotValue } from "@/lib/security/honeypot-client"
 import { formatStoreCurrency } from "@/lib/market-config"
+import { DELIVERY_WORLDWIDE, suggestDeliveryCountriesFromWarehouse } from "@/lib/supplier-delivery-countries"
+import { visitorCountryDisplayName } from "@/lib/visitor-country"
 import { processProductGalleryImageFile } from "@/lib/product-image-upload"
 import { cn } from "@/lib/utils"
 
@@ -85,6 +87,24 @@ const DEFAULT_FORM: FormState = {
 
 const DESCRIPTION_MIN_LENGTH = 40
 
+type ShippingDefaults = {
+  countryCode: string
+  warehouseType: "local" | "regional" | "international"
+  deliveryCountryCodes: string[]
+  commissionPct: number
+  /** True when read from the supplier's own settings (not the conservative fallback). */
+  fromProfile: boolean
+}
+
+/** Conservative fallback used only while/if the supplier's defaults cannot be loaded. */
+const FALLBACK_SHIPPING_DEFAULTS: ShippingDefaults = {
+  countryCode: "FR",
+  warehouseType: "local",
+  deliveryCountryCodes: ["FR", "DE", "BE", "ES", "IT", "NL", "PT", "LU"],
+  commissionPct: 15,
+  fromProfile: false,
+}
+
 const FIELD_PLACEHOLDERS = {
   material: "ex. Coton bio",
   color: "ex. Noir",
@@ -132,6 +152,10 @@ export function GuidedAddProductButton({
   const tFee = useTranslations("supplier.feeGrid")
   const tTax = useTranslations("supplier.guidedTaxonomy")
   const tDesc = useTranslations("supplier.guidedDescription")
+  const tDef = useTranslations("supplier.guidedDefaults")
+  const locale = useLocale()
+  const [shipDefaults, setShipDefaults] = useState<ShippingDefaults>(FALLBACK_SHIPPING_DEFAULTS)
+  const defaultsLoaded = useRef(false)
   const [descLoading, setDescLoading] = useState(false)
   const [descError, setDescError] = useState<string | null>(null)
   const descAutoTried = useRef(false)
@@ -151,6 +175,44 @@ export function GuidedAddProductButton({
       { title: form.title, imageUrl: form.imageUrl, imagePreview: form.imagePreview },
       aiEnabled
     )
+
+  // The supplier's own shop defaults (origin country, warehouse type, average commission) instead of hard-coded values.
+  useEffect(() => {
+    if (!open || defaultsLoaded.current) return
+    defaultsLoaded.current = true
+    void fetch("/api/supplier/merchant-defaults", { credentials: "include", cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then(
+        (data: {
+          defaults?: { countryCode?: string | null; warehouseType?: string | null; defaultCommissionPct?: number | null }
+          hasSavedProfile?: boolean
+        } | null) => {
+          const d = data?.defaults
+          if (!d) return
+          const country = /^[A-Za-z]{2}$/.test(d.countryCode ?? "") ? d.countryCode!.toUpperCase() : "FR"
+          const saved = Boolean(data?.hasSavedProfile)
+          const wt =
+            saved && (d.warehouseType === "local" || d.warehouseType === "regional" || d.warehouseType === "international")
+              ? d.warehouseType
+              : "local"
+          const pct =
+            typeof d.defaultCommissionPct === "number" && Number.isFinite(d.defaultCommissionPct)
+              ? Math.min(50, Math.max(1, Math.round(d.defaultCommissionPct)))
+              : FALLBACK_SHIPPING_DEFAULTS.commissionPct
+          setShipDefaults({
+            countryCode: country,
+            warehouseType: wt,
+            // Saved profile → what the supplier configured; otherwise stay conservative (as before).
+            deliveryCountryCodes: saved
+              ? suggestDeliveryCountriesFromWarehouse({ warehouseType: wt, shippingCountry: country })
+              : FALLBACK_SHIPPING_DEFAULTS.deliveryCountryCodes,
+            commissionPct: pct,
+            fromProfile: true,
+          })
+        }
+      )
+      .catch(() => undefined)
+  }, [open])
 
   const taxonomy = useGuidedTaxonomySuggestions(form.title, form.imageUrl, aiEnabled)
 
@@ -477,11 +539,11 @@ export function GuidedAddProductButton({
             // Exact category of the real taxonomy when chosen (better discovery, right commission grid).
             ...(withLeaf && form.leafId ? { categoryId: form.leafId } : {}),
             colors: [form.color.trim()],
-            commissionRate: 15,
+            commissionRate: shipDefaults.commissionPct,
             listingKind: "PHYSICAL",
-            warehouseType: "local",
-            shippingCountry: "FR",
-            deliveryCountryCodes: ["FR", "DE", "BE", "ES", "IT", "NL", "PT", "LU"],
+            warehouseType: shipDefaults.warehouseType,
+            shippingCountry: shipDefaults.countryCode,
+            deliveryCountryCodes: shipDefaults.deliveryCountryCodes,
             productAttributes,
             saveAsDraft: false,
           }),
@@ -862,6 +924,19 @@ export function GuidedAddProductButton({
                     </p>
                   </div>
                 </BentoCard>
+                <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 text-sm dark:border-zinc-700 dark:bg-zinc-900/60">
+                  <p className="font-semibold text-zinc-900 dark:text-zinc-50">{tDef("title")}</p>
+                  <ul className="mt-1.5 space-y-0.5 text-zinc-600 dark:text-zinc-300">
+                    <li>{tDef("shipsFrom", { country: visitorCountryDisplayName(shipDefaults.countryCode, locale) })}</li>
+                    <li>
+                      {shipDefaults.deliveryCountryCodes.includes(DELIVERY_WORLDWIDE)
+                        ? tDef("deliversWorldwide")
+                        : tDef("deliversTo", { count: shipDefaults.deliveryCountryCodes.length })}
+                    </li>
+                    <li>{tDef("commission", { pct: shipDefaults.commissionPct })}</li>
+                  </ul>
+                  <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">{tDef("editHint")}</p>
+                </div>
                 <div
                   className={cn(
                     "flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold",

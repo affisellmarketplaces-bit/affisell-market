@@ -1738,6 +1738,14 @@
       "loading": "Tarief laden…",
       "unavailable": "Tarief niet beschikbaar voor deze categorie."
     },
+    "guidedDefaults": {
+      "title": "Overgenomen uit je winkelinstellingen",
+      "shipsFrom": "Verzonden vanuit: {country}",
+      "deliversTo": "{count, plural, one {Levering in # land} other {Levering in # landen}}",
+      "deliversWorldwide": "Wereldwijde levering",
+      "commission": "Aangeboden wederverkopercommissie: {pct}%",
+      "editHint": "Je kunt dit daarna wijzigen in het volledige productformulier."
+    },
     "guidedDescription": {
       "label": "Beschrijving",
       "generate": "Opstellen met AI",

@@ -1738,6 +1738,14 @@
       "loading": "Satz wird geladen…",
       "unavailable": "Satz für diese Kategorie nicht verfügbar."
     },
+    "guidedDefaults": {
+      "title": "Aus Ihren Shop-Einstellungen übernommen",
+      "shipsFrom": "Versand aus: {country}",
+      "deliversTo": "{count, plural, one {Lieferung in # Land} other {Lieferung in # Länder}}",
+      "deliversWorldwide": "Weltweite Lieferung",
+      "commission": "Angebotene Wiederverkäufer-Provision: {pct} %",
+      "editHint": "Sie können dies später im vollständigen Produktformular ändern."
+    },
     "guidedDescription": {
       "label": "Beschreibung",
       "generate": "Mit KI entwerfen",

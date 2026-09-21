@@ -1738,6 +1738,14 @@
       "loading": "Calcolo del tasso…",
       "unavailable": "Tasso non disponibile per questa categoria."
     },
+    "guidedDefaults": {
+      "title": "Applicato dalle impostazioni del tuo negozio",
+      "shipsFrom": "Spedito da: {country}",
+      "deliversTo": "{count, plural, one {Consegna in # paese} other {Consegna in # paesi}}",
+      "deliversWorldwide": "Consegna in tutto il mondo",
+      "commission": "Commissione rivenditore offerta: {pct}%",
+      "editHint": "Potrai modificarlo dopo nel modulo prodotto completo."
+    },
     "guidedDescription": {
       "label": "Descrizione",
       "generate": "Scrivi con l'IA",

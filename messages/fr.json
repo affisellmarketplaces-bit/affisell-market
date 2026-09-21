@@ -1738,6 +1738,14 @@
       "loading": "Calcul du taux…",
       "unavailable": "Taux indisponible pour cette catégorie."
     },
+    "guidedDefaults": {
+      "title": "Repris de vos réglages boutique",
+      "shipsFrom": "Expédié depuis : {country}",
+      "deliversTo": "{count, plural, one {Livraison dans # pays} other {Livraison dans # pays}}",
+      "deliversWorldwide": "Livraison dans le monde entier",
+      "commission": "Commission revendeur proposée : {pct} %",
+      "editHint": "Vous pourrez les modifier ensuite dans le formulaire produit complet."
+    },
     "guidedDescription": {
       "label": "Description",
       "generate": "Rédiger avec l'IA",

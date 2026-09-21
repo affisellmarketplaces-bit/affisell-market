@@ -1738,6 +1738,14 @@
       "loading": "Calculando la tasa…",
       "unavailable": "Tasa no disponible para esta categoría."
     },
+    "guidedDefaults": {
+      "title": "Aplicado desde los ajustes de tu tienda",
+      "shipsFrom": "Envío desde: {country}",
+      "deliversTo": "{count, plural, one {Entrega en # país} other {Entrega en # países}}",
+      "deliversWorldwide": "Entrega en todo el mundo",
+      "commission": "Comisión de revendedor ofrecida: {pct} %",
+      "editHint": "Podrás cambiarlo después en el formulario completo de producto."
+    },
     "guidedDescription": {
       "label": "Descripción",
       "generate": "Redactar con IA",

@@ -1738,6 +1738,14 @@
       "loading": "正在加载费率…",
       "unavailable": "该类目暂无费率。"
     },
+    "guidedDefaults": {
+      "title": "已应用您的店铺设置",
+      "shipsFrom": "发货地：{country}",
+      "deliversTo": "配送至 {count} 个国家/地区",
+      "deliversWorldwide": "全球配送",
+      "commission": "提供给分销商的佣金：{pct}%",
+      "editHint": "之后可在完整商品表单中修改。"
+    },
     "guidedDescription": {
       "label": "商品描述",
       "generate": "AI 撰写",

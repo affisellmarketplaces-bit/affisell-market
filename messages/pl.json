@@ -1738,6 +1738,14 @@
       "loading": "Ładowanie stawki…",
       "unavailable": "Stawka niedostępna dla tej kategorii."
     },
+    "guidedDefaults": {
+      "title": "Przejęte z ustawień Twojego sklepu",
+      "shipsFrom": "Wysyłka z: {country}",
+      "deliversTo": "{count, plural, one {Dostawa do # kraju} few {Dostawa do # krajów} many {Dostawa do # krajów} other {Dostawa do # krajów}}",
+      "deliversWorldwide": "Dostawa na cały świat",
+      "commission": "Oferowana prowizja dla odsprzedawcy: {pct}%",
+      "editHint": "Możesz to później zmienić w pełnym formularzu produktu."
+    },
     "guidedDescription": {
       "label": "Opis",
       "generate": "Napisz z AI",

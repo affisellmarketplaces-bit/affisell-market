@@ -1738,6 +1738,14 @@
       "loading": "Loading the rate…",
       "unavailable": "Rate unavailable for this category."
     },
+    "guidedDefaults": {
+      "title": "Applied from your shop settings",
+      "shipsFrom": "Ships from {country}",
+      "deliversTo": "{count, plural, one {Delivers to # country} other {Delivers to # countries}}",
+      "deliversWorldwide": "Delivers worldwide",
+      "commission": "Reseller commission offered: {pct}%",
+      "editHint": "You can change these afterwards in the full product form."
+    },
     "guidedDescription": {
       "label": "Description",
       "generate": "Draft with AI",
