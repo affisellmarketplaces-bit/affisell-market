@@ -181,7 +181,7 @@ export async function settleMarketplaceOrdersFromCheckoutSession(
   return { processedOrderIds, errors }
 }
 
-async function checkoutSessionIdForPaymentIntent(paymentIntentId: string): Promise<string | null> {
+export async function checkoutSessionIdForPaymentIntent(paymentIntentId: string): Promise<string | null> {
   const stripe = getStripeClient()
   const sessions = await stripe.checkout.sessions.list({
     payment_intent: paymentIntentId,

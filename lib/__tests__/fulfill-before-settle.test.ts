@@ -35,3 +35,13 @@ describe("ensureCheckoutFulfilledBeforeSettle", () => {
     expect(needs).not.toHaveBeenCalled()
   })
 })
+
+describe("ensureCheckoutFulfilledForPaymentIntent (runs before the webhook DB transaction)", () => {
+  it("never throws and skips blind-dropship payment intents", async () => {
+    const { ensureCheckoutFulfilledForPaymentIntent } = await import("@/lib/marketplace-checkout-fulfill-before-settle")
+    await expect(
+      ensureCheckoutFulfilledForPaymentIntent({ id: "pi_1", metadata: { flow: "blind_dropship" } } as never)
+    ).resolves.toBeUndefined()
+    expect(ensure).not.toHaveBeenCalled()
+  })
+})

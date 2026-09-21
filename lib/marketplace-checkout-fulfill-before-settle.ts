@@ -27,3 +27,26 @@ export async function orderPaidWithoutBuyerDetails(orderId: string): Promise<boo
   const o = await prisma.order.findUnique({ where: { id: orderId }, select: { status: true, customerEmail: true } })
   return Boolean(o && o.status === "paid" && !o.customerEmail.trim())
 }
+
+/**
+ * `payment_intent.succeeded` → make sure the matching checkout is fulfilled, BEFORE the webhook opens its database
+ * transaction. The fulfilment is long (stock re-check, order rows, notifications): inside the 25s interactive
+ * transaction it made the final `processedWebhook.create()` fail with "Transaction already closed" (Sentry
+ * JAVASCRIPT-NEXTJS-4W). Never throws — settling still applies its own guard afterwards.
+ */
+export async function ensureCheckoutFulfilledForPaymentIntent(pi: Stripe.PaymentIntent): Promise<void> {
+  if (pi.metadata?.flow === "blind_dropship") return
+  try {
+    const { checkoutSessionIdForPaymentIntent } = await import("@/lib/stripe-marketplace-commission-split")
+    const sessionId = await checkoutSessionIdForPaymentIntent(pi.id)
+    if (!sessionId) return
+    const { getStripeClient } = await import("@/lib/stripe")
+    const session = await getStripeClient().checkout.sessions.retrieve(sessionId)
+    await ensureCheckoutFulfilledBeforeSettle(session)
+  } catch (error) {
+    console.error("[fulfil-before-webhook-tx]", {
+      paymentIntentId: pi.id,
+      error: error instanceof Error ? error.message : String(error),
+    })
+  }
+}

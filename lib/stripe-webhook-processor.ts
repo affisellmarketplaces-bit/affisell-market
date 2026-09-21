@@ -1,3 +1,4 @@
+import { ensureCheckoutFulfilledForPaymentIntent } from "@/lib/marketplace-checkout-fulfill-before-settle"
 import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
 import StripeSdk from "stripe"
@@ -329,6 +330,11 @@ async function dispatchStripeEvent(
 }
 
 export async function processStripeWebhookEvent(event: Stripe.Event): Promise<WebhookProcessResult> {
+  if (event.type === "payment_intent.succeeded") {
+    // Outside the DB transaction below (see helper): never let a long fulfilment expire the webhook's transaction.
+    await ensureCheckoutFulfilledForPaymentIntent(event.data.object as Stripe.PaymentIntent)
+  }
+
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session
     if (session.mode === "payment" && session.payment_status === "paid") {
