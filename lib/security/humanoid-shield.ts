@@ -23,6 +23,11 @@ export type ShieldThreat = {
   pattern: string
 }
 
+export type ShieldAnalyzeOptions = {
+  /** Verified NextAuth session — never volume-ban a signed-in merchant. */
+  sessionTrusted?: boolean
+}
+
 export type ShieldAnalyzeResult = {
   ip: string
   score: number
@@ -60,8 +65,9 @@ type PatternRule = {
 }
 
 const WINDOW_MS = 60_000
-const NORMAL_LIMIT = 100
-const ADMIN_LIMIT = 20
+const NORMAL_LIMIT = 180
+const MERCHANT_LIMIT = 400
+const ADMIN_LIMIT = 60
 const BLOCK_MS_NORMAL = 2 * 60_000
 const BLOCK_MS_ADMIN = 10 * 60_000
 
@@ -77,7 +83,7 @@ const SQLI_PATTERNS: PatternRule[] = [
   { type: "SQLI", severity: 9, pattern: /union\s+select/i, label: "UNION SELECT" },
   { type: "SQLI", severity: 9, pattern: /or\s+1\s*=\s*1/i, label: "OR 1=1" },
   { type: "SQLI", severity: 10, pattern: /drop\s+table/i, label: "DROP TABLE" },
-  { type: "SQLI", severity: 7, pattern: /--/, label: "--" },
+  { type: "SQLI", severity: 7, pattern: /(?:^|[\s;'"])--/, label: "SQL comment --" },
 ]
 
 const LFI_PATTERNS: PatternRule[] = [
@@ -126,6 +132,14 @@ async function getRedis() {
 
 function redisBanKey(ip: string): string {
   return `affisell:shield:ban:${ip}`
+}
+
+function decodeShieldScanTarget(raw: string): string {
+  try {
+    return decodeURIComponent(raw.replace(/\+/g, " "))
+  } catch {
+    return raw
+  }
 }
 
 const SHIELD_REDIS_LOG_KEY = "affisell:shield:logs"
@@ -254,9 +268,30 @@ export class HumanoidShield {
     const p = pathname.toLowerCase()
     return (
       p.includes("/dashboard/admin") ||
-      p.startsWith("/api/legal") ||
-      p.startsWith("/api/supplier")
+      p.startsWith("/api/admin") ||
+      p.startsWith("/api/legal")
     )
+  }
+
+  /** Supplier / affiliate workspace — high request volume by design (RSC + APIs). */
+  static isMerchantWorkspacePath(pathname: string): boolean {
+    const p = pathname.toLowerCase()
+    return (
+      p.startsWith("/dashboard/supplier") ||
+      p.startsWith("/dashboard/affiliate") ||
+      p.startsWith("/dashboard/reseller") ||
+      p.startsWith("/api/supplier") ||
+      p.startsWith("/api/affiliate") ||
+      p.startsWith("/radar")
+    )
+  }
+
+  /** Vercel Preview / local — challenge bots, never volume-BLOCK founders. */
+  static isRelaxedRuntime(): boolean {
+    const vercelEnv = process.env.VERCEL_ENV?.trim()
+    if (vercelEnv === "preview" || vercelEnv === "development") return true
+    if (process.env.NODE_ENV !== "production") return true
+    return false
   }
 
   /** Public SEO / dev probes — skip bot UA heuristics only (rate limit + payload scans stay on). */
@@ -339,7 +374,11 @@ export class HumanoidShield {
       return
     }
 
-    const limit = HumanoidShield.isAdminSensitivePath(pathname) ? ADMIN_LIMIT : NORMAL_LIMIT
+    const limit = HumanoidShield.isAdminSensitivePath(pathname)
+      ? ADMIN_LIMIT
+      : HumanoidShield.isMerchantWorkspacePath(pathname)
+        ? MERCHANT_LIMIT
+        : NORMAL_LIMIT
     const hit = HumanoidShield.ipHits.get(ip)
     if (!hit || now - hit.windowStart >= WINDOW_MS) {
       HumanoidShield.ipHits.set(ip, { count: 1, windowStart: now })
@@ -351,7 +390,9 @@ export class HumanoidShield {
       const blockMs = limit === ADMIN_LIMIT ? BLOCK_MS_ADMIN : BLOCK_MS_NORMAL
       const until = now + blockMs
       HumanoidShield.blockedUntil.set(ip, until)
-      void HumanoidShield.persistBan(ip, until)
+      if (!HumanoidShield.isRelaxedRuntime()) {
+        void HumanoidShield.persistBan(ip, until)
+      }
       threats.push({
         type: "RATE_LIMIT",
         severity: 9,
@@ -415,25 +456,34 @@ export class HumanoidShield {
     ip: string,
     score: number,
     threats: ShieldThreat[],
-    humanPass: boolean
+    humanPass: boolean,
+    sessionTrusted: boolean
   ): ShieldAction {
     const maxSeverity = threats.reduce((m, t) => Math.max(m, t.severity), 0)
     const whitelisted = HumanoidShield.isWhitelisted(ip)
+    const onlySoft = threats.length === 0 || threats.every((t) => HUMAN_PASS_SOFT_TYPES.has(t.type))
+    const relaxed = HumanoidShield.isRelaxedRuntime()
 
-    if (
-      humanPass &&
-      (threats.length === 0 || threats.every((t) => HUMAN_PASS_SOFT_TYPES.has(t.type)))
-    ) {
+    if (humanPass && onlySoft) {
       return "ALLOW"
     }
 
-    /** Trusted infra (localhost, CI, office IP) — request-volume/UA noise alone shouldn't
-     *  challenge it; the whitelist otherwise only downgraded BLOCK to CHALLENGE. */
-    if (whitelisted && threats.every((t) => HUMAN_PASS_SOFT_TYPES.has(t.type))) {
+    if (sessionTrusted && onlySoft) {
+      return "ALLOW"
+    }
+
+    if (whitelisted && onlySoft) {
+      return "ALLOW"
+    }
+
+    if (relaxed && onlySoft) {
       return "ALLOW"
     }
 
     if (maxSeverity >= 9) {
+      if (threats.every((t) => t.type === "RATE_LIMIT")) {
+        return relaxed || sessionTrusted ? "ALLOW" : "CHALLENGE"
+      }
       if (whitelisted && !threats.some((t) => FORCE_BLOCK_TYPES.has(t.type))) {
         return maxSeverity >= 6 || score < 40 ? "CHALLENGE" : "ALLOW"
       }
@@ -443,32 +493,46 @@ export class HumanoidShield {
     return "ALLOW"
   }
 
-  static analyze(req: NextRequest): ShieldAnalyzeResult {
+  static analyze(req: NextRequest, options: ShieldAnalyzeOptions = {}): ShieldAnalyzeResult {
     const ip = HumanoidShield.extractIp(req)
     const pathname = req.nextUrl.pathname
     const ua = req.headers.get("user-agent") ?? ""
     const threats: ShieldThreat[] = []
     const humanPass = HumanoidShield.hasValidHumanPass(req, ip)
+    const sessionTrusted = Boolean(options.sessionTrusted)
 
     void HumanoidShield.hydrateBanFromRedis(ip)
 
-    if (!humanPass) {
+    HumanoidShield.checkHoneypotPath(pathname, threats)
+    const forceBlock = threats.some((t) => FORCE_BLOCK_TYPES.has(t.type))
+
+    if (sessionTrusted && !forceBlock) {
+      const bannedUntil = HumanoidShield.blockedUntil.get(ip) ?? 0
+      if (bannedUntil > Date.now()) {
+        HumanoidShield.unbanIp(ip)
+        console.log("[shield]", { result: "session_gravity_unban", ip, pathname })
+      }
+    }
+
+    const skipVolumeBan = humanPass || (sessionTrusted && !forceBlock)
+    if (!skipVolumeBan) {
       HumanoidShield.trackRateLimit(ip, pathname, threats)
     }
-    HumanoidShield.checkHoneypotPath(pathname, threats)
     const skipBotUa =
-      HumanoidShield.isBotUaExemptPath(pathname) || HumanoidShield.isLocalDevIp(ip)
+      HumanoidShield.isBotUaExemptPath(pathname) ||
+      HumanoidShield.isLocalDevIp(ip) ||
+      sessionTrusted
     if (!skipBotUa) {
       HumanoidShield.checkBotUa(ua, threats)
     }
 
-    const scanTarget = `${pathname}${req.nextUrl.search}`
+    const scanTarget = decodeShieldScanTarget(`${pathname}${req.nextUrl.search}`)
     HumanoidShield.scanPayload(scanTarget, threats)
 
     const score = HumanoidShield.computeScore(threats)
-    const action = HumanoidShield.resolveAction(ip, score, threats, humanPass)
+    const action = HumanoidShield.resolveAction(ip, score, threats, humanPass, sessionTrusted)
     const isHuman =
-      (action === "ALLOW" || humanPass) &&
+      (action === "ALLOW" || humanPass || sessionTrusted) &&
       score >= 60 &&
       !threats.some((t) => t.type === "BOT_UA")
 

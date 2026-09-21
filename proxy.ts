@@ -99,6 +99,24 @@ function secureSessionCookieForRequest(req: NextRequest): boolean {
   return req.nextUrl.protocol === "https:"
 }
 
+async function isTrustedSession(req: NextRequest): Promise<boolean> {
+  if (!secret) return false
+  try {
+    const token = await getToken({
+      req,
+      secret,
+      secureCookie: secureSessionCookieForRequest(req),
+    })
+    return Boolean(token?.sub)
+  } catch (error) {
+    console.warn("[shield]", {
+      result: "session_lookup_failed",
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return false
+  }
+}
+
 function loginAffiliateUrl(req: NextRequest, pathWithSearch: string) {
   const u = new URL("/login/affiliate", req.url)
   u.searchParams.set("callbackUrl", pathWithSearch)
@@ -306,7 +324,8 @@ export async function proxy(req: NextRequest) {
 
   let shieldResult: ShieldAnalyzeResult | null = null
   if (!isShieldExemptPath(barePath)) {
-    shieldResult = HumanoidShield.analyze(req)
+    const sessionTrusted = await isTrustedSession(req)
+    shieldResult = HumanoidShield.analyze(req, { sessionTrusted })
     HumanoidShield.log(shieldResult, req)
     if (shieldResult.action === "BLOCK" || shieldResult.action === "CHALLENGE") {
       return handleShieldBlock(req, shieldResult)
