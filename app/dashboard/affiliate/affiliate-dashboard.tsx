@@ -129,6 +129,7 @@ function SortableStoreCard(props: {
 }) {
   const { listing, selected, storeSlug, labels, onSelect, onToggleAuction, onEditListing } = props
   const p = listing.product
+  const tUi = useTranslations("affiliate.catalogUi")
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: listing.id,
@@ -179,22 +180,22 @@ function SortableStoreCard(props: {
         </span>
         {(listing.product?.deliveryMax ?? 99) <= 3 ? (
           <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/70 dark:text-emerald-200">
-            Fast Shipping
+            {tUi("fastShipping")}
           </span>
         ) : null}
         {listing.isFeatured ? (
           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-950/70 dark:text-amber-200">
-            Featured
+            {tUi("featured")}
           </span>
         ) : null}
         {listing.marginReviewNeeded ? (
           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-950 dark:bg-amber-950/70 dark:text-amber-200">
-            Marge à revoir
+            {tUi("marginReview")}
           </span>
         ) : null}
         {listing.auctionEligible ? (
           <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-900 dark:bg-violet-950/70 dark:text-violet-200">
-            Auction Arena
+            {tUi("auctionArena")}
           </span>
         ) : null}
       </div>
@@ -206,7 +207,7 @@ function SortableStoreCard(props: {
         className="absolute left-14 top-3 z-10 flex h-9 w-9 cursor-grab touch-none items-center justify-center rounded-lg bg-white/90 text-gray-500 shadow ring-1 ring-gray-100 active:cursor-grabbing dark:bg-zinc-800/95 dark:text-zinc-300 dark:ring-zinc-600"
         {...attributes}
         {...listeners}
-        aria-label="Drag to reorder"
+        aria-label={tUi("dragReorder")}
       >
         <GripVertical className="h-4 w-4" />
       </button>
@@ -232,14 +233,14 @@ function SortableStoreCard(props: {
         </p>
         {shopperReward ? (
           <p className="text-xs font-medium text-teal-800 dark:text-teal-200">
-            Shoppers:{" "}
+            {tUi("shoppers")}{" "}
             <span className="rounded-md bg-teal-50 px-1.5 py-0.5 text-[11px] text-teal-900 dark:bg-teal-950/60 dark:text-teal-100">
               {shopperReward}
             </span>
           </p>
         ) : null}
         <p className="text-xs text-gray-500 dark:text-zinc-300">
-          {listing.clicks ?? 0} clicks · {listing.conversions ?? 0} sales
+          {tUi("clicksSales", { clicks: listing.clicks ?? 0, sales: listing.conversions ?? 0 })}
         </p>
         <label className="mt-2 flex items-center gap-2 text-xs text-gray-600 dark:text-zinc-300">
           <input
@@ -249,7 +250,7 @@ function SortableStoreCard(props: {
             onChange={() => void onToggleAuction()}
             className="accent-violet-600 dark:accent-violet-400 disabled:opacity-40"
           />
-          Auction Arena
+          {tUi("auctionArena")}
         </label>
         <div className="mt-1 flex flex-col gap-2 sm:flex-row">
           <button
@@ -285,6 +286,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
   const tHub = useTranslations("affiliate.hub")
   const tCatalogEconomics = useTranslations("affiliate.catalogEconomics")
   const tAffiliate = useTranslations("affiliate")
+  const tUi = useTranslations("affiliate.catalogUi")
   const router = useRouter()
   const searchParams = useSearchParams()
   const productDeepLinkConsumed = useRef(false)
@@ -454,10 +456,10 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
       body: JSON.stringify(body),
     })
     setSelected(new Set())
-    if (opts.isListed === false) setToast("Hidden from storefront (still in your account)")
-    else if (opts.auctionEligible === true) setToast("Added to Auction Arena")
-    else if (opts.isFeatured === true) setToast("Featured selections")
-    else setToast("Updated selections")
+    if (opts.isListed === false) setToast(tUi("toastHidden"))
+    else if (opts.auctionEligible === true) setToast(tUi("toastAuction"))
+    else if (opts.isFeatured === true) setToast(tUi("toastFeatured"))
+    else setToast(tUi("toastUpdated"))
     void refreshDashboardData()
   }
 
@@ -475,19 +477,17 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
       error?: string
     }
     if (!res.ok) {
-      setToast(data.error ?? "Could not remove listings")
+      setToast(data.error ?? tUi("toastRemoveFailed"))
       return
     }
     const deleted = data.deletedIds?.length ?? 0
     const hidden = data.hiddenIds?.length ?? 0
     if (deleted > 0 && hidden > 0) {
-      setToast(
-        `${deleted} removed from storefront · ${hidden} hidden (past sales — re-add from Discover)`
-      )
+      setToast(tUi("toastRemovedHidden", { deleted, hidden }))
     } else if (hidden > 0) {
-      setToast(`${hidden} hidden from storefront (order history kept)`)
+      setToast(tUi("toastHiddenKept", { hidden }))
     } else {
-      setToast(deleted === 1 ? "Removed from storefront" : `${deleted} removed from storefront`)
+      setToast(tUi("toastRemoved", { count: deleted }))
     }
     setSelected(new Set())
     void refreshDashboardData()
@@ -503,12 +503,12 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
       })
       const data = (await r.json()) as { product?: CatalogProduct; error?: string }
       if (!r.ok || !data.product) {
-        setToast(data.error ?? "Could not load product details")
+        setToast(data.error ?? tUi("toastDetailsFailed"))
         return cached ?? null
       }
       return data.product
     } catch {
-      setToast("Could not load product details")
+      setToast(tUi("toastDetailsFailed"))
       return cached ?? null
     }
   }
@@ -599,7 +599,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
 
     const p = catalog.find((x) => x.id === pid)
     if (!p) {
-      setToast("That product isn’t in this Discover batch. Browse the marketplace to find more SKUs.")
+      setToast(tUi("toastNotInBatch"))
       router.replace("/dashboard/affiliate", { scroll: false })
       return
     }
@@ -632,7 +632,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
 
     const listingRow = listingsWithProduct.find((l) => l.id === listingId)
     if (!listingRow?.product) {
-      setToast("Fiche introuvable — ouvrez votre storefront.")
+      setToast(tUi("toastListingNotFound"))
       router.replace("/dashboard/affiliate", { scroll: false })
       return
     }
@@ -653,7 +653,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
       catalog.find((p) => resolveCatalogListingState(p.affiliateProducts).kind === "none") ?? catalog[0]
 
     if (!preferredProduct) {
-      setToast("No product available yet — browse the marketplace to add your first listing.")
+      setToast(tUi("toastNoProduct"))
       router.replace("/dashboard/affiliate", { scroll: false })
       return
     }
@@ -802,7 +802,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                     {tHub("storefrontSubtitle")}
                   </p>
                 </div>
-                <nav className="flex flex-wrap gap-2 sm:gap-2.5" aria-label="Quick links">
+                <nav className="flex flex-wrap gap-2 sm:gap-2.5" aria-label={tUi("quickLinksAria")}>
                   {(
                     [
                       {
@@ -888,12 +888,9 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                 }
                 hint={
                   addableSkuCount > 0 ? (
-                    <>
-                      <span className="font-semibold text-[#10B981] dark:text-emerald-400">{addableSkuCount}</span> ready
-                      to list
-                    </>
+                    tUi("statFeedReady", { count: addableSkuCount })
                   ) : (
-                    <>You’ve picked up the surfaced batch—refresh often for more.</>
+                    tUi("statFeedDone")
                   )
                 }
               />
@@ -901,20 +898,20 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                 className="border-0 bg-transparent p-0 shadow-none backdrop-blur-none dark:bg-transparent"
                 label={tHub("yourListings")}
                 value={listingsWithProduct.length}
-                hint="SKUs curated in your storefront — toggle checkout visibility per row"
+                hint={tUi("statListingsHint")}
               />
               <BentoStat
                 className="border-0 bg-transparent p-0 shadow-none backdrop-blur-none dark:bg-transparent"
                 label={tHub("liveOnStorefront")}
                 value={listedLiveCount}
                 valueClassName="text-[#10B981] dark:text-emerald-400"
-                hint="Visible SKUs shoppers can checkout"
+                hint={tUi("statLiveHint")}
               />
             </div>
           </div>
         </header>
 
-        <div className="dash-tab-track mt-8" role="tablist" aria-label="Main sections">
+        <div className="dash-tab-track mt-8" role="tablist" aria-label={tUi("tabsAria")}>
           <button
             type="button"
             role="tab"
@@ -923,7 +920,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
             onClick={() => setTab("catalog")}
           >
             <LayoutGrid className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
-            Discover
+            {tUi("tabDiscover")}
           </button>
           <button
             type="button"
@@ -933,7 +930,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
             onClick={() => setTab("store")}
           >
             <Store className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
-            My storefront
+            {tUi("tabStore")}
           </button>
         </div>
 
@@ -943,7 +940,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div className="min-w-0 flex-1 space-y-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-600 dark:text-violet-400">
-                    Discover tools
+                    {tUi("discoverTools")}
                   </p>
                   <div className="relative max-w-xl">
                     <Search
@@ -954,7 +951,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                       type="search"
                       value={discoverQ}
                       onChange={(e) => setDiscoverQ(e.target.value)}
-                      placeholder="Search SKU, supplier, tags, category…"
+                      placeholder={tUi("searchPlaceholder")}
                       className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pl-10 pr-3 text-sm text-zinc-900 outline-none ring-violet-500/25 transition placeholder:text-zinc-400 focus:border-violet-400 focus:ring-2 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-violet-500"
                     />
                   </div>
@@ -983,7 +980,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-bold tracking-tight">
-                        Not in my store yet
+                        {tUi("unlistedTitle")}
                       </span>
                       <span
                         className={cn(
@@ -994,8 +991,8 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                         )}
                       >
                         {discoverUnlistedOnly
-                          ? "ON — only products you can still import"
-                          : "Tap to hide SKUs already imported (draft or live)"}
+                          ? tUi("unlistedOn")
+                          : tUi("unlistedOff")}
                       </span>
                     </span>
                     <span
@@ -1016,7 +1013,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                 </div>
                 <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto lg:min-w-[13rem]">
                   <label htmlFor="discover-sort" className="sr-only">
-                    Sort discover feed
+                    {tUi("sortLabel")}
                   </label>
                   <div className="relative w-full sm:min-w-[12rem]">
                     <ArrowDownWideNarrow
@@ -1029,24 +1026,22 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                       onChange={(e) => setDiscoverSort(e.target.value as DiscoverSortKey)}
                       className="w-full appearance-none rounded-xl border border-zinc-200 bg-white py-2.5 pl-10 pr-8 text-sm text-zinc-900 outline-none ring-violet-500/25 focus:border-violet-400 focus:ring-2 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-violet-500"
                     >
-                      <option value="new">Newest in feed</option>
+                      <option value="new">{tUi("sortNew")}</option>
                       <option value="commission-desc">{tCatalogEconomics("sortRevenueDesc")}</option>
-                      <option value="price-asc">Supplier price · low → high</option>
-                      <option value="price-desc">Supplier price · high → low</option>
-                      <option value="name">Title A–Z</option>
+                      <option value="price-asc">{tUi("sortPriceAsc")}</option>
+                      <option value="price-desc">{tUi("sortPriceDesc")}</option>
+                      <option value="name">{tUi("sortName")}</option>
                     </select>
                   </div>
                 </div>
               </div>
               <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-300">
                 {catalogLoading ? (
-                  <>Loading discover feed…</>
+                  tUi("loadingFeed")
                 ) : (
                   <>
-                    Showing{" "}
-                    <strong className="font-semibold text-zinc-800 dark:text-zinc-200">{filteredDiscover.length}</strong> of{" "}
-                    {discoverSkuCount} surfaced SKUs
-                    {discoverUnlistedOnly ? <> · hides rows already imported</> : null}
+                    {tUi("showing", { shown: filteredDiscover.length, total: discoverSkuCount })}
+                    {discoverUnlistedOnly ? tUi("hidesImported") : null}
                   </>
                 )}
               </p>
@@ -1054,7 +1049,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
 
             {catalogError ? (
               <div className="mt-10 rounded-2xl border border-amber-200 bg-amber-50/90 px-6 py-8 text-center dark:border-amber-900/50 dark:bg-amber-950/30">
-                <p className="text-sm font-semibold text-amber-950 dark:text-amber-100">Discover feed unavailable</p>
+                <p className="text-sm font-semibold text-amber-950 dark:text-amber-100">{tUi("feedUnavailable")}</p>
                 <p className="mx-auto mt-2 max-w-md text-sm text-amber-900/80 dark:text-amber-200/80">{catalogError}</p>
                 <button
                   type="button"
@@ -1064,7 +1059,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                     void fetch("/api/affiliate/discover-catalog", { credentials: "include" })
                       .then(async (r) => {
                         const data = (await r.json()) as { products?: CatalogProduct[]; error?: string }
-                        if (!r.ok) throw new Error(data.error ?? "Could not load catalog")
+                        if (!r.ok) throw new Error(data.error ?? tUi("loadCatalogFailed"))
                         setCatalog(Array.isArray(data.products) ? data.products : [])
                       })
                       .catch((e: unknown) => {
@@ -1074,7 +1069,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                   }}
                   className="mt-4 rounded-xl bg-amber-900 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-800 dark:bg-amber-100 dark:text-amber-950 dark:hover:bg-white"
                 >
-                  Retry
+                  {tUi("retry")}
                 </button>
               </div>
             ) : catalogLoading ? (
@@ -1086,13 +1081,15 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
             ) : filteredDiscover.length === 0 ? (
               <div className="mt-10 rounded-2xl border border-dashed border-zinc-300 bg-white/70 px-6 py-16 text-center dark:border-zinc-700 dark:bg-zinc-950/40">
                 <BadgePercent className="mx-auto h-10 w-10 text-violet-500" aria-hidden />
-                <p className="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">No matches</p>
+                <p className="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">{tUi("noMatches")}</p>
                 <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-300">
-                  Relax filters or clear search—everything in Discover still lives in the{" "}
-                  <Link href={AFFILIATE_CATALOG_PATH} className="font-medium text-violet-700 underline underline-offset-2 hover:text-violet-900 dark:text-violet-400">
-                    marketplace
-                  </Link>
-                  .
+                  {tUi.rich("noMatchesBody", {
+                    link: (chunks) => (
+                      <Link href={AFFILIATE_CATALOG_PATH} className="font-medium text-violet-700 underline underline-offset-2 hover:text-violet-900 dark:text-violet-400">
+                        {chunks}
+                      </Link>
+                    ),
+                  })}
                 </p>
               </div>
             ) : (
@@ -1129,18 +1126,18 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                 {isLive ? (
                   <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-green-600 px-2 py-1 text-xs text-white shadow-sm">
                     <Check className="h-3 w-3" aria-hidden />
-                    In your store
+                    {tUi("inYourStore")}
                   </div>
                 ) : null}
                 {isHidden ? (
                   <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-amber-500 px-2 py-1 text-xs font-medium text-white shadow-sm">
-                    Removed
+                    {tUi("removed")}
                   </div>
                 ) : null}
                 {isReady || (listingState.kind === "none" && fresh) ? (
                   <div className="pointer-events-none absolute left-3 top-3 z-10">
                     <span className="rounded-full bg-violet-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
-                      New
+                      {tUi("badgeNew")}
                     </span>
                   </div>
                 ) : null}
@@ -1163,9 +1160,9 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                       href={canonicalListingHref}
                       target="_blank"
                       rel="noopener noreferrer"
-                      title="Buyer preview — opens PDP when a listing exists"
+                      title={tUi("buyerPreviewHint")}
                       className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white text-teal-700 transition hover:border-teal-200 hover:bg-teal-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-teal-400 dark:hover:bg-teal-950/40"
-                      aria-label="Buyer preview"
+                      aria-label={tUi("buyerPreview")}
                     >
                       <ExternalLink className="h-4 w-4" aria-hidden />
                     </Link>
@@ -1198,7 +1195,6 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                   <ProductCrossSocialProofCompact data={socialProofByProductId[p.id]} />
                   <DiscoverListingActions
                     state={listingState}
-                    locale="en"
                     releasing={
                       listingState.kind !== "none" && releasingListingId === listingState.listingId
                     }
@@ -1219,7 +1215,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
             <div className="mb-6 rounded-2xl border border-teal-200/80 bg-gradient-to-r from-teal-50/90 via-white to-violet-50/60 px-5 py-4 shadow-sm dark:border-teal-900/40 dark:from-teal-950/30 dark:via-zinc-950 dark:to-violet-950/30 sm:flex sm:items-center sm:justify-between sm:gap-6">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-teal-800 dark:text-teal-300">
-                  Storefront pulse
+                  {tUi("pulseTitle")}
                 </p>
                 <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-200">
                   {tHub("storefrontPulseBody", {
@@ -1236,7 +1232,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                   className="inline-flex items-center gap-2 rounded-xl border border-teal-200 bg-white px-4 py-2 text-xs font-semibold text-teal-900 shadow-sm hover:bg-teal-50 dark:border-teal-800 dark:bg-zinc-900 dark:text-teal-100 dark:hover:bg-teal-950/50"
                 >
                   <Compass className="h-3.5 w-3.5" aria-hidden />
-                  Scout more SKU
+                  {tUi("scoutMore")}
                 </Link>
               </div>
             </div>
@@ -1256,7 +1252,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
               onClick={() => void bulkPatch({ isFeatured: true })}
               className="dash-btn-secondary"
             >
-              Feature selected
+              {tUi("featureSelected")}
             </button>
             <button
               type="button"
@@ -1264,13 +1260,15 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
               onClick={() => void bulkPatch({ auctionEligible: true })}
               className="dash-btn-secondary"
             >
-              Add to Auction Arena
+              {tUi("addToAuction")}
             </button>
           </div>
 
           {!listingsWithProduct.length ? (
             <p className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-500 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300">
-              No listings yet — add SKUs from <strong className="font-medium text-gray-700 dark:text-zinc-100">Discover</strong>.
+              {tUi.rich("noListings", {
+                link: (chunks) => <strong className="font-medium text-gray-700 dark:text-zinc-100">{chunks}</strong>,
+              })}
             </p>
           ) : (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -1316,7 +1314,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
             setModalListing(null)
           }}
           onSaved={() => {
-            setToast("Listing saved.")
+            setToast(tUi("toastSaved"))
             void refreshDashboardData()
           }}
         />
@@ -1329,7 +1327,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
               className="mt-2 block text-[11px] text-gray-300 underline"
               onClick={() => setToast(null)}
             >
-              Close
+              {tUi("close")}
             </button>
           </div>
         ) : null}
