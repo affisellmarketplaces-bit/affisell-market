@@ -7,8 +7,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Line,
-  LineChart as RechartsLineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -16,6 +14,7 @@ import {
 } from "recharts"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
+import { RevenueCompareChart } from "@/components/dashboard/revenue-compare-chart"
 import { buttonVariants } from "@/components/ui/button"
 import type { SupplierDashboardAnalytics } from "@/lib/supplier-dashboard-analytics-types"
 import { bcp47ForAppLocale, formatMoneyFromCents } from "@/lib/app-locale-format"
@@ -24,11 +23,6 @@ import { cn } from "@/lib/utils"
 
 type Props = {
   analytics: SupplierDashboardAnalytics
-}
-
-function formatDayLabel(isoDay: string): string {
-  const [, month, day] = isoDay.split("-")
-  return `${day}/${month}`
 }
 
 
@@ -41,13 +35,6 @@ export function SupplierAnalyticsWidget({ analytics }: Props) {
         new Date(`${analytics.estimatedNextPayoutDate}T12:00:00Z`)
       )
     : null
-  const hasRevenue = analytics.dailyRevenue.some((row) => row.revenueCents > 0)
-  const lineData = analytics.dailyRevenue.map((row) => ({
-    day: formatDayLabel(row.day),
-    revenue: row.revenueCents / 100,
-    orders: row.orders,
-  }))
-
   const barData = analytics.topAffiliates.map((row) => ({
     name:
       row.displayName.length > 16 ? `${row.displayName.slice(0, 14)}…` : row.displayName,
@@ -111,50 +98,11 @@ export function SupplierAnalyticsWidget({ analytics }: Props) {
             <LineChart className="size-4 text-zinc-500" aria-hidden />
             <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{t("dailyRevenue")}</p>
           </div>
-          <div className="relative h-48 w-full">
-            {!hasRevenue ? (
-              <p className="absolute inset-0 z-10 flex items-center justify-center px-6 text-center text-sm text-zinc-500">
-                {t("noRevenueChart")}
-              </p>
-            ) : null}
-            <ResponsiveContainer width="100%" height="100%">
-              <RechartsLineChart data={lineData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} />
-                <XAxis
-                  dataKey="day"
-                  tick={{ fontSize: 10, fill: "#71717a" }}
-                  axisLine={{ stroke: "#e4e4e7" }}
-                  tickLine={false}
-                  interval="preserveStartEnd"
-                />
-                <YAxis
-                  tick={{ fontSize: 10, fill: "#71717a" }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={42}
-                />
-                <Tooltip
-                  formatter={(value, name) => {
-                    if (name === "revenue") return [formatEuroCents(Number(value) * 100), t("tooltipRevenue")]
-                    return [value, t("tooltipOrders")]
-                  }}
-                  contentStyle={{
-                    borderRadius: "12px",
-                    border: "1px solid #e4e4e7",
-                    fontSize: "12px",
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#059669"
-                  strokeWidth={2.5}
-                  dot={false}
-                  activeDot={{ r: 4 }}
-                />
-              </RechartsLineChart>
-            </ResponsiveContainer>
-          </div>
+          <RevenueCompareChart
+            current={analytics.dailyRevenue}
+            previous={analytics.previousDailyRevenue}
+            color="#059669"
+          />
         </div>
 
         <div>

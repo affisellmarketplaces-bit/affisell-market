@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 import { AlertTriangle, CircleHelp } from "lucide-react"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
@@ -6,20 +7,22 @@ import {
   CLAWBACK_RISK_WARNING_CENTS,
   CLAWBACK_RISK_WINDOW_DAYS,
 } from "@/lib/affiliate-clawback-risk"
-import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { formatMoneyFromCents } from "@/lib/app-locale-format"
+import { resolveAppLocale } from "@/lib/i18n-locale"
+import { getLocale } from "next-intl/server"
 import { cn } from "@/lib/utils"
 
 type Props = {
   riskCents: number
 }
 
-const TOOLTIP =
-  "Conformément aux CGA art.5. En cas de retour client accepté, la commission est annulée même si déjà versée."
-
-export function ClawbackRiskWidget({ riskCents }: Props) {
+export async function ClawbackRiskWidget({ riskCents }: Props) {
+  const t = await getTranslations("affiliateDashboard.clawback")
+  const locale = resolveAppLocale(await getLocale())
+  const TOOLTIP = t("tooltip")
   const isEmpty = riskCents <= 0
   const showWarning = riskCents > CLAWBACK_RISK_WARNING_CENTS
-  const amountLabel = formatStoreCurrencyFromCents(riskCents)
+  const amountLabel = formatMoneyFromCents(riskCents, locale)
 
   return (
     <BentoCard
@@ -33,19 +36,19 @@ export function ClawbackRiskWidget({ riskCents }: Props) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-              Risque clawback {CLAWBACK_RISK_WINDOW_DAYS}j
+              {t("title", { days: CLAWBACK_RISK_WINDOW_DAYS })}
             </p>
             {showWarning ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900 dark:bg-amber-950/60 dark:text-amber-200">
                 <AlertTriangle className="size-3" aria-hidden />
-                Élevé
+                {t("high")}
               </span>
             ) : null}
           </div>
 
           {isEmpty ? (
             <p className="mt-3 text-base font-medium text-zinc-700 dark:text-zinc-200">
-              Aucun risque détecté 🎉
+              {t("none")}
             </p>
           ) : (
             <>
@@ -53,7 +56,7 @@ export function ClawbackRiskWidget({ riskCents }: Props) {
                 {amountLabel}
               </p>
               <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Montant débité de votre prochain payout si tous les remboursements sont confirmés
+                {t("explain")}
               </p>
             </>
           )}
@@ -72,7 +75,7 @@ export function ClawbackRiskWidget({ riskCents }: Props) {
         href="/dashboard/refunds"
         className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
       >
-        Voir détails
+        {t("details")}
       </Link>
     </BentoCard>
   )

@@ -20,4 +20,7 @@ export type AffiliateDashboardAnalytics = {
   topProductsEpc: AffiliateTopProductEpc[]
   estimatedPayoutJ7Cents: number
   totalRevenue30dCents: number
+  /** The 30 days BEFORE the current window, same length — for period-over-period comparison. */
+  previousDailyRevenue?: AffiliateDailyRevenuePoint[]
+  totalRevenuePrev30dCents?: number
 }

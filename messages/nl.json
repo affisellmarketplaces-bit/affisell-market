@@ -1,4 +1,16 @@
 {
+  "dashboardCharts": {
+    "currentPeriod": "Laatste 30 dagen",
+    "previousPeriod": "Vorige 30 dagen",
+    "daily": "Dagelijks",
+    "cumulative": "Cumulatief",
+    "viewMode": "Grafiekweergave",
+    "newActivity": "Nieuwe activiteit",
+    "vsPrevious": "{pct}% t.o.v. de vorige 30 dagen",
+    "orders": "{count, plural, one {# bestelling} other {# bestellingen}}",
+    "noSales": "In deze twee periodes nog geen verkopen",
+    "aria": "Omzetgrafiek, {total} in de laatste 30 dagen"
+  },
   "nav": {
     "brand": "Affisell",
     "home": "Home",
@@ -2801,6 +2813,48 @@
     "privacyPolicy": "Privacybeleid"
   },
   "affiliateDashboard": {
+    "kpi": {
+      "aria": "Kerncijfers",
+      "earnings": "Inkomsten · 30 d",
+      "earningsNone": "Nog geen verkopen",
+      "trend": "{pct}% t.o.v. de vorige 30 dagen",
+      "window": "Laatste 30 dagen",
+      "payout": "Uitbetaling · 7 d",
+      "payoutSub": "Verwacht binnen 7 dagen",
+      "payoutNone": "Niets in behandeling",
+      "listings": "Advertenties",
+      "listingsLive": "{count} online",
+      "listingsDrafts": "{count, plural, one {# concept} other {# concepten}}",
+      "listingsAllLive": "Alles gepubliceerd",
+      "listingsNone": "Voeg je eerste advertentie toe",
+      "clawback": "Terugbetalingsrisico",
+      "clawbackNone": "Geen risico gedetecteerd",
+      "clawbackHigh": "Hoog — commissies kunnen worden teruggedraaid",
+      "clawbackSome": "Terugdraaibaar als terugbetalingen worden bevestigd"
+    },
+    "analytics": {
+      "title": "Analyses · 30 dagen",
+      "subtitle": "Netto inkomsten wederverkoper · laatste 30 dagen",
+      "payoutJ7": "Geschatte uitbetaling binnen 7 dagen",
+      "dailyRevenue": "Inkomsten per dag",
+      "topProducts": "Topproducten op EPC",
+      "epcHint": "Opbrengst per klik",
+      "epc": "EPC",
+      "noSales": "Nog geen verkopen in de laatste 30 dagen — plaats een Pulse-product om te starten."
+    },
+    "clawback": {
+      "title": "Terugvorderingsrisico (clawback) · {days} dagen",
+      "high": "Hoog",
+      "none": "Geen risico gedetecteerd 🎉",
+      "explain": "Bedrag dat op je volgende uitbetaling wordt ingehouden als alle terugbetalingen worden bevestigd",
+      "details": "Details bekijken",
+      "tooltip": "Volgens de wederverkoopvoorwaarden (art. 5): wordt een klantretour geaccepteerd, dan vervalt de commissie, ook als die al is uitbetaald."
+    },
+    "home": {
+      "loading": "Je dashboard wordt geladen…",
+      "needProduct": "Een nieuw product nodig?",
+      "request": "Aanvragen"
+    },
     "onboarding": {
       "title": "Start je affiliate-winkel",
       "subtitle": "Vier stappen van registratie tot je eerste commissie.",
@@ -2928,7 +2982,7 @@
       "aria": "Kerncijfers",
       "revenue": "Omzet · 30 d",
       "revenueNone": "Nog geen verkopen",
-      "revenueTrend": "{pct}% t.o.v. de vorige 7 dagen",
+      "revenueTrend": "{pct}% t.o.v. de vorige 30 dagen",
       "revenueWindow": "Laatste 30 dagen",
       "ship": "Te verzenden",
       "shipAllCaughtUp": "Alles bijgewerkt",

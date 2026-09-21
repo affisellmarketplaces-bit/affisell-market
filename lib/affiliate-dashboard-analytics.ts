@@ -64,7 +64,9 @@ export async function loadAffiliateDashboardAnalytics(
   const since = new Date(startOfUtcDay(now).getTime() - (AFFILIATE_ANALYTICS_WINDOW_DAYS - 1) * 86_400_000)
   const payoutHorizon = addDays(now, 7)
 
-  const [windowOrders, productGroups, pendingPayoutOrders] = await Promise.all([
+  const previousSince = new Date(since.getTime() - AFFILIATE_ANALYTICS_WINDOW_DAYS * 86_400_000)
+
+  const [windowOrders, productGroups, pendingPayoutOrders, previousWindowOrders] = await Promise.all([
     prisma.order.findMany({
       where: {
         affiliateId,
@@ -108,6 +110,21 @@ export async function loadAffiliateDashboardAnalytics(
         affiliateMarginCents: true,
       },
     }),
+    // Previous window (same length, ending right before the current one) — only what the net calculation needs.
+    prisma.order.findMany({
+      where: {
+        affiliateId,
+        status: { in: [...COUNTABLE_STATUSES] },
+        createdAt: { gte: previousSince, lt: since },
+      },
+      select: {
+        createdAt: true,
+        affiliatePayoutCents: true,
+        affiliateMarginRetainedCents: true,
+        affiliateFeeCents: true,
+        affiliateMarginCents: true,
+      },
+    }),
   ])
 
   const productIds = productGroups.map((group) => group.affiliateProductId)
@@ -128,6 +145,17 @@ export async function loadAffiliateDashboardAnalytics(
     createdAt: order.createdAt,
     netCents: orderNetCents(order),
   }))
+
+  const previousWithNet = previousWindowOrders.map((order) => ({
+    createdAt: order.createdAt,
+    netCents: orderNetCents(order),
+  }))
+  const previousDailyRevenue = buildDailySeries(
+    previousWithNet,
+    AFFILIATE_ANALYTICS_WINDOW_DAYS,
+    new Date(since.getTime() - 1)
+  )
+  const totalRevenuePrev30dCents = previousWithNet.reduce((sum, row) => sum + row.netCents, 0)
 
   const dailyRevenue = buildDailySeries(ordersWithNet, AFFILIATE_ANALYTICS_WINDOW_DAYS, now)
   const totalRevenue30dCents = ordersWithNet.reduce((sum, row) => sum + row.netCents, 0)
@@ -179,5 +207,7 @@ export async function loadAffiliateDashboardAnalytics(
     topProductsEpc,
     estimatedPayoutJ7Cents,
     totalRevenue30dCents,
+    previousDailyRevenue,
+    totalRevenuePrev30dCents,
   }
 }

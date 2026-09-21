@@ -1,4 +1,16 @@
 {
+  "dashboardCharts": {
+    "currentPeriod": "最近 30 天",
+    "previousPeriod": "前 30 天",
+    "daily": "每日",
+    "cumulative": "累计",
+    "viewMode": "图表视图",
+    "newActivity": "新增活动",
+    "vsPrevious": "较前 30 天 {pct}%",
+    "orders": "{count} 个订单",
+    "noSales": "这两个时期都还没有销售",
+    "aria": "收入图表，最近 30 天共 {total}"
+  },
   "nav": {
     "brand": "Affisell",
     "home": "首页",
@@ -2801,6 +2813,48 @@
     "privacyPolicy": "隐私政策"
   },
   "affiliateDashboard": {
+    "kpi": {
+      "aria": "关键数据",
+      "earnings": "收益 · 30 天",
+      "earningsNone": "暂无销售",
+      "trend": "较前 30 天 {pct}%",
+      "window": "最近 30 天",
+      "payout": "结算 · 7 天",
+      "payoutSub": "预计 7 天内到账",
+      "payoutNone": "暂无待结算",
+      "listings": "商品上架",
+      "listingsLive": "{count} 件在售",
+      "listingsDrafts": "{count} 个草稿",
+      "listingsAllLive": "全部已发布",
+      "listingsNone": "添加您的第一个商品",
+      "clawback": "退款风险",
+      "clawbackNone": "未发现风险",
+      "clawbackHigh": "高 — 佣金可能被撤销",
+      "clawbackSome": "退款确认后可能撤销"
+    },
+    "analytics": {
+      "title": "数据分析 · 30 天",
+      "subtitle": "分销商净收益 · 最近 30 天",
+      "payoutJ7": "预计 7 天内结算",
+      "dailyRevenue": "每日收益",
+      "topProducts": "按 EPC 排名的热门商品",
+      "epcHint": "每次点击收益",
+      "epc": "EPC",
+      "noSales": "最近 30 天暂无销量 — 上架一个 Pulse 商品即可开始。"
+    },
+    "clawback": {
+      "title": "退款追回风险 · {days} 天",
+      "high": "高",
+      "none": "未发现风险 🎉",
+      "explain": "若所有退款均被确认，将从您下一次结算中扣除的金额",
+      "details": "查看详情",
+      "tooltip": "根据分销商条款（第 5 条）：客户退货获准后，佣金将被取消，即使已支付。"
+    },
+    "home": {
+      "loading": "正在加载您的控制台…",
+      "needProduct": "需要新商品？",
+      "request": "提交需求"
+    },
     "onboarding": {
       "title": "启动您的联盟商店",
       "subtitle": "从注册到第一笔佣金的四个步骤。",
@@ -2928,7 +2982,7 @@
       "aria": "关键数据",
       "revenue": "收入 · 30 天",
       "revenueNone": "暂无销售",
-      "revenueTrend": "较前 7 天 {pct}%",
+      "revenueTrend": "较前 30 天 {pct}%",
       "revenueWindow": "最近 30 天",
       "ship": "待发货",
       "shipAllCaughtUp": "已全部处理",

@@ -1,9 +1,11 @@
 import { Suspense } from "react"
 import Link from "next/link"
+import { getLocale, getTranslations } from "next-intl/server"
 
 import { AffiliateOnboardingChecklist } from "@/components/affiliate/affiliate-onboarding-checklist"
 import { AffiliateKycPublishBanner } from "@/components/affiliate/affiliate-kyc-publish-banner"
 import { BentoCard, BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
+import { AffiliateKpiStrip } from "@/components/affiliate/affiliate-kpi-strip"
 import { AffiliateAnalyticsWidget } from "@/components/dashboard/affiliate-analytics-widget"
 import { ClawbackRiskWidget } from "@/components/dashboard/clawback-risk-widget"
 import { RadarAffiliateDiscoveryCard } from "@/components/radar/radar-discovery-card"
@@ -15,6 +17,8 @@ import type { AffiliateCatalogProduct } from "@/lib/affiliate-catalog-types"
 import { loadAffiliateDashboardAnalytics } from "@/lib/affiliate-dashboard-analytics"
 import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { loadAffiliateFirstSaleProgress } from "@/lib/merchant-first-sale-progress"
+import { affiliateListingsWhere } from "@/lib/merchant-tenant-scope"
+import { resolveAppLocale } from "@/lib/i18n-locale"
 import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
 import { prismaUnavailableUserMessage } from "@/lib/prisma-db-error"
 import { getUserRadarPlan } from "@/lib/radar/plans"
@@ -28,7 +32,9 @@ type Props = {
 
 export async function AffiliateDashboardHome({ callbackPath }: Props) {
   const session = await requireAffiliateSession(callbackPath)
-  const [firstSaleProgress, kycGate, clawbackRisk, analytics, radarUser] = await Promise.all([
+  const tHome = await getTranslations("affiliateDashboard.home")
+  const locale = resolveAppLocale(await getLocale())
+  const [firstSaleProgress, kycGate, clawbackRisk, analytics, radarUser, liveListings] = await Promise.all([
     loadAffiliateFirstSaleProgress(session.user.id),
     merchantVerificationGate(session.user.id),
     loadAffiliateClawbackRisk(session.user.id),
@@ -37,6 +43,9 @@ export async function AffiliateDashboardHome({ callbackPath }: Props) {
       where: { id: session.user.id },
       select: { isPro: true, radarPlan: true, email: true },
     }),
+    prisma.affiliateProduct
+      .count({ where: { ...affiliateListingsWhere(session.user.id), isListed: true } })
+      .catch(() => 0),
   ])
 
   const radarPlan = getUserRadarPlan({
@@ -83,7 +92,7 @@ export async function AffiliateDashboardHome({ callbackPath }: Props) {
         <BentoShell>
           <BentoContainer>
             <BentoCard className="py-12 text-center text-sm text-gray-600 dark:text-zinc-300">
-              Loading your dashboard…
+              {tHome("loading")}
             </BentoCard>
           </BentoContainer>
         </BentoShell>
@@ -91,26 +100,38 @@ export async function AffiliateDashboardHome({ callbackPath }: Props) {
     >
       <div className="space-y-6">
         <BentoContainer maxWidth="6xl" className="space-y-4 pt-8">
-          <ResellerRequestCtaBanner />
+          {/* 1 — anything blocking (KYC), then the four numbers a reseller checks first */}
           <AffiliateKycPublishBanner
             allowed={kycGate.allowed}
             reason={kycGate.reason ?? null}
             status={kycGate.status}
             draftCount={firstSaleProgress.draftListingCount}
           />
-          <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
-            Besoin d&apos;un nouveau produit?{" "}
-            <Link
-              href="/dashboard/reseller/requests/new"
-              className="font-semibold text-orange-700 hover:underline"
-            >
-              → Demander
-            </Link>
-          </div>
-          <RadarAffiliateDiscoveryCard isFreePlan={isFreePlan} />
+          <AffiliateKpiStrip
+            analytics={analytics}
+            liveListings={liveListings}
+            draftListings={firstSaleProgress.draftListingCount}
+            clawbackRiskCents={clawbackRisk.riskCents}
+            locale={locale}
+          />
+
+          {/* 2 — what to do next (first-sale checklist), then performance */}
           <AffiliateOnboardingChecklist progress={firstSaleProgress} />
           <AffiliateAnalyticsWidget analytics={analytics} />
           <ClawbackRiskWidget riskCents={clawbackRisk.riskCents} />
+
+          {/* 3 — discovery */}
+          <ResellerRequestCtaBanner />
+          <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200">
+            {tHome("needProduct")}{" "}
+            <Link
+              href="/dashboard/reseller/requests/new"
+              className="font-semibold text-orange-700 hover:underline dark:text-orange-300"
+            >
+              → {tHome("request")}
+            </Link>
+          </div>
+          <RadarAffiliateDiscoveryCard isFreePlan={isFreePlan} />
         </BentoContainer>
         <AffiliateDashboard
           storeId={session.user.id}

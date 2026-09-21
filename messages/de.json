@@ -1,4 +1,16 @@
 {
+  "dashboardCharts": {
+    "currentPeriod": "Letzte 30 Tage",
+    "previousPeriod": "Vorherige 30 Tage",
+    "daily": "Täglich",
+    "cumulative": "Kumuliert",
+    "viewMode": "Diagrammansicht",
+    "newActivity": "Neue Aktivität",
+    "vsPrevious": "{pct} % ggü. vorherigen 30 Tagen",
+    "orders": "{count, plural, one {# Bestellung} other {# Bestellungen}}",
+    "noSales": "In beiden Zeiträumen noch keine Verkäufe",
+    "aria": "Umsatzdiagramm, {total} in den letzten 30 Tagen"
+  },
   "nav": {
     "brand": "Affisell",
     "home": "Startseite",
@@ -2801,6 +2813,48 @@
     "privacyPolicy": "Datenschutzerklärung"
   },
   "affiliateDashboard": {
+    "kpi": {
+      "aria": "Kennzahlen",
+      "earnings": "Einnahmen · 30 T.",
+      "earningsNone": "Noch keine Verkäufe",
+      "trend": "{pct} % ggü. vorherigen 30 Tagen",
+      "window": "Letzte 30 Tage",
+      "payout": "Auszahlung · 7 T.",
+      "payoutSub": "Innerhalb von 7 Tagen erwartet",
+      "payoutNone": "Nichts ausstehend",
+      "listings": "Angebote",
+      "listingsLive": "{count} online",
+      "listingsDrafts": "{count, plural, one {# Entwurf} other {# Entwürfe}}",
+      "listingsAllLive": "Alle veröffentlicht",
+      "listingsNone": "Fügen Sie Ihr erstes Angebot hinzu",
+      "clawback": "Rückerstattungsrisiko",
+      "clawbackNone": "Kein Risiko erkannt",
+      "clawbackHigh": "Hoch — Provisionen können rückgängig gemacht werden",
+      "clawbackSome": "Rückbuchbar, wenn Erstattungen bestätigt werden"
+    },
+    "analytics": {
+      "title": "Analysen · 30 Tage",
+      "subtitle": "Netto-Wiederverkäufer-Einnahmen · letzte 30 Tage",
+      "payoutJ7": "Geschätzte Auszahlung in 7 Tagen",
+      "dailyRevenue": "Einnahmen pro Tag",
+      "topProducts": "Top-Produkte nach EPC",
+      "epcHint": "Ertrag pro Klick",
+      "epc": "EPC",
+      "noSales": "In den letzten 30 Tagen noch keine Verkäufe — listen Sie ein Pulse-Produkt, um zu starten."
+    },
+    "clawback": {
+      "title": "Rückforderungsrisiko · {days} Tage",
+      "high": "Hoch",
+      "none": "Kein Risiko erkannt 🎉",
+      "explain": "Betrag, der bei Bestätigung aller Erstattungen von Ihrer nächsten Auszahlung abgezogen wird",
+      "details": "Details ansehen",
+      "tooltip": "Gemäß den Wiederverkäufer-Bedingungen (Art. 5): Wird eine Kundenrücksendung akzeptiert, wird die Provision storniert, auch wenn sie bereits ausgezahlt wurde."
+    },
+    "home": {
+      "loading": "Ihr Dashboard wird geladen…",
+      "needProduct": "Sie brauchen ein neues Produkt?",
+      "request": "Anfordern"
+    },
     "onboarding": {
       "title": "Starten Sie Ihren Affiliate-Shop",
       "subtitle": "Vier Schritte von der Anmeldung bis zur ersten Provision.",
@@ -2928,7 +2982,7 @@
       "aria": "Kennzahlen",
       "revenue": "Umsatz · 30 T.",
       "revenueNone": "Noch keine Verkäufe",
-      "revenueTrend": "{pct} % ggü. den letzten 7 Tagen",
+      "revenueTrend": "{pct} % ggü. vorherigen 30 Tagen",
       "revenueWindow": "Letzte 30 Tage",
       "ship": "Zu versenden",
       "shipAllCaughtUp": "Alles erledigt",

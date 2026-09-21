@@ -114,6 +114,7 @@ export async function getSupplierAnalytics(
     chargebackAgg,
     publishedProducts,
     zeroSalesAlert,
+    previousWindowOrders,
   ] = await Promise.all([
     prisma.order.findMany({
       where: {
@@ -207,6 +208,31 @@ export async function getSupplierAnalytics(
       select: { id: true, name: true },
     }),
     loadZeroSalesAlert(supplierId, now),
+    // Previous window (same length, ending right before the current one) — for period-over-period comparison.
+    prisma.order.findMany({
+      where: {
+        supplierId,
+        status: { in: [...COUNTABLE_STATUSES] },
+        createdAt: { gte: new Date(since.getTime() - SUPPLIER_ANALYTICS_WINDOW_DAYS * 86_400_000), lt: since },
+      },
+      select: {
+        id: true,
+        createdAt: true,
+        productId: true,
+        affiliateId: true,
+        status: true,
+        basePriceCents: true,
+        supplierPriceCents: true,
+        supplierPayoutCents: true,
+        supplierCommissionRateBps: true,
+        affiliatePayoutCents: true,
+        supplierFeeCents: true,
+        usesAffisellAutoBuy: true,
+        aeWholesaleCents: true,
+        payoutEligibleAt: true,
+        supplierPayoutAt: true,
+      },
+    }),
   ])
 
   const ordersWithNet = windowOrders.map((order) => ({
@@ -214,6 +240,17 @@ export async function getSupplierAnalytics(
     netCents: orderSupplierNetCents(order),
     order,
   }))
+
+  const previousWithNet = previousWindowOrders.map((order) => ({
+    createdAt: order.createdAt,
+    netCents: orderSupplierNetCents(order),
+  }))
+  const previousDailyRevenue = buildDailySeries(
+    previousWithNet,
+    SUPPLIER_ANALYTICS_WINDOW_DAYS,
+    new Date(since.getTime() - 1)
+  )
+  const totalRevenuePrev30dCents = previousWithNet.reduce((sum, row) => sum + row.netCents, 0)
 
   const dailyRevenue = buildDailySeries(ordersWithNet, SUPPLIER_ANALYTICS_WINDOW_DAYS, now)
   const totalRevenue30dCents = ordersWithNet.reduce((sum, row) => sum + row.netCents, 0)
@@ -355,6 +392,8 @@ export async function getSupplierAnalytics(
     topAffiliates,
     skuPerformance,
     totalRevenue30dCents,
+    previousDailyRevenue,
+    totalRevenuePrev30dCents,
     returnRatePct,
     netMarginCents,
     stripeFeesCents,

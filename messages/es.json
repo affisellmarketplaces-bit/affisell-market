@@ -1,4 +1,16 @@
 {
+  "dashboardCharts": {
+    "currentPeriod": "Últimos 30 días",
+    "previousPeriod": "30 días anteriores",
+    "daily": "Diario",
+    "cumulative": "Acumulado",
+    "viewMode": "Vista del gráfico",
+    "newActivity": "Nueva actividad",
+    "vsPrevious": "{pct} % frente a los 30 días anteriores",
+    "orders": "{count, plural, one {# pedido} other {# pedidos}}",
+    "noSales": "Aún sin ventas en estos dos periodos",
+    "aria": "Gráfico de ingresos, {total} en los últimos 30 días"
+  },
   "nav": {
     "brand": "Affisell",
     "home": "Inicio",
@@ -2801,6 +2813,48 @@
     "privacyPolicy": "Política de privacidad"
   },
   "affiliateDashboard": {
+    "kpi": {
+      "aria": "Cifras clave",
+      "earnings": "Ganancias · 30 d",
+      "earningsNone": "Aún sin ventas",
+      "trend": "{pct} % frente a los 30 días anteriores",
+      "window": "Últimos 30 días",
+      "payout": "Pago · 7 d",
+      "payoutSub": "Previsto en 7 días",
+      "payoutNone": "Nada pendiente",
+      "listings": "Anuncios",
+      "listingsLive": "{count} publicados",
+      "listingsDrafts": "{count, plural, one {# borrador} other {# borradores}}",
+      "listingsAllLive": "Todos publicados",
+      "listingsNone": "Añade tu primer anuncio",
+      "clawback": "Riesgo de reembolso",
+      "clawbackNone": "Sin riesgo detectado",
+      "clawbackHigh": "Alto — las comisiones pueden revertirse",
+      "clawbackSome": "Reversible si se confirman los reembolsos"
+    },
+    "analytics": {
+      "title": "Analíticas · 30 días",
+      "subtitle": "Ganancias netas del revendedor · últimos 30 días",
+      "payoutJ7": "Pago estimado en 7 días",
+      "dailyRevenue": "Ganancias por día",
+      "topProducts": "Mejores productos por EPC",
+      "epcHint": "Ganancia por clic",
+      "epc": "EPC",
+      "noSales": "Aún sin ventas en los últimos 30 días — publica un producto Pulse para empezar."
+    },
+    "clawback": {
+      "title": "Riesgo de recuperación (clawback) · {days} días",
+      "high": "Alto",
+      "none": "Sin riesgo detectado 🎉",
+      "explain": "Importe que se descontará de tu próximo pago si se confirman todos los reembolsos",
+      "details": "Ver detalles",
+      "tooltip": "Según las condiciones de revendedor (art. 5): si se acepta una devolución de cliente, la comisión se anula aunque ya se haya pagado."
+    },
+    "home": {
+      "loading": "Cargando tu panel…",
+      "needProduct": "¿Necesitas un producto nuevo?",
+      "request": "Solicitarlo"
+    },
     "onboarding": {
       "title": "Lanza tu tienda de afiliado",
       "subtitle": "Cuatro pasos desde el registro hasta tu primera comisión.",
@@ -2928,7 +2982,7 @@
       "aria": "Cifras clave",
       "revenue": "Ingresos · 30 d",
       "revenueNone": "Aún sin ventas",
-      "revenueTrend": "{pct} % frente a los 7 días anteriores",
+      "revenueTrend": "{pct} % frente a los 30 días anteriores",
       "revenueWindow": "Últimos 30 días",
       "ship": "Por enviar",
       "shipAllCaughtUp": "Todo al día",

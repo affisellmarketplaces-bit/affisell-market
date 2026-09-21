@@ -29,6 +29,9 @@ export type SupplierDashboardAnalytics = {
   topAffiliates: SupplierTopAffiliateRow[]
   skuPerformance: SupplierSkuPerformanceRow[]
   totalRevenue30dCents: number
+  /** The 30 days BEFORE the current window, same length — for period-over-period comparison. */
+  previousDailyRevenue?: SupplierDailyRevenuePoint[]
+  totalRevenuePrev30dCents?: number
   returnRatePct: number
   netMarginCents: number
   stripeFeesCents: number

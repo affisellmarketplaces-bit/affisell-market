@@ -1,4 +1,16 @@
 {
+  "dashboardCharts": {
+    "currentPeriod": "Ostatnie 30 dni",
+    "previousPeriod": "Poprzednie 30 dni",
+    "daily": "Dziennie",
+    "cumulative": "Narastająco",
+    "viewMode": "Widok wykresu",
+    "newActivity": "Nowa aktywność",
+    "vsPrevious": "{pct}% vs poprzednie 30 dni",
+    "orders": "{count, plural, one {# zamówienie} few {# zamówienia} many {# zamówień} other {# zamówień}}",
+    "noSales": "Brak sprzedaży w obu okresach",
+    "aria": "Wykres przychodów, {total} w ostatnich 30 dniach"
+  },
   "nav": {
     "brand": "Affisell",
     "home": "Strona główna",
@@ -2801,6 +2813,48 @@
     "privacyPolicy": "Polityka prywatności"
   },
   "affiliateDashboard": {
+    "kpi": {
+      "aria": "Kluczowe liczby",
+      "earnings": "Zarobki · 30 d",
+      "earningsNone": "Brak jeszcze sprzedaży",
+      "trend": "{pct}% vs poprzednie 30 dni",
+      "window": "Ostatnie 30 dni",
+      "payout": "Wypłata · 7 d",
+      "payoutSub": "Oczekiwana w ciągu 7 dni",
+      "payoutNone": "Nic w toku",
+      "listings": "Oferty",
+      "listingsLive": "{count} opublikowanych",
+      "listingsDrafts": "{count, plural, one {# wersja robocza} few {# wersje robocze} many {# wersji roboczych} other {# wersji roboczych}}",
+      "listingsAllLive": "Wszystko opublikowane",
+      "listingsNone": "Dodaj swoją pierwszą ofertę",
+      "clawback": "Ryzyko zwrotu",
+      "clawbackNone": "Nie wykryto ryzyka",
+      "clawbackHigh": "Wysokie — prowizje mogą zostać cofnięte",
+      "clawbackSome": "Do cofnięcia, jeśli zwroty zostaną potwierdzone"
+    },
+    "analytics": {
+      "title": "Analityka · 30 dni",
+      "subtitle": "Zarobki netto odsprzedawcy · ostatnie 30 dni",
+      "payoutJ7": "Szacowana wypłata w ciągu 7 dni",
+      "dailyRevenue": "Zarobki dziennie",
+      "topProducts": "Najlepsze produkty wg EPC",
+      "epcHint": "Zarobek na kliknięcie",
+      "epc": "EPC",
+      "noSales": "Brak sprzedaży w ostatnich 30 dniach — dodaj produkt Pulse, aby zacząć."
+    },
+    "clawback": {
+      "title": "Ryzyko cofnięcia prowizji (clawback) · {days} dni",
+      "high": "Wysokie",
+      "none": "Nie wykryto ryzyka 🎉",
+      "explain": "Kwota potrącona z kolejnej wypłaty, jeśli wszystkie zwroty zostaną potwierdzone",
+      "details": "Zobacz szczegóły",
+      "tooltip": "Zgodnie z warunkami dla odsprzedawców (art. 5): przy zaakceptowanym zwrocie klienta prowizja jest anulowana, nawet jeśli została już wypłacona."
+    },
+    "home": {
+      "loading": "Ładowanie panelu…",
+      "needProduct": "Potrzebujesz nowego produktu?",
+      "request": "Poproś o niego"
+    },
     "onboarding": {
       "title": "Uruchom swój sklep partnerski",
       "subtitle": "Cztery kroki od rejestracji do pierwszej prowizji.",
@@ -2928,7 +2982,7 @@
       "aria": "Kluczowe liczby",
       "revenue": "Przychód · 30 d",
       "revenueNone": "Brak jeszcze sprzedaży",
-      "revenueTrend": "{pct}% vs poprzednie 7 dni",
+      "revenueTrend": "{pct}% vs poprzednie 30 dni",
       "revenueWindow": "Ostatnie 30 dni",
       "ship": "Do wysłania",
       "shipAllCaughtUp": "Wszystko na bieżąco",

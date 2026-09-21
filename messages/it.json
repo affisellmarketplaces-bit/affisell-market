@@ -1,4 +1,16 @@
 {
+  "dashboardCharts": {
+    "currentPeriod": "Ultimi 30 giorni",
+    "previousPeriod": "30 giorni precedenti",
+    "daily": "Giornaliero",
+    "cumulative": "Cumulativo",
+    "viewMode": "Vista del grafico",
+    "newActivity": "Nuova attività",
+    "vsPrevious": "{pct}% rispetto ai 30 giorni precedenti",
+    "orders": "{count, plural, one {# ordine} other {# ordini}}",
+    "noSales": "Ancora nessuna vendita in questi due periodi",
+    "aria": "Grafico dei ricavi, {total} negli ultimi 30 giorni"
+  },
   "nav": {
     "brand": "Affisell",
     "home": "Home",
@@ -2801,6 +2813,48 @@
     "privacyPolicy": "Informativa sulla privacy"
   },
   "affiliateDashboard": {
+    "kpi": {
+      "aria": "Numeri chiave",
+      "earnings": "Guadagni · 30 g",
+      "earningsNone": "Ancora nessuna vendita",
+      "trend": "{pct}% rispetto ai 30 giorni precedenti",
+      "window": "Ultimi 30 giorni",
+      "payout": "Pagamento · 7 g",
+      "payoutSub": "Previsto entro 7 giorni",
+      "payoutNone": "Niente in sospeso",
+      "listings": "Annunci",
+      "listingsLive": "{count} online",
+      "listingsDrafts": "{count, plural, one {# bozza} other {# bozze}}",
+      "listingsAllLive": "Tutti pubblicati",
+      "listingsNone": "Aggiungi il tuo primo annuncio",
+      "clawback": "Rischio di rimborso",
+      "clawbackNone": "Nessun rischio rilevato",
+      "clawbackHigh": "Alto — le commissioni possono essere annullate",
+      "clawbackSome": "Annullabile se i rimborsi vengono confermati"
+    },
+    "analytics": {
+      "title": "Analisi · 30 giorni",
+      "subtitle": "Guadagni netti del rivenditore · ultimi 30 giorni",
+      "payoutJ7": "Pagamento stimato entro 7 giorni",
+      "dailyRevenue": "Guadagni al giorno",
+      "topProducts": "Migliori prodotti per EPC",
+      "epcHint": "Guadagno per clic",
+      "epc": "EPC",
+      "noSales": "Ancora nessuna vendita negli ultimi 30 giorni — pubblica un prodotto Pulse per iniziare."
+    },
+    "clawback": {
+      "title": "Rischio di recupero (clawback) · {days} giorni",
+      "high": "Alto",
+      "none": "Nessun rischio rilevato 🎉",
+      "explain": "Importo detratto dal prossimo pagamento se tutti i rimborsi vengono confermati",
+      "details": "Vedi dettagli",
+      "tooltip": "Secondo le condizioni per i rivenditori (art. 5): se un reso viene accettato, la commissione è annullata anche se già pagata."
+    },
+    "home": {
+      "loading": "Caricamento della dashboard…",
+      "needProduct": "Ti serve un nuovo prodotto?",
+      "request": "Richiedilo"
+    },
     "onboarding": {
       "title": "Lancia il tuo negozio affiliato",
       "subtitle": "Quattro passaggi dall'iscrizione alla tua prima commissione.",
@@ -2928,7 +2982,7 @@
       "aria": "Numeri chiave",
       "revenue": "Ricavi · 30 g",
       "revenueNone": "Ancora nessuna vendita",
-      "revenueTrend": "{pct}% rispetto ai 7 giorni precedenti",
+      "revenueTrend": "{pct}% rispetto ai 30 giorni precedenti",
       "revenueWindow": "Ultimi 30 giorni",
       "ship": "Da spedire",
       "shipAllCaughtUp": "Tutto in ordine",

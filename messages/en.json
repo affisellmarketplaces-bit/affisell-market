@@ -1,4 +1,16 @@
 {
+  "dashboardCharts": {
+    "currentPeriod": "Last 30 days",
+    "previousPeriod": "Previous 30 days",
+    "daily": "Daily",
+    "cumulative": "Cumulative",
+    "viewMode": "Chart view",
+    "newActivity": "New activity",
+    "vsPrevious": "{pct}% vs previous 30 days",
+    "orders": "{count, plural, one {# order} other {# orders}}",
+    "noSales": "No sales over these two periods yet",
+    "aria": "Revenue chart, {total} over the last 30 days"
+  },
   "nav": {
     "brand": "Affisell",
     "home": "Home",
@@ -2801,6 +2813,48 @@
     "privacyPolicy": "Privacy policy"
   },
   "affiliateDashboard": {
+    "kpi": {
+      "aria": "Key figures",
+      "earnings": "Earnings · 30 d",
+      "earningsNone": "No sales yet",
+      "trend": "{pct}% vs previous 30 days",
+      "window": "Last 30 days",
+      "payout": "Payout · 7 d",
+      "payoutSub": "Expected within 7 days",
+      "payoutNone": "Nothing pending",
+      "listings": "Listings",
+      "listingsLive": "{count} live",
+      "listingsDrafts": "{count, plural, one {# draft} other {# drafts}}",
+      "listingsAllLive": "All published",
+      "listingsNone": "Add your first listing",
+      "clawback": "Refund risk",
+      "clawbackNone": "No risk detected",
+      "clawbackHigh": "High — commissions may be reversed",
+      "clawbackSome": "Reversible if refunds are confirmed"
+    },
+    "analytics": {
+      "title": "Analytics · 30 days",
+      "subtitle": "Net reseller earnings · last 30 days",
+      "payoutJ7": "Estimated payout in 7 days",
+      "dailyRevenue": "Earnings per day",
+      "topProducts": "Top products by EPC",
+      "epcHint": "Earnings per click",
+      "epc": "EPC",
+      "noSales": "No sales in the last 30 days yet — list a Pulse product to get started."
+    },
+    "clawback": {
+      "title": "Refund clawback risk · {days} days",
+      "high": "High",
+      "none": "No risk detected 🎉",
+      "explain": "Amount deducted from your next payout if all refunds are confirmed",
+      "details": "View details",
+      "tooltip": "Under the Reseller Terms (art. 5), when a customer return is accepted the commission is cancelled even if already paid."
+    },
+    "home": {
+      "loading": "Loading your dashboard…",
+      "needProduct": "Need a new product?",
+      "request": "Request it"
+    },
     "onboarding": {
       "title": "Launch your reseller storefront",
       "subtitle": "Discover a SKU, set your customer price, publish — first listing in about 5 minutes.",
@@ -2928,7 +2982,7 @@
       "aria": "Key figures",
       "revenue": "Revenue · 30 d",
       "revenueNone": "No sales yet",
-      "revenueTrend": "{pct}% vs previous 7 days",
+      "revenueTrend": "{pct}% vs previous 30 days",
       "revenueWindow": "Last 30 days",
       "ship": "To ship",
       "shipAllCaughtUp": "All caught up",

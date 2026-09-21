@@ -1,4 +1,16 @@
 {
+  "dashboardCharts": {
+    "currentPeriod": "30 derniers jours",
+    "previousPeriod": "30 jours précédents",
+    "daily": "Par jour",
+    "cumulative": "Cumulé",
+    "viewMode": "Affichage du graphique",
+    "newActivity": "Nouvelle activité",
+    "vsPrevious": "{pct} % vs 30 jours précédents",
+    "orders": "{count, plural, one {# commande} other {# commandes}}",
+    "noSales": "Aucune vente sur ces deux périodes",
+    "aria": "Graphique du chiffre d'affaires, {total} sur les 30 derniers jours"
+  },
   "nav": {
     "brand": "Affisell",
     "home": "Accueil",
@@ -2801,6 +2813,48 @@
     "privacyPolicy": "Politique de confidentialité"
   },
   "affiliateDashboard": {
+    "kpi": {
+      "aria": "Chiffres clés",
+      "earnings": "Gains · 30 j",
+      "earningsNone": "Pas encore de vente",
+      "trend": "{pct} % vs 30 jours précédents",
+      "window": "30 derniers jours",
+      "payout": "Versement · 7 j",
+      "payoutSub": "Attendu sous 7 jours",
+      "payoutNone": "Rien en attente",
+      "listings": "Annonces",
+      "listingsLive": "{count} en ligne",
+      "listingsDrafts": "{count, plural, one {# brouillon} other {# brouillons}}",
+      "listingsAllLive": "Toutes publiées",
+      "listingsNone": "Ajoutez votre première annonce",
+      "clawback": "Risque de remboursement",
+      "clawbackNone": "Aucun risque détecté",
+      "clawbackHigh": "Élevé — des commissions peuvent être annulées",
+      "clawbackSome": "Annulable si les remboursements sont confirmés"
+    },
+    "analytics": {
+      "title": "Analytics · 30 jours",
+      "subtitle": "Gains nets revendeur · 30 derniers jours",
+      "payoutJ7": "Versement estimé sous 7 jours",
+      "dailyRevenue": "Gains par jour",
+      "topProducts": "Top produits par EPC",
+      "epcHint": "Gain par clic",
+      "epc": "EPC",
+      "noSales": "Pas encore de ventes sur 30 jours — listez un produit Pulse pour démarrer."
+    },
+    "clawback": {
+      "title": "Risque de reprise (clawback) · {days} jours",
+      "high": "Élevé",
+      "none": "Aucun risque détecté 🎉",
+      "explain": "Montant débité de votre prochain versement si tous les remboursements sont confirmés",
+      "details": "Voir les détails",
+      "tooltip": "Conformément aux CGA (art. 5) : en cas de retour client accepté, la commission est annulée même si elle a déjà été versée."
+    },
+    "home": {
+      "loading": "Chargement de votre tableau de bord…",
+      "needProduct": "Besoin d'un nouveau produit ?",
+      "request": "Le demander"
+    },
     "onboarding": {
       "title": "Lancez votre boutique revendeur",
       "subtitle": "Découvrez un SKU, fixez votre prix client, publiez — première fiche en ~5 minutes.",
@@ -2928,7 +2982,7 @@
       "aria": "Chiffres clés",
       "revenue": "CA · 30 j",
       "revenueNone": "Pas encore de vente",
-      "revenueTrend": "{pct} % vs 7 jours précédents",
+      "revenueTrend": "{pct} % vs 30 jours précédents",
       "revenueWindow": "30 derniers jours",
       "ship": "À expédier",
       "shipAllCaughtUp": "Tout est à jour",
