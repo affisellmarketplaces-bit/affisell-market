@@ -3217,7 +3217,8 @@
       "metricInboxClear": "Korzyści z czyszczenia poczty",
       "ratingImpact": "−{pct}% wpływ na ocenę sklepu",
       "replyExpected": "Oczekiwane odpowiedzi",
-      "ctaReply": "Odpowiedz"
+      "ctaReply": "Odpowiedz",
+      "ctaShipMany": "Zobacz {count} zamówień"
     },
     "metrics": {
       "title": "Wydajność · ostatnie 7 dni",
@@ -3537,6 +3538,10 @@
       "recallCta": "Wycofaj z sieci",
       "recalling": "Wycofywanie…",
       "title": "Podwyżka hurtowa zablokowana"
+    },
+    "more": {
+      "title": "Więcej: poziom zaufania i opłaty",
+      "hint": "Odznaki dostawcy, tabela opłat Affisell"
     }
   },
   "supplierOrders": {

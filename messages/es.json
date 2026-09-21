@@ -3217,7 +3217,8 @@
       "metricInboxClear": "Bandeja de entrada limpia",
       "ratingImpact": "−{pct}% calificación de tienda",
       "replyExpected": "Respuesta esperada",
-      "ctaReply": "Responder"
+      "ctaReply": "Responder",
+      "ctaShipMany": "Ver los {count} pedidos"
     },
     "metrics": {
       "title": "Rendimiento · últimos 7 días",
@@ -3537,6 +3538,10 @@
       "recallCta": "Retirar de la red",
       "recalling": "Retirando…",
       "title": "Aumento mayorista bloqueado"
+    },
+    "more": {
+      "title": "Más: nivel de confianza y tarifas",
+      "hint": "Insignias de proveedor, tabla de tarifas de Affisell"
     }
   },
   "supplierOrders": {

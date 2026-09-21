@@ -3227,7 +3227,8 @@
       "metricInboxClear": "Inbox clear",
       "ratingImpact": "−{pct}% shop rating",
       "replyExpected": "Reply expected",
-      "ctaReply": "Reply"
+      "ctaReply": "Reply",
+      "ctaShipMany": "Review the {count} orders"
     },
     "metrics": {
       "title": "Performance · last 7 days",
@@ -3537,6 +3538,10 @@
           "name": "Manual"
         }
       }
+    },
+    "more": {
+      "title": "More: trust level & fees",
+      "hint": "Supplier badges, Affisell fee grid"
     }
   },
   "supplierOrders": {

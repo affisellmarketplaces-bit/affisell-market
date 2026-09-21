@@ -3217,7 +3217,8 @@
       "metricInboxClear": "Posteingang leer",
       "ratingImpact": "−{pct}% Shop-Bewertung",
       "replyExpected": "Antwort erwartet",
-      "ctaReply": "Antworten"
+      "ctaReply": "Antworten",
+      "ctaShipMany": "Alle {count} Bestellungen ansehen"
     },
     "metrics": {
       "title": "Leistung · letzte 7 Tage",
@@ -3537,6 +3538,10 @@
       "recallCta": "Aus Netzwerk zurückrufen",
       "recalling": "Wird zurückgerufen…",
       "title": "Großhandelserhöhung gesperrt"
+    },
+    "more": {
+      "title": "Mehr: Vertrauensstufe & Gebühren",
+      "hint": "Lieferantenabzeichen, Affisell-Gebührentabelle"
     }
   },
   "supplierOrders": {

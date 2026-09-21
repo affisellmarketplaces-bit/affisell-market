@@ -168,7 +168,7 @@ function buildShipSlot(urgent: SupplierUrgentSnapshot, t: TFn): SlotProps {
             ? t("buyerRatingRisk")
             : "—",
     href: "/dashboard/supplier/orders",
-    cta: t("ctaShip"),
+    cta: urgent.ordersToShip > 1 ? t("ctaShipMany", { count: urgent.ordersToShip }) : t("ctaShip"),
     tone: late ? "red" : urgentSla ? "red" : "amber",
     ctaVariant: active && (late || urgentSla) ? "default" : "outline",
   }

@@ -3217,7 +3217,8 @@
       "metricInboxClear": "Inbox pulita",
       "ratingImpact": "−{pct}% valutazione del negozio",
       "replyExpected": "Risposta attesa",
-      "ctaReply": "Rispondi"
+      "ctaReply": "Rispondi",
+      "ctaShipMany": "Vedi i {count} ordini"
     },
     "metrics": {
       "title": "Performance · ultimi 7 giorni",
@@ -3537,6 +3538,10 @@
       "recallCta": "Richiama dalla rete",
       "recalling": "Richiamo in corso…",
       "title": "Aumento all'ingrosso bloccato"
+    },
+    "more": {
+      "title": "Altro: livello di fiducia e commissioni",
+      "hint": "Badge fornitore, tabella commissioni Affisell"
     }
   },
   "supplierOrders": {

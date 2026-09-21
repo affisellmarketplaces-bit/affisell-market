@@ -51,7 +51,11 @@ export function RevenueCompareChart({ current, previous, color, className }: Pro
     iso ? new Intl.DateTimeFormat(bcp, { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`)) : ""
 
   const sparse = activeDays(current) < 6
-  const [mode, setMode] = useState<"daily" | "cumulative">(sparse ? "cumulative" : "daily")
+  // One dominant day makes the cumulative curve a flat line then a wall: the daily view shows the peak honestly.
+  const total = current.reduce((sum, p) => sum + p.revenueCents, 0)
+  const peak = current.reduce((max, p) => Math.max(max, p.revenueCents), 0)
+  const spiky = total > 0 && peak / total > 0.6
+  const [mode, setMode] = useState<"daily" | "cumulative">(sparse && !spiky ? "cumulative" : "daily")
 
   const hasPrevious = Boolean(previous && previous.length > 0)
   const rows: ComparePoint[] = useMemo(() => {

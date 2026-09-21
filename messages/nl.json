@@ -3217,7 +3217,8 @@
       "metricInboxClear": "Inbox leeg",
       "ratingImpact": "−{pct}% winkelbeoordeling",
       "replyExpected": "Antwoord verwacht",
-      "ctaReply": "Antwoord"
+      "ctaReply": "Antwoord",
+      "ctaShipMany": "Bekijk de {count} bestellingen"
     },
     "metrics": {
       "title": "Prestaties · afgelopen 7 dagen",
@@ -3537,6 +3538,10 @@
       "recallCta": "Terugroepen uit netwerk",
       "recalling": "Terugroepen…",
       "title": "Groothandelsverhoging geblokkeerd"
+    },
+    "more": {
+      "title": "Meer: vertrouwensniveau & kosten",
+      "hint": "Leveranciersbadges, Affisell-tarieventabel"
     }
   },
   "supplierOrders": {

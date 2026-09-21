@@ -3227,7 +3227,8 @@
       "metricInboxClear": "Boîte à jour",
       "ratingImpact": "−{pct} % note boutique",
       "replyExpected": "Réponse attendue",
-      "ctaReply": "Répondre"
+      "ctaReply": "Répondre",
+      "ctaShipMany": "Voir les {count} commandes"
     },
     "metrics": {
       "title": "Performance · 7 derniers jours",
@@ -3537,6 +3538,10 @@
           "name": "Manuel"
         }
       }
+    },
+    "more": {
+      "title": "Plus : niveau de confiance et frais",
+      "hint": "Badges fournisseur, grille des frais Affisell"
     }
   },
   "supplierOrders": {

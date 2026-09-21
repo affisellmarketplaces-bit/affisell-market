@@ -3217,7 +3217,8 @@
       "metricInboxClear": "收件箱清空",
       "ratingImpact": "−{pct}% 店铺评分",
       "replyExpected": "回复预期",
-      "ctaReply": "回复"
+      "ctaReply": "回复",
+      "ctaShipMany": "查看 {count} 个订单"
     },
     "metrics": {
       "title": "表现 · 最近 7 天",
@@ -3537,6 +3538,10 @@
       "recallCta": "从网络中撤回",
       "recalling": "撤回中…",
       "title": "批发价上调已锁定"
+    },
+    "more": {
+      "title": "更多：信任等级与费用",
+      "hint": "供应商徽章、Affisell 费用表"
     }
   },
   "supplierOrders": {

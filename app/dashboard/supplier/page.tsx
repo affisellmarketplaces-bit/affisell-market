@@ -1,4 +1,5 @@
 import { requireSupplierSession } from "@/lib/dashboard-session"
+import { ChevronDown } from "lucide-react"
 import { getLocale, getTranslations } from "next-intl/server"
 
 import { BentoContainer } from "@/components/affisell/bento-ui"
@@ -52,6 +53,7 @@ export default async function DashboardSupplierPage() {
     )
   }
 
+  const tMore = await getTranslations("supplierDashboard.more")
   const locale = resolveAppLocale(await getLocale())
   const copyLocale = resolveBinaryCopyLocale(locale)
 
@@ -82,7 +84,7 @@ export default async function DashboardSupplierPage() {
 
   return (
     <main className={missionControlCanvas}>
-      <BentoContainer maxWidth="6xl" className="space-y-6 py-8 sm:py-10">
+      <BentoContainer maxWidth="7xl" className="space-y-6 py-8 sm:py-10">
         <SupplierMissionControlLive>
           {/* 1 — who you are, what you can do, anything blocking (KYC) */}
           <div className="space-y-3">
@@ -117,27 +119,45 @@ export default async function DashboardSupplierPage() {
               <SupplierUrgentActions urgent={data.urgent} />
             )}
 
-            {/* 4 — performance */}
-            <SupplierAnalyticsWidget analytics={analytics} />
+            {/* 4 — performance (main column) next to status & discovery (side column) */}
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
+              <div className="min-w-0 space-y-6">
+                <SupplierAnalyticsWidget analytics={analytics} />
 
-            {!firstSaleProgress.showChecklist ? (
-              <>
-                <SupplierMetricsBar metrics={data.metrics7d} weeklyGoal={data.weeklyGoal} locale={locale} />
-                <SupplierGrowthSection growth={data.growth} />
-              </>
-            ) : null}
+                {!firstSaleProgress.showChecklist ? (
+                  <>
+                    <SupplierMetricsBar metrics={data.metrics7d} weeklyGoal={data.weeklyGoal} locale={locale} />
+                    <SupplierGrowthSection growth={data.growth} />
+                  </>
+                ) : null}
 
-            {data.weeklyGoal && data.metrics7d.hasPriorPeriodData ? (
-              <SupplierWeeklyGoalCard goal={data.weeklyGoal} locale={locale} />
-            ) : null}
+                {data.weeklyGoal && data.metrics7d.hasPriorPeriodData ? (
+                  <SupplierWeeklyGoalCard goal={data.weeklyGoal} locale={locale} />
+                ) : null}
+              </div>
 
-            {/* 5 — discovery & status */}
-            <RadarSupplierDiscoveryCard supplierKind={feeUser?.supplierKind} resellerReach={resellerReach} />
-            <SupplierProductRequestsTeaser />
-            <SupplierPublishReadinessCard readiness={publishReadiness} />
-            <SupplierTrustLadderCard tier={displayTier} metrics={trustSnapshot.metrics} locale={copyLocale} />
-            <SupplierEscrowPulseCard summary={data.escrow} locale={copyLocale} />
-            <SupplierFeeGridCard variant="compact" />
+              <aside className="min-w-0 space-y-6">
+                <SupplierPublishReadinessCard readiness={publishReadiness} />
+                <SupplierEscrowPulseCard summary={data.escrow} locale={copyLocale} />
+                <RadarSupplierDiscoveryCard supplierKind={feeUser?.supplierKind} resellerReach={resellerReach} />
+                <SupplierProductRequestsTeaser />
+              </aside>
+            </div>
+
+            {/* 5 — reference material, folded away so the page stays about what needs action */}
+            <details className="group rounded-2xl border border-zinc-200/80 bg-white/60 dark:border-zinc-800 dark:bg-zinc-950/40">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 [&::-webkit-details-marker]:hidden">
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold text-zinc-900 dark:text-zinc-50">{tMore("title")}</span>
+                  <span className="block text-xs text-zinc-500 dark:text-zinc-400">{tMore("hint")}</span>
+                </span>
+                <ChevronDown className="size-4 shrink-0 text-zinc-400 transition group-open:rotate-180" aria-hidden />
+              </summary>
+              <div className="grid gap-6 border-t border-zinc-200/70 p-5 dark:border-zinc-800 lg:grid-cols-2 lg:items-start">
+                <SupplierTrustLadderCard tier={displayTier} metrics={trustSnapshot.metrics} locale={copyLocale} />
+                <SupplierFeeGridCard variant="compact" />
+              </div>
+            </details>
 
             <SupplierToolsRow />
           </div>
