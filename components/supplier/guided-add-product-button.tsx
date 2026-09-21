@@ -34,7 +34,7 @@ import { visitorCountryDisplayName } from "@/lib/visitor-country"
 import { processProductGalleryImageFile } from "@/lib/product-image-upload"
 import { cn } from "@/lib/utils"
 
-const STEP_LABELS = ["Base", "Détails", "GPSR EU", "Preview"] as const
+const STEP_KEYS = ["stepBasics", "stepDetails", "stepGpsr", "stepPreview"] as const
 
 type GuidedCategory = GuidedCategoryLabel
 
@@ -105,12 +105,12 @@ const FALLBACK_SHIPPING_DEFAULTS: ShippingDefaults = {
   fromProfile: false,
 }
 
-const FIELD_PLACEHOLDERS = {
-  material: "ex. Coton bio",
-  color: "ex. Noir",
-  dimensions: "ex. 30 × 20 × 5 cm",
-  stock: "ex. 10",
-  price: "ex. 29.99",
+const FIELD_PLACEHOLDER_KEYS = {
+  material: "phMaterial",
+  color: "phColor",
+  dimensions: "phDimensions",
+  stock: "phStock",
+  price: "phPrice",
 } as const
 
 type Props = {
@@ -379,26 +379,26 @@ export function GuidedAddProductButton({
   function validateStep(current: number): boolean {
     if (current === 0) {
       if (!form.title.trim()) {
-        setStepError("Titre requis")
+        setStepError(tWiz("errTitle"))
         return false
       }
       if (!form.category) {
-        setStepError("Choisissez une catégorie")
+        setStepError(tWiz("errCategory"))
         return false
       }
       if (!form.imageUrl) {
-        setStepError("Ajoutez une photo produit")
+        setStepError(tWiz("errPhoto"))
         return false
       }
       return true
     }
     if (current === 1) {
       if (!priceValid) {
-        setStepError("Prix invalide (ex. 29.99)")
+        setStepError(tWiz("errPrice"))
         return false
       }
       if (!form.material.trim() || !form.color.trim()) {
-        setStepError("Matériau et couleur requis")
+        setStepError(tWiz("errMatColor"))
         return false
       }
       if (form.description.trim().length < DESCRIPTION_MIN_LENGTH) {
@@ -406,14 +406,14 @@ export function GuidedAddProductButton({
         return false
       }
       if (!/^\d+$/.test(form.stock.trim())) {
-        setStepError("Stock requis (nombre entier, ex. 10)")
+        setStepError(tWiz("errStock"))
         return false
       }
       return true
     }
     if (current === 2) {
       if (!gpsrCheck.compliant) {
-        setStepError("Obligatoire pour vendre en EU (GPSR)")
+        setStepError(tWiz("errGpsr"))
         return false
       }
       return true
@@ -480,7 +480,7 @@ export function GuidedAddProductButton({
       patchForm({ category: recommendedCategory })
     }
     if (!validateStep(step)) return
-    setStep((s) => Math.min(s + 1, STEP_LABELS.length - 1))
+    setStep((s) => Math.min(s + 1, STEP_KEYS.length - 1))
   }
 
   function goBack() {
@@ -500,11 +500,11 @@ export function GuidedAddProductButton({
       }
     } else {
       if (!validateStep(0) || !validateStep(1) || !validateStep(2)) {
-        setStepError("Complétez toutes les étapes avant publication")
+        setStepError(tWiz("errComplete"))
         return
       }
       if (!gpsrCheck.compliant) {
-        setStepError("Obligatoire pour vendre en EU (GPSR)")
+        setStepError(tWiz("errGpsr"))
         setStep(2)
         return
       }
@@ -514,7 +514,7 @@ export function GuidedAddProductButton({
     if (!asDraft && (!categoryValue || !form.imageUrl)) return
 
     if (blockIfHoneypotValue(honeypotRef.current?.value)) {
-      toast.error("Bot detected")
+      toast.error(tWiz("botDetected"))
       return
     }
 
@@ -575,7 +575,7 @@ export function GuidedAddProductButton({
       const data = (await res.json()) as { id?: string; error?: string; verificationStatus?: string }
       if (!res.ok) {
         if (data.error === "merchant_verification_pending") {
-          throw new Error("Vérification marchand en cours — complétez votre profil légal.")
+          throw new Error(tWiz("errMerchant"))
         }
         throw new Error(data.error ?? `HTTP ${res.status}`)
       }
@@ -588,7 +588,7 @@ export function GuidedAddProductButton({
         gpsrCompliant: !asDraft,
       })
 
-      toast.success(asDraft ? tWiz("draftSaved") : "Produit publié — GPSR conforme ✓")
+      toast.success(asDraft ? tWiz("draftSaved") : tWiz("published"))
       close()
       router.push(`/dashboard/supplier/products/${data.id}`)
       router.refresh()
@@ -641,15 +641,15 @@ export function GuidedAddProductButton({
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-violet-100">
-                        Wizard guidé · Copilot IA
+                        {tWiz("eyebrow")}
                       </p>
                       <h2 id="guided-wizard-title" className="text-lg font-bold sm:text-xl">
-                        Nouveau produit en 4 étapes
+                        {tWiz("heading")}
                       </h2>
                     </div>
                     <button
                       type="button"
-                      aria-label="Fermer"
+                      aria-label={tWiz("close")}
                       className="rounded-full bg-white/15 p-2 text-white transition hover:bg-white/25"
                       onClick={close}
                     >
@@ -657,8 +657,8 @@ export function GuidedAddProductButton({
                     </button>
                   </div>
                   <ol className="mt-4 flex gap-1.5">
-                    {STEP_LABELS.map((label, i) => (
-                      <li key={label} className="flex-1">
+                    {STEP_KEYS.map((key, i) => (
+                      <li key={key} className="flex-1">
                         <div
                           className={cn(
                             "rounded-full py-1.5 text-center text-[10px] font-bold uppercase tracking-wide sm:text-[11px]",
@@ -669,7 +669,7 @@ export function GuidedAddProductButton({
                                 : "bg-white/10 text-violet-100"
                           )}
                         >
-                          {i + 1}. {label}
+                          {i + 1}. {tWiz(key)}
                         </div>
                       </li>
                     ))}
@@ -707,7 +707,7 @@ export function GuidedAddProductButton({
                       <>
                         <ImagePlus className="mb-2 size-8 text-violet-500" />
                         <span className="text-sm font-semibold text-violet-900 dark:text-violet-100">
-                          Glisser ou cliquer — 1 image
+                          {tWiz("dropzone")}
                         </span>
                       </>
                     )}
@@ -728,19 +728,19 @@ export function GuidedAddProductButton({
                 </div>
                 <div>
                   <label className={labelClass} htmlFor="guided-title">
-                    Titre
+                    {tWiz("titleLabel")}
                   </label>
                   <input
                     id="guided-title"
                     className={fieldClass}
                     value={form.title}
                     onChange={(e) => patchForm({ title: e.target.value }, { user: true })}
-                    placeholder="ex. T-shirt oversize premium"
+                    placeholder={tWiz("titlePlaceholder")}
                     maxLength={120}
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>Catégorie</label>
+                  <label className={labelClass}>{tWiz("departmentLabel")}</label>
                   <GuidedCategoryPicker
                     value={form.category}
                     onChange={(category) => patchForm({ category }, { user: true })}
@@ -788,11 +788,11 @@ export function GuidedAddProductButton({
                 </div>
                 {(
                   [
-                    ["material", "Matériau", form.material],
-                    ["color", "Couleur", form.color],
-                    ["dimensions", "Dimensions", form.dimensions],
-                    ["stock", "Stock", form.stock],
-                    ["price", "Prix (€)", form.price],
+                    ["material", tWiz("fieldMaterial"), form.material],
+                    ["color", tWiz("fieldColor"), form.color],
+                    ["dimensions", tWiz("fieldDimensions"), form.dimensions],
+                    ["stock", tWiz("fieldStock"), form.stock],
+                    ["price", tWiz("fieldPrice"), form.price],
                   ] as const
                 ).map(([key, label, value]) => (
                   <div key={key} className={key === "price" ? "sm:col-span-2" : ""}>
@@ -802,7 +802,7 @@ export function GuidedAddProductButton({
                     <input
                       id={`guided-${key}`}
                       className={fieldClass}
-                      placeholder={FIELD_PLACEHOLDERS[key]}
+                      placeholder={tWiz(FIELD_PLACEHOLDER_KEYS[key])}
                       inputMode={key === "price" || key === "stock" ? "decimal" : undefined}
                       value={value}
                       onChange={(e) =>
@@ -848,8 +848,8 @@ export function GuidedAddProductButton({
                 </div>
                 <p className="sm:col-span-2 text-xs text-zinc-500 dark:text-zinc-400">
                   {aiSuggestion.attributes.suggestedPrice && !userEdited.has("price")
-                    ? `Prix IA suggéré · ${formatGuidedPrice(aiSuggestion.attributes.suggestedPrice)} € — ajustez avant publication.`
-                    : "Suggestions IA disponibles — ajustez avant publication."}
+                    ? tWiz("aiPriceHint", { price: formatGuidedPrice(aiSuggestion.attributes.suggestedPrice) ?? "" })
+                    : tWiz("aiHint")}
                 </p>
               </div>
             )}
@@ -858,17 +858,17 @@ export function GuidedAddProductButton({
               <div className="space-y-4">
                 <BentoCard className="border-amber-200/80 bg-amber-50/80 dark:border-amber-900/50 dark:bg-amber-950/30">
                   <p className="text-sm font-semibold text-amber-950 dark:text-amber-100">
-                    GPSR obligatoire UE (Reg. 2023/988)
+                    {tWiz("gpsrTitle")}
                   </p>
                   <p className="mt-1 text-xs text-amber-900/80 dark:text-amber-200/80">
-                    Fabricant identifié requis pour vendre en Union européenne.
+                    {tWiz("gpsrBody")}
                   </p>
                 </BentoCard>
                 {(
                   [
-                    ["manufacturerName", "Fabricant — Nom *", form.manufacturerName],
-                    ["manufacturerAddress", "Fabricant — Adresse *", form.manufacturerAddress],
-                    ["manufacturerEmail", "Fabricant — Email *", form.manufacturerEmail],
+                    ["manufacturerName", tWiz("mfrName"), form.manufacturerName],
+                    ["manufacturerAddress", tWiz("mfrAddress"), form.manufacturerAddress],
+                    ["manufacturerEmail", tWiz("mfrEmail"), form.manufacturerEmail],
                   ] as const
                 ).map(([key, label, value]) => (
                   <div key={key}>
@@ -885,7 +885,7 @@ export function GuidedAddProductButton({
                 ))}
                 <div>
                   <label className={labelClass} htmlFor="guided-safety">
-                    Avertissement sécurité
+                    {tWiz("safetyWarning")}
                   </label>
                   <textarea
                     id="guided-safety"
@@ -897,7 +897,7 @@ export function GuidedAddProductButton({
                 </div>
                 <div>
                   <label className={labelClass} htmlFor="guided-notice">
-                    Notice
+                    {tWiz("notice")}
                   </label>
                   <textarea
                     id="guided-notice"
@@ -936,7 +936,7 @@ export function GuidedAddProductButton({
                       {priceValid ? formatStoreCurrency(priceCents / 100) : "—"}
                     </p>
                     <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                      {form.category} · Stock {stockN} · {form.material}
+                      {form.category} · {tWiz("previewStock", { n: stockN })} · {form.material}
                     </p>
                   </div>
                 </BentoCard>
@@ -963,11 +963,11 @@ export function GuidedAddProductButton({
                 >
                   {gpsrCheck.compliant ? (
                     <>
-                      <CheckCircle2 className="size-5" /> GPSR : ✅ Compliant
+                      <CheckCircle2 className="size-5" /> {tWiz("gpsrOk")}
                     </>
                   ) : (
                     <>
-                      <XCircle className="size-5" /> GPSR : ❌ Manque infos
+                      <XCircle className="size-5" /> {tWiz("gpsrMissing")}
                     </>
                   )}
                 </div>
@@ -990,7 +990,7 @@ export function GuidedAddProductButton({
                 disabled={publishing}
               >
                 <ChevronLeft className="mr-1 size-4" />
-                Retour
+                {tWiz("back")}
               </button>
             ) : (
               <div />
@@ -1010,7 +1010,7 @@ export function GuidedAddProductButton({
                 tWiz("saveDraft")
               )}
             </button>
-            {step < STEP_LABELS.length - 1 ? (
+            {step < STEP_KEYS.length - 1 ? (
               <button
                 type="button"
                 className={cn(
@@ -1020,7 +1020,7 @@ export function GuidedAddProductButton({
                 onClick={goNext}
                 disabled={uploading}
               >
-                Suivant
+                {tWiz("next")}
                 <ChevronRight className="ml-1 size-4" />
               </button>
             ) : (
@@ -1037,10 +1037,10 @@ export function GuidedAddProductButton({
                 {publishing ? (
                   <>
                     <Loader2 className="mr-2 size-4 animate-spin" />
-                    Publication…
+                    {tWiz("publishing")}
                   </>
                 ) : (
-                  "Publish"
+                  tWiz("publish")
                 )}
               </button>
             )}

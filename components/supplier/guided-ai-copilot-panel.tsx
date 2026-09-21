@@ -1,6 +1,7 @@
 "use client"
 
 import { Loader2, RefreshCw, Sparkles, Wand2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import {
   formatGuidedPrice,
@@ -55,7 +56,18 @@ export function GuidedAiCopilotPanel({
   onRefresh,
   compact = false,
 }: Props) {
-  const titleScore = scoreGuidedTitleLength(currentTitle.trim().length)
+  const t = useTranslations("supplier.guidedCopilot")
+  const titleLen = currentTitle.trim().length
+  const titleScore = scoreGuidedTitleLength(titleLen)
+  // Same thresholds as scoreGuidedTitleLength — the wording comes from the message catalogue (8 locales).
+  const titleScoreLabel =
+    titleLen >= 45 && titleLen <= 110
+      ? t("scoreOptimal")
+      : titleLen >= 25 && titleLen < 45
+        ? t("scoreEnrich")
+        : titleLen > 110
+          ? t("scoreLong")
+          : t("scoreShort")
   const titleOptions = [
     suggestion.recommendedTitle,
     ...suggestion.titleVariants,
@@ -106,14 +118,14 @@ export function GuidedAiCopilotPanel({
             </span>
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-700 dark:text-violet-300">
-                Copilot IA Affisell
+                {t("brand")}
               </p>
               <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                 {loading
-                  ? "Analyse vision + SEO en cours…"
+                  ? t("statusLoading")
                   : suggestion.visionUsed
-                    ? "Photo + titre · suggestions marketplace"
-                    : "Titres & catégories optimisés"}
+                    ? t("statusVision")
+                    : t("statusIdle")}
               </p>
             </div>
           </div>
@@ -124,7 +136,7 @@ export function GuidedAiCopilotPanel({
             className="inline-flex items-center gap-1 rounded-lg border border-violet-200/80 bg-white/70 px-2 py-1 text-[10px] font-semibold text-violet-800 transition hover:bg-violet-50 disabled:opacity-50 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-200"
           >
             <RefreshCw className={cn("size-3", loading && "animate-spin")} aria-hidden />
-            Regénérer
+            {t("regenerate")}
           </button>
         </div>
 
@@ -147,7 +159,7 @@ export function GuidedAiCopilotPanel({
                   "bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300"
               )}
             >
-              {currentTitle.trim().length} car. · {titleScore.label}
+              {t("chars", { n: titleLen })} · {titleScoreLabel}
             </span>
             {suggestion.seoKeywords.slice(0, 3).map((kw) => (
               <span
@@ -164,7 +176,7 @@ export function GuidedAiCopilotPanel({
           <div className="space-y-2">
             <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
               <Wand2 className="size-3" aria-hidden />
-              Titres optimisés SEO
+              {t("seoTitles")}
             </p>
             <div className="flex flex-wrap gap-2">
               {uniqueTitles.map((title) => (
@@ -181,7 +193,7 @@ export function GuidedAiCopilotPanel({
 
         {suggestion.categoryReason && !compact ? (
           <p className="rounded-lg border border-violet-200/60 bg-white/60 px-3 py-2 text-[11px] leading-relaxed text-zinc-600 dark:border-violet-900/40 dark:bg-violet-950/20 dark:text-zinc-400">
-            <span className="font-semibold text-violet-700 dark:text-violet-300">Catégorie IA :</span>{" "}
+            <span className="font-semibold text-violet-700 dark:text-violet-300">{t("aiCategory")}</span>{" "}
             {suggestion.categoryReason}
           </p>
         ) : null}
@@ -193,30 +205,30 @@ export function GuidedAiCopilotPanel({
           priceLabel) ? (
           <div className="space-y-2 border-t border-violet-200/50 pt-3 dark:border-violet-900/40">
             <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-              Fiche produit suggérée
+              {t("suggestedSheet")}
             </p>
             <div className="flex flex-wrap gap-2">
               {suggestion.attributes.material ? (
                 <SuggestionChip
-                  label={`Matériau · ${suggestion.attributes.material}`}
+                  label={t("chipMaterial", { value: suggestion.attributes.material })}
                   onClick={() => onApplyAttribute("material", suggestion.attributes.material!)}
                 />
               ) : null}
               {suggestion.attributes.color ? (
                 <SuggestionChip
-                  label={`Couleur · ${suggestion.attributes.color}`}
+                  label={t("chipColor", { value: suggestion.attributes.color })}
                   onClick={() => onApplyAttribute("color", suggestion.attributes.color!)}
                 />
               ) : null}
               {suggestion.attributes.dimensions ? (
                 <SuggestionChip
-                  label={`Dimensions · ${suggestion.attributes.dimensions}`}
+                  label={t("chipDimensions", { value: suggestion.attributes.dimensions })}
                   onClick={() => onApplyAttribute("dimensions", suggestion.attributes.dimensions!)}
                 />
               ) : null}
               {priceLabel ? (
                 <SuggestionChip
-                  label={`Prix · ${priceLabel} €`}
+                  label={t("chipPrice", { value: priceLabel })}
                   onClick={() => onApplyAttribute("price", priceLabel.replace(",", "."))}
                 />
               ) : null}

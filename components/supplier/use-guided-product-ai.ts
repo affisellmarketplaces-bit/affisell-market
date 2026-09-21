@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 import { useDebounce } from "use-debounce"
 
 import {
@@ -16,6 +17,10 @@ type FetchInput = {
 }
 
 export function useGuidedProductAi(input: FetchInput, enabled: boolean) {
+  const t = useTranslations("supplier.guidedCopilot")
+  // Kept in a ref: a changing translator identity must never re-trigger the (paid) AI request.
+  const tRef = useRef(t)
+  tRef.current = t
   const [debouncedTitle] = useDebounce(input.title.trim(), 350)
   const [debouncedImageUrl] = useDebounce(input.imageUrl ?? "", 250)
   const [debouncedPreview] = useDebounce(input.imagePreview ?? "", 150)
@@ -60,7 +65,7 @@ export function useGuidedProductAi(input: FetchInput, enabled: boolean) {
 
       if (!res.ok) {
         if (reqId === requestIdRef.current) {
-          setError(data.detail ?? data.error ?? "IA indisponible")
+          setError(data.detail ?? data.error ?? tRef.current("aiUnavailable"))
           if (Array.isArray(data.categoryScores) && data.categoryScores.length > 0) {
             setSuggestion({ ...data, fallback: true, source: "fallback" })
           } else {
@@ -77,7 +82,7 @@ export function useGuidedProductAi(input: FetchInput, enabled: boolean) {
     } catch (e) {
       if ((e as Error).name === "AbortError") return
       if (reqId === requestIdRef.current) {
-        setError("Connexion IA interrompue")
+        setError(tRef.current("aiInterrupted"))
         setSuggestion({ ...EMPTY_GUIDED_AI_SUGGESTION, fallback: true, source: "fallback" })
       }
     } finally {

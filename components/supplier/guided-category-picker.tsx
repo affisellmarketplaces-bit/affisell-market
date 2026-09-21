@@ -1,6 +1,7 @@
 "use client"
 
 import { Check, Loader2, Sparkles } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import {
   GUIDED_WIZARD_CATEGORIES,
@@ -38,6 +39,7 @@ export function GuidedCategoryPicker({
   disabled = false,
 }: Props) {
   const topScore = scores[0]?.confidence ?? 0
+  const tWiz = useTranslations("supplier.guidedWizard")
 
   return (
     <div className="mt-1.5 space-y-2">
@@ -73,7 +75,7 @@ export function GuidedCategoryPicker({
                 ) : isRecommended && !loading ? (
                   <span className="flex items-center gap-0.5 rounded-full bg-violet-600 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
                     <Sparkles className="size-2.5" aria-hidden />
-                    IA
+                    {tWiz("pickerAi")}
                   </span>
                 ) : null}
               </div>
@@ -83,7 +85,7 @@ export function GuidedCategoryPicker({
                   selected ? "text-white" : "text-zinc-900 dark:text-zinc-50"
                 )}
               >
-                {entry.label}
+                {tWiz(`cat${entry.label}` as "catFashion")}
               </span>
               <span
                 className={cn(
@@ -91,7 +93,7 @@ export function GuidedCategoryPicker({
                   selected ? "text-violet-100" : "text-zinc-500 dark:text-zinc-400"
                 )}
               >
-                {entry.hint}
+                {tWiz(`cat${entry.label}Hint` as "catFashionHint")}
               </span>
               {confidence > 0 && !selected ? (
                 <span
@@ -102,7 +104,7 @@ export function GuidedCategoryPicker({
                       : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
                   )}
                 >
-                  {pct}% match
+                  {tWiz("pickerMatch", { pct })}
                 </span>
               ) : null}
             </button>
@@ -112,11 +114,11 @@ export function GuidedCategoryPicker({
       {loading ? (
         <p className="flex items-center gap-2 text-xs text-violet-600 dark:text-violet-300">
           <Loader2 className="size-3.5 animate-spin" aria-hidden />
-          Classification IA en cours…
+          {tWiz("pickerAnalysing")}
         </p>
       ) : recommended && !value ? (
         <p className="text-xs text-violet-700 dark:text-violet-300">
-          Copilot recommande <strong>{recommended}</strong> — sélection automatique en cours…
+          {tWiz("pickerRecommends", { category: tWiz(`cat${recommended}` as "catFashion") })}
         </p>
       ) : null}
     </div>
