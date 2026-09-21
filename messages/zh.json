@@ -1541,6 +1541,7 @@
       }
     },
     "expressTaxonomy": {
+      "photoTitleConflict": "您的照片看起来像：{photo}。请确认标题与照片描述的是同一商品。",
       "badge": "推荐类目",
       "photoBadge": "图片",
       "pendingBadge": "待确认",
@@ -1844,6 +1845,7 @@
       "tooShort": "请填写至少 {min} 个字符的描述。"
     },
     "guidedTaxonomy": {
+      "photoTitleConflict": "您的照片看起来像：{photo}。请确认标题与照片描述的是同一商品。",
       "title": "精确类目",
       "hint": "添加标题或照片——我们将推荐精确类目。",
       "analysing": "正在分析您的商品…",

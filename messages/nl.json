@@ -1541,6 +1541,7 @@
       }
     },
     "expressTaxonomy": {
+      "photoTitleConflict": "Je foto lijkt te tonen: {photo}. Controleer of titel en foto hetzelfde product beschrijven.",
       "badge": "Voorgestelde categorieën",
       "photoBadge": "Foto",
       "pendingBadge": "Te bevestigen",
@@ -1844,6 +1845,7 @@
       "tooShort": "Voeg een beschrijving van minstens {min} tekens toe."
     },
     "guidedTaxonomy": {
+      "photoTitleConflict": "Je foto lijkt te tonen: {photo}. Controleer of titel en foto hetzelfde product beschrijven.",
       "title": "Exacte categorie",
       "hint": "Voeg een titel of foto toe — wij stellen de exacte categorie voor.",
       "analysing": "Je product wordt geanalyseerd…",

@@ -7,6 +7,7 @@ import type { LeafPath } from "@/lib/category-browse-shared"
 import { hasListingClassificationSignal, isDurableListingImageUrl } from "@/lib/supplier-auto-category-policy"
 
 export type GuidedTaxonomySuggestion = LeafPath & { confidence?: number }
+export type GuidedTaxonomyIdentity = { name: string; photoShows: string; photoTitleConflict: boolean; confidence: number }
 
 const HARD_TIMEOUT_MS = 25_000
 
@@ -20,6 +21,7 @@ export function useGuidedTaxonomySuggestions(title: string, imageUrl: string | n
   const [suggestions, setSuggestions] = useState<GuidedTaxonomySuggestion[]>([])
   const [recommendedLeafId, setRecommendedLeafId] = useState<string | null>(null)
   const [autoApply, setAutoApply] = useState(false)
+  const [identity, setIdentity] = useState<GuidedTaxonomyIdentity | null>(null)
   const [loading, setLoading] = useState(false)
   const [failed, setFailed] = useState(false)
   const [retryNonce, setRetryNonce] = useState(0)
@@ -30,6 +32,7 @@ export function useGuidedTaxonomySuggestions(title: string, imageUrl: string | n
       setSuggestions([])
       setRecommendedLeafId(null)
       setAutoApply(false)
+      setIdentity(null)
       setLoading(false)
       setFailed(false)
       return
@@ -58,11 +61,13 @@ export function useGuidedTaxonomySuggestions(title: string, imageUrl: string | n
           suggestions?: GuidedTaxonomySuggestion[]
           recommendedLeafId?: string | null
           autoApplyRecommended?: boolean
+          identity?: GuidedTaxonomyIdentity | null
         }
         if (cancelled) return
         setSuggestions(Array.isArray(data.suggestions) ? data.suggestions.slice(0, 4) : [])
         setRecommendedLeafId(typeof data.recommendedLeafId === "string" ? data.recommendedLeafId : null)
         setAutoApply(Boolean(data.autoApplyRecommended))
+        setIdentity(data.identity ?? null)
       } catch {
         // A newer request (or unmount) superseded this one: not an error. Only a real failure/timeout is shown.
         if (cancelled && !timedOut) return
@@ -83,5 +88,5 @@ export function useGuidedTaxonomySuggestions(title: string, imageUrl: string | n
     }
   }, [enabled, debouncedTitle, debouncedImage, retryNonce])
 
-  return { suggestions, recommendedLeafId, autoApply, loading, failed, retry: () => setRetryNonce((n) => n + 1) }
+  return { suggestions, recommendedLeafId, autoApply, identity, loading, failed, retry: () => setRetryNonce((n) => n + 1) }
 }

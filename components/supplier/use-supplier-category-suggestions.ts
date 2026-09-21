@@ -16,6 +16,8 @@ export type SupplierCategorySuggestMeta = {
   visionUsed: boolean
   suggestedProductName: string | null
   source: string
+  /** What the classifier understood — drives the "photo and title disagree" warning. */
+  identity?: { name: string; photoShows: string; photoTitleConflict: boolean; confidence: number } | null
 }
 
 /** Photo-based scans call an AI classifier and can legitimately take several seconds. */
@@ -119,6 +121,7 @@ export function useSupplierCategorySuggestions(
           visionUsed?: boolean
           suggestedProductName?: string | null
           source?: string
+          identity?: SupplierCategorySuggestMeta["identity"]
         }
         setSuggestions(Array.isArray(data.suggestions) ? data.suggestions : [])
         setAlternatives(Array.isArray(data.alternatives) ? data.alternatives : [])
@@ -131,6 +134,7 @@ export function useSupplierCategorySuggestions(
           suggestedProductName:
             typeof data.suggestedProductName === "string" ? data.suggestedProductName : null,
           source: typeof data.source === "string" ? data.source : "none",
+          identity: data.identity ?? null,
         })
       } catch (e) {
         if ((e as Error).name !== "AbortError") {

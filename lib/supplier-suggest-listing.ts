@@ -24,6 +24,8 @@ import {
 } from "@/lib/category-title-match"
 import type { PrismaClient } from "@prisma/client"
 
+import { classifyWithTaxonomyAi } from "@/lib/taxonomy-classify.server"
+
 import {
   hasListingClassificationSignal,
   isDurableListingImageUrl,
@@ -49,6 +51,8 @@ export type SuggestListingCategoriesResult = {
   visionUsed: boolean
   /** Filled from vision when supplier title is empty/short. */
   suggestedProductName: string | null
+  /** What the classifier understood the item to be — lets the UI warn when the photo and the title disagree. */
+  identity?: { name: string; photoShows: string; photoTitleConflict: boolean; confidence: number } | null
 }
 
 const MIN_KEYWORD_SCORE_FOR_MERGE = 7
@@ -174,6 +178,58 @@ export async function suggestListingCategories(
       productInsight: insight,
       visionUsed,
       suggestedProductName: null,
+    }
+  }
+
+  // ── Primary engine: Claude — understand the item (photo first), then descend the taxonomy. Legacy engine below
+  // stays as the fallback when the key is missing, the call fails, or nothing usable comes back.
+  const smart = await classifyWithTaxonomyAi({
+    title: t,
+    description: description.trim(),
+    imageUrl,
+    supplierId: options?.supplierId,
+    browse: buildCategoryBrowse(rows),
+    leafPaths,
+  })
+  if (smart && smart.picks.length > 0) {
+    const identityName = smart.identity.nameFr || smart.identity.nameEn
+    const suggestions: ListingCategorySuggestion[] = smart.picks.slice(0, LISTING_CATEGORY_SUGGESTION_LIMIT).map((p) => ({
+      leafId: p.leafId,
+      breadcrumb: p.breadcrumb,
+      path: p.path,
+      confidence: p.confidence,
+      suggestionSource: "ai" as const,
+      aiReason: p.reason || undefined,
+    }))
+    const top = suggestions[0]!
+    // Conflicting photo/title = do not silently auto-apply: the supplier must confirm.
+    const autoApplyRecommended =
+      !smart.identity.photoTitleConflict &&
+      shouldAutoApplyCategorySuggestion({ confidence: top.confidence ?? 0, suggestionSource: "ai", hasImage: visionUsed })
+    console.log("[suggest-listing]", {
+      engine: "claude-taxonomy",
+      titleLen: t.length,
+      visionUsed,
+      picks: suggestions.length,
+      topConfidence: top.confidence,
+      conflict: smart.identity.photoTitleConflict,
+    })
+    const base = listingProductInsight({ ...ctx, productName: identityName || ctx.productName }, locale)
+    return {
+      suggestions,
+      alternatives: [],
+      recommendedLeafId: (top.confidence ?? 0) >= 0.6 ? top.leafId : null,
+      autoApplyRecommended,
+      source: "ai",
+      productInsight: base,
+      visionUsed,
+      suggestedProductName: t.length < 5 && identityName.length >= 3 ? identityName : null,
+      identity: {
+        name: identityName,
+        photoShows: smart.identity.photoShows,
+        photoTitleConflict: smart.identity.photoTitleConflict,
+        confidence: smart.identity.confidence,
+      },
     }
   }
 

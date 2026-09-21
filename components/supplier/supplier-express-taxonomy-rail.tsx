@@ -270,6 +270,15 @@ export function SupplierExpressTaxonomyRail({
         </Button>
       ) : null}
 
+      {meta.identity?.photoTitleConflict && !scanning ? (
+        <p
+          role="alert"
+          className="relative mt-3 rounded-xl border border-amber-300/80 bg-amber-50/90 px-3 py-2 text-xs font-medium leading-snug text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
+        >
+          {t("photoTitleConflict", { photo: meta.identity.photoShows || meta.identity.name })}
+        </p>
+      ) : null}
+
       {productInsight && !scanning && !confirmed ? (
         <p className="relative mt-2 text-[11px] text-violet-900/85 dark:text-violet-200/85">
           {productInsight.focusLabel}

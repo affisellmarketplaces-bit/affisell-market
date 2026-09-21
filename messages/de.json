@@ -1541,6 +1541,7 @@
       }
     },
     "expressTaxonomy": {
+      "photoTitleConflict": "Ihr Foto zeigt anscheinend: {photo}. Stellen Sie sicher, dass Titel und Foto dasselbe Produkt beschreiben.",
       "badge": "Vorgeschlagene Kategorien",
       "photoBadge": "Foto",
       "pendingBadge": "Zu bestätigen",
@@ -1844,6 +1845,7 @@
       "tooShort": "Fügen Sie eine Beschreibung mit mindestens {min} Zeichen hinzu."
     },
     "guidedTaxonomy": {
+      "photoTitleConflict": "Ihr Foto zeigt anscheinend: {photo}. Stellen Sie sicher, dass Titel und Foto dasselbe Produkt beschreiben.",
       "title": "Genaue Kategorie",
       "hint": "Titel oder Foto hinzufügen — wir schlagen die genaue Kategorie vor.",
       "analysing": "Ihr Produkt wird analysiert…",

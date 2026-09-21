@@ -382,7 +382,7 @@ export function GuidedAddProductButton({
         setStepError(tWiz("errTitle"))
         return false
       }
-      if (!form.category) {
+      if (!form.category && !form.leafId) {
         setStepError(tWiz("errCategory"))
         return false
       }
@@ -511,7 +511,7 @@ export function GuidedAddProductButton({
     }
 
     const categoryValue = GUIDED_WIZARD_CATEGORIES.find((c) => c.label === form.category)?.value
-    if (!asDraft && (!categoryValue || !form.imageUrl)) return
+    if (!asDraft && ((!categoryValue && !form.leafId) || !form.imageUrl)) return
 
     if (blockIfHoneypotValue(honeypotRef.current?.value)) {
       toast.error(tWiz("botDetected"))
@@ -550,7 +550,8 @@ export function GuidedAddProductButton({
             ...(priceValid || !asDraft ? { price: Number.parseFloat(form.price.replace(",", ".")) } : {}),
             ...(form.stock.trim() || !asDraft ? { stock: stockN } : {}),
             images: form.imageUrl ? [form.imageUrl] : [],
-            categories: categoryValue ? [categoryValue] : [],
+            // With an exact taxonomy category the coarse shelf is redundant (the full form sends only categoryId).
+            categories: categoryValue && !(withLeaf && form.leafId) ? [categoryValue] : [],
             // Exact category of the real taxonomy when chosen (better discovery, right commission grid).
             ...(withLeaf && form.leafId ? { categoryId: form.leafId } : {}),
             colors: form.color.trim() ? [form.color.trim()] : [],
@@ -740,20 +741,10 @@ export function GuidedAddProductButton({
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>{tWiz("departmentLabel")}</label>
-                  <GuidedCategoryPicker
-                    value={form.category}
-                    onChange={(category) => patchForm({ category }, { user: true })}
-                    scores={categoryScores}
-                    recommended={recommendedCategory}
-                    loading={aiLoading && !form.category}
-                    disabled={uploading}
-                  />
-                </div>
-                <div>
                   <label className={labelClass}>{tTax("title")}</label>
                   <GuidedTaxonomySuggestions
                     suggestions={taxonomy.suggestions}
+                    identity={taxonomy.identity}
                     recommendedLeafId={taxonomy.recommendedLeafId}
                     selectedLeafId={form.leafId}
                     loading={taxonomy.loading}
@@ -769,6 +760,25 @@ export function GuidedAddProductButton({
                     }
                   />
                 </div>
+                <details
+                  key={form.leafId || taxonomy.suggestions.length > 0 ? "collapsed" : "open"}
+                  open={!form.leafId && taxonomy.suggestions.length === 0}
+                  className="rounded-xl border border-zinc-200 px-3 py-2 dark:border-zinc-700"
+                >
+                  <summary className="cursor-pointer text-xs font-semibold text-zinc-600 dark:text-zinc-300">
+                    {tWiz("departmentLabel")}
+                  </summary>
+                  <div>
+                  <GuidedCategoryPicker
+                    value={form.category}
+                    onChange={(category) => patchForm({ category }, { user: true })}
+                    scores={categoryScores}
+                    recommended={recommendedCategory}
+                    loading={aiLoading && !form.category}
+                    disabled={uploading}
+                  />
+                </div>
+                </details>
               </div>
             )}
 

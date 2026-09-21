@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { suggestListingCategories } from "@/lib/supplier-suggest-listing"
 import { isDurableListingImageUrl } from "@/lib/supplier-auto-category-policy"
+import { rateLimitClientKey, rateLimitResponseAsync } from "@/lib/api-rate-limit"
 import { prisma } from "@/lib/prisma"
 import { getCategoryDisplayLocalizer } from "@/lib/category-display-locale.server"
 import { tMessage } from "@/lib/i18n-pick-message"
@@ -10,6 +11,8 @@ import { resolveRequestLocale } from "@/lib/resolve-request-locale"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
+/** Two model calls (identify + choose) with a photo: never cut at the 10s platform default. */
+export const maxDuration = 60
 
 /** Unified listing suggestions (category) for supplier product form. */
 export async function POST(req: Request) {
@@ -20,6 +23,13 @@ export async function POST(req: Request) {
   if ((session.user as { role?: string }).role !== "SUPPLIER") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
+
+  const limited = await rateLimitResponseAsync(rateLimitClientKey(req, session.user.id), {
+    limit: 40,
+    windowMs: 60_000,
+    prefix: "suggest-listing",
+  })
+  if (limited) return limited
 
   const body = (await req.json().catch(() => ({}))) as {
     title?: unknown

@@ -42,3 +42,10 @@ describe("guided wizard — every translation key used in code exists in the cat
     }
   })
 })
+
+describe("photo/title conflict warning keys", () => {
+  it("exists for both suggestion surfaces", () => {
+    expect(at("supplier.guidedTaxonomy")).toHaveProperty("photoTitleConflict")
+    expect(at("supplier.expressTaxonomy")).toHaveProperty("photoTitleConflict")
+  })
+})

@@ -3,11 +3,12 @@
 import { Check, Loader2, RefreshCw, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import type { GuidedTaxonomySuggestion } from "@/components/supplier/use-guided-taxonomy-suggestions"
+import type { GuidedTaxonomyIdentity, GuidedTaxonomySuggestion } from "@/components/supplier/use-guided-taxonomy-suggestions"
 import { cn } from "@/lib/utils"
 
 type Props = {
   suggestions: GuidedTaxonomySuggestion[]
+  identity?: GuidedTaxonomyIdentity | null
   recommendedLeafId: string | null
   selectedLeafId: string
   loading: boolean
@@ -28,6 +29,7 @@ export function splitBreadcrumb(breadcrumb: string): { leaf: string; trail: stri
 
 export function GuidedTaxonomySuggestions({
   suggestions,
+  identity = null,
   recommendedLeafId,
   selectedLeafId,
   loading,
@@ -41,6 +43,14 @@ export function GuidedTaxonomySuggestions({
 
   return (
     <div className="mt-1.5 space-y-2" aria-live="polite">
+      {identity?.photoTitleConflict && !loading ? (
+        <p
+          role="alert"
+          className="rounded-xl border border-amber-300/80 bg-amber-50/90 px-3 py-2 text-xs font-medium leading-snug text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
+        >
+          {t("photoTitleConflict", { photo: identity.photoShows || identity.name })}
+        </p>
+      ) : null}
       {loading ? (
         <div className="space-y-2" aria-busy="true">
           <p className="flex items-center gap-2 text-xs text-violet-600 dark:text-violet-300">
