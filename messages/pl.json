@@ -1738,6 +1738,16 @@
       "loading": "Ładowanie stawki…",
       "unavailable": "Stawka niedostępna dla tej kategorii."
     },
+    "guidedTaxonomy": {
+      "title": "Dokładna kategoria",
+      "hint": "Dodaj tytuł lub zdjęcie — zaproponujemy dokładną kategorię.",
+      "analysing": "Analizujemy Twój produkt…",
+      "bestMatch": "Najlepsze dopasowanie",
+      "match": "Dopasowanie {pct}%",
+      "noneFound": "Brak dokładnego dopasowania. Używany jest dział powyżej; możesz doprecyzować później.",
+      "unavailable": "Podpowiedzi są chwilowo niedostępne.",
+      "retry": "Spróbuj ponownie"
+    },
     "feeGrid": {
       "compactTitle": "Opłaty Affisell",
       "range": "{min}–{max}%",
@@ -2813,7 +2823,8 @@
       "myCatalogDraftCount": "{count, plural, one {# szkic} other {# szkice}}",
       "myCatalogLowStock": "{count, plural, one {# niski stan} other {# niskie stany}}",
       "myCatalogOpen": "Otwórz",
-      "newProduct": "Nowy produkt"
+      "newProduct": "Nowy produkt",
+      "newProductFull": "Pełny formularz produktu"
     },
     "kycPublish": {
       "badge": "Publikacja zablokowana",

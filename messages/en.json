@@ -1738,6 +1738,16 @@
       "loading": "Loading the rate…",
       "unavailable": "Rate unavailable for this category."
     },
+    "guidedTaxonomy": {
+      "title": "Exact category",
+      "hint": "Add a title or a photo — we suggest the exact category.",
+      "analysing": "Analysing your product…",
+      "bestMatch": "Best match",
+      "match": "{pct}% match",
+      "noneFound": "No exact match found. The shelf above is used; you can refine later.",
+      "unavailable": "Suggestions are unavailable right now.",
+      "retry": "Retry"
+    },
     "feeGrid": {
       "compactTitle": "Affisell fees",
       "range": "{min}–{max}%",
@@ -2813,7 +2823,8 @@
       "myCatalogDraftCount": "{count, plural, one {# draft} other {# drafts}}",
       "myCatalogLowStock": "{count, plural, one {# low stock} other {# low stock}}",
       "myCatalogOpen": "Open",
-      "newProduct": "New product"
+      "newProduct": "New product",
+      "newProductFull": "Full product form"
     },
     "kycPublish": {
       "badge": "Publish blocked",

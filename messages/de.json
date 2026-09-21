@@ -1738,6 +1738,16 @@
       "loading": "Satz wird geladen…",
       "unavailable": "Satz für diese Kategorie nicht verfügbar."
     },
+    "guidedTaxonomy": {
+      "title": "Genaue Kategorie",
+      "hint": "Titel oder Foto hinzufügen — wir schlagen die genaue Kategorie vor.",
+      "analysing": "Ihr Produkt wird analysiert…",
+      "bestMatch": "Beste Übereinstimmung",
+      "match": "{pct} % Übereinstimmung",
+      "noneFound": "Keine genaue Übereinstimmung. Es wird der obige Bereich verwendet; Sie können später verfeinern.",
+      "unavailable": "Vorschläge sind derzeit nicht verfügbar.",
+      "retry": "Erneut versuchen"
+    },
     "feeGrid": {
       "compactTitle": "Affisell-Gebühren",
       "range": "{min}–{max} %",
@@ -2813,7 +2823,8 @@
       "myCatalogDraftCount": "{count, plural, one {# Entwurf} other {# Entwürfe}}",
       "myCatalogLowStock": "{count, plural, one {# niedriger Bestand} other {# niedrige Bestände}}",
       "myCatalogOpen": "Öffnen",
-      "newProduct": "Neues Produkt"
+      "newProduct": "Neues Produkt",
+      "newProductFull": "Vollständiges Produktformular"
     },
     "kycPublish": {
       "badge": "Veröffentlichung blockiert",

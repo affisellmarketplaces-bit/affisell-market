@@ -12,7 +12,9 @@ import { BentoCard } from "@/components/affisell/bento-ui"
 import { HoneypotField } from "@/components/security/honeypot-field"
 import { GuidedAiCopilotPanel } from "@/components/supplier/guided-ai-copilot-panel"
 import { GuidedCategoryPicker } from "@/components/supplier/guided-category-picker"
+import { GuidedTaxonomySuggestions } from "@/components/supplier/guided-taxonomy-suggestions"
 import { useGuidedProductAi } from "@/components/supplier/use-guided-product-ai"
+import { useGuidedTaxonomySuggestions } from "@/components/supplier/use-guided-taxonomy-suggestions"
 import { buttonVariants } from "@/components/ui/button"
 import {
   GUIDED_WIZARD_CATEGORIES,
@@ -41,6 +43,9 @@ type FormState = {
   imageUrl: string | null
   title: string
   category: GuidedCategory | ""
+  /** Exact leaf of the real taxonomy (optional — empty keeps the coarse shelf + background auto-categorisation). */
+  leafId: string
+  leafBreadcrumb: string
   material: string
   color: string
   dimensions: string
@@ -58,17 +63,29 @@ const DEFAULT_FORM: FormState = {
   imageUrl: null,
   title: "",
   category: "",
-  material: "Coton bio",
-  color: "Noir",
-  dimensions: "30 × 20 × 5 cm",
-  stock: "10",
-  price: "29.99",
+  leafId: "",
+  leafBreadcrumb: "",
+  // No invented product data: material / colour / dimensions / price / stock start empty (the copilot suggests
+  // from the title and photo; the supplier confirms). A pre-filled "Coton bio · Noir" could be published by mistake.
+  material: "",
+  color: "",
+  dimensions: "",
+  stock: "",
+  price: "",
   manufacturerName: "",
   manufacturerAddress: "",
   manufacturerEmail: "",
   safetyWarning: "",
   notice: "",
 }
+
+const FIELD_PLACEHOLDERS = {
+  material: "ex. Coton bio",
+  color: "ex. Noir",
+  dimensions: "ex. 30 × 20 × 5 cm",
+  stock: "ex. 10",
+  price: "ex. 29.99",
+} as const
 
 type Props = {
   supplierId: string
@@ -107,6 +124,7 @@ export function GuidedAddProductButton({
 }: Props) {
   const router = useRouter()
   const tFee = useTranslations("supplier.feeGrid")
+  const tTax = useTranslations("supplier.guidedTaxonomy")
   const inputId = useId()
   const [open, setOpen] = useState(defaultOpen)
   const [step, setStep] = useState(0)
@@ -123,6 +141,16 @@ export function GuidedAddProductButton({
       { title: form.title, imageUrl: form.imageUrl, imagePreview: form.imagePreview },
       aiEnabled
     )
+
+  const taxonomy = useGuidedTaxonomySuggestions(form.title, form.imageUrl, aiEnabled)
+
+  // Strong, vision-backed match → pre-select it (the supplier can change or clear it). Never overrides a choice.
+  useEffect(() => {
+    if (!taxonomy.autoApply || !taxonomy.recommendedLeafId) return
+    if (form.leafId || userEdited.has("leafId")) return
+    const pick = taxonomy.suggestions.find((s) => s.leafId === taxonomy.recommendedLeafId)
+    if (pick) setForm((prev) => (prev.leafId ? prev : { ...prev, leafId: pick.leafId, leafBreadcrumb: pick.breadcrumb }))
+  }, [taxonomy.autoApply, taxonomy.recommendedLeafId, taxonomy.suggestions, form.leafId, userEdited])
 
   useEffect(() => {
     setMounted(true)
@@ -297,6 +325,10 @@ export function GuidedAddProductButton({
         setStepError("Matériau et couleur requis")
         return false
       }
+      if (!/^\d+$/.test(form.stock.trim())) {
+        setStepError("Stock requis (nombre entier, ex. 10)")
+        return false
+      }
       return true
     }
     if (current === 2) {
@@ -359,26 +391,37 @@ export function GuidedAddProductButton({
           : []),
       ].filter((a) => a.value.length > 0)
 
-      const res = await fetch("/api/supplier/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          name: form.title.trim(),
-          price: Number.parseFloat(form.price.replace(",", ".")),
-          stock: stockN,
-          images: [form.imageUrl],
-          categories: [categoryValue],
-          colors: [form.color.trim()],
-          commissionRate: 15,
-          listingKind: "PHYSICAL",
-          warehouseType: "local",
-          shippingCountry: "FR",
-          deliveryCountryCodes: ["FR", "DE", "BE", "ES", "IT", "NL", "PT", "LU"],
-          productAttributes,
-          saveAsDraft: false,
-        }),
-      })
+      const send = (withLeaf: boolean) =>
+        fetch("/api/supplier/products", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            name: form.title.trim(),
+            price: Number.parseFloat(form.price.replace(",", ".")),
+            stock: stockN,
+            images: [form.imageUrl],
+            categories: [categoryValue],
+            // Exact category of the real taxonomy when chosen (better discovery, right commission grid).
+            ...(withLeaf && form.leafId ? { categoryId: form.leafId } : {}),
+            colors: [form.color.trim()],
+            commissionRate: 15,
+            listingKind: "PHYSICAL",
+            warehouseType: "local",
+            shippingCountry: "FR",
+            deliveryCountryCodes: ["FR", "DE", "BE", "ES", "IT", "NL", "PT", "LU"],
+            productAttributes,
+            saveAsDraft: false,
+          }),
+        })
+
+      let res = await send(true)
+      // The exact category can require attributes this short wizard does not collect (the API answers 400 with the
+      // list). Never block the supplier: retry with the coarse shelf — background auto-categorisation still applies.
+      if (res.status === 400 && form.leafId) {
+        const probe = (await res.clone().json().catch(() => ({}))) as { errors?: unknown }
+        if (probe.errors) res = await send(false)
+      }
 
       const data = (await res.json()) as { id?: string; error?: string; verificationStatus?: string }
       if (!res.ok) {
@@ -557,6 +600,25 @@ export function GuidedAddProductButton({
                     disabled={uploading}
                   />
                 </div>
+                <div>
+                  <label className={labelClass}>{tTax("title")}</label>
+                  <GuidedTaxonomySuggestions
+                    suggestions={taxonomy.suggestions}
+                    recommendedLeafId={taxonomy.recommendedLeafId}
+                    selectedLeafId={form.leafId}
+                    loading={taxonomy.loading}
+                    failed={taxonomy.failed}
+                    hasSignal={form.title.trim().length >= 3 || Boolean(form.imageUrl)}
+                    disabled={uploading}
+                    onRetry={taxonomy.retry}
+                    onSelect={(s) =>
+                      patchForm(
+                        { leafId: s?.leafId ?? "", leafBreadcrumb: s?.breadcrumb ?? "" },
+                        { user: true }
+                      )
+                    }
+                  />
+                </div>
               </div>
             )}
 
@@ -590,6 +652,8 @@ export function GuidedAddProductButton({
                     <input
                       id={`guided-${key}`}
                       className={fieldClass}
+                      placeholder={FIELD_PLACEHOLDERS[key]}
+                      inputMode={key === "price" || key === "stock" ? "decimal" : undefined}
                       value={value}
                       onChange={(e) =>
                         patchForm({ [key]: e.target.value } as Partial<FormState>, { user: true })

@@ -1738,6 +1738,16 @@
       "loading": "Calcolo del tasso…",
       "unavailable": "Tasso non disponibile per questa categoria."
     },
+    "guidedTaxonomy": {
+      "title": "Categoria esatta",
+      "hint": "Aggiungi un titolo o una foto — suggeriamo la categoria esatta.",
+      "analysing": "Analisi del prodotto…",
+      "bestMatch": "Migliore corrispondenza",
+      "match": "{pct}% di corrispondenza",
+      "noneFound": "Nessuna corrispondenza esatta. Viene usato il reparto sopra; potrai affinare dopo.",
+      "unavailable": "I suggerimenti non sono disponibili al momento.",
+      "retry": "Riprova"
+    },
     "feeGrid": {
       "compactTitle": "Commissioni Affisell",
       "range": "{min}–{max}%",
@@ -2813,7 +2823,8 @@
       "myCatalogDraftCount": "{count, plural, one {# bozza} other {# bozze}}",
       "myCatalogLowStock": "{count, plural, one {# stock basso} other {# stock bassi}}",
       "myCatalogOpen": "Apri",
-      "newProduct": "Nuovo prodotto"
+      "newProduct": "Nuovo prodotto",
+      "newProductFull": "Modulo prodotto completo"
     },
     "kycPublish": {
       "badge": "Pubblicazione bloccata",

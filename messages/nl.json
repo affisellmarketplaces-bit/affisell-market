@@ -1738,6 +1738,16 @@
       "loading": "Tarief laden…",
       "unavailable": "Tarief niet beschikbaar voor deze categorie."
     },
+    "guidedTaxonomy": {
+      "title": "Exacte categorie",
+      "hint": "Voeg een titel of foto toe — wij stellen de exacte categorie voor.",
+      "analysing": "Je product wordt geanalyseerd…",
+      "bestMatch": "Beste match",
+      "match": "{pct}% overeenkomst",
+      "noneFound": "Geen exacte match. De afdeling hierboven wordt gebruikt; je kunt later verfijnen.",
+      "unavailable": "Suggesties zijn momenteel niet beschikbaar.",
+      "retry": "Opnieuw proberen"
+    },
     "feeGrid": {
       "compactTitle": "Affisell-tarieven",
       "range": "{min}–{max}%",
@@ -2813,7 +2823,8 @@
       "myCatalogDraftCount": "{count, plural, one {# concept} other {# concepten}}",
       "myCatalogLowStock": "{count, plural, one {# lage voorraad} other {# lage voorraad}}",
       "myCatalogOpen": "Openen",
-      "newProduct": "Nieuw product"
+      "newProduct": "Nieuw product",
+      "newProductFull": "Volledig productformulier"
     },
     "kycPublish": {
       "badge": "Publiceren geblokkeerd",

@@ -77,7 +77,7 @@ export async function SupplierMissionControlHeader({
             className={cn(missionControlVioletBandCta, "justify-center bg-transparent text-violet-800 ring-1 ring-violet-300/80 hover:bg-violet-50 dark:text-violet-100 dark:ring-violet-700")}
           >
             <Plus className="h-4 w-4" aria-hidden />
-            {t("newProduct")} (complet)
+            {t("newProductFull")}
           </Link>
         </div>
       </div>

@@ -1738,6 +1738,16 @@
       "loading": "Calcul du taux…",
       "unavailable": "Taux indisponible pour cette catégorie."
     },
+    "guidedTaxonomy": {
+      "title": "Catégorie exacte",
+      "hint": "Ajoutez un titre ou une photo — nous suggérons la catégorie exacte.",
+      "analysing": "Analyse de votre produit…",
+      "bestMatch": "Meilleure correspondance",
+      "match": "{pct} % de correspondance",
+      "noneFound": "Aucune correspondance exacte. Le rayon ci-dessus est utilisé; vous pourrez affiner ensuite.",
+      "unavailable": "Les suggestions sont indisponibles pour le moment.",
+      "retry": "Réessayer"
+    },
     "feeGrid": {
       "compactTitle": "Frais Affisell",
       "range": "{min}–{max} %",
@@ -2813,7 +2823,8 @@
       "myCatalogDraftCount": "{count, plural, one {# brouillon} other {# brouillons}}",
       "myCatalogLowStock": "{count, plural, one {# stock bas} other {# stocks bas}}",
       "myCatalogOpen": "Ouvrir",
-      "newProduct": "Nouveau produit"
+      "newProduct": "Nouveau produit",
+      "newProductFull": "Formulaire produit complet"
     },
     "kycPublish": {
       "badge": "Publication bloquée",
