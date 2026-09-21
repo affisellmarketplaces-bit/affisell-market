@@ -8164,5 +8164,25 @@
       "busy_background": "Busy background — the main photo works best on a plain background.",
       "duplicate": "Near-duplicate of an earlier photo."
     }
+  },
+  "merchantNotifications": {
+    "title": "Notifications",
+    "alerts": "Alerts",
+    "ordersToShip": "{count, plural, one {# order to ship} other {# orders to ship}}",
+    "unread": "{count, plural, one {# unread} other {# unread}}",
+    "allCaughtUp": "All caught up",
+    "markAllRead": "Mark all read",
+    "emptySupplier": "No notifications yet.",
+    "emptyAffiliate": "No sales alerts yet.",
+    "allOrders": "All orders to ship →",
+    "earnings": "Earnings & payouts →",
+    "openOrders": "Open orders to ship",
+    "viewEarnings": "View earnings",
+    "viewRequest": "View the request",
+    "viewQuotes": "View quotes",
+    "browseCatalog": "Browse the catalog",
+    "reviewMargins": "Review my margins",
+    "viewInvitation": "View the invitation",
+    "viewAffiliateInvites": "View reseller invitations"
   }
 }

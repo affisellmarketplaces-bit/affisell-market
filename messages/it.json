@@ -8164,5 +8164,25 @@
       "busy_background": "Sfondo affollato — la foto principale rende meglio su sfondo uniforme.",
       "duplicate": "Quasi identica a una foto precedente."
     }
+  },
+  "merchantNotifications": {
+    "title": "Notifiche",
+    "alerts": "Avvisi",
+    "ordersToShip": "{count, plural, one {# ordine da spedire} other {# ordini da spedire}}",
+    "unread": "{count, plural, one {# non letta} other {# non lette}}",
+    "allCaughtUp": "Tutto in ordine",
+    "markAllRead": "Segna tutto come letto",
+    "emptySupplier": "Ancora nessuna notifica.",
+    "emptyAffiliate": "Ancora nessun avviso di vendita.",
+    "allOrders": "Tutti gli ordini da spedire →",
+    "earnings": "Guadagni e pagamenti →",
+    "openOrders": "Apri gli ordini da spedire",
+    "viewEarnings": "Vedi i guadagni",
+    "viewRequest": "Vedi la richiesta",
+    "viewQuotes": "Vedi i preventivi",
+    "browseCatalog": "Sfoglia il catalogo",
+    "reviewMargins": "Rivedi i miei margini",
+    "viewInvitation": "Vedi l'invito",
+    "viewAffiliateInvites": "Vedi gli inviti rivenditore"
   }
 }

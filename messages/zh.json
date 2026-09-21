@@ -8164,5 +8164,25 @@
       "busy_background": "背景杂乱——主图在纯色背景上效果最佳。",
       "duplicate": "与之前的图片几乎相同。"
     }
+  },
+  "merchantNotifications": {
+    "title": "通知",
+    "alerts": "提醒",
+    "ordersToShip": "{count, plural, other {# 个订单待发货}}",
+    "unread": "{count, plural, other {# 条未读}}",
+    "allCaughtUp": "已全部处理",
+    "markAllRead": "全部标为已读",
+    "emptySupplier": "暂无通知。",
+    "emptyAffiliate": "暂无销售提醒。",
+    "allOrders": "全部待发货订单 →",
+    "earnings": "收益与提现 →",
+    "openOrders": "打开待发货订单",
+    "viewEarnings": "查看收益",
+    "viewRequest": "查看需求",
+    "viewQuotes": "查看报价",
+    "browseCatalog": "浏览目录",
+    "reviewMargins": "查看我的利润",
+    "viewInvitation": "查看邀请",
+    "viewAffiliateInvites": "查看分销商邀请"
   }
 }

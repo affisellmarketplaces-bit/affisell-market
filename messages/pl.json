@@ -8164,5 +8164,25 @@
       "busy_background": "Nieuporządkowane tło — zdjęcie główne najlepiej wygląda na jednolitym tle.",
       "duplicate": "Prawie identyczne z wcześniejszym zdjęciem."
     }
+  },
+  "merchantNotifications": {
+    "title": "Powiadomienia",
+    "alerts": "Alerty",
+    "ordersToShip": "{count, plural, one {# zamówienie do wysłania} few {# zamówienia do wysłania} many {# zamówień do wysłania} other {# zamówienia do wysłania}}",
+    "unread": "{count, plural, one {# nieprzeczytane} few {# nieprzeczytane} many {# nieprzeczytanych} other {# nieprzeczytanych}}",
+    "allCaughtUp": "Wszystko na bieżąco",
+    "markAllRead": "Oznacz wszystko jako przeczytane",
+    "emptySupplier": "Brak powiadomień.",
+    "emptyAffiliate": "Brak alertów sprzedaży.",
+    "allOrders": "Wszystkie zamówienia do wysłania →",
+    "earnings": "Zarobki i wypłaty →",
+    "openOrders": "Otwórz zamówienia do wysłania",
+    "viewEarnings": "Zobacz zarobki",
+    "viewRequest": "Zobacz zapytanie",
+    "viewQuotes": "Zobacz wyceny",
+    "browseCatalog": "Przeglądaj katalog",
+    "reviewMargins": "Sprawdź moje marże",
+    "viewInvitation": "Zobacz zaproszenie",
+    "viewAffiliateInvites": "Zobacz zaproszenia resellerów"
   }
 }

@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Bell } from "lucide-react"
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
+import { useTranslations } from "next-intl"
 import { useSession } from "next-auth/react"
 
 import { MerchantNotificationItem } from "@/components/merchant/merchant-notification-item"
@@ -49,8 +50,8 @@ const config: Record<
     apiPath: string
     eventName: string
     ordersHref: string
-    ordersLinkLabel: string
-    emptyLabel: string
+    ordersLinkKey: string
+    emptyKey: string
     showOrdersLink: (n: NotificationRow) => boolean
   }
 > = {
@@ -58,8 +59,8 @@ const config: Record<
     apiPath: "/api/supplier/notifications",
     eventName: "affisell:supplier-notifications-changed",
     ordersHref: "/dashboard/supplier/orders",
-    ordersLinkLabel: "Open orders to ship",
-    emptyLabel: "No notifications yet.",
+    ordersLinkKey: "openOrders",
+    emptyKey: "emptySupplier",
     showOrdersLink: (n) =>
       n.type === "NEW_ORDER" ||
       n.type === SUPPLIER_AFFILIATE_INVITE_NOTIF.REGISTERED ||
@@ -70,8 +71,8 @@ const config: Record<
     apiPath: "/api/affiliate/notifications",
     eventName: "affisell:affiliate-notifications-changed",
     ordersHref: "/dashboard/affiliate/earnings",
-    ordersLinkLabel: "View earnings",
-    emptyLabel: "No sales alerts yet.",
+    ordersLinkKey: "viewEarnings",
+    emptyKey: "emptyAffiliate",
     showOrdersLink: (n) =>
       n.type === "NEW_SALE" ||
       n.type === SUPPLIER_PRICE_CHANGE_NOTIF ||
@@ -90,7 +91,8 @@ function subscribeMerchantNotifications(eventName: string, listener: () => void)
 function resolveNotificationLink(
   role: MerchantRole,
   n: NotificationRow,
-  cfg: (typeof config)[MerchantRole]
+  cfg: (typeof config)[MerchantRole],
+  t: (key: string) => string
 ): { href: string; label: string } | null {
   if (!cfg.showOrdersLink(n)) return null
 
@@ -101,14 +103,14 @@ function resolveNotificationLink(
         href: requestId
           ? `/dashboard/supplier/requests/${encodeURIComponent(requestId)}`
           : "/dashboard/supplier/requests",
-        label: "Voir la demande",
+        label: t("viewRequest"),
       }
     }
     return {
       href: requestId
         ? `/dashboard/reseller/requests/${encodeURIComponent(requestId)}`
         : "/dashboard/reseller/requests",
-      label: "Voir les devis",
+      label: t("viewQuotes"),
     }
   }
 
@@ -117,18 +119,18 @@ function resolveNotificationLink(
     (n.type === SUPPLIER_INVITE_NOTIF.CATALOG_LIVE ||
       n.type === SUPPLIER_INVITE_NOTIF.NEW_SUPPLIER_CATALOG)
   ) {
-    return { href: AFFILIATE_CATALOG_PATH, label: "Parcourir le catalogue" }
+    return { href: AFFILIATE_CATALOG_PATH, label: t("browseCatalog") }
   }
 
   if (role === "AFFILIATE" && n.type === SUPPLIER_PRICE_CHANGE_NOTIF && n.orderId) {
     return {
       href: `/dashboard/affiliate?editListing=${encodeURIComponent(n.orderId)}`,
-      label: "Revoir mes marges",
+      label: t("reviewMargins"),
     }
   }
 
   if (role === "AFFILIATE" && n.type === SUPPLIER_INVITE_NOTIF.REGISTERED) {
-    return { href: "/dashboard/affiliate/invite-supplier", label: "Voir l'invitation" }
+    return { href: "/dashboard/affiliate/invite-supplier", label: t("viewInvitation") }
   }
 
   if (
@@ -136,10 +138,10 @@ function resolveNotificationLink(
     (n.type === SUPPLIER_AFFILIATE_INVITE_NOTIF.REGISTERED ||
       n.type === SUPPLIER_AFFILIATE_INVITE_NOTIF.LISTING_LIVE)
   ) {
-    return { href: "/dashboard/supplier/invite-affiliate", label: "Voir les invitations affilié" }
+    return { href: "/dashboard/supplier/invite-affiliate", label: t("viewAffiliateInvites") }
   }
 
-  return { href: cfg.ordersHref, label: cfg.ordersLinkLabel }
+  return { href: cfg.ordersHref, label: t(cfg.ordersLinkKey) }
 }
 
 export function MerchantNotificationsMenu({
@@ -150,6 +152,7 @@ export function MerchantNotificationsMenu({
   className?: string
 }) {
   const cfg = config[role]
+  const t = useTranslations("merchantNotifications")
   const { status: sessionStatus } = useSession()
   const [open, setOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
@@ -301,7 +304,7 @@ export function MerchantNotificationsMenu({
       <div
         ref={dropdownRef}
         role="dialog"
-        aria-label="Notifications"
+        aria-label={t("title")}
         style={{
           position: "fixed",
           top: dropdownCoords.top,
@@ -314,18 +317,18 @@ export function MerchantNotificationsMenu({
           <div className="flex items-center justify-between gap-2">
             <div>
               <p className="text-sm font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-                Notifications
+                {t("title")}
               </p>
               {role === "SUPPLIER" && ordersToShipCount > 0 ? (
                 <p className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
-                  {ordersToShipCount} order{ordersToShipCount === 1 ? "" : "s"} to ship
+                  {t("ordersToShip", { count: ordersToShipCount })}
                 </p>
               ) : unreadCount > 0 ? (
                 <p className="text-[11px] font-medium text-violet-700 dark:text-violet-400">
-                  {unreadCount} unread
+                  {t("unread", { count: unreadCount })}
                 </p>
               ) : (
-                <p className="text-[11px] text-zinc-500">All caught up</p>
+                <p className="text-[11px] text-zinc-500">{t("allCaughtUp")}</p>
               )}
             </div>
             {(unreadCount > 0 || (role === "SUPPLIER" && actionRequiredCount > 0)) ? (
@@ -334,21 +337,21 @@ export function MerchantNotificationsMenu({
                 className="rounded-lg border border-violet-200/80 bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-violet-700 transition hover:bg-violet-50 dark:border-violet-800/60 dark:bg-violet-950/40 dark:text-violet-300 dark:hover:bg-violet-950/70"
                 onClick={() => void markAllRead()}
               >
-                Mark all read
+                {t("markAllRead")}
               </button>
             ) : null}
           </div>
         </div>
         <ul className="max-h-[min(24rem,60vh)] overflow-y-auto overscroll-contain">
           {rows.length === 0 ? (
-            <li className="px-4 py-10 text-center text-sm text-zinc-500">{cfg.emptyLabel}</li>
+            <li className="px-4 py-10 text-center text-sm text-zinc-500">{t(cfg.emptyKey)}</li>
           ) : (
             rows.map((n) => (
               <MerchantNotificationItem
                 key={n.id}
                 row={n}
                 role={role}
-                link={resolveNotificationLink(role, n, cfg)}
+                link={resolveNotificationLink(role, n, cfg, t)}
                 onNavigate={() => setOpen(false)}
                 onMarkRead={
                   !n.read ? () => void markOneRead(n.id) : undefined
@@ -363,7 +366,7 @@ export function MerchantNotificationsMenu({
             className="block rounded-xl bg-gradient-to-r from-violet-600 to-violet-700 px-3 py-2 text-center text-xs font-bold text-white shadow-sm transition hover:from-violet-500 hover:to-violet-600 dark:from-violet-600 dark:to-violet-800"
             onClick={() => setOpen(false)}
           >
-            {role === "SUPPLIER" ? "All orders to ship →" : "Earnings & payouts →"}
+            {role === "SUPPLIER" ? t("allOrders") : t("earnings")}
           </Link>
         </div>
       </div>
@@ -377,8 +380,10 @@ export function MerchantNotificationsMenu({
         aria-expanded={open}
         aria-label={
           badgeCount > 0
-            ? `${badgeCount} ${role === "SUPPLIER" ? "orders to ship" : "unread notifications"}`
-            : "Notifications"
+            ? role === "SUPPLIER"
+              ? t("ordersToShip", { count: badgeCount })
+              : t("unread", { count: badgeCount })
+            : t("title")
         }
         onClick={() => setOpen((v) => !v)}
         className={cn(
@@ -388,7 +393,7 @@ export function MerchantNotificationsMenu({
         )}
       >
         <Bell className="size-4 shrink-0" aria-hidden />
-        <span className="hidden sm:inline">Alerts</span>
+        <span className="hidden sm:inline">{t("alerts")}</span>
         {badgeCount > 0 ? (
           <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-emerald-500 px-1 text-[10px] font-bold text-white shadow-md">
             {badgeCount > 9 ? "9+" : badgeCount}

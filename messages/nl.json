@@ -8164,5 +8164,25 @@
       "busy_background": "Drukke achtergrond — de hoofdfoto werkt het best op een effen achtergrond.",
       "duplicate": "Bijna identiek aan een eerdere foto."
     }
+  },
+  "merchantNotifications": {
+    "title": "Meldingen",
+    "alerts": "Meldingen",
+    "ordersToShip": "{count, plural, one {# bestelling te verzenden} other {# bestellingen te verzenden}}",
+    "unread": "{count, plural, one {# ongelezen} other {# ongelezen}}",
+    "allCaughtUp": "Alles bijgewerkt",
+    "markAllRead": "Alles als gelezen markeren",
+    "emptySupplier": "Nog geen meldingen.",
+    "emptyAffiliate": "Nog geen verkoopmeldingen.",
+    "allOrders": "Alle te verzenden bestellingen →",
+    "earnings": "Inkomsten & uitbetalingen →",
+    "openOrders": "Te verzenden bestellingen openen",
+    "viewEarnings": "Inkomsten bekijken",
+    "viewRequest": "Aanvraag bekijken",
+    "viewQuotes": "Offertes bekijken",
+    "browseCatalog": "Catalogus bekijken",
+    "reviewMargins": "Mijn marges controleren",
+    "viewInvitation": "Uitnodiging bekijken",
+    "viewAffiliateInvites": "Wederverkopersuitnodigingen bekijken"
   }
 }

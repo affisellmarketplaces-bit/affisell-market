@@ -67,5 +67,6 @@ describe("scrapeSupplierProductFromUrl amazon direct fallback", () => {
     expect(result.product.sizes[0]?.name).toBe("Ajustable")
     expect(result.product.sku).toBe("B0TEST1234")
     expect(result.product.is_duplicate).toBe(false)
-  })
+    // The first dynamic import of the handler transforms a heavy module graph: give it room on a loaded machine / CI.
+  }, 30_000)
 })
