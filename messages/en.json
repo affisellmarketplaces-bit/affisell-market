@@ -1738,6 +1738,16 @@
       "loading": "Loading the rate…",
       "unavailable": "Rate unavailable for this category."
     },
+    "guidedDescription": {
+      "label": "Description",
+      "generate": "Draft with AI",
+      "regenerate": "Regenerate",
+      "generating": "Writing…",
+      "placeholder": "Describe the product: what it is, key features, what is included…",
+      "reviewHint": "AI draft from your title and photo — check every fact before publishing.",
+      "unavailable": "AI is unavailable right now — write a short description yourself.",
+      "tooShort": "Add a description of at least {min} characters."
+    },
     "guidedTaxonomy": {
       "title": "Exact category",
       "hint": "Add a title or a photo — we suggest the exact category.",

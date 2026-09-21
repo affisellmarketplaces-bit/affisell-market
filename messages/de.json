@@ -1738,6 +1738,16 @@
       "loading": "Satz wird geladen…",
       "unavailable": "Satz für diese Kategorie nicht verfügbar."
     },
+    "guidedDescription": {
+      "label": "Beschreibung",
+      "generate": "Mit KI entwerfen",
+      "regenerate": "Neu erstellen",
+      "generating": "Wird geschrieben…",
+      "placeholder": "Beschreiben Sie das Produkt: was es ist, Hauptmerkmale, Lieferumfang…",
+      "reviewHint": "KI-Entwurf aus Titel und Foto — prüfen Sie jede Angabe vor dem Veröffentlichen.",
+      "unavailable": "KI ist derzeit nicht verfügbar — schreiben Sie eine kurze Beschreibung selbst.",
+      "tooShort": "Fügen Sie eine Beschreibung mit mindestens {min} Zeichen hinzu."
+    },
     "guidedTaxonomy": {
       "title": "Genaue Kategorie",
       "hint": "Titel oder Foto hinzufügen — wir schlagen die genaue Kategorie vor.",

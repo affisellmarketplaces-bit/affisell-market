@@ -1738,6 +1738,16 @@
       "loading": "Tarief laden…",
       "unavailable": "Tarief niet beschikbaar voor deze categorie."
     },
+    "guidedDescription": {
+      "label": "Beschrijving",
+      "generate": "Opstellen met AI",
+      "regenerate": "Opnieuw genereren",
+      "generating": "Schrijven…",
+      "placeholder": "Beschrijf het product: wat het is, belangrijkste kenmerken, wat is inbegrepen…",
+      "reviewHint": "AI-concept op basis van je titel en foto — controleer elk gegeven voor het publiceren.",
+      "unavailable": "AI is momenteel niet beschikbaar — schrijf zelf een korte beschrijving.",
+      "tooShort": "Voeg een beschrijving van minstens {min} tekens toe."
+    },
     "guidedTaxonomy": {
       "title": "Exacte categorie",
       "hint": "Voeg een titel of foto toe — wij stellen de exacte categorie voor.",

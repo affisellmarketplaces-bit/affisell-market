@@ -1738,6 +1738,16 @@
       "loading": "正在加载费率…",
       "unavailable": "该类目暂无费率。"
     },
+    "guidedDescription": {
+      "label": "商品描述",
+      "generate": "AI 撰写",
+      "regenerate": "重新生成",
+      "generating": "撰写中…",
+      "placeholder": "描述商品：是什么、主要特点、包含内容…",
+      "reviewHint": "根据标题和照片生成的 AI 草稿——发布前请核对每一项信息。",
+      "unavailable": "AI 暂时不可用——请自行填写简短描述。",
+      "tooShort": "请填写至少 {min} 个字符的描述。"
+    },
     "guidedTaxonomy": {
       "title": "精确类目",
       "hint": "添加标题或照片——我们将推荐精确类目。",

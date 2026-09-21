@@ -1738,6 +1738,16 @@
       "loading": "Calcolo del tasso…",
       "unavailable": "Tasso non disponibile per questa categoria."
     },
+    "guidedDescription": {
+      "label": "Descrizione",
+      "generate": "Scrivi con l'IA",
+      "regenerate": "Rigenera",
+      "generating": "Scrittura…",
+      "placeholder": "Descrivi il prodotto: cos'è, caratteristiche principali, cosa è incluso…",
+      "reviewHint": "Bozza IA da titolo e foto — controlla ogni dato prima di pubblicare.",
+      "unavailable": "L'IA non è disponibile al momento — scrivi una breve descrizione.",
+      "tooShort": "Aggiungi una descrizione di almeno {min} caratteri."
+    },
     "guidedTaxonomy": {
       "title": "Categoria esatta",
       "hint": "Aggiungi un titolo o una foto — suggeriamo la categoria esatta.",

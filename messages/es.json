@@ -1738,6 +1738,16 @@
       "loading": "Calculando la tasa…",
       "unavailable": "Tasa no disponible para esta categoría."
     },
+    "guidedDescription": {
+      "label": "Descripción",
+      "generate": "Redactar con IA",
+      "regenerate": "Regenerar",
+      "generating": "Redactando…",
+      "placeholder": "Describe el producto: qué es, características clave, qué incluye…",
+      "reviewHint": "Borrador de IA a partir de tu título y foto — comprueba cada dato antes de publicar.",
+      "unavailable": "La IA no está disponible ahora — escribe una descripción breve.",
+      "tooShort": "Añade una descripción de al menos {min} caracteres."
+    },
     "guidedTaxonomy": {
       "title": "Categoría exacta",
       "hint": "Añade un título o una foto — sugerimos la categoría exacta.",

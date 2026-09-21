@@ -1738,6 +1738,16 @@
       "loading": "Ładowanie stawki…",
       "unavailable": "Stawka niedostępna dla tej kategorii."
     },
+    "guidedDescription": {
+      "label": "Opis",
+      "generate": "Napisz z AI",
+      "regenerate": "Wygeneruj ponownie",
+      "generating": "Pisanie…",
+      "placeholder": "Opisz produkt: czym jest, kluczowe cechy, co zawiera zestaw…",
+      "reviewHint": "Szkic AI na podstawie tytułu i zdjęcia — sprawdź każdą informację przed publikacją.",
+      "unavailable": "AI jest chwilowo niedostępne — napisz krótki opis samodzielnie.",
+      "tooShort": "Dodaj opis liczący co najmniej {min} znaków."
+    },
     "guidedTaxonomy": {
       "title": "Dokładna kategoria",
       "hint": "Dodaj tytuł lub zdjęcie — zaproponujemy dokładną kategorię.",

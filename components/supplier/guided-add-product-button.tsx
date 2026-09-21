@@ -46,6 +46,8 @@ type FormState = {
   /** Exact leaf of the real taxonomy (optional — empty keeps the coarse shelf + background auto-categorisation). */
   leafId: string
   leafBreadcrumb: string
+  description: string
+  descriptionBullets: string[]
   material: string
   color: string
   dimensions: string
@@ -65,6 +67,8 @@ const DEFAULT_FORM: FormState = {
   category: "",
   leafId: "",
   leafBreadcrumb: "",
+  description: "",
+  descriptionBullets: [],
   // No invented product data: material / colour / dimensions / price / stock start empty (the copilot suggests
   // from the title and photo; the supplier confirms). A pre-filled "Coton bio · Noir" could be published by mistake.
   material: "",
@@ -78,6 +82,8 @@ const DEFAULT_FORM: FormState = {
   safetyWarning: "",
   notice: "",
 }
+
+const DESCRIPTION_MIN_LENGTH = 40
 
 const FIELD_PLACEHOLDERS = {
   material: "ex. Coton bio",
@@ -125,6 +131,10 @@ export function GuidedAddProductButton({
   const router = useRouter()
   const tFee = useTranslations("supplier.feeGrid")
   const tTax = useTranslations("supplier.guidedTaxonomy")
+  const tDesc = useTranslations("supplier.guidedDescription")
+  const [descLoading, setDescLoading] = useState(false)
+  const [descError, setDescError] = useState<string | null>(null)
+  const descAutoTried = useRef(false)
   const inputId = useId()
   const [open, setOpen] = useState(defaultOpen)
   const [step, setStep] = useState(0)
@@ -191,6 +201,8 @@ export function GuidedAddProductButton({
     setStep(0)
     setStepError(null)
     setUserEdited(new Set())
+    setDescError(null)
+    descAutoTried.current = false
   }, [form.imagePreview])
 
   const categoryScores = useMemo(
@@ -325,6 +337,10 @@ export function GuidedAddProductButton({
         setStepError("Matériau et couleur requis")
         return false
       }
+      if (form.description.trim().length < DESCRIPTION_MIN_LENGTH) {
+        setStepError(tDesc("tooShort", { min: DESCRIPTION_MIN_LENGTH }))
+        return false
+      }
       if (!/^\d+$/.test(form.stock.trim())) {
         setStepError("Stock requis (nombre entier, ex. 10)")
         return false
@@ -340,6 +356,60 @@ export function GuidedAddProductButton({
     }
     return true
   }
+
+  const generateDescription = useCallback(async () => {
+    const title = form.title.trim()
+    if (!title || descLoading) return
+    setDescLoading(true)
+    setDescError(null)
+    try {
+      const specs = [
+        { label: "Matériau", value: form.material.trim() },
+        { label: "Couleur", value: form.color.trim() },
+        { label: "Dimensions", value: form.dimensions.trim() },
+      ].filter((s) => s.value.length > 0)
+      const res = await fetch("/api/supplier/generate-description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          title,
+          notes: "",
+          bullets: [],
+          productSpecs: specs,
+          categoryPath: form.leafBreadcrumb || form.category || "",
+          productImageUrls: form.imageUrl && /^https?:\/\//i.test(form.imageUrl) ? [form.imageUrl] : [],
+          productImageDataUrls: [],
+          illustrationDataUrls: [],
+          // Text only: never generate extra images from the quick wizard.
+          generateMissingIllustrations: false,
+        }),
+      })
+      const data = (await res.json().catch(() => ({}))) as {
+        description?: string
+        bulletPoints?: string[]
+        error?: string
+      }
+      if (!res.ok || !data.description?.trim()) throw new Error(data.error ?? "unavailable")
+      setForm((prev) => ({
+        ...prev,
+        description: data.description!.trim(),
+        descriptionBullets: Array.isArray(data.bulletPoints) ? data.bulletPoints.slice(0, 6) : [],
+      }))
+    } catch {
+      setDescError(tDesc("unavailable"))
+    } finally {
+      setDescLoading(false)
+    }
+  }, [descLoading, form.category, form.color, form.dimensions, form.imageUrl, form.leafBreadcrumb, form.material, form.title, tDesc])
+
+  // First time the supplier reaches the details step with a title and a photo: draft the description once.
+  useEffect(() => {
+    if (step !== 1 || descAutoTried.current) return
+    if (form.description.trim() || !form.title.trim() || !form.imageUrl) return
+    descAutoTried.current = true
+    void generateDescription()
+  }, [step, form.description, form.title, form.imageUrl, generateDescription])
 
   function goNext() {
     if (step === 0 && !form.category && recommendedCategory && !userEdited.has("category")) {
@@ -398,6 +468,8 @@ export function GuidedAddProductButton({
           credentials: "include",
           body: JSON.stringify({
             name: form.title.trim(),
+            description: form.description.trim(),
+            descriptionBullets: form.descriptionBullets,
             price: Number.parseFloat(form.price.replace(",", ".")),
             stock: stockN,
             images: [form.imageUrl],
@@ -661,6 +733,41 @@ export function GuidedAddProductButton({
                     />
                   </div>
                 ))}
+                <div className="sm:col-span-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className={labelClass} htmlFor="guided-description">
+                      {tDesc("label")}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => void generateDescription()}
+                      disabled={descLoading || !form.title.trim()}
+                      className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700 ring-1 ring-violet-200 transition hover:bg-violet-100 disabled:opacity-50 dark:bg-violet-950/40 dark:text-violet-200 dark:ring-violet-800"
+                    >
+                      {descLoading ? (
+                        <Loader2 className="size-3 animate-spin" aria-hidden />
+                      ) : (
+                        <Sparkles className="size-3" aria-hidden />
+                      )}
+                      {descLoading ? tDesc("generating") : form.description.trim() ? tDesc("regenerate") : tDesc("generate")}
+                    </button>
+                  </div>
+                  <textarea
+                    id="guided-description"
+                    className={cn(fieldClass, "min-h-32 resize-y leading-relaxed")}
+                    rows={6}
+                    maxLength={5000}
+                    value={form.description}
+                    placeholder={tDesc("placeholder")}
+                    onChange={(e) => patchForm({ description: e.target.value }, { user: true })}
+                  />
+                  <p className="mt-1 flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                    <span>{descError ?? tDesc("reviewHint")}</span>
+                    <span className="tabular-nums">
+                      {form.description.trim().length} / {DESCRIPTION_MIN_LENGTH}+
+                    </span>
+                  </p>
+                </div>
                 <p className="sm:col-span-2 text-xs text-zinc-500 dark:text-zinc-400">
                   {aiSuggestion.attributes.suggestedPrice && !userEdited.has("price")
                     ? `Prix IA suggéré · ${formatGuidedPrice(aiSuggestion.attributes.suggestedPrice)} € — ajustez avant publication.`

@@ -1738,6 +1738,16 @@
       "loading": "Calcul du taux…",
       "unavailable": "Taux indisponible pour cette catégorie."
     },
+    "guidedDescription": {
+      "label": "Description",
+      "generate": "Rédiger avec l'IA",
+      "regenerate": "Régénérer",
+      "generating": "Rédaction…",
+      "placeholder": "Décrivez le produit : ce que c'est, ses points forts, ce qui est inclus…",
+      "reviewHint": "Brouillon IA d'après votre titre et votre photo — vérifiez chaque information avant de publier.",
+      "unavailable": "L'IA est indisponible pour le moment — rédigez une courte description.",
+      "tooShort": "Ajoutez une description d'au moins {min} caractères."
+    },
     "guidedTaxonomy": {
       "title": "Catégorie exacte",
       "hint": "Ajoutez un titre ou une photo — nous suggérons la catégorie exacte.",
