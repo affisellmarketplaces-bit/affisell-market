@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 
 import { BuyerAccountSignOutButton } from "@/components/buyer-account-sign-out-button"
 import { buttonVariants } from "@/components/ui/button"
@@ -9,8 +10,9 @@ type Props = {
   image: string | null
 }
 
-export function BuyerAccountHeaderActions({ name, image }: Props) {
-  const display = name?.trim() || "Mon compte"
+export async function BuyerAccountHeaderActions({ name, image }: Props) {
+  const t = await getTranslations("buyerAccount")
+  const display = name?.trim() || t("defaultName")
   const initial = display.slice(0, 1).toUpperCase()
 
   return (

@@ -1,15 +1,19 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { getTranslations } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
 import { ArrowRight, CreditCard, Package, ShoppingCart } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading } from "@/components/affisell/bento-ui"
+import { BuyerActiveOrders } from "@/components/buyer/buyer-active-orders"
+import { BuyerKpiStrip } from "@/components/buyer/buyer-kpi-strip"
 import { BuyerAccountDbNotice } from "@/components/buyer/buyer-account-db-notice"
 import { BuyerPushNotificationsCard } from "@/components/buyer/buyer-push-notifications-card"
 import { auth } from "@/auth"
 import { buttonVariants } from "@/components/ui/button"
 import { loadBuyerAccountOverview } from "@/lib/buyer-account-overview"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { translateItemTitles } from "@/lib/title-translation.server"
+import type { AppLocale } from "@/lib/i18n-locale"
 import { cn } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
@@ -47,6 +51,14 @@ export default async function MarketplaceBuyerAccountHomePage() {
   }
   const { overview } = loaded
   const walletLabel = formatStoreCurrencyFromCents(overview.walletCents)
+  const locale = await getLocale()
+  const tStatus = await getTranslations("buyerOrderDetail.status")
+  const activeOrders = await translateItemTitles(
+    overview.activeOrders.map((o) => ({ ...o, name: o.title })),
+    locale as AppLocale
+  ).then((rows) => rows.map((o) => ({ ...o, title: o.name })))
+  const statusKey = (status: string) =>
+    ["paid", "preparing", "shipped", "refunded", "cancelled"].includes(status) ? status : "unknown"
 
   return (
     <BentoContainer maxWidth="4xl" className="space-y-8">
@@ -68,7 +80,40 @@ export default async function MarketplaceBuyerAccountHomePage() {
         </Link>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      {overview.orderCount > 0 || overview.cartItemCount > 0 || overview.walletCents > 0 ? (
+        <BuyerKpiStrip
+          labels={{
+            inProgress: t("kpiInProgress"),
+            delivered: t("kpiDelivered"),
+            credit: t("kpiCredit"),
+            cart: t("kpiCart"),
+            inProgressSub: t("kpiInProgressSub"),
+            deliveredSub: t("kpiDeliveredSub"),
+            creditSub: t("kpiCreditSub"),
+            cartSub: t("kpiCartSub"),
+          }}
+          inProgressCount={overview.inProgressCount}
+          deliveredCount={overview.deliveredCount}
+          walletLabel={walletLabel}
+          walletCents={overview.walletCents}
+          cartItemCount={overview.cartItemCount}
+        />
+      ) : null}
+
+      <BuyerActiveOrders
+        orders={activeOrders}
+        locale={locale}
+        labels={{
+          title: t("activeTitle"),
+          viewAll: t("activeViewAll"),
+          details: t("activeDetails"),
+          track: t("activeTrack"),
+          ordered: (date) => t("activeOrdered", { date }),
+          status: (status) => tStatus(statusKey(status)),
+        }}
+      />
+
+      <div className="grid gap-4">
         {overview.orderCount === 0 ? (
           <BentoCard className="relative overflow-hidden border-violet-200/60 p-6 dark:border-violet-900/40 sm:col-span-2">
             <Package className="size-8 text-violet-600 dark:text-violet-400" aria-hidden />
@@ -84,26 +129,7 @@ export default async function MarketplaceBuyerAccountHomePage() {
               {t("discoverProducts")} <ArrowRight className="size-4" aria-hidden />
             </Link>
           </BentoCard>
-        ) : (
-          <BentoCard className="relative overflow-hidden border-violet-200/60 p-6 dark:border-violet-900/40">
-            <div
-              className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-violet-400/20 blur-2xl dark:bg-violet-600/20"
-              aria-hidden
-            />
-            <Package className="size-8 text-violet-600 dark:text-violet-400" aria-hidden />
-            <h2 className="mt-4 text-lg font-semibold text-zinc-900 dark:text-white">{t("ordersTitle")}</h2>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{t("ordersBody")}</p>
-            <Link
-              href="/marketplace/account/orders"
-              className={cn(
-                buttonVariants({ variant: "bentoAccent", size: "bento" }),
-                "mt-6 inline-flex w-full justify-center gap-2 sm:w-auto"
-              )}
-            >
-              {t("viewOrders")} <ArrowRight className="size-4" aria-hidden />
-            </Link>
-          </BentoCard>
-        )}
+        ) : null}
 
         <BentoCard className="relative overflow-hidden border-emerald-200/60 p-6 dark:border-emerald-900/40">
           <div

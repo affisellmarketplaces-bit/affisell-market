@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { signOut } from "next-auth/react"
 import { LogOut } from "lucide-react"
 
@@ -7,6 +8,7 @@ import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 export function BuyerAccountSignOutButton() {
+  const t = useTranslations("nav.accountMenu")
   return (
     <button
       type="button"
@@ -17,7 +19,7 @@ export function BuyerAccountSignOutButton() {
       onClick={() => void signOut({ callbackUrl: "/shops/browse" })}
     >
       <LogOut className="size-4 shrink-0" aria-hidden />
-      Déconnexion
+      {t("signOut")}
     </button>
   )
 }

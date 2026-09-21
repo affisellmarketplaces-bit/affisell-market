@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { CreditCard } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 
 import { BentoCard, BentoContainer, BentoPageHeading } from "@/components/affisell/bento-ui"
 import { auth } from "@/auth"
@@ -14,6 +15,7 @@ import { cn } from "@/lib/utils"
 export const dynamic = "force-dynamic"
 
 export default async function MarketplaceBuyerOrdersPage() {
+  const t = await getTranslations("buyerAccount")
   const session = await auth()
   if (!session?.user?.email) {
     redirect("/login/customer?callbackUrl=/marketplace/account/orders")
@@ -44,9 +46,9 @@ export default async function MarketplaceBuyerOrdersPage() {
     <BentoContainer maxWidth="4xl" className="space-y-8">
       <BentoCard className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
         <BentoPageHeading
-          eyebrow="Purchases"
-          title="My orders"
-          description="Request returns while your order is within the return window. After the seller approves, add tracking so they can confirm receipt and mark the refund as processed."
+          eyebrow={t("ordersPageEyebrow")}
+          title={t("ordersPageTitle")}
+          description={t("ordersPageDescription")}
           className="max-w-xl"
         />
         <div className="flex shrink-0 flex-col gap-3 sm:flex-row lg:flex-col">
@@ -55,7 +57,7 @@ export default async function MarketplaceBuyerOrdersPage() {
             className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }), "inline-flex justify-center")}
           >
             <CreditCard className="size-5" aria-hidden />
-            Store credit
+            {t("wallet")}
           </Link>
           <AccountOrdersContinueShoppingLink />
         </div>
