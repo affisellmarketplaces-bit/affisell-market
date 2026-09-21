@@ -2,6 +2,7 @@ import "server-only"
 
 import { createHash } from "node:crypto"
 
+import { AnthropicError } from "@/lib/ai/anthropic-client"
 import { hasAnthropicClassifier } from "@/lib/ai/anthropic-messages"
 import {
   classifyProductTaxonomy,
@@ -10,6 +11,24 @@ import {
   type TaxonomyPick,
 } from "@/lib/ai/taxonomy-classifier"
 import type { LeafPath } from "@/lib/category-browse-shared"
+
+/**
+ * Circuit breaker: when the provider says "no credit" or rejects the key, stop calling it for a while instead of
+ * paying a failed round-trip on every keystroke. Callers fall back to the legacy engine meanwhile.
+ */
+const BREAKER_MS = 10 * 60_000
+let breakerUntil = 0
+
+export function isBillingOrAuthFailure(error: unknown): boolean {
+  if (!(error instanceof AnthropicError)) return false
+  if (error.status === 401 || error.status === 403) return true
+  return /credit balance|billing|insufficient|invalid x-api-key/i.test(error.message)
+}
+
+/** Test hook. */
+export function resetTaxonomyBreakerForTests(): void {
+  breakerUntil = 0
+}
 
 type Cached = { identity: TaxonomyIdentity; picks: Array<{ leafId: string; confidence: number; reason: string }> }
 
@@ -56,6 +75,7 @@ export async function classifyWithTaxonomyAi(args: {
   leafPaths: LeafPath[]
 }): Promise<{ identity: TaxonomyIdentity; picks: TaxonomyPick[] } | null> {
   if (!hasAnthropicClassifier()) return null
+  if (Date.now() < breakerUntil) return null
   const redis = await getRedis()
   const key = classificationCacheKey(args.title, args.imageUrl)
   const byId = new Map(args.leafPaths.map((lp) => [lp.leafId, lp]))
@@ -99,7 +119,14 @@ export async function classifyWithTaxonomyAi(args: {
     }
     return result
   } catch (error) {
-    console.error("[taxonomy-classify]", { error: error instanceof Error ? error.message : String(error) })
+    if (isBillingOrAuthFailure(error)) {
+      breakerUntil = Date.now() + BREAKER_MS
+      console.error("[taxonomy-classify] AI provider unavailable (billing/auth) — legacy engine for 10 min", {
+        error: error instanceof Error ? error.message.slice(0, 160) : String(error),
+      })
+    } else {
+      console.error("[taxonomy-classify]", { error: error instanceof Error ? error.message : String(error) })
+    }
     return null
   }
 }

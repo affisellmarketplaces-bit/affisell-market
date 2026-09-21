@@ -6,10 +6,12 @@ import {
 } from "@/lib/supplier-auto-category-policy"
 
 describe("supplier-auto-category-policy", () => {
-  it("requires title and durable image, or descriptive title-only", () => {
+  it("accepts a durable photo alone (title optional), otherwise a descriptive title", () => {
     const img = "https://cdn.example.com/a.jpg"
-    expect(hasListingClassificationSignal("", img)).toBe(false)
-    expect(hasListingClassificationSignal("ab", img)).toBe(false)
+    expect(hasListingClassificationSignal("", img)).toBe(true)
+    expect(hasListingClassificationSignal("ab", img)).toBe(true)
+    expect(hasListingClassificationSignal("", null)).toBe(false)
+    expect(hasListingClassificationSignal("", "blob:http://localhost/x")).toBe(false)
     expect(hasListingClassificationSignal("Montre", null)).toBe(true)
     expect(hasListingClassificationSignal("Commode 6 tiroirs", null)).toBe(true)
     expect(hasListingClassificationSignal("Stylo multifonction", img)).toBe(true)

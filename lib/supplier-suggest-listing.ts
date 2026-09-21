@@ -192,7 +192,9 @@ export async function suggestListingCategories(
     leafPaths,
   })
   if (smart && smart.picks.length > 0) {
-    const identityName = smart.identity.nameFr || smart.identity.nameEn
+    // Generic product name in the supplier's language when we have it (French / English), English otherwise.
+    const identityName =
+      (locale === "fr" ? smart.identity.nameFr : smart.identity.nameEn) || smart.identity.nameFr || smart.identity.nameEn
     const suggestions: ListingCategorySuggestion[] = smart.picks.slice(0, LISTING_CATEGORY_SUGGESTION_LIMIT).map((p) => ({
       leafId: p.leafId,
       breadcrumb: p.breadcrumb,

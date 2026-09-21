@@ -38,8 +38,10 @@ export function isDurableListingImageUrl(imageUrl?: string | null): boolean {
 /** Trigger listing suggest API when title + durable photo, or a clear product noun / longer title. */
 export function hasListingClassificationSignal(title: string, imageUrl?: string | null): boolean {
   const t = title.trim()
-  if (t.length < LISTING_CLASSIFY_MIN_TITLE_LEN) return false
+  // A durable photo alone is enough: the vision classifier identifies the item (the title only sharpens it and is
+  // pre-filled from the photo when empty). Without a photo the title must carry the signal.
   if (isDurableListingImageUrl(imageUrl)) return true
+  if (t.length < LISTING_CLASSIFY_MIN_TITLE_LEN) return false
   /** Single-token product nouns (Montre, iPhone…) — skip ultra-short fillers like "Pro". */
   if (!/\s/.test(t) && t.length >= 6 && /^[\p{L}\p{N}][\p{L}\p{N}\-']{4,40}$/u.test(t)) {
     return true
