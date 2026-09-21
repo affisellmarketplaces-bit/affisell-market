@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useLocale, useTranslations } from "next-intl"
 import { AlertTriangle, BarChart3, LineChart, Wallet } from "lucide-react"
 import {
   Bar,
@@ -17,7 +18,8 @@ import {
 import { BentoCard } from "@/components/affisell/bento-ui"
 import { buttonVariants } from "@/components/ui/button"
 import type { SupplierDashboardAnalytics } from "@/lib/supplier-dashboard-analytics-types"
-import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { bcp47ForAppLocale, formatMoneyFromCents } from "@/lib/app-locale-format"
+import { resolveAppLocale } from "@/lib/i18n-locale"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -29,17 +31,17 @@ function formatDayLabel(isoDay: string): string {
   return `${day}/${month}`
 }
 
-function formatEuroCents(value: number): string {
-  return formatStoreCurrencyFromCents(value, { maximumFractionDigits: 0 })
-}
-
-function formatPayoutDate(isoDay: string | null): string {
-  if (!isoDay) return "—"
-  const [, month, day] = isoDay.split("-")
-  return `${day}/${month}`
-}
 
 export function SupplierAnalyticsWidget({ analytics }: Props) {
+  const t = useTranslations("supplierDashboard.analytics")
+  const locale = resolveAppLocale(useLocale())
+  const formatEuroCents = (value: number) => formatMoneyFromCents(value, locale, { maximumFractionDigits: 0 })
+  const payoutDate = analytics.estimatedNextPayoutDate
+    ? new Intl.DateTimeFormat(bcp47ForAppLocale(locale), { day: "numeric", month: "long", timeZone: "UTC" }).format(
+        new Date(`${analytics.estimatedNextPayoutDate}T12:00:00Z`)
+      )
+    : null
+  const hasRevenue = analytics.dailyRevenue.some((row) => row.revenueCents > 0)
   const lineData = analytics.dailyRevenue.map((row) => ({
     day: formatDayLabel(row.day),
     revenue: row.revenueCents / 100,
@@ -54,22 +56,22 @@ export function SupplierAnalyticsWidget({ analytics }: Props) {
   }))
 
   return (
-    <BentoCard className="space-y-6 border-zinc-200/80 dark:border-zinc-800">
+    <BentoCard id="analytics" className="scroll-mt-24 space-y-6 border-zinc-200/80 dark:border-zinc-800">
       {analytics.zeroSalesAlert ? (
         <div className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-900/50 dark:bg-amber-950/30">
           <div className="flex gap-3">
             <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600" aria-hidden />
             <div>
               <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
-                0 vente depuis J+7 sur au moins un SKU
+                {t("zeroSalesTitle")}
               </p>
               <p className="mt-1 text-sm text-amber-800/90 dark:text-amber-200/90">
-                Boost : baisse le prix wholesale de 10% ou ajoute une vidéo produit.
+                {t("zeroSalesBody")}
               </p>
             </div>
           </div>
           <Link href="/dashboard/supplier/products" className={cn(buttonVariants({ size: "sm" }), "shrink-0")}>
-            Booster le catalogue
+            {t("boostCta")}
           </Link>
         </div>
       ) : null}
@@ -79,29 +81,26 @@ export function SupplierAnalyticsWidget({ analytics }: Props) {
           <div className="flex items-center gap-2">
             <BarChart3 className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden />
             <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-              Analytics 30j
+              {t("title")}
             </p>
           </div>
           <p className="mt-2 text-2xl font-bold tabular-nums text-zinc-900 dark:text-white">
             {formatEuroCents(analytics.totalRevenue30dCents)}
           </p>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            CA net fournisseur · marge {formatEuroCents(analytics.netMarginCents)} · retours{" "}
-            {analytics.returnRatePct}%
+            {t("summary", { margin: formatEuroCents(analytics.netMarginCents), returns: analytics.returnRatePct })}
           </p>
         </div>
         <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/80 px-4 py-3 dark:border-emerald-900/50 dark:bg-emerald-950/30">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
             <Wallet className="size-3.5" aria-hidden />
-            Prochain payout
+            {t("nextPayout")}
           </div>
           <p className="mt-1 text-xl font-bold tabular-nums text-emerald-900 dark:text-emerald-100">
             {formatEuroCents(analytics.estimatedNextPayoutCents)}
           </p>
           <p className="text-xs text-emerald-800/80 dark:text-emerald-200/80">
-            {analytics.estimatedNextPayoutDate
-              ? `le ${formatPayoutDate(analytics.estimatedNextPayoutDate)}`
-              : "après livraison confirmée"}
+            {payoutDate ? t("payoutOn", { date: payoutDate }) : t("payoutAfterDelivery")}
           </p>
         </div>
       </div>
@@ -110,9 +109,14 @@ export function SupplierAnalyticsWidget({ analytics }: Props) {
         <div>
           <div className="mb-2 flex items-center gap-2">
             <LineChart className="size-4 text-zinc-500" aria-hidden />
-            <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">CA par jour</p>
+            <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{t("dailyRevenue")}</p>
           </div>
-          <div className="h-48 w-full">
+          <div className="relative h-48 w-full">
+            {!hasRevenue ? (
+              <p className="absolute inset-0 z-10 flex items-center justify-center px-6 text-center text-sm text-zinc-500">
+                {t("noRevenueChart")}
+              </p>
+            ) : null}
             <ResponsiveContainer width="100%" height="100%">
               <RechartsLineChart data={lineData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} />
@@ -131,8 +135,8 @@ export function SupplierAnalyticsWidget({ analytics }: Props) {
                 />
                 <Tooltip
                   formatter={(value, name) => {
-                    if (name === "revenue") return [formatEuroCents(Number(value) * 100), "CA"]
-                    return [value, "Commandes"]
+                    if (name === "revenue") return [formatEuroCents(Number(value) * 100), t("tooltipRevenue")]
+                    return [value, t("tooltipOrders")]
                   }}
                   contentStyle={{
                     borderRadius: "12px",
@@ -155,11 +159,11 @@ export function SupplierAnalyticsWidget({ analytics }: Props) {
 
         <div>
           <p className="mb-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-            Top affiliés (€ générés)
+            {t("topResellers")}
           </p>
           {barData.length === 0 ? (
             <p className="rounded-xl border border-dashed border-zinc-200 px-4 py-10 text-center text-sm text-zinc-500 dark:border-zinc-700">
-              Pas encore de ventes affiliées — augmente la commission catalogue.
+              {t("noResellerSales")}
             </p>
           ) : (
             <div className="h-48 w-full">
@@ -179,7 +183,7 @@ export function SupplierAnalyticsWidget({ analytics }: Props) {
                     width={42}
                   />
                   <Tooltip
-                    formatter={(value) => [formatEuroCents(Number(value) * 100), "CA net"]}
+                    formatter={(value) => [formatEuroCents(Number(value) * 100), t("tooltipNet")]}
                     labelFormatter={(_, payload) => {
                       const row = payload?.[0]?.payload as { fullName?: string } | undefined
                       return row?.fullName ?? ""
@@ -200,24 +204,24 @@ export function SupplierAnalyticsWidget({ analytics }: Props) {
 
       <div>
         <p className="mb-3 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-          Performance SKU — tri EPC
+          {t("skuPerformance")}
         </p>
         <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
           <table className="min-w-full text-left text-sm">
             <thead className="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900/80">
               <tr>
-                <th className="px-3 py-2 font-semibold">Produit</th>
-                <th className="px-3 py-2 font-semibold">Vues</th>
-                <th className="px-3 py-2 font-semibold">Clics</th>
-                <th className="px-3 py-2 font-semibold">CR</th>
-                <th className="px-3 py-2 font-semibold">EPC</th>
+                <th className="px-3 py-2 font-semibold">{t("colProduct")}</th>
+                <th className="px-3 py-2 font-semibold">{t("colViews")}</th>
+                <th className="px-3 py-2 font-semibold">{t("colClicks")}</th>
+                <th className="px-3 py-2 font-semibold" title={t("colCrHint")}>{t("colCr")}</th>
+                <th className="px-3 py-2 font-semibold" title={t("colEpcHint")}>{t("colEpc")}</th>
               </tr>
             </thead>
             <tbody>
               {analytics.skuPerformance.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-3 py-8 text-center text-zinc-500">
-                    Aucun SKU publié — importe ton catalogue CSV.
+                    {t("noSkus")}
                   </td>
                 </tr>
               ) : (

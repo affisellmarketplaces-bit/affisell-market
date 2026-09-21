@@ -10,17 +10,17 @@ import {
   type TaxonomyBrowse,
 } from "@/lib/ai/taxonomy-classifier"
 import { parseJsonObject } from "@/lib/ai/anthropic-messages"
-import { buildCategoryBrowse } from "@/lib/category-browse-shared"
+import { buildCategoryBrowse, type BrowseNode } from "@/lib/category-browse-shared"
 
-const ROWS = [
-  { id: "veh", name: "Véhicules", parentId: null, icon: null, order: 0 },
-  { id: "veh-parts", name: "Pièces", parentId: "veh", icon: null, order: 0 },
-  { id: "veh-diag", name: "Systèmes de diagnostic automobile", parentId: "veh-parts", icon: null, order: 0 },
-  { id: "veh-batt", name: "Testeurs de batteries", parentId: "veh-parts", icon: null, order: 1 },
-  { id: "elec", name: "Électronique", parentId: null, icon: null, order: 1 },
-  { id: "elec-audio", name: "Audio", parentId: "elec", icon: null, order: 0 },
-  { id: "elec-earbuds", name: "Écouteurs", parentId: "elec-audio", icon: null, order: 0 },
-  { id: "solo", name: "Divers", parentId: null, icon: null, order: 2 },
+const ROWS: BrowseNode[] = [
+  { id: "veh", name: "Véhicules", parentId: null, icon: "📦", order: 0 },
+  { id: "veh-parts", name: "Pièces", parentId: "veh", icon: "📦", order: 0 },
+  { id: "veh-diag", name: "Systèmes de diagnostic automobile", parentId: "veh-parts", icon: "📦", order: 0 },
+  { id: "veh-batt", name: "Testeurs de batteries", parentId: "veh-parts", icon: "📦", order: 1 },
+  { id: "elec", name: "Électronique", parentId: null, icon: "📦", order: 1 },
+  { id: "elec-audio", name: "Audio", parentId: "elec", icon: "📦", order: 0 },
+  { id: "elec-earbuds", name: "Écouteurs", parentId: "elec-audio", icon: "📦", order: 0 },
+  { id: "solo", name: "Divers", parentId: null, icon: "📦", order: 2 },
 ]
 
 const browse = buildCategoryBrowse(ROWS) as unknown as TaxonomyBrowse & { leafPaths: ReturnType<typeof buildCategoryBrowse>["leafPaths"] }

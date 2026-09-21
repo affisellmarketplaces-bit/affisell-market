@@ -1,5 +1,5 @@
 import { requireSupplierSession } from "@/lib/dashboard-session"
-import { getLocale } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
 
 import { BentoContainer } from "@/components/affisell/bento-ui"
 import { SupplierAnalyticsWidget } from "@/components/dashboard/supplier-analytics-widget"
@@ -11,6 +11,7 @@ import { prisma } from "@/lib/prisma"
 import { SupplierMetricsBar } from "@/components/supplier/mission-control/supplier-metrics-bar"
 import { SupplierWeeklyGoalCard } from "@/components/supplier/mission-control/supplier-weekly-goal-card"
 import { SupplierInviteContextBanner } from "@/components/supplier/supplier-invite-context-banner"
+import { SupplierKpiStrip } from "@/components/supplier/mission-control/supplier-kpi-strip"
 import { SupplierMissionControlHeader } from "@/components/supplier/mission-control/supplier-mission-control-header"
 import { SupplierMissionControlLive } from "@/components/supplier/mission-control/supplier-mission-control-live"
 import { SupplierOnboardingChecklist } from "@/components/supplier/mission-control/supplier-onboarding-checklist"
@@ -42,14 +43,11 @@ export default async function DashboardSupplierPage() {
     data = await loadSupplierMissionControl(session.user.id)
   } catch (error) {
     console.error("[supplier/dashboard] mission control failed", error)
+    const tErr = await getTranslations("supplierDashboard.unavailable")
     return (
       <main className="min-h-[calc(100dvh-3.75rem)] bg-zinc-50/50 px-4 py-16 text-center dark:bg-zinc-950">
-        <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
-          Tableau de bord temporairement indisponible
-        </p>
-        <p className="mt-2 text-sm text-zinc-500">
-          Réessayez dans quelques instants — la connexion base de données a échoué.
-        </p>
+        <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">{tErr("title")}</p>
+        <p className="mt-2 text-sm text-zinc-500">{tErr("body")}</p>
       </main>
     )
   }
@@ -86,6 +84,7 @@ export default async function DashboardSupplierPage() {
     <main className={missionControlCanvas}>
       <BentoContainer maxWidth="6xl" className="space-y-6 py-8 sm:py-10">
         <SupplierMissionControlLive>
+          {/* 1 — who you are, what you can do, anything blocking (KYC) */}
           <div className="space-y-3">
             <SupplierMissionControlHeader
               supplierId={session.user.id}
@@ -97,13 +96,6 @@ export default async function DashboardSupplierPage() {
             />
             <SupplierInviteContextBanner />
 
-            <RadarSupplierDiscoveryCard
-              supplierKind={feeUser?.supplierKind}
-              resellerReach={resellerReach}
-            />
-
-            <SupplierProductRequestsTeaser />
-
             {!publishReadiness.verification.allowed ? (
               <SupplierKycPublishBanner
                 allowed={publishReadiness.verification.allowed}
@@ -112,41 +104,42 @@ export default async function DashboardSupplierPage() {
                 draftCount={publishReadiness.draftCount}
               />
             ) : null}
-
-            <SupplierFeeGridCard variant="compact" />
           </div>
 
           <div className="space-y-6">
-          <SupplierPublishReadinessCard readiness={publishReadiness} />
+            {/* 2 — the four numbers a supplier checks first */}
+            <SupplierKpiStrip analytics={analytics} data={data} locale={locale} />
 
-          <SupplierAnalyticsWidget analytics={analytics} />
-
-          <SupplierTrustLadderCard
-            tier={displayTier}
-            metrics={trustSnapshot.metrics}
-            locale={copyLocale}
-          />
-
-          <SupplierEscrowPulseCard
-            summary={data.escrow}
-            locale={copyLocale}
-          />
-
-          {data.weeklyGoal && data.metrics7d.hasPriorPeriodData ? (
-            <SupplierWeeklyGoalCard goal={data.weeklyGoal} locale={locale} />
-          ) : null}
-
-          {firstSaleProgress.showChecklist ? (
-            <SupplierOnboardingChecklist progress={firstSaleProgress} />
-          ) : (
-            <>
+            {/* 3 — what needs action now (orders to ship, stockouts, messages) — or the first-sale checklist */}
+            {firstSaleProgress.showChecklist ? (
+              <SupplierOnboardingChecklist progress={firstSaleProgress} />
+            ) : (
               <SupplierUrgentActions urgent={data.urgent} />
-              <SupplierMetricsBar metrics={data.metrics7d} weeklyGoal={data.weeklyGoal} locale={locale} />
-              <SupplierGrowthSection growth={data.growth} />
-            </>
-          )}
+            )}
 
-          <SupplierToolsRow />
+            {/* 4 — performance */}
+            <SupplierAnalyticsWidget analytics={analytics} />
+
+            {!firstSaleProgress.showChecklist ? (
+              <>
+                <SupplierMetricsBar metrics={data.metrics7d} weeklyGoal={data.weeklyGoal} locale={locale} />
+                <SupplierGrowthSection growth={data.growth} />
+              </>
+            ) : null}
+
+            {data.weeklyGoal && data.metrics7d.hasPriorPeriodData ? (
+              <SupplierWeeklyGoalCard goal={data.weeklyGoal} locale={locale} />
+            ) : null}
+
+            {/* 5 — discovery & status */}
+            <RadarSupplierDiscoveryCard supplierKind={feeUser?.supplierKind} resellerReach={resellerReach} />
+            <SupplierProductRequestsTeaser />
+            <SupplierPublishReadinessCard readiness={publishReadiness} />
+            <SupplierTrustLadderCard tier={displayTier} metrics={trustSnapshot.metrics} locale={copyLocale} />
+            <SupplierEscrowPulseCard summary={data.escrow} locale={copyLocale} />
+            <SupplierFeeGridCard variant="compact" />
+
+            <SupplierToolsRow />
           </div>
         </SupplierMissionControlLive>
       </BentoContainer>
