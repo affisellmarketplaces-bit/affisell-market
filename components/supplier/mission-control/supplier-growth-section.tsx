@@ -24,7 +24,7 @@ export async function SupplierGrowthSection({ growth }: Props) {
   const opp = growth.topOpportunity
 
   return (
-    <section aria-labelledby="growth-heading" className="grid gap-6 lg:grid-cols-2">
+    <section aria-labelledby="growth-heading" className="grid gap-6 lg:grid-cols-2 lg:items-start">
       <div className={cn(missionControlPanel, "space-y-4 p-5")}>
         <div className="flex items-center gap-2">
           <span className="text-base" aria-hidden>
