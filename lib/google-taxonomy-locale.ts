@@ -1,6 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
 
+import { localizeCustomCategoryName } from "@/lib/custom-taxonomy"
 import type { AppLocale } from "@/lib/i18n-locale"
 
 const TAXONOMY_FILE_BY_LOCALE: Record<AppLocale, string> = {
@@ -117,7 +118,8 @@ export function localizeCategoryName(
   row: { googleId: number | null; name: string },
   locale: AppLocale
 ): string {
-  if (row.googleId == null) return row.name
+  // Affisell's own rows (no googleId): translated from the in-code table, French otherwise.
+  if (row.googleId == null) return localizeCustomCategoryName(row.name, locale) ?? row.name
   const localized = loadNameMap(locale).get(row.googleId)
   if (localized) return localized
   return loadNameMap("en").get(row.googleId) ?? row.name

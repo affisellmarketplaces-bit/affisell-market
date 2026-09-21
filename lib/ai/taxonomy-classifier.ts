@@ -34,8 +34,10 @@ export type TaxonomyBrowse = {
 
 export type Section = { code: string; id: string; label: string; leafCount: number }
 
-const MAX_SECTION_PICKS = 3
+const MAX_SECTION_PICKS = 4
 const MAX_CANDIDATES = 420
+/** Best lexical matches across the WHOLE taxonomy, always offered in step 2 (a cross-section rescue). */
+const GLOBAL_LEXICAL_CANDIDATES = 45
 const MAX_PICKS = 3
 
 /** Level-2 nodes ("Root > Section") with their leaf counts, in a stable order (the prompt block is cached). */
@@ -80,6 +82,43 @@ export function sectionsPromptBlock(sections: Section[]): string {
 
 function normalize(s: string): string {
   return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim()
+}
+
+function identityTerms(identity: TaxonomyIdentity, title: string): string[] {
+  const stop = new Set(["avec", "pour", "sans", "les", "des", "une", "the", "and", "with", "for", "de", "du", "la", "le", "en", "et"])
+  return [...new Set(
+    [...identity.keywords, identity.nameEn, identity.nameFr, identity.kind, title]
+      .flatMap((k) => normalize(k).split(" "))
+      .filter((w) => w.length >= 4 && !stop.has(w))
+  )]
+}
+
+/**
+ * Best leaves of the WHOLE taxonomy by lexical overlap with what the item is (name/keywords, FR + EN).
+ * Rescues categories that live in a section the model did not pick (e.g. computer monitors under "Vidéo").
+ * Overlap on the LAST path segment weighs double — that is where the product type is named.
+ */
+export function globalLexicalCandidates(
+  leafPaths: LeafPath[],
+  identity: TaxonomyIdentity,
+  title: string,
+  max = GLOBAL_LEXICAL_CANDIDATES
+): string[] {
+  const terms = identityTerms(identity, title)
+  if (terms.length === 0) return []
+  const scored: Array<{ id: string; s: number }> = []
+  for (const lp of leafPaths) {
+    const last = normalize(lp.path[lp.path.length - 1]?.name ?? "")
+    const whole = normalize(lp.breadcrumb)
+    let s = 0
+    for (const w of terms) {
+      if (last.includes(w)) s += 2
+      else if (whole.includes(w)) s += 1
+    }
+    if (s >= 2) scored.push({ id: lp.leafId, s })
+  }
+  scored.sort((a, b) => b.s - a.s)
+  return scored.slice(0, max).map((x) => x.id)
 }
 
 /** Keep the most relevant leaves when the picked sections are large (lexical overlap with identity keywords). */
@@ -216,10 +255,14 @@ export async function classifyProductTaxonomy(
     .map((s) => ({ code: typeof s.code === "string" ? s.code.trim() : "", confidence: clamp01(s.confidence) }))
     .filter((s) => leavesBySection.has(s.code))
     .slice(0, MAX_SECTION_PICKS)
-  if (pickedSections.length === 0) return { identity, picks: [] }
-
-  const leafIds = [...new Set(pickedSections.flatMap((s) => leavesBySection.get(s.code) ?? []))]
-  const candidates = trimCandidates(leafIds, leafById, identity)
+  const sectionLeafIds = [...new Set(pickedSections.flatMap((s) => leavesBySection.get(s.code) ?? []))]
+  const rescue = globalLexicalCandidates(data.leafPaths, identity, input.title)
+  // Section leaves (trimmed) + the global lexical rescue, without duplicates; the rescue is always kept.
+  const rescueSet = new Set(rescue)
+  const candidates = [
+    ...rescue,
+    ...trimCandidates(sectionLeafIds.filter((id) => !rescueSet.has(id)), leafById, identity, MAX_CANDIDATES - rescue.length),
+  ]
   const candidateLines = candidates
     .map((id, i) => ({ code: `c${i + 1}`, id, lp: leafById.get(id) }))
     .filter((c): c is { code: string; id: string; lp: LeafPath } => Boolean(c.lp))

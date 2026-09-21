@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest"
 import {
   buildSections,
   classifyProductTaxonomy,
+  globalLexicalCandidates,
   normalizeIdentity,
   sectionsPromptBlock,
   trimCandidates,
@@ -43,6 +44,14 @@ describe("candidate trimming", () => {
   })
 })
 
+describe("global lexical rescue", () => {
+  it("offers leaves from sections the model did not pick, ranked by product-type overlap", () => {
+    const identity = normalizeIdentity({ nameEn: "earbuds", nameFr: "écouteurs sans fil", keywords: ["écouteurs"] }, "x")
+    expect(globalLexicalCandidates(browse.leafPaths, identity, "Air Pro 2026")).toEqual(["elec-earbuds"])
+    expect(globalLexicalCandidates(browse.leafPaths, normalizeIdentity({}, ""), "")).toEqual([])
+  })
+})
+
 describe("json extraction", () => {
   it("tolerates fences and chatter", () => {
     expect(parseJsonObject('Here you go:\n```json\n{"a":1}\n```')).toEqual({ a: 1 })
@@ -70,7 +79,7 @@ describe("classifyProductTaxonomy (model mocked)", () => {
         })
       )
     const r = await classifyProductTaxonomy(
-      { title: "Nouveaux écouteurs Bluetooth", imageUrl: "https://cdn.example.com/obd.jpg" },
+      { title: "Nouveau produit 2026", imageUrl: "https://cdn.example.com/obd.jpg" },
       { browse, leafPaths: browse.leafPaths },
       { callModel }
     )
