@@ -1136,7 +1136,13 @@
       "sectionMarketplaceDeliveryTitle": "Marketplace-levering",
       "sectionMarketplaceDeliveryDescription": "Regio-label, levervenster en gratis verzending helpen kopers je aanbieding te vinden. Optionele catalogustag voor je eigen groepering.",
       "sectionShippingProfileTitle": "Verzendprofiel",
-      "sectionShippingProfileDescription": "Optioneel — helpt affiliates en filters de verwachtingen van kopers te bepalen."
+      "sectionShippingProfileDescription": "Optioneel — helpt affiliates en filters de verwachtingen van kopers te bepalen.",
+      "keyFeaturesLabel": "Belangrijkste kenmerken",
+      "keyFeaturesHint": "Tot vijf verkoopargumenten die kopers als eerste op de productpagina zien (zoals “Over dit artikel” bij grote marktplaatsen).",
+      "sellingPointPlaceholder": "Verkoopargument {n}",
+      "removeBullet": "Regel verwijderen",
+      "addBullet": "Punt toevoegen",
+      "pickCategoryForSpecs": "Kies een categorie om de specificatievelden van deze afdeling te zien."
     },
     "publishBlockers": {
       "nameRequired": "De producttitel is verplicht.",
@@ -1409,7 +1415,8 @@
       "step2Title": "Varianten en prijzen",
       "step2Hint": "SKU, voorraad, marges",
       "step3Title": "Logistiek en publicatie",
-      "step3Hint": "Verzending, commissie"
+      "step3Hint": "Verzending, commissie",
+      "stepOf": "Stap {n} van {total}"
     },
     "digitalDelivery": {
       "badge": "Digital Pass Hub",
@@ -1569,7 +1576,9 @@
         "warranty": "Voeg een garantieduur toe in de SKU-tabel.",
         "origin": "Geef aan waar het pakket vandaan komt — kopers zien het.",
         "delivery": "Kies je vervoerders en levertijden in de verzendinstellingen — kopers zien niets totdat je dat doet."
-      }
+      },
+      "progress": "{done} van {total} klaar",
+      "nextUp": "Volgende: {label}"
     },
     "expressTaxonomy": {
       "photoTitleConflict": "Je foto lijkt te tonen: {photo}. Controleer of titel en foto hetzelfde product beschrijven.",

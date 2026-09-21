@@ -1136,7 +1136,13 @@
       "sectionMarketplaceDeliveryTitle": "Consegna marketplace",
       "sectionMarketplaceDeliveryDescription": "L'etichetta della zona, la finestra di consegna e la spedizione gratuita aiutano gli acquirenti a trovare la tua inserzione. Tag catalogo opzionale per il tuo raggruppamento.",
       "sectionShippingProfileTitle": "Profilo di spedizione",
-      "sectionShippingProfileDescription": "Opzionale — aiuta affiliati e filtri a definire le aspettative degli acquirenti."
+      "sectionShippingProfileDescription": "Opzionale — aiuta affiliati e filtri a definire le aspettative degli acquirenti.",
+      "keyFeaturesLabel": "Punti di forza",
+      "keyFeaturesHint": "Fino a cinque argomenti di vendita che gli acquirenti vedono per primi nella scheda (come «Informazioni sull'articolo» dei grandi marketplace).",
+      "sellingPointPlaceholder": "Argomento di vendita {n}",
+      "removeBullet": "Rimuovi riga",
+      "addBullet": "Aggiungi punto",
+      "pickCategoryForSpecs": "Scegli una categoria per vedere i campi delle caratteristiche di questo reparto."
     },
     "publishBlockers": {
       "nameRequired": "Il titolo del prodotto è obbligatorio.",
@@ -1409,7 +1415,8 @@
       "step2Title": "Varianti e prezzi",
       "step2Hint": "SKU, stock, margini",
       "step3Title": "Logistica e pubblicazione",
-      "step3Hint": "Spedizione, commissione"
+      "step3Hint": "Spedizione, commissione",
+      "stepOf": "Passo {n} di {total}"
     },
     "digitalDelivery": {
       "badge": "Centro pass digitali",
@@ -1569,7 +1576,9 @@
         "warranty": "Aggiungi una durata di garanzia nella tabella SKU.",
         "origin": "Indica da dove parte il pacco — viene mostrato agli acquirenti.",
         "delivery": "Scegli corrieri e tempi nelle impostazioni di spedizione — nulla è mostrato agli acquirenti finché non lo fai."
-      }
+      },
+      "progress": "{done} di {total} completati",
+      "nextUp": "Prossimo: {label}"
     },
     "expressTaxonomy": {
       "photoTitleConflict": "La tua foto sembra mostrare: {photo}. Verifica che titolo e foto descrivano lo stesso prodotto.",

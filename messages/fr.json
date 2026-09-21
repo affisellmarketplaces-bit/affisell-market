@@ -1136,7 +1136,13 @@
       "sectionMarketplaceDeliveryTitle": "Livraison marketplace",
       "sectionMarketplaceDeliveryDescription": "Le libellé de zone, le délai de livraison et la livraison gratuite aident les acheteurs à trouver votre annonce. Étiquette catalogue optionnelle pour votre propre classement.",
       "sectionShippingProfileTitle": "Profil d'expédition",
-      "sectionShippingProfileDescription": "Optionnel — aide les affiliés et les filtres à fixer les attentes des acheteurs."
+      "sectionShippingProfileDescription": "Optionnel — aide les affiliés et les filtres à fixer les attentes des acheteurs.",
+      "keyFeaturesLabel": "Points forts",
+      "keyFeaturesHint": "Jusqu'à cinq arguments de vente que les acheteurs voient en premier sur la fiche produit (comme le « À propos de cet article » des grandes marketplaces).",
+      "sellingPointPlaceholder": "Argument de vente {n}",
+      "removeBullet": "Supprimer la ligne",
+      "addBullet": "Ajouter un point",
+      "pickCategoryForSpecs": "Choisissez une catégorie pour voir les champs de caractéristiques de ce rayon."
     },
     "publishBlockers": {
       "nameRequired": "Le titre du produit est obligatoire.",
@@ -1409,7 +1415,8 @@
       "step2Title": "Variantes & prix",
       "step2Hint": "SKU, stock, marges",
       "step3Title": "Logistique & publication",
-      "step3Hint": "Livraison, commission"
+      "step3Hint": "Livraison, commission",
+      "stepOf": "Étape {n} sur {total}"
     },
     "digitalDelivery": {
       "badge": "Digital Pass Hub",
@@ -1569,7 +1576,9 @@
         "warranty": "Ajoutez une durée de garantie dans le tableau des SKU.",
         "origin": "Indiquez d'où part le colis — c'est affiché aux acheteurs.",
         "delivery": "Choisissez vos transporteurs et délais dans les réglages de livraison — rien n'est affiché aux acheteurs tant que vous ne l'avez pas fait."
-      }
+      },
+      "progress": "{done} sur {total} complétés",
+      "nextUp": "Suivant : {label}"
     },
     "expressTaxonomy": {
       "photoTitleConflict": "Votre photo ressemble à : {photo}. Vérifiez que le titre et la photo décrivent le même produit.",

@@ -1136,7 +1136,13 @@
       "sectionMarketplaceDeliveryTitle": "Entrega en el marketplace",
       "sectionMarketplaceDeliveryDescription": "La etiqueta de región, la ventana de entrega y el envío gratis ayudan a los compradores a encontrar tu anuncio. Etiqueta de catálogo opcional para tu propia agrupación.",
       "sectionShippingProfileTitle": "Perfil de envío",
-      "sectionShippingProfileDescription": "Opcional — ayuda a los afiliados y a los filtros a fijar las expectativas del comprador."
+      "sectionShippingProfileDescription": "Opcional — ayuda a los afiliados y a los filtros a fijar las expectativas del comprador.",
+      "keyFeaturesLabel": "Puntos destacados",
+      "keyFeaturesHint": "Hasta cinco argumentos de venta que los compradores ven primero en la ficha (como el «Acerca de este artículo» de los grandes marketplaces).",
+      "sellingPointPlaceholder": "Argumento de venta {n}",
+      "removeBullet": "Quitar línea",
+      "addBullet": "Añadir punto",
+      "pickCategoryForSpecs": "Elige una categoría para ver los campos de características de este pasillo."
     },
     "publishBlockers": {
       "nameRequired": "El título del producto es obligatorio.",
@@ -1409,7 +1415,8 @@
       "step2Title": "Variantes y precios",
       "step2Hint": "SKU, stock, márgenes",
       "step3Title": "Logística y publicación",
-      "step3Hint": "Envío, comisión"
+      "step3Hint": "Envío, comisión",
+      "stepOf": "Paso {n} de {total}"
     },
     "digitalDelivery": {
       "badge": "Centro de pases digitales",
@@ -1569,7 +1576,9 @@
         "warranty": "Añade una duración de garantía en la tabla de SKU.",
         "origin": "Indica desde dónde sale el paquete — se muestra a los compradores.",
         "delivery": "Elige transportistas y plazos en los ajustes de envío — no se muestra nada al comprador hasta que lo hagas."
-      }
+      },
+      "progress": "{done} de {total} completados",
+      "nextUp": "Siguiente: {label}"
     },
     "expressTaxonomy": {
       "photoTitleConflict": "Tu foto parece mostrar: {photo}. Comprueba que el título y la foto describen el mismo producto.",

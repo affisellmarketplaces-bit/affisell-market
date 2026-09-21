@@ -3,7 +3,7 @@
 import type { ReactNode } from "react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
-import { ChevronRight, Loader2, Save } from "lucide-react"
+import { Check, ChevronRight, Loader2, Lock, Save } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -104,41 +104,78 @@ export function ProductWizard({
         ) : null}
       </header>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(200px,15rem)_1fr] lg:gap-8">
-        <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+      <nav aria-label={t("stepsAria")} className="mt-4 lg:hidden">
+        <div className="flex items-center justify-between gap-3">
+          <p className="min-w-0 truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+            {STEPS.find((s) => s.n === step)?.title}
+          </p>
+          <p className="shrink-0 text-xs font-medium tabular-nums text-zinc-500 dark:text-zinc-400">
+            {t("stepOf", { n: step, total: STEPS.length })}
+          </p>
+        </div>
+        <ol className="mt-2 grid grid-cols-3 gap-1.5">
+          {STEPS.map(({ n, title }) => {
+            const locked = stepLocked(n)
+            return (
+              <li key={n}>
+                <button
+                  type="button"
+                  disabled={locked}
+                  aria-label={title}
+                  aria-current={step === n ? "step" : undefined}
+                  onClick={() => handleStepClick(n)}
+                  className={cn(
+                    "h-1.5 w-full rounded-full transition-colors",
+                    n <= step ? "bg-violet-600" : "bg-zinc-200 dark:bg-zinc-800",
+                    locked && "cursor-not-allowed"
+                  )}
+                />
+              </li>
+            )
+          })}
+        </ol>
+      </nav>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(220px,16rem)_1fr] lg:gap-10">
+        <aside className="order-2 space-y-4 lg:sticky lg:top-24 lg:order-none lg:self-start">
           <nav aria-label={t("stepsAria")} className="hidden lg:block">
-            <ol className="space-y-1">
+            <ol className="relative space-y-1">
+              <span
+                className="pointer-events-none absolute bottom-6 left-[1.625rem] top-6 w-px bg-gradient-to-b from-violet-300/80 via-zinc-200 to-zinc-200 dark:from-violet-700/60 dark:via-zinc-800 dark:to-zinc-800"
+                aria-hidden
+              />
               {STEPS.map(({ n, title, hint }) => {
                 const locked = stepLocked(n)
                 const active = step === n
                 const done = n === 1 ? step1Valid && step > 1 : n === 2 ? step2Valid && step > 2 : false
                 return (
-                  <li key={n}>
+                  <li key={n} className="relative">
                     <button
                       type="button"
                       disabled={locked}
+                      aria-current={active ? "step" : undefined}
                       onClick={() => handleStepClick(n)}
                       className={cn(
-                        "flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition",
+                        "flex w-full items-start gap-3 rounded-2xl px-3 py-3 text-left transition",
                         active
-                          ? "bg-violet-100/90 ring-1 ring-violet-300/80 dark:bg-violet-950/50 dark:ring-violet-700/60"
-                          : "hover:bg-zinc-50 dark:hover:bg-zinc-900/60",
-                        locked && "cursor-not-allowed opacity-45"
+                          ? "bg-white shadow-sm shadow-violet-500/10 ring-1 ring-violet-300/70 dark:bg-violet-950/40 dark:ring-violet-700/60"
+                          : "hover:bg-white/70 dark:hover:bg-zinc-900/60",
+                        locked && "cursor-not-allowed opacity-50"
                       )}
                     >
                       <span
                         className={cn(
-                          "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+                          "relative z-10 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ring-4 ring-[var(--wizard-rail-bg,transparent)]",
                           active
-                            ? "bg-violet-600 text-white"
+                            ? "bg-violet-600 text-white shadow-md shadow-violet-500/30"
                             : done
                               ? "bg-emerald-600 text-white"
                               : "bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
                         )}
                       >
-                        {n}
+                        {done ? <Check className="h-3.5 w-3.5" aria-hidden /> : locked ? <Lock className="h-3 w-3" aria-hidden /> : n}
                       </span>
-                      <span>
+                      <span className="min-w-0">
                         <span className="block text-sm font-semibold text-zinc-900 dark:text-zinc-50">{title}</span>
                         <span className="mt-0.5 block text-xs text-zinc-500 dark:text-zinc-400">{hint}</span>
                       </span>
@@ -150,7 +187,7 @@ export function ProductWizard({
           </nav>
           {qualityPanel}
         </aside>
-        <div className="min-w-0">{children}</div>
+        <div className="order-1 min-w-0 lg:order-none">{children}</div>
       </div>
     </div>
   )

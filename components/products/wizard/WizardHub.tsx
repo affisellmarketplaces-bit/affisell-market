@@ -83,14 +83,21 @@ function WizardHubTabs({
 
   return (
     <>
-      <header className="mb-8">
-        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#7C3AED]">Wizard v2</p>
-        <h1 className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">{t("headline")}</h1>
-        <p className="mt-1 text-sm text-zinc-500">
-          {mode === "express"
-            ? t("subtitleExpress", { userId: ownerUserId.slice(0, 8) })
-            : t("subtitlePro")}
-        </p>
+      <header className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-1.5 rounded-full bg-violet-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-violet-700 dark:bg-violet-950/60 dark:text-violet-300">
+            <Zap className="size-3" aria-hidden />
+            Wizard v2
+          </p>
+          <h1 className="mt-3 bg-gradient-to-r from-zinc-900 via-violet-800 to-fuchsia-700 bg-clip-text text-2xl font-bold tracking-tight text-transparent dark:from-white dark:via-violet-200 dark:to-fuchsia-300 sm:text-3xl">
+            {t("headline")}
+          </h1>
+          <p className="mt-1.5 max-w-2xl text-sm text-zinc-500 dark:text-zinc-400">
+            {mode === "express"
+              ? t("subtitleExpress", { userId: ownerUserId.slice(0, 8) })
+              : t("subtitlePro")}
+          </p>
+        </div>
       </header>
 
       {shopifyDomain && mode === "express" ? (
@@ -102,16 +109,19 @@ function WizardHubTabs({
         </div>
       ) : null}
 
-      <nav className="mb-8 flex flex-wrap gap-2" aria-label={t("modeNavAriaLabel")}>
+      <nav
+        className="mb-6 grid gap-1.5 rounded-2xl border border-zinc-200/80 bg-zinc-100/70 p-1.5 dark:border-zinc-800 dark:bg-zinc-900/60 sm:mb-8 sm:inline-grid sm:grid-flow-col sm:auto-cols-fr"
+        aria-label={t("modeNavAriaLabel")}
+      >
         {hubModes.map((m) => (
           <button
             key={m.id}
             type="button"
             className={cn(
-              "rounded-xl border px-4 py-2 text-left text-sm transition-all duration-200",
+              "rounded-xl px-4 py-2.5 text-left text-sm transition-all duration-200",
               mode === m.id
-                ? "border-[#7C3AED] bg-violet-50 font-semibold shadow-sm shadow-violet-500/10 dark:bg-violet-950/50"
-                : "border-zinc-200 hover:border-violet-200 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:border-violet-900"
+                ? "bg-white font-semibold shadow-sm shadow-violet-500/10 ring-1 ring-violet-300/70 dark:bg-zinc-950 dark:ring-violet-700/60"
+                : "text-zinc-600 hover:bg-white/60 dark:text-zinc-400 dark:hover:bg-zinc-800/60"
             )}
             aria-pressed={mode === m.id}
             onClick={() => onModeChange(m.id)}
@@ -124,7 +134,7 @@ function WizardHubTabs({
                 </span>
               ) : null}
             </span>
-            <span className="text-xs font-normal text-zinc-500">{m.hint}</span>
+            <span className="mt-0.5 block text-xs font-normal text-zinc-500 dark:text-zinc-400">{m.hint}</span>
           </button>
         ))}
       </nav>
@@ -864,7 +874,7 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
 
   return (
     <BentoShell>
-      <div className="mx-auto max-w-6xl px-4 py-8 md:px-8">
+      <div className={cn("mx-auto px-4 py-6 sm:py-8 md:px-8", mode === "pro" ? "max-w-7xl" : "max-w-6xl")}>
         <WizardHubTabs
           mode={mode}
           ownerUserId={ownerUserId}

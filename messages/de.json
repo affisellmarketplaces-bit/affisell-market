@@ -1136,7 +1136,13 @@
       "sectionMarketplaceDeliveryTitle": "Marketplace-Lieferung",
       "sectionMarketplaceDeliveryDescription": "Regionsbezeichnung, Lieferfenster und kostenloser Versand helfen Käufern, Ihr Angebot zu finden. Optionales Katalog-Tag für Ihre eigene Gruppierung.",
       "sectionShippingProfileTitle": "Versandprofil",
-      "sectionShippingProfileDescription": "Optional — hilft Affiliates und Filtern, Käufererwartungen festzulegen."
+      "sectionShippingProfileDescription": "Optional — hilft Affiliates und Filtern, Käufererwartungen festzulegen.",
+      "keyFeaturesLabel": "Produkthighlights",
+      "keyFeaturesHint": "Bis zu fünf Verkaufsargumente, die Käufer zuerst auf der Produktseite sehen (wie „Über diesen Artikel“ bei großen Marktplätzen).",
+      "sellingPointPlaceholder": "Verkaufsargument {n}",
+      "removeBullet": "Zeile entfernen",
+      "addBullet": "Punkt hinzufügen",
+      "pickCategoryForSpecs": "Wählen Sie eine Kategorie, um die Merkmalsfelder dieses Bereichs zu sehen."
     },
     "publishBlockers": {
       "nameRequired": "Der Produkttitel ist erforderlich.",
@@ -1409,7 +1415,8 @@
       "step2Title": "Varianten & Preise",
       "step2Hint": "SKU, Bestand, Margen",
       "step3Title": "Logistik & Veröffentlichung",
-      "step3Hint": "Versand, Provision"
+      "step3Hint": "Versand, Provision",
+      "stepOf": "Schritt {n} von {total}"
     },
     "digitalDelivery": {
       "badge": "Digital Pass Hub",
@@ -1569,7 +1576,9 @@
         "warranty": "Garantiedauer in der SKU-Tabelle ergänzen.",
         "origin": "Angeben, von wo das Paket versendet wird — Käufer sehen es.",
         "delivery": "Versanddienstleister und Lieferzeiten in den Versandeinstellungen wählen — bis dahin sehen Käufer nichts."
-      }
+      },
+      "progress": "{done} von {total} erledigt",
+      "nextUp": "Als Nächstes: {label}"
     },
     "expressTaxonomy": {
       "photoTitleConflict": "Ihr Foto zeigt anscheinend: {photo}. Stellen Sie sicher, dass Titel und Foto dasselbe Produkt beschreiben.",

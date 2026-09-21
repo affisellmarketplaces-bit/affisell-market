@@ -1136,7 +1136,13 @@
       "sectionMarketplaceDeliveryTitle": "Dostawa na rynku",
       "sectionMarketplaceDeliveryDescription": "Etykieta regionu, okno dostawy i darmowa wysyłka pomagają kupującym znaleźć Twoją ofertę. Opcjonalny tag katalogowy do własnego grupowania.",
       "sectionShippingProfileTitle": "Profil wysyłki",
-      "sectionShippingProfileDescription": "Opcjonalnie — pomaga partnerom i filtrom ustalić oczekiwania kupujących."
+      "sectionShippingProfileDescription": "Opcjonalnie — pomaga partnerom i filtrom ustalić oczekiwania kupujących.",
+      "keyFeaturesLabel": "Kluczowe cechy",
+      "keyFeaturesHint": "Do pięciu argumentów sprzedażowych, które kupujący widzą jako pierwsze na stronie produktu (jak „O tym produkcie” na dużych marketplace’ach).",
+      "sellingPointPlaceholder": "Argument sprzedażowy {n}",
+      "removeBullet": "Usuń wiersz",
+      "addBullet": "Dodaj punkt",
+      "pickCategoryForSpecs": "Wybierz kategorię, aby zobaczyć pola specyfikacji tego działu."
     },
     "publishBlockers": {
       "nameRequired": "Tytuł produktu jest wymagany.",
@@ -1409,7 +1415,8 @@
       "step2Title": "Warianty i ceny",
       "step2Hint": "SKU, stan, marże",
       "step3Title": "Logistyka i publikacja",
-      "step3Hint": "Wysyłka, prowizja"
+      "step3Hint": "Wysyłka, prowizja",
+      "stepOf": "Krok {n} z {total}"
     },
     "digitalDelivery": {
       "badge": "Centrum przepustek cyfrowych",
@@ -1569,7 +1576,9 @@
         "warranty": "Dodaj okres gwarancji w tabeli SKU.",
         "origin": "Podaj, skąd wychodzi paczka — kupujący to widzą.",
         "delivery": "Wybierz przewoźników i terminy w ustawieniach wysyłki — do tego czasu kupujący nic nie widzą."
-      }
+      },
+      "progress": "{done} z {total} ukończono",
+      "nextUp": "Dalej: {label}"
     },
     "expressTaxonomy": {
       "photoTitleConflict": "Twoje zdjęcie wygląda na: {photo}. Upewnij się, że tytuł i zdjęcie opisują ten sam produkt.",

@@ -81,16 +81,16 @@ export function SupplierTrustQualityBlock({ title, description, imageCount, bran
   return (
     <div
       className={cn(
-        "rounded-2xl border border-zinc-200/90 bg-white/90 p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80",
+        "rounded-3xl border border-zinc-200/80 bg-white/90 p-4 shadow-sm backdrop-blur-sm dark:border-zinc-700 dark:bg-zinc-900/80",
         className
       )}
     >
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
         <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
           <ShieldCheck className="size-3.5" aria-hidden />
           {t("trustTitle")}
         </p>
-        <p className={cn("text-sm font-bold tabular-nums", tone)}>
+        <p className={cn("rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-bold tabular-nums dark:bg-zinc-800", tone)}>
           {t(`tier.${tierKey}`)} · {result.score}
         </p>
       </div>

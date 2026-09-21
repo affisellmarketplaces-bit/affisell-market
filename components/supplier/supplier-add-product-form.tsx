@@ -307,7 +307,7 @@ function SectionCard({
     <section
       id={id}
       className={cn(
-        "scroll-mt-28 rounded-3xl border bg-white/80 p-6 shadow-sm backdrop-blur-sm ring-1 sm:p-7 dark:bg-zinc-950/75",
+        "scroll-mt-40 rounded-3xl border bg-white/85 p-5 shadow-sm shadow-zinc-900/[0.03] backdrop-blur-sm ring-1 sm:p-7 dark:bg-zinc-950/75",
         hasError
           ? PUBLISH_SECTION_ERROR_CLASS
           : "border-gray-100 ring-black/[0.02] dark:border-zinc-800 dark:ring-white/[0.04]",
@@ -3012,7 +3012,7 @@ export function SupplierAddProductForm({
 
             {step === 1 ? (
               <>
-                <div className="flex flex-col gap-3 rounded-3xl border border-gray-100 bg-white/75 px-4 py-3.5 shadow-sm ring-1 ring-black/[0.02] backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/60 dark:ring-white/[0.04] sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                <div className="md:sticky md:top-[4.75rem] md:z-10 flex flex-col gap-2 rounded-2xl border border-zinc-200/70 bg-white/85 px-3.5 py-2.5 shadow-sm shadow-zinc-900/5 ring-1 ring-black/[0.02] backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/80 dark:ring-white/[0.04] sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
                     {tForm("onThisPage")}
                   </p>
@@ -3177,8 +3177,8 @@ export function SupplierAddProductForm({
                   </div>
                 </SectionCard>
 
-                <div className="grid gap-8 xl:grid-cols-12 xl:gap-x-10 xl:items-start">
-                  <div className="space-y-8 xl:col-span-5">
+                <div className="grid gap-8">
+                  <div className="space-y-8">
                     <SectionCard
                       id="add-product-story"
                       icon={Package}
@@ -3226,10 +3226,9 @@ export function SupplierAddProductForm({
                         productSpecs={productSpecsForDescription}
                       />
                       <div>
-                        <Label className="text-zinc-800 dark:text-zinc-100">Key features</Label>
+                        <Label className="text-zinc-800 dark:text-zinc-100">{tForm("keyFeaturesLabel")}</Label>
                         <p className="mt-0.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                          Up to five selling points shoppers see first on the product page (like marketplace “About
-                          this item”).
+                          {tForm("keyFeaturesHint")}
                         </p>
                         <div className="mt-2 space-y-2">
                           {descriptionBullets.map((line, i) => (
@@ -3242,7 +3241,7 @@ export function SupplierAddProductForm({
                                   next[i] = e.target.value
                                   setDescriptionBullets(next)
                                 }}
-                                placeholder={`Selling point ${i + 1}`}
+                                placeholder={tForm("sellingPointPlaceholder", { n: i + 1 })}
                                 maxLength={500}
                               />
                               {descriptionBullets.length > 1 ? (
@@ -3254,7 +3253,7 @@ export function SupplierAddProductForm({
                                   onClick={() =>
                                     setDescriptionBullets(descriptionBullets.filter((_, j) => j !== i))
                                   }
-                                  aria-label="Remove bullet"
+                                  aria-label={tForm("removeBullet")}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -3268,14 +3267,14 @@ export function SupplierAddProductForm({
                             className="gap-1 border-dashed text-zinc-600 dark:text-zinc-300"
                             onClick={() => setDescriptionBullets([...descriptionBullets, ""])}
                           >
-                            <Plus className="h-4 w-4" aria-hidden /> Add bullet
+                            <Plus className="h-4 w-4" aria-hidden /> {tForm("addBullet")}
                           </Button>
                         </div>
                       </div>
                     </SectionCard>
                   </div>
 
-                  <div className="space-y-8 xl:col-span-7">
+                  <div className="space-y-8">
                     <SectionCard
                       id="add-product-classify"
                       icon={Tag}

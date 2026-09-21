@@ -1136,7 +1136,13 @@
       "sectionMarketplaceDeliveryTitle": "Marketplace delivery",
       "sectionMarketplaceDeliveryDescription": "Region label, delivery window, and free-shipping help buyers find your listing. Optional catalog tag for your own grouping.",
       "sectionShippingProfileTitle": "Shipping profile",
-      "sectionShippingProfileDescription": "Optional — helps affiliates and filters set buyer expectations."
+      "sectionShippingProfileDescription": "Optional — helps affiliates and filters set buyer expectations.",
+      "keyFeaturesLabel": "Key features",
+      "keyFeaturesHint": "Up to five selling points shoppers see first on the product page (like the “About this item” of big marketplaces).",
+      "sellingPointPlaceholder": "Selling point {n}",
+      "removeBullet": "Remove bullet",
+      "addBullet": "Add bullet",
+      "pickCategoryForSpecs": "Pick a category to see the specification fields for this aisle."
     },
     "publishBlockers": {
       "nameRequired": "Product title is required.",
@@ -1409,7 +1415,8 @@
       "step2Title": "Variants & pricing",
       "step2Hint": "SKU, stock, margins",
       "step3Title": "Logistics & publish",
-      "step3Hint": "Shipping, commission"
+      "step3Hint": "Shipping, commission",
+      "stepOf": "Step {n} of {total}"
     },
     "digitalDelivery": {
       "badge": "Digital Pass Hub",
@@ -1569,7 +1576,9 @@
         "warranty": "Add a warranty duration in the SKU table.",
         "origin": "Say where the parcel leaves from — it is shown to buyers.",
         "delivery": "Choose your carriers and delivery windows in Shipping settings — nothing is shown to buyers until you do."
-      }
+      },
+      "progress": "{done} of {total} done",
+      "nextUp": "Next: {label}"
     },
     "expressTaxonomy": {
       "photoTitleConflict": "Your photo looks like: {photo}. Make sure the title and the photo describe the same product.",

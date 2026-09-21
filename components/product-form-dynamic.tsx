@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslations } from "next-intl"
 
 import {
   CategoryAttributeFields,
@@ -58,6 +59,7 @@ export function DynamicAttributes({
   errors,
   optimizeContext,
 }: Props) {
+  const t = useTranslations("supplier.form")
   const [attrs, setAttrs] = useState<CategoryAttrRow[]>([])
   const [loading, setLoading] = useState(false)
 
@@ -104,7 +106,7 @@ export function DynamicAttributes({
   if (!categoryId.trim()) {
     return (
       <p className="text-sm text-zinc-500 dark:text-zinc-400">
-        Pick a category to see specification fields for this aisle.
+        {t("pickCategoryForSpecs")}
       </p>
     )
   }

@@ -1136,7 +1136,13 @@
       "sectionMarketplaceDeliveryTitle": "市场配送",
       "sectionMarketplaceDeliveryDescription": "地区标签、配送时间和免运费有助于买家找到您的商品。可选的目录标签用于您自己的分组。",
       "sectionShippingProfileTitle": "配送资料",
-      "sectionShippingProfileDescription": "可选——帮助联盟会员和筛选器设定买家预期。"
+      "sectionShippingProfileDescription": "可选——帮助联盟会员和筛选器设定买家预期。",
+      "keyFeaturesLabel": "核心卖点",
+      "keyFeaturesHint": "最多五条卖点，买家会在商品页最先看到（类似大型电商的“关于此商品”）。",
+      "sellingPointPlaceholder": "卖点 {n}",
+      "removeBullet": "删除此行",
+      "addBullet": "添加卖点",
+      "pickCategoryForSpecs": "请选择类别以查看该品类的规格字段。"
     },
     "publishBlockers": {
       "nameRequired": "产品标题为必填项。",
@@ -1409,7 +1415,8 @@
       "step2Title": "变体与价格",
       "step2Hint": "SKU、库存、利润",
       "step3Title": "物流与发布",
-      "step3Hint": "配送、佣金"
+      "step3Hint": "配送、佣金",
+      "stepOf": "第 {n} 步，共 {total} 步"
     },
     "digitalDelivery": {
       "badge": "数字票券中心",
@@ -1569,7 +1576,9 @@
         "warranty": "在 SKU 表中添加保修时长。",
         "origin": "说明包裹从哪里发出——买家可见。",
         "delivery": "在配送设置中选择承运商和时效——在此之前买家看不到任何内容。"
-      }
+      },
+      "progress": "已完成 {done}/{total}",
+      "nextUp": "下一步：{label}"
     },
     "expressTaxonomy": {
       "photoTitleConflict": "您的照片看起来像：{photo}。请确认标题与照片描述的是同一商品。",
