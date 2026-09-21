@@ -1738,6 +1738,12 @@
       "loading": "Loading the rate…",
       "unavailable": "Rate unavailable for this category."
     },
+    "guidedWizard": {
+      "saveDraft": "Save draft",
+      "savingDraft": "Saving…",
+      "draftSaved": "Draft saved — nothing is live yet. Finish it whenever you want.",
+      "draftNeedsTitle": "Add a title to save a draft."
+    },
     "guidedDefaults": {
       "title": "Applied from your shop settings",
       "shipsFrom": "Ships from {country}",

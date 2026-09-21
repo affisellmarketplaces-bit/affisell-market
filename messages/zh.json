@@ -1738,6 +1738,12 @@
       "loading": "正在加载费率…",
       "unavailable": "该类目暂无费率。"
     },
+    "guidedWizard": {
+      "saveDraft": "保存草稿",
+      "savingDraft": "保存中…",
+      "draftSaved": "草稿已保存——尚未上线。您可随时完成。",
+      "draftNeedsTitle": "请添加标题以保存草稿。"
+    },
     "guidedDefaults": {
       "title": "已应用您的店铺设置",
       "shipsFrom": "发货地：{country}",

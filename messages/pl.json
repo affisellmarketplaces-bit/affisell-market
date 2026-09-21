@@ -1738,6 +1738,12 @@
       "loading": "Ładowanie stawki…",
       "unavailable": "Stawka niedostępna dla tej kategorii."
     },
+    "guidedWizard": {
+      "saveDraft": "Zapisz wersję roboczą",
+      "savingDraft": "Zapisywanie…",
+      "draftSaved": "Wersja robocza zapisana — nic nie jest jeszcze opublikowane. Dokończ, kiedy chcesz.",
+      "draftNeedsTitle": "Dodaj tytuł, aby zapisać wersję roboczą."
+    },
     "guidedDefaults": {
       "title": "Przejęte z ustawień Twojego sklepu",
       "shipsFrom": "Wysyłka z: {country}",

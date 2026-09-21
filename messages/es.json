@@ -1738,6 +1738,12 @@
       "loading": "Calculando la tasa…",
       "unavailable": "Tasa no disponible para esta categoría."
     },
+    "guidedWizard": {
+      "saveDraft": "Guardar borrador",
+      "savingDraft": "Guardando…",
+      "draftSaved": "Borrador guardado — nada está publicado todavía. Termínalo cuando quieras.",
+      "draftNeedsTitle": "Añade un título para guardar un borrador."
+    },
     "guidedDefaults": {
       "title": "Aplicado desde los ajustes de tu tienda",
       "shipsFrom": "Envío desde: {country}",

@@ -1738,6 +1738,12 @@
       "loading": "Satz wird geladen…",
       "unavailable": "Satz für diese Kategorie nicht verfügbar."
     },
+    "guidedWizard": {
+      "saveDraft": "Entwurf speichern",
+      "savingDraft": "Speichern…",
+      "draftSaved": "Entwurf gespeichert — noch nichts ist online. Beenden Sie ihn, wann Sie möchten.",
+      "draftNeedsTitle": "Fügen Sie einen Titel hinzu, um einen Entwurf zu speichern."
+    },
     "guidedDefaults": {
       "title": "Aus Ihren Shop-Einstellungen übernommen",
       "shipsFrom": "Versand aus: {country}",

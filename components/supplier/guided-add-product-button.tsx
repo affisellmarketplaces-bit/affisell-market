@@ -153,6 +153,8 @@ export function GuidedAddProductButton({
   const tTax = useTranslations("supplier.guidedTaxonomy")
   const tDesc = useTranslations("supplier.guidedDescription")
   const tDef = useTranslations("supplier.guidedDefaults")
+  const tWiz = useTranslations("supplier.guidedWizard")
+  const [savingDraft, setSavingDraft] = useState(false)
   const locale = useLocale()
   const [shipDefaults, setShipDefaults] = useState<ShippingDefaults>(FALLBACK_SHIPPING_DEFAULTS)
   const defaultsLoaded = useRef(false)
@@ -486,26 +488,38 @@ export function GuidedAddProductButton({
     setStep((s) => Math.max(s - 1, 0))
   }
 
-  async function publish() {
-    if (!validateStep(0) || !validateStep(1) || !validateStep(2)) {
-      setStepError("Complétez toutes les étapes avant publication")
-      return
-    }
-    if (!gpsrCheck.compliant) {
-      setStepError("Obligatoire pour vendre en EU (GPSR)")
-      setStep(2)
-      return
+  const publish = () => submitProduct(false)
+  const saveDraft = () => submitProduct(true)
+
+  /** Publish (all steps validated) or save as a private draft (title only — finish later, nothing goes live). */
+  async function submitProduct(asDraft: boolean) {
+    if (asDraft) {
+      if (!form.title.trim()) {
+        setStepError(tWiz("draftNeedsTitle"))
+        return
+      }
+    } else {
+      if (!validateStep(0) || !validateStep(1) || !validateStep(2)) {
+        setStepError("Complétez toutes les étapes avant publication")
+        return
+      }
+      if (!gpsrCheck.compliant) {
+        setStepError("Obligatoire pour vendre en EU (GPSR)")
+        setStep(2)
+        return
+      }
     }
 
     const categoryValue = GUIDED_WIZARD_CATEGORIES.find((c) => c.label === form.category)?.value
-    if (!categoryValue || !form.imageUrl) return
+    if (!asDraft && (!categoryValue || !form.imageUrl)) return
 
     if (blockIfHoneypotValue(honeypotRef.current?.value)) {
       toast.error("Bot detected")
       return
     }
 
-    setPublishing(true)
+    if (asDraft) setSavingDraft(true)
+    else setPublishing(true)
     setStepError(null)
     try {
       const productAttributes = [
@@ -532,20 +546,21 @@ export function GuidedAddProductButton({
             name: form.title.trim(),
             description: form.description.trim(),
             descriptionBullets: form.descriptionBullets,
-            price: Number.parseFloat(form.price.replace(",", ".")),
-            stock: stockN,
-            images: [form.imageUrl],
-            categories: [categoryValue],
+            // A draft may be incomplete: only send what the supplier actually filled in.
+            ...(priceValid || !asDraft ? { price: Number.parseFloat(form.price.replace(",", ".")) } : {}),
+            ...(form.stock.trim() || !asDraft ? { stock: stockN } : {}),
+            images: form.imageUrl ? [form.imageUrl] : [],
+            categories: categoryValue ? [categoryValue] : [],
             // Exact category of the real taxonomy when chosen (better discovery, right commission grid).
             ...(withLeaf && form.leafId ? { categoryId: form.leafId } : {}),
-            colors: [form.color.trim()],
+            colors: form.color.trim() ? [form.color.trim()] : [],
             commissionRate: shipDefaults.commissionPct,
             listingKind: "PHYSICAL",
             warehouseType: shipDefaults.warehouseType,
             shippingCountry: shipDefaults.countryCode,
             deliveryCountryCodes: shipDefaults.deliveryCountryCodes,
             productAttributes,
-            saveAsDraft: false,
+            saveAsDraft: asDraft,
           }),
         })
 
@@ -567,13 +582,13 @@ export function GuidedAddProductButton({
       if (!data.id) throw new Error("missing_product_id")
 
       console.log("[guided-add-product]", {
-        result: "published",
+        result: asDraft ? "draft_saved" : "published",
         supplierId,
         productId: data.id,
-        gpsrCompliant: true,
+        gpsrCompliant: !asDraft,
       })
 
-      toast.success("Produit publié — GPSR conforme ✓")
+      toast.success(asDraft ? tWiz("draftSaved") : "Produit publié — GPSR conforme ✓")
       close()
       router.push(`/dashboard/supplier/products/${data.id}`)
       router.refresh()
@@ -583,6 +598,7 @@ export function GuidedAddProductButton({
       toast.error(msg)
     } finally {
       setPublishing(false)
+      setSavingDraft(false)
     }
   }
 
@@ -979,12 +995,27 @@ export function GuidedAddProductButton({
             ) : (
               <div />
             )}
+            <button
+              type="button"
+              className="ml-auto rounded-xl px-3 py-2 text-sm font-semibold text-violet-700 underline-offset-2 hover:underline disabled:opacity-50 dark:text-violet-300"
+              onClick={() => void saveDraft()}
+              disabled={publishing || savingDraft || uploading || !form.title.trim()}
+            >
+              {savingDraft ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <Loader2 className="size-3.5 animate-spin" aria-hidden />
+                  {tWiz("savingDraft")}
+                </span>
+              ) : (
+                tWiz("saveDraft")
+              )}
+            </button>
             {step < STEP_LABELS.length - 1 ? (
               <button
                 type="button"
                 className={cn(
                   buttonVariants({ size: "lg" }),
-                  "ml-auto flex-1 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 sm:flex-none"
+                  "flex-1 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 sm:flex-none"
                 )}
                 onClick={goNext}
                 disabled={uploading}
@@ -997,10 +1028,10 @@ export function GuidedAddProductButton({
                 type="button"
                 className={cn(
                   buttonVariants({ size: "lg" }),
-                  "ml-auto flex-1 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 sm:flex-none",
+                  "flex-1 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 sm:flex-none",
                   !gpsrCheck.compliant && "opacity-50"
                 )}
-                disabled={!gpsrCheck.compliant || publishing || !priceValid}
+                disabled={!gpsrCheck.compliant || publishing || savingDraft || !priceValid}
                 onClick={() => void publish()}
               >
                 {publishing ? (

@@ -1738,6 +1738,12 @@
       "loading": "Calcul du taux…",
       "unavailable": "Taux indisponible pour cette catégorie."
     },
+    "guidedWizard": {
+      "saveDraft": "Enregistrer en brouillon",
+      "savingDraft": "Enregistrement…",
+      "draftSaved": "Brouillon enregistré — rien n'est en ligne. Terminez-le quand vous voulez.",
+      "draftNeedsTitle": "Ajoutez un titre pour enregistrer un brouillon."
+    },
     "guidedDefaults": {
       "title": "Repris de vos réglages boutique",
       "shipsFrom": "Expédié depuis : {country}",

@@ -1738,6 +1738,12 @@
       "loading": "Calcolo del tasso…",
       "unavailable": "Tasso non disponibile per questa categoria."
     },
+    "guidedWizard": {
+      "saveDraft": "Salva bozza",
+      "savingDraft": "Salvataggio…",
+      "draftSaved": "Bozza salvata — nulla è ancora online. Completala quando vuoi.",
+      "draftNeedsTitle": "Aggiungi un titolo per salvare una bozza."
+    },
     "guidedDefaults": {
       "title": "Applicato dalle impostazioni del tuo negozio",
       "shipsFrom": "Spedito da: {country}",

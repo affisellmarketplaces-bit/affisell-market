@@ -1738,6 +1738,12 @@
       "loading": "Tarief laden…",
       "unavailable": "Tarief niet beschikbaar voor deze categorie."
     },
+    "guidedWizard": {
+      "saveDraft": "Concept opslaan",
+      "savingDraft": "Opslaan…",
+      "draftSaved": "Concept opgeslagen — er staat nog niets online. Rond het af wanneer je wilt.",
+      "draftNeedsTitle": "Voeg een titel toe om een concept op te slaan."
+    },
     "guidedDefaults": {
       "title": "Overgenomen uit je winkelinstellingen",
       "shipsFrom": "Verzonden vanuit: {country}",
