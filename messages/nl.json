@@ -3275,7 +3275,8 @@
       "boostCta": "Bied +2% commissie aan",
       "boostSuccess": "Commissie ingesteld op {pct}% voor “{name}”",
       "boostFailed": "Kon niet bijwerken",
-      "networkError": "Netwerkfout"
+      "networkError": "Netwerkfout",
+      "ctaBoostHint": "Boosten: verlaag de groothandelsprijs met circa 10% of voeg een productvideo toe"
     },
     "tools": {
       "title": "Hulpmiddelen",

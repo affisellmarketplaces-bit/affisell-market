@@ -1,8 +1,9 @@
 "use client"
 
 import Link from "next/link"
+import { useMemo, useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { AlertTriangle, BarChart3, LineChart, Wallet } from "lucide-react"
+import { AlertTriangle, ArrowDown, ArrowUp, BarChart3, LineChart, Wallet } from "lucide-react"
 import {
   Bar,
   BarChart,
@@ -26,8 +27,33 @@ type Props = {
 }
 
 
+type SkuSortKey = "epcCents" | "views" | "clicks" | "conversionRatePct"
+
 export function SupplierAnalyticsWidget({ analytics }: Props) {
   const t = useTranslations("supplierDashboard.analytics")
+  const [sku, setSku] = useState<{ key: SkuSortKey; dir: "asc" | "desc" }>({ key: "epcCents", dir: "desc" })
+  const sortedSkus = useMemo(() => {
+    const sign = sku.dir === "desc" ? -1 : 1
+    return [...analytics.skuPerformance].sort((a, b) => sign * (a[sku.key] - b[sku.key]))
+  }, [analytics.skuPerformance, sku])
+  const sortHeader = (key: SkuSortKey, label: string, hint?: string) => (
+    <th
+      className="px-3 py-2 font-semibold"
+      aria-sort={sku.key === key ? (sku.dir === "desc" ? "descending" : "ascending") : "none"}
+      title={hint}
+    >
+      <button
+        type="button"
+        onClick={() => setSku((cur) => ({ key, dir: cur.key === key && cur.dir === "desc" ? "asc" : "desc" }))}
+        className="inline-flex items-center gap-1 uppercase tracking-wide hover:text-zinc-900 dark:hover:text-zinc-100"
+      >
+        {label}
+        {sku.key === key ? (
+          sku.dir === "desc" ? <ArrowDown className="size-3" aria-hidden /> : <ArrowUp className="size-3" aria-hidden />
+        ) : null}
+      </button>
+    </th>
+  )
   const locale = resolveAppLocale(useLocale())
   const formatEuroCents = (value: number) => formatMoneyFromCents(value, locale, { maximumFractionDigits: 0 })
   const payoutDate = analytics.estimatedNextPayoutDate
@@ -156,13 +182,13 @@ export function SupplierAnalyticsWidget({ analytics }: Props) {
         </p>
         <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
           <table className="min-w-full text-left text-sm">
-            <thead className="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900/80">
+            <thead className="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-600 dark:bg-zinc-900/80 dark:text-zinc-400">
               <tr>
                 <th className="px-3 py-2 font-semibold">{t("colProduct")}</th>
-                <th className="px-3 py-2 font-semibold">{t("colViews")}</th>
-                <th className="px-3 py-2 font-semibold">{t("colClicks")}</th>
-                <th className="px-3 py-2 font-semibold" title={t("colCrHint")}>{t("colCr")}</th>
-                <th className="px-3 py-2 font-semibold" title={t("colEpcHint")}>{t("colEpc")}</th>
+                {sortHeader("views", t("colViews"))}
+                {sortHeader("clicks", t("colClicks"))}
+                {sortHeader("conversionRatePct", t("colCr"), t("colCrHint"))}
+                {sortHeader("epcCents", t("colEpc"), t("colEpcHint"))}
               </tr>
             </thead>
             <tbody>
@@ -173,13 +199,15 @@ export function SupplierAnalyticsWidget({ analytics }: Props) {
                   </td>
                 </tr>
               ) : (
-                analytics.skuPerformance.map((row) => (
+                sortedSkus.map((row) => (
                   <tr
                     key={row.productId}
                     className="border-t border-zinc-100 dark:border-zinc-800"
                   >
-                    <td className="max-w-[200px] truncate px-3 py-2 font-medium text-zinc-900 dark:text-zinc-100">
-                      {row.productName}
+                    <td className="max-w-[240px] truncate px-3 py-2 font-medium text-zinc-900 dark:text-zinc-100">
+                      <Link href={`/dashboard/supplier/products/${row.productId}`} className="hover:underline" title={row.productName}>
+                        {row.productName}
+                      </Link>
                     </td>
                     <td className="px-3 py-2 tabular-nums">{row.views}</td>
                     <td className="px-3 py-2 tabular-nums">{row.clicks}</td>

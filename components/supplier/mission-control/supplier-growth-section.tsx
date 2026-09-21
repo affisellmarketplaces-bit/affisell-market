@@ -114,6 +114,7 @@ export async function SupplierGrowthSection({ growth }: Props) {
                   <div className="flex shrink-0 gap-1">
                     <Link
                       href={`/dashboard/supplier/products/${sku.id}`}
+                      title={t("ctaBoostHint")}
                       className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-8 px-2 text-xs")}
                     >
                       <Rocket className="mr-1 h-3 w-3" aria-hidden />
@@ -121,6 +122,7 @@ export async function SupplierGrowthSection({ growth }: Props) {
                     </Link>
                     <Link
                       href={`/dashboard/supplier/products/${sku.id}?archive=1`}
+                      title={t("ctaArchive")}
                       className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "h-8 px-2 text-xs")}
                     >
                       <Archive className="h-3 w-3" aria-hidden />

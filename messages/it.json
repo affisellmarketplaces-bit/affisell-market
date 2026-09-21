@@ -3275,7 +3275,8 @@
       "boostCta": "Offri +2% di commissione",
       "boostSuccess": "Commissione impostata su {pct}% su “{name}”",
       "boostFailed": "Impossibile aggiornare",
-      "networkError": "Errore di rete"
+      "networkError": "Errore di rete",
+      "ctaBoostHint": "Potenzia: riduci il prezzo all'ingrosso di circa il 10% o aggiungi un video del prodotto"
     },
     "tools": {
       "title": "Strumenti",

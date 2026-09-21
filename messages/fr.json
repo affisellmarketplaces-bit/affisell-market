@@ -3285,7 +3285,8 @@
       "boostCta": "Proposer +2 % commission",
       "boostSuccess": "Commission passée à {pct} % sur « {name} »",
       "boostFailed": "Mise à jour impossible",
-      "networkError": "Erreur réseau"
+      "networkError": "Erreur réseau",
+      "ctaBoostHint": "Booster : baissez le prix de gros d'environ 10 % ou ajoutez une vidéo produit"
     },
     "tools": {
       "title": "Outils",

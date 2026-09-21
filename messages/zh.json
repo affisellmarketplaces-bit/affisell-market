@@ -3275,7 +3275,8 @@
       "boostCta": "提供 +2% 佣金",
       "boostSuccess": "设置 {pct}% 佣金于 “{name}”",
       "boostFailed": "无法更新",
-      "networkError": "网络错误"
+      "networkError": "网络错误",
+      "ctaBoostHint": "提升：将批发价下调约 10%，或添加商品视频"
     },
     "tools": {
       "title": "工具",

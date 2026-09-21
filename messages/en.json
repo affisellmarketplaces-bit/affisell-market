@@ -3285,7 +3285,8 @@
       "boostCta": "Offer +2% commission",
       "boostSuccess": "Commission set to {pct}% on “{name}”",
       "boostFailed": "Could not update",
-      "networkError": "Network error"
+      "networkError": "Network error",
+      "ctaBoostHint": "Boost: lower the wholesale price by about 10% or add a product video"
     },
     "tools": {
       "title": "Tools",

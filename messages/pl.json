@@ -3275,7 +3275,8 @@
       "boostCta": "Oferta +2% nagrody",
       "boostSuccess": "Nagroda ustawiona na {pct}% na „{name}”",
       "boostFailed": "Nie udało się zaktualizować",
-      "networkError": "Błąd sieci"
+      "networkError": "Błąd sieci",
+      "ctaBoostHint": "Boost: obniż cenę hurtową o ok. 10% lub dodaj wideo produktu"
     },
     "tools": {
       "title": "Narzędzia",

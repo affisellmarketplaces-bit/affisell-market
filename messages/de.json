@@ -3275,7 +3275,8 @@
       "boostCta": "Angebot +2% Provision",
       "boostSuccess": "Provision auf {pct}% für „{name}“ festgelegt",
       "boostFailed": "Konnte nicht aktualisieren",
-      "networkError": "Netzwerkfehler"
+      "networkError": "Netzwerkfehler",
+      "ctaBoostHint": "Boost: Großhandelspreis um ca. 10 % senken oder ein Produktvideo hinzufügen"
     },
     "tools": {
       "title": "Werkzeuge",

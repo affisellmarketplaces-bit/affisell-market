@@ -3275,7 +3275,8 @@
       "boostCta": "Ofrecer +2% de comisión",
       "boostSuccess": "Comisión establecida en {pct}% en “{name}”",
       "boostFailed": "No se pudo actualizar",
-      "networkError": "Error de red"
+      "networkError": "Error de red",
+      "ctaBoostHint": "Impulsar: baja el precio mayorista un 10 % aproximadamente o añade un vídeo del producto"
     },
     "tools": {
       "title": "Herramientas",
