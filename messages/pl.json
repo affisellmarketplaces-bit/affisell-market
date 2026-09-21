@@ -1641,7 +1641,14 @@
       "errUrlSlotsFull": "Wszystkie miejsca są zajęte.",
       "addedFromUrl": "Dodano obraz z linku.",
       "errDraftSaveFailed": "Zdjęcia przesłane, ale wersja robocza nie została zapisana — spróbuj ponownie (Ctrl+S).",
-      "errDraftSaveTimeout": "Przekroczono czas zapisu (wolna baza danych) — spróbuj ponownie za kilka sekund."
+      "errDraftSaveTimeout": "Przekroczono czas zapisu (wolna baza danych) — spróbuj ponownie za kilka sekund.",
+      "coverBadge": "Główne",
+      "removeImage": "Usuń obraz",
+      "photoCount": "{used}/{total} zdjęć",
+      "addFromLink": "Dodaj z linku",
+      "imageUrl": "URL obrazu",
+      "imageUrlHint": "Zajmuje następne wolne miejsce.",
+      "addUrl": "Dodaj"
     },
     "myProducts": "Moje produkty",
     "addProduct": "Dodaj produkt",

@@ -1,6 +1,6 @@
 "use client"
 
-import { ImagePlus, Loader2, Trash2, Upload } from "lucide-react"
+import { ImagePlus, Link2, Loader2, Plus, Trash2, Upload } from "lucide-react"
 import type { ChangeEvent, CSSProperties, DragEvent } from "react"
 import { useCallback, useEffect, useId, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
@@ -93,43 +93,6 @@ export function resolveImageLinkUrl(raw: string): string | null {
     return parsed.href
   } catch {
     return null
-  }
-}
-
-function BoxPlaceholder({ variant }: { variant: number }) {
-  const stroke = "stroke-zinc-400 dark:stroke-zinc-500"
-  const common = cn("h-9 w-9 shrink-0", stroke)
-  switch (variant % 8) {
-    case 0:
-      return (
-        <svg className={common} viewBox="0 0 40 40" fill="none" strokeWidth="1.4" aria-hidden>
-          <path d="M8 14h24v20H8zM8 14l12-6 12 6" />
-          <path d="M20 8v26" />
-        </svg>
-      )
-    case 1:
-      return (
-        <svg className={common} viewBox="0 0 40 40" fill="none" strokeWidth="1.4" aria-hidden>
-          <path d="M10 28L22 10l12 8-10 14z" />
-          <path d="M22 10v22" />
-        </svg>
-      )
-    case 2:
-      return (
-        <svg className={common} viewBox="0 0 40 40" fill="none" strokeWidth="1.4" aria-hidden>
-          <path d="M6 16h28v18H6z" />
-          <path d="M6 16l14-8 14 8" />
-          <path d="M12 16v4h16" />
-        </svg>
-      )
-    default:
-      return (
-        <svg className={common} viewBox="0 0 40 40" fill="none" strokeWidth="1.4" aria-hidden>
-          <path d="M8 14h24v20H8z" />
-          <path d="M10 32V18M16 32V18M22 32V18M28 32V18" />
-          <path d="M6 34h28" />
-        </svg>
-      )
   }
 }
 
@@ -419,6 +382,9 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
           ) : null}
         </Button>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("selectDropHint")}</p>
+        <span className="ml-auto rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-semibold tabular-nums text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+          {t("photoCount", { used: SLOT_COUNT - remaining, total: SLOT_COUNT })}
+        </span>
       </div>
 
       <div
@@ -461,6 +427,9 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
                     <Loader2 className="h-8 w-8 animate-spin text-violet-600" aria-hidden />
                   </div>
                 ) : null}
+                <span className="absolute left-2 top-2 rounded-full bg-violet-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
+                  {t("coverBadge")}
+                </span>
                 <RemoveImageButton
                   label={t("removeCover")}
                   onClick={() => removeAt(0)}
@@ -518,7 +487,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
                         </div>
                       ) : null}
                       <RemoveImageButton
-                        label="Remove image"
+                        label={t("removeImage")}
                         onClick={() => removeAt(slotIndex)}
                         className="right-1 top-1 h-7 w-7"
                       />
@@ -528,12 +497,15 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
                       type="button"
                       disabled={busy || remaining === 0}
                       onClick={openFilePicker}
-                      className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-transparent bg-zinc-100/90 transition hover:border-zinc-300 hover:bg-zinc-200/80 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-800/90 dark:hover:border-zinc-600 dark:hover:bg-zinc-700/80"
+                      className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 bg-zinc-50/80 transition hover:border-violet-300 hover:bg-violet-50/60 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900/60 dark:hover:border-violet-600 dark:hover:bg-violet-950/30"
                     >
                       {processing ? (
                         <Loader2 className="h-5 w-5 animate-spin text-violet-600" aria-hidden />
                       ) : (
-                        <BoxPlaceholder variant={idx} />
+                        <span className="flex flex-col items-center gap-0.5 text-zinc-400 transition group-hover:text-violet-600 dark:text-zinc-500">
+                          <Plus className="h-4 w-4" aria-hidden />
+                          <span className="text-[10px] font-semibold tabular-nums">{slotIndex + 1}</span>
+                        </span>
                       )}
                       <span className="sr-only">{t("addPhotos")}</span>
                     </button>
@@ -545,11 +517,16 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
         </div>
       </div>
 
-      <div className="rounded-lg border border-zinc-200 bg-zinc-50/80 px-3 py-3 dark:border-zinc-700 dark:bg-zinc-900/50">
+      <details className="group rounded-xl border border-zinc-200 bg-zinc-50/80 px-3 py-2.5 dark:border-zinc-700 dark:bg-zinc-900/50">
+        <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 [&::-webkit-details-marker]:hidden">
+          <Link2 className="h-4 w-4 text-zinc-400" aria-hidden />
+          {t("addFromLink")}
+        </summary>
+        <div className="mt-2">
         <Label htmlFor="supplier-image-url" className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
-          Image URL
+          {t("imageUrl")}
         </Label>
-        <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">Uses the next empty slot.</p>
+        <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{t("imageUrlHint")}</p>
         <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
           <Input
             id="supplier-image-url"
@@ -568,10 +545,11 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
             className="sm:flex-1"
           />
           <Button type="button" variant="secondary" className="shrink-0 sm:w-auto" onClick={() => applyImageUrl()}>
-            Add
+            {t("addUrl")}
           </Button>
         </div>
-      </div>
+        </div>
+      </details>
     </div>
   )
 }

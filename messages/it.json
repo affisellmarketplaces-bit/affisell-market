@@ -1641,7 +1641,14 @@
       "errUrlSlotsFull": "Tutti gli slot sono pieni.",
       "addedFromUrl": "Immagine aggiunta dal link.",
       "errDraftSaveFailed": "Foto caricate ma la bozza non è stata salvata — riprova (Ctrl+S).",
-      "errDraftSaveTimeout": "Salvataggio scaduto (database lento) — riprova tra qualche secondo."
+      "errDraftSaveTimeout": "Salvataggio scaduto (database lento) — riprova tra qualche secondo.",
+      "coverBadge": "Copertina",
+      "removeImage": "Rimuovi immagine",
+      "photoCount": "{used}/{total} foto",
+      "addFromLink": "Aggiungi da un link",
+      "imageUrl": "URL dell'immagine",
+      "imageUrlHint": "Usa il prossimo slot libero.",
+      "addUrl": "Aggiungi"
     },
     "myProducts": "I miei prodotti",
     "addProduct": "Aggiungi prodotto",

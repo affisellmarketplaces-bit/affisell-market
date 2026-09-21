@@ -1641,7 +1641,14 @@
       "errUrlSlotsFull": "Alle slots zijn vol.",
       "addedFromUrl": "Afbeelding toegevoegd via link.",
       "errDraftSaveFailed": "Foto's geüpload maar het concept is niet opgeslagen — probeer opnieuw (Ctrl+S).",
-      "errDraftSaveTimeout": "Opslaan verlopen (trage database) — probeer over enkele seconden opnieuw."
+      "errDraftSaveTimeout": "Opslaan verlopen (trage database) — probeer over enkele seconden opnieuw.",
+      "coverBadge": "Omslag",
+      "removeImage": "Afbeelding verwijderen",
+      "photoCount": "{used}/{total} foto's",
+      "addFromLink": "Toevoegen via link",
+      "imageUrl": "Afbeeldings-URL",
+      "imageUrlHint": "Gebruikt de volgende vrije plek.",
+      "addUrl": "Toevoegen"
     },
     "myProducts": "Mijn producten",
     "addProduct": "Product toevoegen",

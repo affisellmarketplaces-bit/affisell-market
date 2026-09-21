@@ -1641,7 +1641,14 @@
       "errUrlSlotsFull": "All slots are full.",
       "addedFromUrl": "Image added from link.",
       "errDraftSaveFailed": "Photos uploaded but the draft was not saved — try again (Ctrl+S).",
-      "errDraftSaveTimeout": "Save timed out (slow database) — try again in a few seconds."
+      "errDraftSaveTimeout": "Save timed out (slow database) — try again in a few seconds.",
+      "coverBadge": "Cover",
+      "removeImage": "Remove image",
+      "photoCount": "{used}/{total} photos",
+      "addFromLink": "Add from a link",
+      "imageUrl": "Image URL",
+      "imageUrlHint": "Uses the next empty slot.",
+      "addUrl": "Add"
     },
     "myProducts": "My Products",
     "addProduct": "Add Product",

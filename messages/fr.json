@@ -1641,7 +1641,14 @@
       "errUrlSlotsFull": "Tous les emplacements sont occupés.",
       "addedFromUrl": "Image ajoutée depuis le lien.",
       "errDraftSaveFailed": "Photos importées mais le brouillon n’a pas été sauvegardé — réessayez (Ctrl+S).",
-      "errDraftSaveTimeout": "Sauvegarde expirée (base de données lente) — réessayez dans quelques secondes."
+      "errDraftSaveTimeout": "Sauvegarde expirée (base de données lente) — réessayez dans quelques secondes.",
+      "coverBadge": "Principale",
+      "removeImage": "Supprimer l'image",
+      "photoCount": "{used}/{total} photos",
+      "addFromLink": "Ajouter depuis un lien",
+      "imageUrl": "URL de l'image",
+      "imageUrlHint": "Utilise le prochain emplacement libre.",
+      "addUrl": "Ajouter"
     },
     "myProducts": "Mes produits",
     "addProduct": "Ajouter un produit",

@@ -1641,7 +1641,14 @@
       "errUrlSlotsFull": "Todos los espacios están llenos.",
       "addedFromUrl": "Imagen añadida desde el enlace.",
       "errDraftSaveFailed": "Fotos subidas pero el borrador no se guardó — inténtalo de nuevo (Ctrl+S).",
-      "errDraftSaveTimeout": "Se agotó el tiempo al guardar (base de datos lenta) — inténtalo de nuevo en unos segundos."
+      "errDraftSaveTimeout": "Se agotó el tiempo al guardar (base de datos lenta) — inténtalo de nuevo en unos segundos.",
+      "coverBadge": "Portada",
+      "removeImage": "Quitar imagen",
+      "photoCount": "{used}/{total} fotos",
+      "addFromLink": "Añadir desde un enlace",
+      "imageUrl": "URL de la imagen",
+      "imageUrlHint": "Usa la siguiente posición libre.",
+      "addUrl": "Añadir"
     },
     "myProducts": "Mis productos",
     "addProduct": "Añadir producto",

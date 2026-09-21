@@ -1641,7 +1641,14 @@
       "errUrlSlotsFull": "Alle Plätze sind belegt.",
       "addedFromUrl": "Bild über Link hinzugefügt.",
       "errDraftSaveFailed": "Fotos hochgeladen, aber der Entwurf wurde nicht gespeichert — versuche es erneut (Strg+S).",
-      "errDraftSaveTimeout": "Speichern hat das Zeitlimit überschritten (langsame Datenbank) — versuche es in einigen Sekunden erneut."
+      "errDraftSaveTimeout": "Speichern hat das Zeitlimit überschritten (langsame Datenbank) — versuche es in einigen Sekunden erneut.",
+      "coverBadge": "Titelbild",
+      "removeImage": "Bild entfernen",
+      "photoCount": "{used}/{total} Fotos",
+      "addFromLink": "Per Link hinzufügen",
+      "imageUrl": "Bild-URL",
+      "imageUrlHint": "Belegt den nächsten freien Platz.",
+      "addUrl": "Hinzufügen"
     },
     "myProducts": "Meine Produkte",
     "addProduct": "Produkt hinzufügen",

@@ -1641,7 +1641,14 @@
       "errUrlSlotsFull": "所有图片位已满。",
       "addedFromUrl": "已通过链接添加图片。",
       "errDraftSaveFailed": "图片已上传，但草稿未保存 —— 请重试（Ctrl+S）。",
-      "errDraftSaveTimeout": "保存超时（数据库响应较慢）—— 请几秒后重试。"
+      "errDraftSaveTimeout": "保存超时（数据库响应较慢）—— 请几秒后重试。",
+      "coverBadge": "主图",
+      "removeImage": "删除图片",
+      "photoCount": "{used}/{total} 张照片",
+      "addFromLink": "通过链接添加",
+      "imageUrl": "图片链接",
+      "imageUrlHint": "使用下一个空位。",
+      "addUrl": "添加"
     },
     "myProducts": "我的产品",
     "addProduct": "添加产品",
