@@ -250,6 +250,8 @@ model User {
   autoBuyEnlistRequests     AutoBuyEnlistRequest[] @relation("AutoBuyEnlistSupplier")
   autoBuyEnlistReviews      AutoBuyEnlistRequest[] @relation("AutoBuyEnlistReviewer")
   convertedSupplierLeads    SupplierLead[]        @relation("ConvertedSupplierLead")
+  autoBuySourcingGrants     SupplierAutoBuyAuthorization[] @relation("AutoBuyGrantSupplier")
+  autoBuySourcingGrantedBy  SupplierAutoBuyAuthorization[] @relation("AutoBuyGrantAdmin")
 
   /**
    * Wizard v2 gamification — XP, streak, last publish for streak calc.
@@ -3317,6 +3319,28 @@ model AutoBuyEnlistRequest {
   @@unique([supplierId, aeProductId])
   @@index([status, createdAt])
   @@index([supplierId, createdAt])
+}
+
+/**
+ * Admin-granted permission for a supplier to use a given sourcing channel's auto-buy
+ * (Affisell spends real money on the supplier's behalf on that external site).
+ * Without an active row here, `resolveFulfillmentChannel` never routes to a sourcing
+ * channel for that supplier — the order falls back to native/manual fulfillment instead.
+ * Revoke by setting `revokedAt` (kept for audit — never deleted).
+ */
+model SupplierAutoBuyAuthorization {
+  id            String              @id @default(cuid())
+  supplierId    String
+  supplier      User                @relation("AutoBuyGrantSupplier", fields: [supplierId], references: [id], onDelete: Cascade)
+  channelType   SupplierChannelType
+  grantedById   String?
+  grantedBy     User?               @relation("AutoBuyGrantAdmin", fields: [grantedById], references: [id], onDelete: SetNull)
+  grantedAt     DateTime            @default(now())
+  revokedAt     DateTime?
+  note          String?
+
+  @@unique([supplierId, channelType])
+  @@index([channelType, revokedAt])
 }
 
 /**

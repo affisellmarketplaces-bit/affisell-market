@@ -3380,7 +3380,9 @@
           "REJECTED": "Refusé",
           "CANCELLED": "Annulé"
         }
-      }
+      },
+      "notAuthorized": "Auto-achat non autorisé pour l'instant — contactez Affisell.",
+      "notAuthorizedBanner": "L'auto-achat nécessite l'accord d'Affisell pour votre compte. Contactez-nous pour l'activer — de l'argent réel n'est dépensé qu'une fois l'accord donné."
     },
     "agentNetwork": {
       "title": "Agent Network",

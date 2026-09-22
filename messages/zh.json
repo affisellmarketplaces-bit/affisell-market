@@ -3370,7 +3370,9 @@
           "REJECTED": "已拒绝",
           "CANCELLED": "已取消"
         }
-      }
+      },
+      "notAuthorized": "尚未获得自动采购授权——请联系 Affisell。",
+      "notAuthorizedBanner": "自动采购需要 Affisell 为您的账户批准。请联系我们以开通——只有获得批准后才会花费真实资金。"
     },
     "agentNetwork": {
       "title": "代理网络",

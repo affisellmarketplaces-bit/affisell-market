@@ -3370,7 +3370,9 @@
           "REJECTED": "Rifiutato",
           "CANCELLED": "Annullato"
         }
-      }
+      },
+      "notAuthorized": "Acquisto automatico non ancora autorizzato — contatta Affisell.",
+      "notAuthorizedBanner": "L'acquisto automatico richiede l'approvazione di Affisell per il tuo account. Contattaci per attivarlo — il denaro reale viene speso solo dopo l'autorizzazione."
     },
     "agentNetwork": {
       "title": "Rete di agenti",

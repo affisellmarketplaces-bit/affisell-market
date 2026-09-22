@@ -3370,7 +3370,9 @@
           "REJECTED": "Abgelehnt",
           "CANCELLED": "Abgebrochen"
         }
-      }
+      },
+      "notAuthorized": "Auto-Kauf noch nicht autorisiert — wenden Sie sich an Affisell.",
+      "notAuthorizedBanner": "Auto-Kauf erfordert die Freigabe von Affisell für Ihr Konto. Kontaktieren Sie uns zur Aktivierung — echtes Geld wird erst nach Freigabe ausgegeben."
     },
     "agentNetwork": {
       "title": "Agentennetzwerk",

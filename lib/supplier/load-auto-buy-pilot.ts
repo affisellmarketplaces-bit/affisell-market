@@ -11,6 +11,7 @@ import {
   type SkuEconomics,
 } from "@/lib/supplier/auto-buy-profitability"
 import { assertNoSupplierRetailLeak } from "@/lib/supplier-retail-veil"
+import { isSupplierAuthorizedForChannel } from "@/lib/supplier-auto-buy-authorization.server"
 
 export type AutoBuyPilotSku = {
   productId: string
@@ -40,6 +41,8 @@ export type AutoBuyPilotSnapshot = {
   summary: PilotPortfolioSummary
   radar: DemandRadarCategory[]
   windowDays: number
+  /** Admin-granted permission to use AliExpress auto-buy — gates the toggle, not just cosmetic. */
+  authorized: boolean
 }
 
 const WINDOW_DAYS = 30
@@ -50,7 +53,7 @@ export async function loadAutoBuyPilotSnapshot(
 ): Promise<AutoBuyPilotSnapshot> {
   const since = new Date(Date.now() - WINDOW_DAYS * 24 * 60 * 60 * 1000)
 
-  const [products, supplierCategoryRows] = await Promise.all([
+  const [products, supplierCategoryRows, authorized] = await Promise.all([
     prisma.product.findMany({
       where: { supplierId, supplierLink: { isNot: null } },
       select: {
@@ -80,6 +83,7 @@ export async function loadAutoBuyPilotSnapshot(
       select: { categoryId: true },
       distinct: ["categoryId"],
     }),
+    isSupplierAuthorizedForChannel(supplierId, "ALIEXPRESS"),
   ])
 
   const productIds = products.map((p) => p.id)
@@ -171,7 +175,7 @@ export async function loadAutoBuyPilotSnapshot(
     radarCategories: radar.length,
   })
 
-  const snapshot = { skus, summary, radar, windowDays: WINDOW_DAYS }
+  const snapshot = { skus, summary, radar, windowDays: WINDOW_DAYS, authorized }
   assertNoSupplierRetailLeak(snapshot)
   return snapshot
 }

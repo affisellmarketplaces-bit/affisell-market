@@ -3370,7 +3370,9 @@
           "REJECTED": "Afgewezen",
           "CANCELLED": "Geannuleerd"
         }
-      }
+      },
+      "notAuthorized": "Automatisch kopen nog niet geautoriseerd — neem contact op met Affisell.",
+      "notAuthorizedBanner": "Automatisch kopen vereist goedkeuring van Affisell voor uw account. Neem contact op om het te activeren — er wordt pas echt geld uitgegeven na goedkeuring."
     },
     "agentNetwork": {
       "title": "Agentnetwerk",

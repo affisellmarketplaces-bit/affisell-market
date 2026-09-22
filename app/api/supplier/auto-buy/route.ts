@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { isSupplierAuthorizedForChannel } from "@/lib/supplier-auto-buy-authorization.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -34,6 +35,11 @@ export async function PATCH(req: Request) {
   }
   const body = parsed.data
   const { enabled } = body
+
+  // Turning it off is always allowed; turning it on needs an admin-granted channel authorization.
+  if (enabled && !(await isSupplierAuthorizedForChannel(supplierId, "ALIEXPRESS"))) {
+    return NextResponse.json({ error: "not_authorized" }, { status: 403 })
+  }
 
   if (body.scope === "product") {
     const product = await prisma.product.findUnique({

@@ -3380,7 +3380,9 @@
           "REJECTED": "Rejected",
           "CANCELLED": "Cancelled"
         }
-      }
+      },
+      "notAuthorized": "Not authorized to auto-buy yet — ask Affisell.",
+      "notAuthorizedBanner": "Auto-buy needs Affisell's approval for your account. Reach out to activate it — this only spends real money once granted."
     },
     "agentNetwork": {
       "title": "Agent Network",

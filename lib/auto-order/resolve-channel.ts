@@ -1,13 +1,19 @@
 import type { Product, SupplierChannelType } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
+import { channelRequiresAuthorization, isSupplierAuthorizedForChannel } from "@/lib/supplier-auto-buy-authorization.server"
 
 export type ResolvedChannel = {
   channel: SupplierChannelType
   providerId: string
 }
 
-/** Resolve fulfillment channel + provider for a paid marketplace line. */
+/**
+ * Resolve fulfillment channel + provider for a paid marketplace line. A sourcing channel
+ * (real money spent on an external site) only comes back when the supplier has an active
+ * `SupplierAutoBuyAuthorization` for it — otherwise this falls back to native/manual, the
+ * same safe path as `autoFulfill` being off.
+ */
 export async function resolveFulfillmentChannel(
   product: Pick<
     Product,
@@ -23,12 +29,28 @@ export async function resolveFulfillmentChannel(
 ): Promise<ResolvedChannel | null> {
   if (!product.autoFulfill) return null
 
+  const authorize = async (candidate: ResolvedChannel): Promise<ResolvedChannel | null> => {
+    if (!channelRequiresAuthorization(candidate.channel)) return candidate
+    const allowed = await isSupplierAuthorizedForChannel(product.supplierId, candidate.channel)
+    if (allowed) return candidate
+    console.log("[resolve-fulfillment-channel]", {
+      productId: product.id,
+      supplierId: product.supplierId,
+      channel: candidate.channel,
+      result: "blocked_not_authorized",
+    })
+    return null
+  }
+
   if (product.fulfillmentChannel) {
     const p = await prisma.fulfillmentProvider.findFirst({
       where: { channelType: product.fulfillmentChannel, status: "ACTIVE" },
       select: { id: true, channelType: true },
     })
-    if (p) return { channel: p.channelType, providerId: p.id }
+    if (p) {
+      const resolved = await authorize({ channel: p.channelType, providerId: p.id })
+      if (resolved) return resolved
+    }
   }
 
   const blind = await prisma.blindDropshipSupplier.findUnique({
@@ -50,12 +72,14 @@ export async function resolveFulfillmentChannel(
     supplierLink.aeProductId.trim()
   ) {
     const provider = await ensurePlatformProvider("aliexpress", "ALIEXPRESS", "AliExpress")
-    return { channel: "ALIEXPRESS", providerId: provider.id }
+    const resolved = await authorize({ channel: "ALIEXPRESS", providerId: provider.id })
+    if (resolved) return resolved
   }
 
   if (product.importSource === "aliexpress" && product.aliexpressProductId) {
     const provider = await ensurePlatformProvider("aliexpress", "ALIEXPRESS", "AliExpress")
-    return { channel: "ALIEXPRESS", providerId: provider.id }
+    const resolved = await authorize({ channel: "ALIEXPRESS", providerId: provider.id })
+    if (resolved) return resolved
   }
 
   const native = await ensureNativeProvider(product.supplierId)

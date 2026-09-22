@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { Bot, Loader2, TrendingUp } from "lucide-react"
+import { Bot, Loader2, ShieldAlert, TrendingUp } from "lucide-react"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 
@@ -93,7 +93,7 @@ export function AutoBuyPilotPanel({ snapshot }: { snapshot: AutoBuyPilotSnapshot
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [isRefreshing, startTransition] = useTransition()
 
-  const { skus, summary, radar, windowDays } = snapshot
+  const { skus, summary, radar, windowDays, authorized } = snapshot
   const allOn = summary.totalSkus > 0 && summary.autoBuyOnCount === summary.totalSkus
 
   async function patch(body: Record<string, unknown>, pendingKey: string) {
@@ -106,11 +106,14 @@ export function AutoBuyPilotPanel({ snapshot }: { snapshot: AutoBuyPilotSnapshot
         body: JSON.stringify(body),
       })
       const data = (await res.json()) as { ok?: boolean; error?: string }
-      if (!res.ok || !data.ok) throw new Error(data.error ?? "toggle_failed")
+      if (!res.ok || !data.ok) {
+        if (data.error === "not_authorized") throw new Error("not_authorized")
+        throw new Error(data.error ?? "toggle_failed")
+      }
       toast.success(t("toggleSaved"))
       startTransition(() => router.refresh())
-    } catch {
-      toast.error(t("toggleError"))
+    } catch (e) {
+      toast.error(e instanceof Error && e.message === "not_authorized" ? t("notAuthorized") : t("toggleError"))
     } finally {
       setPendingId(null)
     }
@@ -145,12 +148,19 @@ export function AutoBuyPilotPanel({ snapshot }: { snapshot: AutoBuyPilotSnapshot
           </div>
           <Toggle
             on={allOn}
-            busy={pendingId === "all" || isRefreshing}
+            busy={pendingId === "all" || isRefreshing || (!authorized && !allOn)}
             label={t("masterSwitch")}
             onChange={(next) => void patch({ scope: "all", enabled: next }, "all")}
           />
         </div>
       </div>
+
+      {!authorized ? (
+        <div className="flex items-start gap-3 border-b border-amber-400/20 bg-amber-500/10 px-5 py-3.5 sm:px-6">
+          <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" aria-hidden />
+          <p className="text-xs leading-relaxed text-amber-200">{t("notAuthorizedBanner")}</p>
+        </div>
+      ) : null}
 
       <dl className="grid grid-cols-2 gap-3 border-b border-white/10 p-5 sm:grid-cols-4 sm:p-6">
         <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5">
@@ -201,7 +211,7 @@ export function AutoBuyPilotPanel({ snapshot }: { snapshot: AutoBuyPilotSnapshot
               <PilotSkuRow
                 key={sku.productId}
                 sku={sku}
-                busy={pendingId === sku.productId || isRefreshing}
+                busy={pendingId === sku.productId || isRefreshing || (!authorized && !sku.autoBuyEnabled)}
                 onToggle={(next) =>
                   void patch(
                     { scope: "product", productId: sku.productId, enabled: next },
