@@ -23,7 +23,8 @@ import { alertSplitTransferFailed } from "@/lib/transfers/split-slack-alert"
 import { logStripeWebhookError, logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
-import { computeShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
+import { computeShipDeadlineAtForRoute } from "@/lib/supplier-ship-sla-shared"
+import { extractShippingCountryIso2FromAddress } from "@/lib/trusted-carriers-shared"
 
 type Tx = Prisma.TransactionClient
 
@@ -71,7 +72,12 @@ export async function scheduleMarketplaceTransferAttempts(
 
   const order = await db.order.findUnique({
     where: { id: orderId },
-    include: { supplier: true, affiliate: true, transferAttempts: true },
+    include: {
+      supplier: true,
+      affiliate: true,
+      transferAttempts: true,
+      product: { select: { shippingCountry: true } },
+    },
   })
   if (!order) return { orderId, scheduled: false, reason: "order_not_found" }
 
@@ -262,7 +268,13 @@ export async function scheduleMarketplaceTransferAttempts(
       splitStatus: "PENDING",
       status: "paid",
       paidAt: order.paidAt ?? paidAnchor,
-      shipDeadlineAt: order.shipDeadlineAt ?? computeShipDeadlineAt(paidAnchor),
+      shipDeadlineAt:
+        order.shipDeadlineAt ??
+        computeShipDeadlineAtForRoute(
+          paidAnchor,
+          order.product?.shippingCountry ?? null,
+          extractShippingCountryIso2FromAddress(order.shippingAddress)
+        ),
       paymentSettlementStatus: "PAID",
       affiliateStripeAccountId: affiliateDestination,
     },

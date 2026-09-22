@@ -3199,7 +3199,7 @@
       "metricPaidWaiting": "Pagato · in attesa di spedizione",
       "penaltyPerOrder": "Penalità stimata: −{amount}/ordine",
       "buyerRatingRisk": "Rischio di valutazione del compratore se ritardato",
-      "autoCancelRisk": "Dopo 10 giorni: invia un messaggio al compratore o richiedi un'estensione",
+      "autoCancelRisk": "Dopo la data limite di spedizione: invia un messaggio al compratore o richiedi un'estensione",
       "autoCancelConsequence": "Rifiuto o scadenza dell'estensione — cancellazione e rimborso possono essere attivati",
       "ctaShip": "Spedisci ora",
       "stockTitleOne": "1 SKU fuori stock",
@@ -3552,10 +3552,13 @@
       "urgent": "Spedisci presto",
       "critical": "Ultime ore",
       "breached": "Scadenza scaduta",
-      "policyTitle": "Pulsar di spedizione™ — finestra di 10 giorni",
-      "policyBody": "Hai {days} giorni per aggiungere il numero di tracciamento o parlare con l'acquirente. Dopo di che, spiega ogni ritardo e richiedi ulteriori giorni — l'acquirente accetta o rifiuta. Se rifiuta (o non risponde entro 3 giorni), l'ordine potrebbe essere annullato con rimborso.",
+      "policyTitle": "Ship Pulse™",
+      "policyBody": "Aggiungi un numero di tracciamento o parla con l'acquirente prima della tua data limite di spedizione — dipende dalla destinazione. Dopo di che, spiega ogni ritardo e richiedi ulteriori giorni — l'acquirente accetta o rifiuta. Se rifiuta (o non risponde entro 3 giorni), l'ordine potrebbe essere annullato con rimborso.",
       "policyBadge": "Estensioni approvate dall'acquirente",
-      "pendingExtension": "In attesa dell'acquirente"
+      "pendingExtension": "In attesa dell'acquirente",
+      "tierDomestic": "giorni · nazionale",
+      "tierEurope": "giorni · Europa",
+      "tierInternational": "giorni · internazionale"
     },
     "fulfillment": {
       "loading": "Caricamento conversazione…",
@@ -3569,7 +3572,7 @@
       "pendingBuyer": "Estensione in attesa — l'acquirente ha 3 giorni per accettare +{days} giorni.",
       "accepted": "Acquirente accettato — spedisci entro {date}.",
       "rejected": "Acquirente rifiutato l'estensione. Spedisci ora o l'ordine potrebbe essere annullato.",
-      "extensionIntro": "Fuori dalla finestra di 10 giorni: spiega il ritardo e richiedi ulteriori giorni (l'acquirente deve accettare).",
+      "extensionIntro": "Oltre la data limite di spedizione: spiega il ritardo e richiedi ulteriori giorni (l'acquirente deve accettare).",
       "reasonPlaceholder": "Perché è in ritardo? Quando spedirai? (min. 20 caratteri)",
       "extraDaysLabel": "Giorni extra richiesti",
       "requestExtension": "Richiedi estensione all'acquirente"

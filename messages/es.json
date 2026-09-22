@@ -3199,7 +3199,7 @@
       "metricPaidWaiting": "Pagado · esperando envío",
       "penaltyPerOrder": "Penalización estimada: −{amount}/pedido",
       "buyerRatingRisk": "Calificación del comprador en riesgo si se retrasa",
-      "autoCancelRisk": "Después de 10 días: enviar mensaje al comprador o solicitar una extensión",
+      "autoCancelRisk": "Después de la fecha límite de envío: enviar mensaje al comprador o solicitar una extensión",
       "autoCancelConsequence": "Extensión rechazada o expirada — cancelación y devolución pueden ejecutarse",
       "ctaShip": "Enviar ahora",
       "stockTitleOne": "1 SKU fuera de stock",
@@ -3552,10 +3552,13 @@
       "urgent": "Envíe pronto",
       "critical": "Últimas horas",
       "breached": "Plazo vencido",
-      "policyTitle": "Ship Pulse™ — ventana de 10 días",
-      "policyBody": "Tiene {days} días para agregar seguimiento o hablar con el comprador. Después de eso, explique cualquier retraso y solicite más tiempo — el comprador acepta o rechaza. Si rechazan (o no responden en 3 días), la orden puede ser cancelada con reembolso.",
+      "policyTitle": "Ship Pulse™",
+      "policyBody": "Añada un seguimiento o hable con el comprador antes de su fecha límite de envío — depende del destino. Después de eso, explique cualquier retraso y solicite más tiempo — el comprador acepta o rechaza. Si rechazan (o no responden en 3 días), la orden puede ser cancelada con reembolso.",
       "policyBadge": "Extensión aprobada por el comprador",
-      "pendingExtension": "Esperando a la respuesta del comprador"
+      "pendingExtension": "Esperando a la respuesta del comprador",
+      "tierDomestic": "días · nacional",
+      "tierEurope": "días · Europa",
+      "tierInternational": "días · internacional"
     },
     "fulfillment": {
       "loading": "Cargando la conversación…",
@@ -3569,7 +3572,7 @@
       "pendingBuyer": "Extensión pendiente — el comprador tiene 3 días para aceptar +{days} días.",
       "accepted": "El comprador aceptó — envíe antes de {date}.",
       "rejected": "El comprador rechazó la extensión. Envíe ahora o la orden puede ser cancelada.",
-      "extensionIntro": "Pasado el plazo de 10 días: explique el retraso y solicite más días (el comprador debe aceptar).",
+      "extensionIntro": "Pasada la fecha límite de envío: explique el retraso y solicite más días (el comprador debe aceptar).",
       "reasonPlaceholder": "¿Por qué está retrasado? ¿Cuándo enviará? (min. 20 caracteres)",
       "extraDaysLabel": "Días adicionales solicitados",
       "requestExtension": "Solicite extensión al comprador"

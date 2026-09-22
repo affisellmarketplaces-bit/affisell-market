@@ -3209,7 +3209,7 @@
       "metricPaidWaiting": "Paid · awaiting shipment",
       "penaltyPerOrder": "Estimated penalty: −{amount}/order",
       "buyerRatingRisk": "Buyer rating at risk if delayed",
-      "autoCancelRisk": "After 10 days: message buyer or request an extension",
+      "autoCancelRisk": "After the ship-by date: message buyer or request an extension",
       "autoCancelConsequence": "Extension refused or expired — cancellation + refund may run",
       "ctaShip": "Ship now",
       "stockTitleOne": "1 SKU out of stock",
@@ -3552,10 +3552,13 @@
       "urgent": "Ship soon",
       "critical": "Last hours",
       "breached": "Deadline passed",
-      "policyTitle": "Ship Pulse™ — 10-day window",
-      "policyBody": "You have {days} days to add tracking or talk to the buyer. After that, explain any delay and request extra time — the buyer accepts or refuses. If they refuse (or don’t reply in 3 days), the order may be cancelled with refund.",
+      "policyTitle": "Ship Pulse™",
+      "policyBody": "Add tracking or talk to the buyer before your ship-by date — it depends on the destination. After that, explain any delay and request extra time — the buyer accepts or refuses. If they refuse (or don't reply in 3 days), the order may be cancelled with refund.",
       "policyBadge": "Buyer-approved extensions",
-      "pendingExtension": "Awaiting buyer"
+      "pendingExtension": "Awaiting buyer",
+      "tierDomestic": "days · domestic",
+      "tierEurope": "days · Europe",
+      "tierInternational": "days · international"
     },
     "fulfillment": {
       "loading": "Loading conversation…",
@@ -3569,7 +3572,7 @@
       "pendingBuyer": "Extension pending — buyer has 3 days to accept +{days} days.",
       "accepted": "Buyer accepted — ship by {date}.",
       "rejected": "Buyer refused the extension. Ship now or the order may be cancelled.",
-      "extensionIntro": "Past the 10-day window: explain the delay and request extra days (buyer must accept).",
+      "extensionIntro": "Past the ship-by date: explain the delay and request extra days (buyer must accept).",
       "reasonPlaceholder": "Why is it late? When will you ship? (min. 20 characters)",
       "extraDaysLabel": "Extra days requested",
       "requestExtension": "Request extension from buyer"

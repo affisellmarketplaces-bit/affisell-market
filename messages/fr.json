@@ -3209,7 +3209,7 @@
       "metricPaidWaiting": "Payées · en attente",
       "penaltyPerOrder": "Pénalité estimée : −{amount}/commande",
       "buyerRatingRisk": "Risque note acheteur si retard",
-      "autoCancelRisk": "Après 10 j : message acheteur ou demande de prolongation",
+      "autoCancelRisk": "Après la date limite : message acheteur ou demande de prolongation",
       "autoCancelConsequence": "Prolongation refusée ou expirée — annulation + remboursement possible",
       "ctaShip": "Expédier",
       "stockTitleOne": "1 rupture SKU",
@@ -3552,10 +3552,13 @@
       "urgent": "À expédier vite",
       "critical": "Dernières heures",
       "breached": "Échéance dépassée",
-      "policyTitle": "Pulse expédition™ — fenêtre 10 jours",
-      "policyBody": "Vous disposez de {days} jours pour ajouter un suivi ou échanger avec l'acheteur. Ensuite, expliquez le retard et demandez un délai — l'acheteur accepte ou refuse. En cas de refus (ou sans réponse sous 3 jours), la commande peut être annulée avec remboursement.",
+      "policyTitle": "Pulse expédition™",
+      "policyBody": "Ajoutez un suivi ou échangez avec l'acheteur avant votre date limite d'expédition — elle dépend de la destination. Ensuite, expliquez le retard et demandez un délai — l'acheteur accepte ou refuse. En cas de refus (ou sans réponse sous 3 jours), la commande peut être annulée avec remboursement.",
       "policyBadge": "Prolongation validée acheteur",
-      "pendingExtension": "En attente acheteur"
+      "pendingExtension": "En attente acheteur",
+      "tierDomestic": "jours · national",
+      "tierEurope": "jours · Europe",
+      "tierInternational": "jours · international"
     },
     "fulfillment": {
       "loading": "Chargement de la conversation…",
@@ -3569,7 +3572,7 @@
       "pendingBuyer": "Prolongation en attente — l'acheteur a 3 jours pour accepter +{days} j.",
       "accepted": "Acceptée — à expédier avant le {date}.",
       "rejected": "Refusée par l'acheteur. Expédiez vite ou la commande peut être annulée.",
-      "extensionIntro": "Après 10 jours : expliquez le retard et demandez des jours supplémentaires (accord acheteur requis).",
+      "extensionIntro": "Après la date limite : expliquez le retard et demandez des jours supplémentaires (accord acheteur requis).",
       "reasonPlaceholder": "Pourquoi le retard ? Quand expédiez-vous ? (20 caractères min.)",
       "extraDaysLabel": "Jours supplémentaires demandés",
       "requestExtension": "Demander une prolongation"

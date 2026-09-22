@@ -1,5 +1,7 @@
 /** Ship SLA constants + pure formatters (no Prisma — safe for client UI). */
 
+import { isEuropeanCountry } from "@/lib/shipping/carriers-europe"
+
 export const SUPPLIER_SHIP_SLA_DAYS = 10
 export const SUPPLIER_SHIP_SLA_HOURS = SUPPLIER_SHIP_SLA_DAYS * 24
 export const SUPPLIER_SHIP_SLA_MS = SUPPLIER_SHIP_SLA_HOURS * 60 * 60 * 1000
@@ -40,6 +42,37 @@ export function orderPaymentAnchorAt(order: { paidAt: Date | null; createdAt: Da
 
 export function computeShipDeadlineAt(paymentAt: Date): Date {
   return new Date(paymentAt.getTime() + SUPPLIER_SHIP_SLA_MS)
+}
+
+/**
+ * Reasonable per-route ship window: a domestic parcel needs less lead time than one crossing the continent,
+ * and a destination outside Europe genuinely needs more (customs paperwork, consolidated freight).
+ * The EU/EEA/UK tier keeps today's 10-day window unchanged — it is by far the most common route.
+ */
+export const SHIP_HANDLING_DAYS_DOMESTIC = 5
+export const SHIP_HANDLING_DAYS_EUROPE = SUPPLIER_SHIP_SLA_DAYS
+export const SHIP_HANDLING_DAYS_INTERNATIONAL = 14
+
+export function shipHandlingDaysForRoute(
+  originCountryIso2: string | null | undefined,
+  destinationCountryIso2: string | null | undefined
+): number {
+  const origin = originCountryIso2?.trim().toUpperCase().slice(0, 2) || null
+  const destination = destinationCountryIso2?.trim().toUpperCase().slice(0, 2) || null
+  if (!destination) return SHIP_HANDLING_DAYS_EUROPE
+  if (origin && origin === destination) return SHIP_HANDLING_DAYS_DOMESTIC
+  if (isEuropeanCountry(destination)) return SHIP_HANDLING_DAYS_EUROPE
+  return SHIP_HANDLING_DAYS_INTERNATIONAL
+}
+
+/** Same as `computeShipDeadlineAt`, but the window depends on the supplier→buyer route. */
+export function computeShipDeadlineAtForRoute(
+  paymentAt: Date,
+  originCountryIso2: string | null | undefined,
+  destinationCountryIso2: string | null | undefined
+): Date {
+  const days = shipHandlingDaysForRoute(originCountryIso2, destinationCountryIso2)
+  return new Date(paymentAt.getTime() + days * 24 * 60 * 60 * 1000)
 }
 
 export function resolveShipDeadlineAt(order: {

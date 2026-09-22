@@ -3,8 +3,13 @@ import { describe, expect, it } from "vitest"
 import {
   buildShipPulseSnapshot,
   computeShipDeadlineAt,
+  computeShipDeadlineAtForRoute,
   isShipDeadlineBreached,
   resolveShipDeadlineAt,
+  SHIP_HANDLING_DAYS_DOMESTIC,
+  SHIP_HANDLING_DAYS_EUROPE,
+  SHIP_HANDLING_DAYS_INTERNATIONAL,
+  shipHandlingDaysForRoute,
   SUPPLIER_SHIP_SLA_MS,
 } from "@/lib/supplier-ship-sla-shared"
 
@@ -13,6 +18,41 @@ describe("computeShipDeadlineAt", () => {
     const paid = new Date("2026-01-01T12:00:00Z")
     const deadline = computeShipDeadlineAt(paid)
     expect(deadline.getTime() - paid.getTime()).toBe(SUPPLIER_SHIP_SLA_MS)
+  })
+})
+
+describe("shipHandlingDaysForRoute", () => {
+  it("gives a domestic route the shortest window", () => {
+    expect(shipHandlingDaysForRoute("FR", "FR")).toBe(SHIP_HANDLING_DAYS_DOMESTIC)
+    expect(shipHandlingDaysForRoute("DE", "DE")).toBe(SHIP_HANDLING_DAYS_DOMESTIC)
+  })
+
+  it("keeps today's 10-day window for cross-border Europe — the common case, unchanged", () => {
+    expect(shipHandlingDaysForRoute("FR", "DE")).toBe(SHIP_HANDLING_DAYS_EUROPE)
+    expect(shipHandlingDaysForRoute("FR", "PL")).toBe(SHIP_HANDLING_DAYS_EUROPE)
+    expect(SHIP_HANDLING_DAYS_EUROPE).toBe(10)
+  })
+
+  it("gives destinations outside Europe more time, never less", () => {
+    expect(shipHandlingDaysForRoute("FR", "US")).toBe(SHIP_HANDLING_DAYS_INTERNATIONAL)
+    expect(SHIP_HANDLING_DAYS_INTERNATIONAL).toBeGreaterThan(SHIP_HANDLING_DAYS_EUROPE)
+  })
+
+  it("falls back to the European window when the origin is unknown", () => {
+    expect(shipHandlingDaysForRoute(null, "DE")).toBe(SHIP_HANDLING_DAYS_EUROPE)
+    expect(shipHandlingDaysForRoute(undefined, "PL")).toBe(SHIP_HANDLING_DAYS_EUROPE)
+  })
+
+  it("falls back to the European window when the destination is unknown", () => {
+    expect(shipHandlingDaysForRoute("FR", null)).toBe(SHIP_HANDLING_DAYS_EUROPE)
+  })
+})
+
+describe("computeShipDeadlineAtForRoute", () => {
+  it("matches shipHandlingDaysForRoute", () => {
+    const paid = new Date("2026-01-01T00:00:00Z")
+    const deadline = computeShipDeadlineAtForRoute(paid, "FR", "FR")
+    expect(deadline.getTime() - paid.getTime()).toBe(SHIP_HANDLING_DAYS_DOMESTIC * 86_400_000)
   })
 })
 

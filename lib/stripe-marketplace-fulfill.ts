@@ -31,7 +31,8 @@ import {
 import { computeOrderEscrowAllocation } from "@/lib/order-escrow-allocation"
 import { triggerAutoFulfillmentForStripeSession } from "@/lib/auto-order/enqueue"
 import { triggerAutoDsForStripeSession } from "@/lib/autods/submit-paid-order"
-import { computeShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
+import { computeShipDeadlineAtForRoute } from "@/lib/supplier-ship-sla-shared"
+import { extractShippingCountryIso2FromAddress } from "@/lib/trusted-carriers-shared"
 import { attachOrderCgvAcceptance } from "@/lib/legal/acceptance"
 import { applyInstantDigitalDeliveryInTransaction } from "@/lib/digital-delivery/instant-fulfill"
 import { sendDigitalAccessPassEmail } from "@/lib/emails/send-digital-access-pass"
@@ -396,7 +397,11 @@ async function createPaidMarketplaceOrder(
         affisellCommissionRateBps,
         status: "paid",
         paidAt: new Date(),
-        shipDeadlineAt: computeShipDeadlineAt(new Date()),
+        shipDeadlineAt: computeShipDeadlineAtForRoute(
+          new Date(),
+          listing.product.shippingCountry,
+          extractShippingCountryIso2FromAddress(args.shippingAddress)
+        ),
         fulfillmentStatus: "PENDING",
         subtotalCents: settlement.affisellFeeBaseCents,
         taxCents: lineTaxCents,
@@ -1098,7 +1103,11 @@ export async function fulfillMarketplaceStripeSession(
           affisellCommissionRateBps,
           status: "paid",
           paidAt: new Date(),
-          shipDeadlineAt: computeShipDeadlineAt(new Date()),
+          shipDeadlineAt: computeShipDeadlineAtForRoute(
+            new Date(),
+            listing.product.shippingCountry,
+            extractShippingCountryIso2FromAddress(shippingAddress)
+          ),
           fulfillmentStatus: "PENDING",
           subtotalCents: settlement.affisellFeeBaseCents,
           taxCents: lineTaxCents,

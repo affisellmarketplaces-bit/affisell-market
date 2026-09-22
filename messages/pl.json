@@ -3199,7 +3199,7 @@
       "metricPaidWaiting": "Zapłacono · czeka na wysyłkę",
       "penaltyPerOrder": "Szacowana kara: −{amount}/zamówienie",
       "buyerRatingRisk": "Ocena kupującego w ryzyku, jeśli opóźniono",
-      "autoCancelRisk": "Po 10 dniach: wysyłaj komunikat do kupującego lub żądaj przedłużenia",
+      "autoCancelRisk": "Po terminie wysyłki: wyślij wiadomość do kupującego lub poproś o przedłużenie",
       "autoCancelConsequence": "Przedłużenie odmówione lub wygasło — anulowanie + zwrot może nastąpić",
       "ctaShip": "Wysyłaj teraz",
       "stockTitleOne": "1 SKU niedostępne",
@@ -3552,10 +3552,13 @@
       "urgent": "Wysyłaj szybko",
       "critical": "Ostatnie godziny",
       "breached": "Termin upłynął",
-      "policyTitle": "Puls wysyłki™ — 10-dniowy okienko",
-      "policyBody": "Masz {days} dni na dodanie śledzenia lub rozmowę z kupującym. Po tym czasie wyjaśnij opóźnienie i zapytaj o dodatkowy czas — kupujący akceptuje lub odrzuca. Jeśli odrzuci (lub nie odpowie w 3 dniach), zamówienie może zostać anulowane z zwrotem.",
+      "policyTitle": "Puls wysyłki™",
+      "policyBody": "Dodaj numer śledzenia lub napisz do kupującego przed terminem wysyłki — zależy on od miejsca docelowego. Po tym czasie wyjaśnij opóźnienie i zapytaj o dodatkowy czas — kupujący akceptuje lub odrzuca. Jeśli odrzuci (lub nie odpowie w ciągu 3 dni), zamówienie może zostać anulowane ze zwrotem środków.",
       "policyBadge": "Rozszerzenia zatwierdzone przez kupującego",
-      "pendingExtension": "Czekamy na kupującego"
+      "pendingExtension": "Czekamy na kupującego",
+      "tierDomestic": "dni · krajowe",
+      "tierEurope": "dni · Europa",
+      "tierInternational": "dni · międzynarodowe"
     },
     "fulfillment": {
       "loading": "Ładowanie rozmowy…",
@@ -3569,7 +3572,7 @@
       "pendingBuyer": "Rozszerzenie w trakcie — kupujący ma 3 dni na akceptację +{days} dni.",
       "accepted": "Kupujący zaakceptował — wysyłaj do {date}.",
       "rejected": "Kupujący odrzucił rozszerzenie. Wysyłaj teraz, czyli zamówienie może zostać anulowane.",
-      "extensionIntro": "Po przekroczeniu 10-dniowego okna: wyjaśnij opóźnienie i zapytaj o dodatkowe dni (kupujący musi zaakceptować).",
+      "extensionIntro": "Po terminie wysyłki: wyjaśnij opóźnienie i zapytaj o dodatkowe dni (kupujący musi zaakceptować).",
       "reasonPlaceholder": "Dlaczego jest opóźniony? Kiedy wysyłasz? (min. 20 znaków)",
       "extraDaysLabel": "Zadane dodatkowe dni",
       "requestExtension": "Zadaj kupującemu rozszerzenie"

@@ -3199,7 +3199,7 @@
       "metricPaidWaiting": "已支付 · 待发货",
       "penaltyPerOrder": "预估罚金：每单 −{amount}",
       "buyerRatingRisk": "延误可能影响买家评价",
-      "autoCancelRisk": "10天后：请联系买家或申请延期",
+      "autoCancelRisk": "超过发货截止日期后：请联系买家或申请延期",
       "autoCancelConsequence": "延期被拒或已过期 —— 可能触发取消订单并退款",
       "ctaShip": "立即发货",
       "stockTitleOne": "1 个 SKU 缺货",
@@ -3552,10 +3552,13 @@
       "urgent": "请尽快发货",
       "critical": "最后几小时",
       "breached": "已超过截止时间",
-      "policyTitle": "发货脉动™ —— 10天窗口期",
-      "policyBody": "您有 {days} 天的时间添加跟踪信息或与买家联系。如果超过该时间，需要解释延迟并请求额外时间 — 买家同意或拒绝。如果他们拒绝（或在 3 天内未回复），订单可能会被取消并退款。",
+      "policyTitle": "发货脉动™",
+      "policyBody": "请在发货截止日期前添加物流单号或联系买家——截止日期取决于目的地。逾期需说明延迟原因并申请更多时间——买家可同意或拒绝。如果买家拒绝（或 3 天内未回复），订单可能会被取消并退款。",
       "policyBadge": "买家批准的延期",
-      "pendingExtension": "等待买家回应"
+      "pendingExtension": "等待买家回应",
+      "tierDomestic": "天 · 本国",
+      "tierEurope": "天 · 欧洲",
+      "tierInternational": "天 · 国际"
     },
     "fulfillment": {
       "loading": "正在加载对话…",
@@ -3569,7 +3572,7 @@
       "pendingBuyer": "延长期限待定 — 买家有{days}天时间接受。",
       "accepted": "买家接受了延长期限 — 截止{date}前发货。",
       "rejected": "买家拒绝了延长期限。现在发货，否则订单可能会被取消。",
-      "extensionIntro": "超过10天的延长期限：解释延迟并请求额外的时间（买家必须接受）。",
+      "extensionIntro": "超过发货截止日期后：请说明延迟原因并申请更多时间（需买家同意）。",
       "reasonPlaceholder": "为什么会延迟？何时发货？（最少20个字符）",
       "extraDaysLabel": "额外的延长期限",
       "requestExtension": "向买家请求延长期限"

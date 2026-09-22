@@ -3199,7 +3199,7 @@
       "metricPaidWaiting": "Bezahlt · wartet auf Versand",
       "penaltyPerOrder": "Geschätzte Strafgebühr: −{amount}/Auftrag",
       "buyerRatingRisk": "Käuferbewertung gefährdet, wenn verzögert",
-      "autoCancelRisk": "Nach 10 Tagen: Käufer benachrichtigen oder Verlängerung anfordern",
+      "autoCancelRisk": "Nach dem Versanddatum: Käufer benachrichtigen oder Verlängerung anfordern",
       "autoCancelConsequence": "Verlängerung abgelehnt oder abgelaufen — Stornierung + Rückerstattung möglich",
       "ctaShip": "Jetzt versenden",
       "stockTitleOne": "1 Artikel nicht auf Lager",
@@ -3552,10 +3552,13 @@
       "urgent": "Bald versenden",
       "critical": "Letzte Stunden",
       "breached": "Frist verstrichen",
-      "policyTitle": "Ship Pulse — 10-Tages-Fenster",
-      "policyBody": "Sie haben {days} Tage Zeit, um eine Sendungsverfolgung hinzuzufügen oder mit dem Käufer zu sprechen. Danach erklären Sie jede Verzögerung und bitten um zusätzliche Zeit — der Käufer akzeptiert oder lehnt ab. Wenn er ablehnt (oder nicht innerhalb von 3 Tagen antwortet), kann der Auftrag storniert und erstattet werden.",
+      "policyTitle": "Ship Pulse",
+      "policyBody": "Fügen Sie eine Sendungsverfolgung hinzu oder sprechen Sie mit dem Käufer vor Ihrem Versanddatum — es hängt vom Zielland ab. Danach erklären Sie jede Verzögerung und bitten um zusätzliche Zeit — der Käufer akzeptiert oder lehnt ab. Wenn er ablehnt (oder nicht innerhalb von 3 Tagen antwortet), kann der Auftrag storniert und erstattet werden.",
       "policyBadge": "Vom Käufer genehmigte Verlängerungen",
-      "pendingExtension": "Warte auf Käufer"
+      "pendingExtension": "Warte auf Käufer",
+      "tierDomestic": "Tage · Inland",
+      "tierEurope": "Tage · Europa",
+      "tierInternational": "Tage · international"
     },
     "fulfillment": {
       "loading": "Lade Konversation…",
@@ -3569,7 +3572,7 @@
       "pendingBuyer": "Verlängerung ausstehend — Käufer hat 3 Tage Zeit, um zu akzeptieren +{days} Tage.",
       "accepted": "Käufer akzeptiert — versenden Sie bis {date}.",
       "rejected": "Käufer lehnt die Verlängerung ab. Versenden Sie jetzt oder der Auftrag kann storniert werden.",
-      "extensionIntro": "Nach dem 10-Tages-Fenster: Erklären Sie die Verzögerung und bitten Sie um zusätzliche Tage (Käufer muss akzeptieren).",
+      "extensionIntro": "Nach dem Versanddatum: Erklären Sie die Verzögerung und bitten Sie um zusätzliche Tage (Käufer muss akzeptieren).",
       "reasonPlaceholder": "Warum ist es spät? Wann werden Sie versenden? (min. 20 Zeichen)",
       "extraDaysLabel": "Angeforderte zusätzliche Tage",
       "requestExtension": "Verlängerung vom Käufer anfordern"

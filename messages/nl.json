@@ -3199,7 +3199,7 @@
       "metricPaidWaiting": "Betaald · wachtend op verzending",
       "penaltyPerOrder": "Geschatte boete: −{amount}/order",
       "buyerRatingRisk": "Koperbeoordeling in gevaar als vertraagd",
-      "autoCancelRisk": "Na 10 dagen: stuur bericht aan koper of vraag om verlenging",
+      "autoCancelRisk": "Na de verzenddatum: stuur bericht aan koper of vraag om verlenging",
       "autoCancelConsequence": "Verlenging geweigerd of verlopen — annulering + terugbetaling mag doorlopen",
       "ctaShip": "Verzend nu",
       "stockTitleOne": "1 SKU uit voorraad",
@@ -3552,10 +3552,13 @@
       "urgent": "Verzend snel",
       "critical": "Laatste uren",
       "breached": "Deadline overschreden",
-      "policyTitle": "Verzend Puls™ — 10-dagen venster",
-      "policyBody": "Je hebt {days} dagen om een trackingsnummer toe te voegen of contact op te nemen met de koper. Na die tijd moet je uitleggen waarom je vertraagd bent en meer tijd aanvragen — de koper accepteert of weigert. Als ze weigeren (of niet binnen 3 dagen reageren), kan de bestelling worden geannuleerd met een terugbetaling.",
+      "policyTitle": "Ship Pulse™",
+      "policyBody": "Voeg een trackingnummer toe of neem contact op met de koper vóór je verzenddatum — die hangt af van de bestemming. Daarna leg je uit waarom je vertraagd bent en vraag je meer tijd aan — de koper accepteert of weigert. Als ze weigeren (of niet binnen 3 dagen reageren), kan de bestelling worden geannuleerd met terugbetaling.",
       "policyBadge": "Koper-goedgekeurde uitbreidingen",
-      "pendingExtension": "Wachtend op koper"
+      "pendingExtension": "Wachtend op koper",
+      "tierDomestic": "dagen · binnenland",
+      "tierEurope": "dagen · Europa",
+      "tierInternational": "dagen · internationaal"
     },
     "fulfillment": {
       "loading": "Conversatie wordt geladen…",
@@ -3569,7 +3572,7 @@
       "pendingBuyer": "Uitbreiding in afwachting — koper heeft 3 dagen om in te stemmen +{days} dagen.",
       "accepted": "Koper heeft ingestemd — verzend voor {date}.",
       "rejected": "Koper heeft de uitbreiding geweigerd. Verzend nu of de bestelling kan worden geannuleerd.",
-      "extensionIntro": "Buiten het 10-dagen venster: leg uit waarom je vertraagd bent en vraag extra dagen aan (koper moet instemmen).",
+      "extensionIntro": "Na de verzenddatum: leg uit waarom je vertraagd bent en vraag extra dagen aan (koper moet instemmen).",
       "reasonPlaceholder": "Waarom is het laat? Wanneer zal je verzenden? (min. 20 tekens)",
       "extraDaysLabel": "Extra dagen aangevraagd",
       "requestExtension": "Vraag uitbreiding aan bij koper"
