@@ -3669,7 +3669,25 @@
     },
     "blindBadge": "Blind",
     "returnOpen": "Retour open ({status}) —",
-    "returnInbox": "Postvak in"
+    "returnInbox": "Postvak in",
+    "trackingErrors": {
+      "carrier_required": "Kies een vervoerder.",
+      "tracking_required": "Voer het echte trackingnummer in.",
+      "tracking_garbage": "Dit lijkt geen geldig trackingnummer. Plak het exacte nummer van de vervoerder.",
+      "tracking_format": "Ongeldig formaat voor {carrier}. Controleer het nummer op uw verzendlabel.",
+      "tracking_not_recognized": "Nummer niet herkend door de vervoerder. Controleer vervoerder en nummer voordat u de verzending bevestigt.",
+      "other_carrier_blocked": "Kies een vervoerder uit de lijst — 'Overig' wordt niet geaccepteerd zonder verificatie.",
+      "invalid_carrier": "Ongeldige vervoerder voor dit bestemmingsland.",
+      "tracking_locked": "Tracking is vergrendeld na verificatie door de vervoerder. Neem contact op met Affisell-support bij een fout.",
+      "unknown": "Ongeldig trackingnummer."
+    },
+    "carrierPicker": {
+      "groupNational": "Nationale vervoerders",
+      "groupNetwork": "Pan-Europese netwerken",
+      "groupOther": "Overig"
+    },
+    "shippedLightning": "Verzonden. Lightning Payout geactiveerd",
+    "shippedStandard": "Verzonden. Uitbetaling over 2 dagen"
   },
   "storefront": {
     "flashSale": {

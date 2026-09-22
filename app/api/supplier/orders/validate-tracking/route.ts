@@ -45,10 +45,7 @@ export async function POST(req: Request) {
 
   const otherGate = assertOtherCarrierAllowed(carrier)
   if (!otherGate.ok) {
-    return Response.json(
-      { valid: false, code: otherGate.code, message: otherGate.message },
-      { status: 200 }
-    )
+    return Response.json({ valid: false, code: otherGate.code }, { status: 200 })
   }
 
   let countryIso2 = parsed.data.countryIso2?.toUpperCase()
@@ -69,10 +66,7 @@ export async function POST(req: Request) {
     }
     const lockGate = assertSupplierMayRegisterTracking(order, parsed.data.trackingNumber)
     if (!lockGate.ok) {
-      return Response.json(
-        { valid: false, code: lockGate.code, message: lockGate.message },
-        { status: 200 }
-      )
+      return Response.json({ valid: false, code: lockGate.code }, { status: 200 })
     }
     countryIso2 = extractShippingCountryIso2FromAddress(order.shippingAddress)
   }
@@ -80,10 +74,7 @@ export async function POST(req: Request) {
   if (!countryIso2) countryIso2 = "FR"
 
   if (!isTrustedCarrierLabelForCountry(countryIso2, carrier)) {
-    return Response.json(
-      { valid: false, code: "invalid_carrier", message: "Transporteur invalide pour ce pays." },
-      { status: 200 }
-    )
+    return Response.json({ valid: false, code: "invalid_carrier" }, { status: 200 })
   }
 
   const result = await validateShipTrackingForShip({
@@ -94,7 +85,7 @@ export async function POST(req: Request) {
   })
 
   if (!result.ok) {
-    return Response.json({ valid: false, code: result.code, message: result.message }, { status: 200 })
+    return Response.json({ valid: false, code: result.code, params: result.params }, { status: 200 })
   }
 
   return Response.json({

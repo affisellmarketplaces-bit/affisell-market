@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { extractShippingCountryIso2FromAddress } from "@/lib/trusted-carriers-shared"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -23,6 +24,7 @@ export async function GET() {
               variantLabel: true,
               customerEmail: true,
               createdAt: true,
+              shippingAddress: true,
               product: { select: { name: true, images: true } },
             },
           },
@@ -47,6 +49,7 @@ export async function GET() {
       manualNote: g.manualNote,
       provider: g.supplierIntegration?.provider ?? null,
       createdAt: g.createdAt.toISOString(),
+      shippingCountryIso2: extractShippingCountryIso2FromAddress(g.items[0]?.order.shippingAddress),
       items: g.items.map((item) => ({
         orderId: item.orderId,
         quantity: item.quantity,

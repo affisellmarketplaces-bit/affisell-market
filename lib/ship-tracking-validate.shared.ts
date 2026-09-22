@@ -10,7 +10,7 @@ import {
 
 export type ShipTrackingFormatResult =
   | { ok: true; normalized: string; afterShipSlug?: string }
-  | { ok: false; code: string; message: string }
+  | { ok: false; code: string; message: string; params?: Record<string, string> }
 
 const MIN_LEN = 8
 const MAX_LEN = 120
@@ -123,6 +123,7 @@ export function validateShipTrackingFormat(args: {
       ok: false,
       code: "tracking_format",
       message: `Format invalide pour ${carrier}. Vérifiez le numéro sur votre étiquette d'expédition.`,
+      params: { carrier },
     }
   }
 

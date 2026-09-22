@@ -3669,7 +3669,25 @@
     },
     "blindBadge": "Blind",
     "returnOpen": "Return open ({status}) —",
-    "returnInbox": "Inbox"
+    "returnInbox": "Inbox",
+    "trackingErrors": {
+      "carrier_required": "Choose a carrier.",
+      "tracking_required": "Enter the real tracking number.",
+      "tracking_garbage": "This doesn't look like a valid tracking number. Copy-paste the exact number given by the carrier.",
+      "tracking_format": "Invalid format for {carrier}. Check the number on your shipping label.",
+      "tracking_not_recognized": "Number not recognized by the carrier. Check the carrier and number before confirming shipment.",
+      "other_carrier_blocked": "Choose a carrier from the list — “Other” isn't accepted without carrier verification.",
+      "invalid_carrier": "Invalid carrier for this destination country.",
+      "tracking_locked": "Tracking is locked after carrier verification. Contact Affisell support if this is a mistake.",
+      "unknown": "Invalid tracking number."
+    },
+    "carrierPicker": {
+      "groupNational": "National carriers",
+      "groupNetwork": "Pan-European networks",
+      "groupOther": "Other"
+    },
+    "shippedLightning": "Shipped. Lightning Payout triggered",
+    "shippedStandard": "Shipped. Payout in 2 days"
   },
   "storefront": {
     "flashSale": {

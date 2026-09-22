@@ -3669,7 +3669,25 @@
     },
     "blindBadge": "隐名",
     "returnOpen": "退货处理中（{status}）—",
-    "returnInbox": "收件箱"
+    "returnInbox": "收件箱",
+    "trackingErrors": {
+      "carrier_required": "请选择物流商。",
+      "tracking_required": "请输入真实的物流单号。",
+      "tracking_garbage": "这看起来不像有效的物流单号。请粘贴物流商提供的准确单号。",
+      "tracking_format": "{carrier} 的格式无效。请核对运单上的单号。",
+      "tracking_not_recognized": "物流商未识别该单号。确认发货前请核对物流商和单号。",
+      "other_carrier_blocked": "请从列表中选择物流商——未经验证不接受“其他”。",
+      "invalid_carrier": "该目的地国家的物流商无效。",
+      "tracking_locked": "物流单号在物流商验证后已锁定。如有错误请联系 Affisell 支持。",
+      "unknown": "物流单号无效。"
+    },
+    "carrierPicker": {
+      "groupNational": "本国物流商",
+      "groupNetwork": "泛欧物流网络",
+      "groupOther": "其他"
+    },
+    "shippedLightning": "已发货。已触发闪电结算",
+    "shippedStandard": "已发货。2 天后结算"
   },
   "storefront": {
     "flashSale": {

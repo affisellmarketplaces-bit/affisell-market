@@ -3669,7 +3669,25 @@
     },
     "blindBadge": "Ciego",
     "returnOpen": "Devolución abierta ({status}) —",
-    "returnInbox": "Bandeja de entrada"
+    "returnInbox": "Bandeja de entrada",
+    "trackingErrors": {
+      "carrier_required": "Elige un transportista.",
+      "tracking_required": "Introduce el número de seguimiento real.",
+      "tracking_garbage": "Esto no parece un número de seguimiento válido. Copia y pega el número exacto que te dio el transportista.",
+      "tracking_format": "Formato no válido para {carrier}. Revisa el número en tu etiqueta de envío.",
+      "tracking_not_recognized": "Número no reconocido por el transportista. Revisa transportista y número antes de confirmar el envío.",
+      "other_carrier_blocked": "Elige un transportista de la lista — «Otro» no se acepta sin verificación del transportista.",
+      "invalid_carrier": "Transportista no válido para este país de destino.",
+      "tracking_locked": "El seguimiento está bloqueado tras la verificación del transportista. Contacta con soporte de Affisell si es un error.",
+      "unknown": "Número de seguimiento no válido."
+    },
+    "carrierPicker": {
+      "groupNational": "Transportistas nacionales",
+      "groupNetwork": "Redes paneuropeas",
+      "groupOther": "Otro"
+    },
+    "shippedLightning": "Enviado. Lightning Payout activado",
+    "shippedStandard": "Enviado. Pago en 2 días"
   },
   "storefront": {
     "flashSale": {

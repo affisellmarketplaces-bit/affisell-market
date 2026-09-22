@@ -1,14 +1,19 @@
 "use client"
 
-import { ExternalLink, Loader2, Package, RefreshCw, Truck } from "lucide-react"
+import { Check, ExternalLink, Loader2, Package, RefreshCw, Truck } from "lucide-react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
+import { ShipTrackingCarrierPicker } from "@/components/supplier/ship-tracking-carrier-picker"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { shipTrackingErrorMessage } from "@/lib/ship-tracking-error-i18n"
+import { resolveShipTrackingPolicy } from "@/lib/ship-tracking-policy.shared"
+import { validateShipTrackingFormat } from "@/lib/ship-tracking-validate.shared"
+import { defaultTrustedCarrierLabel } from "@/lib/trusted-carriers-shared"
 import { cn } from "@/lib/utils"
 
 type FulfillmentGroupRow = {
@@ -22,6 +27,7 @@ type FulfillmentGroupRow = {
   manualNote: string | null
   provider: string | null
   createdAt: string
+  shippingCountryIso2: string
   items: Array<{
     orderId: string
     quantity: number
@@ -33,6 +39,12 @@ type FulfillmentGroupRow = {
 }
 
 type TFn = ReturnType<typeof useTranslations<"supplierOrders.splitGroups">>
+
+type ValidationState =
+  | { status: "idle" }
+  | { status: "checking" }
+  | { status: "valid" }
+  | { status: "invalid"; code: string; params?: Record<string, string> }
 
 const STATUS_KEY: Record<string, string> = {
   PENDING: "statusPending",
@@ -51,10 +63,14 @@ function statusLabel(status: string, t: TFn): string {
 
 export function SupplierFulfillmentGroupsPanel() {
   const t = useTranslations("supplierOrders.splitGroups")
+  const tTrackingError = useTranslations("supplierOrders.trackingErrors")
+  const shipTrackingPolicy = resolveShipTrackingPolicy()
   const [groups, setGroups] = useState<FulfillmentGroupRow[]>([])
   const [loading, setLoading] = useState(true)
   const [trackingDraft, setTrackingDraft] = useState<Record<string, { carrier: string; number: string }>>({})
+  const [validation, setValidation] = useState<Record<string, ValidationState>>({})
   const [busyId, setBusyId] = useState<string | null>(null)
+  const validateTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -74,15 +90,96 @@ export function SupplierFulfillmentGroupsPanel() {
     void load()
   }, [load])
 
-  async function submitTracking(groupId: string) {
-    const draft = trackingDraft[groupId]
-    if (!draft?.number.trim() || !draft.carrier.trim()) {
-      toast.error(t("carrierRequired"))
+  useEffect(() => {
+    return () => {
+      for (const timer of Object.values(validateTimers.current)) clearTimeout(timer)
+    }
+  }, [])
+
+  function draftFor(groupId: string, countryIso2: string) {
+    return (
+      trackingDraft[groupId] ?? {
+        carrier: defaultTrustedCarrierLabel(countryIso2),
+        number: "",
+      }
+    )
+  }
+
+  function scheduleValidation(groupId: string, carrier: string, number: string, orderId: string) {
+    if (validateTimers.current[groupId]) clearTimeout(validateTimers.current[groupId])
+
+    const trimmed = number.trim()
+    if (!carrier.trim() || !trimmed) {
+      setValidation((prev) => ({ ...prev, [groupId]: { status: "idle" } }))
       return
     }
-    setBusyId(groupId)
+
+    const local = validateShipTrackingFormat({
+      trackingCarrier: carrier,
+      trackingNumber: trimmed,
+      policy: shipTrackingPolicy,
+    })
+    if (!local.ok) {
+      setValidation((prev) => ({ ...prev, [groupId]: { status: "invalid", code: local.code, params: local.params } }))
+      return
+    }
+
+    setValidation((prev) => ({ ...prev, [groupId]: { status: "checking" } }))
+    validateTimers.current[groupId] = setTimeout(() => {
+      void (async () => {
+        try {
+          const res = await fetch("/api/supplier/orders/validate-tracking", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ orderId, trackingCarrier: carrier.trim(), trackingNumber: trimmed }),
+          })
+          const json = (await res.json()) as {
+            valid?: boolean
+            code?: string
+            params?: Record<string, string>
+          }
+          setValidation((prev) => ({
+            ...prev,
+            [groupId]: json.valid
+              ? { status: "valid" }
+              : { status: "invalid", code: json.code ?? "tracking_not_recognized", params: json.params },
+          }))
+        } catch {
+          setValidation((prev) => ({ ...prev, [groupId]: { status: "valid" } }))
+        }
+      })()
+    }, 480)
+  }
+
+  function setDraft(group: FulfillmentGroupRow, field: "carrier" | "number", value: string) {
+    const current = draftFor(group.id, group.shippingCountryIso2)
+    const next = { ...current, [field]: value }
+    setTrackingDraft((prev) => ({ ...prev, [group.id]: next }))
+    scheduleValidation(group.id, next.carrier, next.number, group.items[0]?.orderId ?? group.id)
+  }
+
+  async function submitTracking(group: FulfillmentGroupRow) {
+    const draft = draftFor(group.id, group.shippingCountryIso2)
+    if (!draft.carrier.trim()) {
+      toast.error(shipTrackingErrorMessage(tTrackingError, "carrier_required"))
+      return
+    }
+    if (!draft.number.trim()) {
+      toast.error(shipTrackingErrorMessage(tTrackingError, "tracking_required"))
+      return
+    }
+    const v = validation[group.id]
+    if (v?.status === "invalid") {
+      toast.error(shipTrackingErrorMessage(tTrackingError, v.code, v.params))
+      return
+    }
+    if (v?.status === "checking") {
+      toast.error(t("loading"))
+      return
+    }
+    setBusyId(group.id)
     try {
-      const res = await fetch(`/api/fulfillment/${groupId}/tracking`, {
+      const res = await fetch(`/api/fulfillment/${group.id}/tracking`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -91,8 +188,9 @@ export function SupplierFulfillmentGroupsPanel() {
         }),
       })
       if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string }
-        throw new Error(err.error ?? "update_failed")
+        const err = (await res.json().catch(() => ({}))) as { code?: string }
+        toast.error(shipTrackingErrorMessage(tTrackingError, err.code))
+        return
       }
       toast.success(t("trackingSaved"))
       await load()
@@ -149,7 +247,8 @@ export function SupplierFulfillmentGroupsPanel() {
           group.status === "AWAITING_SHIPMENT" ||
           group.status === "FAILED" ||
           group.status === "PENDING"
-        const draft = trackingDraft[group.id] ?? { carrier: "", number: "" }
+        const draft = draftFor(group.id, group.shippingCountryIso2)
+        const v = validation[group.id]
 
         return (
           <Card key={group.id} className="space-y-4 border-zinc-200/90 p-5 dark:border-zinc-700">
@@ -206,53 +305,77 @@ export function SupplierFulfillmentGroupsPanel() {
                 ) : null}
               </div>
             ) : canTrack ? (
-              <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto_auto]">
-                <Input
-                  placeholder={t("carrierPlaceholder")}
-                  value={draft.carrier}
-                  onChange={(e) =>
-                    setTrackingDraft((prev) => ({
-                      ...prev,
-                      [group.id]: { ...draft, carrier: e.target.value },
-                    }))
-                  }
-                />
-                <Input
-                  placeholder={t("trackingPlaceholder")}
-                  value={draft.number}
-                  onChange={(e) =>
-                    setTrackingDraft((prev) => ({
-                      ...prev,
-                      [group.id]: { ...draft, number: e.target.value },
-                    }))
-                  }
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={busyId === group.id}
-                  onClick={() => void submitTracking(group.id)}
-                >
-                  {busyId === group.id ? (
-                    <Loader2 className="size-4 animate-spin" aria-hidden />
-                  ) : (
-                    <>
-                      <Package className="size-4" aria-hidden />
-                      {t("addTracking")}
-                    </>
-                  )}
-                </Button>
-                {group.status === "FAILED" ? (
+              <div className="space-y-2">
+                <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto_auto] sm:items-start">
+                  <ShipTrackingCarrierPicker
+                    value={draft.carrier}
+                    onValueChange={(value) => setDraft(group, "carrier", value)}
+                    countryIso2={group.shippingCountryIso2}
+                    policy={shipTrackingPolicy}
+                    disabled={busyId === group.id}
+                    ariaLabel={t("carrierPlaceholder")}
+                    placeholder={t("carrierPlaceholder")}
+                    className="h-9 w-full"
+                  />
+                  <div className="relative">
+                    <Input
+                      className={cn(
+                        "h-9 w-full pr-8",
+                        v?.status === "invalid"
+                          ? "border-red-300 dark:border-red-800"
+                          : v?.status === "valid"
+                            ? "border-emerald-300 dark:border-emerald-800"
+                            : undefined
+                      )}
+                      placeholder={t("trackingPlaceholder")}
+                      aria-invalid={v?.status === "invalid"}
+                      value={draft.number}
+                      onChange={(e) => setDraft(group, "number", e.target.value)}
+                    />
+                    {v?.status === "checking" ? (
+                      <Loader2
+                        className="pointer-events-none absolute right-2.5 top-2 size-4 animate-spin text-violet-500"
+                        aria-hidden
+                      />
+                    ) : v?.status === "valid" ? (
+                      <Check
+                        className="pointer-events-none absolute right-2.5 top-2 size-4 text-emerald-600"
+                        aria-hidden
+                      />
+                    ) : null}
+                  </div>
                   <Button
                     type="button"
                     size="sm"
-                    variant="outline"
-                    disabled={busyId === group.id}
-                    onClick={() => void retryAutoBuy(group.id)}
+                    disabled={busyId === group.id || v?.status === "checking" || v?.status === "invalid"}
+                    onClick={() => void submitTracking(group)}
                   >
-                    <RefreshCw className="size-4" aria-hidden />
-                    {t("retryAutoBuy")}
+                    {busyId === group.id ? (
+                      <Loader2 className="size-4 animate-spin" aria-hidden />
+                    ) : (
+                      <>
+                        <Package className="size-4" aria-hidden />
+                        {t("addTracking")}
+                      </>
+                    )}
                   </Button>
+                  {group.status === "FAILED" ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={busyId === group.id}
+                      onClick={() => void retryAutoBuy(group.id)}
+                    >
+                      <RefreshCw className="size-4" aria-hidden />
+                      {t("retryAutoBuy")}
+                    </Button>
+                  ) : null}
+                </div>
+                {v?.status === "invalid" ? (
+                  <p className="text-[11px] leading-snug text-red-600 dark:text-red-400" role="alert">
+                    {shipTrackingErrorMessage(tTrackingError, v.code, v.params)}
+                  </p>
                 ) : null}
               </div>
             ) : null}

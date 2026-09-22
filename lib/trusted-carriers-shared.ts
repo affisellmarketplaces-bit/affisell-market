@@ -54,6 +54,8 @@ const ES: readonly TrustedCarrier[] = [
   C("Correos", "correos-es"),
   C("SEUR", "seur"),
   C("MRW", "mrw-spain"),
+  C("Correos Express", ""),
+  C("GLS Spain", ""),
   C("DHL", "dhl"),
   C("UPS", "ups"),
 ]
@@ -62,6 +64,7 @@ const IT: readonly TrustedCarrier[] = [
   C("Poste Italiane", "poste-italiane"),
   C("BRT", "brt-it"),
   C("GLS Italy", "gls-italy"),
+  C("SDA", ""),
   C("DHL", "dhl"),
   C("UPS", "ups"),
 ]
@@ -70,6 +73,7 @@ const GB: readonly TrustedCarrier[] = [
   C("Royal Mail", "royal-mail"),
   C("Evri", "myhermes-uk"),
   C("DPD UK", "dpd-uk"),
+  C("Yodel", ""),
   C("UPS", "ups"),
   C("DHL", "dhl"),
 ]
@@ -92,11 +96,13 @@ const PL: readonly TrustedCarrier[] = [
   C("InPost", "inpost-paczkomaty"),
   C("DPD Poland", "dpd"),
   C("Poczta Polska", "poczta-polska"),
+  C("GLS Poland", ""),
+  C("Orlen Paczka", ""),
   C("DHL", "dhl"),
 ]
 
 const PT: readonly TrustedCarrier[] = [
-  C("CTT", "ctt-portugal"),
+  C("CTT Expresso", "ctt-portugal"),
   C("DPD", "dpd"),
   C("UPS", "ups"),
   C("DHL", "dhl"),
@@ -105,12 +111,169 @@ const PT: readonly TrustedCarrier[] = [
 const AT: readonly TrustedCarrier[] = [
   C("Österreichische Post", "austrian-post"),
   C("DPD", "dpd"),
+  C("GLS Austria", ""),
   C("DHL", "dhl"),
   C("UPS", "ups"),
 ]
 
 const CH: readonly TrustedCarrier[] = [
   C("Swiss Post", "swiss-post"),
+  C("Planzer", ""),
+  C("DHL", "dhl"),
+  C("UPS", "ups"),
+]
+
+const IE: readonly TrustedCarrier[] = [
+  C("An Post", ""),
+  C("DPD Ireland", "dpd"),
+  C("Aramex Ireland (Fastway)", ""),
+  C("UPS", "ups"),
+  C("DHL", "dhl"),
+]
+
+const LU: readonly TrustedCarrier[] = [
+  C("POST Luxembourg", ""),
+  C("DPD Luxembourg", "dpd"),
+  C("DHL", "dhl"),
+  C("UPS", "ups"),
+]
+
+const MC: readonly TrustedCarrier[] = [
+  C("La Poste Monaco", ""),
+  C("Colissimo", "colissimo"),
+  C("Chronopost", "chronopost"),
+  C("DHL", "dhl"),
+]
+
+const SE: readonly TrustedCarrier[] = [
+  C("PostNord Sweden", ""),
+  C("Budbee", ""),
+  C("DHL", "dhl"),
+  C("UPS", "ups"),
+]
+
+const DK: readonly TrustedCarrier[] = [
+  C("PostNord Denmark", ""),
+  C("GLS Denmark", ""),
+  C("DHL", "dhl"),
+  C("UPS", "ups"),
+]
+
+const NO: readonly TrustedCarrier[] = [
+  C("Posten Norge", ""),
+  C("Bring", ""),
+  C("DHL", "dhl"),
+  C("UPS", "ups"),
+]
+
+const FI: readonly TrustedCarrier[] = [
+  C("Posti", ""),
+  C("Matkahuolto", ""),
+  C("DHL", "dhl"),
+  C("UPS", "ups"),
+]
+
+const IS: readonly TrustedCarrier[] = [
+  C("Pósturinn (Iceland Post)", ""),
+  C("DHL", "dhl"),
+  C("UPS", "ups"),
+]
+
+const LI: readonly TrustedCarrier[] = [
+  C("Liechtensteinische Post", ""),
+  C("Swiss Post", "swiss-post"),
+  C("DHL", "dhl"),
+]
+
+const EE: readonly TrustedCarrier[] = [
+  C("Omniva Estonia", ""),
+  C("DPD Estonia", "dpd"),
+  C("DHL", "dhl"),
+  C("UPS", "ups"),
+]
+
+const LV: readonly TrustedCarrier[] = [
+  C("Latvijas Pasts", ""),
+  C("Omniva Latvia", ""),
+  C("DPD Latvija", "dpd"),
+  C("DHL", "dhl"),
+]
+
+const LT: readonly TrustedCarrier[] = [
+  C("Lietuvos paštas", ""),
+  C("LP Express", ""),
+  C("DPD Lietuva", "dpd"),
+  C("DHL", "dhl"),
+]
+
+const CZ: readonly TrustedCarrier[] = [
+  C("Česká pošta", ""),
+  C("Zásilkovna (Packeta)", ""),
+  C("PPL", ""),
+  C("DPD", "dpd"),
+  C("DHL", "dhl"),
+]
+
+const SK: readonly TrustedCarrier[] = [
+  C("Slovenská pošta", ""),
+  C("GLS Slovakia", ""),
+  C("DPD Slovakia", "dpd"),
+  C("DHL", "dhl"),
+]
+
+const HU: readonly TrustedCarrier[] = [
+  C("Magyar Posta", ""),
+  C("GLS Hungary", ""),
+  C("Foxpost", ""),
+  C("DPD Hungary", "dpd"),
+  C("DHL", "dhl"),
+]
+
+const RO: readonly TrustedCarrier[] = [
+  C("Poșta Română", ""),
+  C("Fan Courier", ""),
+  C("Sameday", ""),
+  C("Cargus", ""),
+  C("DHL", "dhl"),
+]
+
+const BG: readonly TrustedCarrier[] = [
+  C("Bulgarian Posts", ""),
+  C("Speedy", ""),
+  C("Econt Express", ""),
+  C("DHL", "dhl"),
+]
+
+const HR: readonly TrustedCarrier[] = [
+  C("Hrvatska pošta", ""),
+  C("GLS Croatia", ""),
+  C("DPD Croatia", "dpd"),
+  C("DHL", "dhl"),
+]
+
+const SI: readonly TrustedCarrier[] = [
+  C("Pošta Slovenije", ""),
+  C("GLS Slovenia", ""),
+  C("DHL", "dhl"),
+  C("UPS", "ups"),
+]
+
+const GR: readonly TrustedCarrier[] = [
+  C("ELTA Hellenic Post", ""),
+  C("ACS Courier", ""),
+  C("Speedex", ""),
+  C("Geniki Taxydromiki", ""),
+  C("DHL", "dhl"),
+]
+
+const MT: readonly TrustedCarrier[] = [
+  C("MaltaPost", ""),
+  C("DHL", "dhl"),
+  C("UPS", "ups"),
+]
+
+const CY: readonly TrustedCarrier[] = [
+  C("Cyprus Post", ""),
   C("DHL", "dhl"),
   C("UPS", "ups"),
 ]
@@ -122,6 +285,7 @@ const EU_DEFAULT: readonly TrustedCarrier[] = [
   C("DPD", "dpd"),
 ]
 
+/** Every EU27 + EEA/UK country — no destination falls back to the generic EU list any more. */
 export const TRUSTED_CARRIERS_BY_COUNTRY: Record<string, readonly TrustedCarrier[]> = {
   FR,
   DE,
@@ -136,13 +300,28 @@ export const TRUSTED_CARRIERS_BY_COUNTRY: Record<string, readonly TrustedCarrier
   PT,
   AT,
   CH,
-  LU: FR,
-  MC: FR,
-  IE: GB,
-  NO: EU_DEFAULT,
-  SE: EU_DEFAULT,
-  DK: EU_DEFAULT,
-  FI: EU_DEFAULT,
+  IE,
+  LU,
+  MC,
+  SE,
+  DK,
+  NO,
+  FI,
+  IS,
+  LI,
+  EE,
+  LV,
+  LT,
+  CZ,
+  SK,
+  HU,
+  RO,
+  BG,
+  HR,
+  SI,
+  GR,
+  MT,
+  CY,
 }
 
 export function normalizeShippingCountryIso2(raw: string | null | undefined): string {
@@ -207,4 +386,34 @@ export function afterShipSlugForTrustedCarrier(label: string): string | undefine
 
 export function defaultTrustedCarrierLabel(countryIso2: string | null | undefined): string {
   return trustedCarriersForCountry(countryIso2)[0]?.label ?? "DHL"
+}
+
+/** Pan-European reach (same network everywhere) vs a national operator — display grouping only. */
+const NETWORK_CARRIER_PATTERN = /^(DHL|UPS|FedEx|TNT)$|^(DPD|GLS)\b/i
+
+export function isPanEuropeanCarrierLabel(label: string): boolean {
+  return NETWORK_CARRIER_PATTERN.test(label.trim())
+}
+
+export type TrustedCarrierGroups = {
+  national: readonly TrustedCarrier[]
+  network: readonly TrustedCarrier[]
+  other: readonly TrustedCarrier[]
+}
+
+/** Same carriers as `trustedCarriersForCountry`, split for a picker: national operators first. */
+export function trustedCarrierGroupsForCountry(
+  countryIso2: string | null | undefined,
+  policy?: ShipTrackingPolicy
+): TrustedCarrierGroups {
+  const all = trustedCarriersForCountry(countryIso2, policy)
+  const national: TrustedCarrier[] = []
+  const network: TrustedCarrier[] = []
+  const other: TrustedCarrier[] = []
+  for (const row of all) {
+    if (row.label === OTHER_TRUSTED_CARRIER_LABEL) other.push(row)
+    else if (isPanEuropeanCarrierLabel(row.label)) network.push(row)
+    else national.push(row)
+  }
+  return { national, network, other }
 }

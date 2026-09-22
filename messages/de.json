@@ -3669,7 +3669,25 @@
     },
     "blindBadge": "Blind",
     "returnOpen": "Rückgabe offen ({status}) —",
-    "returnInbox": "Posteingang"
+    "returnInbox": "Posteingang",
+    "trackingErrors": {
+      "carrier_required": "Wählen Sie einen Versanddienst.",
+      "tracking_required": "Geben Sie die echte Sendungsnummer ein.",
+      "tracking_garbage": "Das sieht nicht nach einer gültigen Sendungsnummer aus. Kopieren Sie die genaue Nummer vom Versanddienst.",
+      "tracking_format": "Ungültiges Format für {carrier}. Prüfen Sie die Nummer auf Ihrem Versandetikett.",
+      "tracking_not_recognized": "Nummer vom Versanddienst nicht erkannt. Prüfen Sie Versanddienst und Nummer, bevor Sie den Versand bestätigen.",
+      "other_carrier_blocked": "Wählen Sie einen Versanddienst aus der Liste — „Sonstige“ wird ohne Verifizierung nicht akzeptiert.",
+      "invalid_carrier": "Ungültiger Versanddienst für dieses Zielland.",
+      "tracking_locked": "Die Sendungsnummer ist nach der Verifizierung gesperrt. Kontaktieren Sie den Affisell-Support bei einem Fehler.",
+      "unknown": "Ungültige Sendungsnummer."
+    },
+    "carrierPicker": {
+      "groupNational": "Nationale Versanddienste",
+      "groupNetwork": "Paneuropäische Netzwerke",
+      "groupOther": "Sonstige"
+    },
+    "shippedLightning": "Versendet. Lightning Payout ausgelöst",
+    "shippedStandard": "Versendet. Auszahlung in 2 Tagen"
   },
   "storefront": {
     "flashSale": {

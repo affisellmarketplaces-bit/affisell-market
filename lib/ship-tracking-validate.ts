@@ -17,7 +17,7 @@ export { resolveShipTrackingPolicy, type ShipTrackingPolicy } from "@/lib/ship-t
 
 export type ShipTrackingValidationResult =
   | { ok: true; normalized: string; verifiedBy: "format" | "aftership" }
-  | { ok: false; code: string; message: string }
+  | { ok: false; code: string; message: string; params?: Record<string, string> }
 
 /**
  * Full ship gate: format + optional AfterShip detect/register.

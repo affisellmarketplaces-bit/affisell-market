@@ -84,7 +84,7 @@ export async function POST(req: Request, { params }: RouteParams) {
   const countryIso2 = extractShippingCountryIso2FromAddress(order.shippingAddress)
   if (!isTrustedCarrierLabelForCountry(countryIso2, trackingCarrier)) {
     return NextResponse.json(
-      { error: "Invalid carrier for destination country" },
+      { error: "Invalid carrier for destination country", code: "invalid_carrier" },
       { status: 400 }
     )
   }
@@ -96,7 +96,7 @@ export async function POST(req: Request, { params }: RouteParams) {
     register: true,
   })
   if (!trackingCheck.ok) {
-    return NextResponse.json({ error: trackingCheck.message, code: trackingCheck.code }, { status: 400 })
+    return NextResponse.json({ error: trackingCheck.message, code: trackingCheck.code, params: trackingCheck.params }, { status: 400 })
   }
 
   await prisma.order.update({

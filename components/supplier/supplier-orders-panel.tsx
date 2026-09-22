@@ -16,6 +16,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { ShipPulseBadge } from "@/components/supplier/ship-pulse-badge"
+import { ShipTrackingCarrierPicker } from "@/components/supplier/ship-tracking-carrier-picker"
 import { SupplierOrderFulfillmentPanel } from "@/components/supplier/supplier-order-fulfillment-panel"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -41,6 +42,7 @@ import {
   trustedCarriersForCountry,
 } from "@/lib/trusted-carriers-shared"
 import { validateShipTrackingFormat } from "@/lib/ship-tracking-validate.shared"
+import { shipTrackingErrorMessage } from "@/lib/ship-tracking-error-i18n"
 import type { ShipTrackingPolicy } from "@/lib/ship-tracking-policy.shared"
 import { resolveShipTrackingPolicy } from "@/lib/ship-tracking-policy.shared"
 import { cn } from "@/lib/utils"
@@ -49,7 +51,7 @@ type TrackingValidationState =
   | { status: "idle" }
   | { status: "checking" }
   | { status: "valid"; verifiedBy?: string }
-  | { status: "invalid"; message: string }
+  | { status: "invalid"; code: string; params?: Record<string, string> }
 
 type OrderRow = {
   id: string
@@ -279,6 +281,7 @@ function OrderMetaChips({ o }: { o: OrderRow }) {
 
 export function SupplierOrdersPanel({ className }: { className?: string }) {
   const msg = useTranslations("supplierOrders")
+  const tTrackingError = useTranslations("supplierOrders.trackingErrors")
   const [tab, setTab] = useState<Tab>("to_ship")
   const [sortBy, setSortBy] = useState<SupplierOrdersSort>(() => defaultSupplierOrdersSort("to_ship"))
   const [rows, setRows] = useState<OrderRow[] | null>(null)
@@ -311,7 +314,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
       if (!local.ok) {
         setTrackingValidation((prev) => ({
           ...prev,
-          [orderId]: { status: "invalid", message: local.message },
+          [orderId]: { status: "invalid", code: local.code, params: local.params },
         }))
         return
       }
@@ -332,7 +335,8 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
             })
             const json = (await res.json()) as {
               valid?: boolean
-              message?: string
+              code?: string
+              params?: Record<string, string>
               verifiedBy?: string
             }
             if (json.valid) {
@@ -345,7 +349,8 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                 ...prev,
                 [orderId]: {
                   status: "invalid",
-                  message: json.message ?? msg("trackingInvalid"),
+                  code: json.code ?? "tracking_not_recognized",
+                  params: json.params,
                 },
               }))
             }
@@ -466,7 +471,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
     }
     const validation = trackingValidation[orderId]
     if (validation?.status === "invalid") {
-      setError(validation.message)
+      setError(shipTrackingErrorMessage(tTrackingError, validation.code, validation.params))
       return
     }
     if (validation?.status === "checking") {
@@ -479,7 +484,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
       policy: shipTrackingPolicy,
     })
     if (!local.ok) {
-      setError(local.message)
+      setError(shipTrackingErrorMessage(tTrackingError, local.code, local.params))
       return
     }
     const result = await patchOrder(orderId, {
@@ -488,11 +493,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
       trackingCarrier: carrier,
     })
     if (result) {
-      toast.success(
-        result.payoutTriggered
-          ? "Expédié. Lightning Payout déclenché"
-          : "Expédié. Payout à J+2"
-      )
+      toast.success(result.payoutTriggered ? msg("shippedLightning") : msg("shippedStandard"))
     }
   }
 
@@ -770,28 +771,17 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                       <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                         {msg("actions.carrierCountryHint", { country: o.shippingCountryIso2 })}
                       </p>
-                      <Select
+                      <ShipTrackingCarrierPicker
+                        id={`carrier-${o.id}`}
                         value={trackingByOrder[o.id]?.carrier ?? defaultTrustedCarrierLabel(o.shippingCountryIso2)}
-                        onValueChange={(value) => {
-                          if (value) setTracking(o.id, "carrier", value, o.shippingCountryIso2)
-                        }}
+                        onValueChange={(value) => setTracking(o.id, "carrier", value, o.shippingCountryIso2)}
+                        countryIso2={o.shippingCountryIso2}
+                        policy={shipTrackingPolicy}
                         disabled={busy === o.id}
-                      >
-                        <SelectTrigger
-                          id={`carrier-${o.id}`}
-                          className="h-9 w-full border-zinc-200 bg-white dark:border-zinc-600 dark:bg-zinc-950"
-                          aria-label={msg("actions.carrier")}
-                        >
-                          <SelectValue placeholder={msg("actions.carrier")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {trustedCarriersForCountry(o.shippingCountryIso2, shipTrackingPolicy).map((row) => (
-                            <SelectItem key={row.label} value={row.label}>
-                              {row.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        ariaLabel={msg("actions.carrier")}
+                        placeholder={msg("actions.carrier")}
+                        className="h-9 w-full border-zinc-200 bg-white dark:border-zinc-600 dark:bg-zinc-950"
+                      />
                       <div className="relative">
                         <input
                           id={`tracking-${o.id}`}
@@ -840,7 +830,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                               className="text-[11px] leading-snug text-red-600 dark:text-red-400"
                               role="alert"
                             >
-                              {v.message}
+                              {shipTrackingErrorMessage(tTrackingError, v.code, v.params)}
                             </p>
                           )
                         }

@@ -3669,7 +3669,25 @@
     },
     "blindBadge": "Blind",
     "returnOpen": "Otwarty zwrot ({status}) —",
-    "returnInbox": "Skrzynka odbiorcza"
+    "returnInbox": "Skrzynka odbiorcza",
+    "trackingErrors": {
+      "carrier_required": "Wybierz przewoźnika.",
+      "tracking_required": "Wprowadź prawdziwy numer przesyłki.",
+      "tracking_garbage": "To nie wygląda na prawidłowy numer przesyłki. Wklej dokładny numer podany przez przewoźnika.",
+      "tracking_format": "Nieprawidłowy format dla {carrier}. Sprawdź numer na etykiecie przesyłki.",
+      "tracking_not_recognized": "Numer nierozpoznany przez przewoźnika. Sprawdź przewoźnika i numer przed potwierdzeniem wysyłki.",
+      "other_carrier_blocked": "Wybierz przewoźnika z listy — „Inny” nie jest akceptowany bez weryfikacji przewoźnika.",
+      "invalid_carrier": "Nieprawidłowy przewoźnik dla tego kraju docelowego.",
+      "tracking_locked": "Numer przesyłki jest zablokowany po weryfikacji przewoźnika. W razie błędu skontaktuj się z pomocą Affisell.",
+      "unknown": "Nieprawidłowy numer przesyłki."
+    },
+    "carrierPicker": {
+      "groupNational": "Przewoźnicy krajowi",
+      "groupNetwork": "Sieci paneuropejskie",
+      "groupOther": "Inny"
+    },
+    "shippedLightning": "Wysłano. Uruchomiono Lightning Payout",
+    "shippedStandard": "Wysłano. Wypłata za 2 dni"
   },
   "storefront": {
     "flashSale": {

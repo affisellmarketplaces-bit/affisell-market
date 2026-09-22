@@ -3669,7 +3669,25 @@
     },
     "blindBadge": "Blind",
     "returnOpen": "Retour ouvert ({status}) —",
-    "returnInbox": "Boîte de réception"
+    "returnInbox": "Boîte de réception",
+    "trackingErrors": {
+      "carrier_required": "Choisissez un transporteur.",
+      "tracking_required": "Saisissez le numéro de suivi réel.",
+      "tracking_garbage": "Ce numéro ne ressemble pas à un suivi valide. Copiez-collez le numéro exact fourni par le transporteur.",
+      "tracking_format": "Format invalide pour {carrier}. Vérifiez le numéro sur votre étiquette d'expédition.",
+      "tracking_not_recognized": "Numéro non reconnu par le transporteur. Vérifiez transporteur et numéro avant de confirmer l'expédition.",
+      "other_carrier_blocked": "Choisissez un transporteur de la liste — « Autre » n'est pas accepté sans vérification transporteur.",
+      "invalid_carrier": "Transporteur invalide pour ce pays de destination.",
+      "tracking_locked": "Le suivi est verrouillé après validation transporteur. Contactez le support Affisell en cas d'erreur.",
+      "unknown": "Numéro de suivi invalide."
+    },
+    "carrierPicker": {
+      "groupNational": "Transporteurs nationaux",
+      "groupNetwork": "Réseaux paneuropéens",
+      "groupOther": "Autre"
+    },
+    "shippedLightning": "Expédié. Lightning Payout déclenché",
+    "shippedStandard": "Expédié. Payout à J+2"
   },
   "storefront": {
     "flashSale": {

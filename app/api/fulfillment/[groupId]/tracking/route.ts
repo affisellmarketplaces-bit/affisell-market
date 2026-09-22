@@ -77,7 +77,10 @@ export async function POST(req: Request, ctx: RouteCtx) {
   const countryIso2 = extractShippingCountryIso2FromAddress(sampleOrder.shippingAddress)
   const carrier = parsed.data.trackingCarrier.trim()
   if (!isTrustedCarrierLabelForCountry(countryIso2, carrier)) {
-    return NextResponse.json({ error: "Invalid carrier for destination country" }, { status: 400 })
+    return NextResponse.json(
+      { error: "Invalid carrier for destination country", code: "invalid_carrier" },
+      { status: 400 }
+    )
   }
 
   const trackingCheck = await validateShipTrackingForShip({
@@ -87,7 +90,7 @@ export async function POST(req: Request, ctx: RouteCtx) {
     register: true,
   })
   if (!trackingCheck.ok) {
-    return NextResponse.json({ error: trackingCheck.message, code: trackingCheck.code }, { status: 400 })
+    return NextResponse.json({ error: trackingCheck.message, code: trackingCheck.code, params: trackingCheck.params }, { status: 400 })
   }
 
   const result = await fulfillmentOrchestrator.onTrackingUpdate(
