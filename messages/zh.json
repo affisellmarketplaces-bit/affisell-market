@@ -3603,7 +3603,10 @@
       "title": "待发货订单",
       "description": "已支付订单将在此排队 —— 请先确认备货，包裹寄出后再添加物流单号。",
       "back": "返回控制台",
-      "awaitingShipment": "{count} 个待发货"
+      "awaitingShipment": "{count} 个待发货",
+      "statToShip": "待发货",
+      "statOverdue": "已逾期",
+      "statShippedToday": "今日已发货"
     },
     "status": {
       "paid": "待打包",
@@ -3636,7 +3639,37 @@
       "partnerCommissionTitle": "在您的目录价格上附加的Affiliate佣金 — 已从“您的付款”中扣除",
       "partnerStoreTitle": "通过合作伙伴商店销售 {code}",
       "partnerStoreRef": "合作伙伴商店 {code}"
-    }
+    },
+    "splitGroups": {
+      "title": "拆分订单包裹",
+      "subtitle": "部分订单从多个仓库发出——在此追踪每个包裹。",
+      "refresh": "刷新",
+      "loadError": "无法加载包裹",
+      "loading": "正在加载包裹…",
+      "statusPending": "待处理",
+      "statusAutoBuying": "正在向供应商采购…",
+      "statusAwaiting": "待发货",
+      "statusShipped": "已发货",
+      "statusDelivered": "已送达",
+      "statusFailed": "失败",
+      "statusCancelled": "已取消",
+      "provider": "手动",
+      "externalOrderRef": "外部订单 #{id}",
+      "carrierPlaceholder": "物流商（如 Colissimo）",
+      "trackingPlaceholder": "物流单号",
+      "addTracking": "添加物流单号",
+      "retryAutoBuy": "重试",
+      "track": "追踪",
+      "carrierRequired": "需填写物流商和物流单号",
+      "trackingSaved": "物流单号已保存——已通知买家",
+      "updateFailed": "无法保存物流单号",
+      "retryQueued": "重试已排队",
+      "retryFailed": "重试失败",
+      "orderRef": "订单 {id} · 数量 {qty}"
+    },
+    "blindBadge": "隐名",
+    "returnOpen": "退货处理中（{status}）—",
+    "returnInbox": "收件箱"
   },
   "storefront": {
     "flashSale": {

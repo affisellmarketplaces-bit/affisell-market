@@ -3603,7 +3603,10 @@
       "title": "Te verzenden bestellingen",
       "description": "Betaalde bestellingen komen hier binnen — bevestig de voorbereiding en voeg tracking toe zodra het pakket vertrekt.",
       "back": "Terug naar dashboard",
-      "awaitingShipment": "{count} wacht op verzending"
+      "awaitingShipment": "{count} wacht op verzending",
+      "statToShip": "Wacht op verzending",
+      "statOverdue": "Te laat",
+      "statShippedToday": "Vandaag verzonden"
     },
     "status": {
       "paid": "Wacht op inpakken",
@@ -3636,7 +3639,37 @@
       "partnerCommissionTitle": "Affiliatecommissie op uw catalogusprijs — al afgetrokken van “Uw uitbetaling”",
       "partnerStoreTitle": "Verkocht via partnerwinkel {code}",
       "partnerStoreRef": "Partnerwinkel {code}"
-    }
+    },
+    "splitGroups": {
+      "title": "Pakketten bij gesplitste bestellingen",
+      "subtitle": "Sommige bestellingen worden vanuit meerdere magazijnen verzonden — volg hier elk pakket.",
+      "refresh": "Vernieuwen",
+      "loadError": "Pakketten konden niet worden geladen",
+      "loading": "Pakketten laden…",
+      "statusPending": "In behandeling",
+      "statusAutoBuying": "Inkoop bij leverancier bezig…",
+      "statusAwaiting": "Wacht op verzending",
+      "statusShipped": "Verzonden",
+      "statusDelivered": "Bezorgd",
+      "statusFailed": "Mislukt",
+      "statusCancelled": "Geannuleerd",
+      "provider": "Handmatig",
+      "externalOrderRef": "Externe bestelling #{id}",
+      "carrierPlaceholder": "Vervoerder (bijv. Colissimo)",
+      "trackingPlaceholder": "Trackingnummer",
+      "addTracking": "Tracking toevoegen",
+      "retryAutoBuy": "Opnieuw proberen",
+      "track": "Volgen",
+      "carrierRequired": "Vervoerder en trackingnummer zijn verplicht",
+      "trackingSaved": "Tracking opgeslagen — koper geïnformeerd",
+      "updateFailed": "Tracking kon niet worden opgeslagen",
+      "retryQueued": "Nieuwe poging in wachtrij",
+      "retryFailed": "Opnieuw proberen mislukt",
+      "orderRef": "Bestelling {id} · aantal {qty}"
+    },
+    "blindBadge": "Blind",
+    "returnOpen": "Retour open ({status}) —",
+    "returnInbox": "Postvak in"
   },
   "storefront": {
     "flashSale": {

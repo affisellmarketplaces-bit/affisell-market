@@ -3603,7 +3603,10 @@
       "title": "Zu versendende Bestellungen",
       "description": "Bezahlte Bestellungen sammeln sich hier — bestätige die Vorbereitung und füge die Sendungsverfolgung hinzu, sobald das Paket verlassen hat.",
       "back": "Zurück zum Dashboard",
-      "awaitingShipment": "{count} wartet auf Versand"
+      "awaitingShipment": "{count} wartet auf Versand",
+      "statToShip": "Versand ausstehend",
+      "statOverdue": "Überfällig",
+      "statShippedToday": "Heute versandt"
     },
     "status": {
       "paid": "Wartet auf Verpackung",
@@ -3636,7 +3639,37 @@
       "partnerCommissionTitle": "Affiliate-Provision auf Ihren Katalogpreis — bereits von „Ihrer Auszahlung“ abgezogen",
       "partnerStoreTitle": "Über Partner-Storefront {code} verkauft",
       "partnerStoreRef": "Partner-Storefront {code}"
-    }
+    },
+    "splitGroups": {
+      "title": "Sendungen bei Mehrfach-Versand",
+      "subtitle": "Manche Bestellungen werden aus mehreren Lagern versendet — verfolgen Sie hier jede Sendung.",
+      "refresh": "Aktualisieren",
+      "loadError": "Sendungen konnten nicht geladen werden",
+      "loading": "Sendungen werden geladen…",
+      "statusPending": "Ausstehend",
+      "statusAutoBuying": "Kauf beim Lieferanten läuft…",
+      "statusAwaiting": "Versand ausstehend",
+      "statusShipped": "Versendet",
+      "statusDelivered": "Zugestellt",
+      "statusFailed": "Fehlgeschlagen",
+      "statusCancelled": "Storniert",
+      "provider": "Manuell",
+      "externalOrderRef": "Externe Bestellung Nr. {id}",
+      "carrierPlaceholder": "Versanddienst (z. B. Colissimo)",
+      "trackingPlaceholder": "Sendungsnummer",
+      "addTracking": "Sendungsnummer hinzufügen",
+      "retryAutoBuy": "Erneut versuchen",
+      "track": "Verfolgen",
+      "carrierRequired": "Versanddienst und Sendungsnummer sind erforderlich",
+      "trackingSaved": "Sendungsnummer gespeichert — Käufer informiert",
+      "updateFailed": "Sendungsnummer konnte nicht gespeichert werden",
+      "retryQueued": "Erneuter Versuch eingeplant",
+      "retryFailed": "Erneuter Versuch fehlgeschlagen",
+      "orderRef": "Bestellung {id} · Menge {qty}"
+    },
+    "blindBadge": "Blind",
+    "returnOpen": "Rückgabe offen ({status}) —",
+    "returnInbox": "Posteingang"
   },
   "storefront": {
     "flashSale": {

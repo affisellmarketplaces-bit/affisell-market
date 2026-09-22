@@ -2,11 +2,12 @@
 
 import { ExternalLink, Loader2, Package, RefreshCw, Truck } from "lucide-react"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import { BentoCard } from "@/components/affisell/bento-ui"
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 
@@ -31,17 +32,25 @@ type FulfillmentGroupRow = {
   }>
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  PENDING: "Pending",
-  AUTO_BUYING: "Auto-buying…",
-  AWAITING_SHIPMENT: "Awaiting shipment",
-  SHIPPED: "Shipped",
-  DELIVERED: "Delivered",
-  FAILED: "Failed",
-  CANCELLED: "Cancelled",
+type TFn = ReturnType<typeof useTranslations<"supplierOrders.splitGroups">>
+
+const STATUS_KEY: Record<string, string> = {
+  PENDING: "statusPending",
+  AUTO_BUYING: "statusAutoBuying",
+  AWAITING_SHIPMENT: "statusAwaiting",
+  SHIPPED: "statusShipped",
+  DELIVERED: "statusDelivered",
+  FAILED: "statusFailed",
+  CANCELLED: "statusCancelled",
+}
+
+function statusLabel(status: string, t: TFn): string {
+  const key = STATUS_KEY[status]
+  return key ? t(key) : status
 }
 
 export function SupplierFulfillmentGroupsPanel() {
+  const t = useTranslations("supplierOrders.splitGroups")
   const [groups, setGroups] = useState<FulfillmentGroupRow[]>([])
   const [loading, setLoading] = useState(true)
   const [trackingDraft, setTrackingDraft] = useState<Record<string, { carrier: string; number: string }>>({})
@@ -55,11 +64,11 @@ export function SupplierFulfillmentGroupsPanel() {
       const json = (await res.json()) as { groups: FulfillmentGroupRow[] }
       setGroups(json.groups ?? [])
     } catch {
-      toast.error("Could not load fulfillment groups")
+      toast.error(t("loadError"))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     void load()
@@ -68,7 +77,7 @@ export function SupplierFulfillmentGroupsPanel() {
   async function submitTracking(groupId: string) {
     const draft = trackingDraft[groupId]
     if (!draft?.number.trim() || !draft.carrier.trim()) {
-      toast.error("Carrier and tracking number required")
+      toast.error(t("carrierRequired"))
       return
     }
     setBusyId(groupId)
@@ -85,10 +94,10 @@ export function SupplierFulfillmentGroupsPanel() {
         const err = (await res.json().catch(() => ({}))) as { error?: string }
         throw new Error(err.error ?? "update_failed")
       }
-      toast.success("Tracking saved — buyer notified")
+      toast.success(t("trackingSaved"))
       await load()
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Update failed")
+    } catch {
+      toast.error(t("updateFailed"))
     } finally {
       setBusyId(null)
     }
@@ -102,10 +111,10 @@ export function SupplierFulfillmentGroupsPanel() {
         const err = (await res.json().catch(() => ({}))) as { error?: string }
         throw new Error(err.error ?? "retry_failed")
       }
-      toast.success("Auto-buy retry queued")
+      toast.success(t("retryQueued"))
       await load()
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Retry failed")
+    } catch {
+      toast.error(t("retryFailed"))
     } finally {
       setBusyId(null)
     }
@@ -113,10 +122,10 @@ export function SupplierFulfillmentGroupsPanel() {
 
   if (loading) {
     return (
-      <BentoCard className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
+      <Card className="flex items-center gap-2 border-zinc-200/90 p-5 text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
         <Loader2 className="size-4 animate-spin" aria-hidden />
-        Loading fulfillment parcels…
-      </BentoCard>
+        {t("loading")}
+      </Card>
     )
   }
 
@@ -124,10 +133,14 @@ export function SupplierFulfillmentGroupsPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">Fulfillment parcels (split orders)</h2>
-        <Button type="button" variant="outline" size="sm" onClick={() => void load()}>
-          Refresh
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">{t("title")}</h2>
+          <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{t("subtitle")}</p>
+        </div>
+        <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={() => void load()}>
+          <RefreshCw className="size-3.5" aria-hidden />
+          {t("refresh")}
         </Button>
       </div>
 
@@ -139,18 +152,18 @@ export function SupplierFulfillmentGroupsPanel() {
         const draft = trackingDraft[group.id] ?? { carrier: "", number: "" }
 
         return (
-          <BentoCard key={group.id} className="space-y-4 p-5">
+          <Card key={group.id} className="space-y-4 border-zinc-200/90 p-5 dark:border-zinc-700">
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {group.provider ?? "Manual"} · {STATUS_LABEL[group.status] ?? group.status}
+              <div className="min-w-0">
+                <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                  {group.provider ?? t("provider")} · {statusLabel(group.status, t)}
                 </p>
-                <p className="mt-1 font-medium">
+                <p className="mt-1 font-medium text-zinc-900 dark:text-zinc-50">
                   {group.items.map((i) => i.order.productName).join(", ")}
                 </p>
                 {group.externalOrderId ? (
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    External order #{group.externalOrderId}
+                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                    {t("externalOrderRef", { id: group.externalOrderId })}
                   </p>
                 ) : null}
                 {group.error ? (
@@ -162,7 +175,7 @@ export function SupplierFulfillmentGroupsPanel() {
               </div>
               <span
                 className={cn(
-                  "rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                  "shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold",
                   group.status === "SHIPPED" || group.status === "DELIVERED"
                     ? "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"
                     : group.status === "FAILED"
@@ -170,14 +183,14 @@ export function SupplierFulfillmentGroupsPanel() {
                       : "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200"
                 )}
               >
-                {STATUS_LABEL[group.status] ?? group.status}
+                {statusLabel(group.status, t)}
               </span>
             </div>
 
             {group.trackingNumber ? (
               <div className="flex flex-wrap items-center gap-2 text-sm">
-                <Truck className="size-4 text-muted-foreground" aria-hidden />
-                <span>
+                <Truck className="size-4 text-zinc-400" aria-hidden />
+                <span className="text-zinc-800 dark:text-zinc-200">
                   {group.trackingCarrier} · {group.trackingNumber}
                 </span>
                 {group.trackingUrl ? (
@@ -187,7 +200,7 @@ export function SupplierFulfillmentGroupsPanel() {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-violet-600 hover:underline dark:text-violet-400"
                   >
-                    Track
+                    {t("track")}
                     <ExternalLink className="size-3.5" aria-hidden />
                   </Link>
                 ) : null}
@@ -195,7 +208,7 @@ export function SupplierFulfillmentGroupsPanel() {
             ) : canTrack ? (
               <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto_auto]">
                 <Input
-                  placeholder="Carrier (e.g. Colissimo)"
+                  placeholder={t("carrierPlaceholder")}
                   value={draft.carrier}
                   onChange={(e) =>
                     setTrackingDraft((prev) => ({
@@ -205,7 +218,7 @@ export function SupplierFulfillmentGroupsPanel() {
                   }
                 />
                 <Input
-                  placeholder="Tracking number"
+                  placeholder={t("trackingPlaceholder")}
                   value={draft.number}
                   onChange={(e) =>
                     setTrackingDraft((prev) => ({
@@ -225,7 +238,7 @@ export function SupplierFulfillmentGroupsPanel() {
                   ) : (
                     <>
                       <Package className="size-4" aria-hidden />
-                      Add tracking
+                      {t("addTracking")}
                     </>
                   )}
                 </Button>
@@ -238,7 +251,7 @@ export function SupplierFulfillmentGroupsPanel() {
                     onClick={() => void retryAutoBuy(group.id)}
                   >
                     <RefreshCw className="size-4" aria-hidden />
-                    Retry auto-buy
+                    {t("retryAutoBuy")}
                   </Button>
                 ) : null}
               </div>
@@ -249,13 +262,13 @@ export function SupplierFulfillmentGroupsPanel() {
                 <Link
                   key={item.orderId}
                   href={`/dashboard/supplier/orders?highlight=${item.orderId}`}
-                  className="text-xs text-muted-foreground hover:text-foreground hover:underline"
+                  className="text-xs text-zinc-500 hover:text-zinc-900 hover:underline dark:text-zinc-400 dark:hover:text-zinc-100"
                 >
-                  Order {item.orderId.slice(-6)} · qty {item.quantity}
+                  {t("orderRef", { id: item.orderId.slice(-6), qty: item.quantity })}
                 </Link>
               ))}
             </div>
-          </BentoCard>
+          </Card>
         )
       })}
     </div>

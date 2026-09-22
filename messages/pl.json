@@ -3603,7 +3603,10 @@
       "title": "Zamówienia do wysyłki",
       "description": "Opłacone zamówienia trafiają tutaj — potwierdź przygotowanie, a następnie dodaj śledzenie, gdy paczka zostanie wysłana.",
       "back": "Wróć do panelu",
-      "awaitingShipment": "{count} oczekujących na wysyłkę"
+      "awaitingShipment": "{count} oczekujących na wysyłkę",
+      "statToShip": "Oczekuje na wysyłkę",
+      "statOverdue": "Zaległe",
+      "statShippedToday": "Wysłane dzisiaj"
     },
     "status": {
       "paid": "Oczekuje na pakowanie",
@@ -3636,7 +3639,37 @@
       "partnerCommissionTitle": "Komisja partnera na Twojej cenie katalogowej — już odjęta od „Twojego wynagrodzenia”",
       "partnerStoreTitle": "Sprzedano za pośrednictwem sklepu partnera {code}",
       "partnerStoreRef": "Sklep partnera {code}"
-    }
+    },
+    "splitGroups": {
+      "title": "Paczki z podzielonych zamówień",
+      "subtitle": "Niektóre zamówienia są wysyłane z kilku magazynów — śledź tu każdą paczkę.",
+      "refresh": "Odśwież",
+      "loadError": "Nie udało się załadować paczek",
+      "loading": "Ładowanie paczek…",
+      "statusPending": "Oczekuje",
+      "statusAutoBuying": "Trwa zakup u dostawcy…",
+      "statusAwaiting": "Oczekuje na wysyłkę",
+      "statusShipped": "Wysłano",
+      "statusDelivered": "Dostarczono",
+      "statusFailed": "Błąd",
+      "statusCancelled": "Anulowano",
+      "provider": "Ręcznie",
+      "externalOrderRef": "Zamówienie zewnętrzne nr {id}",
+      "carrierPlaceholder": "Przewoźnik (np. Colissimo)",
+      "trackingPlaceholder": "Numer przesyłki",
+      "addTracking": "Dodaj numer przesyłki",
+      "retryAutoBuy": "Ponów",
+      "track": "Śledź",
+      "carrierRequired": "Przewoźnik i numer przesyłki są wymagane",
+      "trackingSaved": "Numer przesyłki zapisany — kupujący powiadomiony",
+      "updateFailed": "Nie udało się zapisać numeru przesyłki",
+      "retryQueued": "Ponowna próba w kolejce",
+      "retryFailed": "Nie udało się ponowić",
+      "orderRef": "Zamówienie {id} · ilość {qty}"
+    },
+    "blindBadge": "Blind",
+    "returnOpen": "Otwarty zwrot ({status}) —",
+    "returnInbox": "Skrzynka odbiorcza"
   },
   "storefront": {
     "flashSale": {

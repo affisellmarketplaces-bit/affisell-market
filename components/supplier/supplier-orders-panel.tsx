@@ -635,7 +635,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                         <div className="flex shrink-0 flex-wrap items-center gap-1">
                           {o.fulfillmentSource === "blind_dropship" ? (
                             <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-violet-900 dark:bg-violet-950/60 dark:text-violet-200">
-                              Blind
+                              {msg("blindBadge")}
                             </span>
                           ) : null}
                           <span
@@ -703,9 +703,9 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
 
                       {o.openReturn ? (
                         <p className="mt-2 text-[11px] text-amber-800 dark:text-amber-200">
-                          Return open ({o.openReturn.status}) —{" "}
+                          {msg("returnOpen", { status: o.openReturn.status })}{" "}
                           <Link href="/dashboard/supplier/returns" className="font-semibold underline">
-                            Inbox
+                            {msg("returnInbox")}
                           </Link>
                         </p>
                       ) : null}
@@ -714,7 +714,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                         <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-emerald-200/80 bg-emerald-50/90 px-3 py-2 text-sm text-emerald-950 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-100">
                           <Truck className="size-4 shrink-0" aria-hidden />
                           <span className="min-w-0 flex-1 truncate font-medium">
-                            {o.trackingCarrier ?? "Carrier"} · {o.trackingNumber}
+                            {o.trackingCarrier ?? msg("actions.carrier")} · {o.trackingNumber}
                           </span>
                           <Link
                             href={`/shipping/verify?code=${encodeURIComponent(o.trackingNumber)}`}

@@ -3603,7 +3603,10 @@
       "title": "Commandes à expédier",
       "description": "Les commandes payées s'affichent ici — confirmez la préparation, puis ajoutez le suivi dès l'envoi du colis.",
       "back": "Retour au tableau de bord",
-      "awaitingShipment": "{count} en attente d'expédition"
+      "awaitingShipment": "{count} en attente d'expédition",
+      "statToShip": "À expédier",
+      "statOverdue": "En retard",
+      "statShippedToday": "Expédiées aujourd'hui"
     },
     "status": {
       "paid": "À préparer",
@@ -3636,7 +3639,37 @@
       "partnerCommissionTitle": "Commission affilié sur votre prix catalogue — déjà déduite du montant « Votre versement »",
       "partnerStoreTitle": "Vente via la vitrine affilié {code}",
       "partnerStoreRef": "Vitrine partenaire {code}"
-    }
+    },
+    "splitGroups": {
+      "title": "Colis à commandes fractionnées",
+      "subtitle": "Certaines commandes partent de plusieurs entrepôts — suivez chaque colis ici.",
+      "refresh": "Actualiser",
+      "loadError": "Impossible de charger les colis",
+      "loading": "Chargement des colis…",
+      "statusPending": "En attente",
+      "statusAutoBuying": "Achat fournisseur en cours…",
+      "statusAwaiting": "En attente d'expédition",
+      "statusShipped": "Expédié",
+      "statusDelivered": "Livré",
+      "statusFailed": "Échec",
+      "statusCancelled": "Annulé",
+      "provider": "Manuel",
+      "externalOrderRef": "Commande externe n° {id}",
+      "carrierPlaceholder": "Transporteur (ex. Colissimo)",
+      "trackingPlaceholder": "Numéro de suivi",
+      "addTracking": "Ajouter le suivi",
+      "retryAutoBuy": "Réessayer",
+      "track": "Suivre",
+      "carrierRequired": "Le transporteur et le numéro de suivi sont requis",
+      "trackingSaved": "Suivi enregistré — acheteur informé",
+      "updateFailed": "Impossible d'enregistrer le suivi",
+      "retryQueued": "Nouvel essai en file d'attente",
+      "retryFailed": "Impossible de réessayer",
+      "orderRef": "Commande {id} · qté {qty}"
+    },
+    "blindBadge": "Blind",
+    "returnOpen": "Retour ouvert ({status}) —",
+    "returnInbox": "Boîte de réception"
   },
   "storefront": {
     "flashSale": {

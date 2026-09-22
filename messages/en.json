@@ -3603,7 +3603,10 @@
       "title": "Orders to ship",
       "description": "Paid orders queue here — confirm prep, then add tracking when the parcel leaves.",
       "back": "Back to dashboard",
-      "awaitingShipment": "{count} awaiting shipment"
+      "awaitingShipment": "{count} awaiting shipment",
+      "statToShip": "Awaiting shipment",
+      "statOverdue": "Overdue",
+      "statShippedToday": "Shipped today"
     },
     "status": {
       "paid": "Awaiting packing",
@@ -3636,7 +3639,37 @@
       "partnerCommissionTitle": "Affiliate commission on your catalog price — already deducted from “Your payout”",
       "partnerStoreTitle": "Sold via partner storefront {code}",
       "partnerStoreRef": "Partner storefront {code}"
-    }
+    },
+    "splitGroups": {
+      "title": "Split-order parcels",
+      "subtitle": "Some orders ship from more than one warehouse — track each parcel here.",
+      "refresh": "Refresh",
+      "loadError": "Could not load parcels",
+      "loading": "Loading parcels…",
+      "statusPending": "Pending",
+      "statusAutoBuying": "Buying from supplier…",
+      "statusAwaiting": "Awaiting shipment",
+      "statusShipped": "Shipped",
+      "statusDelivered": "Delivered",
+      "statusFailed": "Failed",
+      "statusCancelled": "Cancelled",
+      "provider": "Manual",
+      "externalOrderRef": "External order #{id}",
+      "carrierPlaceholder": "Carrier (e.g. Colissimo)",
+      "trackingPlaceholder": "Tracking number",
+      "addTracking": "Add tracking",
+      "retryAutoBuy": "Retry",
+      "track": "Track",
+      "carrierRequired": "Carrier and tracking number are required",
+      "trackingSaved": "Tracking saved — buyer notified",
+      "updateFailed": "Could not save tracking",
+      "retryQueued": "Retry queued",
+      "retryFailed": "Could not retry",
+      "orderRef": "Order {id} · qty {qty}"
+    },
+    "blindBadge": "Blind",
+    "returnOpen": "Return open ({status}) —",
+    "returnInbox": "Inbox"
   },
   "storefront": {
     "flashSale": {

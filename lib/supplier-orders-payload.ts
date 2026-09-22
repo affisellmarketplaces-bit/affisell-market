@@ -376,6 +376,37 @@ export async function countSupplierOrdersToShip(supplierId: string): Promise<num
   return marketplace + blind
 }
 
+export type SupplierOrdersOverview = {
+  toShip: number
+  /** Ship SLA deadline already passed, still unshipped — the marketplace order count only (blind dropship has its own SLA). */
+  overdue: number
+  shippedToday: number
+}
+
+/** Header stats for the orders page — same shape whether one or three numbers are shown. */
+export async function loadSupplierOrdersOverview(supplierId: string): Promise<SupplierOrdersOverview> {
+  const startOfToday = new Date()
+  startOfToday.setHours(0, 0, 0, 0)
+
+  const [toShip, unshippedForSla, shippedToday] = await Promise.all([
+    countSupplierOrdersToShip(supplierId),
+    prisma.order.findMany({
+      where: { supplierId, status: { in: ["paid", "preparing"] } },
+      select: { shipDeadlineAt: true, paidAt: true, createdAt: true },
+    }),
+    prisma.order.count({
+      where: { supplierId, status: "shipped", shippedAt: { gte: startOfToday } },
+    }),
+  ])
+
+  const now = Date.now()
+  const overdue = unshippedForSla.filter(
+    (o) => resolveShipDeadlineAt(o).getTime() < now
+  ).length
+
+  return { toShip, overdue, shippedToday }
+}
+
 /** True when id is a blind dropship order owned by this supplier (no manual mark-shipped). */
 export async function isSupplierBlindDropshipOrder(
   orderId: string,

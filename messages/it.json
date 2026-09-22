@@ -3603,7 +3603,10 @@
       "title": "Ordini da spedire",
       "description": "Gli ordini pagati si accumulano qui — conferma la preparazione, poi aggiungi il tracciamento quando il pacco parte.",
       "back": "Torna alla dashboard",
-      "awaitingShipment": "{count} in attesa di spedizione"
+      "awaitingShipment": "{count} in attesa di spedizione",
+      "statToShip": "In attesa di spedizione",
+      "statOverdue": "In ritardo",
+      "statShippedToday": "Spediti oggi"
     },
     "status": {
       "paid": "In attesa di imballaggio",
@@ -3636,7 +3639,37 @@
       "partnerCommissionTitle": "Commissione affiliata sul prezzo del tuo catalogo — già dedotta dal \"Tuo pagamento\"",
       "partnerStoreTitle": "Venduto tramite negozio partner {code}",
       "partnerStoreRef": "Negozio partner {code}"
-    }
+    },
+    "splitGroups": {
+      "title": "Pacchi degli ordini divisi",
+      "subtitle": "Alcuni ordini vengono spediti da più magazzini — segui qui ogni pacco.",
+      "refresh": "Aggiorna",
+      "loadError": "Impossibile caricare i pacchi",
+      "loading": "Caricamento pacchi…",
+      "statusPending": "In attesa",
+      "statusAutoBuying": "Acquisto dal fornitore in corso…",
+      "statusAwaiting": "In attesa di spedizione",
+      "statusShipped": "Spedito",
+      "statusDelivered": "Consegnato",
+      "statusFailed": "Errore",
+      "statusCancelled": "Annullato",
+      "provider": "Manuale",
+      "externalOrderRef": "Ordine esterno n. {id}",
+      "carrierPlaceholder": "Corriere (es. Colissimo)",
+      "trackingPlaceholder": "Numero di tracciamento",
+      "addTracking": "Aggiungi tracciamento",
+      "retryAutoBuy": "Riprova",
+      "track": "Traccia",
+      "carrierRequired": "Corriere e numero di tracciamento sono obbligatori",
+      "trackingSaved": "Tracciamento salvato — acquirente avvisato",
+      "updateFailed": "Impossibile salvare il tracciamento",
+      "retryQueued": "Nuovo tentativo in coda",
+      "retryFailed": "Impossibile riprovare",
+      "orderRef": "Ordine {id} · qtà {qty}"
+    },
+    "blindBadge": "Cieco",
+    "returnOpen": "Reso aperto ({status}) —",
+    "returnInbox": "Posta in arrivo"
   },
   "storefront": {
     "flashSale": {
