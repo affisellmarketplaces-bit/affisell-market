@@ -2,6 +2,8 @@ import type { FulfillmentProvider } from "@prisma/client"
 
 import { decryptProviderConfig } from "@/lib/suppliers/decrypt-config"
 import { RestSupplierAdapter } from "@/lib/suppliers/rest-adapter"
+import { CjDropshippingSupplierAdapter } from "@/lib/suppliers/adapters/cj-dropshipping.adapter"
+import { fulfillmentProviderToContext } from "@/lib/suppliers/factory"
 
 export type ConnectionTestResult = {
   ok: boolean
@@ -12,7 +14,7 @@ export type ConnectionTestResult = {
 export async function testFulfillmentProviderConnection(
   provider: Pick<
     FulfillmentProvider,
-    "channelType" | "apiConfig" | "credentialsEncrypted"
+    "id" | "slug" | "name" | "channelType" | "apiConfig" | "credentialsEncrypted" | "stripeConnectAccountId" | "slaHours"
   >
 ): Promise<ConnectionTestResult> {
   const started = Date.now()
@@ -24,6 +26,12 @@ export async function testFulfillmentProviderConnection(
       message: "No external API — in-platform fulfillment",
       latencyMs: Date.now() - started,
     }
+  }
+
+  if (provider.channelType === "CJ_DROPSHIPPING") {
+    const adapter = new CjDropshippingSupplierAdapter(fulfillmentProviderToContext(provider as FulfillmentProvider))
+    const result = await adapter.testConnection()
+    return { ...result, latencyMs: Date.now() - started }
   }
 
   const endpoint =

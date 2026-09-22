@@ -2,6 +2,7 @@ import type { FulfillmentProvider, SupplierChannelType } from "@prisma/client"
 
 import { AliExpressSupplierAdapter } from "@/lib/suppliers/adapters/aliexpress.adapter"
 import { BlindRestSupplierAdapter } from "@/lib/suppliers/adapters/blind-rest.adapter"
+import { CjDropshippingSupplierAdapter } from "@/lib/suppliers/adapters/cj-dropshipping.adapter"
 import { ManualSupplierAdapter } from "@/lib/suppliers/adapters/manual.adapter"
 import { NativeSupplierAdapter } from "@/lib/suppliers/adapters/native.adapter"
 import { StubChannelSupplierAdapter } from "@/lib/suppliers/adapters/stub-channel.adapter"
@@ -40,6 +41,7 @@ export function createSupplierAdapterFromContext(ctx: SupplierContext): BaseSupp
     case "MANUAL":
       return new ManualSupplierAdapter(ctx)
     case "CJ_DROPSHIPPING":
+      return new CjDropshippingSupplierAdapter(ctx)
     case "TEMU":
     case "BIGBUY":
     case "ZENDROP":

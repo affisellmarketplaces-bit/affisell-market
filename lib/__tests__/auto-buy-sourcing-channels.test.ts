@@ -19,11 +19,10 @@ describe("auto-buy-sourcing-channels", () => {
     expect(isAutoBuySourcingChannel("MANUAL")).toBe(false)
   })
 
-  it("only AliExpress has a real integration today — the rest are honest stubs", () => {
-    expect(hasLiveAutoBuyIntegration("ALIEXPRESS")).toBe(true)
+  it("only AliExpress and CJ Dropshipping have a real integration today — the rest are honest stubs", () => {
+    const live = new Set(["ALIEXPRESS", "CJ_DROPSHIPPING"])
     for (const channel of AUTO_BUY_SOURCING_CHANNELS) {
-      if (channel === "ALIEXPRESS") continue
-      expect(hasLiveAutoBuyIntegration(channel)).toBe(false)
+      expect(hasLiveAutoBuyIntegration(channel)).toBe(live.has(channel))
     }
   })
 })

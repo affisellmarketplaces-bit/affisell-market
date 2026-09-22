@@ -26,7 +26,10 @@ export function isAutoBuySourcingChannel(
 }
 
 /** Channels with a real API integration today — the rest fall back to a manual job. */
-export const AUTO_BUY_LIVE_CHANNELS = ["ALIEXPRESS"] as const satisfies readonly SupplierChannelType[]
+export const AUTO_BUY_LIVE_CHANNELS = [
+  "ALIEXPRESS",
+  "CJ_DROPSHIPPING",
+] as const satisfies readonly SupplierChannelType[]
 
 export function hasLiveAutoBuyIntegration(channel: SupplierChannelType): boolean {
   return (AUTO_BUY_LIVE_CHANNELS as readonly string[]).includes(channel)
