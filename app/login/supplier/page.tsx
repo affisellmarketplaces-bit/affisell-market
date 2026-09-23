@@ -27,6 +27,12 @@ export default async function SupplierLoginPage({ searchParams }: Props) {
     if (role === "CUSTOMER") {
       redirect("/shops")
     }
+    if (role === "AGENT") {
+      redirect("/dashboard/agent")
+    }
+    if (role === "ADMIN") {
+      redirect(resolvePostLoginRedirect("ADMIN", callbackUrl))
+    }
   }
 
   const t = await getTranslations("auth")

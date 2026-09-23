@@ -21,8 +21,8 @@ export default async function AdminLoginPage({ searchParams }: Props) {
   const t = await getTranslations("auth")
   const tAdmin = await getTranslations("auth.adminLogin")
 
-  if (session?.user?.id && role === "ADMIN") {
-    redirect(resolvePostLoginRedirect("ADMIN", callbackUrl))
+  if (session?.user?.id && role) {
+    redirect(resolvePostLoginRedirect(role, role === "ADMIN" ? callbackUrl : null))
   }
 
   return (

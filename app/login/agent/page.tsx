@@ -24,6 +24,7 @@ export default async function AgentLoginPage({ searchParams }: Props) {
     if (role === "SUPPLIER") redirect("/dashboard/supplier")
     if (role === "AFFILIATE") redirect("/dashboard/affiliate")
     if (role === "ADMIN") redirect("/admin/agents")
+    if (role === "CUSTOMER") redirect(callbackUrl ?? "/shops")
   }
 
   const t = await getTranslations("auth")

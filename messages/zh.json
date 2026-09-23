@@ -792,6 +792,7 @@
         "non_affiliate_on_affiliate_portal": "登录被拒绝：只有推广员账户允许在此登录。",
         "non_supplier_on_supplier_portal": "登录被拒绝：只有供应商账户允许在此登录。",
         "non_agent_on_agent_portal": "登录被拒：此处仅允许 Affisell 代理账户登录。",
+        "non_admin_on_admin_portal": "登录被拒：此处仅允许 Affisell 管理员账户登录。",
         "email_required_not_id": "登录被拒绝：请输入您的电子邮件地址（不是内部 ID）。",
         "csrf": "Security check failed (common with tracking protection or VPN). Refresh, allow cookies for affisell.com, then try again."
       },

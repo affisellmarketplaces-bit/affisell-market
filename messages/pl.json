@@ -792,6 +792,7 @@
         "non_affiliate_on_affiliate_portal": "Zalogowanie odmówione: tylko konta partnerów są tutaj dozwolone.",
         "non_supplier_on_supplier_portal": "Zalogowanie odmówione: tylko konta dostawców są tutaj dozwolone.",
         "non_agent_on_agent_portal": "Odmowa logowania: tutaj dozwolone są tylko konta agentów Affisell.",
+        "non_admin_on_admin_portal": "Odmowa logowania: tutaj dozwolone są tylko konta administratora Affisell.",
         "email_required_not_id": "Zalogowanie odmówione: podaj adres e-mail (nie ID wewnętrzne).",
         "csrf": "Kontrola bezpieczeństwa nie powiodła się (często ochrona przed śledzeniem lub VPN). Odśwież stronę, zezwól na pliki cookie dla affisell.com i spróbuj ponownie."
       },

@@ -792,6 +792,7 @@
         "non_affiliate_on_affiliate_portal": "Accesso negato: solo gli account affiliati sono consentiti qui.",
         "non_supplier_on_supplier_portal": "Accesso negato: solo gli account del fornitore sono consentiti qui.",
         "non_agent_on_agent_portal": "Accesso negato: qui sono ammessi solo account agente Affisell.",
+        "non_admin_on_admin_portal": "Accesso negato: qui sono ammessi solo account amministratore Affisell.",
         "email_required_not_id": "Accesso negato: inserisci l'indirizzo email (non un ID interno).",
         "csrf": "Controllo di sicurezza non riuscito (comune con protezione tracking o VPN). Aggiorna la pagina, consenti i cookie per affisell.com e riprova."
       },

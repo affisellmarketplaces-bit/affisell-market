@@ -30,6 +30,11 @@ export class NonAgentOnAgentPortal extends CredentialsSignin {
   code = "non_agent_on_agent_portal"
 }
 
+/** Non-ADMIN role on the admin login target. */
+export class NonAdminOnAdminPortal extends CredentialsSignin {
+  code = "non_admin_on_admin_portal"
+}
+
 export class EmailIdentifierRequired extends CredentialsSignin {
   code = "email_required_not_id"
 }
