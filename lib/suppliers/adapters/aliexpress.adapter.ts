@@ -1,5 +1,6 @@
 import type { SupplierChannelType } from "@prisma/client"
 
+import { cancelAliExpressDsOrder } from "@/lib/aliexpress-ds-cancel-order"
 import { placeAliExpressDsOrder } from "@/lib/fulfillment/ae-ds-order"
 import { BaseSupplierAdapter, type OrderStatusDTO } from "@/lib/suppliers/base.adapter"
 import type { InventoryDTO, PlaceOrderDTO, SupplierOrderResult } from "@/lib/suppliers/dto"
@@ -82,14 +83,21 @@ export class AliExpressSupplierAdapter extends BaseSupplierAdapter {
   }
 
   /**
-   * No AliExpress cancel/after-sales API is wired here — this used to silently resolve as if
-   * cancellation had succeeded, which is wrong (callers took that as confirmation nothing was
-   * charged). Throwing lets callers (e.g. cancelSupplierFulfillmentJob) correctly treat this as
-   * "needs manual cancellation," matching the convention BaseSupplierAdapter callers expect.
+   * Calls AliExpress's `aliexpress.ds.order.afterpay` — the only order-cancellation method its
+   * Open Platform exposes to a dropshipper (confirmed against the live API reference; there is
+   * no `*.order.cancel` method). AliExpress doesn't document whether a successful call is an
+   * instant cancel or still needs seller approval, so this only resolves (= "cancelled" to
+   * every caller of this interface) when the call is accepted; anything else throws, so callers
+   * (cancelSupplierFulfillmentJob, the automatic refund guard) correctly fall back to treating
+   * it as needing manual follow-up rather than reporting a false success.
    */
-  async cancelOrder(_supplierOrderId: string): Promise<void> {
+  async cancelOrder(supplierOrderId: string): Promise<void> {
     return this.withObservability("aliexpress.cancelOrder", async () => {
-      throw new Error("not_supported: aliexpress_cancel_no_api")
+      const result = await cancelAliExpressDsOrder(supplierOrderId)
+      if (!result.ok || !result.requested) {
+        const reason = result.ok ? "afterpay_declined" : result.error
+        throw new Error(`not_supported: aliexpress_cancel_${reason}`)
+      }
     })
   }
 

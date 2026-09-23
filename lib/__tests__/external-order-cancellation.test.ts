@@ -7,6 +7,7 @@ const {
   supplierFulfillmentOrderUpdateMock,
   resolveAdapterMock,
   cancelOrderMock,
+  cancelAliExpressDsOrderMock,
 } = vi.hoisted(() => ({
   fulfillmentLogFindUniqueMock: vi.fn(),
   fulfillmentLogUpdateMock: vi.fn(),
@@ -14,6 +15,7 @@ const {
   supplierFulfillmentOrderUpdateMock: vi.fn(),
   resolveAdapterMock: vi.fn(),
   cancelOrderMock: vi.fn(),
+  cancelAliExpressDsOrderMock: vi.fn(),
 }))
 
 vi.mock("@/lib/prisma", () => ({
@@ -33,6 +35,10 @@ vi.mock("@/lib/prisma", () => ({
 
 vi.mock("@/lib/suppliers/place-order-bridge", () => ({
   resolveSupplierAdapterForGroup: resolveAdapterMock,
+}))
+
+vi.mock("@/lib/aliexpress-ds-cancel-order", () => ({
+  cancelAliExpressDsOrder: cancelAliExpressDsOrderMock,
 }))
 
 import { attemptExternalOrderCancellation } from "@/lib/fulfillment/external-order-cancellation"
@@ -60,23 +66,84 @@ describe("attemptExternalOrderCancellation", () => {
     expect(result).toEqual({ outcome: "not_applicable" })
   })
 
-  it("flags AliExpress auto-buy orders as manual_required — no automated cancel API exists", async () => {
+  it("marks REQUESTED (not CANCELLED) when AliExpress's afterpay API accepts the cancellation", async () => {
     fulfillmentLogFindUniqueMock.mockResolvedValue({
       status: "BOUGHT",
       aeOrderId: "ae-123",
       externalCancelStatus: "NOT_ATTEMPTED",
     })
+    cancelAliExpressDsOrderMock.mockResolvedValue({
+      ok: true,
+      requested: true,
+      orderStatusAfter: "WAIT_SELLER_SEND_GOODS",
+      host: "https://api-sg.aliexpress.com/sync",
+    })
+
     const result = await attemptExternalOrderCancellation("order_3")
-    expect(result).toEqual({ outcome: "manual_required", reason: "aliexpress_no_cancel_api", channel: "ALIEXPRESS" })
+
+    expect(cancelAliExpressDsOrderMock).toHaveBeenCalledWith("ae-123")
+    expect(result.outcome).toBe("requested")
     expect(fulfillmentLogUpdateMock).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { orderId: "order_3" },
-        data: expect.objectContaining({ externalCancelStatus: "MANUAL_REQUIRED" }),
+        data: expect.objectContaining({ externalCancelStatus: "REQUESTED" }),
       })
     )
   })
 
-  it("is idempotent — a second call on an already-handled AE order doesn't re-alert", async () => {
+  it("falls back to manual_required when AliExpress declines the cancellation request", async () => {
+    fulfillmentLogFindUniqueMock.mockResolvedValue({
+      status: "BOUGHT",
+      aeOrderId: "ae-124",
+      externalCancelStatus: "NOT_ATTEMPTED",
+    })
+    cancelAliExpressDsOrderMock.mockResolvedValue({
+      ok: true,
+      requested: false,
+      orderStatusAfter: "WAIT_SELLER_SEND_GOODS",
+      host: "https://api-sg.aliexpress.com/sync",
+    })
+
+    const result = await attemptExternalOrderCancellation("order_3b")
+
+    expect(result).toEqual({
+      outcome: "manual_required",
+      reason: "aliexpress_afterpay_declined",
+      channel: "ALIEXPRESS",
+    })
+  })
+
+  it("falls back to manual_required when the AliExpress API call itself fails", async () => {
+    fulfillmentLogFindUniqueMock.mockResolvedValue({
+      status: "BOUGHT",
+      aeOrderId: "ae-125",
+      externalCancelStatus: "NOT_ATTEMPTED",
+    })
+    cancelAliExpressDsOrderMock.mockResolvedValue({ ok: false, error: "aliexpress_api_not_configured" })
+
+    const result = await attemptExternalOrderCancellation("order_3c")
+
+    expect(result).toEqual({
+      outcome: "manual_required",
+      reason: "aliexpress_api_not_configured",
+      channel: "ALIEXPRESS",
+    })
+  })
+
+  it("flags manual_required without calling the AliExpress API when aeOrderId is missing", async () => {
+    fulfillmentLogFindUniqueMock.mockResolvedValue({
+      status: "BOUGHT",
+      aeOrderId: null,
+      externalCancelStatus: "NOT_ATTEMPTED",
+    })
+
+    const result = await attemptExternalOrderCancellation("order_3d")
+
+    expect(cancelAliExpressDsOrderMock).not.toHaveBeenCalled()
+    expect(result).toEqual({ outcome: "manual_required", reason: "missing_ae_order_id", channel: "ALIEXPRESS" })
+  })
+
+  it("is idempotent — a second call on an already-handled AE order doesn't re-attempt", async () => {
     fulfillmentLogFindUniqueMock.mockResolvedValue({
       status: "BOUGHT",
       aeOrderId: "ae-123",
@@ -85,6 +152,7 @@ describe("attemptExternalOrderCancellation", () => {
     const result = await attemptExternalOrderCancellation("order_4")
     expect(result).toEqual({ outcome: "already_handled", status: "MANUAL_REQUIRED" })
     expect(fulfillmentLogUpdateMock).not.toHaveBeenCalled()
+    expect(cancelAliExpressDsOrderMock).not.toHaveBeenCalled()
   })
 
   it("actually cancels via a trusted channel (CJ Dropshipping) and marks the job cancelled", async () => {

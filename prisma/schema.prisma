@@ -3449,6 +3449,13 @@ model FulfillmentLog {
 /** Outcome of attempting to cancel an already-placed upstream (AliExpress/CJ/…) order after a refund. */
 enum ExternalCancelStatus {
   NOT_ATTEMPTED
+  /**
+   * A real cancellation API accepted the request (e.g. AliExpress's aliexpress.ds.order.afterpay),
+   * but AliExpress doesn't document whether that's an instant cancel or one still subject to
+   * seller approval — kept distinct from CANCELLED (a channel with a verified, unambiguous
+   * cancel outcome, e.g. CJ Dropshipping) so a human can still double-check.
+   */
+  REQUESTED
   CANCELLED
   MANUAL_REQUIRED
   FAILED

@@ -586,11 +586,11 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
                 barPct={logPct(stats.logsRefunded)}
               />
               <AutoFulfillMetricTile
-                label="Annulation manuelle requise"
+                label="Annulation à vérifier"
                 value={stats.logsNeedingManualCancel}
                 tone={stats.logsNeedingManualCancel > 0 ? "rose" : "zinc"}
                 icon={AlertTriangle}
-                hint="Achat AliExpress/CJ déjà passé, remboursé côté Affisell — annulez-le manuellement chez le fournisseur upstream."
+                hint="Achat AliExpress/CJ déjà passé, remboursé côté Affisell — annulation demandée ou action manuelle requise chez le fournisseur upstream."
               />
             </div>
           </div>
@@ -599,16 +599,27 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
         {data && data.logsNeedingManualCancel.length > 0 ? (
           <AutoFulfillSectionShell
             eyebrow="Argent en jeu"
-            title="Annulations manuelles requises"
-            description="Ces commandes ont été remboursées côté Affisell après que l'achat upstream (AliExpress/CJ) avait déjà été passé. Le système n'a pas pu annuler automatiquement — allez annuler/demander un remboursement manuellement sur le site fournisseur pour ne pas perdre cet argent."
+            title="Annulations upstream à vérifier"
+            description="Ces commandes ont été remboursées côté Affisell après que l'achat upstream (AliExpress/CJ) avait déjà été passé. « Demandée » = une annulation a été envoyée à AliExpress mais son acceptation n'est pas garantie (vérifiez). « Action requise » = aucune annulation automatique n'a pu être tentée — allez annuler/demander un remboursement manuellement sur le site fournisseur."
           >
             <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
               {data.logsNeedingManualCancel.map((log) => (
                 <li key={log.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-                      {log.productName}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+                        {log.productName}
+                      </p>
+                      {log.externalCancelStatus === "REQUESTED" ? (
+                        <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                          Demandée — à vérifier
+                        </span>
+                      ) : (
+                        <span className="shrink-0 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-rose-800 dark:bg-rose-950/40 dark:text-rose-300">
+                          Action requise
+                        </span>
+                      )}
+                    </div>
                     <p className="mt-0.5 text-xs text-zinc-500">
                       Commande {log.orderId} · {log.customerEmail}
                       {log.aeOrderId ? ` · AE #${log.aeOrderId}` : ""}

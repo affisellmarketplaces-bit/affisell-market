@@ -142,7 +142,7 @@ export async function loadAdminAutoFulfillDashboard(
     prisma.fulfillmentLog.count({ where: { status: "BOUGHT" } }),
     prisma.fulfillmentLog.count({ where: { status: "FAILED" } }),
     prisma.fulfillmentLog.count({ where: { status: "REFUNDED" } }),
-    prisma.fulfillmentLog.count({ where: { externalCancelStatus: "MANUAL_REQUIRED" } }),
+    prisma.fulfillmentLog.count({ where: { externalCancelStatus: { in: ["MANUAL_REQUIRED", "REQUESTED"] } } }),
     prisma.autoBuyEnlistRequest.count({ where: { status: "PENDING_REVIEW" } }),
     prisma.product.count({
       where: {
@@ -185,7 +185,7 @@ export async function loadAdminAutoFulfillDashboard(
       include: fulfillmentLogInclude,
     }),
     prisma.fulfillmentLog.findMany({
-      where: { externalCancelStatus: "MANUAL_REQUIRED" },
+      where: { externalCancelStatus: { in: ["MANUAL_REQUIRED", "REQUESTED"] } },
       take: 20,
       orderBy: { externalCancelAttemptedAt: "desc" },
       include: fulfillmentLogInclude,

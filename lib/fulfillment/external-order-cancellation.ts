@@ -2,6 +2,7 @@ import "server-only"
 
 import * as Sentry from "@sentry/nextjs"
 
+import { cancelAliExpressDsOrder } from "@/lib/aliexpress-ds-cancel-order"
 import { resolveSupplierAdapterForGroup } from "@/lib/suppliers/place-order-bridge"
 import { prisma } from "@/lib/prisma"
 
@@ -11,13 +12,17 @@ import { prisma } from "@/lib/prisma"
  * order so Affisell isn't left holding wholesale cost it can never recover.
  *
  * Two fulfillment paths exist in this codebase and are checked in order:
- *  1. Legacy AE auto-buy (`FulfillmentLog` — see lib/fulfillment/auto-buy.ts). AliExpress has
- *     no cancel/after-sales API wired here at all, so this path is always MANUAL_REQUIRED —
- *     never silently reported as cancelled.
+ *  1. Legacy AE auto-buy (`FulfillmentLog` — see lib/fulfillment/auto-buy.ts), the path real
+ *     auto-buy spend actually flows through today. Calls AliExpress's own
+ *     `aliexpress.ds.order.afterpay` (see lib/aliexpress-ds-cancel-order.ts) — the only
+ *     order-cancellation method AliExpress's Open Platform exposes to a dropshipper. A
+ *     successful call is recorded as REQUESTED, not CANCELLED, because AliExpress doesn't
+ *     document whether that's instant or still needs seller approval; a failed/unconfigured
+ *     call falls back to MANUAL_REQUIRED.
  *  2. The generic multi-provider engine (`SupplierFulfillmentOrder` — see lib/auto-order/).
- *     Only channels with a verified, real cancel implementation (CJ Dropshipping, blind-REST
- *     partners) are attempted automatically; every other channel type is conservatively treated
- *     as MANUAL_REQUIRED, because several adapters (manual, stub, and — until fixed — AliExpress)
+ *     Only channels with a verified, unambiguous cancel implementation (CJ Dropshipping,
+ *     blind-REST partners) are attempted automatically here; every other channel type is
+ *     conservatively treated as MANUAL_REQUIRED, because several adapters (manual, stub)
  *     resolve `cancelOrder()` successfully without doing anything, and this guard must never
  *     mistake that silence for a real cancellation.
  */
@@ -28,6 +33,7 @@ export type ExternalCancelOutcome =
   | { outcome: "not_applicable" }
   | { outcome: "already_handled"; status: string }
   | { outcome: "cancelled" }
+  | { outcome: "requested"; note: string }
   | { outcome: "manual_required"; reason: string; channel: string }
   | { outcome: "failed"; error: string; channel: string }
 
@@ -60,15 +66,45 @@ async function attemptViaLegacyAutoBuy(orderId: string): Promise<ExternalCancelO
     return { outcome: "already_handled", status: log.externalCancelStatus }
   }
 
-  const reason = "aliexpress_no_cancel_api"
+  if (!log.aeOrderId) {
+    const reason = "missing_ae_order_id"
+    await prisma.fulfillmentLog.update({
+      where: { orderId },
+      data: {
+        externalCancelStatus: "MANUAL_REQUIRED",
+        externalCancelAttemptedAt: new Date(),
+        externalCancelNote: "Order is marked BOUGHT but has no aeOrderId on file — check manually.",
+      },
+    })
+    alertManualCancelRequired({ orderId, channel: "ALIEXPRESS", externalOrderId: null, reason })
+    return { outcome: "manual_required", reason, channel: "ALIEXPRESS" }
+  }
+
+  const result = await cancelAliExpressDsOrder(log.aeOrderId)
+
+  if (result.ok && result.requested) {
+    const note = `Cancellation requested via aliexpress.ds.order.afterpay — AliExpress does not document whether this is instant or still needs seller approval. Order status after request: ${result.orderStatusAfter ?? "unknown"}. Verify manually if in doubt.`
+    await prisma.fulfillmentLog.update({
+      where: { orderId },
+      data: { externalCancelStatus: "REQUESTED", externalCancelAttemptedAt: new Date(), externalCancelNote: note },
+    })
+    console.log("[external-order-cancellation]", {
+      orderId,
+      channel: "ALIEXPRESS",
+      externalOrderId: log.aeOrderId,
+      orderStatusAfter: result.orderStatusAfter,
+      result: "requested",
+    })
+    return { outcome: "requested", note }
+  }
+
+  const reason = result.ok ? "aliexpress_afterpay_declined" : result.error
+  const note = result.ok
+    ? `aliexpress.ds.order.afterpay call succeeded but did not accept the cancellation request (order status after: ${result.orderStatusAfter ?? "unknown"}) — cancel manually via AliExpress after-sales/dispute.`
+    : `aliexpress.ds.order.afterpay call failed (${result.error}) — cancel manually via AliExpress after-sales/dispute.`
   await prisma.fulfillmentLog.update({
     where: { orderId },
-    data: {
-      externalCancelStatus: "MANUAL_REQUIRED",
-      externalCancelAttemptedAt: new Date(),
-      externalCancelNote:
-        "AliExpress has no automated cancel/after-sales API in this codebase — cancel manually via AliExpress after-sales/dispute.",
-    },
+    data: { externalCancelStatus: "MANUAL_REQUIRED", externalCancelAttemptedAt: new Date(), externalCancelNote: note },
   })
   alertManualCancelRequired({ orderId, channel: "ALIEXPRESS", externalOrderId: log.aeOrderId, reason })
   return { outcome: "manual_required", reason, channel: "ALIEXPRESS" }
