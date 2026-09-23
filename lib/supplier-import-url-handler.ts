@@ -19,6 +19,7 @@ import {
 } from "@/lib/fulfillment/import-aliexpress-page-product"
 import { parseAeSkusFromPagePayload } from "@/lib/fulfillment/ae-page-skus"
 import { aeSkusToVariantPersist } from "@/lib/fulfillment/ae-skus-to-product-variants"
+import { convertCnyToEur } from "@/lib/currency-conversion"
 import { extract1688Id, get1688 } from "@/lib/onebound"
 import { prisma } from "@/lib/prisma"
 
@@ -974,19 +975,28 @@ async function import1688Product(url: string): Promise<ImportedProduct> {
   const out = baselineProduct(url, "1688")
   out.title = data.name
   out.description = data.description
-  out.price = data.price
-  out.original_price = data.price
-  out.currency = "CNY"
+  /**
+   * OneBound returns 1688 prices in CNY, but nothing downstream (cost price storage,
+   * wholesale price suggestion) checks `currency` — it's stored as EUR unconditionally.
+   * Convert here, at the one place that knows the source currency, rather than carry a
+   * CNY-labeled number through a pipeline that will silently treat it as EUR anyway.
+   */
+  const priceEur = await convertCnyToEur(data.price)
+  out.price = priceEur
+  out.original_price = priceEur
+  out.currency = "EUR"
   out.images = data.images.slice(0, 12)
-  out.variants = data.variants.map((v) => ({
-    name: v.name,
-    type: "Variant",
-    image: "",
-    price: v.price,
-    stock: v.stock,
-    sku: "",
-    attributes: {},
-  }))
+  out.variants = await Promise.all(
+    data.variants.map(async (v) => ({
+      name: v.name,
+      type: "Variant",
+      image: "",
+      price: await convertCnyToEur(v.price),
+      stock: v.stock,
+      sku: "",
+      attributes: {},
+    }))
+  )
   out.stock =
     out.variants.reduce((sum, v) => sum + v.stock, 0) || 999
   out.brand = data.supplier
