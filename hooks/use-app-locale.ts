@@ -1,6 +1,6 @@
 "use client"
 
-import { useSyncExternalStore } from "react"
+import { useEffect, useSyncExternalStore } from "react"
 
 import { DEFAULT_LOCALE, type AppLocale } from "@/lib/i18n-locale"
 import { readLocaleFromDocumentCookie } from "@/lib/i18n-read-locale-cookie"
@@ -31,7 +31,20 @@ function getServerLocaleSnapshot(): AppLocale {
 /**
  * Client locale for deferred shells (Dona FAB) that may mount outside `NextIntlClientProvider`.
  * Reads `affisell_locale` cookie — same source of truth as server `bootstrapRootShell`.
+ *
+ * `getServerLocaleSnapshot` can't know the real per-request locale (no access to the
+ * request cookie from a plain client hook), so it always reports `DEFAULT_LOCALE` for the
+ * hydration-matching pass. If the real cookie differs, `useSyncExternalStore` won't pick that
+ * up on its own until *something* re-renders this component — which may never happen for a
+ * mostly-static shell like the Dona widgets. The mount effect below forces one resync so the
+ * real locale is read within a tick of hydration instead of staying stuck at the default.
  */
 export function useAppLocale(): AppLocale {
-  return useSyncExternalStore(subscribeLocale, getLocaleSnapshot, getServerLocaleSnapshot)
+  const locale = useSyncExternalStore(subscribeLocale, getLocaleSnapshot, getServerLocaleSnapshot)
+
+  useEffect(() => {
+    notifyAppLocaleChanged()
+  }, [])
+
+  return locale
 }
