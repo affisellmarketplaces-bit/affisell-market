@@ -10,6 +10,8 @@ export type ImportPlatform =
   | "shopify"
   | "shein"
   | "temu"
+  | "cj"
+  | "bigbuy"
   | "universal"
 
 const PLACEHOLDER_SCRAPINGBEE_KEYS = new Set([
@@ -45,6 +47,8 @@ export function detectImportPlatform(url: string): ImportPlatform {
   if (host.includes("/products/") || host.includes("myshopify.com")) return "shopify"
   if (host.includes("shein.com")) return "shein"
   if (host.includes("temu.com")) return "temu"
+  if (host.includes("cjdropshipping.com")) return "cj"
+  if (host.includes("bigbuy.eu")) return "bigbuy"
   return "universal"
 }
 

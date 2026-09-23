@@ -69,6 +69,36 @@ export async function dropForgeImportFailureHints(
   }
 
   hints.push("Vérifie l’URL produit (page fiche, pas l’accueil du site).")
+
+  /**
+   * 1688, CJ Dropshipping and BigBuy import via their own authenticated API — ScrapingBee is
+   * never involved for them, so the generic ScrapingBee hint below would be misleading.
+   */
+  if (marketplaceLabel === "1688") {
+    if (!process.env.ONEBOUND_KEY?.trim() || !process.env.ONEBOUND_SECRET?.trim()) {
+      hints.push("ONEBOUND_KEY / ONEBOUND_SECRET absentes — configure-les sur Vercel (api-gw.onebound.cn).")
+    } else if (opts?.apiError?.trim()) {
+      hints.push(`Erreur API OneBound : ${opts.apiError.trim().slice(0, 200)}`)
+    }
+    return hints
+  }
+  if (marketplaceLabel === "CJ Dropshipping") {
+    if (!process.env.CJ_API_EMAIL?.trim() || !process.env.CJ_API_KEY?.trim()) {
+      hints.push("CJ_API_EMAIL / CJ_API_KEY absentes — configure-les sur Vercel (developers.cjdropshipping.com).")
+    } else if (opts?.apiError?.trim()) {
+      hints.push(`Erreur API CJ : ${opts.apiError.trim().slice(0, 200)}`)
+    }
+    return hints
+  }
+  if (marketplaceLabel === "BigBuy") {
+    if (!process.env.BIGBUY_API_KEY?.trim()) {
+      hints.push("BIGBUY_API_KEY absente — demande une clé via le formulaire de contact BigBuy (bigbuy.eu/en/api_bigbuy.html).")
+    } else if (opts?.apiError?.trim()) {
+      hints.push(`Erreur API BigBuy : ${opts.apiError.trim().slice(0, 200)}`)
+    }
+    return hints
+  }
+
   if (!getScrapingBeeApiKey()) {
     hints.push("SCRAPINGBEE_API_KEY absente — configure-la sur Vercel pour les imports scrape non-AE.")
   }

@@ -19,7 +19,9 @@ import {
 } from "@/lib/fulfillment/import-aliexpress-page-product"
 import { parseAeSkusFromPagePayload } from "@/lib/fulfillment/ae-page-skus"
 import { aeSkusToVariantPersist } from "@/lib/fulfillment/ae-skus-to-product-variants"
-import { convertCnyToEur } from "@/lib/currency-conversion"
+import { extractBigBuyProductId, getBigBuyProduct } from "@/lib/bigbuy-lookup"
+import { extractCjProductId, getCjProduct } from "@/lib/cj-dropshipping-lookup"
+import { convertCnyToEur, convertUsdToEur } from "@/lib/currency-conversion"
 import { extract1688Id, get1688 } from "@/lib/onebound"
 import { prisma } from "@/lib/prisma"
 
@@ -31,6 +33,8 @@ type Platform =
   | "shopify"
   | "shein"
   | "temu"
+  | "cj"
+  | "bigbuy"
   | "universal"
 
 type ImportedReview = {
@@ -420,6 +424,14 @@ export async function scrapeSupplierProductFromUrl(
       // 1688 bloque le scraping HTML — API OneBound uniquement
       product = await import1688Product(url)
       method = "onebound-api"
+    } else if (platform === "cj") {
+      // CJ exige un token d'authentification sur chaque appel — API officielle uniquement
+      product = await importCjProduct(url)
+      method = "cj-api"
+    } else if (platform === "bigbuy") {
+      // BigBuy exige un token Bearer sur chaque appel — API officielle uniquement
+      product = await importBigBuyProduct(url)
+      method = "bigbuy-api"
     } else if (platform === "aliexpress" && scrapeOptions?.allowAliExpressScrape) {
       const fromPage = await scrapeAliExpressViaPageFetch(rawUrl)
       if (fromPage) {
@@ -445,6 +457,8 @@ export async function scrapeSupplierProductFromUrl(
 
     const needsScrapingBee =
       platform !== "1688" &&
+      platform !== "cj" &&
+      platform !== "bigbuy" &&
       (!product?.title || !product.price || product.images.length === 0)
 
     const scrapingBeeKey = getScrapingBeeApiKey()
@@ -1009,6 +1023,67 @@ async function import1688Product(url: string): Promise<ImportedProduct> {
     carrier: "Standard",
   }
   out.category = "1688 Product"
+  out.source_url = data.source
+  out.tags = generateSEO(out.title, out.category)
+  return out
+}
+
+async function importCjProduct(url: string): Promise<ImportedProduct> {
+  const data = await getCjProduct(url)
+  const out = baselineProduct(url, "cj")
+  out.title = data.name
+  out.description = data.description || data.name
+  /** CJ's API is USD-only (confirmed against their docs) — convert before storing as EUR. */
+  const priceEur = await convertUsdToEur(data.priceUsd)
+  out.price = priceEur
+  out.original_price = priceEur
+  out.currency = "EUR"
+  out.images = data.images.slice(0, 12)
+  out.variants = await Promise.all(
+    data.variants.map(async (v) => ({
+      name: v.name,
+      type: "Variant",
+      image: "",
+      price: await convertUsdToEur(v.priceUsd),
+      stock: 999,
+      sku: v.sku,
+      attributes: {},
+    }))
+  )
+  out.stock = 999
+  out.sku = `cj-${extractCjProductId(url) ?? ""}`
+  out.category = data.category || "CJ Dropshipping Product"
+  out.shipping = {
+    from_country: "China",
+    delivery_time: "7-15 days",
+    shipping_cost: 0,
+    carrier: "Standard",
+  }
+  out.source_url = data.source
+  out.tags = generateSEO(out.title, out.category)
+  return out
+}
+
+async function importBigBuyProduct(url: string): Promise<ImportedProduct> {
+  const data = await getBigBuyProduct(url)
+  const out = baselineProduct(url, "bigbuy")
+  out.title = data.name
+  out.description = data.description || data.name
+  /** BigBuy's API is EUR-only (confirmed live against their own storefront JSON-LD) — no conversion needed. */
+  out.price = data.priceEur
+  out.original_price = data.priceEur
+  out.currency = "EUR"
+  out.images = data.images.slice(0, 12)
+  out.stock = 999
+  out.sku = data.sku || `bigbuy-${extractBigBuyProductId(url) ?? ""}`
+  out.category = "BigBuy Product"
+  out.brand = "BigBuy"
+  out.shipping = {
+    from_country: "Spain",
+    delivery_time: "2-5 days",
+    shipping_cost: 0,
+    carrier: "Standard",
+  }
   out.source_url = data.source
   out.tags = generateSEO(out.title, out.category)
   return out

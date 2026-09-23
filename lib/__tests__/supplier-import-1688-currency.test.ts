@@ -44,6 +44,9 @@ function stubFetch() {
 
 describe("1688 import — CNY to EUR conversion", () => {
   beforeEach(() => {
+    // lib/currency-conversion.ts caches its FX rate in a module-level variable — reset the
+    // module registry so this test never picks up state left behind by another test file.
+    vi.resetModules()
     findFirst.mockResolvedValue(null)
     process.env.ONEBOUND_KEY = "test-key"
     process.env.ONEBOUND_SECRET = "test-secret"

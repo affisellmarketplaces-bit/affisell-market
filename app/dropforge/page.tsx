@@ -24,8 +24,10 @@ export async function generateMetadata(): Promise<Metadata> {
  * account/CAPTCHA level (confirmed live — Temu forces a login wall, SHEIN redirects to an
  * interactive CAPTCHA — before any product data is reachable), so auto-import never
  * succeeds for them. Advertising unsupported sources here would mislead suppliers.
+ * CJ Dropshipping and BigBuy added instead: real official APIs
+ * (developers.cjdropshipping.com, api.bigbuy.eu), no scraping/anti-bot risk.
  */
-const MARKET_PILLS = ["AliExpress", "1688", "Amazon"] as const
+const MARKET_PILLS = ["AliExpress", "1688", "Amazon", "CJ Dropshipping", "BigBuy"] as const
 
 export default async function DropForgePage() {
   const t = await getTranslations("importPage")

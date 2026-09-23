@@ -14,6 +14,9 @@ export type MarketplaceId =
   | "shopify"
   | "woocommerce"
   | "walmart"
+  | "1688"
+  | "cj"
+  | "bigbuy"
   | "other"
 
 export type DetectedMarketplace = {
@@ -36,9 +39,17 @@ const HOST_RULES: Array<{ id: MarketplaceId; label: string; test: RegExp }> = [
   { id: "temu", label: "Temu", test: /temu\.com/i },
   { id: "shein", label: "SHEIN", test: /shein\.com/i },
   { id: "tiktok", label: "TikTok Shop", test: /tiktok\.com|shop\.tiktok/i },
+  { id: "walmart", label: "Walmart", test: /walmart\.com/i },
+  /**
+   * Domain-specific rules before shopify/woocommerce below: both of those match on a generic
+   * `/product(s)?/` path fragment, which cjdropshipping.com and bigbuy.eu URLs also contain —
+   * checked first here so they aren't misdetected as a generic Shopify/WooCommerce store.
+   */
+  { id: "1688", label: "1688", test: /1688\.com/i },
+  { id: "cj", label: "CJ Dropshipping", test: /cjdropshipping\.com/i },
+  { id: "bigbuy", label: "BigBuy", test: /bigbuy\.eu/i },
   { id: "shopify", label: "Shopify", test: /myshopify\.com|\/products\//i },
   { id: "woocommerce", label: "WooCommerce", test: /\/product\//i },
-  { id: "walmart", label: "Walmart", test: /walmart\.com/i },
 ]
 
 function scrapePlatformFor(id: MarketplaceId): ImportPlatform {
@@ -53,6 +64,12 @@ function scrapePlatformFor(id: MarketplaceId): ImportPlatform {
       return "shein"
     case "temu":
       return "temu"
+    case "1688":
+      return "1688"
+    case "cj":
+      return "cj"
+    case "bigbuy":
+      return "bigbuy"
     default:
       return "universal"
   }

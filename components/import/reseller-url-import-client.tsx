@@ -57,6 +57,14 @@ const EXAMPLE_URLS = [
     label: "Amazon",
     url: "https://www.amazon.fr/dp/B09V3KXJPB",
   },
+  {
+    label: "CJ Dropshipping",
+    url: "https://cjdropshipping.com/product/fashion-stand-collar-plush-jacket-winter-casual-turtleneck-zipper-coat-fleece-tops-womens-clothing-p-2409100201381607200.html",
+  },
+  {
+    label: "BigBuy",
+    url: "https://www.bigbuy.eu/en/shop/product/coffee-capsules-nestle-africas-10-pieces-10-units_1251178",
+  },
 ] as const
 
 type Preview = {
