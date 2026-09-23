@@ -133,7 +133,7 @@ export function CommandK({ showTrigger = true }: CommandKProps) {
       setOpen(false)
       setQ("")
       if (item.action === "signOut") {
-        void signOut({ callbackUrl: `/${locale}` })
+        void signOut({ callbackUrl: "/" })
         return
       }
       if (item.href) router.push(prefix(item.href))
