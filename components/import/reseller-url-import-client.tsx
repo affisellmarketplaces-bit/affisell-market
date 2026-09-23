@@ -43,7 +43,11 @@ import { cn } from "@/lib/utils"
 
 const PENDING_KEY = DROPFORGE_PENDING_URL_KEY
 
-/** Prefer AliExpress / 1688 — primary B2B sourcing paths. */
+/**
+ * Prefer AliExpress / 1688 — primary B2B sourcing paths. Temu is deliberately not offered
+ * here: it blocks automated access behind a mandatory login wall (confirmed live), so
+ * auto-import never succeeds for it.
+ */
 const EXAMPLE_URLS = [
   {
     label: "AliExpress",
@@ -52,10 +56,6 @@ const EXAMPLE_URLS = [
   {
     label: "Amazon",
     url: "https://www.amazon.fr/dp/B09V3KXJPB",
-  },
-  {
-    label: "Temu",
-    url: "https://www.temu.com/fr-fr/g-601099512345678.html",
   },
 ] as const
 
