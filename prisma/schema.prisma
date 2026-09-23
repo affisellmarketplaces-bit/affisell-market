@@ -474,6 +474,8 @@ enum IntegrationProvider {
   SHOPIFY
   WOOCOMMERCE
   CUSTOM_API
+  /** Pull-based CSV / published Google Sheet feed — no OAuth, no API keys. */
+  CSV_FEED
 }
 
 enum IntegrationStatus {
@@ -496,6 +498,8 @@ enum SyncJobStatus {
   RUNNING
   COMPLETED
   FAILED
+  /** Sync Guardian parked this run — fetched count looks catastrophically wrong vs. the last healthy sync; nothing was written until the supplier reviews it. */
+  NEEDS_REVIEW
 }
 
 model SupplierIntegration {

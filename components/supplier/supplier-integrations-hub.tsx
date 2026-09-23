@@ -3,9 +3,11 @@
 import { Suspense, useCallback, useState } from "react"
 import Link from "next/link"
 import {
+  AlertTriangle,
   ArrowLeft,
   CheckCircle2,
   ExternalLink,
+  FileSpreadsheet,
   Loader2,
   Plug,
   RefreshCw,
@@ -16,13 +18,21 @@ import {
   Webhook,
   Zap,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { SupplierIntegrationsOAuthToast } from "@/components/supplier/supplier-integrations-oauth-toast"
 import { buttonVariants } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { CSV_FEED_FIELD_KEYS, type CsvFeedFieldKey } from "@/lib/integrations/csv-feed-config"
+import type { SyncGuardResult } from "@/lib/integrations/sync-guardian"
 import type { IntegrationSyncStats } from "@/lib/supplier/load-supplier-integrations"
 import { cn } from "@/lib/utils"
+
+export type PendingReviewViewModel = {
+  jobId: string
+  guard: SyncGuardResult
+}
 
 export type IntegrationViewModel = {
   id: string
@@ -39,6 +49,7 @@ export type IntegrationViewModel = {
   liveConnected: boolean
   productCount?: number
   decoupledProductCount?: number
+  pendingReview?: PendingReviewViewModel | null
 }
 
 type Props = {
@@ -67,6 +78,9 @@ export function SupplierIntegrationsHub({
   shopifyOAuthConfigured,
   encryptionConfigured,
 }: Props) {
+  const t = useTranslations("supplier.integrationsCsvFeed")
+  const tGuard = useTranslations("supplier.integrationsGuardian")
+
   const [integrations, setIntegrations] = useState(initialIntegrations)
   const [listBusy, setListBusy] = useState(false)
   const [error, setError] = useState<string | null>(loadError ?? null)
@@ -81,10 +95,21 @@ export function SupplierIntegrationsHub({
   const [wooConsumerKey, setWooConsumerKey] = useState("")
   const [wooConsumerSecret, setWooConsumerSecret] = useState("")
 
+  const [csvFeedUrl, setCsvFeedUrl] = useState("")
+  const [csvFeedName, setCsvFeedName] = useState("main")
+  const [csvPreview, setCsvPreview] = useState<{
+    headers: string[]
+    previewRows: Record<string, string>[]
+    rowCount: number
+  } | null>(null)
+  const [csvMapping, setCsvMapping] = useState<Partial<Record<CsvFeedFieldKey, string>>>({})
+
   const shopifyRow = integrations.find((r) => r.platform === "shopify")
   const shopifyConnected = Boolean(shopifyRow?.liveConnected)
   const wooRow = integrations.find((r) => r.platform === "woocommerce")
   const wooConnected = Boolean(wooRow?.liveConnected)
+  const csvRow = integrations.find((r) => r.platform === "csv-feed")
+  const csvConnected = Boolean(csvRow?.liveConnected)
 
   const load = useCallback(async () => {
     setListBusy(true)
@@ -148,7 +173,12 @@ export function SupplierIntegrationsHub({
     if (!disconnectTarget) return
     setError(null)
     setBusyId("decouple")
-    const providerSlug = disconnectTarget.platform === "woocommerce" ? "woo" : "shopify"
+    const providerSlug =
+      disconnectTarget.platform === "woocommerce"
+        ? "woo"
+        : disconnectTarget.platform === "csv-feed"
+          ? "csv-feed"
+          : "shopify"
     const res = await fetch(`/api/integrations/${providerSlug}/disconnect`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -228,6 +258,101 @@ export function SupplierIntegrationsHub({
     await load()
   }
 
+  async function previewCsvFeed() {
+    setError(null)
+    if (!csvFeedUrl.trim()) {
+      setError(t("urlRequired"))
+      return
+    }
+    setBusyId("csv-preview")
+    setCsvPreview(null)
+    const res = await fetch("/api/integrations/csv-feed/preview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ feedUrl: csvFeedUrl.trim() }),
+    })
+    const data = (await res.json().catch(() => ({}))) as {
+      error?: string
+      headers?: string[]
+      suggested?: Record<string, string | null>
+      previewRows?: Record<string, string>[]
+      rowCount?: number
+    }
+    setBusyId(null)
+    if (!res.ok || !data.headers) {
+      setError(data.error ?? t("previewFailed"))
+      return
+    }
+    setCsvPreview({ headers: data.headers, previewRows: data.previewRows ?? [], rowCount: data.rowCount ?? 0 })
+    const seeded: Partial<Record<CsvFeedFieldKey, string>> = {}
+    for (const key of CSV_FEED_FIELD_KEYS) {
+      const v = data.suggested?.[key]
+      if (v) seeded[key] = v
+    }
+    setCsvMapping(seeded)
+  }
+
+  async function connectCsvFeed() {
+    setError(null)
+    if (!csvMapping.title || !csvMapping.price) {
+      setError(t("mapRequired"))
+      return
+    }
+    setBusyId("csv-connect")
+    const res = await fetch("/api/integrations/csv-feed/connect", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ feedUrl: csvFeedUrl.trim(), fieldMap: csvMapping, name: csvFeedName || "main" }),
+    })
+    const data = (await res.json().catch(() => ({}))) as { error?: string }
+    setBusyId(null)
+    if (!res.ok) {
+      setError(data.error ?? t("previewFailed"))
+      return
+    }
+    setCsvPreview(null)
+    setCsvFeedUrl("")
+    setCsvMapping({})
+    toast.success(t("connectedToast"))
+    await load()
+  }
+
+  async function syncCsvFeed(integrationId?: string) {
+    setError(null)
+    setBusyId("csv-sync")
+    const res = await fetch("/api/integrations/csv-feed/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(integrationId ? { integrationId } : {}),
+    })
+    const data = (await res.json().catch(() => ({}))) as { error?: string; syncedCount?: number }
+    setBusyId(null)
+    if (!res.ok) {
+      setError(data.error ?? "Feed sync failed")
+      return
+    }
+    toast.success(`Feed sync complete — ${data.syncedCount ?? 0} products processed`)
+    await load()
+  }
+
+  async function reviewSync(integrationId: string, action: "apply" | "dismiss") {
+    setError(null)
+    setBusyId(`review-${action}-${integrationId}`)
+    const res = await fetch(`/api/supplier/integrations/${integrationId}/review-sync`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    })
+    const data = (await res.json().catch(() => ({}))) as { error?: string; syncedCount?: number }
+    setBusyId(null)
+    if (!res.ok) {
+      setError(data.error ?? "Could not update this sync")
+      return
+    }
+    toast.success(action === "apply" ? tGuard("applied") : tGuard("dismissed"))
+    await load()
+  }
+
   async function addShopifyManual() {
     setError(null)
     setBusyId("new-shopify")
@@ -275,6 +400,51 @@ export function SupplierIntegrationsHub({
 
   const shopifyStats = shopifyRow?.syncStats
   const wooStats = wooRow?.syncStats
+
+  function renderGuardianBanner(row: IntegrationViewModel | undefined) {
+    const guard = row?.pendingReview?.guard
+    if (!row || !guard || !guard.triggered) return null
+    const message =
+      guard.reason === "empty_feed"
+        ? tGuard("emptyFeed", { previous: guard.previousFetched })
+        : tGuard("catastrophicDrop", {
+            current: guard.currentFetched,
+            previous: guard.previousFetched,
+            percent: Math.round(guard.dropRatio * 100),
+          })
+    return (
+      <div className="mt-4 rounded-2xl border border-amber-300/80 bg-amber-50/90 p-4 dark:border-amber-800/60 dark:bg-amber-950/30">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden />
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-amber-900 dark:text-amber-100">{tGuard("title")}</p>
+            <p className="mt-1 text-sm text-amber-900/90 dark:text-amber-100/90">{message}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                className={cn(buttonVariants({ size: "sm" }), "gap-1.5")}
+                disabled={busyId === `review-apply-${row.id}`}
+                onClick={() => void reviewSync(row.id, "apply")}
+              >
+                {busyId === `review-apply-${row.id}` ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                ) : null}
+                {tGuard("apply")}
+              </button>
+              <button
+                type="button"
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                disabled={busyId === `review-dismiss-${row.id}`}
+                onClick={() => void reviewSync(row.id, "dismiss")}
+              >
+                {tGuard("dismiss")}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -360,6 +530,8 @@ export function SupplierIntegrationsHub({
                   ) : null}
                 </div>
               </div>
+
+              {renderGuardianBanner(shopifyRow)}
 
               {shopifyStats ? (
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -564,6 +736,8 @@ export function SupplierIntegrationsHub({
               </div>
             </div>
 
+            {renderGuardianBanner(wooRow)}
+
             {wooStats ? (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[
@@ -721,6 +895,170 @@ export function SupplierIntegrationsHub({
         )}
       </Card>
 
+      <Card className="mt-6 border-zinc-200/80 p-6 dark:border-zinc-700">
+        <div className="flex items-center gap-2">
+          <FileSpreadsheet className="h-5 w-5 text-violet-600 dark:text-violet-300" aria-hidden />
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{t("title")}</h2>
+        </div>
+        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{t("subtitle")}</p>
+
+        {csvConnected && csvRow ? (
+          <div className="mt-5 space-y-4">
+            <div className="flex items-start gap-3 rounded-2xl border border-emerald-200/80 bg-emerald-50/70 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/25">
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <div className="min-w-0">
+                <p className="break-all font-semibold text-emerald-900 dark:text-emerald-100">
+                  {t("connected")} · {csvRow.shopDomain ?? "Feed"}
+                </p>
+                <p className="mt-1 text-xs text-emerald-800/90 dark:text-emerald-200/90">
+                  Last sync {relativeTime(csvRow.lastSyncAt)}
+                </p>
+                {csvRow.lastSyncError ? (
+                  <p className="mt-2 text-xs text-red-600 dark:text-red-400">{csvRow.lastSyncError}</p>
+                ) : null}
+              </div>
+            </div>
+
+            {renderGuardianBanner(csvRow)}
+
+            {csvRow.syncStats ? (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {[
+                  { label: "Fetched", value: csvRow.syncStats.fetched },
+                  { label: "New", value: csvRow.syncStats.created },
+                  { label: "Updated", value: csvRow.syncStats.updated },
+                  { label: "Skipped", value: csvRow.syncStats.skipped },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-xl border border-zinc-200/80 bg-zinc-50/80 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900/50"
+                  >
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+                      {item.label}
+                    </p>
+                    <p className="mt-1 text-xl font-bold tabular-nums text-zinc-900 dark:text-zinc-50">
+                      {item.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {(csvRow.productCount ?? 0) > 0 ? (
+              <Link
+                href="/dashboard/supplier/products"
+                className="inline-flex items-center gap-2 text-sm font-medium text-violet-700 hover:underline dark:text-violet-300"
+              >
+                <ExternalLink className="h-4 w-4" aria-hidden />
+                View {csvRow.productCount} synced products
+              </Link>
+            ) : null}
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className={cn(buttonVariants(), "gap-2")}
+                disabled={busyId === "csv-sync"}
+                onClick={() => void syncCsvFeed(csvRow.id)}
+              >
+                {busyId === "csv-sync" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                ) : (
+                  <RefreshCw className="h-4 w-4" aria-hidden />
+                )}
+                Sync now
+              </button>
+              <button
+                type="button"
+                className={cn(buttonVariants({ variant: "outline" }), "gap-2")}
+                onClick={() => setDisconnectTarget(csvRow)}
+              >
+                <Unplug className="h-4 w-4" aria-hidden />
+                Disconnect
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-5 space-y-4">
+            <label className="block text-xs font-medium uppercase tracking-wide text-zinc-500">
+              {t("urlLabel")}
+              <input
+                className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm shadow-sm dark:border-zinc-700 dark:bg-zinc-950"
+                placeholder={t("urlPlaceholder")}
+                value={csvFeedUrl}
+                onChange={(e) => {
+                  setCsvFeedUrl(e.target.value)
+                  setCsvPreview(null)
+                }}
+                autoComplete="off"
+              />
+            </label>
+            <button
+              type="button"
+              className={cn(buttonVariants({ variant: csvPreview ? "outline" : "default" }), "gap-2")}
+              disabled={busyId === "csv-preview"}
+              onClick={() => void previewCsvFeed()}
+            >
+              {busyId === "csv-preview" ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <Sparkles className="h-4 w-4" aria-hidden />
+              )}
+              {t("previewButton")}
+            </button>
+
+            {csvPreview ? (
+              <div className="space-y-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/60 p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+                <p className="text-xs text-zinc-500">{t("rowsFound", { count: csvPreview.rowCount })}</p>
+                <p className="text-xs text-zinc-500">{t("mappingHint")}</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {CSV_FEED_FIELD_KEYS.map((key) => (
+                    <label key={key} className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                      {t(`field.${key}`)}
+                      {key === "title" || key === "price" ? " *" : ""}
+                      <select
+                        className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                        value={csvMapping[key] ?? ""}
+                        onChange={(e) =>
+                          setCsvMapping((prev) => ({ ...prev, [key]: e.target.value || undefined }))
+                        }
+                      >
+                        <option value="">{t("noColumn")}</option>
+                        {csvPreview.headers.map((h) => (
+                          <option key={h} value={h}>
+                            {h}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  ))}
+                </div>
+                {!csvMapping.sku ? <p className="text-xs text-amber-700 dark:text-amber-400">{t("skuHint")}</p> : null}
+                <input
+                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                  placeholder="Connection name"
+                  value={csvFeedName}
+                  onChange={(e) => setCsvFeedName(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className={cn(buttonVariants(), "gap-2")}
+                  disabled={busyId === "csv-connect" || !csvMapping.title || !csvMapping.price}
+                  onClick={() => void connectCsvFeed()}
+                >
+                  {busyId === "csv-connect" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  ) : (
+                    <Plug className="h-4 w-4" aria-hidden />
+                  )}
+                  {t("connectButton")}
+                </button>
+              </div>
+            ) : null}
+          </div>
+        )}
+      </Card>
+
       {disconnectTarget ? (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
@@ -734,7 +1072,12 @@ export function SupplierIntegrationsHub({
             </h3>
             <p className="mt-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
               Your products will stay active on Affisell. You can keep selling without{" "}
-              {disconnectTarget.platform === "woocommerce" ? "WooCommerce" : "Shopify"}.
+              {disconnectTarget.platform === "woocommerce"
+                ? "WooCommerce"
+                : disconnectTarget.platform === "csv-feed"
+                  ? "this feed"
+                  : "Shopify"}
+              .
               Stock is frozen at the last sync — edit it manually anytime. Zero lock-in.
             </p>
             <div className="mt-6 flex flex-wrap justify-end gap-2">

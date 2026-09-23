@@ -14,6 +14,15 @@ function catalogMeta(provider: IntegrationProvider, shopHost: string, handle: st
       skuPrefix: "woo-pid",
     }
   }
+  if (provider === "CSV_FEED") {
+    return {
+      categoryLabel: "Feed",
+      importTag: "csv-feed-sync",
+      /** No per-product page — the feed URL itself is the only source reference we have. */
+      sourceUrl: base,
+      skuPrefix: "feed-pid",
+    }
+  }
   return {
     categoryLabel: "Shopify",
     importTag: "shopify-sync",
@@ -56,5 +65,7 @@ export function canonicalToMappedProduct(
 }
 
 export function importSourceForProvider(provider: IntegrationProvider): string {
-  return provider === "WOOCOMMERCE" ? "woocommerce-sync" : "shopify-sync"
+  if (provider === "WOOCOMMERCE") return "woocommerce-sync"
+  if (provider === "CSV_FEED") return "csv-feed-sync"
+  return "shopify-sync"
 }

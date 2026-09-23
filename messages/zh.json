@@ -1320,6 +1320,41 @@
       "rowLabel": "第 {index} 行",
       "noValidRowsError": "没有可发布的有效行——请修正上述错误后重试。"
     },
+    "integrationsCsvFeed": {
+      "title": "CSV / Google 表格数据源",
+      "subtitle": "无需 OAuth，无需 API 密钥 — 粘贴公开的 CSV 或 Google 表格链接即可。随时可断开连接，商品始终归您所有。",
+      "urlLabel": "数据源 URL",
+      "urlPlaceholder": "https://docs.google.com/spreadsheets/d/.../pub?output=csv",
+      "urlRequired": "请先输入数据源 URL",
+      "previewButton": "预览并映射列",
+      "previewFailed": "无法读取此数据源",
+      "mappingHint": "我们已根据您的列标题进行了猜测 — 连接前请检查。",
+      "rowsFound": "找到 {count} 行",
+      "mapRequired": "请至少映射标题和价格列",
+      "skuHint": "添加 SKU / 参考编号列以获得最可靠的同步 — 否则商品将按标题匹配。",
+      "noColumn": "— 此数据源中没有 —",
+      "connectButton": "连接数据源",
+      "connectedToast": "数据源已连接 — 已开始首次同步",
+      "connected": "已连接",
+      "field": {
+        "title": "标题",
+        "description": "描述",
+        "price": "价格（欧元）",
+        "sku": "SKU / 参考编号",
+        "stock": "库存",
+        "images": "图片链接",
+        "category": "分类"
+      }
+    },
+    "integrationsGuardian": {
+      "title": "同步已暂停以待审核",
+      "emptyFeed": "本次同步返回为空（上次 {previous} 件商品，现在 0 件）。未做任何更改 — 您的商品目录保持不变。",
+      "catastrophicDrop": "本次同步发现 {current} 件商品 — 低于上次的 {previous} 件（下降 {percent}%）。尚未做任何更改。",
+      "apply": "仍然应用",
+      "dismiss": "忽略",
+      "applied": "已应用 — 商品目录已更新",
+      "dismissed": "已忽略 — 商品目录未变"
+    },
     "bulkExcelImport": {
       "dashboardLink": "控制台",
       "pageTitle": "批量 Excel 导入",

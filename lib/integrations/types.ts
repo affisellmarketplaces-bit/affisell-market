@@ -6,18 +6,20 @@
 import type { IntegrationProvider, IntegrationStatus, SyncJobStatus } from "@prisma/client"
 
 /** Route slug → Prisma enum */
-export type ProviderSlug = "shopify" | "woo" | "custom-api"
+export type ProviderSlug = "shopify" | "woo" | "custom-api" | "csv-feed"
 
 export const PROVIDER_SLUG_TO_ENUM: Record<ProviderSlug, IntegrationProvider> = {
   shopify: "SHOPIFY",
   woo: "WOOCOMMERCE",
   "custom-api": "CUSTOM_API",
+  "csv-feed": "CSV_FEED",
 }
 
 export const PROVIDER_ENUM_TO_SLUG: Record<IntegrationProvider, ProviderSlug> = {
   SHOPIFY: "shopify",
   WOOCOMMERCE: "woo",
   CUSTOM_API: "custom-api",
+  CSV_FEED: "csv-feed",
 }
 
 export function providerSlugFromEnum(provider: IntegrationProvider): ProviderSlug {

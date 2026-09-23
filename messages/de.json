@@ -1320,6 +1320,41 @@
       "rowLabel": "Zeile {index}",
       "noValidRowsError": "Keine gültigen Zeilen zum Veröffentlichen — behebe die obigen Fehler und versuche es erneut."
     },
+    "integrationsCsvFeed": {
+      "title": "CSV- / Google-Sheet-Feed",
+      "subtitle": "Kein OAuth, keine API-Schlüssel — fügen Sie einen öffentlichen CSV- oder Google-Sheet-Link ein. Jederzeit trennbar, Ihre Produkte bleiben Ihre.",
+      "urlLabel": "Feed-URL",
+      "urlPlaceholder": "https://docs.google.com/spreadsheets/d/.../pub?output=csv",
+      "urlRequired": "Geben Sie zuerst Ihre Feed-URL ein",
+      "previewButton": "Vorschau & Spalten zuordnen",
+      "previewFailed": "Dieser Feed konnte nicht gelesen werden",
+      "mappingHint": "Wir haben dies anhand Ihrer Spaltenüberschriften geschätzt — prüfen Sie es vor dem Verbinden.",
+      "rowsFound": "{count} Zeilen gefunden",
+      "mapRequired": "Ordnen Sie mindestens die Spalten Titel und Preis zu",
+      "skuHint": "Fügen Sie eine SKU-/Referenzspalte für die zuverlässigste Synchronisierung hinzu — ohne diese werden Produkte nach Titel abgeglichen.",
+      "noColumn": "— nicht in diesem Feed —",
+      "connectButton": "Feed verbinden",
+      "connectedToast": "Feed verbunden — erste Synchronisierung gestartet",
+      "connected": "Verbunden",
+      "field": {
+        "title": "Titel",
+        "description": "Beschreibung",
+        "price": "Preis (EUR)",
+        "sku": "SKU / Referenz",
+        "stock": "Bestand",
+        "images": "Bild-URL",
+        "category": "Kategorie"
+      }
+    },
+    "integrationsGuardian": {
+      "title": "Synchronisierung zur Überprüfung angehalten",
+      "emptyFeed": "Diese Synchronisierung kam leer zurück ({previous} Produkte beim letzten Mal, jetzt 0). Es wurde nichts geändert — Ihr Katalog ist unverändert.",
+      "catastrophicDrop": "Diese Synchronisierung fand {current} Produkte — gegenüber {previous} beim letzten Mal (ein Rückgang um {percent} %). Es wurde noch nichts geändert.",
+      "apply": "Trotzdem anwenden",
+      "dismiss": "Verwerfen",
+      "applied": "Angewendet — Katalog aktualisiert",
+      "dismissed": "Verworfen — Katalog unverändert"
+    },
     "bulkExcelImport": {
       "dashboardLink": "Dashboard",
       "pageTitle": "Excel-Massenimport",

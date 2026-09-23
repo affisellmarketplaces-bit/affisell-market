@@ -1320,6 +1320,41 @@
       "rowLabel": "Ligne {index}",
       "noValidRowsError": "Aucune ligne valide à publier — corrige les erreurs ci-dessus et réessaie."
     },
+    "integrationsCsvFeed": {
+      "title": "Flux CSV / Google Sheet",
+      "subtitle": "Sans OAuth, sans clé API — collez un lien CSV public ou Google Sheet. Déconnexion possible à tout moment, vos produits restent à vous.",
+      "urlLabel": "URL du flux",
+      "urlPlaceholder": "https://docs.google.com/spreadsheets/d/.../pub?output=csv",
+      "urlRequired": "Saisissez d'abord l'URL de votre flux",
+      "previewButton": "Aperçu et mappage des colonnes",
+      "previewFailed": "Impossible de lire ce flux",
+      "mappingHint": "Nous avons deviné ces correspondances à partir de vos en-têtes — vérifiez-les avant de connecter.",
+      "rowsFound": "{count} lignes trouvées",
+      "mapRequired": "Mappez au moins les colonnes titre et prix",
+      "skuHint": "Ajoutez une colonne SKU / référence pour une synchronisation plus fiable — sans cela, les produits sont associés par titre.",
+      "noColumn": "— absente de ce flux —",
+      "connectButton": "Connecter le flux",
+      "connectedToast": "Flux connecté — première synchronisation lancée",
+      "connected": "Connecté",
+      "field": {
+        "title": "Titre",
+        "description": "Description",
+        "price": "Prix (EUR)",
+        "sku": "SKU / référence",
+        "stock": "Stock",
+        "images": "URL de l'image",
+        "category": "Catégorie"
+      }
+    },
+    "integrationsGuardian": {
+      "title": "Synchronisation mise en pause pour vérification",
+      "emptyFeed": "Cette synchronisation est revenue vide ({previous} produits la dernière fois, 0 maintenant). Rien n'a été modifié — votre catalogue est intact.",
+      "catastrophicDrop": "Cette synchronisation a trouvé {current} produits — contre {previous} la dernière fois (une baisse de {percent} %). Rien n'a encore été modifié.",
+      "apply": "Appliquer quand même",
+      "dismiss": "Ignorer",
+      "applied": "Appliqué — catalogue mis à jour",
+      "dismissed": "Ignoré — catalogue inchangé"
+    },
     "bulkExcelImport": {
       "dashboardLink": "Tableau de bord",
       "pageTitle": "Import Excel en masse",

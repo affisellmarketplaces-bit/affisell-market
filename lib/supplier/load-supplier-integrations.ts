@@ -163,5 +163,14 @@ export function integrationLiveConnected(row: {
     return Boolean(row.accessTokenEncrypted && row.shopDomain)
   }
 
+  if (row.platform === "csv-feed") {
+    if (row.status === "CONNECTED") return true
+    const cfg =
+      row.config && typeof row.config === "object" && !Array.isArray(row.config)
+        ? (row.config as Record<string, unknown>)
+        : null
+    return Boolean(typeof cfg?.feedUrl === "string" && cfg.feedUrl)
+  }
+
   return false
 }

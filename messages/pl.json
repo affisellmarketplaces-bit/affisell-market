@@ -1320,6 +1320,41 @@
       "rowLabel": "Wiersz {index}",
       "noValidRowsError": "Brak poprawnych wierszy do opublikowania — popraw powyższe błędy i spróbuj ponownie."
     },
+    "integrationsCsvFeed": {
+      "title": "Kanał CSV / Arkusz Google",
+      "subtitle": "Bez OAuth, bez kluczy API — wklej publiczny link CSV lub Arkusza Google. Odłącz w dowolnym momencie, Twoje produkty pozostają Twoje.",
+      "urlLabel": "URL kanału",
+      "urlPlaceholder": "https://docs.google.com/spreadsheets/d/.../pub?output=csv",
+      "urlRequired": "Najpierw wprowadź URL kanału",
+      "previewButton": "Podgląd i mapowanie kolumn",
+      "previewFailed": "Nie można odczytać tego kanału",
+      "mappingHint": "Zgadliśmy to na podstawie nagłówków kolumn — sprawdź przed połączeniem.",
+      "rowsFound": "Znaleziono {count} wierszy",
+      "mapRequired": "Zmapuj przynajmniej kolumny tytuł i cena",
+      "skuHint": "Dodaj kolumnę SKU / referencja dla najbardziej niezawodnej synchronizacji — bez niej produkty są dopasowywane po tytule.",
+      "noColumn": "— brak w tym kanale —",
+      "connectButton": "Połącz kanał",
+      "connectedToast": "Kanał połączony — rozpoczęto pierwszą synchronizację",
+      "connected": "Połączono",
+      "field": {
+        "title": "Tytuł",
+        "description": "Opis",
+        "price": "Cena (EUR)",
+        "sku": "SKU / referencja",
+        "stock": "Stan magazynowy",
+        "images": "URL obrazu",
+        "category": "Kategoria"
+      }
+    },
+    "integrationsGuardian": {
+      "title": "Synchronizacja wstrzymana do przeglądu",
+      "emptyFeed": "Ta synchronizacja zwróciła pustą listę ({previous} produktów poprzednio, teraz 0). Nic nie zostało zmienione — katalog pozostaje nienaruszony.",
+      "catastrophicDrop": "Ta synchronizacja znalazła {current} produktów — wobec {previous} poprzednio (spadek o {percent}%). Nic jeszcze nie zostało zmienione.",
+      "apply": "Zastosuj mimo to",
+      "dismiss": "Odrzuć",
+      "applied": "Zastosowano — katalog zaktualizowany",
+      "dismissed": "Odrzucono — katalog bez zmian"
+    },
     "bulkExcelImport": {
       "dashboardLink": "Panel",
       "pageTitle": "Masowy import Excel",

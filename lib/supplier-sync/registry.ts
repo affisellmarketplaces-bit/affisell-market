@@ -13,6 +13,8 @@ export function getSupplierProvider(provider: IntegrationProvider): SupplierProv
       throw new Error("WooCommerce provider not implemented yet")
     case "CUSTOM_API":
       throw new Error("Custom API provider not implemented yet")
+    case "CSV_FEED":
+      throw new Error("CSV feed provider not implemented yet")
     default: {
       const _exhaustive: never = provider
       throw new Error(`Unknown provider: ${String(_exhaustive)}`)

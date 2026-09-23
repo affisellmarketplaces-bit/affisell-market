@@ -15,9 +15,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  let body: { supplierId?: string; integrationId?: string }
+  let body: { supplierId?: string; integrationId?: string; force?: boolean }
   try {
-    body = (await req.json()) as { supplierId?: string; integrationId?: string }
+    body = (await req.json()) as { supplierId?: string; integrationId?: string; force?: boolean }
   } catch {
     body = {}
   }
@@ -45,9 +45,18 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { jobId, stats } = await syncOrchestrator.sync(integration.id, supplierId)
+    const { jobId, stats, guard } = await syncOrchestrator.sync(integration.id, supplierId, {
+      force: body.force === true,
+    })
     const syncedCount = stats.imported + stats.updated + stats.unpublished
-    return NextResponse.json({ ok: true, jobId, syncedCount, summary: stats, stats })
+    return NextResponse.json({
+      ok: true,
+      jobId,
+      syncedCount,
+      summary: stats,
+      stats,
+      guard: guard.triggered ? guard : null,
+    })
   } catch (e) {
     if (e instanceof SyncJobConflictError) {
       return NextResponse.json({ error: e.message, code: e.code }, { status: 409 })

@@ -1320,6 +1320,41 @@
       "rowLabel": "Rij {index}",
       "noValidRowsError": "Geen geldige rijen om te publiceren — corrigeer de fouten hierboven en probeer opnieuw."
     },
+    "integrationsCsvFeed": {
+      "title": "CSV- / Google Sheet-feed",
+      "subtitle": "Geen OAuth, geen API-sleutels — plak een openbare CSV- of Google Sheet-link. Altijd te ontkoppelen, uw producten blijven van u.",
+      "urlLabel": "Feed-URL",
+      "urlPlaceholder": "https://docs.google.com/spreadsheets/d/.../pub?output=csv",
+      "urlRequired": "Voer eerst uw feed-URL in",
+      "previewButton": "Voorbeeld & kolommen koppelen",
+      "previewFailed": "Kon deze feed niet lezen",
+      "mappingHint": "We hebben dit geraden op basis van uw kolomkoppen — controleer dit voor u verbindt.",
+      "rowsFound": "{count} rijen gevonden",
+      "mapRequired": "Koppel ten minste de kolommen titel en prijs",
+      "skuHint": "Voeg een SKU-/referentiekolom toe voor de betrouwbaarste synchronisatie — zonder deze worden producten op titel gekoppeld.",
+      "noColumn": "— niet in deze feed —",
+      "connectButton": "Feed verbinden",
+      "connectedToast": "Feed verbonden — eerste synchronisatie gestart",
+      "connected": "Verbonden",
+      "field": {
+        "title": "Titel",
+        "description": "Beschrijving",
+        "price": "Prijs (EUR)",
+        "sku": "SKU / referentie",
+        "stock": "Voorraad",
+        "images": "Afbeelding-URL",
+        "category": "Categorie"
+      }
+    },
+    "integrationsGuardian": {
+      "title": "Synchronisatie gepauzeerd voor controle",
+      "emptyFeed": "Deze synchronisatie kwam leeg terug ({previous} producten de vorige keer, nu 0). Er is niets gewijzigd — uw catalogus is ongewijzigd.",
+      "catastrophicDrop": "Deze synchronisatie vond {current} producten — tegenover {previous} de vorige keer (een daling van {percent}%). Er is nog niets gewijzigd.",
+      "apply": "Toch toepassen",
+      "dismiss": "Negeren",
+      "applied": "Toegepast — catalogus bijgewerkt",
+      "dismissed": "Genegeerd — catalogus ongewijzigd"
+    },
     "bulkExcelImport": {
       "dashboardLink": "Dashboard",
       "pageTitle": "Bulk Excel-import",

@@ -1320,6 +1320,41 @@
       "rowLabel": "Row {index}",
       "noValidRowsError": "No valid rows to publish — fix the errors above and try again."
     },
+    "integrationsCsvFeed": {
+      "title": "CSV / Google Sheet feed",
+      "subtitle": "No OAuth, no API keys — paste a public CSV or Google Sheet link. Disconnect anytime and keep your products.",
+      "urlLabel": "Feed URL",
+      "urlPlaceholder": "https://docs.google.com/spreadsheets/d/.../pub?output=csv",
+      "urlRequired": "Enter your feed URL first",
+      "previewButton": "Preview & map columns",
+      "previewFailed": "Could not read this feed",
+      "mappingHint": "We guessed these from your column headers — check them before connecting.",
+      "rowsFound": "{count} rows found",
+      "mapRequired": "Map at least the title and price columns",
+      "skuHint": "Add a SKU / reference column for the most reliable sync — without one, products are matched by title.",
+      "noColumn": "— not in this feed —",
+      "connectButton": "Connect feed",
+      "connectedToast": "Feed connected — first sync started",
+      "connected": "Connected",
+      "field": {
+        "title": "Title",
+        "description": "Description",
+        "price": "Price (EUR)",
+        "sku": "SKU / reference",
+        "stock": "Stock",
+        "images": "Image URL",
+        "category": "Category"
+      }
+    },
+    "integrationsGuardian": {
+      "title": "Sync paused for review",
+      "emptyFeed": "This sync came back empty ({previous} products last time, 0 now). Nothing was changed — your catalog is untouched.",
+      "catastrophicDrop": "This sync found {current} products — down from {previous} last time (a {percent}% drop). Nothing was changed yet.",
+      "apply": "Apply anyway",
+      "dismiss": "Dismiss",
+      "applied": "Applied — catalog updated",
+      "dismissed": "Dismissed — catalog unchanged"
+    },
     "bulkExcelImport": {
       "dashboardLink": "Dashboard",
       "pageTitle": "Bulk Excel import",

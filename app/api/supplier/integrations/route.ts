@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { syncJobModelLive } from "@/lib/integrations/schema-capabilities"
+import type { SyncGuardResult } from "@/lib/integrations/sync-guardian"
 import {
   maskIntegrationConfig,
   normalizeIntegrationName,
@@ -59,6 +61,7 @@ export async function GET(req: Request) {
         }),
         productCount: 0,
         decoupledProductCount: 0,
+        pendingReview: null as { jobId: string; stats: unknown; guard: SyncGuardResult } | null,
       }
     })
 
@@ -77,6 +80,27 @@ export async function GET(req: Request) {
         }
       } catch {
         /* non-blocking */
+      }
+
+      if (syncJobModelLive()) {
+        try {
+          const needsReview = await prisma.syncJob.findMany({
+            where: { integrationId: { in: rows.map((r) => r.id) }, status: "NEEDS_REVIEW" },
+            orderBy: { createdAt: "desc" },
+          })
+          const byIntegration = new Map<string, (typeof needsReview)[number]>()
+          for (const job of needsReview) {
+            if (!byIntegration.has(job.integrationId)) byIntegration.set(job.integrationId, job)
+          }
+          for (const item of integrations) {
+            const job = byIntegration.get(item.id)
+            if (job) {
+              item.pendingReview = { jobId: job.id, stats: job.stats, guard: (job.stats as { guard?: SyncGuardResult } | null)?.guard ?? { triggered: false } }
+            }
+          }
+        } catch {
+          /* non-blocking */
+        }
       }
     }
 

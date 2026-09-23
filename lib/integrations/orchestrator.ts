@@ -1,12 +1,13 @@
 import { IntegrationProvider, Prisma, SyncJobStatus } from "@prisma/client"
 
-import { canonicalToMappedProduct } from "@/lib/integrations/map-canonical-product"
+import { canonicalToMappedProduct, importSourceForProvider } from "@/lib/integrations/map-canonical-product"
 import { getIntegrationProvider } from "@/lib/integrations/registry"
 import {
   isPrismaSchemaDriftError,
   productDecoupleFieldsLive,
   syncJobModelLive,
 } from "@/lib/integrations/schema-capabilities"
+import { evaluateSyncGuard, extractPreviousFetchedCount, type SyncGuardResult } from "@/lib/integrations/sync-guardian"
 import type { DecoupleResult, IntegrationRow, SyncRunStats } from "@/lib/integrations/types"
 import { prisma } from "@/lib/prisma"
 import {
@@ -43,6 +44,8 @@ function emptyStats(): SyncRunStats {
   return { imported: 0, updated: 0, skipped: 0, failed: 0, unpublished: 0, fetched: 0 }
 }
 
+type CatalogSyncOutcome = { stats: SyncRunStats; guard: SyncGuardResult }
+
 async function runCatalogSync(args: {
   integration: {
     id: string
@@ -51,13 +54,25 @@ async function runCatalogSync(args: {
     shopDomain: string | null
   }
   row: IntegrationRow
-}): Promise<SyncRunStats> {
-  const { integration, row } = args
+  previousFetched: number | null
+  force: boolean
+}): Promise<CatalogSyncOutcome> {
+  const { integration, row, previousFetched, force } = args
   const stats = emptyStats()
   const provider = getIntegrationProvider(integration.provider)
   const shopHost = integration.shopDomain ?? ""
   const products = await provider.fetchProducts(row)
   stats.fetched = products.length
+
+  /**
+   * Sync Guardian: a fetched count that crashed vs. the last healthy run is never applied
+   * blindly — a broken feed link, an emptied sheet, or a revoked API scope must not be able
+   * to silently out-of-stock or delete a supplier's live catalog. Parked for review instead.
+   */
+  const guard = force ? ({ triggered: false } as const) : evaluateSyncGuard(previousFetched, products.length)
+  if (guard.triggered) {
+    return { stats, guard }
+  }
 
   for (const canonical of products) {
     try {
@@ -84,12 +99,20 @@ async function runCatalogSync(args: {
     }
   }
 
-  return stats
+  return { stats, guard }
 }
 
 export class SyncOrchestrator {
-  /** Idempotent catalog sync — one RUNNING job per integration when SyncJob table exists. */
-  async sync(integrationId: string, supplierId: string): Promise<{ jobId: string; stats: SyncRunStats }> {
+  /**
+   * Idempotent catalog sync — one RUNNING job per integration when SyncJob table exists.
+   * `force: true` bypasses the Sync Guardian (the supplier explicitly reviewed a parked
+   * NEEDS_REVIEW run and chose to apply it anyway).
+   */
+  async sync(
+    integrationId: string,
+    supplierId: string,
+    opts: { force?: boolean } = {}
+  ): Promise<{ jobId: string; stats: SyncRunStats; guard: SyncGuardResult }> {
     const integration = await prisma.supplierIntegration.findFirst({
       where: { id: integrationId, userId: supplierId },
     })
@@ -104,6 +127,8 @@ export class SyncOrchestrator {
     }
 
     const row = toIntegrationRow(integration)
+    const previousFetched = extractPreviousFetchedCount(integration.lastSyncSummary)
+    const force = opts.force === true
     let jobId = `sync-${integrationId}-${Date.now()}`
 
     if (syncJobModelLive()) {
@@ -121,7 +146,7 @@ export class SyncOrchestrator {
       jobId = job.id
 
       try {
-        const stats = await runCatalogSync({
+        const { stats, guard } = await runCatalogSync({
           integration: {
             id: integration.id,
             userId: integration.userId,
@@ -129,7 +154,32 @@ export class SyncOrchestrator {
             shopDomain: integration.shopDomain,
           },
           row,
+          previousFetched,
+          force,
         })
+
+        if (guard.triggered) {
+          /**
+           * Nothing was written. Baseline (`lastSyncSummary`) is left untouched on purpose,
+           * so a retry without `force` is judged against the same last-known-healthy count.
+           */
+          await prisma.syncJob.update({
+            where: { id: job.id },
+            data: {
+              status: SyncJobStatus.NEEDS_REVIEW,
+              stats: { ...stats, guard } as unknown as Prisma.InputJsonValue,
+              completedAt: new Date(),
+            },
+          })
+          console.warn("[shopify-sync]", {
+            integrationId,
+            supplierId,
+            jobId: job.id,
+            result: "needs_review",
+            ...guard,
+          })
+          return { jobId: job.id, stats, guard }
+        }
 
         await prisma.syncJob.update({
           where: { id: job.id },
@@ -162,7 +212,7 @@ export class SyncOrchestrator {
           result: "completed",
         })
 
-        return { jobId: job.id, stats }
+        return { jobId: job.id, stats, guard }
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error)
         await prisma.syncJob.update({
@@ -196,7 +246,7 @@ export class SyncOrchestrator {
       hint: "npx prisma migrate deploy",
     })
 
-    const stats = await runCatalogSync({
+    const { stats, guard } = await runCatalogSync({
       integration: {
         id: integration.id,
         userId: integration.userId,
@@ -204,7 +254,20 @@ export class SyncOrchestrator {
         shopDomain: integration.shopDomain,
       },
       row,
+      previousFetched,
+      force,
     })
+
+    if (guard.triggered) {
+      console.warn("[shopify-sync]", {
+        integrationId,
+        supplierId,
+        jobId,
+        result: "needs_review_without_job_table",
+        ...guard,
+      })
+      return { jobId, stats, guard }
+    }
 
     await markIntegrationSyncResult({
       integrationId,
@@ -220,7 +283,7 @@ export class SyncOrchestrator {
     })
     await setSupplierLiveSyncFlag(supplierId, true)
 
-    return { jobId, stats }
+    return { jobId, stats, guard }
   }
 
   /**
@@ -247,10 +310,7 @@ export class SyncOrchestrator {
               {
                 sourceIntegrationId: null,
                 externalProvider: integration.provider ?? undefined,
-                importSource:
-                  integration.provider === IntegrationProvider.WOOCOMMERCE
-                    ? "woocommerce-sync"
-                    : "shopify-sync",
+                importSource: integration.provider ? importSourceForProvider(integration.provider) : undefined,
               },
             ],
           },

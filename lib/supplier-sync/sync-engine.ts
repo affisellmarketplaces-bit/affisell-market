@@ -1,5 +1,6 @@
 import { IntegrationProvider, Prisma, SyncStatus } from "@prisma/client"
 
+import { importSourceForProvider } from "@/lib/integrations/map-canonical-product"
 import { productDecoupleFieldsLive } from "@/lib/integrations/schema-capabilities"
 import { prisma } from "@/lib/prisma"
 import type { MappedAffisellProduct, SyncProductResult } from "@/lib/supplier-sync/types"
@@ -74,11 +75,8 @@ export async function upsertSyncedProduct(args: {
     return { externalId, action: "skipped" }
   }
 
-  const importSource = provider === IntegrationProvider.WOOCOMMERCE ? "woocommerce-sync" : "shopify-sync"
-  const syncTags =
-    provider === IntegrationProvider.WOOCOMMERCE
-      ? ["woocommerce-sync", "live-sync"]
-      : ["shopify-sync", "live-sync"]
+  const importSource = importSourceForProvider(provider)
+  const syncTags = [importSource, "live-sync"]
   const supplierTag = importSource
 
   const productData = {

@@ -40,5 +40,6 @@ export function providerFromPlatform(platform: string): IntegrationProvider | nu
   if (p === "shopify") return "SHOPIFY"
   if (p === "woocommerce") return "WOOCOMMERCE"
   if (p === "custom_api" || p === "custom-api") return "CUSTOM_API"
+  if (p === "csv_feed" || p === "csv-feed") return "CSV_FEED"
   return null
 }
