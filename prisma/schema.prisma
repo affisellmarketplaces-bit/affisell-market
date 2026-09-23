@@ -3205,11 +3205,16 @@ model SupplierFulfillmentOrder {
   attempts              Int                       @default(0)
   createdAt             DateTime                  @default(now())
   processedAt           DateTime?
+  /** Money-loss guard — see FulfillmentLog.externalCancelStatus for the equivalent on the legacy AE path. */
+  externalCancelStatus      ExternalCancelStatus @default(NOT_ATTEMPTED)
+  externalCancelAttemptedAt DateTime?
+  externalCancelNote        String?              @db.Text
 
   lines SupplierFulfillmentOrderLine[]
 
   @@index([batchId])
   @@index([fulfillmentProviderId, status])
+  @@index([externalCancelStatus])
 }
 
 model SupplierFulfillmentOrderLine {
@@ -3427,8 +3432,26 @@ model FulfillmentLog {
   attempts      Int           @default(0)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  /**
+   * Money-loss guard: when a refund lands on an order that already had its upstream
+   * purchase placed, we attempt to cancel it externally. AliExpress has no cancel/after-sales
+   * API wired in this codebase today, so this is always MANUAL_REQUIRED for AE — see
+   * lib/fulfillment/external-order-cancellation.ts.
+   */
+  externalCancelStatus      ExternalCancelStatus @default(NOT_ATTEMPTED)
+  externalCancelAttemptedAt DateTime?
+  externalCancelNote        String?              @db.Text
 
   @@index([status])
+  @@index([externalCancelStatus])
+}
+
+/** Outcome of attempting to cancel an already-placed upstream (AliExpress/CJ/…) order after a refund. */
+enum ExternalCancelStatus {
+  NOT_ATTEMPTED
+  CANCELLED
+  MANUAL_REQUIRED
+  FAILED
 }
 
 enum AutoBuyStatus {

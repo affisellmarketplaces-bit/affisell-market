@@ -40,6 +40,8 @@ export type AdminAutoFulfillLogRow = {
   supplierFeeCents: number
   affiliateFeeCents: number
   usesAffisellAutoBuy: boolean
+  externalCancelStatus: string
+  externalCancelNote: string | null
   createdAt: string
   updatedAt: string
 }
@@ -53,6 +55,8 @@ export type AdminAutoFulfillDashboard = {
     logsBought: number
     logsFailed: number
     logsRefunded: number
+    /** Refunded orders whose AliExpress/CJ purchase could not be cancelled automatically — needs a human. */
+    logsNeedingManualCancel: number
     enlistRequestsPending: number
     platformCatalogSkus: number
   }
@@ -65,6 +69,8 @@ export type AdminAutoFulfillDashboard = {
   }
   products: AdminAutoFulfillProductRow[]
   recentLogs: AdminAutoFulfillLogRow[]
+  /** Orders needing manual cancellation on the upstream site (AliExpress/CJ/…) after a refund. */
+  logsNeedingManualCancel: AdminAutoFulfillLogRow[]
   pendingEnlistRequests: AutoBuyEnlistRequestDto[]
 }
 
@@ -88,6 +94,31 @@ export async function loadAdminAutoFulfillDashboard(
 
   const platform = await ensureAffisellAutoBuySupplier()
 
+  const fulfillmentLogInclude = {
+    order: {
+      select: {
+        id: true,
+        customerEmail: true,
+        totalCents: true,
+        sellingPriceCents: true,
+        aeWholesaleCents: true,
+        usesAffisellAutoBuy: true,
+        supplierFeeCents: true,
+        affiliateFeeCents: true,
+        product: {
+          select: {
+            id: true,
+            name: true,
+            autoBuyEnabled: true,
+            supplierLink: {
+              select: { isActive: true, autoBuyEnabled: true },
+            },
+          },
+        },
+      },
+    },
+  } as const
+
   const [
     productsWithLink,
     productsAutoBuyOn,
@@ -96,10 +127,12 @@ export async function loadAdminAutoFulfillDashboard(
     logsBought,
     logsFailed,
     logsRefunded,
+    logsNeedingManualCancel,
     enlistRequestsPending,
     platformCatalogSkus,
     products,
     recentLogs,
+    manualCancelLogs,
     pendingEnlistRequests,
   ] = await Promise.all([
     prisma.supplierLink.count({ where: { isActive: true } }),
@@ -109,6 +142,7 @@ export async function loadAdminAutoFulfillDashboard(
     prisma.fulfillmentLog.count({ where: { status: "BOUGHT" } }),
     prisma.fulfillmentLog.count({ where: { status: "FAILED" } }),
     prisma.fulfillmentLog.count({ where: { status: "REFUNDED" } }),
+    prisma.fulfillmentLog.count({ where: { externalCancelStatus: "MANUAL_REQUIRED" } }),
     prisma.autoBuyEnlistRequest.count({ where: { status: "PENDING_REVIEW" } }),
     prisma.product.count({
       where: {
@@ -148,33 +182,43 @@ export async function loadAdminAutoFulfillDashboard(
     prisma.fulfillmentLog.findMany({
       take: 30,
       orderBy: { updatedAt: "desc" },
-      include: {
-        order: {
-          select: {
-            id: true,
-            customerEmail: true,
-            totalCents: true,
-            sellingPriceCents: true,
-            aeWholesaleCents: true,
-            usesAffisellAutoBuy: true,
-            supplierFeeCents: true,
-            affiliateFeeCents: true,
-            product: {
-              select: {
-                id: true,
-                name: true,
-                autoBuyEnabled: true,
-                supplierLink: {
-                  select: { isActive: true, autoBuyEnabled: true },
-                },
-              },
-            },
-          },
-        },
-      },
+      include: fulfillmentLogInclude,
+    }),
+    prisma.fulfillmentLog.findMany({
+      where: { externalCancelStatus: "MANUAL_REQUIRED" },
+      take: 20,
+      orderBy: { externalCancelAttemptedAt: "desc" },
+      include: fulfillmentLogInclude,
     }),
     listPendingAutoBuyEnlistRequests(40),
   ])
+
+  const toLogRow = (log: (typeof recentLogs)[number]): AdminAutoFulfillLogRow => ({
+    id: log.id,
+    orderId: log.orderId,
+    productId: log.order.product.id,
+    productName: log.order.product.name,
+    customerEmail: log.order.customerEmail,
+    status: log.status,
+    attempts: log.attempts,
+    aeOrderId: log.aeOrderId,
+    aeTracking: log.aeTracking,
+    errorMsg: log.errorMsg,
+    clientTotalCents: log.order.totalCents ?? log.order.sellingPriceCents,
+    aeWholesaleCents: log.order.aeWholesaleCents,
+    supplierFeeCents: log.order.supplierFeeCents,
+    affiliateFeeCents: log.order.affiliateFeeCents,
+    usesAffisellAutoBuy:
+      log.order.usesAffisellAutoBuy ??
+      orderUsesAffisellAutoBuy({
+        supplierLink: log.order.product.supplierLink,
+        productAutoBuyEnabled: log.order.product.autoBuyEnabled,
+      }),
+    externalCancelStatus: log.externalCancelStatus,
+    externalCancelNote: log.externalCancelNote,
+    createdAt: log.createdAt.toISOString(),
+    updatedAt: log.updatedAt.toISOString(),
+  })
 
   return {
     stats: {
@@ -185,6 +229,7 @@ export async function loadAdminAutoFulfillDashboard(
       logsBought,
       logsFailed,
       logsRefunded,
+      logsNeedingManualCancel,
       enlistRequestsPending,
       platformCatalogSkus,
     },
@@ -208,30 +253,8 @@ export async function loadAdminAutoFulfillDashboard(
       aePriceCents: p.supplierLink?.aePriceCents ?? null,
       lastSyncAt: p.supplierLink?.lastSyncAt?.toISOString() ?? null,
     })),
-    recentLogs: recentLogs.map((log) => ({
-      id: log.id,
-      orderId: log.orderId,
-      productId: log.order.product.id,
-      productName: log.order.product.name,
-      customerEmail: log.order.customerEmail,
-      status: log.status,
-      attempts: log.attempts,
-      aeOrderId: log.aeOrderId,
-      aeTracking: log.aeTracking,
-      errorMsg: log.errorMsg,
-      clientTotalCents: log.order.totalCents ?? log.order.sellingPriceCents,
-      aeWholesaleCents: log.order.aeWholesaleCents,
-      supplierFeeCents: log.order.supplierFeeCents,
-      affiliateFeeCents: log.order.affiliateFeeCents,
-      usesAffisellAutoBuy:
-        log.order.usesAffisellAutoBuy ??
-        orderUsesAffisellAutoBuy({
-          supplierLink: log.order.product.supplierLink,
-          productAutoBuyEnabled: log.order.product.autoBuyEnabled,
-        }),
-      createdAt: log.createdAt.toISOString(),
-      updatedAt: log.updatedAt.toISOString(),
-    })),
+    recentLogs: recentLogs.map(toLogRow),
+    logsNeedingManualCancel: manualCancelLogs.map(toLogRow),
     pendingEnlistRequests,
   }
 }

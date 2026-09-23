@@ -81,8 +81,16 @@ export class AliExpressSupplierAdapter extends BaseSupplierAdapter {
     }))
   }
 
+  /**
+   * No AliExpress cancel/after-sales API is wired here — this used to silently resolve as if
+   * cancellation had succeeded, which is wrong (callers took that as confirmation nothing was
+   * charged). Throwing lets callers (e.g. cancelSupplierFulfillmentJob) correctly treat this as
+   * "needs manual cancellation," matching the convention BaseSupplierAdapter callers expect.
+   */
   async cancelOrder(_supplierOrderId: string): Promise<void> {
-    return this.withObservability("aliexpress.cancelOrder", async () => {})
+    return this.withObservability("aliexpress.cancelOrder", async () => {
+      throw new Error("not_supported: aliexpress_cancel_no_api")
+    })
   }
 
   async syncInventory(skus: string[]): Promise<InventoryDTO[]> {

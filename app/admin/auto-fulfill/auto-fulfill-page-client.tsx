@@ -585,8 +585,47 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
                 icon={RefreshCw}
                 barPct={logPct(stats.logsRefunded)}
               />
+              <AutoFulfillMetricTile
+                label="Annulation manuelle requise"
+                value={stats.logsNeedingManualCancel}
+                tone={stats.logsNeedingManualCancel > 0 ? "rose" : "zinc"}
+                icon={AlertTriangle}
+                hint="Achat AliExpress/CJ déjà passé, remboursé côté Affisell — annulez-le manuellement chez le fournisseur upstream."
+              />
             </div>
           </div>
+        ) : null}
+
+        {data && data.logsNeedingManualCancel.length > 0 ? (
+          <AutoFulfillSectionShell
+            eyebrow="Argent en jeu"
+            title="Annulations manuelles requises"
+            description="Ces commandes ont été remboursées côté Affisell après que l'achat upstream (AliExpress/CJ) avait déjà été passé. Le système n'a pas pu annuler automatiquement — allez annuler/demander un remboursement manuellement sur le site fournisseur pour ne pas perdre cet argent."
+          >
+            <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+              {data.logsNeedingManualCancel.map((log) => (
+                <li key={log.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+                      {log.productName}
+                    </p>
+                    <p className="mt-0.5 text-xs text-zinc-500">
+                      Commande {log.orderId} · {log.customerEmail}
+                      {log.aeOrderId ? ` · AE #${log.aeOrderId}` : ""}
+                    </p>
+                    {log.externalCancelNote ? (
+                      <p className="mt-1 text-xs text-rose-700 dark:text-rose-400">{log.externalCancelNote}</p>
+                    ) : null}
+                  </div>
+                  <Badge variant="destructive">
+                    {log.aeWholesaleCents != null
+                      ? `${(log.aeWholesaleCents / 100).toFixed(2)} € en jeu`
+                      : "Montant à vérifier"}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          </AutoFulfillSectionShell>
         ) : null}
 
         <div className="space-y-8">

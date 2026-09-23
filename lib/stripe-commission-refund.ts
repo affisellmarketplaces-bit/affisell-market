@@ -200,6 +200,19 @@ export async function handleStripeChargeRefundedWithCommission(
       }
 
       try {
+        const { attemptExternalOrderCancellation } = await import(
+          "@/lib/fulfillment/external-order-cancellation"
+        )
+        await attemptExternalOrderCancellation(order.id)
+      } catch (cancelErr) {
+        console.error("[commission_refund]", {
+          orderId: order.id,
+          result: "external_cancel_attempt_failed",
+          error: cancelErr instanceof Error ? cancelErr.message : String(cancelErr),
+        })
+      }
+
+      try {
         const { reverseSponsorSuccessFeesForOrder } = await import(
           "@/lib/sponsor/charge-sponsor-on-sale"
         )
