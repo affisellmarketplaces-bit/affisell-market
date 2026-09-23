@@ -2479,6 +2479,75 @@
       "toastNoProduct": "暂无可用商品 — 请浏览市场以添加您的第一个商品。",
       "toastSaved": "商品已保存。",
       "close": "关闭"
+    },
+    "payoutMethods": {
+      "addButton": "添加收款方式",
+      "title": "添加收款方式",
+      "subtitle": "AES-256 加密 • 从不明文存储",
+      "stepCountry": "1. 您的国家/地区",
+      "countrySearchPlaceholder": "搜索国家…",
+      "continent": {
+        "Europe": "欧洲",
+        "Africa": "非洲",
+        "Middle East": "中东",
+        "Americas": "美洲",
+        "Asia": "亚洲",
+        "Oceania": "大洋洲"
+      },
+      "useCodeAsIs": "使用“{code}”作为国家代码",
+      "countryNotFound": "未找到国家。",
+      "stepMethod": "2. 您所在国家/地区可用的收款方式",
+      "type": {
+        "BANK": {
+          "label": "银行转账",
+          "sub": "SEPA IBAN • 2-3 天"
+        },
+        "PAYPAL": {
+          "label": "PayPal",
+          "sub": "即时到账 • 全球可用"
+        },
+        "WISE": {
+          "label": "Wise",
+          "sub": "低费率国际转账 • 全球可用"
+        },
+        "PAYONEER": {
+          "label": "Payoneer",
+          "sub": "国际 • 全球可用"
+        },
+        "MOBILE_MONEY_WAVE": {
+          "label": "Wave",
+          "sub": "移动支付"
+        },
+        "MOBILE_MONEY_ORANGE": {
+          "label": "Orange Money",
+          "sub": "移动支付"
+        },
+        "MOBILE_MONEY_MTN": {
+          "label": "MTN MoMo",
+          "sub": "移动支付"
+        }
+      },
+      "field": {
+        "ibanPlaceholder": "IBAN — FR76 3000 6000 0112…",
+        "ibanRequired": "需要 IBAN（至少 15 个字符）",
+        "bicPlaceholder": "BIC — AGRIFRPP",
+        "bicRequired": "需要 BIC（至少 8 个字符）",
+        "holderNamePlaceholder": "账户持有人姓名",
+        "holderNameRequired": "需要账户持有人姓名",
+        "emailPlaceholder": "email@example.com",
+        "emailInvalid": "邮箱无效",
+        "phoneInvalid": "该国家/地区的电话号码无效",
+        "fullNamePlaceholder": "全名",
+        "fullNameRequired": "需要全名"
+      },
+      "genericError": "出现问题",
+      "submitting": "加密中…",
+      "submit": "添加并加密 🔒",
+      "encryptionNote": "AES-256 加密 • 从不明文存储",
+      "verified": "已验证",
+      "pendingVerification": "待处理",
+      "setDefault": "设为默认",
+      "delete": "删除"
     }
   },
   "marketplace": {

@@ -2479,6 +2479,75 @@
       "toastNoProduct": "Nessun prodotto disponibile per ora — esplora il marketplace per aggiungere il tuo primo annuncio.",
       "toastSaved": "Annuncio salvato.",
       "close": "Chiudi"
+    },
+    "payoutMethods": {
+      "addButton": "Aggiungi un metodo",
+      "title": "Aggiungi un metodo di pagamento",
+      "subtitle": "Crittografato AES-256 • Mai memorizzato in chiaro",
+      "stepCountry": "1. Il tuo paese",
+      "countrySearchPlaceholder": "Cerca un paese…",
+      "continent": {
+        "Europe": "Europa",
+        "Africa": "Africa",
+        "Middle East": "Medio Oriente",
+        "Americas": "Americhe",
+        "Asia": "Asia",
+        "Oceania": "Oceania"
+      },
+      "useCodeAsIs": "Usa «{code}» come codice paese",
+      "countryNotFound": "Nessun paese trovato.",
+      "stepMethod": "2. Metodo di pagamento disponibile nel tuo paese",
+      "type": {
+        "BANK": {
+          "label": "Bonifico bancario",
+          "sub": "IBAN SEPA • 2-3 giorni"
+        },
+        "PAYPAL": {
+          "label": "PayPal",
+          "sub": "Istantaneo • in tutto il mondo"
+        },
+        "WISE": {
+          "label": "Wise",
+          "sub": "Internazionale economico • in tutto il mondo"
+        },
+        "PAYONEER": {
+          "label": "Payoneer",
+          "sub": "Internazionale • in tutto il mondo"
+        },
+        "MOBILE_MONEY_WAVE": {
+          "label": "Wave",
+          "sub": "Mobile money"
+        },
+        "MOBILE_MONEY_ORANGE": {
+          "label": "Orange Money",
+          "sub": "Mobile money"
+        },
+        "MOBILE_MONEY_MTN": {
+          "label": "MTN MoMo",
+          "sub": "Mobile money"
+        }
+      },
+      "field": {
+        "ibanPlaceholder": "IBAN — IT60 X054 2811 1010…",
+        "ibanRequired": "IBAN richiesto (min. 15 caratteri)",
+        "bicPlaceholder": "BIC — BCITITMM",
+        "bicRequired": "BIC richiesto (min. 8 caratteri)",
+        "holderNamePlaceholder": "Nome dell'intestatario",
+        "holderNameRequired": "Nome dell'intestatario richiesto",
+        "emailPlaceholder": "email@esempio.com",
+        "emailInvalid": "Email non valida",
+        "phoneInvalid": "Numero di telefono non valido per questo paese",
+        "fullNamePlaceholder": "Nome completo",
+        "fullNameRequired": "Nome completo richiesto"
+      },
+      "genericError": "Qualcosa è andato storto",
+      "submitting": "Crittografia…",
+      "submit": "Aggiungi e cripta 🔒",
+      "encryptionNote": "Crittografato AES-256 • Mai memorizzato in chiaro",
+      "verified": "Verificato",
+      "pendingVerification": "In attesa",
+      "setDefault": "Imposta come predefinito",
+      "delete": "Elimina"
     }
   },
   "marketplace": {

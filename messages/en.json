@@ -2479,6 +2479,75 @@
       "toastNoProduct": "No product available yet — browse the marketplace to add your first listing.",
       "toastSaved": "Listing saved.",
       "close": "Close"
+    },
+    "payoutMethods": {
+      "addButton": "Add a method",
+      "title": "Add a payout method",
+      "subtitle": "AES-256 encrypted • Never stored in plain text",
+      "stepCountry": "1. Your country",
+      "countrySearchPlaceholder": "Search a country…",
+      "continent": {
+        "Europe": "Europe",
+        "Africa": "Africa",
+        "Middle East": "Middle East",
+        "Americas": "Americas",
+        "Asia": "Asia",
+        "Oceania": "Oceania"
+      },
+      "useCodeAsIs": "Use \"{code}\" as my country code",
+      "countryNotFound": "No country found.",
+      "stepMethod": "2. Payout method available in your country",
+      "type": {
+        "BANK": {
+          "label": "Bank transfer",
+          "sub": "SEPA IBAN • 2-3 days"
+        },
+        "PAYPAL": {
+          "label": "PayPal",
+          "sub": "Instant • worldwide"
+        },
+        "WISE": {
+          "label": "Wise",
+          "sub": "Low-fee international • worldwide"
+        },
+        "PAYONEER": {
+          "label": "Payoneer",
+          "sub": "International • worldwide"
+        },
+        "MOBILE_MONEY_WAVE": {
+          "label": "Wave",
+          "sub": "Mobile money"
+        },
+        "MOBILE_MONEY_ORANGE": {
+          "label": "Orange Money",
+          "sub": "Mobile money"
+        },
+        "MOBILE_MONEY_MTN": {
+          "label": "MTN MoMo",
+          "sub": "Mobile money"
+        }
+      },
+      "field": {
+        "ibanPlaceholder": "IBAN — FR76 3000 6000 0112…",
+        "ibanRequired": "IBAN required (min. 15 characters)",
+        "bicPlaceholder": "BIC — AGRIFRPP",
+        "bicRequired": "BIC required (min. 8 characters)",
+        "holderNamePlaceholder": "Account holder's name",
+        "holderNameRequired": "Account holder's name required",
+        "emailPlaceholder": "email@example.com",
+        "emailInvalid": "Invalid email",
+        "phoneInvalid": "Invalid phone number for this country",
+        "fullNamePlaceholder": "Full name",
+        "fullNameRequired": "Full name required"
+      },
+      "genericError": "Something went wrong",
+      "submitting": "Encrypting…",
+      "submit": "Add & encrypt 🔒",
+      "encryptionNote": "Encrypted AES-256 • Never stored in plain text",
+      "verified": "Verified",
+      "pendingVerification": "Pending",
+      "setDefault": "Set as default",
+      "delete": "Delete"
     }
   },
   "marketplace": {

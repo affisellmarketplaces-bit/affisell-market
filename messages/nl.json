@@ -2479,6 +2479,75 @@
       "toastNoProduct": "Nog geen product beschikbaar — blader door de marktplaats om je eerste aanbieding toe te voegen.",
       "toastSaved": "Aanbieding opgeslagen.",
       "close": "Sluiten"
+    },
+    "payoutMethods": {
+      "addButton": "Methode toevoegen",
+      "title": "Betaalmethode toevoegen",
+      "subtitle": "AES-256-versleuteld • Nooit in platte tekst opgeslagen",
+      "stepCountry": "1. Uw land",
+      "countrySearchPlaceholder": "Zoek een land…",
+      "continent": {
+        "Europe": "Europa",
+        "Africa": "Afrika",
+        "Middle East": "Midden-Oosten",
+        "Americas": "Amerika",
+        "Asia": "Azië",
+        "Oceania": "Oceanië"
+      },
+      "useCodeAsIs": "\"{code}\" gebruiken als landcode",
+      "countryNotFound": "Geen land gevonden.",
+      "stepMethod": "2. Betaalmethode beschikbaar in uw land",
+      "type": {
+        "BANK": {
+          "label": "Bankoverschrijving",
+          "sub": "SEPA IBAN • 2-3 dagen"
+        },
+        "PAYPAL": {
+          "label": "PayPal",
+          "sub": "Direct • wereldwijd"
+        },
+        "WISE": {
+          "label": "Wise",
+          "sub": "Goedkoop internationaal • wereldwijd"
+        },
+        "PAYONEER": {
+          "label": "Payoneer",
+          "sub": "Internationaal • wereldwijd"
+        },
+        "MOBILE_MONEY_WAVE": {
+          "label": "Wave",
+          "sub": "Mobiel geld"
+        },
+        "MOBILE_MONEY_ORANGE": {
+          "label": "Orange Money",
+          "sub": "Mobiel geld"
+        },
+        "MOBILE_MONEY_MTN": {
+          "label": "MTN MoMo",
+          "sub": "Mobiel geld"
+        }
+      },
+      "field": {
+        "ibanPlaceholder": "IBAN — NL91 ABNA 0417 1643…",
+        "ibanRequired": "IBAN vereist (min. 15 tekens)",
+        "bicPlaceholder": "BIC — ABNANL2A",
+        "bicRequired": "BIC vereist (min. 8 tekens)",
+        "holderNamePlaceholder": "Naam rekeninghouder",
+        "holderNameRequired": "Naam rekeninghouder vereist",
+        "emailPlaceholder": "email@voorbeeld.com",
+        "emailInvalid": "Ongeldige e-mail",
+        "phoneInvalid": "Ongeldig telefoonnummer voor dit land",
+        "fullNamePlaceholder": "Volledige naam",
+        "fullNameRequired": "Volledige naam vereist"
+      },
+      "genericError": "Er is iets misgegaan",
+      "submitting": "Versleutelen…",
+      "submit": "Toevoegen & versleutelen 🔒",
+      "encryptionNote": "AES-256-versleuteld • Nooit in platte tekst opgeslagen",
+      "verified": "Geverifieerd",
+      "pendingVerification": "In afwachting",
+      "setDefault": "Instellen als standaard",
+      "delete": "Verwijderen"
     }
   },
   "marketplace": {

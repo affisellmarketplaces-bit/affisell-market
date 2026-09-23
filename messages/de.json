@@ -2479,6 +2479,75 @@
       "toastNoProduct": "Noch kein Produkt verfügbar — stöbern Sie im Marktplatz, um Ihr erstes Angebot hinzuzufügen.",
       "toastSaved": "Angebot gespeichert.",
       "close": "Schließen"
+    },
+    "payoutMethods": {
+      "addButton": "Methode hinzufügen",
+      "title": "Auszahlungsmethode hinzufügen",
+      "subtitle": "AES-256-verschlüsselt • Nie im Klartext gespeichert",
+      "stepCountry": "1. Ihr Land",
+      "countrySearchPlaceholder": "Land suchen…",
+      "continent": {
+        "Europe": "Europa",
+        "Africa": "Afrika",
+        "Middle East": "Naher Osten",
+        "Americas": "Amerika",
+        "Asia": "Asien",
+        "Oceania": "Ozeanien"
+      },
+      "useCodeAsIs": "„{code}“ als Ländercode verwenden",
+      "countryNotFound": "Kein Land gefunden.",
+      "stepMethod": "2. In Ihrem Land verfügbare Auszahlungsmethode",
+      "type": {
+        "BANK": {
+          "label": "Banküberweisung",
+          "sub": "SEPA-IBAN • 2-3 Tage"
+        },
+        "PAYPAL": {
+          "label": "PayPal",
+          "sub": "Sofort • weltweit"
+        },
+        "WISE": {
+          "label": "Wise",
+          "sub": "Günstig international • weltweit"
+        },
+        "PAYONEER": {
+          "label": "Payoneer",
+          "sub": "International • weltweit"
+        },
+        "MOBILE_MONEY_WAVE": {
+          "label": "Wave",
+          "sub": "Mobile Money"
+        },
+        "MOBILE_MONEY_ORANGE": {
+          "label": "Orange Money",
+          "sub": "Mobile Money"
+        },
+        "MOBILE_MONEY_MTN": {
+          "label": "MTN MoMo",
+          "sub": "Mobile Money"
+        }
+      },
+      "field": {
+        "ibanPlaceholder": "IBAN — DE89 3704 0044 0532…",
+        "ibanRequired": "IBAN erforderlich (mind. 15 Zeichen)",
+        "bicPlaceholder": "BIC — COBADEFFXXX",
+        "bicRequired": "BIC erforderlich (mind. 8 Zeichen)",
+        "holderNamePlaceholder": "Name des Kontoinhabers",
+        "holderNameRequired": "Name des Kontoinhabers erforderlich",
+        "emailPlaceholder": "email@beispiel.com",
+        "emailInvalid": "Ungültige E-Mail",
+        "phoneInvalid": "Ungültige Telefonnummer für dieses Land",
+        "fullNamePlaceholder": "Vollständiger Name",
+        "fullNameRequired": "Vollständiger Name erforderlich"
+      },
+      "genericError": "Etwas ist schiefgelaufen",
+      "submitting": "Verschlüsselung…",
+      "submit": "Hinzufügen & verschlüsseln 🔒",
+      "encryptionNote": "AES-256-verschlüsselt • Nie im Klartext gespeichert",
+      "verified": "Verifiziert",
+      "pendingVerification": "Ausstehend",
+      "setDefault": "Als Standard festlegen",
+      "delete": "Löschen"
     }
   },
   "marketplace": {

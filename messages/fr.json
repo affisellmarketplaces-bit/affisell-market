@@ -2479,6 +2479,75 @@
       "toastNoProduct": "Aucun produit disponible pour l’instant — parcourez la marketplace pour ajouter votre première annonce.",
       "toastSaved": "Annonce enregistrée.",
       "close": "Fermer"
+    },
+    "payoutMethods": {
+      "addButton": "Ajouter une méthode",
+      "title": "Ajouter une méthode de paiement",
+      "subtitle": "Chiffré AES-256 • Jamais stocké en clair",
+      "stepCountry": "1. Votre pays",
+      "countrySearchPlaceholder": "Rechercher un pays…",
+      "continent": {
+        "Europe": "Europe",
+        "Africa": "Afrique",
+        "Middle East": "Moyen-Orient",
+        "Americas": "Amériques",
+        "Asia": "Asie",
+        "Oceania": "Océanie"
+      },
+      "useCodeAsIs": "Utiliser « {code} » comme code pays",
+      "countryNotFound": "Aucun pays trouvé.",
+      "stepMethod": "2. Méthode de paiement disponible dans votre pays",
+      "type": {
+        "BANK": {
+          "label": "Virement bancaire",
+          "sub": "IBAN SEPA • 2-3 j"
+        },
+        "PAYPAL": {
+          "label": "PayPal",
+          "sub": "Instantané • partout"
+        },
+        "WISE": {
+          "label": "Wise",
+          "sub": "International économique • partout"
+        },
+        "PAYONEER": {
+          "label": "Payoneer",
+          "sub": "International • partout"
+        },
+        "MOBILE_MONEY_WAVE": {
+          "label": "Wave",
+          "sub": "Mobile money"
+        },
+        "MOBILE_MONEY_ORANGE": {
+          "label": "Orange Money",
+          "sub": "Mobile money"
+        },
+        "MOBILE_MONEY_MTN": {
+          "label": "MTN MoMo",
+          "sub": "Mobile money"
+        }
+      },
+      "field": {
+        "ibanPlaceholder": "IBAN — FR76 3000 6000 0112…",
+        "ibanRequired": "IBAN requis (min. 15 caractères)",
+        "bicPlaceholder": "BIC — AGRIFRPP",
+        "bicRequired": "BIC requis (min. 8 caractères)",
+        "holderNamePlaceholder": "Nom du titulaire",
+        "holderNameRequired": "Nom du titulaire requis",
+        "emailPlaceholder": "email@exemple.com",
+        "emailInvalid": "Email invalide",
+        "phoneInvalid": "Numéro de téléphone invalide pour ce pays",
+        "fullNamePlaceholder": "Nom complet",
+        "fullNameRequired": "Nom complet requis"
+      },
+      "genericError": "Une erreur est survenue",
+      "submitting": "Chiffrement…",
+      "submit": "Ajouter & chiffrer 🔒",
+      "encryptionNote": "Chiffré AES-256 • Jamais stocké en clair",
+      "verified": "Vérifié",
+      "pendingVerification": "En attente",
+      "setDefault": "Définir par défaut",
+      "delete": "Supprimer"
     }
   },
   "marketplace": {

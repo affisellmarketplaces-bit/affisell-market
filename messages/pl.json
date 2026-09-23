@@ -2479,6 +2479,75 @@
       "toastNoProduct": "Brak dostępnych produktów — przeglądaj marketplace, aby dodać pierwszą ofertę.",
       "toastSaved": "Oferta zapisana.",
       "close": "Zamknij"
+    },
+    "payoutMethods": {
+      "addButton": "Dodaj metodę",
+      "title": "Dodaj metodę wypłaty",
+      "subtitle": "Szyfrowane AES-256 • Nigdy nieprzechowywane jawnie",
+      "stepCountry": "1. Twój kraj",
+      "countrySearchPlaceholder": "Szukaj kraju…",
+      "continent": {
+        "Europe": "Europa",
+        "Africa": "Afryka",
+        "Middle East": "Bliski Wschód",
+        "Americas": "Ameryki",
+        "Asia": "Azja",
+        "Oceania": "Oceania"
+      },
+      "useCodeAsIs": "Użyj „{code}” jako kodu kraju",
+      "countryNotFound": "Nie znaleziono kraju.",
+      "stepMethod": "2. Metoda wypłaty dostępna w Twoim kraju",
+      "type": {
+        "BANK": {
+          "label": "Przelew bankowy",
+          "sub": "IBAN SEPA • 2-3 dni"
+        },
+        "PAYPAL": {
+          "label": "PayPal",
+          "sub": "Natychmiastowo • na całym świecie"
+        },
+        "WISE": {
+          "label": "Wise",
+          "sub": "Tanie międzynarodowe • na całym świecie"
+        },
+        "PAYONEER": {
+          "label": "Payoneer",
+          "sub": "Międzynarodowe • na całym świecie"
+        },
+        "MOBILE_MONEY_WAVE": {
+          "label": "Wave",
+          "sub": "Mobile money"
+        },
+        "MOBILE_MONEY_ORANGE": {
+          "label": "Orange Money",
+          "sub": "Mobile money"
+        },
+        "MOBILE_MONEY_MTN": {
+          "label": "MTN MoMo",
+          "sub": "Mobile money"
+        }
+      },
+      "field": {
+        "ibanPlaceholder": "IBAN — PL61 1090 1014 0000…",
+        "ibanRequired": "IBAN wymagany (min. 15 znaków)",
+        "bicPlaceholder": "BIC — WBKPPLPP",
+        "bicRequired": "BIC wymagany (min. 8 znaków)",
+        "holderNamePlaceholder": "Imię i nazwisko posiadacza",
+        "holderNameRequired": "Imię i nazwisko posiadacza wymagane",
+        "emailPlaceholder": "email@przyklad.com",
+        "emailInvalid": "Nieprawidłowy e-mail",
+        "phoneInvalid": "Nieprawidłowy numer telefonu dla tego kraju",
+        "fullNamePlaceholder": "Imię i nazwisko",
+        "fullNameRequired": "Imię i nazwisko wymagane"
+      },
+      "genericError": "Coś poszło nie tak",
+      "submitting": "Szyfrowanie…",
+      "submit": "Dodaj i zaszyfruj 🔒",
+      "encryptionNote": "Szyfrowane AES-256 • Nigdy nieprzechowywane jawnie",
+      "verified": "Zweryfikowano",
+      "pendingVerification": "Oczekuje",
+      "setDefault": "Ustaw jako domyślną",
+      "delete": "Usuń"
     }
   },
   "marketplace": {
