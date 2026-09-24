@@ -4262,7 +4262,7 @@ button,
   --glass-text: #14103a;
   --glass-muted: #52525b;
   --glass-accent: #4c2fb8;
-  --glass-tile: #f3f0fc;
+  --glass-tile: #ffffff;
   --glass-card: #ffffff;
   --glass-row-active: #d8cff6;
 }
@@ -4270,8 +4270,8 @@ button,
   --glass-text: #f5f3ff;
   --glass-muted: #a1a1aa;
   --glass-accent: #c4b5fd;
-  /* Product photos are shot on white — a dark tile behind them looks like a rendering bug, not a theme. Keep it light in dark mode too. */
-  --glass-tile: #f3f0fc;
+  /* Product photos are shot on a solid white background — a dark or tinted tile behind them looks like a rendering bug, not a theme. Keep it plain white in dark mode too. */
+  --glass-tile: #ffffff;
   --glass-card: #17142e;
   --glass-row-active: #3b2f7a;
 }
