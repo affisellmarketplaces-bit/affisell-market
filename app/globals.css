@@ -4270,7 +4270,8 @@ button,
   --glass-text: #f5f3ff;
   --glass-muted: #a1a1aa;
   --glass-accent: #c4b5fd;
-  --glass-tile: #1f1b3d;
+  /* Product photos are shot on white — a dark tile behind them looks like a rendering bug, not a theme. Keep it light in dark mode too. */
+  --glass-tile: #f3f0fc;
   --glass-card: #17142e;
   --glass-row-active: #3b2f7a;
 }
