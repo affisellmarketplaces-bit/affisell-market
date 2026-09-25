@@ -1431,7 +1431,7 @@
       "unsavedChangesHint": "Niet-opgeslagen wijzigingen",
       "savedAtHint": "Opgeslagen om {time}",
       "autosaveSaving": "Automatisch opslaan…",
-      "autosaveDirty": "Wijzigingen synchroniseren…",
+      "autosaveDirty": "Wijzigingen in afwachting",
       "autosaveSaved": "Alle wijzigingen opgeslagen",
       "autosaveError": "Synchronisatie onderbroken",
       "syncNow": "Nu synchroniseren",

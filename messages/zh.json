@@ -1431,7 +1431,7 @@
       "unsavedChangesHint": "有未保存的更改",
       "savedAtHint": "保存于 {time}",
       "autosaveSaving": "自动保存中…",
-      "autosaveDirty": "正在同步更改…",
+      "autosaveDirty": "有待同步的更改",
       "autosaveSaved": "所有更改已保存",
       "autosaveError": "同步已中断",
       "syncNow": "立即同步",

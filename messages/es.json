@@ -1431,7 +1431,7 @@
       "unsavedChangesHint": "Cambios sin guardar",
       "savedAtHint": "Guardado a las {time}",
       "autosaveSaving": "Guardado automático…",
-      "autosaveDirty": "Sincronizando cambios…",
+      "autosaveDirty": "Cambios pendientes",
       "autosaveSaved": "Todos los cambios guardados",
       "autosaveError": "Sincronización interrumpida",
       "syncNow": "Sincronizar ahora",

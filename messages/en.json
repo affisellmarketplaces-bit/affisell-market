@@ -1431,7 +1431,7 @@
       "unsavedChangesHint": "Unsaved changes",
       "savedAtHint": "Saved at {time}",
       "autosaveSaving": "Auto-saving…",
-      "autosaveDirty": "Syncing changes…",
+      "autosaveDirty": "Changes pending",
       "autosaveSaved": "All changes saved",
       "autosaveError": "Sync interrupted",
       "syncNow": "Sync now",

@@ -1431,7 +1431,7 @@
       "unsavedChangesHint": "Modifications non enregistrées",
       "savedAtHint": "Enregistré à {time}",
       "autosaveSaving": "Enregistrement automatique…",
-      "autosaveDirty": "Synchronisation en cours…",
+      "autosaveDirty": "Modifications en attente",
       "autosaveSaved": "Tout est enregistré",
       "autosaveError": "Sync interrompue",
       "syncNow": "Synchroniser maintenant",
