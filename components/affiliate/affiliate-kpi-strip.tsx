@@ -83,7 +83,7 @@ export async function AffiliateKpiStrip({
       />
 
       <Tile
-        href="/dashboard/affiliate/products"
+        href="/dashboard/affiliate?tab=store"
         Icon={Store}
         label={t("listings")}
         value={t("listingsLive", { count: liveListings })}

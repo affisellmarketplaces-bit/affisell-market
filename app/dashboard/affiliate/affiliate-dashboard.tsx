@@ -301,7 +301,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
     (initialCatalog?.length ?? 0) === 0 && !initialCatalogError
   )
   const [catalogError, setCatalogError] = useState<string | null>(initialCatalogError ?? null)
-  const [tab, setTab] = useState<"catalog" | "store">("catalog")
+  const [tab, setTab] = useState<"catalog" | "store">(searchParams.get("tab") === "store" ? "store" : "catalog")
   const [listings, setListings] = useState<Listing[]>([])
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [toast, setToast] = useState<string | null>(null)
