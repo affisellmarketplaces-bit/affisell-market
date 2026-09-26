@@ -152,6 +152,23 @@ export function getPrismaDirectDatasourceUrl(): string | null {
   return augmentPrismaDatasourceUrl(direct)
 }
 
+/** Neon endpoint id (`ep-xxx`) with or without `-pooler`; null when the host is not a Neon endpoint. */
+function neonEndpointId(hostname: string): string | null {
+  const m = hostname.toLowerCase().match(/^(ep-[a-z0-9-]+?)(?:-pooler)?\./)
+  return m?.[1] ?? null
+}
+
+/**
+ * DIRECT_URL may only replace DATABASE_URL when it is the same database. Otherwise a `dev:staging`
+ * run (DATABASE_URL = staging pooler) silently switched to a production DIRECT_URL from .env.local.
+ */
+function isSameDatabaseHost(a: URL, b: URL): boolean {
+  const ea = neonEndpointId(a.hostname)
+  const eb = neonEndpointId(b.hostname)
+  if (ea && eb) return ea === eb
+  return a.hostname.toLowerCase() === b.hostname.toLowerCase()
+}
+
 export function getPrismaDatasourceUrl(): string {
   const isDev = process.env.NODE_ENV === "development"
   const poolerForced = isDev && process.env.PRISMA_USE_POOLER_DEV === "1"
@@ -170,7 +187,11 @@ export function getPrismaDatasourceUrl(): string {
 
   if (isDev && !poolerForced) {
     if (directExplicit && unpooled) {
-      raw = unpooled
+      try {
+        if (isSameDatabaseHost(new URL(raw), new URL(unpooled))) raw = unpooled
+      } catch {
+        /* keep DATABASE_URL */
+      }
     } else if (unpooled) {
       // Neon templates often set DATABASE_URL=pooler + DIRECT_URL=unpooled.
       // Some local envs invert that — never swap onto a pooler when DATABASE_URL is already direct.
@@ -180,7 +201,7 @@ export function getPrismaDatasourceUrl(): string {
         const primaryPooler =
           isNeonPoolerUrl(primary) || POOLER_HOST_RE.test(primary.hostname)
         const altPooler = isNeonPoolerUrl(alt) || POOLER_HOST_RE.test(alt.hostname)
-        if (primaryPooler && !altPooler) {
+        if (primaryPooler && !altPooler && isSameDatabaseHost(primary, alt)) {
           raw = unpooled
         }
       } catch {

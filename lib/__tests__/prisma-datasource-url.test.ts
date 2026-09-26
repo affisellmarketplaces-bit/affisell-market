@@ -144,6 +144,34 @@ describe("getPrismaDatasourceUrl", () => {
   })
 })
 
+describe("getPrismaDatasourceUrl never crosses databases", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it("keeps a staging pooler DATABASE_URL when DIRECT_URL is another (production) endpoint", () => {
+    vi.stubEnv("NODE_ENV", "development")
+    vi.stubEnv("DATABASE_URL", "postgresql://u:p@ep-staging-1-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require")
+    vi.stubEnv("DIRECT_URL", "postgresql://u:p@ep-prod-9.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require")
+    expect(new URL(getPrismaDatasourceUrl()).hostname).toBe("ep-staging-1-pooler.c-3.eu-central-1.aws.neon.tech")
+  })
+
+  it("does not follow PRISMA_USE_DIRECT_DEV onto a different database either", () => {
+    vi.stubEnv("NODE_ENV", "development")
+    vi.stubEnv("PRISMA_USE_DIRECT_DEV", "1")
+    vi.stubEnv("DATABASE_URL", "postgresql://u:p@ep-staging-1-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require")
+    vi.stubEnv("DIRECT_URL", "postgresql://u:p@ep-prod-9.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require")
+    expect(new URL(getPrismaDatasourceUrl()).hostname).toBe("ep-staging-1-pooler.c-3.eu-central-1.aws.neon.tech")
+  })
+
+  it("still swaps to the direct host of the same endpoint", () => {
+    vi.stubEnv("NODE_ENV", "development")
+    vi.stubEnv("DATABASE_URL", "postgresql://u:p@ep-staging-1-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require")
+    vi.stubEnv("DIRECT_URL", "postgresql://u:p@ep-staging-1.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require")
+    expect(new URL(getPrismaDatasourceUrl()).hostname).toBe("ep-staging-1.c-3.eu-central-1.aws.neon.tech")
+  })
+})
+
 describe("getPrismaDirectDatasourceUrl", () => {
   afterEach(() => {
     vi.unstubAllEnvs()
