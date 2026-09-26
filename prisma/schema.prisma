@@ -154,6 +154,8 @@ model User {
    * Chrome / Firefox extension import tokens (hashed secret).
    */
   supplierExtensionTokens SupplierExtensionToken[]
+  aiConnectionKeys        AiConnectionKey[]
+  aiMissions              AiMission[]
 
   /**
    * Optional blind-dropship API profile for this supplier user (parallel to native Affisell listings).
@@ -596,6 +598,45 @@ model SupplierExtensionToken {
   createdAt  DateTime  @default(now())
 
   @@index([userId])
+}
+
+/**
+ * Personal API key that lets an external AI (Claude, ChatGPT, Cursor…) act on the owner's
+ * account through the Affisell MCP endpoint. Read + draft only; every call is logged as an AiMission.
+ */
+model AiConnectionKey {
+  id         String      @id @default(cuid())
+  userId     String
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label      String      @default("AI")
+  /// First characters of the plain key, shown in the UI to tell keys apart.
+  prefix     String
+  tokenHash  String      @unique
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime    @default(now())
+  missions   AiMission[]
+
+  @@index([userId])
+}
+
+/// Audit log + async job for one tool call made by an external AI (status: queued | running | done | failed).
+model AiMission {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  keyId       String?
+  key         AiConnectionKey? @relation(fields: [keyId], references: [id], onDelete: SetNull)
+  tool        String
+  status      String           @default("queued")
+  input       Json?
+  result      Json?
+  error       String?          @db.Text
+  createdAt   DateTime         @default(now())
+  completedAt DateTime?
+
+  @@index([userId, createdAt])
+  @@index([keyId])
 }
 
 model Store {
