@@ -7359,6 +7359,21 @@
     "errors": {
       "genericPublic": "Dona: reactor hiccup. Retry — or hit /sell like a responsible adult. 💜",
       "genericCaptain": "Dona Captain: access denied or cold reactor. Stay on /dashboard/supplier. 💜"
+    },
+    "voice": {
+      "micAria": "Hold to talk to Dona",
+      "liveAria": "Start a live voice call with Dona",
+      "stopAria": "End voice call",
+      "hangupAria": "Hang up",
+      "listening": "Listening…",
+      "transcribing": "Transcribing…",
+      "speaking": "Dona is speaking…",
+      "liveOn": "Live · neural duplex",
+      "hint": "Hold the mic · or tap waves for a live call · Stripe · GDPR",
+      "permissionDenied": "Microphone blocked — allow it in the browser, then retry.",
+      "unsupported": "Voice needs HTTPS and a microphone. You can still type.",
+      "empty": "I didn't catch that — try again, Captain.",
+      "transcribeError": "Voice reactor hiccup — retry or type. 💜"
     }
   },
   "globalError": {

@@ -13,6 +13,8 @@ import { runDonaStreamResponse } from "@/lib/dona/run-dona-stream"
 import { isDonaBestsellerIntent } from "@/lib/dona/dona-buyer-intent"
 import { BUYER_BESTSELLERS_PATH } from "@/lib/buyer-bestsellers-route"
 import { publicBuyerTools } from "@/lib/dona/tools-public"
+import { DONA_VOICE_MODE_PROMPT } from "@/lib/dona/voice-prompt"
+import { isDonaVoiceModeFlag } from "@/lib/dona/voice-speakable"
 
 export const runtime = "nodejs"
 export const maxDuration = 30
@@ -33,7 +35,13 @@ export async function POST(req: Request) {
     return Response.json({ error: "Invalid JSON body" }, { status: 400 })
   }
 
-  const parsed = body as { messages?: unknown; audience?: unknown; locale?: unknown }
+  const parsed = body as {
+    messages?: unknown
+    audience?: unknown
+    locale?: unknown
+    voiceMode?: unknown
+  }
+  const voiceMode = isDonaVoiceModeFlag(parsed.voiceMode)
   const locale = resolveAppLocale(typeof parsed.locale === "string" ? parsed.locale : null)
 
   if (!resolveDonaModels()) {
@@ -70,6 +78,7 @@ export async function POST(req: Request) {
     queryPreview,
     audience,
     bestsellerIntent,
+    voiceMode,
   })
 
   const buyerProductBlock =
@@ -93,7 +102,7 @@ L'utilisateur demande le produit le plus vendu / best-sellers. Appelle **getBest
   return runDonaStreamResponse({
     logPrefix: "dona-public",
     locale,
-    system: `${DONA_PUBLIC_SYSTEM_PROMPT}${donaPublicAudiencePromptBlock(audience)}${buyerProductBlock}${bestsellerIntentBlock}`,
+    system: `${DONA_PUBLIC_SYSTEM_PROMPT}${donaPublicAudiencePromptBlock(audience)}${buyerProductBlock}${bestsellerIntentBlock}${voiceMode ? DONA_VOICE_MODE_PROMPT : ""}`,
     messages,
     temperature: audience === "buyer" ? 0.65 : 0.8,
     tools: audience === "buyer" ? publicBuyerTools : undefined,

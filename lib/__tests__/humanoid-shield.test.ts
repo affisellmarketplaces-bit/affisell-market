@@ -77,6 +77,43 @@ describe("HumanoidShield", () => {
     expect(HumanoidShield.extractIp(req)).toBe("203.0.113.44")
   })
 
+  it("does not treat supplier APIs as admin-sensitive", () => {
+    expect(HumanoidShield.isAdminSensitivePath("/api/supplier/orders")).toBe(false)
+    expect(HumanoidShield.isMerchantWorkspacePath("/api/supplier/orders")).toBe(true)
+    expect(HumanoidShield.isAdminSensitivePath("/dashboard/admin/users")).toBe(true)
+  })
+
+  it("does not volume-BLOCK a signed-in supplier after a dashboard burst", () => {
+    const ip = "80.215.159.234"
+    HumanoidShield.unbanIp(ip)
+    const headers = {
+      "user-agent": "Mozilla/5.0 Chrome/124",
+      "cf-connecting-ip": ip,
+    }
+    for (let i = 0; i < 40; i += 1) {
+      HumanoidShield.analyze(
+        mockReq("/api/supplier/orders", { headers }),
+        { sessionTrusted: true }
+      )
+    }
+    const result = HumanoidShield.analyze(
+      mockReq("/dashboard/supplier", { headers }),
+      { sessionTrusted: true }
+    )
+    expect(result.action).toBe("ALLOW")
+    HumanoidShield.unbanIp(ip)
+  })
+
+  it("still blocks honeypots even with a trusted session", () => {
+    const result = HumanoidShield.analyze(mockReq("/.env"), { sessionTrusted: true })
+    expect(result.action).toBe("BLOCK")
+  })
+
+  it("does not flag CSS-like double dashes as SQLi", () => {
+    const result = HumanoidShield.analyze(mockReq("/marketplace?tw=foo--bar"))
+    expect(result.threats.some((t) => t.type === "SQLI")).toBe(false)
+  })
+
   it("allows rate-limited traffic when a valid human pass cookie is present", () => {
     const ip = "203.0.113.55"
     HumanoidShield.banIp(ip, 5)
