@@ -307,6 +307,13 @@
       "bestSellersSold": "{count} verkocht",
       "battles": "Battles Hub",
       "battlesHint": "Live duels · flitskortingen"
+    },
+    "valueProps": {
+      "aria": "Voordelen",
+      "freeShipping": "Gratis verzending",
+      "verifiedStores": "Geverifieerde winkels",
+      "easyReturns": "14 dagen retour",
+      "flashDeals": "Flash deals"
     }
   },
   "creators": {

@@ -307,6 +307,13 @@
       "bestSellersSold": "{count} venduti",
       "battles": "Battles Hub",
       "battlesHint": "Duelli live · sconti flash"
+    },
+    "valueProps": {
+      "aria": "Vantaggi d'acquisto",
+      "freeShipping": "Spedizione gratuita",
+      "verifiedStores": "Negozi verificati",
+      "easyReturns": "Resi in 14 giorni",
+      "flashDeals": "Offerte flash"
     }
   },
   "creators": {

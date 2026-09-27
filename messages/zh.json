@@ -307,6 +307,13 @@
       "bestSellersSold": "已售 {count}",
       "battles": "对战中心",
       "battlesHint": "实时对决 · 限时折扣"
+    },
+    "valueProps": {
+      "aria": "购物权益",
+      "freeShipping": "包邮",
+      "verifiedStores": "认证店铺",
+      "easyReturns": "14天退货",
+      "flashDeals": "限时抢购"
     }
   },
   "creators": {

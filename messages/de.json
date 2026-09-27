@@ -307,6 +307,13 @@
       "bestSellersSold": "{count} verkauft",
       "battles": "Battles Hub",
       "battlesHint": "Live-Duelle · Blitzrabatte"
+    },
+    "valueProps": {
+      "aria": "Einkaufsvorteile",
+      "freeShipping": "Kostenloser Versand",
+      "verifiedStores": "Verifizierte Shops",
+      "easyReturns": "14 Tage Rückgabe",
+      "flashDeals": "Blitzangebote"
     }
   },
   "creators": {

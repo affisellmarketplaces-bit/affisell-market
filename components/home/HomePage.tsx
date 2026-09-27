@@ -4,6 +4,7 @@ import { BuyerHeroBlock } from "@/components/BuyerHeroBlock"
 import { BuyerHomeMeshCanvas } from "@/components/home/buyer-home-mesh-canvas"
 import { BuyerPremiumMarketplaceSection } from "@/components/home/buyer-premium-marketplace-section"
 import { HomeBelowFoldRadars } from "@/components/home/home-below-fold-radars"
+import { HomeValuePropsBar } from "@/components/home/HomeValuePropsBar"
 import { HomePageWarmup } from "@/components/home/home-page-warmup"
 import { BUYER_PREMIUM } from "@/lib/buyer-premium-home-tokens"
 
@@ -32,6 +33,7 @@ export async function HomePage() {
 
       <div className="relative z-[1] mx-auto w-full min-w-0 max-w-7xl px-3 sm:px-6">
         <div className="min-h-[32rem] overflow-x-clip rounded-t-[1.75rem] rounded-b-2xl bg-white shadow-[0_-12px_48px_rgba(79,70,229,0.12)]">
+          <HomeValuePropsBar />
           <BuyerPremiumMarketplaceSection />
         </div>
       </div>

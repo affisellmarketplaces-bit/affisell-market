@@ -307,6 +307,13 @@
       "bestSellersSold": "{count} sprzedanych",
       "battles": "Battles Hub",
       "battlesHint": "Pojedynki na żywo · rabaty flash"
+    },
+    "valueProps": {
+      "aria": "Korzyści zakupowe",
+      "freeShipping": "Darmowa dostawa",
+      "verifiedStores": "Zweryfikowane sklepy",
+      "easyReturns": "Zwroty w 14 dni",
+      "flashDeals": "Oferty błyskawiczne"
     }
   },
   "creators": {

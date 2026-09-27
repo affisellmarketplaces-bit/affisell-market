@@ -307,6 +307,13 @@
       "bestSellersSold": "{count} sold",
       "battles": "Battles Hub",
       "battlesHint": "Live duels · flash discounts"
+    },
+    "valueProps": {
+      "aria": "Shopping benefits",
+      "freeShipping": "Free shipping",
+      "verifiedStores": "Verified stores",
+      "easyReturns": "14-day returns",
+      "flashDeals": "Flash deals"
     }
   },
   "creators": {
