@@ -122,6 +122,8 @@ import {
   type UrlImportApplyPayload,
 } from "@/components/supplier/supplier-url-import-panel"
 import { SupplierAiImportAgent } from "@/components/supplier/supplier-ai-import-agent"
+import { SupplierSmartScanPanel } from "@/components/supplier/supplier-smart-scan-panel"
+import type { SmartScanPatch } from "@/lib/supplier-smart-scan"
 import {
   SupplierVariantComposerPanel,
   type VariantComposerApplyMeta,
@@ -910,6 +912,18 @@ export function SupplierAddProductForm({
         return merged.slice(0, 12)
       })
     }
+  }, [])
+
+  const smartScanLiveValuesRef = useRef({ description: "", price: "" })
+  smartScanLiveValuesRef.current = { description, price }
+  const getSmartScanLiveValues = useCallback(() => smartScanLiveValuesRef.current, [])
+
+  const handleSmartScanApply = useCallback((patch: SmartScanPatch) => {
+    if (patch.description !== undefined) setDescription(patch.description)
+    if (Object.keys(patch.specValuesPatch).length > 0) {
+      setSpecValues((prev) => ({ ...prev, ...patch.specValuesPatch }))
+    }
+    if (patch.price !== undefined) setPrice(patch.price)
   }, [])
 
   const handleUrlImportApply = useCallback((patch: UrlImportApplyPayload) => {
@@ -3173,6 +3187,16 @@ export function SupplierAddProductForm({
                       {categoryId.trim() ? (
                         <SupplierPlatformFeeNote categoryId={categoryId} />
                       ) : null}
+                      <SupplierSmartScanPanel
+                        categoryId={categoryId}
+                        categoryPathLabel={categoryPathLabel}
+                        name={name}
+                        description={description}
+                        images={images}
+                        categoryAttrs={mergedCategoryAttrs}
+                        onApply={handleSmartScanApply}
+                        getLiveValues={getSmartScanLiveValues}
+                      />
                     </div>
                   </div>
                 </SectionCard>

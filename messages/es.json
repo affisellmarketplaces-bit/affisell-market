@@ -2009,6 +2009,11 @@
       "navAria": "Navegación del catálogo",
       "backToMission": "← Centro de control",
       "draftCountBadge": "{count, plural, one {# borrador} other {# borradores}}"
+    },
+    "smartScan": {
+      "scanning": "Analizando la foto — completando descripción, características y un precio sugerido…",
+      "filled": "Completado a partir de la foto — revisa y ajusta antes de publicar.",
+      "filledWithDuplicateWarning": "Completado a partir de la foto — puede que ya exista un producto similar en tu catálogo."
     }
   },
   "affiliate": {

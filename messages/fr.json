@@ -2009,6 +2009,11 @@
       "navAria": "Navigation catalogue",
       "backToMission": "← Centre de contrôle",
       "draftCountBadge": "{count, plural, one {# brouillon} other {# brouillons}}"
+    },
+    "smartScan": {
+      "scanning": "Analyse de la photo en cours — remplissage de la description, des caractéristiques et d'un prix suggéré…",
+      "filled": "Rempli à partir de la photo — vérifiez et ajustez avant de publier.",
+      "filledWithDuplicateWarning": "Rempli à partir de la photo — un produit similaire existe peut-être déjà dans votre catalogue."
     }
   },
   "affiliate": {

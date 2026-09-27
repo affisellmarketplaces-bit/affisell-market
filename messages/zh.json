@@ -2009,6 +2009,11 @@
       "navAria": "目录导航",
       "backToMission": "← 控制中心",
       "draftCountBadge": "{count, plural, other {# 个草稿}}"
+    },
+    "smartScan": {
+      "scanning": "正在分析照片——自动填写描述、规格和建议价格…",
+      "filled": "已根据照片自动填写——发布前请检查并调整。",
+      "filledWithDuplicateWarning": "已根据照片自动填写——你的目录中可能已有类似商品。"
     }
   },
   "affiliate": {

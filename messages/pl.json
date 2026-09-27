@@ -2009,6 +2009,11 @@
       "navAria": "Nawigacja katalogu",
       "backToMission": "← Centrum sterowania",
       "draftCountBadge": "{count, plural, one {# szkic} few {# szkice} other {# szkiców}}"
+    },
+    "smartScan": {
+      "scanning": "Analizowanie zdjęcia — uzupełnianie opisu, cech i sugerowanej ceny…",
+      "filled": "Uzupełnione na podstawie zdjęcia — sprawdź i popraw przed publikacją.",
+      "filledWithDuplicateWarning": "Uzupełnione na podstawie zdjęcia — podobny produkt może już być w Twoim katalogu."
     }
   },
   "affiliate": {

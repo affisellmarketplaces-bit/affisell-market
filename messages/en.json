@@ -2009,6 +2009,11 @@
       "navAria": "Catalog navigation",
       "backToMission": "← Mission control",
       "draftCountBadge": "{count, plural, one {# draft} other {# drafts}}"
+    },
+    "smartScan": {
+      "scanning": "Scanning the photo — filling description, specs and a price suggestion…",
+      "filled": "Filled from the photo — check and adjust before publishing.",
+      "filledWithDuplicateWarning": "Filled from the photo — a similar product may already be in your catalog."
     }
   },
   "affiliate": {

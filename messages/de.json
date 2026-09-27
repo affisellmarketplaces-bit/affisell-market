@@ -2009,6 +2009,11 @@
       "navAria": "Katalognavigation",
       "backToMission": "← Kontrollzentrum",
       "draftCountBadge": "{count, plural, one {# Entwurf} other {# Entwürfe}}"
+    },
+    "smartScan": {
+      "scanning": "Foto wird analysiert — Beschreibung, Merkmale und ein Preisvorschlag werden ausgefüllt…",
+      "filled": "Aus dem Foto ausgefüllt — vor der Veröffentlichung prüfen und anpassen.",
+      "filledWithDuplicateWarning": "Aus dem Foto ausgefüllt — ein ähnliches Produkt existiert möglicherweise schon in Ihrem Katalog."
     }
   },
   "affiliate": {

@@ -23,7 +23,7 @@ import { extractBigBuyProductId, getBigBuyProduct } from "@/lib/bigbuy-lookup"
 import { extractCjProductId, getCjProduct } from "@/lib/cj-dropshipping-lookup"
 import { convertCnyToEur, convertUsdToEur } from "@/lib/currency-conversion"
 import { extract1688Id, get1688 } from "@/lib/onebound"
-import { prisma } from "@/lib/prisma"
+import { checkCatalogDuplicate } from "@/lib/catalog-duplicate-check"
 
 type ReviewSentiment = "positive" | "neutral" | "negative"
 type Platform =
@@ -494,7 +494,7 @@ export async function scrapeSupplierProductFromUrl(
 
     product.quality_score = calculateQualityScore(product)
     product.seo_keywords = generateSEO(product.title, product.category)
-    product.is_duplicate = await checkDuplicate(product.title, product.images[0] ?? "")
+    product.is_duplicate = await checkCatalogDuplicate(product.title, product.images[0] ?? "")
 
     const markup =
       typeof body.options?.markup === "number" && body.options.markup > 0
@@ -1104,30 +1104,6 @@ function generateSEO(title: string, category: string): string[] {
     0,
     10
   )
-}
-
-async function checkDuplicate(title: string, image: string): Promise<boolean> {
-  const normalizedTitle = title.trim()
-  const normalizedImage = image.trim()
-  const candidate = await prisma.product.findFirst({
-    where: {
-      OR: [
-        ...(normalizedTitle
-          ? [
-              {
-                name: {
-                  contains: normalizedTitle.slice(0, 40),
-                  mode: "insensitive" as const,
-                },
-              },
-            ]
-          : []),
-        ...(normalizedImage ? [{ tags: { has: normalizedImage.slice(0, 120) } }] : []),
-      ],
-    },
-    select: { id: true },
-  })
-  return Boolean(candidate)
 }
 
 async function rewriteWithAI(text: string): Promise<string> {

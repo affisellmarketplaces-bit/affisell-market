@@ -2009,6 +2009,11 @@
       "navAria": "Cataloguisnavigatie",
       "backToMission": "← Controlecentrum",
       "draftCountBadge": "{count, plural, one {# concept} other {# concepten}}"
+    },
+    "smartScan": {
+      "scanning": "Foto wordt geanalyseerd — beschrijving, kenmerken en een prijssuggestie worden ingevuld…",
+      "filled": "Ingevuld vanaf de foto — controleer en pas aan vóór publicatie.",
+      "filledWithDuplicateWarning": "Ingevuld vanaf de foto — mogelijk staat er al een vergelijkbaar product in je catalogus."
     }
   },
   "affiliate": {

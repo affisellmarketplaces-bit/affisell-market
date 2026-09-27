@@ -2009,6 +2009,11 @@
       "navAria": "Navigazione catalogo",
       "backToMission": "← Centro di controllo",
       "draftCountBadge": "{count, plural, one {# bozza} other {# bozze}}"
+    },
+    "smartScan": {
+      "scanning": "Analisi della foto in corso — compilazione di descrizione, specifiche e prezzo suggerito…",
+      "filled": "Compilato dalla foto — controlla e correggi prima di pubblicare.",
+      "filledWithDuplicateWarning": "Compilato dalla foto — potrebbe già esistere un prodotto simile nel tuo catalogo."
     }
   },
   "affiliate": {

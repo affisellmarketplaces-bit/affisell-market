@@ -1,5 +1,7 @@
 import { auth } from "@/auth"
 import { groqChatText, GROQ_VISION_MODEL } from "@/lib/ai/groq-client"
+import { checkCatalogDuplicate } from "@/lib/catalog-duplicate-check"
+import { parseSuggestedPriceEur } from "@/lib/supplier-smart-scan"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -113,7 +115,8 @@ export async function POST(req: Request) {
 
   const schemaHint = `Return a single JSON object with keys:
 - "description" (string, plain text, no HTML/Markdown, max ~3500 chars): buyer- and affiliate-oriented listing copy. Stay factual; do not invent certifications or reviews.
-- "specs" (object): optional key-value pairs ONLY for characteristic keys listed below. Omit keys you cannot infer.`
+- "specs" (object): optional key-value pairs ONLY for characteristic keys listed below. Omit keys you cannot infer.
+- "suggestedPriceEur" (number or null): a realistic EU marketplace retail price in EUR for this exact product, based on what it visibly is (materials, brand cues, category norms). null if you have no reasonable basis — never guess wildly.`
 
   const imageHint =
     imageUrls.length > 0
@@ -172,9 +175,13 @@ export async function POST(req: Request) {
           { role: "user", content: userContent },
         ],
       })) ?? "{}"
-    let parsed: { description?: unknown; specs?: unknown }
+    let parsed: { description?: unknown; specs?: unknown; suggestedPriceEur?: unknown }
     try {
-      parsed = JSON.parse(stripJsonFence(raw)) as { description?: unknown; specs?: unknown }
+      parsed = JSON.parse(stripJsonFence(raw)) as {
+        description?: unknown
+        specs?: unknown
+        suggestedPriceEur?: unknown
+      }
     } catch {
       return Response.json({ error: "Model returned invalid JSON" }, { status: 502 })
     }
@@ -209,7 +216,14 @@ export async function POST(req: Request) {
       }
     }
 
-    return Response.json({ description, specs: specsOut })
+    const suggestedPriceEur = parseSuggestedPriceEur(parsed.suggestedPriceEur)
+
+    const primaryImage = imageUrls[0] ?? ""
+    const duplicate = await checkCatalogDuplicate(name, primaryImage, {
+      scopeSupplierId: session.user.id,
+    }).catch(() => false)
+
+    return Response.json({ description, specs: specsOut, suggestedPriceEur, duplicate })
   } catch (e) {
     return Response.json(
       { error: e instanceof Error ? e.message : "AI request failed" },
