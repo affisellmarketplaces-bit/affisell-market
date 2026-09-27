@@ -120,7 +120,14 @@
     "magicLabShort": "Lab",
     "searchQuickBattles": "Battles",
     "battlesEntry": "Hub Battles",
-    "battlesEntryShort": "Battles"
+    "battlesEntryShort": "Battles",
+    "megaMenu": {
+      "popular": "Populaire",
+      "seeAllIn": "Tout voir dans {name}",
+      "brandsTitle": "Marques populaires",
+      "noBrands": "Pas encore de marques pour cette catégorie.",
+      "seeAllAisles": "Parcourir tout le catalogue"
+    }
   },
   "slogans": {
     "buyer": {

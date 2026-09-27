@@ -120,7 +120,14 @@
     "magicLabShort": "Lab",
     "searchQuickBattles": "对战",
     "battlesEntry": "对战竞技场",
-    "battlesEntryShort": "对战"
+    "battlesEntryShort": "对战",
+    "megaMenu": {
+      "popular": "热门",
+      "seeAllIn": "查看{name}的全部商品",
+      "brandsTitle": "热门品牌",
+      "noBrands": "该分类暂无品牌数据。",
+      "seeAllAisles": "浏览完整目录"
+    }
   },
   "slogans": {
     "buyer": {
