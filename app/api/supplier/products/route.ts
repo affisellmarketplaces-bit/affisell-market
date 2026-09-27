@@ -56,6 +56,7 @@ import { parseChinaImportFields } from "@/lib/china-buying/china-buying-shared"
 import { routeChinaBuy } from "@/lib/china-buying/route-china-buy"
 import { revalidateSupplierShopfront } from "@/lib/revalidate-supplier-shopfront"
 import { rejectIfHoneypotBody } from "@/lib/security/honeypot-api"
+import { UNTITLED_DRAFT_SENTINEL } from "@/lib/supplier-add-product-draft-cache"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -203,7 +204,7 @@ export async function POST(req: Request) {
     : []
 
   const supplierId = requireMerchantUserId(session.user.id, "supplier")
-  const displayName = (nameStr || "Untitled draft").slice(0, 500)
+  const displayName = (nameStr || UNTITLED_DRAFT_SENTINEL).slice(0, 500)
 
   if (!saveAsDraft && categoryId) {
     const attributeValuesRaw = (body as Record<string, unknown>).attributeValues

@@ -131,6 +131,7 @@ import {
 } from "@/components/supplier/supplier-variant-composer-panel"
 import {
   clearSupplierAddProductDraftCache,
+  isUntitledDraftSentinel,
   readExpressImportDraftCache,
   readSupplierAddProductDraftCache,
   SUPPLIER_EXPRESS_HANDOFF_QUERY,
@@ -1011,7 +1012,8 @@ export function SupplierAddProductForm({
       if (rowSupplierId && rowSupplierId !== ownerUserId) {
         throw new Error(tForm("productNotOwnedError"))
       }
-      setName(String(data.name ?? ""))
+      const loadedName = String(data.name ?? "")
+      setName(isUntitledDraftSentinel(loadedName) ? "" : loadedName)
       setDescription(String(data.description ?? ""))
       setCategoryId(typeof data.categoryId === "string" ? data.categoryId : "")
       setImages(
@@ -1548,7 +1550,7 @@ export function SupplierAddProductForm({
     (c: SupplierAddProductCachePayload, opts?: { toastMessage?: string }) => {
       if (Date.now() - c.updatedAt > 14 * 24 * 60 * 60 * 1000) return false
       trySetStep((Math.min(3, Math.max(1, c.step ?? 1)) as WizardStep) || 1)
-      setName(c.name)
+      setName(isUntitledDraftSentinel(c.name) ? "" : c.name)
       setDescription(stripImportOptionsFromDescription(c.description))
       setCategoryId(c.categoryId)
       setImages(Array.isArray(c.images) ? c.images : [])

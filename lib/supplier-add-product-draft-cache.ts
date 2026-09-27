@@ -4,6 +4,17 @@ import type { SkuOptionalColumnKey } from "@/lib/supplier-sku-columns"
 
 const SUPPLIER_ADD_PRODUCT_CACHE_KEY_PREFIX = "affisell:supplier-add-product-draft:v2"
 
+/**
+ * Internal placeholder the server stores when a draft is saved with no title yet — Product.name
+ * has no default, so a row must have some value. Never real supplier input: the form must treat it
+ * as an empty title on load (blank field, no AI classification run against it), not display it.
+ */
+export const UNTITLED_DRAFT_SENTINEL = "Untitled draft"
+
+export function isUntitledDraftSentinel(name: string): boolean {
+  return name.trim() === UNTITLED_DRAFT_SENTINEL
+}
+
 export function supplierAddProductDraftCacheKey(ownerUserId: string): string {
   const id = ownerUserId.trim()
   if (!id) return `${SUPPLIER_ADD_PRODUCT_CACHE_KEY_PREFIX}:anonymous`

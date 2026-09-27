@@ -2,9 +2,24 @@ import { describe, expect, it } from "vitest"
 
 import {
   isExpressImportDraftCache,
+  isUntitledDraftSentinel,
   supplierExpressHandoffWizardUrl,
+  UNTITLED_DRAFT_SENTINEL,
   type SupplierAddProductCachePayload,
 } from "@/lib/supplier-add-product-draft-cache"
+
+describe("isUntitledDraftSentinel", () => {
+  it("recognizes the server's empty-title placeholder", () => {
+    expect(isUntitledDraftSentinel(UNTITLED_DRAFT_SENTINEL)).toBe(true)
+    expect(isUntitledDraftSentinel("  Untitled draft  ")).toBe(true)
+  })
+
+  it("never flags a real supplier title, even one that starts the same way", () => {
+    expect(isUntitledDraftSentinel("")).toBe(false)
+    expect(isUntitledDraftSentinel("Untitled draft edition sneakers")).toBe(false)
+    expect(isUntitledDraftSentinel("Montre connectée")).toBe(false)
+  })
+})
 
 const basePayload = (): SupplierAddProductCachePayload => ({
   v: 2,

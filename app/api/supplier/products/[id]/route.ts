@@ -75,6 +75,7 @@ import {
 } from "@/lib/affiliate-wholesale-change-notify"
 import { deleteSupplierProduct } from "@/lib/supplier-product-remove.server"
 import { SUPPLIER_PRODUCT_REMOVE_CODE } from "@/lib/supplier-product-remove-shared"
+import { UNTITLED_DRAFT_SENTINEL } from "@/lib/supplier-add-product-draft-cache"
 import {
   assertSupplierWholesaleIncreaseAllowed,
   SUPPLIER_WHOLESALE_INCREASE_BLOCKED_CODE,
@@ -265,7 +266,7 @@ export async function PUT(
     compareAt = parseCompareAtDraftLax(priceCents, body.compareAt ?? null)
 
     const rawName = typeof body.name === "string" ? body.name.trim() : ""
-    nameResolved = (rawName || "Untitled draft").slice(0, 500)
+    nameResolved = (rawName || UNTITLED_DRAFT_SENTINEL).slice(0, 500)
 
     stock = Math.max(
       0,
