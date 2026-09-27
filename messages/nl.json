@@ -127,6 +127,11 @@
       "brandsTitle": "Populaire merken",
       "noBrands": "Nog geen merken voor deze categorie.",
       "seeAllAisles": "Bekijk de hele catalogus"
+    },
+    "photoSearch": {
+      "label": "Zoeken met foto",
+      "invalidFile": "Kies een afbeeldingsbestand.",
+      "failed": "Deze foto kon niet worden geanalyseerd — probeer opnieuw of zoek op tekst."
     }
   },
   "slogans": {
@@ -209,12 +214,7 @@
       "titlePremium": "Ontdek winkels waar je graag terugkomt.",
       "subPremium": "Ontdek producten van vertrouwde winkels. Geverifieerde producten, beveiligde betalingen en EU-kopersbescherming.",
       "searchPlaceholderPremium": "Zoek winkels, producten, merken...",
-      "searchSubmitPremium": "Producten ontdekken →",
-      "photoSearch": {
-        "label": "Zoeken met foto",
-        "invalidFile": "Kies een afbeeldingsbestand.",
-        "failed": "Deze foto kon niet worden geanalyseerd — probeer opnieuw of zoek op tekst."
-      }
+      "searchSubmitPremium": "Producten ontdekken →"
     },
     "bento": {
       "agentShopping": {

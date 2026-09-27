@@ -127,6 +127,11 @@
       "brandsTitle": "Popular brands",
       "noBrands": "No brand data yet for this category.",
       "seeAllAisles": "Browse the full catalog"
+    },
+    "photoSearch": {
+      "label": "Search by photo",
+      "invalidFile": "Please choose an image file.",
+      "failed": "Could not analyze that photo — try again or search by text."
     }
   },
   "slogans": {
@@ -209,12 +214,7 @@
       "searchSubmitPremium": "Explore products →",
       "cmdKHint": "Quick nav",
       "ctaPrimary": "Explore trusted stores",
-      "creatorLink": "Are you a reseller? Sell on Affisell →",
-      "photoSearch": {
-        "label": "Search by photo",
-        "invalidFile": "Please choose an image file.",
-        "failed": "Could not analyze that photo — try again or search by text."
-      }
+      "creatorLink": "Are you a reseller? Sell on Affisell →"
     },
     "bento": {
       "agentShopping": {

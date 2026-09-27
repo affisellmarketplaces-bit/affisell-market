@@ -127,6 +127,11 @@
       "brandsTitle": "Beliebte Marken",
       "noBrands": "Noch keine Markendaten für diese Kategorie.",
       "seeAllAisles": "Gesamten Katalog durchsuchen"
+    },
+    "photoSearch": {
+      "label": "Nach Foto suchen",
+      "invalidFile": "Bitte wählen Sie eine Bilddatei.",
+      "failed": "Dieses Foto konnte nicht analysiert werden — versuchen Sie es erneut oder suchen Sie per Text."
     }
   },
   "slogans": {
@@ -209,12 +214,7 @@
       "titlePremium": "Entdecke Shops, zu denen du gerne zurückkehrst.",
       "subPremium": "Entdecke Produkte von vertrauenswürdigen Shops. Geprüfte Produkte, geschützte Zahlungen und EU-Käuferschutz.",
       "searchPlaceholderPremium": "Shops, Produkte, Marken suchen...",
-      "searchSubmitPremium": "Produkte entdecken →",
-      "photoSearch": {
-        "label": "Nach Foto suchen",
-        "invalidFile": "Bitte wählen Sie eine Bilddatei.",
-        "failed": "Dieses Foto konnte nicht analysiert werden — versuchen Sie es erneut oder suchen Sie per Text."
-      }
+      "searchSubmitPremium": "Produkte entdecken →"
     },
     "bento": {
       "agentShopping": {

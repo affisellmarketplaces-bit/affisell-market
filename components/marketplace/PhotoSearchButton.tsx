@@ -19,7 +19,7 @@ type Props = {
  * search — no new catalog index to build or keep in sync).
  */
 export function PhotoSearchButton({ onQuery, className }: Props) {
-  const t = useTranslations("home.hero.photoSearch")
+  const t = useTranslations("PublicNav.photoSearch")
   const inputId = useId()
   const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)

@@ -8,6 +8,7 @@ import { type FormEvent, useCallback, useEffect, useId, useRef, useState } from 
 import { useDebouncedCallback } from "use-debounce"
 
 import { FastLink } from "@/components/navigation/fast-link"
+import { PhotoSearchButton } from "@/components/marketplace/PhotoSearchButton"
 import { useIdleMount } from "@/hooks/use-idle-mount"
 import { AFFILIATE_CATALOG_PATH, shopListingPath } from "@/lib/affiliate-routes"
 import { navigateBuyerHomeCatalog } from "@/lib/marketplace-catalog-nav.client"
@@ -197,8 +198,9 @@ export function NavHeaderSearch({
             key={defaultQ}
             placeholder={resolvedPlaceholder}
             autoComplete="off"
-            className="h-10 w-full min-w-0 rounded-full border-0 bg-transparent py-2 pl-9 pr-2 text-zinc-900 shadow-none outline-none placeholder:text-zinc-400 focus:ring-0 dark:text-zinc-100"
+            className="h-10 w-full min-w-0 rounded-full border-0 bg-transparent py-2 pl-9 pr-8 text-zinc-900 shadow-none outline-none placeholder:text-zinc-400 focus:ring-0 dark:text-zinc-100"
           />
+          <PhotoSearchButton onQuery={submitQuery} className="absolute right-1 size-7" />
         </div>
       </form>
     )
@@ -234,9 +236,17 @@ export function NavHeaderSearch({
             aria-expanded={showPanel}
             aria-controls={showPanel ? listboxId : undefined}
             className={cn(
-              "h-10 w-full min-w-0 rounded-full border-0 bg-transparent py-2 pr-2 text-zinc-900 shadow-none outline-none placeholder:text-zinc-400 focus:ring-0 dark:text-zinc-100",
+              "h-10 w-full min-w-0 rounded-full border-0 bg-transparent py-2 pr-8 text-zinc-900 shadow-none outline-none placeholder:text-zinc-400 focus:ring-0 dark:text-zinc-100",
               contextLabel ? "pl-9 sm:pl-[7.25rem] lg:pl-[8.5rem]" : "pl-9"
             )}
+          />
+          <PhotoSearchButton
+            onQuery={(query) => {
+              setQ(query)
+              setOpen(false)
+              submitQuery(query)
+            }}
+            className="absolute right-1 size-7"
           />
         </div>
       </form>

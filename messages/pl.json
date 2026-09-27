@@ -127,6 +127,11 @@
       "brandsTitle": "Popularne marki",
       "noBrands": "Brak jeszcze marek dla tej kategorii.",
       "seeAllAisles": "Przeglądaj cały katalog"
+    },
+    "photoSearch": {
+      "label": "Szukaj po zdjęciu",
+      "invalidFile": "Wybierz plik obrazu.",
+      "failed": "Nie udało się przeanalizować zdjęcia — spróbuj ponownie lub wyszukaj tekstem."
     }
   },
   "slogans": {
@@ -209,12 +214,7 @@
       "titlePremium": "Odkryj sklepy, do których będziesz wracać.",
       "subPremium": "Odkrywaj produkty ze sprawdzonych sklepów. Zweryfikowane produkty, chronione płatności i ochrona kupującego w UE.",
       "searchPlaceholderPremium": "Szukaj sklepów, produktów, marek...",
-      "searchSubmitPremium": "Odkryj produkty →",
-      "photoSearch": {
-        "label": "Szukaj po zdjęciu",
-        "invalidFile": "Wybierz plik obrazu.",
-        "failed": "Nie udało się przeanalizować zdjęcia — spróbuj ponownie lub wyszukaj tekstem."
-      }
+      "searchSubmitPremium": "Odkryj produkty →"
     },
     "bento": {
       "agentShopping": {

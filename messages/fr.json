@@ -127,6 +127,11 @@
       "brandsTitle": "Marques populaires",
       "noBrands": "Pas encore de marques pour cette catégorie.",
       "seeAllAisles": "Parcourir tout le catalogue"
+    },
+    "photoSearch": {
+      "label": "Rechercher par photo",
+      "invalidFile": "Choisissez un fichier image.",
+      "failed": "Impossible d'analyser cette photo — réessayez ou cherchez par texte."
     }
   },
   "slogans": {
@@ -209,12 +214,7 @@
       "searchSubmitPremium": "Explore products →",
       "cmdKHint": "Navigation rapide",
       "ctaPrimary": "Explorer les boutiques de confiance",
-      "creatorLink": "Vous êtes revendeur ? Vendez sur Affisell →",
-      "photoSearch": {
-        "label": "Rechercher par photo",
-        "invalidFile": "Choisissez un fichier image.",
-        "failed": "Impossible d'analyser cette photo — réessayez ou cherchez par texte."
-      }
+      "creatorLink": "Vous êtes revendeur ? Vendez sur Affisell →"
     },
     "bento": {
       "agentShopping": {
