@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { CategoryAttrRow } from "@/components/supplier/category-attribute-fields"
+import { compressImageFileToDataUrl } from "@/lib/client-image-compress"
 
 export type AiPublishResult = {
   description: string
@@ -31,26 +32,6 @@ type Props = {
 type FileSlot = { id: string; dataUrl: string; name: string }
 
 const MAX_UPLOAD_SLOTS = 4
-const MAX_SIDE = 768
-const JPEG_QUALITY = 0.82
-
-async function compressImageFileToDataUrl(file: File): Promise<string> {
-  const bmp = await createImageBitmap(file)
-  try {
-    const scale = Math.min(1, MAX_SIDE / Math.max(bmp.width, bmp.height))
-    const w = Math.round(bmp.width * scale)
-    const h = Math.round(bmp.height * scale)
-    const canvas = document.createElement("canvas")
-    canvas.width = w
-    canvas.height = h
-    const ctx = canvas.getContext("2d")
-    if (!ctx) throw new Error("Canvas not available")
-    ctx.drawImage(bmp, 0, 0, w, h)
-    return canvas.toDataURL("image/jpeg", JPEG_QUALITY)
-  } finally {
-    bmp.close?.()
-  }
-}
 
 function parseUrlLines(raw: string): string[] {
   const lines = raw.split(/[\n\r]+/).map((s) => s.trim())

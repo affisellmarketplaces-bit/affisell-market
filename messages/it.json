@@ -209,7 +209,12 @@
       "titlePremium": "Scopri negozi in cui tornerai volentieri.",
       "subPremium": "Esplora prodotti di negozi affidabili. Prodotti verificati, pagamenti protetti e protezione acquirenti UE.",
       "searchPlaceholderPremium": "Cerca negozi, prodotti, marchi...",
-      "searchSubmitPremium": "Esplora i prodotti →"
+      "searchSubmitPremium": "Esplora i prodotti →",
+      "photoSearch": {
+        "label": "Cerca per foto",
+        "invalidFile": "Scegli un file immagine.",
+        "failed": "Impossibile analizzare la foto — riprova o cerca per testo."
+      }
     },
     "bento": {
       "agentShopping": {

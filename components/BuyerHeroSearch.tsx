@@ -7,6 +7,7 @@ import { type FormEvent, useState } from "react"
 
 import { navigateBuyerHomeCatalog } from "@/lib/marketplace-catalog-nav.client"
 import { BUYER_PREMIUM, buyerPremiumCtaClass } from "@/lib/buyer-premium-home-tokens"
+import { PhotoSearchButton } from "@/components/marketplace/PhotoSearchButton"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -22,6 +23,11 @@ export function BuyerHeroSearch({ premium = false }: Props) {
     e.preventDefault()
     const trimmed = q.trim()
     navigateBuyerHomeCatalog(router, trimmed ? { q: trimmed } : undefined)
+  }
+
+  function onPhotoQuery(query: string) {
+    setQ(query)
+    navigateBuyerHomeCatalog(router, { q: query })
   }
 
   return (
@@ -44,7 +50,7 @@ export function BuyerHeroSearch({ premium = false }: Props) {
         className={cn(
           "h-12 w-full min-w-0 rounded-full border border-white bg-white pl-11 text-sm outline-none placeholder:text-zinc-400 focus:ring-4 focus:ring-[rgba(67,56,202,0.18)] sm:h-14 sm:text-base dark:text-zinc-50",
           premium
-            ? "pr-14 shadow-[0_12px_40px_rgba(79,70,229,0.14)] sm:pr-[11.5rem]"
+            ? "pr-24 shadow-[0_12px_40px_rgba(79,70,229,0.14)] sm:pr-[13.5rem]"
             : "pr-[4.75rem] sm:pr-28"
         )}
         style={
@@ -60,28 +66,36 @@ export function BuyerHeroSearch({ premium = false }: Props) {
           ⌘K
         </kbd>
       ) : null}
-      <button
-        type="submit"
+      <div
         className={cn(
-          "absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center justify-center rounded-full font-semibold text-white transition-all duration-200 active:scale-95",
-          premium
-            ? cn("h-11 w-11 rounded-full px-0 text-xs sm:h-11 sm:w-auto sm:px-5 sm:text-sm", buyerPremiumCtaClass)
-            : "affisell-premium-cta h-11 min-w-11 rounded-[1.05rem] px-3 text-sm sm:right-2 sm:h-10 sm:min-w-0 sm:px-5"
+          "absolute top-1/2 flex -translate-y-1/2 items-center",
+          premium ? "right-1.5 gap-1" : "right-2"
         )}
-        aria-label={premium ? t("searchSubmitPremium") : t("searchSubmit")}
       >
-        {premium ? (
-          <>
-            <Search className="h-5 w-5 sm:hidden" aria-hidden />
-            <span className="hidden sm:inline">{t("searchSubmitPremium")}</span>
-          </>
-        ) : (
-          <>
-            <Search className="h-4 w-4 sm:hidden" aria-hidden />
-            <span className="hidden sm:inline">{t("searchSubmit")}</span>
-          </>
-        )}
-      </button>
+        {premium ? <PhotoSearchButton onQuery={onPhotoQuery} className="size-9 sm:size-10" /> : null}
+        <button
+          type="submit"
+          className={cn(
+            "flex items-center justify-center rounded-full font-semibold text-white transition-all duration-200 active:scale-95",
+            premium
+              ? cn("h-11 w-11 rounded-full px-0 text-xs sm:h-11 sm:w-auto sm:px-5 sm:text-sm", buyerPremiumCtaClass)
+              : "affisell-premium-cta h-11 min-w-11 rounded-[1.05rem] px-3 text-sm sm:h-10 sm:min-w-0 sm:px-5"
+          )}
+          aria-label={premium ? t("searchSubmitPremium") : t("searchSubmit")}
+        >
+          {premium ? (
+            <>
+              <Search className="h-5 w-5 sm:hidden" aria-hidden />
+              <span className="hidden sm:inline">{t("searchSubmitPremium")}</span>
+            </>
+          ) : (
+            <>
+              <Search className="h-4 w-4 sm:hidden" aria-hidden />
+              <span className="hidden sm:inline">{t("searchSubmit")}</span>
+            </>
+          )}
+        </button>
+      </div>
     </form>
   )
 }

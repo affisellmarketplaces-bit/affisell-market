@@ -209,7 +209,12 @@
       "titlePremium": "发现你会一再光顾的店铺。",
       "subPremium": "探索来自可信店铺的商品。商品已验证，支付有保障，享受欧盟买家保护。",
       "searchPlaceholderPremium": "搜索店铺、商品、品牌...",
-      "searchSubmitPremium": "探索商品 →"
+      "searchSubmitPremium": "探索商品 →",
+      "photoSearch": {
+        "label": "以图搜索",
+        "invalidFile": "请选择一张图片文件。",
+        "failed": "无法分析这张照片——请重试或改用文字搜索。"
+      }
     },
     "bento": {
       "agentShopping": {

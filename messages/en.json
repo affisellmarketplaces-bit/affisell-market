@@ -209,7 +209,12 @@
       "searchSubmitPremium": "Explore products →",
       "cmdKHint": "Quick nav",
       "ctaPrimary": "Explore trusted stores",
-      "creatorLink": "Are you a reseller? Sell on Affisell →"
+      "creatorLink": "Are you a reseller? Sell on Affisell →",
+      "photoSearch": {
+        "label": "Search by photo",
+        "invalidFile": "Please choose an image file.",
+        "failed": "Could not analyze that photo — try again or search by text."
+      }
     },
     "bento": {
       "agentShopping": {
