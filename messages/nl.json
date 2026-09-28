@@ -136,6 +136,9 @@
     "shipToLanguage": {
       "title": "Verzenden naar & taal",
       "shipToTitle": "Verzenden naar",
+      "cityTitle": "Stad",
+      "cityPlaceholder": "bijv. Amsterdam",
+      "noCityResults": "Geen steden gevonden",
       "languageTitle": "Taal",
       "save": "Opslaan",
       "chooseCountry": "Kies een land",

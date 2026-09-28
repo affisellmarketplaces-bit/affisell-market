@@ -136,6 +136,9 @@
     "shipToLanguage": {
       "title": "Enviar a e idioma",
       "shipToTitle": "Enviar a",
+      "cityTitle": "Ciudad",
+      "cityPlaceholder": "ej. Madrid",
+      "noCityResults": "No se encontraron ciudades",
       "languageTitle": "Idioma",
       "save": "Guardar",
       "chooseCountry": "Elige un país",

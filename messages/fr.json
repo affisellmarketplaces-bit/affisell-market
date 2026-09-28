@@ -136,6 +136,9 @@
     "shipToLanguage": {
       "title": "Livraison et langue",
       "shipToTitle": "Livrer vers",
+      "cityTitle": "Ville",
+      "cityPlaceholder": "ex. Paris",
+      "noCityResults": "Aucune ville trouvée",
       "languageTitle": "Langue",
       "save": "Enregistrer",
       "chooseCountry": "Choisir un pays",

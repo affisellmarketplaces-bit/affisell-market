@@ -136,6 +136,9 @@
     "shipToLanguage": {
       "title": "Ship to & language",
       "shipToTitle": "Ship to",
+      "cityTitle": "City",
+      "cityPlaceholder": "e.g. Paris",
+      "noCityResults": "No matching cities",
       "languageTitle": "Language",
       "save": "Save",
       "chooseCountry": "Choose a country",

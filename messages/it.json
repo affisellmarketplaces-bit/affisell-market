@@ -136,6 +136,9 @@
     "shipToLanguage": {
       "title": "Spedizione e lingua",
       "shipToTitle": "Spedisci a",
+      "cityTitle": "Città",
+      "cityPlaceholder": "es. Milano",
+      "noCityResults": "Nessuna città trovata",
       "languageTitle": "Lingua",
       "save": "Salva",
       "chooseCountry": "Scegli un paese",

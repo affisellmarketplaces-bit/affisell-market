@@ -136,6 +136,9 @@
     "shipToLanguage": {
       "title": "Lieferland & Sprache",
       "shipToTitle": "Liefern nach",
+      "cityTitle": "Stadt",
+      "cityPlaceholder": "z. B. Berlin",
+      "noCityResults": "Keine passenden Städte",
       "languageTitle": "Sprache",
       "save": "Speichern",
       "chooseCountry": "Land wählen",

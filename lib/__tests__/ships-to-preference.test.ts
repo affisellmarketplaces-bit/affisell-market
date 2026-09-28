@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest"
 
-import { isValidShipsToCode, readShipsToFromDocumentCookie, writeShipsToDocumentCookie } from "@/lib/ships-to-preference"
+import {
+  clearShipsToCityDocumentCookie,
+  isValidShipsToCity,
+  isValidShipsToCode,
+  readShipsToCityFromDocumentCookie,
+  readShipsToFromDocumentCookie,
+  writeShipsToCityDocumentCookie,
+  writeShipsToDocumentCookie,
+} from "@/lib/ships-to-preference"
 
 describe("isValidShipsToCode", () => {
   it("accepts a plain two-letter uppercase code", () => {
@@ -27,5 +35,32 @@ describe("ships-to cookie — server/no-document guards", () => {
 
   it("write is a silent no-op without a document instead of throwing", () => {
     expect(() => writeShipsToDocumentCookie("FR")).not.toThrow()
+  })
+})
+
+describe("isValidShipsToCity", () => {
+  it("accepts a non-empty city name within the length cap", () => {
+    expect(isValidShipsToCity("Paris")).toBe(true)
+    expect(isValidShipsToCity("Saint-Étienne-du-Rouvray")).toBe(true)
+  })
+
+  it("rejects empty/whitespace-only or over-long input", () => {
+    expect(isValidShipsToCity("")).toBe(false)
+    expect(isValidShipsToCity("   ")).toBe(false)
+    expect(isValidShipsToCity("x".repeat(81))).toBe(false)
+  })
+})
+
+describe("ships-to city cookie — server/no-document guards", () => {
+  it("read returns null without a document instead of throwing", () => {
+    expect(readShipsToCityFromDocumentCookie()).toBeNull()
+  })
+
+  it("write is a silent no-op without a document instead of throwing", () => {
+    expect(() => writeShipsToCityDocumentCookie("Paris")).not.toThrow()
+  })
+
+  it("clear is a silent no-op without a document instead of throwing", () => {
+    expect(() => clearShipsToCityDocumentCookie()).not.toThrow()
   })
 })

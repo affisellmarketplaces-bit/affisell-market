@@ -136,6 +136,9 @@
     "shipToLanguage": {
       "title": "配送地与语言",
       "shipToTitle": "配送至",
+      "cityTitle": "城市",
+      "cityPlaceholder": "例如：巴黎",
+      "noCityResults": "未找到匹配的城市",
       "languageTitle": "语言",
       "save": "保存",
       "chooseCountry": "选择国家/地区",
