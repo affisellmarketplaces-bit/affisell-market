@@ -131,3 +131,49 @@ Santé et beauté > Hygiène personnelle > Massage et relaxation > Cristaux et p
 # currently very popular device type (Polaroid/Instax-style). Existing "Pellicules photo" already
 # covers the film itself, so no separate film leaf needed.
 Appareils photo, caméras et instruments d'optique > Appareils photo et caméras > Appareils photo instantanés
+
+# Round 5 (2026-09-28) — same method. Confirmed false positives this round: menstrual cups
+# already exist ("Coupes menstruelles"), sleep masks already exist ("Masques de sommeil" under
+# Aides au sommeil), phone cases already exist ("Housses pour téléphones mobiles" — Google's term
+# is "housses", not "coques"/"étuis"), cable management already covered, car-interior vacuums
+# reasonably covered by the generic "Aspirateurs" leaf. Genuine gaps added:
+
+# Period underwear — distinct from the other 5 leaves already under "Produits d'hygiène féminine"
+# (cups, tampons, pads, intimate wash/deodorant) — none of them cover reusable period underwear.
+Santé et beauté > Hygiène personnelle > Produits d'hygiène féminine > Culottes menstruelles
+
+# Percussion massage guns — "Appareils de massage électriques" was a single flat leaf (added
+# earlier this session for an actual orphaned product); massage guns are now one of the biggest
+# wellness-gadget categories and distinct enough from generic electric massagers to warrant a
+# child of their own, same pattern as "Livres papier" getting a genre split.
+Santé et beauté > Hygiène personnelle > Massage et relaxation > Accessoires de massage > Appareils de massage électriques > Pistolets de massage
+
+# Ring lights — content-creator lighting gear, a category in its own right on Amazon/TikTok Shop
+# (including from sellers equipping themselves to sell there), absent from the 8-node "Éclairage
+# et studio" branch.
+Appareils photo, caméras et instruments d'optique > Photographie > Éclairage et studio > Anneaux lumineux
+
+# Beauty mini-fridges — a specific, currently very popular skincare-storage product, distinct
+# from full-size kitchen "Réfrigérateurs" and not covered by any of the 9 "Cosmétiques" leaves.
+Santé et beauté > Hygiène personnelle > Cosmétiques > Réfrigérateurs à cosmétiques
+
+# Magnetic wireless chargers (MagSafe-style) — "Alimentation" already has generic "Adaptateurs de
+# courant et chargeurs" but nothing for the magnetic wireless form factor specifically.
+Appareils électroniques > Accessoires électroniques > Alimentation > Chargeurs magnétiques sans fil
+
+# Soap making — sibling to the existing "Kits de fabrication de bougies" and "Kits de fabrication
+# de bijoux" in the same 9-item creative-kit branch; soap making has none.
+Arts et loisirs > Loisirs et arts créatifs > Loisirs créatifs > Kits de loisirs créatifs > Kits de fabrication de savon
+
+# Sublimation / heat-transfer printing supplies — a fast-growing small-business/Etsy-style crafting
+# category (personalized mugs, shirts, tumblers) with no equivalent anywhere in the tree.
+Arts et loisirs > Loisirs et arts créatifs > Loisirs créatifs > Matériaux pour loisirs créatifs > Fournitures de sublimation et transfert thermique
+
+# Portable personal blenders — "Robots mixeurs et blenders" was a flat leaf; the bottle-style
+# personal/portable blender (protein-shake-on-the-go) is a distinct, currently huge product form
+# from countertop blenders, same reasoning as air fryers next to traditional fryers.
+Maison et jardin > Arts de la table et arts culinaires > Électroménager de cuisine > Robots mixeurs et blenders > Mini-blenders portables
+
+# Weighted blankets — "Literie" has 10 children (duvets, sheets, pillows, mattress protectors...)
+# but nothing for weighted/anxiety blankets, an established distinct bedding category.
+Maison et jardin > Linge > Literie > Couvertures lestées
