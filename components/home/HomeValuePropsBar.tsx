@@ -33,7 +33,7 @@ export async function HomeValuePropsBar() {
         <FastLink
           key={key}
           href={href}
-          className="flex min-h-9 items-center gap-2 rounded-lg text-sm font-semibold text-[#7c2d12] transition hover:text-[#5c1f0c] dark:text-amber-200 dark:hover:text-amber-100"
+          className="flex min-h-9 items-center gap-2 rounded-lg text-sm font-semibold text-violet-700 transition hover:text-violet-900 dark:text-violet-300 dark:hover:text-violet-100"
         >
           <Icon className="size-4 shrink-0" aria-hidden />
           <span className="truncate">{t(key)}</span>
