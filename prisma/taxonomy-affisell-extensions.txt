@@ -297,3 +297,29 @@ Santé et beauté > Hygiène personnelle > Cosmétiques > Accessoires cosmétiqu
 # rollers, different shape/use) and "Balles de réaction" (reaction training, different purpose);
 # absent from the fitness branch despite being a standard recovery tool.
 Équipements sportifs > Entraînement et fitness > Balles de massage pour récupération musculaire
+
+# Round 10 (2026-09-28) — different approach this round: instead of hunting more trend items,
+# scanned subtree sizes for all 23 L1 roots looking for a structurally shallow branch. Found one
+# real anomaly: "Chaussures" (Shoes) was a completely flat leaf — 0 children — sitting directly
+# next to "Vêtements" (Clothing), which has 18 children and many further sub-branches. Google's
+# real Product Taxonomy has a deep, well-known Shoes subtree (athletic, boots, sandals, heels,
+# flats, slippers, children's...); this looks like it silently failed or was skipped during the
+# original import rather than a genuine "Google doesn't have this" case like Militaria — worth a
+# separate look at the import script/source file. Filled it here via the same safe extension
+# mechanism in the meantime so the marketplace isn't stuck with a single unsplit shoe category,
+# the single biggest structural gap found across all 10 rounds.
+Vêtements et accessoires > Chaussures > Baskets et chaussures de sport
+Vêtements et accessoires > Chaussures > Bottes et bottines
+Vêtements et accessoires > Chaussures > Sandales et tongs
+Vêtements et accessoires > Chaussures > Chaussures à talons
+Vêtements et accessoires > Chaussures > Ballerines et chaussures plates
+Vêtements et accessoires > Chaussures > Mocassins et chaussures bateau
+Vêtements et accessoires > Chaussures > Chaussons et pantoufles
+Vêtements et accessoires > Chaussures > Chaussures orthopédiques et de confort
+Vêtements et accessoires > Chaussures > Chaussures pour enfants
+
+# Fix: "Appareils de massage électriques" (a real orphaned product's leaf, assigned earlier this
+# session) became non-leaf in round 5 when "Pistolets de massage" was added as its only child —
+# but the actual product there is an electric cupping/guasha massager, not a percussion gun. Adds
+# the missing sibling so both device types have their own correct leaf.
+Santé et beauté > Hygiène personnelle > Massage et relaxation > Accessoires de massage > Appareils de massage électriques > Ventouses et appareils de guasha électriques
