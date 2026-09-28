@@ -71,3 +71,30 @@ Maison et jardin > Arts de la table et arts culinaires > Électroménager de cui
 # own taxonomy treats motorized two-wheelers versus muscle-powered ones.
 Véhicules et accessoires > Véhicules > Véhicules terrestres > Motos et scooters > Vélos électriques
 Véhicules et accessoires > Véhicules > Véhicules terrestres > Motos et scooters > Trottinettes électriques
+
+# Round 3 (2026-09-28) — same method again. Confirmed false positives this round: résistance
+# bands exist as "Bandes d'exercice" (26-item fitness branch), smartwatches already exist as
+# "Montres connectées", casse-tête/puzzles already covered. Genuine gaps below, all viral/
+# high-volume TikTok Shop & Amazon categories with zero existing equivalent.
+
+# Beauty tools — Cosmétiques > Soin de la peau / Soin des ongles are both branches with several
+# children already, but neither had these two specific, currently massive product types.
+Santé et beauté > Hygiène personnelle > Cosmétiques > Soin de la peau > Rouleaux de jade et gua sha
+Santé et beauté > Hygiène personnelle > Cosmétiques > Soin des ongles > Faux ongles et ongles autocollants
+
+# Insulated tumblers (Stanley-cup style) — distinct from the existing generic "Gourdes pour
+# boissons" (simple water bottles): double-wall vacuum insulated, handle, one of the single
+# most-searched product types on TikTok Shop right now.
+Maison et jardin > Arts de la table et arts culinaires > Supports pour aliments et boissons > Gourdes et mugs isothermes
+
+# LED strips — "Luminaires" already has 13 children incl. "Guirlandes et cordons lumineux"
+# (string/fairy lights) but nothing for flexible adhesive RGB strip lighting, a physically
+# different product (room-mood/under-cabinet lighting) and its own huge category.
+Maison et jardin > Luminaires > Rubans et bandes LED
+
+# Fidget / sensory toys — absent from all 28 entries under "Jouets".
+Jeux et jouets > Jouets > Jouets anti-stress et fidgets
+
+# K-pop photocards — a very large, fast-growing collector category (alongside the trading
+# card games added in round 2), with no existing equivalent anywhere in the tree.
+Arts et loisirs > Loisirs et arts créatifs > Articles de collection > Cartes à collectionner > Photocards et cartes K-pop
