@@ -98,3 +98,36 @@ Jeux et jouets > Jouets > Jouets anti-stress et fidgets
 # K-pop photocards — a very large, fast-growing collector category (alongside the trading
 # card games added in round 2), with no existing equivalent anywhere in the tree.
 Arts et loisirs > Loisirs et arts créatifs > Articles de collection > Cartes à collectionner > Photocards et cartes K-pop
+
+# Round 4 (2026-09-28) — same method. Confirmed false positives this round: pickleball already
+# exists as its own branch (with balls + paddles), baby monitors already exist as "Écoute-bébés",
+# home-automation kits already exist under Quincaillerie, generic photo film already covers instant
+# film, posture support already covered by "Accessoires de maintien et attelles". Genuine gaps:
+
+# Individual smart-home devices — "Objets connectés et réalité virtuelle" only had wearables (watch/
+# band/VR headset/smart glasses), nothing for the actual smart-home device category (plugs, bulbs,
+# doorbells) that's a huge, fast-growing Amazon/TikTok Shop vertical of its own. Deliberately placed
+# here, in consumer electronics, rather than under Quincaillerie > Accessoires électriques, which is
+# the electrician/installation-hardware branch (wiring, panels, generators) — a different context.
+Appareils électroniques > Objets connectés et réalité virtuelle > Prises connectées
+Appareils électroniques > Objets connectés et réalité virtuelle > Ampoules connectées
+Appareils électroniques > Objets connectés et réalité virtuelle > Sonnettes vidéo connectées
+
+# Standing desk — "Meubles de bureau" only had a single generic "Bureaux" leaf; height-adjustable
+# desks are a well-established (not just fad) distinct WFH product category.
+Meubles > Meubles de bureau > Bureaux assis-debout réglables
+
+# Blue light glasses — "Soins des yeux" has prescription lenses, sunglass lenses and contacts, but
+# nothing for non-prescription screen glasses, a distinct and very common modern product.
+Santé et beauté > Hygiène personnelle > Soins des yeux > Lunettes anti-lumière bleue
+
+# Wellness crystals — placed under Massage et relaxation (which already has "Pierres de massage")
+# rather than under the geological "Pierres et fossiles" collectible leaf: tumbled/decorative
+# crystals sold for their supposed wellness properties are a distinct market from mineral
+# specimens for rock collectors, and belong with the other relaxation/wellness leaves.
+Santé et beauté > Hygiène personnelle > Massage et relaxation > Cristaux et pierres de bien-être
+
+# Instant cameras — distinct from "Appareils photo argentiques" (generic film cameras): a specific,
+# currently very popular device type (Polaroid/Instax-style). Existing "Pellicules photo" already
+# covers the film itself, so no separate film leaf needed.
+Appareils photo, caméras et instruments d'optique > Appareils photo et caméras > Appareils photo instantanés
