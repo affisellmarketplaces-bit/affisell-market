@@ -132,6 +132,14 @@
       "label": "Zoeken met foto",
       "invalidFile": "Kies een afbeeldingsbestand.",
       "failed": "Deze foto kon niet worden geanalyseerd — probeer opnieuw of zoek op tekst."
+    },
+    "shipToLanguage": {
+      "title": "Verzenden naar & taal",
+      "shipToTitle": "Verzenden naar",
+      "languageTitle": "Taal",
+      "save": "Opslaan",
+      "chooseCountry": "Kies een land",
+      "triggerLabel": "Verzending naar {country}, taal {language}"
     }
   },
   "slogans": {

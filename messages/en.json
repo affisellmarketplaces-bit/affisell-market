@@ -132,6 +132,14 @@
       "label": "Search by photo",
       "invalidFile": "Please choose an image file.",
       "failed": "Could not analyze that photo — try again or search by text."
+    },
+    "shipToLanguage": {
+      "title": "Ship to & language",
+      "shipToTitle": "Ship to",
+      "languageTitle": "Language",
+      "save": "Save",
+      "chooseCountry": "Choose a country",
+      "triggerLabel": "Ship to {country}, language {language}"
     }
   },
   "slogans": {

@@ -132,6 +132,14 @@
       "label": "Szukaj po zdjęciu",
       "invalidFile": "Wybierz plik obrazu.",
       "failed": "Nie udało się przeanalizować zdjęcia — spróbuj ponownie lub wyszukaj tekstem."
+    },
+    "shipToLanguage": {
+      "title": "Wysyłka i język",
+      "shipToTitle": "Wysyłka do",
+      "languageTitle": "Język",
+      "save": "Zapisz",
+      "chooseCountry": "Wybierz kraj",
+      "triggerLabel": "Wysyłka do {country}, język {language}"
     }
   },
   "slogans": {

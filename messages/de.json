@@ -132,6 +132,14 @@
       "label": "Nach Foto suchen",
       "invalidFile": "Bitte wählen Sie eine Bilddatei.",
       "failed": "Dieses Foto konnte nicht analysiert werden — versuchen Sie es erneut oder suchen Sie per Text."
+    },
+    "shipToLanguage": {
+      "title": "Lieferland & Sprache",
+      "shipToTitle": "Liefern nach",
+      "languageTitle": "Sprache",
+      "save": "Speichern",
+      "chooseCountry": "Land wählen",
+      "triggerLabel": "Lieferung nach {country}, Sprache {language}"
     }
   },
   "slogans": {

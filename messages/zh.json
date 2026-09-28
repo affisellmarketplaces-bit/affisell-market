@@ -132,6 +132,14 @@
       "label": "以图搜索",
       "invalidFile": "请选择一张图片文件。",
       "failed": "无法分析这张照片——请重试或改用文字搜索。"
+    },
+    "shipToLanguage": {
+      "title": "配送地与语言",
+      "shipToTitle": "配送至",
+      "languageTitle": "语言",
+      "save": "保存",
+      "chooseCountry": "选择国家/地区",
+      "triggerLabel": "配送至{country}，语言{language}"
     }
   },
   "slogans": {

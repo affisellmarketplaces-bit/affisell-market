@@ -21,7 +21,7 @@ import { useSession } from "next-auth/react"
 import { useTranslations } from "next-intl"
 import { CartCountBadge } from "@/components/cart/cart-count-badge"
 import { PublicCategoriesMegaMenu } from "@/components/layout/PublicCategoriesMegaMenu"
-import { LanguageSwitcherDeferred } from "@/components/language-switcher-deferred"
+import { ShipToLanguagePanelDeferred } from "@/components/marketplace/ship-to-language-panel-deferred"
 import { ThemeToggleDeferred } from "@/components/marketing/theme-toggle-deferred"
 import { NavHeaderSearchDeferred } from "@/components/nav/nav-header-search-deferred"
 import { CommandKTriggerDeferred } from "@/components/navigation/command-k-trigger-deferred"
@@ -225,7 +225,7 @@ export function PublicNav({ landingPills = false }: PublicNavProps) {
           <span className="hidden xl:inline">{t("agentEntry")}</span>
         </FastLink>
       ) : null}
-      <LanguageSwitcherDeferred />
+      <ShipToLanguagePanelDeferred />
       <ThemeToggleDeferred className="shrink-0" />
       <FastLink
         href="/cart"
