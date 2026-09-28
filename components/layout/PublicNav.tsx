@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   ShoppingCart,
   Sparkles,
+  Store,
   Swords,
   TrendingUp,
   Truck,
@@ -287,7 +288,7 @@ export function PublicNav({ landingPills = false }: PublicNavProps) {
       <NavPill
         href={PUBLIC_MARKETPLACE_BROWSE_PATH}
         label={t("marketplace")}
-        icon={Search}
+        icon={Store}
         active={onMarketplace}
         activeVariant="brand"
       />
