@@ -135,6 +135,7 @@ export type SupplierProductPutLoad = {
   guard: SupplierProductPutGuard
   wholesaleBeforeSnapshot: ReturnType<typeof captureWholesaleSnapshotFromProductRow> | null
   offerRow: SupplierProductPutOfferRow
+  categoryId: string | null
   deliveryCountryCodes: string[]
   customColumns: unknown
   attributes: Array<{ key: string; label: string; value: string }>
@@ -181,6 +182,7 @@ function mapPutLoadRow(
     },
     wholesaleBeforeSnapshot,
     offerRow,
+    categoryId: row.categoryId,
     deliveryCountryCodes: row.deliveryCountryCodes,
     customColumns: row.customColumns,
     attributes: row.attributes,

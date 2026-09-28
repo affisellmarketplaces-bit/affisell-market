@@ -292,6 +292,9 @@ export async function POST(req: Request) {
     if (deliveryErr) {
       return Response.json({ error: deliveryErr }, { status: 400 })
     }
+    if (!categoryId) {
+      return Response.json({ error: "category_required" }, { status: 400 })
+    }
   }
 
   const variantCommissionRates =

@@ -380,6 +380,12 @@ export async function PUT(
       throw e
     }
   }
+  if (publish || activatingFromDraft) {
+    const effectiveCategoryId = "categoryId" in rawBody ? categoryId : putLoad.categoryId
+    if (!effectiveCategoryId) {
+      return Response.json({ error: "category_required" }, { status: 400 })
+    }
+  }
   // The platform commission (category grid / admin override) is never set by suppliers.
   const productAttributes = normalizeProductAttributesFromBody(body.productAttributes)
 
