@@ -210,3 +210,39 @@ Santé et beauté > Hygiène personnelle > Cosmétiques > Soin de la peau > Masq
 # both extremely common, distinct electronic pet products.
 Animaux et articles pour animaux de compagnie > Articles pour animaux de compagnie > Traceurs GPS pour animaux de compagnie
 Animaux et articles pour animaux de compagnie > Articles pour animaux de compagnie > Distributeurs automatiques de nourriture pour animaux de compagnie
+
+# Round 7 (2026-09-28) — same method. This round had more false positives than usual, a sign
+# the tree is getting genuinely close to complete: watches already exist ("Bijoux > Montres"),
+# sunglasses already exist as products (not just lenses), paddleboards and kayaks already exist,
+# board games already exist ("Jeux de plateau"), skateboards already exist with a full branch,
+# child car seats already exist very well ("Sièges auto pour bébés et enfants" + accessories),
+# essential oil diffusers already exist, teeth whiteners and water flossers already exist. Only
+# a handful of genuine gaps left this round:
+
+# Pod coffee machines (Nespresso/Dolce Gusto style) — "Machines à café et machines à expresso"
+# has 6 machine types (moka, filter, percolator, espresso...) but no capsule/pod machine, despite
+# it being one of the largest home-coffee segments.
+Maison et jardin > Arts de la table et arts culinaires > Électroménager de cuisine > Machines à café et machines à expresso > Machines à café à capsules
+
+# Laptop backpacks — "Sacs à dos" is a single flat leaf; a padded laptop compartment is a real,
+# extremely common distinguishing feature buyers search for specifically.
+Bagages et maroquinerie > Sacs à dos > Sacs à dos pour ordinateur portable
+
+# Compression wear — genuinely absent everywhere (only unrelated hits: camping compression
+# sacks). Placed under Santé (medical/circulation context) alongside the existing generic
+# "Accessoires de maintien et attelles".
+Santé et beauté > Santé > Chaussettes et manchons de compression
+
+# Reusable straws — the only existing straw-adjacent leaves are disposable party straws and a
+# straw dispenser; no reusable (metal/silicone/glass) straw set, a common eco-swap product.
+Maison et jardin > Arts de la table et arts culinaires > Accessoires de bar > Pailles réutilisables
+
+# Advent calendars — "Cadeaux" has 6 children (greeting cards, gift cards, flowers, bouquets,
+# gift wrap) but nothing for advent calendars, now a huge retail category well beyond chocolate
+# (beauty, toy, food advent calendars).
+Arts et loisirs > Fêtes et soirées > Cadeaux > Calendriers de l'Avent
+
+# Electric toothbrushes — "Soins buccaux" has 20 children incl. a flat generic "Brosses à dents"
+# leaf and separately "Fils dentaires électriques" (electric floss already split out), but no
+# electric/manual split for toothbrushes themselves, despite electric being its own huge segment.
+Santé et beauté > Hygiène personnelle > Soins buccaux > Brosses à dents électriques
