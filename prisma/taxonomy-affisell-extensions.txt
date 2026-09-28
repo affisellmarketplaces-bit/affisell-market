@@ -274,3 +274,26 @@ Véhicules et accessoires > Pièces détachées pour véhicules > Pièces détac
 # Webcam privacy covers — small, cheap, but a real and currently common privacy accessory absent
 # from "Accessoires pour ordinateurs".
 Appareils électroniques > Accessoires électroniques > Accessoires pour ordinateurs > Caches pour webcam
+
+# Round 9 (2026-09-28) — same method, another small batch, mostly false positives this time:
+# dash cams already exist ("Caméras embarquées (dashcams)"), facial steamers already exist,
+# hammocks already exist, baby bottle warmers/sterilizers already exist, wine decanters and ice
+# buckets already exist ("Carafes", "Seaux et rafraîchisseurs"), cooking thermometers already
+# exist, and — checked specifically because it seemed like an obvious miss — leisure pool floats
+# are already covered by "Fauteuils et matelas de piscine" + "Jouets pour piscine" in an 18-item
+# pool-accessories branch I hadn't found before. Only 3 genuine gaps left this round:
+
+# Selfie sticks — a small, iconic, still-huge-selling phone accessory, absent from the 7-item
+# "Accessoires pour téléphones mobiles" branch (which has cases, charms, lenses, stands...).
+Appareils électroniques > Communications > Téléphonie > Accessoires pour téléphones mobiles > Perches à selfie
+
+# Derma rollers (microneedling) — distinct from the smooth-stone "Rouleaux de jade et gua sha"
+# added in round 3: a genuinely different, medical-adjacent skincare tool with actual
+# microneedles, absent from "Accessoires pour le soin de la peau" (which already has a facial
+# sauna and other tools).
+Santé et beauté > Hygiène personnelle > Cosmétiques > Accessoires cosmétiques > Accessoires pour le soin de la peau > Rouleaux microaiguilles (dermarollers)
+
+# Myofascial release balls (lacrosse-ball-style) — distinct from "Rouleaux en mousse" (foam
+# rollers, different shape/use) and "Balles de réaction" (reaction training, different purpose);
+# absent from the fitness branch despite being a standard recovery tool.
+Équipements sportifs > Entraînement et fitness > Balles de massage pour récupération musculaire
