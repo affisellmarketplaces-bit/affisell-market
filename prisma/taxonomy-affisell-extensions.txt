@@ -177,3 +177,36 @@ Maison et jardin > Arts de la table et arts culinaires > Électroménager de cui
 # Weighted blankets — "Literie" has 10 children (duvets, sheets, pillows, mattress protectors...)
 # but nothing for weighted/anxiety blankets, an established distinct bedding category.
 Maison et jardin > Linge > Literie > Couvertures lestées
+
+# Round 6 (2026-09-28) — same method. Confirmed false positives this round: curtains already
+# exist ("Rideaux" under Habillages de fenêtre), otoscopes exist (medical equipment). Genuine
+# gaps below — one of them (computer keyboards/mice) is a foundational miss, not a niche trend.
+
+# Computer keyboards & mice — "Accessoires pour ordinateurs" had wrist rests, mouse PADS, docking
+# stations and tablet stands, but no actual keyboard or mouse device anywhere in the whole tree.
+# Found by chasing why "clavier"/"souris" only matched music keyboards and protective covers.
+Appareils électroniques > Accessoires électroniques > Accessoires pour ordinateurs > Claviers d'ordinateur
+Appareils électroniques > Accessoires électroniques > Accessoires pour ordinateurs > Souris d'ordinateur
+
+# Gaming chairs — "Meubles de bureau" has a generic "Sièges de bureau" leaf; gaming chairs
+# (racing-style, distinct market/price point) are a category of their own on every marketplace.
+Meubles > Meubles de bureau > Chaises gaming
+
+# Vehicle care & detailing — "Véhicules et accessoires" had exactly 2 children (parts, vehicles),
+# no cleaning/care branch at all. A real structural gap, not just a missing leaf.
+Véhicules et accessoires > Entretien et nettoyage de véhicules
+Véhicules et accessoires > Entretien et nettoyage de véhicules > Shampoings et savons pour voiture
+Véhicules et accessoires > Entretien et nettoyage de véhicules > Cires et produits de lustrage pour voiture
+Véhicules et accessoires > Entretien et nettoyage de véhicules > Kits de revêtement céramique pour voiture
+Véhicules et accessoires > Entretien et nettoyage de véhicules > Chiffons microfibres pour voiture
+Véhicules et accessoires > Entretien et nettoyage de véhicules > Nettoyants pour intérieur de véhicule
+
+# LED face masks — "Soin de la peau" has 19 children incl. anti-aging kits and facial cleansing
+# kits, but nothing for the specific (currently very popular) red-light-therapy LED mask device.
+Santé et beauté > Hygiène personnelle > Cosmétiques > Soin de la peau > Masques LED pour le visage
+
+# Pet tech — "Articles pour animaux de compagnie" has 46 children including generic bowls/feeders
+# and biometric health monitors, but no GPS location tracker and no automatic/scheduled feeder,
+# both extremely common, distinct electronic pet products.
+Animaux et articles pour animaux de compagnie > Articles pour animaux de compagnie > Traceurs GPS pour animaux de compagnie
+Animaux et articles pour animaux de compagnie > Articles pour animaux de compagnie > Distributeurs automatiques de nourriture pour animaux de compagnie
