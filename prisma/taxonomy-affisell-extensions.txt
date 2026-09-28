@@ -9,3 +9,38 @@
 Vêtements et accessoires > Bijoux > Joaillerie fine
 __ROOT__ > Occasion et reconditionné
 __ROOT__ > Autre / Non classé
+
+# eBay-parity gap-fill (2026-09-28) — added after auditing scripts/check-ebay-categories.mjs's
+# 149 "no match" eBay FR labels one by one against the actual tree (not just top-level names).
+# Most turned out to be false negatives: the Google taxonomy already goes deep under different
+# labels (e.g. "Soins cheveux et coiffure" -> Santé et beauté > Hygiène personnelle > Soin des
+# cheveux, 13 leaves; drones -> "Drones avec caméra"; tripods -> 8 nodes under Accessoires pour
+# appareils photo; climatisation/chauffage -> Quincaillerie > Chauffage, ventilation et
+# climatisation; colle/adhésifs -> 23 hits across the tree). Only true, verified absences below.
+
+# Militaria & automobilia — collector verticals Google's commerce taxonomy doesn't model at all
+# (it has "Uniformes militaires" as a modern clothing item, but nothing for historical militaria).
+Arts et loisirs > Loisirs et arts créatifs > Articles de collection > Militaria
+Arts et loisirs > Loisirs et arts créatifs > Articles de collection > Militaria > Objets et souvenirs militaires anciens
+Arts et loisirs > Loisirs et arts créatifs > Articles de collection > Militaria > Insignes, badges et décorations militaires
+Arts et loisirs > Loisirs et arts créatifs > Articles de collection > Militaria > Casques et équipements militaires de collection
+Arts et loisirs > Loisirs et arts créatifs > Articles de collection > Militaria > Uniformes militaires de collection
+Arts et loisirs > Loisirs et arts créatifs > Articles de collection > Automobilia
+
+# Book genre — Google's "Livres papier" is a single leaf (retail-catalog taxonomy, no genre
+# split); the French secondhand-book trade (Vinted, Le Bon Coin, eBay) organizes by genre.
+Médias > Livres > Livres papier > Bandes dessinées et mangas
+Médias > Livres > Livres papier > Romans et littérature
+Médias > Livres > Livres papier > Livres pratiques et documentaires
+Médias > Livres > Livres papier > Livres scolaires et pédagogiques
+Médias > Livres > Livres papier > Livres jeunesse
+
+# Pétanque — genuinely absent from "Divers sports" (25 other sports listed, this one wasn't).
+Équipements sportifs > Divers sports > Pétanque
+
+# 3D printing — a distinct modern category from the existing 2D print/copy/fax/scan branch.
+Appareils électroniques > Impression, copie, numérisation et télécopie > Impression 3D
+Appareils électroniques > Impression, copie, numérisation et télécopie > Impression 3D > Imprimantes 3D
+Appareils électroniques > Impression, copie, numérisation et télécopie > Impression 3D > Filaments et résines d'impression 3D
+Appareils électroniques > Impression, copie, numérisation et télécopie > Impression 3D > Pièces et accessoires pour imprimantes 3D
+Appareils électroniques > Impression, copie, numérisation et télécopie > Impression 3D > Scanners 3D
