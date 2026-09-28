@@ -246,3 +246,31 @@ Arts et loisirs > Fêtes et soirées > Cadeaux > Calendriers de l'Avent
 # leaf and separately "Fils dentaires électriques" (electric floss already split out), but no
 # electric/manual split for toothbrushes themselves, despite electric being its own huge segment.
 Santé et beauté > Hygiène personnelle > Soins buccaux > Brosses à dents électriques
+
+# Round 8 (2026-09-28) — same method, smaller batch as the tree keeps getting harder to find
+# real gaps in. Confirmed false positives: bike locks already exist ("Antivols pour vélos"),
+# jump ropes already exist ("Cordes à sauter" under Cardio), wax melts already exist ("Tartelettes
+# de cire parfumée"), bean bags/floor poufs already exist, laptop stands reasonably covered by
+# the existing generic "Supports pour ordinateurs". Genuine gaps:
+
+# Bike lights — surprising given the 28-item cycling-accessories branch already covers locks,
+# fenders, racks, bells, mirrors etc.; lights (legally required in many places) were the one
+# essential missing item.
+Équipements sportifs > Loisirs de plein air > Cyclisme > Accessoires de cyclisme > Éclairage et feux pour vélo
+
+# Wrist/ankle weights — "Entraînement et fitness" has weighted balls and weighted clothing as
+# direct children but nothing for the classic wrist/ankle weight, a basic, extremely common item.
+Équipements sportifs > Entraînement et fitness > Poids pour poignets et chevilles
+
+# Portable solar chargers — the 18-item camping branch covers off-grid essentials (water filters,
+# lanterns, compasses) but nothing for charging devices off-grid, despite that being one of the
+# most common camping-gear searches; distinct from the existing home "Kits d'énergie solaire".
+Équipements sportifs > Loisirs de plein air > Camping et randonnée > Chargeurs solaires portables
+
+# Car seat covers — "Équipements intérieurs de véhicules" was a completely empty leaf (0 children)
+# despite seat covers being one of the most common vehicle-interior accessories sold anywhere.
+Véhicules et accessoires > Pièces détachées pour véhicules > Pièces détachées automobiles et motos > Équipements intérieurs de véhicules > Housses de siège de voiture
+
+# Webcam privacy covers — small, cheap, but a real and currently common privacy accessory absent
+# from "Accessoires pour ordinateurs".
+Appareils électroniques > Accessoires électroniques > Accessoires pour ordinateurs > Caches pour webcam
