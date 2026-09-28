@@ -44,3 +44,30 @@ Appareils électroniques > Impression, copie, numérisation et télécopie > Imp
 Appareils électroniques > Impression, copie, numérisation et télécopie > Impression 3D > Filaments et résines d'impression 3D
 Appareils électroniques > Impression, copie, numérisation et télécopie > Impression 3D > Pièces et accessoires pour imprimantes 3D
 Appareils électroniques > Impression, copie, numérisation et télécopie > Impression 3D > Scanners 3D
+
+# Round 2 (2026-09-28) — audited against Amazon/eBay/TikTok Shop as reference, same method:
+# verify actual tree depth before assuming absence. Most candidates (VR headsets, vinyl records,
+# power banks, hoverboards, e-bike conversion kits, international/organic food, K-beauty) were
+# already present — only genuine, high-value absences added below.
+
+# Trading card games — "Cartes à collectionner" was a single flat leaf with zero children,
+# despite being one of the largest resale categories on eBay/TikTok Shop (Pokémon, Magic,
+# Yu-Gi-Oh, sports cards) and its own large accessories market (sleeves, deck boxes, binders).
+Arts et loisirs > Loisirs et arts créatifs > Articles de collection > Cartes à collectionner > Cartes Pokémon
+Arts et loisirs > Loisirs et arts créatifs > Articles de collection > Cartes à collectionner > Cartes Magic: The Gathering
+Arts et loisirs > Loisirs et arts créatifs > Articles de collection > Cartes à collectionner > Cartes Yu-Gi-Oh!
+Arts et loisirs > Loisirs et arts créatifs > Articles de collection > Cartes à collectionner > Cartes de sport à collectionner
+Arts et loisirs > Loisirs et arts créatifs > Articles de collection > Cartes à collectionner > Accessoires pour cartes à collectionner
+
+# Air fryers — a huge, currently-trending distinct product (convection, no oil) sitting right
+# next to "Friteuses" (traditional oil fryers) in an otherwise extremely granular 53-item kitchen
+# appliance branch (this one item was the gap, not the branch).
+Maison et jardin > Arts de la table et arts culinaires > Électroménager de cuisine > Friteuses à air
+Maison et jardin > Arts de la table et arts culinaires > Électroménager de cuisine > Accessoires pour friteuses à air
+
+# Electric micro-mobility as vehicles — "Motos et scooters" (motorized two-wheelers) had no
+# electric bike/scooter entry; traditional pedal bikes correctly stay under Sporting Goods >
+# Cycling, but throttle/motor-assisted ones belong with mopeds/scooters, matching how Google's
+# own taxonomy treats motorized two-wheelers versus muscle-powered ones.
+Véhicules et accessoires > Véhicules > Véhicules terrestres > Motos et scooters > Vélos électriques
+Véhicules et accessoires > Véhicules > Véhicules terrestres > Motos et scooters > Trottinettes électriques
