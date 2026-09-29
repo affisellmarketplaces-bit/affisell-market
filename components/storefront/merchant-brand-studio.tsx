@@ -21,6 +21,7 @@ import { StorefrontBrandPulsePanel } from "@/components/storefront/storefront-br
 import { StorefrontEmbedWidgetPanel } from "@/components/storefront/storefront-embed-widget-panel"
 import { StorefrontHeroVideoField } from "@/components/storefront/storefront-hero-video-field"
 import { StorefrontHeaderColorPicker } from "@/components/storefront/storefront-header-color-picker"
+import { StorefrontThemeContrastPanel } from "@/components/storefront/storefront-theme-contrast-panel"
 import { StorefrontLayoutControls } from "@/components/storefront/storefront-layout-controls"
 import { StorefrontLogoField } from "@/components/storefront/storefront-logo-field"
 import { StorefrontSectionsEditor } from "@/components/storefront/storefront-sections-editor"
@@ -1232,6 +1233,13 @@ export function MerchantBrandStudio({
                   background: `linear-gradient(120deg, ${primaryHex}, ${accent})`,
                 }}
                 aria-hidden
+              />
+
+              <StorefrontThemeContrastPanel
+                primary={primaryHex}
+                accent={accent}
+                trustRailText={trustRailText}
+                surface={surface}
               />
 
               <StorefrontLayoutControls
