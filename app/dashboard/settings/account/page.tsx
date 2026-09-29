@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { requireMerchantSession } from "@/lib/dashboard-session"
 import { redirect } from "next/navigation"
-import { CreditCard, Store, Truck } from "lucide-react"
+import { CreditCard, Palette, Store, Truck } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { ConnectedAccountsPanel } from "@/components/connected-accounts-panel"
@@ -122,6 +122,47 @@ export default async function AccountSettingsPage() {
                 <div>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">Shipping</p>
                   <p className="text-xs text-gray-500 dark:text-zinc-400">Rates &amp; delivery profiles</p>
+                </div>
+              </Link>
+            </div>
+          </BentoCard>
+        ) : null}
+
+        {dbUser.role === "AFFILIATE" ? (
+          <BentoCard>
+            <h2 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">Reseller settings</h2>
+            <p className="mt-1 text-sm text-gray-600 dark:text-zinc-300">
+              Your store profile, branding and payouts — managed separately from login &amp; security below.
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <Link
+                href="/dashboard/affiliate/settings/store"
+                className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white/60 p-4 transition hover:border-violet-300 hover:bg-violet-50/60 dark:border-zinc-700 dark:bg-zinc-900/60 dark:hover:border-violet-500/50 dark:hover:bg-violet-950/20"
+              >
+                <Store className="size-5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">Store profile</p>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400">Name, banner, description</p>
+                </div>
+              </Link>
+              <Link
+                href="/dashboard/affiliate/brand-studio"
+                className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white/60 p-4 transition hover:border-violet-300 hover:bg-violet-50/60 dark:border-zinc-700 dark:bg-zinc-900/60 dark:hover:border-violet-500/50 dark:hover:bg-violet-950/20"
+              >
+                <Palette className="size-5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">Brand Studio</p>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400">Theme &amp; storefront colors</p>
+                </div>
+              </Link>
+              <Link
+                href="/dashboard/affiliate/settings/payouts"
+                className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white/60 p-4 transition hover:border-violet-300 hover:bg-violet-50/60 dark:border-zinc-700 dark:bg-zinc-900/60 dark:hover:border-violet-500/50 dark:hover:bg-violet-950/20"
+              >
+                <CreditCard className="size-5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">Payouts</p>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400">Stripe Connect &amp; tax info</p>
                 </div>
               </Link>
             </div>
