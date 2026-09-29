@@ -1011,7 +1011,8 @@
     "visitStore": "Shop besuchen",
     "startingPrice": "From {price}",
     "priceInEur": "Preise in Euro · inkl. MwSt.",
-    "ordersCount": "{count, plural, one {# Bestellung} other {# Bestellungen}}",
+    "ordersCountPlus": "{count}+ Bestellungen",
+    "newStore": "Neuer Shop",
     "browseCta": "Alle Shops"
   },
   "discovery": {

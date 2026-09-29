@@ -72,12 +72,33 @@ export type PublicShopDirectoryEntry = {
   logoUrl: string | null
   nicheLabel: NicheKey
   averageRating: number
+  /** Exact count — server-side use only (e.g. ranking "featured" shops). Never render this
+   *  directly in a `"use client"` component: see {@link bucketOrderCount}. */
   orderCount: number
   /** Lowest listed retail price (buyer TTC cents, EUR). */
   startingPriceCents: number | null
   nameBadge?: StoreNameBadgeStyle
   themeAccent?: string
   themePrimary?: string
+}
+
+const ORDER_COUNT_BUCKETS = [10, 25, 50, 100, 250, 500, 1000, 5000, 10000] as const
+
+/**
+ * Rounds an exact order count down to a display-safe threshold. Resellers on this marketplace
+ * often sell the same sourced catalog, so an exact count on a public shop card is real
+ * competitive intel (who's winning, who's new) rather than a neutral stat. Returns 0 for "too
+ * low to be meaningful" (render as "new store"), otherwise the largest bucket the count reaches —
+ * never the exact number itself.
+ */
+export function bucketOrderCount(count: number): number {
+  if (count < 10) return 0
+  let bucket: number = ORDER_COUNT_BUCKETS[0]
+  for (const b of ORDER_COUNT_BUCKETS) {
+    if (count >= b) bucket = b
+    else break
+  }
+  return bucket
 }
 
 export function inferNicheLabel(description: string | null, storeName: string): NicheKey {

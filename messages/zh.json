@@ -1011,7 +1011,8 @@
     "visitStore": "访问商店",
     "startingPrice": "From {price}",
     "priceInEur": "价格以欧元计 · 含增值税",
-    "ordersCount": "{count, plural, one {# 单笔订单} other {# 单笔订单}}",
+    "ordersCountPlus": "{count}+ 笔订单",
+    "newStore": "新店铺",
     "browseCta": "所有商店"
   },
   "discovery": {

@@ -5,6 +5,7 @@ import { AllStoresTriangleBadge } from "@/components/storefront/all-stores-trian
 import { FeaturedShops } from "@/components/home/FeaturedShops"
 import { ShopsDirectoryGrid } from "@/components/shops/ShopsDirectoryGrid"
 import { loadPublicAffiliateShops } from "@/lib/shop-storefront-data"
+import { bucketOrderCount } from "@/lib/shop-storefront-shared"
 
 /** Public SEO directory — revalidate hourly; buyer-safe fields only. */
 export const revalidate = 3600
@@ -20,7 +21,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 async function loadShopsSafe() {
   try {
-    return await loadPublicAffiliateShops()
+    const shops = await loadPublicAffiliateShops()
+    // Bucket here, server-side, before this crosses into "use client" territory below — the
+    // exact count must never reach the client bundle/RSC payload, not just stay unrendered.
+    return shops.map((shop) => ({ ...shop, orderCount: bucketOrderCount(shop.orderCount) }))
   } catch (err) {
     console.error("[shops/page] loadPublicAffiliateShops failed:", err)
     return []

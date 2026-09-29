@@ -1011,7 +1011,8 @@
     "visitStore": "Bezoek winkel",
     "startingPrice": "From {price}",
     "priceInEur": "Prijzen in euro · btw inbegrepen",
-    "ordersCount": "{count, plural, one {# bestelling} other {# bestellingen}}",
+    "ordersCountPlus": "{count}+ bestellingen",
+    "newStore": "Nieuwe winkel",
     "browseCta": "Alle winkels"
   },
   "discovery": {

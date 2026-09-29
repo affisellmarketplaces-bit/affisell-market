@@ -52,7 +52,10 @@ export function ShopDirectoryCard({ shop }: { shop: PublicShopDirectoryEntry }) 
   const tShops = useTranslations("shops")
   const accent = shop.themeAccent ?? DEFAULT_ACCENT
   const rating = shop.averageRating > 0 ? shop.averageRating.toFixed(1) : null
-  const ordersLabel = tShops("ordersCount", { count: shop.orderCount })
+  // shop.orderCount here is already a bucketed floor (0, 10, 25, 50, ...), never the exact
+  // count — see bucketOrderCount in lib/shop-storefront-shared.ts.
+  const ordersLabel =
+    shop.orderCount > 0 ? tShops("ordersCountPlus", { count: shop.orderCount }) : tShops("newStore")
   const startingPrice =
     shop.startingPriceCents != null && shop.startingPriceCents > 0
       ? formatStoreCurrencyFromCents(shop.startingPriceCents, { maximumFractionDigits: 0 })
