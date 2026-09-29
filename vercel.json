@@ -111,7 +111,7 @@
     },
     {
       "path": "/api/cron/boost-expire",
-      "schedule": "*/1 * * * *"
+      "schedule": "*/5 * * * *"
     },
     {
       "path": "/api/pulse/battle/create",
