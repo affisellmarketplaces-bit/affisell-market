@@ -4448,6 +4448,12 @@
         "orbitRingDesc": "Forma de píldora con anillo giratorio.",
         "chromeBeam": "Hélice de cromo",
         "chromeBeamDesc": "Eslabón metálico inclinado, contraste premium.",
+        "glassPanel": "Panel de cristal",
+        "glassPanelDesc": "Desenfoque esmerilado, borde de acento.",
+        "gradientOutline": "Contorno degradado",
+        "gradientOutlineDesc": "Borde degradado fino, sin relleno.",
+        "underlineMark": "Subrayado",
+        "underlineMarkDesc": "Texto simple con un subrayado de acento animado.",
         "classic": "Clásico",
         "classicDesc": "Texto plano, sin banda."
       }

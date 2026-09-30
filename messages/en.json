@@ -4448,6 +4448,12 @@
         "orbitRingDesc": "Pill shape with spinning ring.",
         "chromeBeam": "Chrome beam",
         "chromeBeamDesc": "Metallic skew, premium contrast.",
+        "glassPanel": "Glass panel",
+        "glassPanelDesc": "Frosted blur, soft accent border.",
+        "gradientOutline": "Gradient outline",
+        "gradientOutlineDesc": "Thin gradient border, no fill.",
+        "underlineMark": "Underline mark",
+        "underlineMarkDesc": "Plain text with a shimmering accent underline.",
         "classic": "Classic",
         "classicDesc": "Plain text, no band."
       }

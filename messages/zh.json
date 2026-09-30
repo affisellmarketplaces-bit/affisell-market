@@ -4448,6 +4448,12 @@
         "orbitRingDesc": "圆形带有旋转环效果。",
         "chromeBeam": "铬光束",
         "chromeBeamDesc": "金属光泽，高对比度。",
+        "glassPanel": "玻璃面板",
+        "glassPanelDesc": "磨砂模糊，淡雅的强调色边框。",
+        "gradientOutline": "渐变描边",
+        "gradientOutlineDesc": "细渐变边框，无填充。",
+        "underlineMark": "下划线",
+        "underlineMarkDesc": "简洁文字配闪烁强调色下划线。",
         "classic": "经典",
         "classicDesc": "简洁文本，带无边框。"
       }

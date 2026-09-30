@@ -4448,6 +4448,12 @@
         "orbitRingDesc": "Capsule circulaire avec anneau animé.",
         "chromeBeam": "Faisceau chrome",
         "chromeBeamDesc": "Métal brossé incliné, contraste premium.",
+        "glassPanel": "Panneau vitré",
+        "glassPanelDesc": "Flou givré, liseré accent.",
+        "gradientOutline": "Contour dégradé",
+        "gradientOutlineDesc": "Fin contour dégradé, sans fond.",
+        "underlineMark": "Soulignement",
+        "underlineMarkDesc": "Texte simple avec un soulignement accent animé.",
         "classic": "Classique",
         "classicDesc": "Texte simple sans bande."
       }

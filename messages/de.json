@@ -4448,6 +4448,12 @@
         "orbitRingDesc": "Pillenförmig mit rotierendem Ring.",
         "chromeBeam": "Chrom-Strahl",
         "chromeBeamDesc": "Metallischer Schiefwinkel, Premium-Kontrast.",
+        "glassPanel": "Glaspanel",
+        "glassPanelDesc": "Mattierter Weichzeichner, dezenter Akzentrand.",
+        "gradientOutline": "Verlaufsumriss",
+        "gradientOutlineDesc": "Dünner Verlaufsrand, ohne Füllung.",
+        "underlineMark": "Unterstreichung",
+        "underlineMarkDesc": "Schlichter Text mit schimmernder Akzentlinie.",
         "classic": "Klassisch",
         "classicDesc": "Einfacher Text, ohne Band."
       }

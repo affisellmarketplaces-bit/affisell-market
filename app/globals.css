@@ -3021,7 +3021,14 @@ button,
   }
 
   .affisell-store-name-badge--orbit-ring {
-    padding: 3px;
+    position: relative;
+    display: inline-block;
+  }
+
+  /* Separate layer for the spinning ring so the rotation never touches the text. */
+  .affisell-store-name-badge--orbit-ring .affisell-store-name-badge__ring {
+    position: absolute;
+    inset: -3px;
     border-radius: 9999px;
     background: conic-gradient(
       from 120deg,
@@ -3030,6 +3037,7 @@ button,
       var(--badge-accent, #7c3aed)
     );
     animation: store-badge-orbit 6s linear infinite;
+    z-index: 0;
   }
 
   @keyframes store-badge-orbit {
@@ -3044,6 +3052,53 @@ button,
     padding: 0.4rem 1.25rem;
     transform: none;
     color: #fafafa;
+  }
+
+  .affisell-store-name-badge--glass-panel .affisell-store-name-badge__label {
+    border-radius: 0.9rem;
+    background: color-mix(in srgb, var(--badge-primary, #18181b) 55%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid color-mix(in srgb, var(--badge-accent, #7c3aed) 45%, rgba(255, 255, 255, 0.35));
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  }
+
+  .affisell-store-name-badge--gradient-outline .affisell-store-name-badge__label {
+    border-radius: 9999px;
+    border: 1.5px solid transparent;
+    background:
+      linear-gradient(
+          color-mix(in srgb, var(--badge-primary, #18181b) 40%, transparent),
+          color-mix(in srgb, var(--badge-primary, #18181b) 40%, transparent)
+        )
+        padding-box,
+      linear-gradient(120deg, var(--badge-accent, #7c3aed), #22d3ee) border-box;
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--badge-accent, #7c3aed) 25%, transparent);
+  }
+
+  .affisell-store-name-badge--underline-mark .affisell-store-name-badge__label {
+    display: inline-block;
+    padding: 0.1rem 0.1rem 0.5rem;
+  }
+
+  .affisell-store-name-badge--underline-mark .affisell-store-name-badge__label::after {
+    content: "";
+    position: absolute;
+    left: 0.1rem;
+    right: 0.1rem;
+    bottom: 0;
+    height: 3px;
+    border-radius: 9999px;
+    background: linear-gradient(
+      90deg,
+      var(--badge-accent, #7c3aed),
+      var(--badge-primary, #18181b),
+      var(--badge-accent, #7c3aed)
+    );
+    background-size: 200% 100%;
+    animation: store-badge-holo 5s ease infinite;
   }
 
   .affisell-store-name-badge--chrome-beam .affisell-store-name-badge__label {

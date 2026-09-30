@@ -65,7 +65,7 @@ export function StoreNameBadgePicker({
                     : "border-gray-200 bg-white/60 hover:border-gray-300 dark:border-zinc-700 dark:bg-zinc-950/50"
                 )}
               >
-                <div className="min-h-[3rem] overflow-hidden rounded-xl bg-zinc-900/95 px-3 py-3">
+                <div className="dark min-h-[3rem] overflow-hidden rounded-xl bg-zinc-900/95 px-3 py-3">
                   <StoreNameBadge
                     name={previewName || "Ecom Store"}
                     style={item.id}

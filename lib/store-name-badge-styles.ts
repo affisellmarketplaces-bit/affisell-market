@@ -7,6 +7,9 @@ export const STORE_NAME_BADGE_STYLES = [
   "quantum-fold",
   "orbit-ring",
   "chrome-beam",
+  "glass-panel",
+  "gradient-outline",
+  "underline-mark",
 ] as const
 
 export type StoreNameBadgeStyle = (typeof STORE_NAME_BADGE_STYLES)[number] | "classic"
@@ -60,6 +63,21 @@ export const STORE_NAME_BADGE_CATALOG: StoreNameBadgeStyleMeta[] = [
     id: "chrome-beam",
     labelKey: "chromeBeam",
     descriptionKey: "chromeBeamDesc",
+  },
+  {
+    id: "glass-panel",
+    labelKey: "glassPanel",
+    descriptionKey: "glassPanelDesc",
+  },
+  {
+    id: "gradient-outline",
+    labelKey: "gradientOutline",
+    descriptionKey: "gradientOutlineDesc",
+  },
+  {
+    id: "underline-mark",
+    labelKey: "underlineMark",
+    descriptionKey: "underlineMarkDesc",
   },
   {
     id: "classic",

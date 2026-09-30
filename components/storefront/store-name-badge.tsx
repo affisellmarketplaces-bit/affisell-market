@@ -42,6 +42,8 @@ export function StoreNameBadge({
     size === "preview" && "scale-95"
   )
 
+  const labelColorClass = style === "underline-mark" ? "text-zinc-900 dark:text-zinc-50" : undefined
+
   return (
     <div
       className={cn(bandBase, className)}
@@ -50,7 +52,18 @@ export function StoreNameBadge({
       {style === "quantum-fold" ? (
         <span className="affisell-store-name-badge__shadow" aria-hidden />
       ) : null}
-      <h1 className={cn("affisell-store-name-badge__label relative z-[1] truncate", textClass)}>{name}</h1>
+      {style === "orbit-ring" ? (
+        <span className="affisell-store-name-badge__ring" aria-hidden />
+      ) : null}
+      <h1
+        className={cn(
+          "affisell-store-name-badge__label relative z-[1] truncate",
+          textClass,
+          labelColorClass
+        )}
+      >
+        {name}
+      </h1>
     </div>
   )
 }

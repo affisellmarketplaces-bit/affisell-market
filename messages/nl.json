@@ -4448,6 +4448,12 @@
         "orbitRingDesc": "Pill vorm met draaiende ring.",
         "chromeBeam": "Chrome straal",
         "chromeBeamDesc": "Metaal scheef, premium contrast.",
+        "glassPanel": "Glaspaneel",
+        "glassPanelDesc": "Matglas-blur, subtiele accentrand.",
+        "gradientOutline": "Gradient contour",
+        "gradientOutlineDesc": "Dunne gradientrand, zonder vulling.",
+        "underlineMark": "Onderstreping",
+        "underlineMarkDesc": "Platte tekst met een animerende accentstreep.",
         "classic": "Klassiek",
         "classicDesc": "Gewoon tekst, geen band."
       }

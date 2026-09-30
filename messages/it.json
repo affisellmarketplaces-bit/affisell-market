@@ -4448,6 +4448,12 @@
         "orbitRingDesc": "Forma pill con anello che gira.",
         "chromeBeam": "Lama di cromatura",
         "chromeBeamDesc": "Schiacciamento metallico, contrasto premium.",
+        "glassPanel": "Pannello vetro",
+        "glassPanelDesc": "Sfocatura smerigliata, bordo accento.",
+        "gradientOutline": "Contorno sfumato",
+        "gradientOutlineDesc": "Sottile bordo sfumato, senza riempimento.",
+        "underlineMark": "Sottolineatura",
+        "underlineMarkDesc": "Testo semplice con sottolineatura animata.",
         "classic": "Classico",
         "classicDesc": "Testo semplice, senza banda."
       }

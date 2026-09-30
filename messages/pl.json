@@ -4448,6 +4448,12 @@
         "orbitRingDesc": "Kształt pierścienia z obrotowym pierścieniem.",
         "chromeBeam": "Chrome promień",
         "chromeBeamDesc": "Metaliczne pochylenie, wyższy kontrast.",
+        "glassPanel": "Panel szklany",
+        "glassPanelDesc": "Matowe rozmycie, delikatna obwódka akcentu.",
+        "gradientOutline": "Gradientowy kontur",
+        "gradientOutlineDesc": "Cienka gradientowa obwódka, bez wypełnienia.",
+        "underlineMark": "Podkreślenie",
+        "underlineMarkDesc": "Zwykły tekst z migoczącym podkreśleniem akcentu.",
         "classic": "Klasyczny",
         "classicDesc": "Prosty tekst, bez paska."
       }
