@@ -12,6 +12,7 @@ import { RADAR_DEMO_WINNERS } from "@/lib/radar/demo-data"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { checkRadarAccess } from "@/lib/radar/gate-with-plan"
 import { isRadarEnabled } from "@/lib/radar/gate"
+import { diversifyByMarketplace } from "@/lib/radar/diversify-marketplaces"
 import { loadRadarPlanContext } from "@/lib/radar/plan-user.server"
 import { formatRadarPriceDisplay } from "@/lib/radar/format-radar-price"
 import { countryCodeToName } from "@/lib/radar/map/geo"
@@ -93,11 +94,32 @@ export default async function RadarWinnersPage({ searchParams }: Props) {
     demoMode = true
   } else {
     try {
-      winners = await getRadarDb().radarGlobalSnapshot.findMany({
+      const GLOBAL_WINNERS_TAKE = 50
+      const PER_MARKETPLACE_TAKE = 30
+      const radarDb = getRadarDb()
+      /**
+       * Amazon is crawled for every country with no API key and gets re-scanned far more often
+       * than the Serper-proxied sources (google_merchant, shopify, ebay, …) — in this data, its
+       * most recent snapshot is ~4 weeks newer than the others'. A single combined query ordered
+       * by recency/rank would put Amazon's rank-1 rows first for every country before a single
+       * other marketplace's row appears, no matter how large the pool. Fetching each marketplace's
+       * own top rows separately guarantees every source gets a fair shot before diversifying.
+       */
+      const marketplaceRows = await radarDb.radarGlobalSnapshot.findMany({
         where: { rank: { lte: 20 } },
-        orderBy: [{ rank: "asc" }, { crawledAt: "desc" }],
-        take: 50,
+        distinct: ["marketplaceId"],
+        select: { marketplaceId: true },
       })
+      const pools = await Promise.all(
+        marketplaceRows.map(({ marketplaceId }) =>
+          radarDb.radarGlobalSnapshot.findMany({
+            where: { rank: { lte: 20 }, marketplaceId },
+            orderBy: [{ salesEst: "desc" }, { rank: "asc" }, { crawledAt: "desc" }],
+            take: PER_MARKETPLACE_TAKE,
+          })
+        )
+      )
+      winners = diversifyByMarketplace(pools.flat(), GLOBAL_WINNERS_TAKE, { maxShare: 0.4 })
     } catch (err) {
       demoMode = true
       console.warn("[radar/winners]", {
