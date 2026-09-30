@@ -218,9 +218,9 @@ export function AffiliateAgentChat() {
               role="alert"
               className="mx-4 mb-2 rounded-xl border border-red-500/40 bg-red-950/50 px-3 py-2 text-sm text-red-200"
             >
-              Une erreur est survenue. Réessayez.
+              {t("errorGeneric")}
               <button type="button" onClick={() => clearError()} className="ml-2 underline">
-                Fermer
+                {t("dismiss")}
               </button>
             </div>
           ) : null}
@@ -233,7 +233,7 @@ export function AffiliateAgentChat() {
             className="border-t border-white/5 bg-black/40 p-4"
           >
             <label className="sr-only" htmlFor="affiliate-agent-input">
-              Question sourcing
+              {t("inputLabel")}
             </label>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
               <textarea
@@ -248,7 +248,7 @@ export function AffiliateAgentChat() {
                   }
                 }}
                 disabled={busy}
-                placeholder="Ex. : niche fitness, marge > 15€, nouveautés fournisseur…"
+                placeholder={t("inputPlaceholder")}
                 className={cn(
                   "min-h-[52px] flex-1 resize-y rounded-2xl border border-violet-500/20 bg-violet-950/30 px-4 py-3 text-sm text-white",
                   "placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500/40 disabled:opacity-60"
@@ -261,7 +261,7 @@ export function AffiliateAgentChat() {
                     onClick={() => void stop()}
                     className="rounded-2xl border border-white/10 px-4 py-3 text-sm text-zinc-300"
                   >
-                    Stop
+                    {t("stop")}
                   </button>
                 ) : null}
                 <button
@@ -269,7 +269,7 @@ export function AffiliateAgentChat() {
                   disabled={busy || !input.trim()}
                   className="rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 py-3 text-sm font-semibold text-white shadow-lg disabled:opacity-40"
                 >
-                  Analyser
+                  {t("analyze")}
                 </button>
               </div>
             </div>

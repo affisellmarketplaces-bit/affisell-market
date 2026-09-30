@@ -1,5 +1,7 @@
 "use client"
 
+import { useTranslations } from "next-intl"
+
 import { AffiliateAgentProductCards } from "@/components/affiliate/affiliate-agent-product-cards"
 import type {
   AffiliateAgentProductCard,
@@ -14,7 +16,10 @@ export type AffiliateSearchSupplierToolPart = {
   errorText?: string
 }
 
-function cardFromParsed(o: Record<string, unknown>): AffiliateAgentProductCard | null {
+function cardFromParsed(
+  o: Record<string, unknown>,
+  supplierFallback: string
+): AffiliateAgentProductCard | null {
   if (typeof o.id !== "string" || typeof o.name !== "string") return null
   const basePriceCents =
     typeof o.basePriceCents === "number" ? o.basePriceCents : 0
@@ -33,7 +38,7 @@ function cardFromParsed(o: Record<string, unknown>): AffiliateAgentProductCard |
     name: o.name,
     imageUrl: typeof o.imageUrl === "string" ? o.imageUrl : null,
     description: typeof o.description === "string" ? o.description : "",
-    supplierLabel: typeof o.supplierLabel === "string" ? o.supplierLabel : "Fournisseur",
+    supplierLabel: typeof o.supplierLabel === "string" ? o.supplierLabel : supplierFallback,
     basePriceCents,
     commissionRate,
     marginCents,
@@ -44,7 +49,10 @@ function cardFromParsed(o: Record<string, unknown>): AffiliateAgentProductCard |
   }
 }
 
-function parseOutput(raw: unknown): AffiliateAgentSearchToolResult | null {
+function parseOutput(
+  raw: unknown,
+  supplierFallback: string
+): AffiliateAgentSearchToolResult | null {
   if (!Array.isArray(raw)) return null
 
   const products: AffiliateAgentProductCard[] = []
@@ -59,7 +67,7 @@ function parseOutput(raw: unknown): AffiliateAgentSearchToolResult | null {
         suggestedCategories.push(o.c)
         continue
       }
-      const card = cardFromParsed(o)
+      const card = cardFromParsed(o, supplierFallback)
       if (!card) continue
       if (o.g === 1) similarProducts.push(card)
       else products.push(card)
@@ -76,16 +84,18 @@ function parseOutput(raw: unknown): AffiliateAgentSearchToolResult | null {
 }
 
 export function AffiliateAgentToolSearchPart({ part }: { part: AffiliateSearchSupplierToolPart }) {
+  const t = useTranslations("affiliate.sourcingAgent")
+
   if (part.state === "output-available") {
-    const data = parseOutput(part.output)
+    const data = parseOutput(part.output, t("supplierFallback"))
     if (!data) return null
     if (data.products.length === 0) {
       return (
         <div className="mt-2 rounded-lg border border-violet-500/20 bg-violet-950/30 px-3 py-2 text-xs text-violet-100/80">
-          Aucun SKU fournisseur pour cette recherche.
+          {t("searchEmpty")}
           {data.suggestedCategories.length > 0 ? (
             <span className="mt-1 block text-zinc-400">
-              Catégories à explorer : {data.suggestedCategories.slice(0, 6).join(" · ")}
+              {t("searchCategoriesLabel")} {data.suggestedCategories.slice(0, 6).join(" · ")}
             </span>
           ) : null}
         </div>
@@ -97,8 +107,8 @@ export function AffiliateAgentToolSearchPart({ part }: { part: AffiliateSearchSu
         {data.similarProducts.length > 0 ? (
           <AffiliateAgentProductCards
             products={data.similarProducts}
-            sectionTitle="Alternatives à comparer"
-            sectionSubtitle="Même univers — vérifiez marge et commission"
+            sectionTitle={t("searchAlternatives")}
+            sectionSubtitle={t("searchAlternativesHint")}
           />
         ) : null}
       </div>
@@ -108,7 +118,7 @@ export function AffiliateAgentToolSearchPart({ part }: { part: AffiliateSearchSu
   if (part.state === "output-error" || part.errorText) {
     return (
       <p className="mt-2 text-xs text-red-300">
-        {part.errorText ?? "Recherche catalogue indisponible."}
+        {part.errorText ?? t("searchErrorFallback")}
       </p>
     )
   }
@@ -116,7 +126,7 @@ export function AffiliateAgentToolSearchPart({ part }: { part: AffiliateSearchSu
   return (
     <div className="mt-2 flex items-center gap-2 rounded-lg border border-violet-500/30 bg-violet-950/40 px-3 py-2 text-xs text-violet-100/70">
       <span className="h-2 w-2 animate-pulse rounded-full bg-violet-400" />
-      Analyse du catalogue partenaire…
+      {t("searchLoading")}
     </div>
   )
 }

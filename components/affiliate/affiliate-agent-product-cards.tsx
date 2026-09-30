@@ -3,6 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { Check, Sparkles } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { AffiliateCatalogEconomicsPanel } from "@/components/affiliate/affiliate-catalog-economics-panel"
 import type { AffiliateAgentProductCard } from "@/lib/agent-affiliate-product-card-types"
@@ -17,6 +18,7 @@ type Props = {
 }
 
 function Card({ p }: { p: AffiliateAgentProductCard }) {
+  const t = useTranslations("affiliate.sourcingAgent")
   const href = `${AFFILIATE_CATALOG_PATH}?productId=${encodeURIComponent(p.id)}`
   const economics = buildAffiliateCatalogCardEconomics(p.basePriceCents, p.commissionRate, {
     listedSellingPriceCents: p.usesListedPrice ? p.clientPriceCents : undefined,
@@ -35,11 +37,11 @@ function Card({ p }: { p: AffiliateAgentProductCard }) {
         {p.isInStore ? (
           <span className="absolute left-2 top-2 z-10 inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white">
             <Check className="h-3 w-3" aria-hidden />
-            En vitrine
+            {t("cardInStore")}
           </span>
         ) : (
           <span className="absolute left-2 top-2 z-10 rounded-full bg-violet-600 px-2 py-0.5 text-[10px] font-bold text-white">
-            À sourcer
+            {t("cardToSource")}
           </span>
         )}
         {p.imageUrl ? (
@@ -52,7 +54,9 @@ function Card({ p }: { p: AffiliateAgentProductCard }) {
             unoptimized={p.imageUrl.startsWith("http")}
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-xs text-zinc-500">Sans image</div>
+          <div className="flex h-full items-center justify-center text-xs text-zinc-500">
+            {t("cardNoImage")}
+          </div>
         )}
       </div>
       <div className="flex flex-1 flex-col gap-2 p-3">
@@ -60,7 +64,7 @@ function Card({ p }: { p: AffiliateAgentProductCard }) {
         <p className="truncate text-xs text-zinc-400">{p.supplierLabel}</p>
         <AffiliateCatalogEconomicsPanel economics={economics} variant="compact" tone="dark" />
         <div className="mt-auto rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-2.5 text-center text-xs font-semibold text-white group-hover:from-violet-500 group-hover:to-fuchsia-500">
-          {p.isInStore ? "Modifier ma fiche →" : "Ajouter à ma vitrine →"}
+          {p.isInStore ? t("cardEditListing") : t("cardAddListing")}
         </div>
       </div>
     </Link>
