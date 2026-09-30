@@ -417,6 +417,25 @@ export async function endBattle(battleId: string): Promise<string> {
   return winnerId
 }
 
+/**
+ * Ends every "live" battle whose timer has passed, regardless of whether anyone is on the
+ * arena page — `maybeEndExpired` below only resolves the single battle a visitor happens to
+ * be viewing, so an unwatched battle could otherwise sit "live" forever and never apply its
+ * winner's flash discount.
+ */
+export async function endExpiredBattles(): Promise<{ ended: number; battleIds: string[] }> {
+  const expired = await prisma.pulseBattle.findMany({
+    where: { status: "live", endedAt: { lte: new Date() } },
+    select: { id: true },
+  })
+  const battleIds: string[] = []
+  for (const { id } of expired) {
+    await endBattle(id)
+    battleIds.push(id)
+  }
+  return { ended: battleIds.length, battleIds }
+}
+
 async function maybeGoLive(battle: BattleWithProducts): Promise<BattleWithProducts> {
   if (battle.status !== "scheduled") return battle
   if (battle.scheduledAt.getTime() > Date.now()) return battle

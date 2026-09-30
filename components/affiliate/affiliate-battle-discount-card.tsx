@@ -783,18 +783,24 @@ export function AffiliateBattleDiscountCard() {
                   {m < 60 ? `${m}min` : `${m / 60}h`}
                 </button>
               ))}
-              <input
-                type="number"
-                min={5}
-                max={1440}
-                value={durationMinutes}
-                onChange={(e) => {
-                  const v = Math.max(5, Math.min(1440, Number(e.target.value) || 15))
-                  setDurationMinutes(v)
-                }}
-                className="w-20 rounded-full border border-zinc-200 bg-white px-3 py-1 text-center text-xs tabular-nums dark:border-zinc-700 dark:bg-zinc-900"
-                aria-label="Durée en minutes"
-              />
+              <div className="flex items-center gap-1.5 rounded-lg border border-dashed border-zinc-300 bg-zinc-50 py-1 pl-2 pr-1.5 dark:border-zinc-700 dark:bg-zinc-900/50">
+                <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
+                  Personnalisé
+                </span>
+                <input
+                  type="number"
+                  min={5}
+                  max={1440}
+                  value={durationMinutes}
+                  onChange={(e) => {
+                    const v = Math.max(5, Math.min(1440, Number(e.target.value) || 15))
+                    setDurationMinutes(v)
+                  }}
+                  className="w-14 rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 text-center text-xs tabular-nums dark:border-zinc-700 dark:bg-zinc-950"
+                  aria-label="Durée personnalisée en minutes"
+                />
+                <span className="text-[10px] text-zinc-500 dark:text-zinc-400">min</span>
+              </div>
             </div>
           </div>
 
