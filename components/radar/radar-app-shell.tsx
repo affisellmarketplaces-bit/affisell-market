@@ -52,7 +52,7 @@ export default function RadarAppShell({
   }, [session, status, router, isPublicRadarHome])
 
   if (status === "loading") {
-    return <div className="mx-auto max-w-5xl px-4 py-16 text-sm text-zinc-500">{t("shellLoading")}</div>
+    return <div className="mx-auto max-w-7xl px-4 py-16 text-sm text-zinc-500">{t("shellLoading")}</div>
   }
 
   // Public marketing landing OR immersive globe — no app chrome
@@ -69,7 +69,7 @@ export default function RadarAppShell({
   return (
     <div className="min-h-[60vh] bg-zinc-50">
       <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-violet-600">
               Affisell Radar
@@ -115,7 +115,7 @@ export default function RadarAppShell({
           </nav>
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
+      <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
       <Suspense fallback={null}>
         <RadarCheckoutActivator />
       </Suspense>
