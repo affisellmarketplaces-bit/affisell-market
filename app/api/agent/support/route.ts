@@ -66,7 +66,7 @@ export async function POST(req: Request) {
   const system = `${SUPPORT_AGENT_SYSTEM_PROMPT.replaceAll("{{SUPPORT_EMAIL}}", resolveSupportEmail())}\n\nOrigine publique du site (référence interne uniquement — ne jamais l'afficher si un chemin relatif suffit): ${baseUrl}`
 
   const result = streamText({
-    model: groq("llama-3.3-70b-versatile"),
+    model: groq("openai/gpt-oss-120b"),
     system,
     messages: await convertToModelMessages(messages),
   })

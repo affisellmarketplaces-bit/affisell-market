@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Body too short" }, { status: 400 })
   }
 
-  const model = process.env.GROQ_API_KEY ? groq("llama-3.3-70b-versatile") : null
+  const model = process.env.GROQ_API_KEY ? groq("openai/gpt-oss-120b") : null
   if (!model) {
     return NextResponse.json({ body: sanitizeReviewText(rawBody, 2000), title: body.title ?? null })
   }
