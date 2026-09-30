@@ -42,8 +42,6 @@ export const AFFISELL_LEGAL_IDENTITY = {
   },
   processors: [
     { name: "Stripe", role: "Paiements et KYC" },
-    { name: "ScrapingBee", role: "Collecte technique de données produits (imports)" },
-    { name: "AliExpress Open Platform", role: "API catalogue / fulfillment (DropForge)" },
     { name: "Vercel", role: "Hébergement applicatif" },
     { name: "Supabase", role: "Hébergement données" },
   ],

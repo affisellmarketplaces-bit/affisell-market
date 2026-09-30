@@ -8,7 +8,7 @@ import { readCompanyLegal } from "@/lib/legal/company-env"
 export const metadata: Metadata = {
   title: "Politique de confidentialité | Affisell",
   description:
-    "RGPD Affisell — traitements, sous-traitants (Vercel, Supabase, Stripe, ScrapingBee, AliExpress), droits des personnes.",
+    "RGPD Affisell — traitements, sous-traitants (Vercel, Supabase, Stripe), droits des personnes.",
   robots: { index: true, follow: true },
 }
 
