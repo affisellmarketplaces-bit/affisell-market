@@ -11,7 +11,6 @@ import type {
 } from "@/lib/radar/radar-import-types"
 import {
   enrichRadarImport,
-  formatEnrichEuro,
   RADAR_BULK_IMPORT_MAX,
 } from "@/lib/import/smart-import-enricher"
 import type { WorldRadarWinnerDto } from "@/lib/radar/world-radar-types"
@@ -247,9 +246,6 @@ async function prepareEnrichedDraftRow(args: {
   const title = enriched.title
   const originalPrice = enriched.costPrice
   const price = enriched.salePrice
-  const description =
-    `${enriched.seoDescription}\n\n` +
-    `💰 Arbitrage: Acheté ${formatEnrichEuro(enriched.costPrice)}€ → Vendu ${formatEnrichEuro(enriched.salePrice)}€ = +${formatEnrichEuro(enriched.profit)}€ (x${enriched.multiplier.toFixed(1)})`
 
   const sourceTag = radarSourceTag(args.country)
   const saleCents = Math.round(price * 100)
@@ -261,7 +257,14 @@ async function prepareEnrichedDraftRow(args: {
       ? [args.winner.imageUrl.trim()]
       : product.images.filter(Boolean).slice(0, 1)
 
-  const customDescription = `${description}\n\nRadar import · source=${sourceTag} · cost=${originalPrice}`
+  /**
+   * Buyer-facing text ends at `seoDescription` — cost/margin/multiplier must never appear here
+   * (this is shown verbatim on the public PDP, app/marketplace/[id]/page.tsx:449). The
+   * `Radar import · source=X` suffix is internal bookkeeping only (matched by
+   * isRadarImportDescription/parseRadarImportCost in lib/radar/world-arbitrage-scanner.ts for
+   * the affiliate's own "Draft catalog" filter) — deliberately carries no cost figure.
+   */
+  const customDescription = `${enriched.seoDescription}\n\nRadar import · source=${sourceTag}`
 
   return {
     product: {

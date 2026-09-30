@@ -63,36 +63,41 @@ const COUNTRY_LABEL: Record<string, string> = {
   AU: "Australie",
 }
 
+/**
+ * Buyer-facing marketing copy only — never reference internal tooling (Radar, arbitrage,
+ * markup multipliers, "draft catalogue") here. This text is shown as-is on the public
+ * product page via `customDescription`.
+ */
 const CATEGORY_BULLETS: Record<string, [string, string, string]> = {
   beauty: [
-    "Formule tendance validée sur le marché local",
-    "Packaging premium prêt boutique",
-    "Marge x3.2 après pricing psychologique",
+    "Formule tendance, plébiscitée sur ce marché",
+    "Packaging premium prêt à l'envoi",
+    "Livraison rapide et suivie",
   ],
   tech: [
-    "Produit tech à forte intention d'achat",
-    "Spécifications claires pour la fiche SEO",
-    "Arbitrage Radar → catalogue Affisell",
+    "Produit tech très recherché en ce moment",
+    "Fiche technique détaillée et claire",
+    "Disponible dès maintenant",
   ],
   home: [
     "Best-seller maison & décoration",
-    "Visuels radar prêts à publier",
-    "Livraison express mise en avant",
+    "Visuels soignés, fidèles au produit",
+    "Livraison rapide mise en avant",
   ],
   fashion: [
-    "Style viral détecté par World Radar",
-    "Titre optimisé conversion",
-    "Prix psychologique pour maximiser le panier",
+    "Style tendance du moment",
+    "Coupe et finitions soignées",
+    "Livraison rapide, retour facile",
   ],
   fitness: [
-    "Demande fitness en hausse sur ce marché",
-    "Positionnement marge haute",
-    "Description SEO auto-générée",
+    "Forte demande sur ce marché",
+    "Qualité et durabilité au rendez-vous",
+    "Description détaillée et à jour",
   ],
   default: [
-    "Signal Radar haute confiance",
-    "Pricing intelligent x3.2",
-    "Fiche prête draft catalogue",
+    "Produit tendance sélectionné pour vous",
+    "Fiche prête à l'achat",
+    "Livraison rapide et suivie",
   ],
 }
 

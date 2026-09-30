@@ -31,6 +31,19 @@ describe("smart-import-enricher", () => {
     expect(enriched.multiplier).toBeGreaterThan(3)
   })
 
+  it("seoDescription never leaks cost/margin/internal-tooling to the buyer-facing PDP", async () => {
+    // Regression: this text is shown as-is on the public product page
+    // (app/marketplace/[id]/page.tsx via customDescription) — it must read like a normal
+    // product description, not reveal wholesale cost, margin, or internal tool names.
+    for (const category of ["beauty", "tech", "home", "fashion", "fitness", "default", undefined]) {
+      const enriched = await enrichRadarImport({ title: "Produit test", category }, "FR")
+      expect(enriched.seoDescription).not.toMatch(/€|\$|x\d(\.\d)?\b/i)
+      expect(enriched.seoDescription.toLowerCase()).not.toMatch(
+        /radar|arbitrage|marge|markup|draft catalogue/
+      )
+    }
+  })
+
   it("estimateBulkProfit uses winner price * 2.2", () => {
     const est = estimateBulkProfit([10, 20, null])
     expect(est.profit).toBe(75.24)
