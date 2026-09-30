@@ -30,7 +30,9 @@ export default defineConfig({
   webServer: skipWebServer
     ? undefined
     : {
-        command: "npm run dev",
+        // dev:staging (not plain "dev"): routes DATABASE_URL at DATABASE_URL_STAGING so e2e
+        // specs that read/write data never touch the production-facing database.
+        command: "npm run dev:staging",
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 180_000,
