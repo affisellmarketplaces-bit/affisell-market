@@ -27,6 +27,7 @@ export function ImportJobResultClient({
 }: Props) {
   const t = useTranslations("importPage")
   const [listing, setListing] = useState(false)
+  const [listedIds, setListedIds] = useState<ReadonlySet<string>>(() => new Set())
 
   const rows = useMemo(() => {
     return products.map((p) => {
@@ -39,7 +40,12 @@ export function ImportJobResultClient({
         supplierPrice: cost,
         category: p.category,
       })
-      return { p, cost, sale, margin, multiplier, score: scan.score, scan }
+      // p.arbitrageScore is captured per product/country at import time (World Radar's
+      // culturally-scored pool — genuinely varies by product) — scan.score is a flat ~93
+      // for any input (see world-arbitrage-scanner.ts) and should only be a last-resort
+      // fallback for older jobs that never captured a real score.
+      const score = p.arbitrageScore ?? scan.score
+      return { p, cost, sale, margin, multiplier, score, scan }
     })
   }, [products])
 
@@ -87,6 +93,7 @@ export function ImportJobResultClient({
         return
       }
       let ok = 0
+      const newlyListed: string[] = []
       for (const id of ids) {
         const res = await fetch(`/api/affiliate/listings/${encodeURIComponent(id)}`, {
           method: "PATCH",
@@ -94,9 +101,21 @@ export function ImportJobResultClient({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ isListed: true }),
         })
-        if (res.ok) ok += 1
+        if (res.ok) {
+          ok += 1
+          newlyListed.push(id)
+        }
       }
-      toast.success(t("jobToastListed", { ok, total: ids.length }))
+      // The PATCHes succeed server-side regardless — without this, the Status column kept
+      // showing "draft" for every row even after a fully successful bulk listing.
+      if (newlyListed.length > 0) {
+        setListedIds((prev) => new Set([...prev, ...newlyListed]))
+      }
+      if (ok === ids.length) {
+        toast.success(t("jobToastListed", { ok, total: ids.length }))
+      } else {
+        toast.error(t("jobToastListed", { ok, total: ids.length }))
+      }
     } catch {
       toast.error(t("jobToastListFailed"))
     } finally {
@@ -178,7 +197,11 @@ export function ImportJobResultClient({
                 <td className="px-3 py-2 font-mono text-xs">x{r.multiplier.toFixed(1)}</td>
                 <td className="px-3 py-2 font-mono text-xs">{r.score}/100</td>
                 <td className="px-3 py-2 text-xs">
-                  {r.p.importedListingId ? (
+                  {r.p.importedListingId && listedIds.has(r.p.importedListingId) ? (
+                    <span className="rounded-full bg-violet-100 px-2 py-0.5 font-medium text-violet-800">
+                      {t("jobStatusListed")}
+                    </span>
+                  ) : r.p.importedListingId ? (
                     <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-700">
                       {t("jobStatusDraft")}
                     </span>

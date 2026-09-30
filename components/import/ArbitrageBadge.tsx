@@ -62,7 +62,10 @@ export function ArbitrageBadge({
       <span aria-hidden>💰</span>
       <span>x{multiplier.toFixed(1)}</span>
       <span className="opacity-40">|</span>
-      <span>+{formatEnrichEuro(margin)}€</span>
+      <span>
+        {margin >= 0 ? "+" : ""}
+        {formatEnrichEuro(margin)}€
+      </span>
       <span className="opacity-40">|</span>
       <span>{t("arbMarginPct", { pct: Math.round(marginPercent) })}</span>
     </span>

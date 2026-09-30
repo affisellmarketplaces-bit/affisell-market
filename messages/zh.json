@@ -6862,6 +6862,7 @@
     "colStatus": "状态",
     "jobBest": "最佳:{country} +{margin}€",
     "jobStatusDraft": "草稿",
+    "jobStatusListed": "已上架",
     "jobStatusOk": "正常",
     "jobTotals": "合计——成本 {cost}€ · 售价 {sale}€ · 利润 +{margin}€",
     "jobExportCsv": "导出 CSV",

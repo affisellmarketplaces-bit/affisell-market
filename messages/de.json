@@ -6862,6 +6862,7 @@
     "colStatus": "Status",
     "jobBest": "Beste: {country} +{margin}€",
     "jobStatusDraft": "Entwurf",
+    "jobStatusListed": "veröffentlicht",
     "jobStatusOk": "ok",
     "jobTotals": "Summen — Kosten {cost}€ · Verkauf {sale}€ · Marge +{margin}€",
     "jobExportCsv": "CSV exportieren",
