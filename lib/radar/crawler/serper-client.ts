@@ -11,6 +11,22 @@ export function isSerperConfigured(): boolean {
   return Boolean(getSerperApiKey())
 }
 
+/**
+ * Distinguishes Serper quota/credit exhaustion from generic HTTP errors. Plain `http_error`
+ * logging made this indistinguishable from a transient failure — it ran silently degraded for
+ * weeks (walmart/etsy/aliexpress/temu/mercadolibre never crawled a single row) before anyone
+ * noticed, because nothing ever threw or surfaced differently from a one-off network blip.
+ */
+export async function readSerperErrorDetail(
+  res: Response
+): Promise<{ status: number; quotaExhausted: boolean; message: string }> {
+  const bodyText = await res.text().catch(() => "")
+  const quotaExhausted = /not enough credit|insufficient credit|out of credit|quota exceeded/i.test(
+    bodyText
+  )
+  return { status: res.status, quotaExhausted, message: bodyText.slice(0, 300) }
+}
+
 export type SerperSearchOptions = {
   gl?: string
   /** Override endpoint (default google.serper.dev/search). */
@@ -52,9 +68,11 @@ export async function serperSearch(
     })
 
     if (!res.ok) {
+      const detail = await readSerperErrorDetail(res)
       console.warn("[radar/serper]", {
-        result: "http_error",
-        status: res.status,
+        result: detail.quotaExhausted ? "quota_exhausted" : "http_error",
+        status: detail.status,
+        message: detail.message,
       })
       return []
     }
@@ -115,7 +133,12 @@ export async function serperSearchRaw(
       }),
     })
     if (!res.ok) {
-      console.warn("[radar/serper]", { result: "http_error", status: res.status })
+      const detail = await readSerperErrorDetail(res)
+      console.warn("[radar/serper]", {
+        result: detail.quotaExhausted ? "quota_exhausted" : "http_error",
+        status: detail.status,
+        message: detail.message,
+      })
       return null
     }
     const json = (await res.json().catch(() => null)) as Record<string, unknown> | null

@@ -24,3 +24,22 @@ describe("serper-client graceful missing key", () => {
     warn.mockRestore()
   })
 })
+
+describe("readSerperErrorDetail", () => {
+  it("flags Serper's actual 'Not enough credits' 400 body as quota exhaustion", async () => {
+    const { readSerperErrorDetail } = await import("@/lib/radar/crawler/serper-client")
+    const res = new Response('{"message":"Not enough credits","statusCode":400}', { status: 400 })
+    const detail = await readSerperErrorDetail(res)
+    expect(detail.quotaExhausted).toBe(true)
+    expect(detail.status).toBe(400)
+    expect(detail.message).toContain("Not enough credits")
+  })
+
+  it("does not flag an unrelated error as quota exhaustion", async () => {
+    const { readSerperErrorDetail } = await import("@/lib/radar/crawler/serper-client")
+    const res = new Response("Internal Server Error", { status: 500 })
+    const detail = await readSerperErrorDetail(res)
+    expect(detail.quotaExhausted).toBe(false)
+    expect(detail.status).toBe(500)
+  })
+})

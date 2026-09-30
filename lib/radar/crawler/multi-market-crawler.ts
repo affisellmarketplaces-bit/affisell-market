@@ -5,6 +5,7 @@ import { createHash } from "crypto"
 import {
   getSerperApiKey,
   isSerperConfigured,
+  readSerperErrorDetail,
   serperSearchRaw,
 } from "@/lib/radar/crawler/serper-client"
 import { radarFetch } from "@/lib/radar/crawler/http"
@@ -170,7 +171,13 @@ async function serperShoppingRaw(
       body: JSON.stringify({ q, gl, num: TOP_N }),
     })
     if (!res.ok) {
-      console.warn("[radar/serper-shopping]", { result: "http_error", status: res.status, q })
+      const detail = await readSerperErrorDetail(res)
+      console.warn("[radar/serper-shopping]", {
+        result: detail.quotaExhausted ? "quota_exhausted" : "http_error",
+        status: detail.status,
+        message: detail.message,
+        q,
+      })
       return null
     }
     return (await res.json().catch(() => null)) as Record<string, unknown> | null
