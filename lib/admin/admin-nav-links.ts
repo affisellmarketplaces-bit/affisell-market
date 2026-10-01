@@ -32,6 +32,7 @@ export const ADMIN_NAV_LINKS: readonly AdminNavLink[] = [
   { href: "/admin/queues", label: "Queues", group: "pilotage" },
   { href: "/admin/splits", label: "Splits", group: "finance" },
   { href: "/admin/settings/commission-rates", label: "Taux commission", group: "finance" },
+  { href: "/admin/settings/platform-flags", label: "Interrupteurs", group: "pilotage" },
   { href: "/admin/reviews", label: "Avis", group: "operations" },
   { href: "/crm", label: "CRM", group: "operations" },
   { href: "/admin/ing", label: "Ing Ops", group: "engineering" },
