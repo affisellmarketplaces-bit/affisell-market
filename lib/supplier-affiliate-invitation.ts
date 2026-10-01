@@ -8,7 +8,10 @@ import type {
   PublicAffiliateInvitationPayload,
   SupplierAffiliateInvitationListItem,
 } from "@/lib/supplier-affiliate-invitation-types"
-import { supplierAffiliateInvitationPublicUrl } from "@/lib/supplier-affiliate-invitation-url"
+import {
+  SUPPLIER_AFFILIATE_INVITE_MAX_COMMISSION_PCT,
+  supplierAffiliateInvitationPublicUrl,
+} from "@/lib/supplier-affiliate-invitation-url"
 
 export type {
   PublicAffiliateInvitationPayload,
@@ -32,7 +35,11 @@ function inviteExpiresAt(from = new Date()): Date {
 export function parseSupplierAffiliateInviteCommissionPct(raw: unknown): number | null {
   if (raw === undefined || raw === null || raw === "") return null
   const n = typeof raw === "number" ? raw : Number(String(raw).replace(",", "."))
-  if (!Number.isFinite(n) || n < 0 || n > 100) return null
+  // SUPPLIER_AFFILIATE_INVITE_MAX_COMMISSION_PCT is the platform-wide commission ceiling (same
+  // bound enforced in lib/url-import-apply.ts, lib/product-variants.ts,
+  // lib/affiliate-buyer-reward.ts, and the mirrored affiliate→supplier direction). A pitched
+  // commission above it would be misleading to the prospective affiliate — reject it here.
+  if (!Number.isFinite(n) || n < 0 || n > SUPPLIER_AFFILIATE_INVITE_MAX_COMMISSION_PCT) return null
   return Math.round(n * 10) / 10
 }
 
