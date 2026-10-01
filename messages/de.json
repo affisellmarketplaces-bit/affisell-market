@@ -1466,7 +1466,8 @@
       "invalidPriceShort": "Ungültiger Preis",
       "missingImagesShort": "Bilder fehlen",
       "compareAtMustExceedShort": "Vergleichspreis muss über dem Preis liegen",
-      "compareAtDiscountOverShort": "Vergleichspreis-Rabatt über 70%"
+      "compareAtDiscountOverShort": "Vergleichspreis-Rabatt über 70%",
+      "catalogCapReached": "Kataloglimit erreicht. Upgrade auf Dominator für einen unbegrenzten Katalog."
     },
     "wizard": {
       "backToMethods": "← Andere Erstellungsmethoden",

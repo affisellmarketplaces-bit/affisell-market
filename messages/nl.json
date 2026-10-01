@@ -1466,7 +1466,8 @@
       "invalidPriceShort": "Ongeldige prijs",
       "missingImagesShort": "Afbeeldingen ontbreken",
       "compareAtMustExceedShort": "Vergelijkingsprijs moet hoger zijn dan de prijs",
-      "compareAtDiscountOverShort": "Korting op vergelijkingsprijs boven 70%"
+      "compareAtDiscountOverShort": "Korting op vergelijkingsprijs boven 70%",
+      "catalogCapReached": "Cataloguslimiet bereikt. Upgrade naar Dominator voor een onbeperkte catalogus."
     },
     "wizard": {
       "backToMethods": "← Andere aanmaakmethoden",

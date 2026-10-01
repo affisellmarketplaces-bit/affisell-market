@@ -1466,7 +1466,8 @@
       "invalidPriceShort": "Prix invalide",
       "missingImagesShort": "Images manquantes",
       "compareAtMustExceedShort": "Le prix barré doit dépasser le prix",
-      "compareAtDiscountOverShort": "Réduction du prix barré supérieure à 70 %"
+      "compareAtDiscountOverShort": "Réduction du prix barré supérieure à 70 %",
+      "catalogCapReached": "Limite de catalogue atteinte. Passez Dominator pour un catalogue illimité."
     },
     "wizard": {
       "backToMethods": "← Autres méthodes de création",

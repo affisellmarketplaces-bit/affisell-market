@@ -21,6 +21,8 @@ import {
   type SupplierCsvColumnMapping,
   type SupplierCsvRawRow,
 } from "@/lib/supplier-csv-import"
+import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
+import { remainingCatalogCapacity } from "@/lib/growth/catalog-cap.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -240,10 +242,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "unknown_action" }, { status: 400 })
   }
 
+  const kycBlocked = await requireMerchantVerifiedForPublish(supplierId)
+  if (kycBlocked) return kycBlocked
+
   const priorProductCount = await prisma.product.count({ where: { supplierId } })
 
   const created: Array<{ id: string; name: string }> = []
   const failed: Array<{ index: number; error: string }> = []
+  // null = unlimited (Dominator/Empire or cap paused); decremented on each insert so a large
+  // CSV stops exactly at the cap instead of blowing straight through it.
+  let remainingCapacity = await remainingCatalogCapacity(supplierId)
 
   for (const row of mapped) {
     if (row.errors.length > 0) {
@@ -257,6 +265,11 @@ export async function POST(req: Request) {
       continue
     }
 
+    if (remainingCapacity !== null && remainingCapacity <= 0) {
+      failed.push({ index: row.index, error: "catalog_cap_reached" })
+      continue
+    }
+
     try {
       const product = await insertBulkParsedProduct(
         supplierId,
@@ -265,6 +278,7 @@ export async function POST(req: Request) {
         "csv-import"
       )
       created.push(product)
+      if (remainingCapacity !== null) remainingCapacity -= 1
     } catch (e) {
       failed.push({
         index: row.index,
@@ -293,7 +307,7 @@ export async function POST(req: Request) {
   const affiliateCount = await prisma.user.count({ where: { role: "AFFILIATE" } })
 
   return NextResponse.json({
-    success: true,
+    success: failed.length === 0,
     created: created.length,
     failed: failed.length,
     products: created,

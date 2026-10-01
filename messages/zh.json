@@ -1466,7 +1466,8 @@
       "invalidPriceShort": "价格无效",
       "missingImagesShort": "缺少图片",
       "compareAtMustExceedShort": "对比价必须高于价格",
-      "compareAtDiscountOverShort": "对比价折扣超过 70%"
+      "compareAtDiscountOverShort": "对比价折扣超过 70%",
+      "catalogCapReached": "已达到目录上限。升级到 Dominator 以获得无限目录。"
     },
     "wizard": {
       "backToMethods": "← 其他创建方式",

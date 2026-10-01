@@ -1466,7 +1466,8 @@
       "invalidPriceShort": "Invalid price",
       "missingImagesShort": "Missing images",
       "compareAtMustExceedShort": "Compare-at must exceed price",
-      "compareAtDiscountOverShort": "Compare-at discount over 70%"
+      "compareAtDiscountOverShort": "Compare-at discount over 70%",
+      "catalogCapReached": "Catalog limit reached. Upgrade to Dominator for an unlimited catalog."
     },
     "wizard": {
       "backToMethods": "← Other creation methods",

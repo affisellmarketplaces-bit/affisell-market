@@ -12,6 +12,8 @@ import { parseListingKind } from "@/lib/supplier-commission"
 import { resolveRequestLocale } from "@/lib/resolve-request-locale"
 import { tMessage } from "@/lib/i18n-pick-message"
 import type { AppLocale } from "@/lib/i18n-locale"
+import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
+import { remainingCatalogCapacity } from "@/lib/growth/catalog-cap.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -44,6 +46,9 @@ export async function POST(req: Request) {
   if ((session.user as { role?: string }).role !== "SUPPLIER") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
+
+  const kycBlocked = await requireMerchantVerifiedForPublish(session.user.id)
+  if (kycBlocked) return kycBlocked
 
   const locale = await resolveRequestLocale(undefined)
 
@@ -159,6 +164,10 @@ export async function POST(req: Request) {
 
   const created: Array<{ id: string; name: string }> = []
   const failed: Array<{ index: number; error: string }> = []
+  // null = unlimited (Dominator/Empire or cap paused); otherwise decremented on each insert so
+  // the loop stops exactly at the cap instead of letting a large batch blow straight through it.
+  let remainingCapacity = await remainingCatalogCapacity(supplierId)
+  const capErrorMsg = tMessage(locale, `${V}.catalogCapReached`) || "Limite de catalogue atteinte"
 
   for (let i = 0; i < parsedRows.length; i++) {
     const row = parsedRows[i]!
@@ -176,9 +185,21 @@ export async function POST(req: Request) {
       )
     }
 
+    if (remainingCapacity !== null && remainingCapacity <= 0) {
+      if (skipInvalid) {
+        failed.push({ index: i, error: capErrorMsg })
+        continue
+      }
+      return NextResponse.json(
+        { error: `Row ${i + 1}: ${capErrorMsg}`, index: i, code: "catalog_cap_reached" },
+        { status: 403 }
+      )
+    }
+
     try {
       const p = await insertBulkParsedProduct(supplierId, categoryId, row, "excel-bulk", locale)
       created.push(p)
+      if (remainingCapacity !== null) remainingCapacity -= 1
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Create failed"
       if (skipInvalid) {
@@ -190,7 +211,7 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({
-    success: true,
+    success: failed.length === 0,
     created: created.length,
     failed: failed.length,
     products: created,
