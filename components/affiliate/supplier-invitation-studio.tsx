@@ -5,17 +5,20 @@ import {
   BadgePercent,
   Check,
   Copy,
+  Download,
   Link2,
   Loader2,
   Mail,
   MessageCircle,
   Plus,
+  QrCode,
   Share2,
   Sparkles,
   Store,
   Users,
 } from "lucide-react"
 import { toast } from "sonner"
+import QRCode from "qrcode"
 
 import { BentoCard, BentoPageHeading } from "@/components/affisell/bento-ui"
 import { buttonVariants } from "@/components/ui/button"
@@ -44,6 +47,7 @@ export function SupplierInvitationStudio({
   const [activeUrl, setActiveUrl] = useState<string | null>(null)
   const [activeToken, setActiveToken] = useState<string | null>(null)
   const [activeInvitationId, setActiveInvitationId] = useState<string | null>(null)
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
 
   const [headline, setHeadline] = useState("Vendez avec nos revendeurs & créateurs affiliés")
   const [personalMessage, setPersonalMessage] = useState(
@@ -85,6 +89,29 @@ export function SupplierInvitationStudio({
   useEffect(() => {
     void load()
   }, [load])
+
+  useEffect(() => {
+    if (!activeUrl) {
+      setQrDataUrl(null)
+      return
+    }
+    let cancelled = false
+    QRCode.toDataURL(activeUrl, {
+      width: 240,
+      margin: 1,
+      errorCorrectionLevel: "M",
+      color: { dark: "#4c1d95", light: "#ffffff" },
+    })
+      .then((dataUrl) => {
+        if (!cancelled) setQrDataUrl(dataUrl)
+      })
+      .catch(() => {
+        if (!cancelled) setQrDataUrl(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [activeUrl])
 
   const share = useMemo(() => {
     if (!activeUrl) return null
@@ -298,6 +325,33 @@ export function SupplierInvitationStudio({
           ) : (
             <p className="text-sm text-zinc-500">Générez un lien pour activer le partage.</p>
           )}
+
+          {qrDataUrl ? (
+            <div className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white/80 p-3 dark:border-zinc-700 dark:bg-zinc-950/80">
+              <img
+                src={qrDataUrl}
+                alt="QR code du lien d'invitation"
+                width={64}
+                height={64}
+                className="h-16 w-16 shrink-0 rounded-lg border border-zinc-100 dark:border-zinc-800"
+              />
+              <p className="flex-1 text-xs text-zinc-600 dark:text-zinc-400">
+                <QrCode className="mr-1 inline h-3.5 w-3.5 opacity-70" aria-hidden />
+                À scanner en salon, rendez-vous, ou sur un flyer imprimé.
+              </p>
+              <a
+                href={qrDataUrl}
+                download={`invitation-affisell-${activeToken ?? "qr"}.png`}
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "shrink-0 gap-1.5 rounded-lg"
+                )}
+              >
+                <Download className="h-3.5 w-3.5" aria-hidden />
+                PNG
+              </a>
+            </div>
+          ) : null}
 
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {shareButtons.map((b) => (
