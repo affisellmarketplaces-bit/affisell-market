@@ -3,7 +3,10 @@ import { prisma } from "@/lib/prisma"
 import { ensureInviterDraftListingForInvite } from "@/lib/supplier-invitation-affiliate-listing"
 import { allocateUniqueSupplierInviteToken } from "@/lib/supplier-invitation-token.server"
 import { normalizeSupplierInviteToken } from "@/lib/supplier-invitation-token"
-import { supplierInvitationPublicUrl } from "@/lib/supplier-invitation-url"
+import {
+  SUPPLIER_INVITE_MAX_COMMISSION_PCT,
+  supplierInvitationPublicUrl,
+} from "@/lib/supplier-invitation-url"
 import type {
   AffiliateInvitationListItem,
   PublicSupplierInvitationPayload,
@@ -28,7 +31,12 @@ function inviteExpiresAt(from = new Date()): Date {
 export function parseInvitationCommissionPct(raw: unknown): number | null {
   if (raw === undefined || raw === null || raw === "") return null
   const n = typeof raw === "number" ? raw : Number(String(raw).replace(",", "."))
-  if (!Number.isFinite(n) || n < 0 || n > 100) return null
+  // SUPPLIER_INVITE_MAX_COMMISSION_PCT is the platform-wide commission ceiling (same bound
+  // enforced in lib/url-import-apply.ts, lib/product-variants.ts, lib/affiliate-buyer-reward.ts).
+  // A proposed commission above it would silently get clamped when the supplier adds a product
+  // (components/supplier/supplier-add-product-form.tsx prefill) with no warning to either side —
+  // reject it here instead, at the source.
+  if (!Number.isFinite(n) || n < 0 || n > SUPPLIER_INVITE_MAX_COMMISSION_PCT) return null
   return Math.round(n * 10) / 10
 }
 

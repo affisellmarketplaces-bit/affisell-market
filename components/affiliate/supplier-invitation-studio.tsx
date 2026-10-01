@@ -22,6 +22,7 @@ import { buttonVariants } from "@/components/ui/button"
 import type { AffiliateInvitationListItem } from "@/lib/supplier-invitation-types"
 import {
   buildSupplierInviteSharePayload,
+  SUPPLIER_INVITE_MAX_COMMISSION_PCT,
   type SupplierInviteShareChannel,
 } from "@/lib/supplier-invitation-url"
 import { cn } from "@/lib/utils"
@@ -95,12 +96,25 @@ export function SupplierInvitationStudio({
   }, [activeUrl, affiliateDisplayName, headline])
 
   async function saveInvitation() {
+    const trimmedCommission = commissionPct.trim()
+    if (trimmedCommission) {
+      const parsed = Number(trimmedCommission.replace(",", "."))
+      if (Number.isFinite(parsed) && parsed > SUPPLIER_INVITE_MAX_COMMISSION_PCT) {
+        // The server silently drops anything above this (same 50% ceiling enforced wherever
+        // commission is set) rather than erroring — catch it here so the affiliate isn't left
+        // thinking their proposed commission was saved when it quietly wasn't.
+        toast.error(
+          `Commission maximum : ${SUPPLIER_INVITE_MAX_COMMISSION_PCT}%. Réduisez la valeur avant d'enregistrer.`
+        )
+        return
+      }
+    }
     setCreating(true)
     try {
       const payload = {
         headline,
         personalMessage,
-        offeredCommissionPct: commissionPct.trim() || undefined,
+        offeredCommissionPct: trimmedCommission || undefined,
         categoryHint: categoryHint.trim() || undefined,
       }
       const res = activeInvitationId
