@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server"
 
 import { isUsMarket, STOREFRONT_CURRENCY } from "@/lib/market-config"
 import { resolveLiveCheckoutCountryCount } from "@/lib/checkout-country-rollout"
+import { EU_MEMBER_COUNT } from "@/lib/eu-market-countries"
 
 type SearchParams = Promise<{
   role?: string | string[]
@@ -58,14 +59,14 @@ export default async function SignupChooser({
               : t("subtitleEu", { count: checkoutCount })}
           </p>
           <p className="mt-3 text-sm font-medium text-zinc-500">
-            {usMarket ? t("payoutsUs") : t("payoutsEu")}
+            {usMarket ? t("payoutsUs") : t("payoutsEu", { count: EU_MEMBER_COUNT })}
           </p>
         </div>
 
         <div className="mx-auto mt-8 grid max-w-4xl grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
           <div className="rounded-[1.35rem] border border-zinc-200/90 bg-white px-4 py-3.5 shadow-sm sm:rounded-[1.65rem] sm:py-4 md:rounded-[1.85rem]">
             <p className="flex items-center justify-center gap-2 text-sm font-semibold text-zinc-800">
-              <Globe className="h-4 w-4 text-violet-600" />
+              <Globe className="h-4 w-4 text-violet-600" aria-hidden="true" />
               {t("statsCountries", { count: checkoutCount })}
             </p>
             <p className="mt-0.5 text-center text-xs text-zinc-500">
@@ -74,7 +75,7 @@ export default async function SignupChooser({
           </div>
           <div className="rounded-[1.35rem] border border-zinc-200/90 bg-white px-4 py-3.5 shadow-sm sm:rounded-[1.65rem] sm:py-4 md:rounded-[1.85rem]">
             <p className="flex items-center justify-center gap-2 text-sm font-semibold text-zinc-800">
-              <DollarSign className="h-4 w-4 text-violet-600" />
+              <DollarSign className="h-4 w-4 text-violet-600" aria-hidden="true" />
               {usMarket ? t("statsCurrencyUsd") : t("statsCurrencyEur")}
             </p>
             <p className="mt-0.5 text-center text-xs text-zinc-500">
@@ -83,7 +84,7 @@ export default async function SignupChooser({
           </div>
           <div className="rounded-[1.35rem] border border-zinc-200/90 bg-white px-4 py-3.5 shadow-sm sm:rounded-[1.65rem] sm:py-4 md:rounded-[1.85rem]">
             <p className="flex items-center justify-center gap-2 text-sm font-semibold text-zinc-800">
-              <Shield className="h-4 w-4 text-violet-600" />
+              <Shield className="h-4 w-4 text-violet-600" aria-hidden="true" />
               {t("statsSupport")}
             </p>
           </div>
@@ -96,7 +97,7 @@ export default async function SignupChooser({
                 {t("affiliateBadge")}
               </span>
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-3xl bg-violet-100 text-violet-700 sm:h-14 sm:w-14 sm:rounded-[1.35rem]">
-                <Briefcase className="h-6 w-6" />
+                <Briefcase className="h-6 w-6" aria-hidden="true" />
               </div>
               <h2 className="mt-5 text-2xl font-semibold text-zinc-900">{t("affiliateTitle")}</h2>
               <p className="mt-2 text-zinc-600">{t("affiliateSubtitle")}</p>
@@ -104,7 +105,7 @@ export default async function SignupChooser({
                 {affiliateBenefits.map((benefit) => (
                   <li key={benefit} className="flex items-center gap-2.5">
                     <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-violet-100 text-violet-700">
-                      <Check className="h-3.5 w-3.5" />
+                      <Check className="h-3.5 w-3.5" aria-hidden="true" />
                     </span>
                     {benefit}
                   </li>
@@ -112,7 +113,7 @@ export default async function SignupChooser({
               </ul>
               <span className="mt-8 inline-flex w-fit items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition sm:rounded-[1.15rem] sm:px-6 sm:py-3 group-hover:from-violet-700 group-hover:to-pink-600">
                 {t("affiliateCta")}
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </span>
               <p className="mt-2 text-xs text-zinc-500">
                 {usMarket
@@ -126,8 +127,8 @@ export default async function SignupChooser({
             <article className="flex h-full flex-col rounded-[1.85rem] border border-pink-200/80 bg-white p-8 shadow-md transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-pink-200/60 sm:rounded-[2.15rem] sm:p-10 md:rounded-[2.5rem]">
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-3xl bg-pink-100 text-pink-700 sm:h-14 sm:w-14 sm:rounded-[1.35rem]">
                 <div className="flex items-center gap-1">
-                  <Store className="h-4 w-4" />
-                  <Package className="h-4 w-4" />
+                  <Store className="h-4 w-4" aria-hidden="true" />
+                  <Package className="h-4 w-4" aria-hidden="true" />
                 </div>
               </div>
               <h2 className="mt-5 text-2xl font-semibold text-zinc-900">{t("supplierTitle")}</h2>
@@ -136,7 +137,7 @@ export default async function SignupChooser({
                 {supplierBenefits.map((benefit) => (
                   <li key={benefit} className="flex items-center gap-2.5">
                     <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-pink-100 text-pink-700">
-                      <Check className="h-3.5 w-3.5" />
+                      <Check className="h-3.5 w-3.5" aria-hidden="true" />
                     </span>
                     {benefit}
                   </li>
@@ -144,7 +145,7 @@ export default async function SignupChooser({
               </ul>
               <span className="mt-8 inline-flex w-fit items-center gap-2 rounded-2xl border border-pink-300 bg-white px-5 py-2.5 text-sm font-semibold text-pink-700 shadow-sm transition sm:rounded-[1.15rem] sm:px-6 sm:py-3 group-hover:border-pink-400 group-hover:bg-pink-50">
                 {t("supplierCta")}
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </span>
               <p className="mt-2 text-xs text-zinc-500">
                 {usMarket
@@ -158,7 +159,7 @@ export default async function SignupChooser({
         <div className="mx-auto mt-10 max-w-5xl rounded-[1.35rem] border border-zinc-200/90 bg-white/90 px-6 py-5 shadow-sm backdrop-blur-sm sm:rounded-[1.65rem] sm:px-8 sm:py-6 md:rounded-[1.85rem]">
           <div className="flex flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
             <div className="flex items-center gap-2 text-zinc-700">
-              <ShieldCheck className="h-5 w-5 text-violet-600" />
+              <ShieldCheck className="h-5 w-5 text-violet-600" aria-hidden="true" />
               <p className="text-sm font-medium">
                 {usMarket ? t("trustUs") : t("trustEu")}
               </p>

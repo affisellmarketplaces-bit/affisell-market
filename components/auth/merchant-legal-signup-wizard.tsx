@@ -48,6 +48,7 @@ type Props = {
   afterLoginPath: string
   inviteToken?: string | null
   inviteBanner?: string | null
+  planBanner?: string | null
   defaultSocialHandle?: boolean
 }
 
@@ -71,6 +72,7 @@ export function MerchantLegalSignupWizard({
   afterLoginPath,
   inviteToken,
   inviteBanner,
+  planBanner,
   defaultSocialHandle = false,
 }: Props) {
   const t = useTranslations("auth")
@@ -197,6 +199,11 @@ export function MerchantLegalSignupWizard({
           {inviteBanner ? (
             <p className="mx-auto mt-4 max-w-md rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-100">
               {inviteBanner}
+            </p>
+          ) : null}
+          {planBanner ? (
+            <p className="mx-auto mt-4 max-w-md rounded-xl border border-violet-400/30 bg-violet-500/10 px-3 py-2 text-sm text-violet-100">
+              {planBanner}
             </p>
           ) : null}
         </div>

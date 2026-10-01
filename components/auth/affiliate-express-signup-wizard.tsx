@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils"
 
 type Props = {
   afterLoginPath: string
+  planBanner?: string | null
 }
 
 type Step = "profile" | "account" | "success"
@@ -33,7 +34,7 @@ const TRUST_PILLS = [
   { icon: ShieldCheck, key: "verifyLater" as const },
 ] as const
 
-export function AffiliateExpressSignupWizard({ afterLoginPath }: Props) {
+export function AffiliateExpressSignupWizard({ afterLoginPath, planBanner }: Props) {
   const t = useTranslations("auth")
   const tExpress = useTranslations("auth.affiliateExpress")
 
@@ -135,6 +136,11 @@ export function AffiliateExpressSignupWizard({ afterLoginPath }: Props) {
             <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-violet-100/80">
               {tExpress("subtitle")}
             </p>
+            {planBanner ? (
+              <p className="mx-auto mt-4 max-w-md rounded-xl border border-violet-400/30 bg-violet-500/10 px-3 py-2 text-sm text-violet-100">
+                {planBanner}
+              </p>
+            ) : null}
           </div>
         ) : (
           <div className="mb-6" aria-hidden />

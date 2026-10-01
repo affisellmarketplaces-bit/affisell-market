@@ -8,13 +8,14 @@ import { Check, Crown, Rocket } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { track } from "@/lib/analytics"
+import { GROWTH_PRICING_TIERS, type GrowthPricingTierId } from "@/lib/growth-pricing-tiers"
 import { cn } from "@/lib/utils"
 
 export type PricingKindHint = "producer" | "stocker" | null
 
 type Billing = "monthly" | "annual"
 
-type TierId = "lanceur" | "dominator" | "empire"
+type TierId = GrowthPricingTierId
 
 type Tier = {
   id: TierId
@@ -25,10 +26,31 @@ type Tier = {
   popular?: boolean
 }
 
+// Prices come from lib/growth-pricing-tiers.ts (shared with the /signup?plan=… confirmation
+// banner) so the number a payer sees here can never drift from the one echoed back at signup.
 const TIERS: Tier[] = [
-  { id: "lanceur", monthly: 29, annual: 290, icon: "rocket", href: "/signup?role=reseller&plan=lanceur" },
-  { id: "dominator", monthly: 79, annual: 790, icon: null, popular: true, href: "/signup?role=supplier&plan=dominator" },
-  { id: "empire", monthly: 149, annual: 990, icon: "crown", href: "/signup?role=supplier&plan=empire" },
+  {
+    id: "lanceur",
+    monthly: GROWTH_PRICING_TIERS.lanceur.monthly,
+    annual: GROWTH_PRICING_TIERS.lanceur.annual,
+    icon: "rocket",
+    href: "/signup?role=reseller&plan=lanceur",
+  },
+  {
+    id: "dominator",
+    monthly: GROWTH_PRICING_TIERS.dominator.monthly,
+    annual: GROWTH_PRICING_TIERS.dominator.annual,
+    icon: null,
+    popular: true,
+    href: "/signup?role=supplier&plan=dominator",
+  },
+  {
+    id: "empire",
+    monthly: GROWTH_PRICING_TIERS.empire.monthly,
+    annual: GROWTH_PRICING_TIERS.empire.annual,
+    icon: "crown",
+    href: "/signup?role=supplier&plan=empire",
+  },
 ]
 
 type Props = {
@@ -127,7 +149,7 @@ export function AffisellGrowthPricing({ kindHint = null }: Props) {
               <CardHeader className="gap-3 pt-6">
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <CardTitle className="text-lg text-zinc-900 dark:text-white">{tier.id === "lanceur" ? "Lanceur" : tier.id === "dominator" ? "Dominator" : "Empire"}</CardTitle>
+                    <CardTitle className="text-lg text-zinc-900 dark:text-white">{GROWTH_PRICING_TIERS[tier.id].name}</CardTitle>
                     <CardDescription>{t(`${tier.id}.audience`)}</CardDescription>
                   </div>
                   {tier.icon === "rocket" ? (
