@@ -3942,6 +3942,18 @@ model ProcessedWebhook {
   @@index([orderId])
 }
 
+/// Admin-toggleable runtime switches (e.g. "growth_catalog_cap_paused") — click to flip from
+/// /admin/settings/platform-flags, no redeploy. Falls back to env vars when no row exists yet,
+/// so this is additive and never breaks the existing env-var kill switches.
+model PlatformFlag {
+  key       String   @id
+  enabled   Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+
+  @@index([enabled])
+}
+
 enum AgentCapability {
   QC_INSPECTION
   COMPLIANCE

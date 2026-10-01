@@ -1,24 +1,31 @@
 import { describe, expect, it, vi, beforeEach } from "vitest"
 
-const { findUniqueUser, countProduct } = vi.hoisted(() => ({
+const { findUniqueUser, countProduct, findUniquePlatformFlag } = vi.hoisted(() => ({
   findUniqueUser: vi.fn(),
   countProduct: vi.fn(),
+  findUniquePlatformFlag: vi.fn(),
 }))
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     user: { findUnique: findUniqueUser },
     product: { count: countProduct },
+    platformFlag: { findUnique: findUniquePlatformFlag },
   },
 }))
 
-import { assertProductCreationAllowed, DEFAULT_CATALOG_CAP } from "@/lib/growth/catalog-cap.server"
+import {
+  assertProductCreationAllowed,
+  remainingCatalogCapacity,
+  DEFAULT_CATALOG_CAP,
+} from "@/lib/growth/catalog-cap.server"
 
 describe("Growth catalog cap", () => {
   beforeEach(() => {
     vi.unstubAllEnvs()
     findUniqueUser.mockReset()
     countProduct.mockReset()
+    findUniquePlatformFlag.mockReset().mockResolvedValue(null)
   })
 
   it("allows Dominator/Empire suppliers unconditionally (no count query)", async () => {
@@ -67,5 +74,43 @@ describe("Growth catalog cap", () => {
     const result = await assertProductCreationAllowed("supplier-6")
     expect(result).toEqual({ allowed: true })
     expect(findUniqueUser).not.toHaveBeenCalled()
+  })
+
+  it("is bypassed when the admin platform flag is enabled in the DB (no env var needed)", async () => {
+    findUniquePlatformFlag.mockResolvedValue({ enabled: true })
+    const result = await assertProductCreationAllowed("supplier-7")
+    expect(result).toEqual({ allowed: true })
+    expect(findUniqueUser).not.toHaveBeenCalled()
+  })
+})
+
+describe("remainingCatalogCapacity (batch imports)", () => {
+  beforeEach(() => {
+    vi.unstubAllEnvs()
+    findUniqueUser.mockReset()
+    countProduct.mockReset()
+    findUniquePlatformFlag.mockReset().mockResolvedValue(null)
+  })
+
+  it("returns null (unlimited) for Dominator/Empire", async () => {
+    findUniqueUser.mockResolvedValue({ growthPlan: "empire", catalogCapBaselineCount: null })
+    expect(await remainingCatalogCapacity("supplier-8")).toBeNull()
+  })
+
+  it("returns null (unlimited) when paused", async () => {
+    findUniquePlatformFlag.mockResolvedValue({ enabled: true })
+    expect(await remainingCatalogCapacity("supplier-9")).toBeNull()
+  })
+
+  it("returns exactly how many more slots are left under the cap", async () => {
+    findUniqueUser.mockResolvedValue({ growthPlan: "none", catalogCapBaselineCount: null })
+    countProduct.mockResolvedValue(195)
+    expect(await remainingCatalogCapacity("supplier-10")).toBe(DEFAULT_CATALOG_CAP - 195)
+  })
+
+  it("never goes negative once already over the (grandfathered) cap", async () => {
+    findUniqueUser.mockResolvedValue({ growthPlan: "none", catalogCapBaselineCount: 50 })
+    countProduct.mockResolvedValue(210)
+    expect(await remainingCatalogCapacity("supplier-11")).toBe(0)
   })
 })

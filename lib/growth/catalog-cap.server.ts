@@ -1,17 +1,20 @@
 import "server-only"
 
 import { prisma } from "@/lib/prisma"
+import { isPlatformFlagEnabled, PLATFORM_FLAG_KEYS } from "@/lib/admin/platform-flags.server"
 
 /** Non-Dominator/Empire suppliers are capped at this many live products going forward. */
 export const DEFAULT_CATALOG_CAP = 200
 
 /**
- * Emergency pause for the Growth catalog cap (default ON / enforced).
- * Set `GROWTH_CATALOG_CAP_PAUSED=1` to disable in prod without a redeploy if it misfires.
+ * Emergency pause for the Growth catalog cap (default ON / enforced). Checks the admin-toggleable
+ * DB flag first (flip from /admin/settings/platform-flags, takes effect instantly), then falls
+ * back to `GROWTH_CATALOG_CAP_PAUSED=1` for a redeploy-time override if the DB is unreachable.
  */
-export function isCatalogCapPaused(): boolean {
+export async function isCatalogCapPaused(): Promise<boolean> {
   const raw = process.env.GROWTH_CATALOG_CAP_PAUSED?.trim().toLowerCase()
-  return raw === "1" || raw === "true" || raw === "yes"
+  if (raw === "1" || raw === "true" || raw === "yes") return true
+  return isPlatformFlagEnabled(PLATFORM_FLAG_KEYS.growthCatalogCapPaused)
 }
 
 export type CatalogCapCheck =
@@ -26,7 +29,7 @@ type CatalogCapStatus = { unlimited: true } | { unlimited: false; cap: number; c
  * already had, only stops *further* growth past the default once they're above it.
  */
 async function computeCatalogCapStatus(supplierId: string): Promise<CatalogCapStatus> {
-  if (isCatalogCapPaused()) return { unlimited: true }
+  if (await isCatalogCapPaused()) return { unlimited: true }
 
   const user = await prisma.user.findUnique({
     where: { id: supplierId },

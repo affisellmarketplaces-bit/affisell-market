@@ -1,4 +1,5 @@
 import { isLegacyRegisteredMerchantForKyc } from "@/lib/merchant-legal/legacy-kyc-trust"
+import { isPlatformFlagEnabled, PLATFORM_FLAG_KEYS } from "@/lib/admin/platform-flags.server"
 import { prisma } from "@/lib/prisma"
 
 export type MerchantVerificationGate = {
@@ -9,6 +10,11 @@ export type MerchantVerificationGate = {
 
 /** Suppliers need APPROVED KYC before publishing catalog. Affiliates resell — storefront publish is open. */
 export async function merchantVerificationGate(userId: string): Promise<MerchantVerificationGate> {
+  if (await isPlatformFlagEnabled(PLATFORM_FLAG_KEYS.merchantKycGatePaused)) {
+    console.log("[merchant-kyc-gate]", { userId, allowed: true, platformFlagPaused: true })
+    return { allowed: true, status: "KYC_GATE_PAUSED" }
+  }
+
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { createdAt: true, role: true },

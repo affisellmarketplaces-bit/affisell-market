@@ -8,6 +8,9 @@ vi.mock("@/lib/prisma", () => ({
     user: {
       findUnique: vi.fn(),
     },
+    platformFlag: {
+      findUnique: vi.fn(),
+    },
   },
 }))
 
@@ -21,6 +24,7 @@ describe("requireMerchantVerifiedForPublish", () => {
   beforeEach(() => {
     vi.mocked(prisma.merchantLegalProfile.findUnique).mockReset()
     vi.mocked(prisma.user.findUnique).mockReset()
+    vi.mocked(prisma.platformFlag.findUnique).mockReset().mockResolvedValue(null)
     vi.stubEnv("MERCHANT_KYC_MANDATORY_FROM", "2026-06-19T00:00:00.000Z")
     vi.stubEnv("MERCHANT_KYC_TRUST_EXISTING", "1")
   })
@@ -83,6 +87,27 @@ describe("requireMerchantVerifiedForPublish", () => {
     expect(gate.status).toBe("AFFILIATE_STOREFRONT_EXEMPT")
 
     const blocked = await requireMerchantVerifiedForPublish("aff-new")
+    expect(blocked).toBeNull()
+  })
+
+  it("bypasses everything when the admin platform flag is paused", async () => {
+    vi.mocked(prisma.platformFlag.findUnique).mockResolvedValue({ enabled: true } as never)
+    // Would normally be blocked (pending KYC, new account) — the flag short-circuits before
+    // either prisma call, so these mocks are never even touched.
+    vi.mocked(prisma.merchantLegalProfile.findUnique).mockResolvedValue({
+      verificationStatus: "PENDING_REVIEW",
+    } as never)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      role: "SUPPLIER",
+      createdAt: new Date("2026-06-20T00:00:00.000Z"),
+    } as never)
+
+    const gate = await merchantVerificationGate("user-3")
+    expect(gate.allowed).toBe(true)
+    expect(gate.status).toBe("KYC_GATE_PAUSED")
+    expect(prisma.user.findUnique).not.toHaveBeenCalled()
+
+    const blocked = await requireMerchantVerifiedForPublish("user-3")
     expect(blocked).toBeNull()
   })
 })
