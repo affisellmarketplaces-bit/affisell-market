@@ -33,6 +33,7 @@ import {
 } from "@/lib/legion/username"
 import { isPublicStaticAssetPath } from "@/lib/public-static-asset-path"
 import { staticAppRewriteTarget, isStaticAppPathname } from "@/lib/reserved-locale-segments"
+import { AFFISELL_PERMISSIONS_POLICY } from "@/lib/security-headers"
 import {
   HumanoidShield,
   type ShieldAnalyzeResult,
@@ -66,7 +67,7 @@ function applyHumanoidShieldHeaders(
   res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
   res.headers.set(
     "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+    AFFISELL_PERMISSIONS_POLICY
   )
   res.headers.set("x-shield-score", String(result.score))
   res.headers.set("x-shield-action", result.action)
@@ -96,6 +97,24 @@ function handleShieldBlock(req: NextRequest, result: ShieldAnalyzeResult): NextR
 
 function secureSessionCookieForRequest(req: NextRequest): boolean {
   return req.nextUrl.protocol === "https:"
+}
+
+async function isTrustedSession(req: NextRequest): Promise<boolean> {
+  if (!secret) return false
+  try {
+    const token = await getToken({
+      req,
+      secret,
+      secureCookie: secureSessionCookieForRequest(req),
+    })
+    return Boolean(token?.sub)
+  } catch (error) {
+    console.warn("[shield]", {
+      result: "session_lookup_failed",
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return false
+  }
 }
 
 function loginAffiliateUrl(req: NextRequest, pathWithSearch: string) {
@@ -305,7 +324,8 @@ export async function proxy(req: NextRequest) {
 
   let shieldResult: ShieldAnalyzeResult | null = null
   if (!isShieldExemptPath(barePath)) {
-    shieldResult = HumanoidShield.analyze(req)
+    const sessionTrusted = await isTrustedSession(req)
+    shieldResult = HumanoidShield.analyze(req, { sessionTrusted })
     HumanoidShield.log(shieldResult, req)
     if (shieldResult.action === "BLOCK" || shieldResult.action === "CHALLENGE") {
       return handleShieldBlock(req, shieldResult)

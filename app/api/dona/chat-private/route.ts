@@ -15,6 +15,8 @@ import { runDonaStreamResponse } from "@/lib/dona/run-dona-stream"
 import { privateTools } from "@/lib/dona/tools-private"
 import { getEnvInfo } from "@/lib/env"
 import { resolveAppLocale } from "@/lib/i18n-locale"
+import { DONA_VOICE_MODE_PROMPT } from "@/lib/dona/voice-prompt"
+import { isDonaVoiceModeFlag } from "@/lib/dona/voice-speakable"
 
 export const runtime = "nodejs"
 export const maxDuration = 45
@@ -39,7 +41,8 @@ export async function POST(req: Request) {
     return Response.json({ error: "Invalid JSON body" }, { status: 400 })
   }
 
-  const parsed = body as { messages?: unknown; locale?: unknown }
+  const parsed = body as { messages?: unknown; locale?: unknown; voiceMode?: unknown }
+  const voiceMode = isDonaVoiceModeFlag(parsed.voiceMode)
   const locale = resolveAppLocale(typeof parsed.locale === "string" ? parsed.locale : null)
 
   if (!resolveDonaModels()) {
@@ -65,7 +68,7 @@ export async function POST(req: Request) {
   const lastUser = [...messages].reverse().find((m) => m.role === "user")
   const queryPreview = lastUser ? donaMessageText(lastUser).slice(0, 120) : ""
 
-  logBusiness("dona-captain", { result: "request", queryPreview })
+  logBusiness("dona-captain", { result: "request", queryPreview, voiceMode })
 
   let envBlock = ""
   try {
@@ -81,7 +84,7 @@ export async function POST(req: Request) {
   return runDonaStreamResponse({
     logPrefix: "dona-captain",
     locale,
-    system: `${DONA_PRIVATE_SYSTEM_PROMPT}${envBlock}`,
+    system: `${DONA_PRIVATE_SYSTEM_PROMPT}${envBlock}${voiceMode ? DONA_VOICE_MODE_PROMPT : ""}`,
     messages,
     tools: privateTools,
     maxSteps: 8,

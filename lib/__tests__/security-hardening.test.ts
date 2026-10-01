@@ -64,6 +64,10 @@ describe("security-headers", () => {
     expect(csp).toContain("object-src 'none'")
     expect(AFFISELL_CSP_REPORT_ONLY).toContain("https://js.stripe.com")
     expect(AFFISELL_CSP_REPORT_ONLY).toContain("report-uri /api/csp-report")
+    const policy = headers.find((h) => h.key === "Permissions-Policy")?.value ?? ""
+    const tokens = policy.split(",").map((s) => s.trim())
+    expect(tokens).toContain("microphone=(self)")
+    expect(tokens).not.toContain("microphone=()")
   })
 })
 
