@@ -15,7 +15,7 @@ export async function loadRadarPlanContext(user: SessionUser): Promise<{
 }> {
   const row = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { radarPlan: true, isPro: true, email: true },
+    select: { radarPlan: true, isPro: true, email: true, growthPlan: true },
   })
 
   const planUser = toRadarPlanUser(
@@ -26,7 +26,7 @@ export async function loadRadarPlanContext(user: SessionUser): Promise<{
       isPro: row?.isPro ?? user.isPro ?? false,
       features: user.features,
     },
-    { subscriptionTiers: row?.radarPlan ? [row.radarPlan] : [] }
+    { subscriptionTiers: row?.radarPlan ? [row.radarPlan] : [], growthPlan: row?.growthPlan ?? null }
   )
 
   return { planUser, plan: getUserRadarPlan(planUser) }

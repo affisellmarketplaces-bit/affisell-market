@@ -66,6 +66,21 @@ export type RadarPlanUser = {
   isPro?: boolean | null
   features?: string[] | null
   subscriptionTiers?: string[] | null
+  /** Affisell Growth tier (none|lanceur|dominator|empire) — floors the resolved Radar plan. */
+  growthPlan?: string | null
+}
+
+const RADAR_PLAN_RANK: Record<RadarPlanId, number> = { free: 0, starter: 1, pro: 2, global: 3 }
+
+/**
+ * Dominator/Empire Growth subscribers get at least Radar Pro/Global bundled in, without a
+ * separate Radar purchase — see AGENTS.md / messages.pricingGrowth ("Radar Grossiste" bullet
+ * on Dominator, price-policing bullet on Empire map onto the existing Radar system).
+ */
+function growthPlanFloor(growthPlan: string | null | undefined): RadarPlanId {
+  if (growthPlan === "empire") return "global"
+  if (growthPlan === "dominator") return "pro"
+  return "free"
 }
 
 /** Founder/admin QA: full Radar Global without Stripe. */
@@ -81,7 +96,7 @@ export function toRadarPlanUser(
     isPro?: boolean | null
     features?: string[] | null
   },
-  extras?: { subscriptionTiers?: string[] | null }
+  extras?: { subscriptionTiers?: string[] | null; growthPlan?: string | null }
 ): RadarPlanUser {
   return {
     id: user.id,
@@ -90,6 +105,7 @@ export function toRadarPlanUser(
     isPro: user.isPro ?? false,
     features: user.features,
     subscriptionTiers: extras?.subscriptionTiers ?? null,
+    growthPlan: extras?.growthPlan ?? null,
   }
 }
 
@@ -119,27 +135,30 @@ export function getUserRadarPlan(user: RadarPlanUser | null | undefined): RadarP
   const tiers = user.subscriptionTiers ?? []
   const features = user.features ?? []
 
+  let resolvedId: RadarPlanId = "free"
+
   if (
     tiers.includes("radar_global") ||
     tiers.includes("global") ||
     features.includes("radar_global")
   ) {
-    return RADAR_PLANS.global
-  }
-
-  if (
+    resolvedId = "global"
+  } else if (
     tiers.includes("radar_pro") ||
     tiers.includes("pro") ||
     features.includes("radar_pro") ||
     features.includes("radar") ||
     features.includes("market_intelli")
   ) {
-    return RADAR_PLANS.pro
+    resolvedId = "pro"
+  } else if (tiers.includes("starter") || features.includes("radar_starter")) {
+    resolvedId = "starter"
   }
 
-  if (tiers.includes("starter") || features.includes("radar_starter")) {
-    return RADAR_PLANS.starter
-  }
+  // A Growth subscription (Dominator/Empire) is a floor, not an override — a user who
+  // separately bought a higher Radar tier directly keeps it.
+  const floorId = growthPlanFloor(user.growthPlan)
+  const finalId = RADAR_PLAN_RANK[floorId] > RADAR_PLAN_RANK[resolvedId] ? floorId : resolvedId
 
-  return RADAR_PLANS.free
+  return RADAR_PLANS[finalId]
 }

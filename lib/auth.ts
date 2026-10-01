@@ -43,6 +43,7 @@ type AuthUserRow = {
   cguVersion: string | null
   isPro: boolean
   radarPlan: string | null
+  growthPlan: string | null
 }
 
 /**
@@ -61,18 +62,21 @@ async function loadAuthUserRow(userId: string): Promise<AuthUserRow | null> {
         cguVersion: true,
         isPro: true,
         radarPlan: true,
+        growthPlan: true,
       },
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
-    const missingRadarPlan = /radarPlan/i.test(message) && /does not exist|Unknown arg/i.test(message)
-    if (!missingRadarPlan) {
+    const missingCommercialTierColumn =
+      /radarPlan|growthPlan/i.test(message) && /does not exist|Unknown arg/i.test(message)
+    if (!missingCommercialTierColumn) {
       console.error("[auth jwt]", { result: "user_lookup_failed", message })
       throw err
     }
     console.warn("[auth jwt]", {
-      result: "radarPlan_column_missing_fallback",
-      message: "Deploy migration 20260718190000_user_radar_plan — login continues with radarPlan=free",
+      result: "commercial_tier_column_missing_fallback",
+      message:
+        "Deploy migration 20260718190000_user_radar_plan / 20261001120000_growth_plan_fields — login continues with radarPlan=free, growthPlan=none",
     })
     const fallback = await prisma.user.findUnique({
       where: { id: userId },
@@ -86,7 +90,7 @@ async function loadAuthUserRow(userId: string): Promise<AuthUserRow | null> {
       },
     })
     if (!fallback) return null
-    return { ...fallback, radarPlan: "free" }
+    return { ...fallback, radarPlan: "free", growthPlan: "none" }
   }
 }
 
@@ -392,7 +396,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         userId,
         row?.isPro ?? false,
         row?.radarPlan ?? "free",
-        role
+        role,
+        row?.growthPlan ?? "none"
       )
       return token as JWT
     },

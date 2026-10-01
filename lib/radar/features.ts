@@ -1,11 +1,18 @@
 import { RADAR_BETA_USER_IDS, RADAR_ENABLED } from "@/lib/radar/env"
 
-/** Entitlements for Affisell Radar — no DB imports (safe when flag is off). */
+/**
+ * Entitlements for Affisell Radar — no DB imports (safe when flag is off).
+ *
+ * growthPlan: Affisell Growth tier (none|lanceur|dominator|empire). Dominator/Empire floor
+ * the resolved Radar plan at pro/global (bundled access, see lib/radar/plans.ts's
+ * growthPlanFloor) — a stronger radarPlan (bought separately) still wins.
+ */
 export function resolveRadarFeatures(
   userId: string,
   _isPro: boolean,
   radarPlan?: string | null,
-  role?: string | null
+  role?: string | null,
+  growthPlan?: string | null
 ): string[] {
   if (RADAR_ENABLED !== "true") return []
 
@@ -18,10 +25,12 @@ export function resolveRadarFeatures(
   }
 
   const plan = (radarPlan ?? "free").trim().toLowerCase()
-  if (plan === "global") {
+  const growthFloor = growthPlan === "empire" ? "global" : growthPlan === "dominator" ? "pro" : null
+
+  if (plan === "global" || growthFloor === "global") {
     return ["radar", "market_intelli", "radar_global"]
   }
-  if (plan === "pro") {
+  if (plan === "pro" || growthFloor === "pro") {
     return ["radar", "market_intelli", "radar_pro"]
   }
   if (plan === "starter") {
