@@ -62,6 +62,9 @@ export async function POST(req: Request) {
     : SPONSOR_BILLING_MODE.SUCCESS_FEE
 
   const htCents = await loadSponsorHtCents(target)
+  if (htCents <= 0) {
+    return NextResponse.json({ error: "Invalid product HT price" }, { status: 400 })
+  }
   const quote = quoteSponsorCampaign({
     htCents,
     sponsorRateBps: Number(body.sponsorRateBps ?? 500),

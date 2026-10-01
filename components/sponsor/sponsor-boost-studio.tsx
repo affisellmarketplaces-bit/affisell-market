@@ -33,6 +33,7 @@ type CatalogItem =
       label: string
       image: string | null
       htCents: number
+      isEstimate: boolean
     }
   | {
       kind: "affiliate"
@@ -41,6 +42,7 @@ type CatalogItem =
       label: string
       image: string | null
       htCents: number
+      isEstimate: boolean
     }
 
 type Quote = {
@@ -275,7 +277,9 @@ export function SponsorBoostStudio({ role, items }: Props) {
                     {selected.label}
                   </p>
                   <p className="mt-1 text-sm tabular-nums text-violet-200">
-                    {t("htPrice", { price: formatStoreCurrencyFromCents(selected.htCents) })}
+                    {t(selected.isEstimate ? "htPriceEstimate" : "htPrice", {
+                      price: formatStoreCurrencyFromCents(selected.htCents),
+                    })}
                   </p>
                   <p className="mt-2 text-[10px] uppercase tracking-wider text-zinc-500">
                     {t("selectedSku")}
@@ -320,6 +324,7 @@ export function SponsorBoostStudio({ role, items }: Props) {
                           {item.label}
                         </p>
                         <p className="text-xs tabular-nums text-zinc-500">
+                          {item.isEstimate ? "~" : ""}
                           {formatStoreCurrencyFromCents(item.htCents)} HT
                         </p>
                       </div>

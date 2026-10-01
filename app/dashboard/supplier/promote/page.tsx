@@ -15,7 +15,8 @@ export default async function SupplierPromotePage() {
     productId: p.id,
     label: p.name,
     image: p.images[0] ?? null,
-    htCents: p.basePriceCents,
+    htCents: p.estimatedSellingPriceCents ?? p.basePriceCents,
+    isEstimate: true,
   }))
 
   return (

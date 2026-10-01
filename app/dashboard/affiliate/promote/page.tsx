@@ -17,7 +17,8 @@ export default async function AffiliatePromotePage() {
     productId: row.product.id,
     label: listingDisplayTitle(row.customTitle, row.product.name),
     image: row.product.images[0] ?? null,
-    htCents: row.product.basePriceCents,
+    htCents: row.sellingPriceCents,
+    isEstimate: false,
   }))
 
   return (

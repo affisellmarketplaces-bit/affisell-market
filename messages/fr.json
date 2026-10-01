@@ -5964,6 +5964,7 @@
     "target": "Cible",
     "selectedSku": "SKU actif",
     "htPrice": "HT {price}",
+    "htPriceEstimate": "HT estimé {price}",
     "noProducts": "Aucun produit éligible.",
     "investment": "Part success fee (HT)",
     "successFeeHint": "Facturé uniquement si un acheteur paie — jamais d’abonnement ni d’à-valoir.",

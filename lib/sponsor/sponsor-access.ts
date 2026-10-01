@@ -55,7 +55,31 @@ export async function resolveSponsorTarget(
   return { error: "Only suppliers and affiliates can sponsor products", status: 403 }
 }
 
+/**
+ * The success fee is charged per sale against the buyer's actual paid HT price
+ * (lib/stripe-marketplace-fulfill.ts's clientLineHtCents via settlement.affisellFeeBaseCents),
+ * which is normally higher than the product's wholesale cost once an affiliate's markup is
+ * added. This must quote against that same basis so the preview the payer approves before
+ * activating isn't understated vs. what actually gets deducted on a real sale.
+ */
 export async function loadSponsorHtCents(target: SponsorTarget): Promise<number> {
+  if (target.payerRole === "AFFILIATE" && target.affiliateProductId) {
+    const listing = await prisma.affiliateProduct.findUnique({
+      where: { id: target.affiliateProductId },
+      select: { sellingPriceCents: true },
+    })
+    if (listing) return listing.sellingPriceCents
+  }
+
+  // Supplier: no single selling price exists on the bare product (each affiliate sets their
+  // own), so estimate from the average of the product's current live listings — the closest
+  // available proxy for what a buyer will actually pay.
+  const avg = await prisma.affiliateProduct.aggregate({
+    where: { productId: target.productId, isListed: true },
+    _avg: { sellingPriceCents: true },
+  })
+  if (avg._avg.sellingPriceCents) return Math.round(avg._avg.sellingPriceCents)
+
   const product = await prisma.product.findUnique({
     where: { id: target.productId },
     select: { basePriceCents: true },
