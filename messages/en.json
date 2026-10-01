@@ -3112,7 +3112,9 @@
     "home": {
       "loading": "Loading your dashboard…",
       "needProduct": "Need a new product?",
-      "request": "Request it"
+      "request": "Request it",
+      "monthlyOrders": "{count} orders this month",
+      "monthlyOrdersLanceur": "{count}/{cap} orders this month — unlimited in practice, never blocked"
     },
     "onboarding": {
       "title": "Launch your reseller storefront",

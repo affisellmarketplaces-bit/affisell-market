@@ -3112,7 +3112,9 @@
     "home": {
       "loading": "正在加载您的控制台…",
       "needProduct": "需要新商品？",
-      "request": "提交需求"
+      "request": "提交需求",
+      "monthlyOrders": "本月 {count} 笔订单",
+      "monthlyOrdersLanceur": "本月 {count}/{cap} 笔订单 — 实际上不设上限，从不阻断"
     },
     "onboarding": {
       "title": "启动您的联盟商店",

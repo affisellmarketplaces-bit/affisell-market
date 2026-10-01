@@ -36,6 +36,10 @@ import {
   loadActiveSponsorBoostByListingId,
   sortListingsBySponsorBoost,
 } from "@/lib/sponsor/sponsor-marketplace-rank"
+import {
+  loadGrowthPlanRankByListingId,
+  sortListingsByGrowthPlanThenSponsorBoost,
+} from "@/lib/growth/growth-plan-rank-boost"
 
 export const listingMarketplaceInclude = {
   product: {
@@ -358,7 +362,32 @@ export async function fetchMarketplaceListings(
     orderMode === "search" ? "SEARCH" : scopeCategoryId ? "CATEGORY" : "HOME"
 
   const sponsorBoostMap = await loadActiveSponsorBoostByListingId()
-  const rankedRows = sortListingsBySponsorBoost(rows, sponsorBoostMap, placementContext)
+  const sponsorSortedRows = sortListingsBySponsorBoost(rows, sponsorBoostMap, placementContext)
+
+  // Growth plan (Dominator/Empire) ranking nudge — a tie-breaker among listings with equal
+  // sponsor standing (including the common case of nobody running a paid Sponsor campaign),
+  // never outranking a listing that's actually paying for placement. See lib/growth/
+  // growth-plan-rank-boost.ts for why this is additive-free by design.
+  const sponsorScoreByListingId = new Map(
+    sponsorSortedRows.map((row) => [
+      row.id,
+      isSponsorActiveInContext(sponsorBoostMap.get(row.id), placementContext)
+        ? (sponsorBoostMap.get(row.id)?.boostScore ?? 0)
+        : 0,
+    ])
+  )
+  const growthRankByListingId = await loadGrowthPlanRankByListingId(
+    sponsorSortedRows.map((row) => row.id)
+  )
+  const rankedRows =
+    growthRankByListingId.size > 0
+      ? sortListingsByGrowthPlanThenSponsorBoost(
+          sponsorSortedRows,
+          sponsorScoreByListingId,
+          growthRankByListingId
+        )
+      : sponsorSortedRows
+
   const salesStats = await loadListingSalesStats(rankedRows.map((row) => row.id))
 
   if (lite) {

@@ -3112,7 +3112,9 @@
     "home": {
       "loading": "Ihr Dashboard wird geladen…",
       "needProduct": "Sie brauchen ein neues Produkt?",
-      "request": "Anfordern"
+      "request": "Anfordern",
+      "monthlyOrders": "{count} Bestellungen diesen Monat",
+      "monthlyOrdersLanceur": "{count}/{cap} Bestellungen diesen Monat — praktisch unbegrenzt, nie blockiert"
     },
     "onboarding": {
       "title": "Starten Sie Ihren Affiliate-Shop",

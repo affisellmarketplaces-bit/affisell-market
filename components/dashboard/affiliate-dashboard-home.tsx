@@ -22,6 +22,10 @@ import { resolveAppLocale } from "@/lib/i18n-locale"
 import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
 import { prismaUnavailableUserMessage } from "@/lib/prisma-db-error"
 import { getUserRadarPlan } from "@/lib/radar/plans"
+import {
+  LANCEUR_MONTHLY_ORDER_REFERENCE,
+  loadMonthlyAffiliateOrderCount,
+} from "@/lib/growth/order-volume.server"
 import { prisma } from "@/lib/prisma"
 
 import { AffiliateDashboard } from "@/app/dashboard/affiliate/affiliate-dashboard"
@@ -34,19 +38,21 @@ export async function AffiliateDashboardHome({ callbackPath }: Props) {
   const session = await requireAffiliateSession(callbackPath)
   const tHome = await getTranslations("affiliateDashboard.home")
   const locale = resolveAppLocale(await getLocale())
-  const [firstSaleProgress, kycGate, clawbackRisk, analytics, radarUser, liveListings] = await Promise.all([
-    loadAffiliateFirstSaleProgress(session.user.id),
-    merchantVerificationGate(session.user.id),
-    loadAffiliateClawbackRisk(session.user.id),
-    loadAffiliateDashboardAnalytics(session.user.id),
-    prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { isPro: true, radarPlan: true, email: true },
-    }),
-    prisma.affiliateProduct
-      .count({ where: { ...affiliateListingsWhere(session.user.id), isListed: true } })
-      .catch(() => 0),
-  ])
+  const [firstSaleProgress, kycGate, clawbackRisk, analytics, radarUser, liveListings, monthlyOrderCount] =
+    await Promise.all([
+      loadAffiliateFirstSaleProgress(session.user.id),
+      merchantVerificationGate(session.user.id),
+      loadAffiliateClawbackRisk(session.user.id),
+      loadAffiliateDashboardAnalytics(session.user.id),
+      prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { isPro: true, radarPlan: true, email: true, growthPlan: true },
+      }),
+      prisma.affiliateProduct
+        .count({ where: { ...affiliateListingsWhere(session.user.id), isListed: true } })
+        .catch(() => 0),
+      loadMonthlyAffiliateOrderCount(session.user.id).catch(() => 0),
+    ])
 
   const radarPlan = getUserRadarPlan({
     id: session.user.id,
@@ -119,6 +125,15 @@ export async function AffiliateDashboardHome({ callbackPath }: Props) {
           <AffiliateOnboardingChecklist progress={firstSaleProgress} />
           <AffiliateAnalyticsWidget analytics={analytics} />
           <ClawbackRiskWidget riskCents={clawbackRisk.riskCents} />
+          {/* Observability only — Lanceur's pitched 100/month is never enforced, see lib/growth/order-volume.server.ts */}
+          <p className="px-1 text-xs text-zinc-500 dark:text-zinc-400">
+            {radarUser?.growthPlan === "lanceur"
+              ? tHome("monthlyOrdersLanceur", {
+                  count: monthlyOrderCount,
+                  cap: LANCEUR_MONTHLY_ORDER_REFERENCE,
+                })
+              : tHome("monthlyOrders", { count: monthlyOrderCount })}
+          </p>
 
           {/* 3 — discovery */}
           <ResellerRequestCtaBanner />

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { prisma } from "@/lib/prisma"
+import { rateLimitClientKey, rateLimitResponseAsync } from "@/lib/api-rate-limit"
+import { assertImportQuotaAllowed } from "@/lib/growth/import-quota.server"
 import { RADAR_BULK_IMPORT_MAX } from "@/lib/import/smart-import-enricher"
 import { gate } from "@/lib/radar/gate"
 import {
@@ -38,6 +41,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "not_authenticated" }, { status: 401 })
   }
 
+  // Generic abuse rate limit, unrelated to plan — this route previously had none at all.
+  const rateLimited = await rateLimitResponseAsync(
+    rateLimitClientKey(req, session.user.id),
+    { limit: 10, windowMs: 10 * 60 * 1000, prefix: "radar-source" }
+  )
+  if (rateLimited) return rateLimited
+
   const body = (await req.json().catch(() => ({}))) as SourceBody
   const country = typeof body.country === "string" ? body.country.trim().toUpperCase() : ""
   const destination = parseDestination(body.destination)
@@ -72,6 +82,23 @@ export async function POST(req: Request) {
   }
   if (destination === "supplier_draft" && session.user.role !== "SUPPLIER") {
     return NextResponse.json({ error: "supplier_role_required" }, { status: 403 })
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { growthPlan: true },
+  })
+  const importQuota = await assertImportQuotaAllowed(session.user.id, user?.growthPlan)
+  if (!importQuota.allowed) {
+    return NextResponse.json(
+      {
+        error: "weekly_import_quota",
+        message: `Limite de ${importQuota.cap} imports/semaine atteinte. Passez Lanceur pour un volume bien plus large.`,
+        cap: importQuota.cap,
+        usedThisWeek: importQuota.usedThisWeek,
+      },
+      { status: 429 }
+    )
   }
 
   const products = isAll

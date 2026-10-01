@@ -447,6 +447,11 @@ export async function createRadarImportJob(args: {
     return sum
   }, 0)
 
+  const importedCount =
+    args.destination === "affisell_catalog"
+      ? products.filter((p) => p.importedListingId).length
+      : products.length
+
   const job = await prisma.importJob.create({
     data: {
       userId: args.userId,
@@ -455,6 +460,7 @@ export async function createRadarImportJob(args: {
       sourceCountry: country,
       products: products as unknown as Prisma.InputJsonValue,
       destination: args.destination,
+      importedCount,
     },
     select: { id: true },
   })
@@ -478,10 +484,7 @@ export async function createRadarImportJob(args: {
     jobId: job.id,
     count: products.length,
     redirectUrl,
-    importedCount:
-      args.destination === "affisell_catalog"
-        ? products.filter((p) => p.importedListingId).length
-        : products.length,
+    importedCount,
     totalMargin: Math.round(totalMargin * 100) / 100,
   }
 }

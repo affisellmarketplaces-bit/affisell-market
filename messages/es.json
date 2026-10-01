@@ -3112,7 +3112,9 @@
     "home": {
       "loading": "Cargando tu panel…",
       "needProduct": "¿Necesitas un producto nuevo?",
-      "request": "Solicitarlo"
+      "request": "Solicitarlo",
+      "monthlyOrders": "{count} pedidos este mes",
+      "monthlyOrdersLanceur": "{count}/{cap} pedidos este mes — ilimitado en la práctica, nunca bloqueado"
     },
     "onboarding": {
       "title": "Lanza tu tienda de afiliado",

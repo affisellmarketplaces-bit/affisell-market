@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { prisma } from "@/lib/prisma"
 import { gate } from "@/lib/radar/gate"
 import { RADAR_DEFAULT_COUNTRY } from "@/lib/radar/dashboard-country.server"
 import { redactRadarPayloadForRole } from "@/lib/radar/radar-price-veil"
 import { getWorldRadarPayload } from "@/lib/radar/world-radar-store.server"
+import { consumeWinnersQuota, winnersQuotaCapForPlan } from "@/lib/growth/winners-quota.server"
 
 export const runtime = "nodejs"
 /** Auth forces per-request; winners themselves TTL 6h in market_intelli (expiresAt). */
@@ -41,15 +43,31 @@ export async function GET(req: Request) {
     const payload = await getWorldRadarPayload(country)
     const role = session.user.role
     const safe = redactRadarPayloadForRole(payload, role)
+
+    // Growth weekly winners quota (Lanceur: 50/week, else 10/week) — truncate, never hard-block.
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { growthPlan: true },
+    })
+    const cap = winnersQuotaCapForPlan(user?.growthPlan)
+    const quota = await consumeWinnersQuota(session.user.id, safe.winners.length, cap)
+    const truncatedWinners = safe.winners.slice(0, quota.allowed)
+
     console.log("[api/radar]", {
       userId: session.user.id,
       role,
       country,
-      winners: safe.winners.length,
+      winners: truncatedWinners.length,
+      winnersBeforeQuota: safe.winners.length,
+      quotaCap: cap,
+      quotaRemaining: quota.remaining,
       priceVeiled: role === "SUPPLIER",
       source: safe.source,
     })
-    return NextResponse.json(safe, { headers: CACHE_HEADERS })
+    return NextResponse.json(
+      { ...safe, winners: truncatedWinners, quota: { cap, remaining: quota.remaining } },
+      { headers: CACHE_HEADERS }
+    )
   } catch (err) {
     console.error("[api/radar]", {
       country,

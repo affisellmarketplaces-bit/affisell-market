@@ -3112,7 +3112,9 @@
     "home": {
       "loading": "Caricamento della dashboard…",
       "needProduct": "Ti serve un nuovo prodotto?",
-      "request": "Richiedilo"
+      "request": "Richiedilo",
+      "monthlyOrders": "{count} ordini questo mese",
+      "monthlyOrdersLanceur": "{count}/{cap} ordini questo mese — illimitato in pratica, mai bloccato"
     },
     "onboarding": {
       "title": "Lancia il tuo negozio affiliato",

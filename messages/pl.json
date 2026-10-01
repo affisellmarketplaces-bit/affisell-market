@@ -3112,7 +3112,9 @@
     "home": {
       "loading": "Ładowanie panelu…",
       "needProduct": "Potrzebujesz nowego produktu?",
-      "request": "Poproś o niego"
+      "request": "Poproś o niego",
+      "monthlyOrders": "{count} zamówień w tym miesiącu",
+      "monthlyOrdersLanceur": "{count}/{cap} zamówień w tym miesiącu — w praktyce bez limitu, nigdy nie blokowane"
     },
     "onboarding": {
       "title": "Uruchom swój sklep partnerski",

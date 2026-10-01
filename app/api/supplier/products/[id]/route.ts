@@ -27,6 +27,7 @@ import { routeChinaBuy } from "@/lib/china-buying/route-china-buy"
 import { revalidateSupplierShopfront } from "@/lib/revalidate-supplier-shopfront"
 import { revalidateListingCardImagesForProduct } from "@/lib/revalidate-listing-card-image"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
+import { assertProductCreationAllowed } from "@/lib/growth/catalog-cap.server"
 import { parseProductMarketplaceMeta } from "@/lib/supplier-product-marketplace-meta"
 import {
   parseProductOfferBody,
@@ -309,6 +310,23 @@ export async function PUT(
   if (publish || activatingFromDraft) {
     const kycBlocked = await requireMerchantVerifiedForPublish(session.user.id)
     if (kycBlocked) return kycBlocked
+  }
+
+  // Only the draft→live transition grows the live catalog — republishing an already-live
+  // product isn't a new addition, so it's deliberately excluded here.
+  if (activatingFromDraft) {
+    const catalogCap = await assertProductCreationAllowed(session.user.id)
+    if (!catalogCap.allowed) {
+      return Response.json(
+        {
+          error: "catalog_cap_reached",
+          message: `Limite de ${catalogCap.cap} produits en ligne atteinte. Passez Dominator pour un catalogue illimité.`,
+          cap: catalogCap.cap,
+          current: catalogCap.current,
+        },
+        { status: 403 }
+      )
+    }
   }
 
   if (publish || activatingFromDraft) {

@@ -3112,7 +3112,9 @@
     "home": {
       "loading": "Je dashboard wordt geladen…",
       "needProduct": "Een nieuw product nodig?",
-      "request": "Aanvragen"
+      "request": "Aanvragen",
+      "monthlyOrders": "{count} bestellingen deze maand",
+      "monthlyOrdersLanceur": "{count}/{cap} bestellingen deze maand — in de praktijk onbeperkt, nooit geblokkeerd"
     },
     "onboarding": {
       "title": "Start je affiliate-winkel",

@@ -29,6 +29,7 @@ import {
 } from "@/lib/category-attribute-rules"
 import { normalizeLeafCategoryId } from "@/lib/category-leaf-guard"
 import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
+import { assertProductCreationAllowed } from "@/lib/growth/catalog-cap.server"
 import { requireMerchantUserId } from "@/lib/merchant-tenant-scope"
 import { onSupplierProductPublishedFromInvite } from "@/lib/supplier-invitation"
 import { parseListingKind } from "@/lib/supplier-commission"
@@ -101,6 +102,19 @@ export async function POST(req: Request) {
     if (!gate.allowed) {
       return Response.json(
         { error: "merchant_verification_pending", verificationStatus: gate.status },
+        { status: 403 }
+      )
+    }
+
+    const catalogCap = await assertProductCreationAllowed(session.user.id)
+    if (!catalogCap.allowed) {
+      return Response.json(
+        {
+          error: "catalog_cap_reached",
+          message: `Limite de ${catalogCap.cap} produits en ligne atteinte. Passez Dominator pour un catalogue illimité.`,
+          cap: catalogCap.cap,
+          current: catalogCap.current,
+        },
         { status: 403 }
       )
     }

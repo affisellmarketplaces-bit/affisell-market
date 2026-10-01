@@ -3112,7 +3112,9 @@
     "home": {
       "loading": "Chargement de votre tableau de bord…",
       "needProduct": "Besoin d'un nouveau produit ?",
-      "request": "Le demander"
+      "request": "Le demander",
+      "monthlyOrders": "{count} commandes ce mois-ci",
+      "monthlyOrdersLanceur": "{count}/{cap} commandes ce mois-ci — illimité en pratique, jamais bloqué"
     },
     "onboarding": {
       "title": "Lancez votre boutique revendeur",
