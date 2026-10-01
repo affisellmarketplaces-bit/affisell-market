@@ -334,24 +334,25 @@ export async function POST(req: Request) {
       }
     }
 
-    if (expressAffiliate) {
-      after(() => {
-        void runPostSignupCompliance().catch((err: unknown) => {
-          console.log("[signup]", {
-            userId: user.id,
-            role: resolvedRole,
-            result: "post_signup_compliance_failed",
-            error: err instanceof Error ? err.message : String(err),
-          })
+    // Deferred for every role, not just expressAffiliate (e6692e009 originally scoped this to
+    // express affiliate signup only). The compliance chain — terms logging, legal acceptance
+    // records, invite/referral claims, the welcome email — has no reason to block the response:
+    // it's all best-effort logging/notification work, not something the client needs to wait on,
+    // and awaiting it synchronously was adding multi-second latency to every supplier signup
+    // (2x DB writes + a dynamic import + an invite claim + a live Resend email call, all before
+    // the client even got a 201) with zero loading feedback beyond a static button label — the
+    // exact cause of signups "freezing" with no success notification.
+    after(() => {
+      void runPostSignupCompliance().catch((err: unknown) => {
+        console.log("[signup]", {
+          userId: user.id,
+          role: resolvedRole,
+          result: "post_signup_compliance_failed",
+          error: err instanceof Error ? err.message : String(err),
         })
       })
-      await logger.info("Signup success", { route: ROUTE, ip, role: resolvedRole, express: true })
-      return NextResponse.json({ ok: true }, { status: 201 })
-    }
-
-    await runPostSignupCompliance()
-
-    await logger.info("Signup success", { route: ROUTE, ip, role: resolvedRole })
+    })
+    await logger.info("Signup success", { route: ROUTE, ip, role: resolvedRole, express: expressAffiliate })
     return NextResponse.json({ ok: true }, { status: 201 })
   } catch (e: unknown) {
     Sentry.captureException(e)

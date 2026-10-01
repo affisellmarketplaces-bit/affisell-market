@@ -654,7 +654,8 @@
       "signIn": "Sign in",
       "acceptTermsError": "Please accept the terms and privacy policy.",
       "siretError": "A 14-digit SIRET is required for business accounts.",
-      "signupFail": "Could not sign up"
+      "signupFail": "Could not sign up",
+      "signupSuccessToast": "Account created — welcome to Affisell!"
     },
     "shopBuyer": {
       "loginTitle": "My account — {store}",
@@ -803,6 +804,18 @@
         "status_REJECTED": "Application rejected — contact support",
         "status_NEEDS_MORE_INFO": "Additional documents requested"
       }
+    },
+    "signupSuccess": {
+      "badge": "Account activated",
+      "titleNamed": "Welcome, {name}!",
+      "titleFallback": "Account created successfully",
+      "subtitleSupplier": "Your supplier space is ready. Publish your first product and start selling on the Affisell network.",
+      "subtitleAffiliate": "Your reseller storefront is ready. Explore the catalog and list your first product.",
+      "readySupplier": "Supplier account created and secured",
+      "readyAffiliate": "Reseller storefront created and secured",
+      "emailConfirmed": "Signed in as {email}",
+      "cta": "Go to my dashboard",
+      "redirectHint": "Redirecting automatically in {seconds}s…"
     },
     "portal": {
       "accessDenied": "Sign-in denied: this account does not match the requested space.",

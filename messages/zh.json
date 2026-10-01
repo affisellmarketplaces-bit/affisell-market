@@ -654,7 +654,8 @@
       "signIn": "登录",
       "acceptTermsError": "请接受条款和隐私政策。",
       "siretError": "商家账户需要 14 位 SIRET。",
-      "signupFail": "无法注册"
+      "signupFail": "无法注册",
+      "signupSuccessToast": "账户创建成功——欢迎加入 Affisell！"
     },
     "shopBuyer": {
       "loginTitle": "我的账户 — {store}",
@@ -803,6 +804,18 @@
         "status_REJECTED": "申请被拒绝 — 联系支持",
         "status_NEEDS_MORE_INFO": "需要更多信息"
       }
+    },
+    "signupSuccess": {
+      "badge": "账户已激活",
+      "titleNamed": "欢迎，{name}！",
+      "titleFallback": "账户创建成功",
+      "subtitleSupplier": "您的供应商空间已就绪。发布您的第一个产品，开始在 Affisell 网络上销售。",
+      "subtitleAffiliate": "您的分销商店铺已就绪。浏览商品目录并上架您的第一个产品。",
+      "readySupplier": "供应商账户已创建并受到保护",
+      "readyAffiliate": "分销商店铺已创建并受到保护",
+      "emailConfirmed": "已登录为 {email}",
+      "cta": "进入我的控制台",
+      "redirectHint": "{seconds} 秒后自动跳转…"
     },
     "portal": {
       "accessDenied": "登录被拒绝: 该账户不匹配所请求的空间。",

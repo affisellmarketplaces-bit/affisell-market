@@ -3,12 +3,13 @@
 import type { FormEvent } from "react"
 import { Suspense, useState } from "react"
 import { signIn } from "next-auth/react"
+import { toast } from "sonner"
 
 import { useTranslations } from "next-intl"
 
 import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 
 import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
 import { loginCustomerPath } from "@/lib/login-redirect"
@@ -17,7 +18,6 @@ import { LegalSignupConsent } from "@/components/legal/legal-signup-consent"
 function CustomerSignupForm() {
   const t = useTranslations("auth.customerSignup")
   const tAuth = useTranslations("auth")
-  const router = useRouter()
   const search = useSearchParams()
   const shopSlug = search.get("shop")?.trim() || null
   const rawCallback = search.get("callbackUrl")
@@ -75,7 +75,14 @@ function CustomerSignupForm() {
     if (login?.error) {
       setError(credentialsSignInErrorMessage(login.code, tAuth) ?? tAuth("signupLoginFail"))
     } else {
-      router.push(returnTo)
+      toast.success(t("signupSuccessToast"))
+      // Hard redirect (not router.push) — avoids navigating before the fresh session cookie is
+      // visible to the destination page's own auth() check, which would silently bounce back to
+      // login with no feedback shown. Delayed briefly so the toast above is actually visible —
+      // an immediate assign() unloads the page before the browser gets a paint in.
+      window.setTimeout(() => {
+        window.location.assign(returnTo)
+      }, 900)
     }
   }
 

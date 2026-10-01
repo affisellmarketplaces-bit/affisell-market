@@ -654,7 +654,8 @@
       "signIn": "Accedi",
       "acceptTermsError": "Per favore accetta i termini e la politica sulla privacy.",
       "siretError": "È richiesto un SIRET a 14 cifre per gli account aziendali.",
-      "signupFail": "Impossibile iscriversi"
+      "signupFail": "Impossibile iscriversi",
+      "signupSuccessToast": "Account creato — benvenuto su Affisell!"
     },
     "shopBuyer": {
       "loginTitle": "Il mio account — {store}",
@@ -803,6 +804,18 @@
         "status_REJECTED": "Richiesta rifiutata — contatta il supporto",
         "status_NEEDS_MORE_INFO": "Richiesta di ulteriori documenti"
       }
+    },
+    "signupSuccess": {
+      "badge": "Account attivato",
+      "titleNamed": "Benvenuto, {name}!",
+      "titleFallback": "Account creato con successo",
+      "subtitleSupplier": "Il tuo spazio fornitore è pronto. Pubblica il tuo primo prodotto e inizia a vendere sulla rete Affisell.",
+      "subtitleAffiliate": "La tua vetrina reseller è pronta. Esplora il catalogo e pubblica il tuo primo prodotto.",
+      "readySupplier": "Account fornitore creato e protetto",
+      "readyAffiliate": "Vetrina reseller creata e protetta",
+      "emailConfirmed": "Connesso come {email}",
+      "cta": "Vai alla mia dashboard",
+      "redirectHint": "Reindirizzamento automatico tra {seconds} s…"
     },
     "portal": {
       "accessDenied": "Accesso negato: questo account non corrisponde allo spazio richiesto.",

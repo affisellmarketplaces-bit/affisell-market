@@ -4,7 +4,6 @@ import type { FormEvent } from "react"
 import { useMemo, useState } from "react"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { AnimatePresence, motion } from "framer-motion"
 import {
@@ -20,6 +19,7 @@ import {
 } from "lucide-react"
 
 import { MerchantLegalDocumentSlot } from "@/components/auth/merchant-legal-document-slot"
+import { SignupSuccessScreen } from "@/components/auth/signup-success-screen"
 import { LegalSignupConsent } from "@/components/legal/legal-signup-consent"
 import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages"
 import type { GrowthPricingTierId } from "@/lib/growth-pricing-tiers"
@@ -57,7 +57,7 @@ type Props = {
 }
 
 const STEPS = ["status", "identity", "documents", "account"] as const
-type Step = (typeof STEPS)[number]
+type Step = (typeof STEPS)[number] | "success"
 
 const ERROR_KEYS: Record<string, string> = {
   signup_draft_required: "errDraft",
@@ -83,10 +83,11 @@ export function MerchantLegalSignupWizard({
 }: Props) {
   const t = useTranslations("auth")
   const tLegal = useTranslations("auth.merchantLegal")
-  const router = useRouter()
   const draftId = useMemo(() => createSignupDraftId(), [])
 
   const [step, setStep] = useState<Step>("status")
+  const [successDisplayName, setSuccessDisplayName] = useState("")
+  const [successEmail, setSuccessEmail] = useState("")
   const [legalStatus, setLegalStatus] = useState<MerchantLegalStatus | null>(null)
   const [legalEntityName, setLegalEntityName] = useState("")
   const [tradeName, setTradeName] = useState("")
@@ -108,7 +109,7 @@ export function MerchantLegalSignupWizard({
   const meta = legalStatus ? MERCHANT_LEGAL_STATUS_CATALOG[legalStatus] : null
   const signupFields = legalStatus ? signupFieldsForStatus(legalStatus, role) : []
   const docList = legalStatus ? documentsForSignup(legalStatus, role) : []
-  const stepIndex = STEPS.indexOf(step)
+  const stepIndex = step === "success" ? -1 : STEPS.indexOf(step)
 
   const shellGradient =
     accent === "emerald"
@@ -206,49 +207,70 @@ export function MerchantLegalSignupWizard({
       }
     }
 
-    router.push(afterLoginPath)
+    // A dedicated success state + a hard window.location redirect (not router.push) — the same
+    // fix already proven for express affiliate signup (commit e6692e009): router.push() right
+    // after signIn({redirect:false}) risks navigating before the fresh session cookie is visible
+    // to the destination's own auth() check, silently bouncing back to /login with zero feedback
+    // shown — exactly the "frozen, nothing happened" bug this is fixing.
+    setSuccessDisplayName((defaultSocialHandle ? handle : legalEntityName.trim()) || "")
+    setSuccessEmail(email)
+    setStep("success")
   }
 
   return (
     <div className={cn("min-h-screen bg-gradient-to-br px-4 py-10", shellGradient)}>
       <div className="mx-auto w-full max-w-2xl">
-        <div className="mb-8 text-center">
-          <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-100/90">
-            <ShieldCheck className="size-3.5" aria-hidden />
-            {tLegal("badge")}
-          </p>
-          <h1 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            {role === "SUPPLIER" ? tLegal("titleSupplier") : tLegal("titleAffiliate")}
-          </h1>
-          <p className="mt-2 text-sm text-violet-100/80">{tLegal("subtitle")}</p>
-          {inviteBanner ? (
-            <p className="mx-auto mt-4 max-w-md rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-100">
-              {inviteBanner}
+        {step !== "success" ? (
+          <div className="mb-8 text-center">
+            <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-100/90">
+              <ShieldCheck className="size-3.5" aria-hidden />
+              {tLegal("badge")}
             </p>
-          ) : null}
-          {planBanner ? (
-            <p className="mx-auto mt-4 max-w-md rounded-xl border border-violet-400/30 bg-violet-500/10 px-3 py-2 text-sm text-violet-100">
-              {planBanner}
-            </p>
-          ) : null}
-        </div>
+            <h1 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              {role === "SUPPLIER" ? tLegal("titleSupplier") : tLegal("titleAffiliate")}
+            </h1>
+            <p className="mt-2 text-sm text-violet-100/80">{tLegal("subtitle")}</p>
+            {inviteBanner ? (
+              <p className="mx-auto mt-4 max-w-md rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-100">
+                {inviteBanner}
+              </p>
+            ) : null}
+            {planBanner ? (
+              <p className="mx-auto mt-4 max-w-md rounded-xl border border-violet-400/30 bg-violet-500/10 px-3 py-2 text-sm text-violet-100">
+                {planBanner}
+              </p>
+            ) : null}
+          </div>
+        ) : (
+          <div className="mb-6" aria-hidden />
+        )}
 
-        <div className="mb-6 flex justify-center gap-2">
-          {STEPS.map((s, i) => (
-            <div
-              key={s}
-              className={cn(
-                "h-1.5 flex-1 max-w-[4.5rem] rounded-full transition",
-                i <= stepIndex ? "bg-white/90" : "bg-white/15"
-              )}
-              aria-hidden
-            />
-          ))}
-        </div>
+        {step !== "success" ? (
+          <div className="mb-6 flex justify-center gap-2">
+            {STEPS.map((s, i) => (
+              <div
+                key={s}
+                className={cn(
+                  "h-1.5 flex-1 max-w-[4.5rem] rounded-full transition",
+                  i <= stepIndex ? "bg-white/90" : "bg-white/15"
+                )}
+                aria-hidden
+              />
+            ))}
+          </div>
+        ) : null}
 
         <div className="overflow-hidden rounded-3xl border border-white/15 bg-white/5 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-8">
           <AnimatePresence mode="wait">
-            {step === "status" ? (
+            {step === "success" ? (
+              <SignupSuccessScreen
+                displayName={successDisplayName}
+                email={successEmail}
+                afterLoginPath={afterLoginPath}
+                role={role}
+                accent={accent}
+              />
+            ) : step === "status" ? (
               <motion.div
                 key="status"
                 initial={{ opacity: 0, x: 12 }}

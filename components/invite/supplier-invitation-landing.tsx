@@ -119,7 +119,14 @@ export function SupplierInvitationLanding({ invite }: Props) {
       setError("Compte créé — connectez-vous avec vos identifiants.")
       return
     }
-    router.push("/dashboard/supplier/products/new?fromInvite=1")
+    toast.success("Compte créé — bienvenue sur Affisell !")
+    // Hard redirect (not router.push) — avoids navigating before the fresh session cookie is
+    // visible to the destination page's own auth() check, which would silently bounce back to
+    // login with no feedback shown. Delayed briefly so the toast above is actually visible —
+    // an immediate assign() unloads the page before the browser gets a paint in.
+    window.setTimeout(() => {
+      window.location.assign("/dashboard/supplier/products/new?fromInvite=1")
+    }, 900)
   }
 
   const commissionLabel =

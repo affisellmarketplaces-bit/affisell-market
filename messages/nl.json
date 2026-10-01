@@ -654,7 +654,8 @@
       "signIn": "Aanmelden",
       "acceptTermsError": "Accepteer de algemene voorwaarden en privacybeleid, alstublieft.",
       "siretError": "Een 14-cijferig SIRET is vereist voor bedrijfsrekeningen.",
-      "signupFail": "Kon geen rekening aanmaken"
+      "signupFail": "Kon geen rekening aanmaken",
+      "signupSuccessToast": "Account aangemaakt — welkom bij Affisell!"
     },
     "shopBuyer": {
       "loginTitle": "Mijn account — {store}",
@@ -803,6 +804,18 @@
         "status_REJECTED": "Toepassing afgewezen — neem contact op met ondersteuning",
         "status_NEEDS_MORE_INFO": "Meer documenten gevraagd"
       }
+    },
+    "signupSuccess": {
+      "badge": "Account geactiveerd",
+      "titleNamed": "Welkom, {name}!",
+      "titleFallback": "Account succesvol aangemaakt",
+      "subtitleSupplier": "Je leveranciersruimte is klaar. Publiceer je eerste product en begin met verkopen op het Affisell-netwerk.",
+      "subtitleAffiliate": "Je reseller-winkel is klaar. Verken de catalogus en plaats je eerste product.",
+      "readySupplier": "Leveranciersaccount aangemaakt en beveiligd",
+      "readyAffiliate": "Reseller-winkel aangemaakt en beveiligd",
+      "emailConfirmed": "Ingelogd als {email}",
+      "cta": "Naar mijn dashboard",
+      "redirectHint": "Automatische doorverwijzing over {seconds} s…"
     },
     "portal": {
       "accessDenied": "Toegang geweigerd: dit account past niet bij de gevraagde ruimte.",

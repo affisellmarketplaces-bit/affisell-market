@@ -654,7 +654,8 @@
       "signIn": "Zaloguj się",
       "acceptTermsError": "Proszę zaakceptować warunki i politykę prywatności.",
       "siretError": "Wymagany jest 14-cyfrowy numer SIRET dla firmowych kont.",
-      "signupFail": "Nie udało się zarejestrować"
+      "signupFail": "Nie udało się zarejestrować",
+      "signupSuccessToast": "Konto utworzone — witamy w Affisell!"
     },
     "shopBuyer": {
       "loginTitle": "Moje konto — {store}",
@@ -803,6 +804,18 @@
         "status_REJECTED": "Zgłoszenie odrzucone — skontaktuj się z obsługą",
         "status_NEEDS_MORE_INFO": "Zgłoszenie wymaga dodatkowych dokumentów"
       }
+    },
+    "signupSuccess": {
+      "badge": "Konto aktywowane",
+      "titleNamed": "Witaj, {name}!",
+      "titleFallback": "Konto utworzone pomyślnie",
+      "subtitleSupplier": "Twoja przestrzeń dostawcy jest gotowa. Opublikuj pierwszy produkt i zacznij sprzedawać w sieci Affisell.",
+      "subtitleAffiliate": "Twoja witryna resellera jest gotowa. Przejrzyj katalog i dodaj pierwszy produkt.",
+      "readySupplier": "Konto dostawcy utworzone i zabezpieczone",
+      "readyAffiliate": "Witryna resellera utworzona i zabezpieczona",
+      "emailConfirmed": "Zalogowano jako {email}",
+      "cta": "Przejdź do panelu",
+      "redirectHint": "Automatyczne przekierowanie za {seconds} s…"
     },
     "portal": {
       "accessDenied": "Brak dostępu: nie pasuje to konto do żądanej przestrzeni.",

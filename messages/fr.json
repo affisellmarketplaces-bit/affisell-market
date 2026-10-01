@@ -654,7 +654,8 @@
       "signIn": "Se connecter",
       "acceptTermsError": "Veuillez accepter les conditions et la politique de confidentialité.",
       "siretError": "SIRET à 14 chiffres requis pour un compte professionnel.",
-      "signupFail": "Inscription impossible"
+      "signupFail": "Inscription impossible",
+      "signupSuccessToast": "Compte créé — bienvenue sur Affisell !"
     },
     "shopBuyer": {
       "loginTitle": "Mon compte — {store}",
@@ -803,6 +804,18 @@
         "status_REJECTED": "Dossier refusé — contactez le support",
         "status_NEEDS_MORE_INFO": "Pièces complémentaires demandées"
       }
+    },
+    "signupSuccess": {
+      "badge": "Compte activé",
+      "titleNamed": "Bienvenue, {name} !",
+      "titleFallback": "Compte créé avec succès",
+      "subtitleSupplier": "Votre espace fournisseur est prêt. Publiez votre premier produit et commencez à vendre sur le réseau Affisell.",
+      "subtitleAffiliate": "Votre vitrine revendeur est prête. Explorez le catalogue et listez votre premier produit.",
+      "readySupplier": "Compte fournisseur créé et sécurisé",
+      "readyAffiliate": "Vitrine revendeur créée et sécurisée",
+      "emailConfirmed": "Connecté en tant que {email}",
+      "cta": "Accéder à mon tableau de bord",
+      "redirectHint": "Redirection automatique dans {seconds} s…"
     },
     "portal": {
       "accessDenied": "Connexion refusée : ce compte ne correspond pas à l’espace demandé.",

@@ -654,7 +654,8 @@
       "signIn": "Anmelden",
       "acceptTermsError": "Bitte akzeptiere die Nutzungsbedingungen und Datenschutzrichtlinie.",
       "siretError": "Für Geschäftskonten ist eine 14-stellige SIRET erforderlich.",
-      "signupFail": "Registrierung fehlgeschlagen"
+      "signupFail": "Registrierung fehlgeschlagen",
+      "signupSuccessToast": "Konto erstellt — willkommen bei Affisell!"
     },
     "shopBuyer": {
       "loginTitle": "Mein Konto — {store}",
@@ -803,6 +804,18 @@
         "status_REJECTED": "Antrag abgelehnt — Kontaktieren Sie den Support",
         "status_NEEDS_MORE_INFO": "Weitere Dokumente angefordert"
       }
+    },
+    "signupSuccess": {
+      "badge": "Konto aktiviert",
+      "titleNamed": "Willkommen, {name}!",
+      "titleFallback": "Konto erfolgreich erstellt",
+      "subtitleSupplier": "Ihr Lieferantenbereich ist bereit. Veröffentlichen Sie Ihr erstes Produkt und starten Sie den Verkauf im Affisell-Netzwerk.",
+      "subtitleAffiliate": "Ihre Reseller-Vitrine ist bereit. Entdecken Sie den Katalog und listen Sie Ihr erstes Produkt.",
+      "readySupplier": "Lieferantenkonto erstellt und gesichert",
+      "readyAffiliate": "Reseller-Vitrine erstellt und gesichert",
+      "emailConfirmed": "Angemeldet als {email}",
+      "cta": "Zu meinem Dashboard",
+      "redirectHint": "Automatische Weiterleitung in {seconds} s…"
     },
     "portal": {
       "accessDenied": "Anmeldung abgelehnt: dieses Konto entspricht nicht dem angeforderten Bereich.",
