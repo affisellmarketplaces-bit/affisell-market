@@ -51,7 +51,7 @@ export function AffiliateInvitationStudio({
 
   const [headline, setHeadline] = useState("Rejoignez mon catalogue Affisell")
   const [personalMessage, setPersonalMessage] = useState(
-    "Listez mes produits sur votre vitrine affiliée : commission attractive, logistique gérée côté fournisseur, visibilité immédiate sur le réseau Affisell."
+    "Listez mes produits sur votre vitrine affiliée : commission attractive + votre marge, logistique gérée côté fournisseur, visibilité immédiate sur le réseau Affisell."
   )
   const [commissionPct, setCommissionPct] = useState("15")
   const [categoryHint, setCategoryHint] = useState("")
