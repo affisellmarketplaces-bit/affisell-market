@@ -534,7 +534,7 @@
     "roleAffiliate": "分销商",
     "noAccount": "没有账户？",
     "hasAccount": "已经注册过？",
-    "planBanner": "已选方案：{plan} — {price}/月",
+    "planBanner": "已选方案：{plan} — {price}/{period}",
     "continueGoogle": "继续使用 Google",
     "orPassword": "或使用密码",
     "loading": "正在加载…",

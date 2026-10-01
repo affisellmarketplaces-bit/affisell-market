@@ -534,7 +534,7 @@
     "roleAffiliate": "Reseller",
     "noAccount": "Geen account?",
     "hasAccount": "Reeds geregistreerd?",
-    "planBanner": "Geselecteerd plan: {plan} — {price}/maand",
+    "planBanner": "Geselecteerd plan: {plan} — {price}/{period}",
     "continueGoogle": "Doorgaan met Google",
     "orPassword": "Of gebruik wachtwoord",
     "loading": "Belasting…",

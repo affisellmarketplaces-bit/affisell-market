@@ -534,7 +534,7 @@
     "roleAffiliate": "Ambassadeur",
     "noAccount": "Pas encore de compte ?",
     "hasAccount": "Déjà inscrit ?",
-    "planBanner": "Offre sélectionnée : {plan} — {price}/mois",
+    "planBanner": "Offre sélectionnée : {plan} — {price}/{period}",
     "continueGoogle": "Continuer avec Google",
     "orPassword": "Ou avec mot de passe",
     "loading": "Chargement…",

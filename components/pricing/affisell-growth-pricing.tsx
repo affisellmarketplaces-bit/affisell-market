@@ -190,7 +190,7 @@ export function AffisellGrowthPricing({ kindHint = null }: Props) {
                   size="lg"
                 >
                   <Link
-                    href={tier.href}
+                    href={`${tier.href}&interval=${billing === "annual" ? "annual" : "monthly"}`}
                     onClick={() =>
                       track("pricing_cta_clicked", {
                         plan: tier.id,

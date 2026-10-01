@@ -2,8 +2,9 @@ import type Stripe from "stripe"
 
 import { GROWTH_PRICING_TIERS, type GrowthPricingTierId } from "@/lib/growth-pricing-tiers"
 import { getStripeClient } from "@/lib/stripe"
+import type { GrowthBillingInterval } from "@/lib/stripe-growth-shared"
 
-export type GrowthBillingInterval = "monthly" | "annual"
+export type { GrowthBillingInterval }
 
 type GrowthSpecKey = `${GrowthPricingTierId}_${GrowthBillingInterval}`
 

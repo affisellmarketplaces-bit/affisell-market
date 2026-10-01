@@ -18,12 +18,16 @@ import {
 
 import { LegalSignupConsent } from "@/components/legal/legal-signup-consent"
 import { AffiliateExpressSignupSuccess } from "@/components/auth/affiliate-express-signup-success"
+import type { GrowthPricingTierId } from "@/lib/growth-pricing-tiers"
 import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages"
+import type { GrowthBillingInterval } from "@/lib/stripe-growth-shared"
 import { cn } from "@/lib/utils"
 
 type Props = {
   afterLoginPath: string
   planBanner?: string | null
+  growthPlan?: GrowthPricingTierId | null
+  growthInterval?: GrowthBillingInterval
 }
 
 type Step = "profile" | "account" | "success"
@@ -34,7 +38,12 @@ const TRUST_PILLS = [
   { icon: ShieldCheck, key: "verifyLater" as const },
 ] as const
 
-export function AffiliateExpressSignupWizard({ afterLoginPath, planBanner }: Props) {
+export function AffiliateExpressSignupWizard({
+  afterLoginPath,
+  planBanner,
+  growthPlan,
+  growthInterval = "monthly",
+}: Props) {
   const t = useTranslations("auth")
   const tExpress = useTranslations("auth.affiliateExpress")
 
@@ -104,6 +113,25 @@ export function AffiliateExpressSignupWizard({ afterLoginPath, planBanner }: Pro
         setLoading(false)
         return
       }
+
+      if (growthPlan) {
+        try {
+          const checkoutRes = await fetch("/api/stripe/create-growth-checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ plan: growthPlan, interval: growthInterval, returnPath: afterLoginPath }),
+          })
+          const checkoutData = (await checkoutRes.json().catch(() => ({}))) as { url?: string }
+          if (checkoutRes.ok && checkoutData.url) {
+            window.location.href = checkoutData.url
+            return
+          }
+        } catch {
+          // Account already created and signed in — fall through to the normal success
+          // screen rather than stranding the user because Stripe checkout failed to start.
+        }
+      }
+
       setSuccessDisplayName(resolvedName)
       setStep("success")
       setLoading(false)

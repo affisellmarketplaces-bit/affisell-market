@@ -534,7 +534,7 @@
     "roleAffiliate": "Affiliate",
     "noAccount": "No account?",
     "hasAccount": "Already registered?",
-    "planBanner": "Selected plan: {plan} — {price}/month",
+    "planBanner": "Selected plan: {plan} — {price}/{period}",
     "continueGoogle": "Continue with Google",
     "orPassword": "Or use password",
     "loading": "Loading…",

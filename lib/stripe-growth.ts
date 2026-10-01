@@ -1,23 +1,17 @@
 import type Stripe from "stripe"
 
-import {
-  GROWTH_PRICING_TIERS,
-  isGrowthPricingTierId,
-  type GrowthPricingTierId,
-} from "@/lib/growth-pricing-tiers"
+import { GROWTH_PRICING_TIERS, type GrowthPricingTierId } from "@/lib/growth-pricing-tiers"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
-import type { GrowthBillingInterval } from "@/lib/stripe-growth-ensure"
+import {
+  parseGrowthBillingInterval,
+  parseGrowthCheckoutPlan,
+  sanitizeGrowthReturnPath,
+} from "@/lib/stripe-growth-shared"
+
+export { parseGrowthBillingInterval, parseGrowthCheckoutPlan, sanitizeGrowthReturnPath }
 
 const ACTIVE_SUB_STATUSES = new Set<Stripe.Subscription.Status>(["active", "trialing"])
-
-export function parseGrowthCheckoutPlan(raw: unknown): GrowthPricingTierId | null {
-  return typeof raw === "string" && isGrowthPricingTierId(raw) ? raw : null
-}
-
-export function parseGrowthBillingInterval(raw: unknown): GrowthBillingInterval | null {
-  return raw === "monthly" || raw === "annual" ? raw : null
-}
 
 function subscriptionPriceIds(subscription: Stripe.Subscription): string[] {
   return subscription.items.data
@@ -71,25 +65,6 @@ async function resolveUserIdFromSubscription(subscription: Stripe.Subscription):
 
   const byCustomer = await prisma.user.findFirst({ where: { stripeCustomerId: customerId }, select: { id: true } })
   return byCustomer?.id ?? null
-}
-
-/** Safe return path after a Growth Stripe checkout. */
-export function sanitizeGrowthReturnPath(raw: unknown): string {
-  if (typeof raw !== "string") return "/pricing"
-  const trimmed = raw.trim()
-  if (!trimmed.startsWith("/") || trimmed.startsWith("//") || trimmed.includes("://")) {
-    return "/pricing"
-  }
-  const path = trimmed.split("?")[0]?.split("#")[0] ?? "/pricing"
-  if (
-    path === "/pricing" ||
-    path.startsWith("/pricing/") ||
-    path.startsWith("/dashboard/") ||
-    path.startsWith("/signup/")
-  ) {
-    return path
-  }
-  return "/pricing"
 }
 
 export async function activateGrowthFromCheckoutSession(session: Stripe.Checkout.Session) {

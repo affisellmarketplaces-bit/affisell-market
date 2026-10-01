@@ -22,6 +22,7 @@ import {
 import { MerchantLegalDocumentSlot } from "@/components/auth/merchant-legal-document-slot"
 import { LegalSignupConsent } from "@/components/legal/legal-signup-consent"
 import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages"
+import type { GrowthPricingTierId } from "@/lib/growth-pricing-tiers"
 import {
   MERCHANT_LEGAL_STATUSES,
   MERCHANT_LEGAL_STATUS_CATALOG,
@@ -31,6 +32,7 @@ import {
   type MerchantLegalStatus,
 } from "@/lib/merchant-legal/merchant-legal-status-shared"
 import { createSignupDraftId } from "@/lib/signup-draft-id"
+import type { GrowthBillingInterval } from "@/lib/stripe-growth-shared"
 import { cn } from "@/lib/utils"
 
 const STATUS_ICONS = {
@@ -49,6 +51,8 @@ type Props = {
   inviteToken?: string | null
   inviteBanner?: string | null
   planBanner?: string | null
+  growthPlan?: GrowthPricingTierId | null
+  growthInterval?: GrowthBillingInterval
   defaultSocialHandle?: boolean
 }
 
@@ -73,6 +77,8 @@ export function MerchantLegalSignupWizard({
   inviteToken,
   inviteBanner,
   planBanner,
+  growthPlan,
+  growthInterval = "monthly",
   defaultSocialHandle = false,
 }: Props) {
   const t = useTranslations("auth")
@@ -181,6 +187,25 @@ export function MerchantLegalSignupWizard({
       setError(credentialsSignInErrorMessage(login.code, t) ?? t("signupLoginFail"))
       return
     }
+
+    if (growthPlan) {
+      try {
+        const checkoutRes = await fetch("/api/stripe/create-growth-checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plan: growthPlan, interval: growthInterval, returnPath: afterLoginPath }),
+        })
+        const checkoutData = (await checkoutRes.json().catch(() => ({}))) as { url?: string }
+        if (checkoutRes.ok && checkoutData.url) {
+          window.location.href = checkoutData.url
+          return
+        }
+      } catch {
+        // Account already created and signed in — fall through to the normal destination
+        // rather than stranding the user because Stripe checkout failed to start.
+      }
+    }
+
     router.push(afterLoginPath)
   }
 

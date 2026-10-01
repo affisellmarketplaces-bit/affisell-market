@@ -10,6 +10,7 @@ import { EU_MEMBER_COUNT } from "@/lib/eu-market-countries"
 type SearchParams = Promise<{
   role?: string | string[]
   plan?: string | string[]
+  interval?: string | string[]
 }>
 
 function first(v: string | string[] | undefined): string | null {
@@ -26,9 +27,13 @@ export default async function SignupChooser({
   const sp = searchParams ? await searchParams : {}
   const role = first(sp.role)?.toLowerCase() ?? null
   const plan = first(sp.plan)
-  const planQs = plan ? `?plan=${encodeURIComponent(plan)}` : ""
+  const interval = first(sp.interval)
+  const planQsParams = new URLSearchParams()
+  if (plan) planQsParams.set("plan", plan)
+  if (interval) planQsParams.set("interval", interval)
+  const planQs = planQsParams.size > 0 ? `?${planQsParams.toString()}` : ""
 
-  // Pricing CTAs: /signup?role=reseller|supplier&plan=…
+  // Pricing CTAs: /signup?role=reseller|supplier&plan=…&interval=monthly|annual
   if (role === "reseller" || role === "affiliate") {
     redirect(`/signup/affiliate${planQs}`)
   }

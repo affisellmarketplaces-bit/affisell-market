@@ -7,11 +7,13 @@ import { MerchantLegalSignupWizard } from "@/components/auth/merchant-legal-sign
 import { DROPFORGE_HREF } from "@/lib/affiliate-onboarding-shared"
 import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
 import { GROWTH_PRICING_TIERS, isGrowthPricingTierId } from "@/lib/growth-pricing-tiers"
+import { parseGrowthBillingInterval } from "@/lib/stripe-growth-shared"
 import { normalizeSupplierInviteToken } from "@/lib/supplier-invitation-token"
 
 export function SupplierSignupForm() {
   const t = useTranslations("auth.signupSupplier")
   const tAuth = useTranslations("auth")
+  const tPricing = useTranslations("pricingGrowth")
   const searchParams = useSearchParams()
   const inviteToken =
     normalizeSupplierInviteToken(searchParams.get("invite") ?? "") ??
@@ -20,6 +22,9 @@ export function SupplierSignupForm() {
   const planParam = searchParams.get("plan")
   const tier = isGrowthPricingTierId(planParam) ? GROWTH_PRICING_TIERS[planParam] : null
   const planTier = tier?.role === "SUPPLIER" ? tier : null
+  const interval = parseGrowthBillingInterval(searchParams.get("interval")) ?? "monthly"
+  const price = interval === "annual" ? planTier?.annual : planTier?.monthly
+  const period = interval === "annual" ? tPricing("perYear") : tPricing("perMonth")
 
   const safeNext = sanitizeInternalCallbackUrl(searchParams.get("next"))
   const afterLogin =
@@ -34,7 +39,9 @@ export function SupplierSignupForm() {
       afterLoginPath={afterLogin}
       inviteToken={inviteToken}
       inviteBanner={inviteToken ? t("inviteBanner") : null}
-      planBanner={planTier ? tAuth("planBanner", { plan: planTier.name, price: `${planTier.monthly}€` }) : null}
+      planBanner={planTier ? tAuth("planBanner", { plan: planTier.name, price: `${price}€`, period }) : null}
+      growthPlan={planTier?.id ?? null}
+      growthInterval={interval}
     />
   )
 }

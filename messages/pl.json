@@ -534,7 +534,7 @@
     "roleAffiliate": "Reseller",
     "noAccount": "Nie masz konta?",
     "hasAccount": "Jesteś już zarejestrowany?",
-    "planBanner": "Wybrany plan: {plan} — {price}/miesiąc",
+    "planBanner": "Wybrany plan: {plan} — {price}/{period}",
     "continueGoogle": "Kontynuuj z Google",
     "orPassword": "Albo użyj hasła",
     "loading": "Ładowanie…",
