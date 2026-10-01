@@ -1,5 +1,9 @@
 import { prisma } from "@/lib/prisma"
-import { SPONSOR_STATUS } from "@/lib/sponsor/sponsor-constants"
+import {
+  SPONSOR_PLACEMENT_BY_CONTEXT,
+  SPONSOR_STATUS,
+  type SponsorPlacementContext,
+} from "@/lib/sponsor/sponsor-constants"
 
 export type SponsorBoostMap = Map<string, { boostScore: number; placement: string }>
 
@@ -64,14 +68,32 @@ export async function loadActiveSponsorBoostByListingId(): Promise<SponsorBoostM
   return map
 }
 
+/** Boost score for a listing, zeroed out unless its campaign's placement matches where we're ranking. */
+function contextualBoostScore(
+  boost: { boostScore: number; placement: string } | undefined,
+  context: SponsorPlacementContext
+): number {
+  if (!boost || boost.placement !== SPONSOR_PLACEMENT_BY_CONTEXT[context]) return 0
+  return boost.boostScore
+}
+
 export function sortListingsBySponsorBoost<T extends { id: string }>(
   rows: T[],
-  boostMap: SponsorBoostMap
+  boostMap: SponsorBoostMap,
+  context: SponsorPlacementContext
 ): T[] {
   return [...rows].sort((a, b) => {
-    const boostA = boostMap.get(a.id)?.boostScore ?? 0
-    const boostB = boostMap.get(b.id)?.boostScore ?? 0
+    const boostA = contextualBoostScore(boostMap.get(a.id), context)
+    const boostB = contextualBoostScore(boostMap.get(b.id), context)
     if (boostB !== boostA) return boostB - boostA
     return 0
   })
+}
+
+/** Whether a listing's active campaign is actually boosting it in this context (for UI badges). */
+export function isSponsorActiveInContext(
+  boost: { boostScore: number; placement: string } | undefined,
+  context: SponsorPlacementContext
+): boolean {
+  return Boolean(boost && boost.placement === SPONSOR_PLACEMENT_BY_CONTEXT[context])
 }

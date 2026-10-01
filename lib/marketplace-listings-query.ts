@@ -30,7 +30,9 @@ import { marketplaceProductFilterFromSearchParams } from "@/lib/marketplace-list
 import { DEFAULT_LOCALE, type AppLocale } from "@/lib/i18n-locale"
 import { resolveBinaryCopyLocale } from "@/lib/i18n-ui-locale"
 import { offerModeBadge, parseProductOfferMode } from "@/lib/product-offer-mode"
+import type { SponsorPlacementContext } from "@/lib/sponsor/sponsor-constants"
 import {
+  isSponsorActiveInContext,
   loadActiveSponsorBoostByListingId,
   sortListingsBySponsorBoost,
 } from "@/lib/sponsor/sponsor-marketplace-rank"
@@ -350,19 +352,24 @@ export async function fetchMarketplaceListings(
       ? await fetchRows(searchHits.map((h) => h.listingId))
       : await fetchRows()
 
+  // Where we're ranking right now — a campaign only boosts (and only badges as sponsored) when
+  // its placement matches this context, so "Search boost" doesn't silently also win Home, etc.
+  const placementContext: SponsorPlacementContext =
+    orderMode === "search" ? "SEARCH" : scopeCategoryId ? "CATEGORY" : "HOME"
+
   const sponsorBoostMap = await loadActiveSponsorBoostByListingId()
-  const rankedRows = sortListingsBySponsorBoost(rows, sponsorBoostMap)
+  const rankedRows = sortListingsBySponsorBoost(rows, sponsorBoostMap, placementContext)
   const salesStats = await loadListingSalesStats(rankedRows.map((row) => row.id))
 
   if (lite) {
     return (rankedRows as MarketplaceListingRowLite[]).map((row) => {
       const boost = sponsorBoostMap.get(row.id)
       const serialized = serializeMarketplaceListing(row, { lite: true, sales: salesStats.get(row.id) })
-      if (!boost) return serialized
+      if (!isSponsorActiveInContext(boost, placementContext)) return serialized
       return {
         ...serialized,
         isSponsored: true,
-        sponsorPlacement: boost.placement,
+        sponsorPlacement: boost!.placement,
       }
     })
   }
@@ -394,11 +401,11 @@ export async function fetchMarketplaceListings(
     })
     const serialized = serializeMarketplaceListing(row, { warrantyMonths, sales: salesStats.get(row.id) })
     const boost = sponsorBoostMap.get(row.id)
-    if (!boost) return serialized
+    if (!isSponsorActiveInContext(boost, placementContext)) return serialized
     return {
       ...serialized,
       isSponsored: true,
-      sponsorPlacement: boost.placement,
+      sponsorPlacement: boost!.placement,
     }
   })
 }

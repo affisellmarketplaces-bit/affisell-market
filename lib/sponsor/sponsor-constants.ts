@@ -26,6 +26,21 @@ export const SPONSOR_PLACEMENT_FEE_MULTIPLIER: Record<SponsorPlacement, number> 
   SEARCH_BOOST: 1,
 }
 
+/**
+ * Where a listing is actually being ranked right now. A campaign's boost only applies when the
+ * current context matches the placement the payer bought — otherwise "Search boost" (cheapest)
+ * would silently buy the same ranking lift as "Home spotlight" (priciest) everywhere, and vice
+ * versa. See lib/sponsor/sponsor-marketplace-rank.ts.
+ */
+export const SPONSOR_PLACEMENT_CONTEXTS = ["HOME", "CATEGORY", "SEARCH"] as const
+export type SponsorPlacementContext = (typeof SPONSOR_PLACEMENT_CONTEXTS)[number]
+
+export const SPONSOR_PLACEMENT_BY_CONTEXT: Record<SponsorPlacementContext, SponsorPlacement> = {
+  HOME: "HOME_SPOTLIGHT",
+  CATEGORY: "CATEGORY_TOP",
+  SEARCH: "SEARCH_BOOST",
+}
+
 export const SPONSOR_STATUS = {
   PENDING_PAYMENT: "PENDING_PAYMENT",
   ACTIVE: "ACTIVE",
