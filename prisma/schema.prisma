@@ -28,6 +28,31 @@ model User {
    */
   radarPlan                        String    @default("free")
   /**
+   * Affisell Growth commercial tier: none | lanceur | dominator | empire.
+   * Plain string (not enum), mirrors radarPlan — new tiers need zero migration.
+   * Set by Stripe Growth checkout / webhook (idempotent). Dominator/Empire also
+   * floor the resolved Radar plan at pro/global — see lib/radar/plans.ts.
+   */
+  growthPlan                       String    @default("none")
+  /**
+   * Last purchased billing interval for growthPlan: "monthly" | "annual". Display only.
+   */
+  growthPlanInterval               String?
+  growthPlanActivatedAt            DateTime?
+  /**
+   * Dedicated subscription id for the Growth product — intentionally NOT the
+   * shared stripeSubscriptionId field below (which Video Pro and Radar already
+   * share/overwrite each other on), so a user can hold a Growth subscription
+   * independently of Pro/Radar.
+   */
+  growthStripeSubscriptionId       String?   @unique
+  /**
+   * One-off backfilled baseline (supplier's live product count at Growth catalog-cap
+   * launch). Enforcement never blocks below this number — grandfathers existing
+   * inventory. Null = cap launched after this user existed with 0 products, or n/a.
+   */
+  catalogCapBaselineCount          Int?
+  /**
    * Affisell+ supplier trust badge eligibility (role SUPPLIER only).
    */
   isVerifiedSupplier               Boolean   @default(false)
@@ -4319,6 +4344,12 @@ model ImportJob {
   destination   String // affisell_catalog, supplier_draft
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  /**
+   * Item-level count actually imported by this job (already computed in-memory by
+   * createRadarImportJob; persisted here for the Growth Lanceur weekly import quota).
+   * Null on rows created before this column existed.
+   */
+  importedCount Int?
 
   @@index([userId, status])
   @@index([userId, createdAt])

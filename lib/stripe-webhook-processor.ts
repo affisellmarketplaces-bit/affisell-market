@@ -141,12 +141,24 @@ async function processCheckoutSessionCompleted(
       return { orderId: session.metadata?.orderId ?? null, status: "success", error: null }
     }
 
+    const { activateGrowthFromCheckoutSession } = await import("@/lib/stripe-growth")
+    const growthResult = await activateGrowthFromCheckoutSession(session)
+    if (growthResult.activated) {
+      console.log("[growth-paywall]", {
+        sessionId: session.id,
+        activated: true,
+        plan: growthResult.plan,
+      })
+      return { orderId: session.metadata?.orderId ?? null, status: "success", error: null }
+    }
+
     const proResult = await activateProFromCheckoutSession(session)
     console.log("[video-paywall]", {
       sessionId: session.id,
       activated: proResult.activated,
       reason: proResult.activated ? null : proResult.reason,
       radarSkip: radarResult.reason,
+      growthSkip: growthResult.reason,
     })
     return { orderId: session.metadata?.orderId ?? null, status: "success", error: null }
   }
@@ -234,6 +246,8 @@ async function dispatchStripeEvent(
       const sub = event.data.object as Stripe.Subscription
       const { syncRadarFromSubscription } = await import("@/lib/stripe-radar")
       await syncRadarFromSubscription(sub)
+      const { syncGrowthFromSubscription } = await import("@/lib/stripe-growth")
+      await syncGrowthFromSubscription(sub)
       await syncProFromSubscriptionUpdate(sub)
       return { orderId: null, status: "success", error: null }
     }
@@ -241,6 +255,8 @@ async function dispatchStripeEvent(
       const sub = event.data.object as Stripe.Subscription
       const { deactivateRadarFromSubscription } = await import("@/lib/stripe-radar")
       await deactivateRadarFromSubscription(sub)
+      const { deactivateGrowthFromSubscription } = await import("@/lib/stripe-growth")
+      await deactivateGrowthFromSubscription(sub)
       await deactivateProFromSubscription(sub)
       return { orderId: null, status: "success", error: null }
     }
