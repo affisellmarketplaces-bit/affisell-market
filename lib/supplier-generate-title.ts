@@ -105,6 +105,10 @@ export async function generateSupplierProductTitle(
       model: useVision ? GROQ_VISION_MODEL : GROQ_TEXT_MODEL,
       vision: useVision,
       temperature: 0.55,
+      // Structured copywriting, not deep reasoning: "medium" (the gpt-oss default) took ~16 s here,
+      // past Vercel's 10 s /api cap. Bounded output + low effort keeps it in single-digit seconds.
+      max_tokens: 1200,
+      reasoning_effort: "low",
       response_format: { type: "json_object" },
       messages: [
         {

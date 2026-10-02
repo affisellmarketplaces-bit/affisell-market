@@ -116,7 +116,10 @@ export function SupplierTitleOptimizer({
           productImageDataUrls: productGalleryImages.filter(isDataImageUrl).slice(0, 2),
         }),
       })
-      const data = (await res.json()) as {
+      // A platform-level failure (timeout, crash) comes back as an HTML error page, not JSON —
+      // parse defensively so the supplier never sees "Unexpected token '<'".
+      const rawBody = await res.text()
+      let data: {
         error?: string
         title?: string
         titleVariants?: string[]
@@ -124,7 +127,14 @@ export function SupplierTitleOptimizer({
         bulletPoints?: string[]
         seoKeywords?: string[]
         insight?: string
+      } = {}
+      let jsonOk = true
+      try {
+        data = rawBody ? JSON.parse(rawBody) : {}
+      } catch {
+        jsonOk = false
       }
+      if (!jsonOk) throw new Error(t("aiUnavailableError"))
       if (!res.ok) {
         const raw = typeof data.error === "string" ? data.error : t("generationFailedError")
         const safe =

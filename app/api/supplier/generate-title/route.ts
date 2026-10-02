@@ -7,6 +7,7 @@ import { generateSupplierProductTitle } from "@/lib/supplier-generate-title"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
+export const maxDuration = 30
 
 function sanitizeAiError(raw: string): string {
   const t = raw.trim()
