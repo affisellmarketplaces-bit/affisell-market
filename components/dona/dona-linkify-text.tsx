@@ -6,112 +6,92 @@ import type { ReactNode } from "react"
 import type { DonaProductHit } from "@/lib/dona/dona-product-types"
 import { formatStoreCurrency } from "@/lib/market-config"
 
-const INTERNAL_PATH_RE =
-  /^(\/(?:marketplace|product|discover|bestsellers|shops|cart|checkout|signup|login)[^\s]*)/i
-const MARKDOWN_LINK_RE = /\[([^\]]+)\]\(([^)]+)\)/g
-const BARE_URL_RE = /(https?:\/\/[^\s]+)/g
+// Only characters that are valid in a URL path/query. Anything else (markdown `*`, quotes, `·`,
+// `→`, emoji, `)`) ends the link instead of being swallowed into the href — a polluted href is
+// what turned Dona's affiliate signup link into a broken request.
+const URL_CHAR = String.raw`(?:[A-Za-z0-9\-._~/?=&#+@:]|%[0-9A-Fa-f]{2})`
+const LINK_CLASS = "font-medium text-violet-300 underline underline-offset-2 hover:text-violet-200"
 
-type TextSegment = { kind: "text"; value: string }
-type LinkSegment = { kind: "link"; href: string; label: string }
+// Alternation order matters: markdown link, then absolute URL, then a bare internal path (which
+// may sit anywhere in the sentence, not only at the start of the line).
+const TOKEN_RE = new RegExp(
+  String.raw`\[([^\]]+)\]\(([^)\s]+)\)` +
+    String.raw`|(https?:\/\/${URL_CHAR}+)` +
+    String.raw`|(?<![\w/:.])(\/(?:marketplace|product|discover|bestsellers|shops|cart|checkout|signup|login|radar|dashboard)${URL_CHAR}*)`,
+  "gi"
+)
 
-function splitInternalPaths(text: string): Array<TextSegment | LinkSegment> {
-  const segments: Array<TextSegment | LinkSegment> = []
-  let cursor = 0
+const TRAILING_PUNCT_RE = /[.,;:!?]+$/
 
-  const pushText = (end: number) => {
-    if (end > cursor) segments.push({ kind: "text", value: text.slice(cursor, end) })
-  }
-
-  for (const match of text.matchAll(new RegExp(INTERNAL_PATH_RE.source, "gi"))) {
-    const idx = match.index ?? 0
-    pushText(idx)
-    const href = match[1]?.replace(/[.,;:!?)]+$/, "") ?? ""
-    if (href) segments.push({ kind: "link", href, label: href })
-    cursor = idx + match[0].length
-  }
-
-  if (cursor < text.length) segments.push({ kind: "text", value: text.slice(cursor) })
-  if (segments.length === 0) segments.push({ kind: "text", value: text })
-  return segments
+/** LLM replies wrap paths in **bold** / `code`; those markers are noise for a plain-text bubble. */
+function stripInlineMarkers(line: string): string {
+  return line.replace(/\*\*|__|`/g, "")
 }
 
-function renderPlainWithLinks(text: string, keyPrefix: string): ReactNode[] {
+function renderPlainWithLinks(rawText: string, keyPrefix: string): ReactNode[] {
+  const text = stripInlineMarkers(rawText)
   const out: ReactNode[] = []
   let key = 0
+  let cursor = 0
 
-  for (const segment of splitInternalPaths(text)) {
-    if (segment.kind === "link") {
-      out.push(
-        <Link
-          key={`${keyPrefix}-${key++}`}
-          href={segment.href}
-          className="font-medium text-violet-300 underline underline-offset-2 hover:text-violet-200"
-        >
-          {segment.label}
-        </Link>
-      )
+  for (const match of text.matchAll(TOKEN_RE)) {
+    const idx = match.index ?? 0
+    if (idx > cursor) out.push(text.slice(cursor, idx))
+    cursor = idx + match[0].length
+
+    const [whole, mdLabel, mdHref, bareUrl, internalPath] = match
+
+    if (mdLabel != null && mdHref != null) {
+      if (mdHref.startsWith("/")) {
+        out.push(
+          <Link key={`${keyPrefix}-${key++}`} href={mdHref} className={LINK_CLASS}>
+            {mdLabel}
+          </Link>
+        )
+      } else if (/^https?:\/\//i.test(mdHref)) {
+        out.push(
+          <a
+            key={`${keyPrefix}-${key++}`}
+            href={mdHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={LINK_CLASS}
+          >
+            {mdLabel}
+          </a>
+        )
+      } else {
+        out.push(whole)
+      }
       continue
     }
 
-    const chunk = segment.value
-    let lastIndex = 0
-    const mdRe = new RegExp(MARKDOWN_LINK_RE.source, "g")
-    for (const match of chunk.matchAll(mdRe)) {
-      const idx = match.index ?? 0
-      if (idx > lastIndex) out.push(chunk.slice(lastIndex, idx))
-      const label = match[1] ?? ""
-      const href = match[2] ?? ""
-      if (href.startsWith("/") || href.startsWith("http")) {
-        out.push(
-          href.startsWith("/") ? (
-            <Link
-              key={`${keyPrefix}-${key++}`}
-              href={href}
-              className="font-medium text-violet-300 underline underline-offset-2 hover:text-violet-200"
-            >
-              {label}
-            </Link>
-          ) : (
-            <a
-              key={`${keyPrefix}-${key++}`}
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-violet-300 underline underline-offset-2 hover:text-violet-200"
-            >
-              {label}
-            </a>
-          )
-        )
-      } else {
-        out.push(match[0])
-      }
-      lastIndex = idx + match[0].length
-    }
-
-    const tail = chunk.slice(lastIndex)
-    let urlCursor = 0
-    const urlRe = new RegExp(BARE_URL_RE.source, "g")
-    for (const match of tail.matchAll(urlRe)) {
-      const idx = match.index ?? 0
-      if (idx > urlCursor) out.push(tail.slice(urlCursor, idx))
-      const href = match[1] ?? ""
+    const raw = bareUrl ?? internalPath ?? ""
+    const trail = raw.match(TRAILING_PUNCT_RE)?.[0] ?? ""
+    const href = trail ? raw.slice(0, -trail.length) : raw
+    if (bareUrl) {
       out.push(
         <a
           key={`${keyPrefix}-${key++}`}
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-medium text-violet-300 underline underline-offset-2 hover:text-violet-200"
+          className={LINK_CLASS}
         >
           {href}
         </a>
       )
-      urlCursor = idx + match[0].length
+    } else {
+      out.push(
+        <Link key={`${keyPrefix}-${key++}`} href={href} className={LINK_CLASS}>
+          {href}
+        </Link>
+      )
     }
-    if (urlCursor < tail.length) out.push(tail)
+    if (trail) out.push(trail)
   }
 
+  if (cursor < text.length) out.push(text.slice(cursor))
   return out
 }
 
