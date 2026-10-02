@@ -25,8 +25,6 @@ const BROAD_DEPARTMENT_CHOICES = [
   "Video Games",
 ]
 
-const FALLBACK = ["Electronics", "Computers", "Office Products"] as const
-
 export async function POST(req: Request) {
   const gate = await guardSupplierAiRoute(req, "categorize-product")
   if (!gate.ok) return gate.response
@@ -40,7 +38,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ categories: [] })
   }
 
-  const system = `You are a marketplace taxonomy assistant. Given a product title and optional image, return EXACTLY 3 categories from this list: ${BROAD_DEPARTMENT_CHOICES.join(", ")}. Return only JSON: {"categories": ["cat1", "cat2", "cat3"]}`
+  const system = `You are a marketplace taxonomy assistant. Given a product title and optional image, return up to 3 categories from this list, only those that really fit (fewer is fine): ${BROAD_DEPARTMENT_CHOICES.join(", ")}. Return only JSON: {"categories": ["cat1", "cat2", "cat3"]}`
 
   const userContent = imageUrl
     ? [
@@ -71,16 +69,13 @@ export async function POST(req: Request) {
     }
 
     const list = Array.isArray(result.categories) ? result.categories : []
-    const valid = list.filter((c): c is string => typeof c === "string" && BROAD_DEPARTMENT_CHOICES.includes(c))
-    const out = valid.slice(0, 3)
-    for (const c of FALLBACK) {
-      if (out.length >= 3) break
-      if (!out.includes(c)) out.push(c)
-    }
+    // Only departments the model actually chose. Padding with fixed ones ("Electronics, Computers…") presented
+    // unrelated categories as suggestions for any product whenever the model answered partially or failed.
+    const valid = [...new Set(list.filter((c): c is string => typeof c === "string" && BROAD_DEPARTMENT_CHOICES.includes(c)))]
 
-    return NextResponse.json({ categories: out.slice(0, 3) })
+    return NextResponse.json({ categories: valid.slice(0, 3) })
   } catch (e) {
     console.error(e)
-    return NextResponse.json({ categories: [...FALLBACK] })
+    return NextResponse.json({ categories: [] })
   }
 }

@@ -2,23 +2,13 @@ import type { PrismaClient } from "@prisma/client"
 
 import { classifyAffisellProduct } from "@/lib/ai/classify-product"
 import { CATEGORIES_AFFISELL } from "@/lib/ai/categories"
-import {
-  buildCategoryBrowse,
-  fetchAllCategoriesForBrowse,
-  leafPathsForAiCatalog,
-  scoreTitleAgainstBreadcrumb,
-  suggestLeafCategoriesFromProductText,
-  type LeafPath,
-} from "@/lib/category-browse"
+import { buildCategoryBrowse, fetchAllCategoriesForBrowse, type LeafPath } from "@/lib/category-browse"
 import { prisma } from "@/lib/prisma"
 
 /** Auto-apply when AI confidence is at or above this (marketplace browse). */
 const AUTO_APPLY_AI_CONFIDENCE = 0.72
 /** Apply + queue ops review between these bounds. */
 const REVIEW_QUEUE_MIN_CONFIDENCE = 0.52
-/** Title/breadcrumb heuristic score to skip Groq (fast path). */
-const HEURISTIC_APPLY_SCORE = 9
-
 type BrowseCtx = {
   leafPaths: LeafPath[]
   allowedBreadcrumbs: string[]
@@ -47,32 +37,11 @@ export type AutoCategorizeResult =
       applied: true
       leafId: string
       breadcrumb: string
-      source: "heuristic" | "ai"
+      source: "ai"
       needsReview?: boolean
     }
   | { ok: true; applied: false; reason: "low_confidence" | "skipped" }
   | { ok: false; error: string }
-
-function heuristicPick(
-  title: string,
-  description: string,
-  leafPaths: LeafPath[]
-): { leafId: string; breadcrumb: string; score: number } | null {
-  const text = `${title} ${description}`.trim()
-  if (!text || leafPaths.length === 0) return null
-
-  let best: LeafPath | null = null
-  let bestScore = 0
-  for (const lp of leafPaths) {
-    const s = scoreTitleAgainstBreadcrumb(text, lp.breadcrumb)
-    if (s > bestScore) {
-      bestScore = s
-      best = lp
-    }
-  }
-  if (!best || bestScore < HEURISTIC_APPLY_SCORE) return null
-  return { leafId: best.leafId, breadcrumb: best.breadcrumb, score: bestScore }
-}
 
 async function applyCategory(
   productId: string,
@@ -102,8 +71,8 @@ async function applyCategory(
 }
 
 /**
- * Classify a live marketplace product into the Affisell category tree (leaf `categoryId`).
- * Uses a fast title heuristic, then Groq when needed.
+ * Classify a live marketplace product into the Affisell category tree (leaf `categoryId`)
+ * with the semantic engine; never from keywords alone.
  */
 export async function autoCategorizeProduct(
   productId: string,
@@ -143,33 +112,13 @@ export async function autoCategorizeProduct(
 
   const { leafPaths, allowedBreadcrumbs } = await getBrowseContext(client)
 
-  const heuristic = heuristicPick(title, description, leafPaths)
-  if (heuristic) {
-    await applyCategory(
-      productId,
-      heuristic.leafId,
-      heuristic.breadcrumb,
-      Math.min(0.95, 0.55 + heuristic.score / 40),
-      `Heuristic title match (score ${heuristic.score})`,
-      false
-    )
-    return {
-      ok: true,
-      applied: true,
-      leafId: heuristic.leafId,
-      breadcrumb: heuristic.breadcrumb,
-      source: "heuristic",
-    }
-  }
-
-  const catalogLeaves = leafPathsForAiCatalog(leafPaths, title, description)
-  const aiLeaves = catalogLeaves.length > 0 ? catalogLeaves : leafPaths
-  const aiBreadcrumbs =
-    aiLeaves.length > 0 ? aiLeaves.map((lp) => lp.breadcrumb) : allowedBreadcrumbs
-
+  // Semantic engine on the FULL taxonomy (Claude, then Groq running the same identify → choose pipeline).
+  // A title-keyword match is never enough to write a category onto a product: it cannot tell "Action Figure" from
+  // "Articles de collection" and used to put such products in the wrong aisle silently. When no engine can answer
+  // (or none is sure), the product stays uncategorised so the supplier picks — better than a wrong shelf.
   const { suggestions, error } = await classifyAffisellProduct(
     { title, description, imageUrl },
-    { allowedBreadcrumbs: aiBreadcrumbs, leafPaths: aiLeaves.length > 0 ? aiLeaves : leafPaths }
+    { allowedBreadcrumbs, leafPaths }
   )
 
   if (error && suggestions.length === 0) {
@@ -178,24 +127,6 @@ export async function autoCategorizeProduct(
 
   const top = suggestions[0]
   if (!top?.leafId) {
-    const fallback = suggestLeafCategoriesFromProductText(title, description, leafPaths, 1)[0]
-    if (fallback) {
-      await applyCategory(
-        productId,
-        fallback.leafId,
-        fallback.breadcrumb,
-        0.45,
-        "Fallback keyword match (no AI match)",
-        true
-      )
-      return {
-        ok: true,
-        applied: true,
-        leafId: fallback.leafId,
-        breadcrumb: fallback.breadcrumb,
-        source: "heuristic",
-      }
-    }
     return { ok: true, applied: false, reason: "low_confidence" }
   }
 

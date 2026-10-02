@@ -41,6 +41,18 @@
     },
     "app/api/supplier/generate-title/route.ts": {
       "maxDuration": 30
+    },
+    "app/api/supplier/suggest-listing/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/supplier/suggest-categories-ai/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/supplier/guided-suggest/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/products/classify-category/route.ts": {
+      "maxDuration": 60
     }
   },
   "crons": [

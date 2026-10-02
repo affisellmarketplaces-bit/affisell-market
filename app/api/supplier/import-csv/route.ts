@@ -31,8 +31,8 @@ export const maxDuration = 60
 /**
  * Resolves a free-text category name to a leaf category id, preferring precision over recall:
  * exact (case-insensitive) leaf match first, then the shortest fuzzy leaf match (closest to the
- * literal name rather than an arbitrary DB-order pick), falling back to any category as a last
- * resort so an odd label still lands somewhere instead of failing outright.
+ * literal name rather than an arbitrary DB-order pick). No match means null — the row is reported
+ * as `category_not_found` for the supplier to fix, never filed under an arbitrary category.
  */
 async function resolveCategoryIdByName(name: string): Promise<string | null> {
   const trimmed = name.trim()
@@ -54,11 +54,7 @@ async function resolveCategoryIdByName(name: string): Promise<string | null> {
     return fuzzyLeaves[0]!.id
   }
 
-  const anyMatch = await prisma.category.findFirst({
-    where: { name: { contains: trimmed, mode: "insensitive" } },
-    select: { id: true },
-  })
-  return anyMatch?.id ?? null
+  return null
 }
 
 async function requireSupplier() {

@@ -23,7 +23,7 @@ export const DONA_GROQ_MODEL_DEFAULT = "openai/gpt-oss-20b" as const
 const GROQ_MODEL_CHAIN = [
   DONA_GROQ_MODEL_DEFAULT,
   "openai/gpt-oss-120b",
-  "qwen/qwen3.6-27b",
+  "qwen/qwen3.8-27b",
   "llama-3.1-8b-instant",
   "llama-3.3-70b-versatile",
 ] as const

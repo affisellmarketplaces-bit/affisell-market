@@ -12,13 +12,17 @@ import { hasOpenAiFallback, openaiChatText } from "@/lib/ai/openai-chat-fallback
 export const GROQ_TEXT_MODEL =
   process.env.GROQ_TEXT_MODEL?.trim() || "openai/gpt-oss-20b"
 
-/** Multimodal vision — Llama 4 Scout shut down 2026-07-17; use Qwen 3.6 vision. */
-export const GROQ_VISION_MODEL_DEFAULT = "qwen/qwen3.6-27b"
+/**
+ * Multimodal vision — Llama 4 Scout shut down 2026-07-17. Qwen 3.6 is no longer served (404 "model does not
+ * exist"); Qwen 3.8 is the available vision model on the account (verified against GET /models + a real image call).
+ */
+export const GROQ_VISION_MODEL_DEFAULT = "qwen/qwen3.8-27b"
 
 const DEPRECATED_GROQ_MODELS: Record<string, string> = {
   "meta-llama/llama-4-scout-17b-16e-instruct": GROQ_VISION_MODEL_DEFAULT,
   "meta-llama/llama-4-maverick-17b-128e-instruct": GROQ_VISION_MODEL_DEFAULT,
   "qwen/qwen3-32b": GROQ_VISION_MODEL_DEFAULT,
+  "qwen/qwen3.6-27b": GROQ_VISION_MODEL_DEFAULT,
   "llama-3.1-8b-instant": "openai/gpt-oss-20b",
   "llama-3.3-70b-versatile": "openai/gpt-oss-120b",
 }
@@ -62,6 +66,11 @@ export type GroqChatOptions = {
   reasoning_effort?: "low" | "medium" | "high"
   /** When true, defaults to {@link GROQ_VISION_MODEL}. */
   vision?: boolean
+  /**
+   * Single, direct Groq attempt: no Gemini router, no SDK retry/backoff, no OpenAI fallback, raw error rethrown.
+   * For callers that manage their own failover and cannot afford a 429 turning into a 30 s hang.
+   */
+  direct?: boolean
 }
 
 function prepareMessages(
@@ -91,17 +100,20 @@ async function groqChatTextDirect(
   )
   const messages = prepareMessages({ ...options, model, vision })
   const reasoning = isGroqReasoningModel(model)
-  const completion = await groq.chat.completions.create({
-    model,
-    messages,
-    temperature: options.temperature ?? 0.2,
-    max_tokens:
-      reasoning && options.max_tokens != null
-        ? options.max_tokens + GROQ_REASONING_HEADROOM_TOKENS
-        : options.max_tokens,
-    response_format: options.response_format,
-    ...(reasoning && options.reasoning_effort ? { reasoning_effort: options.reasoning_effort } : {}),
-  })
+  const completion = await groq.chat.completions.create(
+    {
+      model,
+      messages,
+      temperature: options.temperature ?? 0.2,
+      max_tokens:
+        reasoning && options.max_tokens != null
+          ? options.max_tokens + GROQ_REASONING_HEADROOM_TOKENS
+          : options.max_tokens,
+      response_format: options.response_format,
+      ...(reasoning && options.reasoning_effort ? { reasoning_effort: options.reasoning_effort } : {}),
+    },
+    options.direct ? { maxRetries: 0 } : undefined
+  )
   const choice = completion.choices[0]
   const content = choice?.message?.content?.trim() ?? null
   if (!content && choice?.finish_reason === "length") {
@@ -166,6 +178,7 @@ export async function groqChatText(options: GroqChatOptions): Promise<string | n
       try {
         return await groqChatTextDirect(groq, normalized)
       } catch (err: unknown) {
+        if (options.direct) throw err
         if (shouldFallbackToOpenAi(err)) {
           const fallback = await tryOpenAiFallback(
             normalized,
@@ -177,13 +190,14 @@ export async function groqChatText(options: GroqChatOptions): Promise<string | n
       }
     }
 
+    if (options.direct) return null
     const openaiOnly = await tryOpenAiFallback(normalized, "no_groq_key")
     if (openaiOnly) return openaiOnly
 
     return null
   }
 
-  if (!useVision) {
+  if (!useVision && !options.direct) {
     const result = await routeLlmText({
       messages: options.messages,
       runGroq,

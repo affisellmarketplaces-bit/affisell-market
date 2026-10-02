@@ -1,6 +1,12 @@
 import { groqChatText, GROQ_TEXT_MODEL, GROQ_VISION_MODEL } from "@/lib/ai/groq-client"
-import { scoreTitleAgainstBreadcrumb } from "@/lib/category-browse"
+import { browseFromLeafPaths, scoreTitleAgainstBreadcrumb } from "@/lib/category-browse"
 import type { LeafPath } from "@/lib/category-browse"
+import { classifyWithTaxonomyAi } from "@/lib/taxonomy-classify.server"
+
+/** A real taxonomy (thousands of leaves), as opposed to a short hand-written list. */
+const SEMANTIC_MIN_LEAVES = 200
+/** Above this, "paste every category in the prompt" cannot work (token limits, lost attention). */
+const PROMPT_LIST_MAX_LINES = 600
 
 export type ClassifyInput = {
   title: string
@@ -81,11 +87,36 @@ export async function classifyAffisellProduct(
   input: ClassifyInput,
   ctx: { allowedBreadcrumbs: string[]; leafPaths: LeafPath[] }
 ): Promise<{ suggestions: ClassifySuggestionRow[]; error?: string }> {
-  if (!process.env.GROQ_API_KEY?.trim()) {
-    return { suggestions: [] }
-  }
   if (ctx.allowedBreadcrumbs.length === 0) {
     return { suggestions: [], error: "No categories available" }
+  }
+
+  // Real taxonomy → semantic engine (Claude, then Groq running the same identify→choose pipeline). Pasting the
+  // whole tree into a single prompt never worked and lexical pre-filtering hid the right answer for English titles.
+  if (ctx.leafPaths.length >= SEMANTIC_MIN_LEAVES) {
+    const smart = await classifyWithTaxonomyAi({
+      title: input.title,
+      description: input.description,
+      imageUrl: input.imageUrl,
+      browse: browseFromLeafPaths(ctx.leafPaths),
+      leafPaths: ctx.leafPaths,
+    })
+    if (smart && smart.picks.length > 0) {
+      return {
+        suggestions: smart.picks.map((p) => ({
+          category: p.breadcrumb,
+          confidence: p.confidence,
+          reason: p.reason,
+          leafId: p.leafId,
+        })),
+      }
+    }
+    // No engine answered: say nothing rather than send a 4 700-line list to a plain prompt and guess.
+    if (ctx.allowedBreadcrumbs.length > PROMPT_LIST_MAX_LINES) return { suggestions: [] }
+  }
+
+  if (!process.env.GROQ_API_KEY?.trim()) {
+    return { suggestions: [] }
   }
 
   const listBlock = ctx.allowedBreadcrumbs.join("\n")

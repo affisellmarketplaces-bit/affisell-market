@@ -39,7 +39,6 @@ export async function openaiChatText(options: OpenAiChatOptions): Promise<string
   const useVision =
     options.vision ||
     options.model?.includes("llama-4-scout") ||
-    options.model?.includes("qwen3.6") ||
     options.model?.includes("qwen/qwen3") ||
     /gpt-4o|gpt-4\.1|^o[34]/i.test(options.model ?? "")
   const messages = useVision

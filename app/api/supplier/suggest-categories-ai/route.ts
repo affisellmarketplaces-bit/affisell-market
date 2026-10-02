@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
+export const maxDuration = 60
 
 /** @deprecated Prefer POST /api/supplier/suggest-listing — kept for compatibility. */
 export async function POST(req: Request) {

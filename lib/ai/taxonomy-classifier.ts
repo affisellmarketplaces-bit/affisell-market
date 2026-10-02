@@ -38,7 +38,7 @@ const MAX_SECTION_PICKS = 4
 const MAX_CANDIDATES = 420
 /** Best lexical matches across the WHOLE taxonomy, always offered in step 2 (a cross-section rescue). */
 const GLOBAL_LEXICAL_CANDIDATES = 45
-const MAX_PICKS = 3
+export const MAX_PICKS = 3
 
 /** Level-2 nodes ("Root > Section") with their leaf counts, in a stable order (the prompt block is cached). */
 export function buildSections(browse: TaxonomyBrowse): { sections: Section[]; leavesBySection: Map<string, string[]> } {
@@ -172,7 +172,7 @@ Answer with JSON only:
   "sections": [ { "code": string, "confidence": number } ]
 }`
 
-const CHOOSE_SYSTEM = `You are the product-taxonomy expert of a European online marketplace.
+export const CHOOSE_SYSTEM = `You are the product-taxonomy expert of a European online marketplace.
 
 Choose the ${MAX_PICKS} best exact categories for the item, best first, ONLY from the candidate list (use the codes).
 
@@ -189,9 +189,9 @@ type IdentifyPayload = {
   identity?: Partial<TaxonomyIdentity>
   sections?: Array<{ code?: string; confidence?: number }>
 }
-type ChoosePayload = { picks?: Array<{ code?: string; confidence?: number; reason?: string }> }
+export type ChoosePayload = { picks?: Array<{ code?: string; confidence?: number; reason?: string }> }
 
-function productBlocks(input: { title: string; description?: string; imageUrl?: string | null }): AnthropicContentBlock[] {
+export function productBlocks(input: { title: string; description?: string; imageUrl?: string | null }): AnthropicContentBlock[] {
   const lines = [`Supplier title: ${input.title.trim() || "(none)"}`]
   const desc = input.description?.trim()
   if (desc) lines.push(`Supplier notes (may be noisy): ${desc.slice(0, 500)}`)
@@ -201,7 +201,7 @@ function productBlocks(input: { title: string; description?: string; imageUrl?: 
   return blocks
 }
 
-function clamp01(n: unknown, fallback = 0): number {
+export function clamp01(n: unknown, fallback = 0): number {
   const v = typeof n === "number" ? n : Number(n)
   return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : fallback
 }

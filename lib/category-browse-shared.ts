@@ -128,6 +128,23 @@ export function buildCategoryBrowse(rows: BrowseNode[]) {
   return { nodes, rootIds, childrenByParent: childrenRecord, leafPaths }
 }
 
+/**
+ * Rebuild the browse structure (nodes / roots / children) from leaf paths alone — for callers that only hold a
+ * `LeafPath[]` but need to hand the real tree to the semantic taxonomy classifier.
+ */
+export function browseFromLeafPaths(leafPaths: LeafPath[]) {
+  const rows = new Map<string, BrowseNode>()
+  let order = 0
+  for (const lp of leafPaths) {
+    let parentId: string | null = null
+    for (const seg of lp.path) {
+      if (!rows.has(seg.id)) rows.set(seg.id, { id: seg.id, name: seg.name, parentId, icon: "", order: order++ })
+      parentId = seg.id
+    }
+  }
+  return buildCategoryBrowse([...rows.values()])
+}
+
 export function pathFromLeafId(
   leafId: string,
   nodes: Record<string, BrowseNode>
