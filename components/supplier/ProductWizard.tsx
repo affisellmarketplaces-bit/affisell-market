@@ -92,7 +92,7 @@ export function ProductWizard({
             size="sm"
             disabled={savingDraft}
             onClick={onSaveDraft}
-            className="shrink-0 gap-2 self-start sm:self-center"
+            className="min-h-11 shrink-0 gap-2 self-start sm:min-h-0 sm:self-center"
           >
             {savingDraft ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />

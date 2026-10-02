@@ -321,10 +321,12 @@ function SectionCard({
         className
       )}
     >
-      <div className="mb-5 flex gap-3.5">
+      {/* Mobile: icon + title share a row and the description spans the full width below (it used to be squeezed
+          into a ~190px column next to the icon). From sm up the icon spans both rows, exactly as before. */}
+      <div className="mb-5 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2.5 sm:items-start sm:gap-x-3.5 sm:gap-y-0">
         <div
           className={cn(
-            "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl",
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl sm:row-span-2 sm:h-12 sm:w-12",
             variant === "accent"
               ? "bg-violet-600 text-white shadow-md shadow-violet-500/25"
               : "bg-gradient-to-br from-zinc-100 to-zinc-50 text-zinc-700 ring-1 ring-zinc-200/80 dark:from-zinc-800 dark:to-zinc-900 dark:text-zinc-200 dark:ring-zinc-700/80"
@@ -332,16 +334,14 @@ function SectionCard({
         >
           <Icon className="h-5 w-5" aria-hidden />
         </div>
-        <div className="min-w-0 flex-1">
-          <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-            {title}
-          </h2>
-          {description ? (
-            <p className="mt-1 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-              {description}
-            </p>
-          ) : null}
-        </div>
+        <h2 className="min-w-0 text-lg font-semibold leading-snug tracking-tight text-zinc-900 dark:text-zinc-50">
+          {title}
+        </h2>
+        {description ? (
+          <p className="col-span-2 text-sm leading-relaxed text-zinc-500 sm:col-span-1 sm:col-start-2 sm:mt-1 dark:text-zinc-400">
+            {description}
+          </p>
+        ) : null}
       </div>
       <div className="space-y-5">{children}</div>
     </section>
@@ -3117,8 +3117,8 @@ export function SupplierAddProductForm({
                   description={tForm("sectionExpressDescription")}
                   hasError={hasPublishFieldError("images") || hasPublishFieldError("name")}
                 >
-                  <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-                    <div className="space-y-6">
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
+                    <div className="min-w-0 space-y-6">
                       <div id="add-product-title-express">
                         <div className="flex flex-wrap items-center gap-2">
                           <SupplierExpressFieldBand required>{tForm("productTitleLabel")}</SupplierExpressFieldBand>
@@ -3167,7 +3167,7 @@ export function SupplierAddProductForm({
                         </div>
                       </div>
                     </div>
-                    <div className="space-y-4">
+                    <div className="min-w-0 space-y-4">
                       <SupplierExpressTaxonomyRail
                         name={name}
                         imageUrl={images[0] ?? null}

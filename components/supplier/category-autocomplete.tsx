@@ -56,7 +56,8 @@ const selectStyles: StylesConfig<CategorySelectOption, false, GroupBase<Category
   }),
   singleValue: (base) => ({ ...base, fontSize: 13, color: "var(--foreground)" }),
   placeholder: (base) => ({ ...base, fontSize: 13, color: "var(--muted-foreground)" }),
-  input: (base) => ({ ...base, fontSize: 13, color: "var(--foreground)" }),
+  // 16px on phones: below that, iOS Safari zooms the whole page when the field is focused.
+  input: (base) => ({ ...base, fontSize: 13, color: "var(--foreground)", "@media (max-width: 767px)": { fontSize: 16 } }),
   menuPortal: (base) => ({ ...base, zIndex: 9999 }),
 }
 

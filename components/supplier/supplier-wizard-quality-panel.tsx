@@ -89,7 +89,7 @@ export function SupplierWizardQualityPanel({ items, className }: Props) {
         <button
           type="button"
           onClick={() => scrollTo(next.anchorId)}
-          className="mt-3 flex w-full items-center justify-between gap-2 rounded-xl bg-violet-50 px-3 py-2 text-left text-xs font-semibold text-violet-800 ring-1 ring-violet-200/70 transition hover:bg-violet-100 dark:bg-violet-950/40 dark:text-violet-200 dark:ring-violet-800/50 dark:hover:bg-violet-950/70"
+          className="mt-3 flex min-h-11 w-full items-center justify-between gap-2 rounded-xl bg-violet-50 px-3 py-2 text-left text-xs font-semibold text-violet-800 ring-1 ring-violet-200/70 transition hover:bg-violet-100 dark:bg-violet-950/40 dark:text-violet-200 dark:ring-violet-800/50 dark:hover:bg-violet-950/70"
         >
           <span className="min-w-0 truncate">{t("nextUp", { label: next.label })}</span>
           <ArrowRight className="size-3.5 shrink-0" aria-hidden />
@@ -101,7 +101,7 @@ export function SupplierWizardQualityPanel({ items, className }: Props) {
             <button
               type="button"
               onClick={() => scrollTo(item.anchorId)}
-              className="flex w-full items-center gap-2 rounded-lg px-1.5 py-1.5 text-left text-sm transition hover:bg-violet-50/80 dark:hover:bg-violet-950/30"
+              className="flex min-h-11 w-full items-center gap-2 rounded-lg px-1.5 py-2.5 text-left text-sm transition hover:bg-violet-50/80 sm:min-h-0 sm:py-1.5 dark:hover:bg-violet-950/30"
             >
               {item.done ? (
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
