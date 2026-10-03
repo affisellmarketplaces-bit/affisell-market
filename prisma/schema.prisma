@@ -4532,6 +4532,27 @@ model ProductExclusivityRequest {
   @@index([affiliateId, status])
 }
 
+/**
+ * Every category the semantic engine proposed for a product (applied or not). Comparing the latest row with the
+ * product's CURRENT category later tells, without touching any supplier flow, where humans corrected the engine —
+ * the labelled data the classifier learns from. Ids only (no free text, no PII).
+ */
+model CategorySuggestionLog {
+  id          String   @id @default(cuid())
+  productId   String
+  /** Category (leaf) the engine proposed. */
+  leafId      String
+  confidence  Float
+  /** Written onto the product (>= review threshold) vs only proposed. */
+  applied     Boolean  @default(false)
+  /** Applied but queued for ops review (medium confidence). */
+  needsReview Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([productId, createdAt])
+  @@index([createdAt])
+}
+
 // ─── Market Intelli ───
 // Models + Prisma client: prisma/market-intelli.schema.prisma (MARKET_INTELLI_DATABASE_URL).
 // Routes: /intelli, /api/intelli — gated by MARKET_INTELLI_ENABLED=true.

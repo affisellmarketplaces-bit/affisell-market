@@ -3,6 +3,7 @@ import type { PrismaClient } from "@prisma/client"
 import { classifyAffisellProduct } from "@/lib/ai/classify-product"
 import { CATEGORIES_AFFISELL } from "@/lib/ai/categories"
 import { buildCategoryBrowse, fetchAllCategoriesForBrowse, type LeafPath } from "@/lib/category-browse"
+import { recordCategorySuggestion } from "@/lib/category-suggestion-log.server"
 import { prisma } from "@/lib/prisma"
 
 /** Auto-apply when AI confidence is at or above this (marketplace browse). */
@@ -132,6 +133,7 @@ export async function autoCategorizeProduct(
 
   if (top.confidence >= AUTO_APPLY_AI_CONFIDENCE) {
     await applyCategory(productId, top.leafId, top.category, top.confidence, top.reason, false)
+    await recordCategorySuggestion({ productId, leafId: top.leafId, confidence: top.confidence, applied: true })
     return {
       ok: true,
       applied: true,
@@ -143,6 +145,13 @@ export async function autoCategorizeProduct(
 
   if (top.confidence >= REVIEW_QUEUE_MIN_CONFIDENCE) {
     await applyCategory(productId, top.leafId, top.category, top.confidence, top.reason, true)
+    await recordCategorySuggestion({
+      productId,
+      leafId: top.leafId,
+      confidence: top.confidence,
+      applied: true,
+      needsReview: true,
+    })
     return {
       ok: true,
       applied: true,
@@ -153,6 +162,7 @@ export async function autoCategorizeProduct(
     }
   }
 
+  await recordCategorySuggestion({ productId, leafId: top.leafId, confidence: top.confidence, applied: false })
   return { ok: true, applied: false, reason: "low_confidence" }
 }
 

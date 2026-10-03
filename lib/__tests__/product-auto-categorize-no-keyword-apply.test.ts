@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-const { classifyAffisellProduct, update, reviewCreate, reviewDeleteMany } = vi.hoisted(() => ({
+const { classifyAffisellProduct, update, reviewCreate, reviewDeleteMany, logCreate } = vi.hoisted(() => ({
+  logCreate: vi.fn(),
   classifyAffisellProduct: vi.fn(),
   update: vi.fn(),
   reviewCreate: vi.fn(),
@@ -10,6 +11,7 @@ vi.mock("server-only", () => ({}))
 vi.mock("@/lib/ai/classify-product", () => ({ classifyAffisellProduct }))
 vi.mock("@/lib/prisma", () => ({
   prisma: {
+    categorySuggestionLog: { create: logCreate },
     $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
       fn({ product: { update }, productReview: { create: reviewCreate, deleteMany: reviewDeleteMany } }),
   },
@@ -49,6 +51,8 @@ describe("autoCategorizeProduct — a keyword match alone never writes a categor
     update.mockReset()
     reviewCreate.mockReset()
     reviewDeleteMany.mockReset()
+    logCreate.mockReset()
+    logCreate.mockResolvedValue({})
   })
 
   it("leaves the product uncategorised when no engine answers (it used to apply a keyword guess)", async () => {
@@ -73,6 +77,10 @@ describe("autoCategorizeProduct — a keyword match alone never writes a categor
     expect(out).toMatchObject({ ok: true, applied: true, leafId: "fig", source: "ai" })
     expect(update).toHaveBeenCalledWith({ where: { id: "p1" }, data: { categoryId: "fig" } })
     expect(reviewCreate).not.toHaveBeenCalled()
+    // catalogue-learning loop: what the engine proposed is kept, to compare with what humans later keep
+    expect(logCreate).toHaveBeenCalledWith({
+      data: { productId: "p1", leafId: "fig", confidence: 0.9, applied: true, needsReview: false },
+    })
   })
 
   it("applies a middling AI pick but queues it for review", async () => {
@@ -82,6 +90,7 @@ describe("autoCategorizeProduct — a keyword match alone never writes a categor
     const out = await autoCategorizeProduct("p1", { client: clientFor(SPIDERMAN) })
     expect(out).toMatchObject({ applied: true, needsReview: true })
     expect(reviewCreate).toHaveBeenCalledTimes(1)
+    expect(logCreate.mock.calls[0]![0].data).toMatchObject({ leafId: "fig", applied: true, needsReview: true })
   })
 
   it("does not apply a weak AI pick", async () => {
@@ -91,5 +100,24 @@ describe("autoCategorizeProduct — a keyword match alone never writes a categor
     const out = await autoCategorizeProduct("p1", { client: clientFor(SPIDERMAN) })
     expect(out).toEqual({ ok: true, applied: false, reason: "low_confidence" })
     expect(update).not.toHaveBeenCalled()
+    // a proposal that was NOT applied is still recorded, flagged as such
+    expect(logCreate.mock.calls[0]![0].data).toMatchObject({ leafId: "foot", applied: false, needsReview: false })
+  })
+
+  it("records nothing when no engine proposed anything, and a log failure never changes the outcome", async () => {
+    classifyAffisellProduct.mockResolvedValue({ suggestions: [] })
+    await autoCategorizeProduct("p1", { client: clientFor(SPIDERMAN) })
+    expect(logCreate).not.toHaveBeenCalled()
+
+    classifyAffisellProduct.mockResolvedValue({
+      suggestions: [{ category: "Jeux et jouets > Figurines jouets", confidence: 0.9, reason: "toy", leafId: "fig" }],
+    })
+    logCreate.mockRejectedValue(new Error("db down"))
+    vi.spyOn(console, "error").mockImplementation(() => undefined)
+    await expect(autoCategorizeProduct("p1", { client: clientFor(SPIDERMAN) })).resolves.toMatchObject({
+      ok: true,
+      applied: true,
+      leafId: "fig",
+    })
   })
 })
