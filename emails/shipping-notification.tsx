@@ -15,6 +15,7 @@ import {
 } from "@react-email/components"
 
 import type { ShippingNotificationEmailCopy } from "@/lib/emails/load-email-copy"
+import { EmailBrandHeader, emailAccent, emailOnAccent, type EmailBrandProps } from "@/lib/emails/email-brand-ui"
 
 export interface ShippingNotificationEmailProps {
   orderId: string
@@ -24,6 +25,7 @@ export interface ShippingNotificationEmailProps {
   trackingNumber: string
   carrier: string
   orderUrl: string
+  brand?: EmailBrandProps
   copy: ShippingNotificationEmailCopy
 }
 
@@ -33,13 +35,17 @@ export const ShippingNotificationEmail = ({
   trackingUrl,
   orderUrl,
   copy,
+  brand,
 }: ShippingNotificationEmailProps) => {
+  const accent = emailAccent(brand)
+  const onAccent = emailOnAccent(brand)
   return (
     <Html>
       <Head />
       <Preview>{copy.preview}</Preview>
       <Body style={main}>
         <Container style={container}>
+          <EmailBrandHeader brand={brand} />
           <Heading style={h1}>{copy.heading}</Heading>
 
           <Row
@@ -91,7 +97,7 @@ export const ShippingNotificationEmail = ({
           </Section>
 
           <Section style={{ textAlign: "center", marginTop: "32px" }}>
-            <Button href={orderUrl} style={buttonStyle}>
+            <Button href={orderUrl} style={{ ...buttonStyle, backgroundColor: accent, color: onAccent }}>
               {copy.ctaOrder}
             </Button>
           </Section>

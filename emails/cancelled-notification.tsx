@@ -15,6 +15,7 @@ import {
 } from "@react-email/components"
 
 import type { CancelledNotificationEmailCopy } from "@/lib/emails/load-email-copy"
+import { EmailBrandHeader, emailAccent, emailOnAccent, type EmailBrandProps } from "@/lib/emails/email-brand-ui"
 
 export interface CancelledNotificationEmailProps {
   orderId: string
@@ -22,6 +23,7 @@ export interface CancelledNotificationEmailProps {
   productImageUrl: string
   orderUrl: string
   supportUrl: string
+  brand?: EmailBrandProps
   copy: CancelledNotificationEmailCopy
 }
 
@@ -31,13 +33,17 @@ export const CancelledNotificationEmail = ({
   orderUrl,
   supportUrl,
   copy,
+  brand,
 }: CancelledNotificationEmailProps) => {
+  const accent = emailAccent(brand)
+  const onAccent = emailOnAccent(brand)
   return (
     <Html>
       <Head />
       <Preview>{copy.preview}</Preview>
       <Body style={main}>
         <Container style={container}>
+          <EmailBrandHeader brand={brand} />
           <Heading style={h1}>{copy.heading}</Heading>
           <Text style={greeting}>{copy.greeting}</Text>
 
@@ -83,8 +89,8 @@ export const CancelledNotificationEmail = ({
             <Button
               href={supportUrl}
               style={{
-                backgroundColor: "#5469d4",
-                color: "#fff",
+                backgroundColor: accent,
+                color: onAccent,
                 padding: "12px 24px",
                 borderRadius: "6px",
                 textDecoration: "none",
@@ -98,12 +104,12 @@ export const CancelledNotificationEmail = ({
               href={orderUrl}
               style={{
                 backgroundColor: "#fff",
-                color: "#5469d4",
+                color: accent,
                 padding: "12px 24px",
                 borderRadius: "6px",
                 textDecoration: "none",
                 fontWeight: "600",
-                border: "1px solid #5469d4",
+                border: `1px solid ${accent}`,
               }}
             >
               {copy.ctaOrder}

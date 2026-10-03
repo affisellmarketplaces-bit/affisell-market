@@ -17,6 +17,13 @@ import {
   resolveOrderConfirmationImageUrl,
 } from "@/lib/emails/send-order-confirmation"
 import type { AppLocale } from "@/lib/i18n-locale"
+import {
+  applyBrandToCopy,
+  applyBrandToText,
+  buildBrandedFrom,
+  toEmailBrandProps,
+} from "@/lib/emails/email-brand-shared"
+import { resolveEmailBrandForOrder } from "@/lib/emails/email-brand.server"
 
 export type DeliveredNotificationOrderPayload = {
   id: string
@@ -70,11 +77,15 @@ export async function sendDeliveredNotificationEmail(
     locale
   )
 
-  const copy = loadDeliveredNotificationEmailCopy(locale, {
-    orderId: order.id,
-    quantity: order.quantity,
-    customerName,
-  })
+  const brand = await resolveEmailBrandForOrder(order.id)
+  const copy = applyBrandToCopy(
+    loadDeliveredNotificationEmailCopy(locale, {
+      orderId: order.id,
+      quantity: order.quantity,
+      customerName,
+    }),
+    brand
+  )
 
   const html = await render(
     DeliveredNotificationEmail({
@@ -88,13 +99,14 @@ export async function sendDeliveredNotificationEmail(
       reviewUrl,
       repurchaseUrl,
       copy,
+      brand: toEmailBrandProps(brand),
     })
   )
 
   const { data, error } = await resend.emails.send({
-    from: config.from,
+    from: buildBrandedFrom(config.from, brand),
     to,
-    subject: deliveredNotificationEmailSubject(locale, order.id),
+    subject: applyBrandToText(deliveredNotificationEmailSubject(locale, order.id), brand),
     html,
   })
 

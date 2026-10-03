@@ -17,6 +17,13 @@ import {
   resolveOrderConfirmationImageUrl,
 } from "@/lib/emails/send-order-confirmation"
 import type { AppLocale } from "@/lib/i18n-locale"
+import {
+  applyBrandToCopy,
+  applyBrandToText,
+  buildBrandedFrom,
+  toEmailBrandProps,
+} from "@/lib/emails/email-brand-shared"
+import { resolveEmailBrandForOrder } from "@/lib/emails/email-brand.server"
 
 export type CancelledNotificationOrderPayload = {
   id: string
@@ -79,14 +86,18 @@ export async function sendCancelledNotificationEmail(
     locale
   )
 
-  const copy = loadCancelledNotificationEmailCopy(locale, {
-    orderId: order.id,
-    quantity: order.quantity,
-    customerName,
-    refundAmount: formatMoney(refundCents),
-    currency,
-    cancelReason: options?.cancelReason,
-  })
+  const brand = await resolveEmailBrandForOrder(order.id)
+  const copy = applyBrandToCopy(
+    loadCancelledNotificationEmailCopy(locale, {
+      orderId: order.id,
+      quantity: order.quantity,
+      customerName,
+      refundAmount: formatMoney(refundCents),
+      currency,
+      cancelReason: options?.cancelReason,
+    }),
+    brand
+  )
 
   const html = await render(
     CancelledNotificationEmail({
@@ -99,13 +110,14 @@ export async function sendCancelledNotificationEmail(
       orderUrl,
       supportUrl,
       copy,
+      brand: toEmailBrandProps(brand),
     })
   )
 
   const { data, error } = await resend.emails.send({
-    from: config.from,
+    from: buildBrandedFrom(config.from, brand),
     to,
-    subject: cancelledNotificationEmailSubject(locale, order.id),
+    subject: applyBrandToText(cancelledNotificationEmailSubject(locale, order.id), brand),
     html,
   })
 

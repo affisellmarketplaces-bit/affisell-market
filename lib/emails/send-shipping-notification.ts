@@ -16,6 +16,13 @@ import {
   resolveOrderConfirmationImageUrl,
 } from "@/lib/emails/send-order-confirmation"
 import { sanitizePublicLink } from "@/lib/public-app-url"
+import {
+  applyBrandToCopy,
+  applyBrandToText,
+  buildBrandedFrom,
+  toEmailBrandProps,
+} from "@/lib/emails/email-brand-shared"
+import { resolveEmailBrandForOrder } from "@/lib/emails/email-brand.server"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { tMessage } from "@/lib/i18n-pick-message"
 
@@ -55,12 +62,16 @@ export async function sendShippingNotificationEmail(
     order.trackingCarrier?.trim() ||
     tMessage(locale, "emails.shippingNotification.defaultCarrier", "Carrier")
 
-  const copy = loadShippingNotificationEmailCopy(locale, {
-    orderId: order.id,
-    quantity: order.quantity,
-    trackingNumber: order.trackingNumber,
-    carrier,
-  })
+  const brand = await resolveEmailBrandForOrder(order.id)
+  const copy = applyBrandToCopy(
+    loadShippingNotificationEmailCopy(locale, {
+      orderId: order.id,
+      quantity: order.quantity,
+      trackingNumber: order.trackingNumber,
+      carrier,
+    }),
+    brand
+  )
 
   const html = await render(
     ShippingNotificationEmail({
@@ -75,13 +86,14 @@ export async function sendShippingNotificationEmail(
       carrier,
       orderUrl,
       copy,
+      brand: toEmailBrandProps(brand),
     })
   )
 
   const { data, error } = await resend.emails.send({
-    from: config.from,
+    from: buildBrandedFrom(config.from, brand),
     to,
-    subject: shippingNotificationEmailSubject(locale, order.id),
+    subject: applyBrandToText(shippingNotificationEmailSubject(locale, order.id), brand),
     html,
   })
 

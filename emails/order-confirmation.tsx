@@ -16,6 +16,7 @@ import {
 } from "@react-email/components"
 
 import type { OrderConfirmationEmailCopy } from "@/lib/emails/load-email-copy"
+import { EmailBrandHeader, emailAccent, emailOnAccent, type EmailBrandProps } from "@/lib/emails/email-brand-ui"
 
 export interface OrderConfirmationEmailProps {
   orderId: string
@@ -27,6 +28,7 @@ export interface OrderConfirmationEmailProps {
   customerName: string
   orderUrl: string
   trackingUrl?: string
+  brand?: EmailBrandProps
   copy: OrderConfirmationEmailCopy
 }
 
@@ -39,13 +41,17 @@ export const OrderConfirmationEmail = ({
   orderUrl,
   trackingUrl,
   copy,
+  brand,
 }: OrderConfirmationEmailProps) => {
+  const accent = emailAccent(brand)
+  const onAccent = emailOnAccent(brand)
   return (
     <Html>
       <Head />
       <Preview>{copy.preview}</Preview>
       <Body style={main}>
         <Container style={container}>
+          <EmailBrandHeader brand={brand} />
           <Heading style={h1}>{copy.heading}</Heading>
 
           <Row
@@ -73,12 +79,12 @@ export const OrderConfirmationEmail = ({
           </Row>
 
           <Section style={{ textAlign: "center", margin: "32px 0" }}>
-            <Button href={orderUrl} style={buttonStyle}>
+            <Button href={orderUrl} style={{ ...buttonStyle, backgroundColor: accent, color: onAccent }}>
               {copy.ctaOrder}
             </Button>
             {trackingUrl ? (
               <Text style={{ fontSize: "12px", color: "#666", marginTop: "12px" }}>
-                <Link href={trackingUrl} style={{ color: "#5469d4" }}>
+                <Link href={trackingUrl} style={{ color: accent }}>
                   {copy.ctaTracking}
                 </Link>
               </Text>

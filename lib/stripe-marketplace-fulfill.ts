@@ -590,6 +590,7 @@ async function createPaidMarketplaceOrder(
       customerEmail: args.customerEmail,
       customerName: shippingName,
       locale: args.buyerLocale,
+      affiliateId: listing.affiliateId,
     })
   } catch (e) {
     logStripeWebhookError({
@@ -1200,6 +1201,7 @@ export async function fulfillMarketplaceStripeSession(
         customerEmail,
         customerName: shippingName,
         locale: buyerLocale,
+        affiliateId: listing.affiliateId,
       }
 
       await runInstantDigitalDeliveryAfterPayment(tx, {

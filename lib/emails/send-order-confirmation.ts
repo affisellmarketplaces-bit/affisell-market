@@ -13,6 +13,13 @@ import {
 } from "@/lib/emails/resend-delivery"
 import { resolveOrderConfirmationImageUrl } from "@/lib/emails/resolve-order-confirmation-image"
 import { resolvePublicAppUrl, sanitizePublicLink } from "@/lib/public-app-url"
+import {
+  applyBrandToCopy,
+  applyBrandToText,
+  buildBrandedFrom,
+  toEmailBrandProps,
+} from "@/lib/emails/email-brand-shared"
+import { resolveEmailBrandForAffiliate, resolveEmailBrandForOrder } from "@/lib/emails/email-brand.server"
 
 export function resolveAppUrl(): string {
   return resolvePublicAppUrl()
@@ -41,6 +48,7 @@ export async function sendOrderConfirmationEmail({
   orderUrl,
   trackingUrl,
   locale,
+  affiliateId,
 }: {
   orderId: string
   productName: string
@@ -53,6 +61,8 @@ export async function sendOrderConfirmationEmail({
   orderUrl?: string
   trackingUrl?: string
   locale?: AppLocale | string | null
+  /** Reseller the order was sold through — drives the white-label brand. Looked up from the order when omitted. */
+  affiliateId?: string | null
 }) {
   const resolvedLocale = resolveEmailLocale(locale)
   const config = readResendDeliveryConfig()
@@ -66,12 +76,18 @@ export async function sendOrderConfirmationEmail({
   const resolvedTrackingUrl = sanitizePublicLink(
     trackingUrl?.trim() || `${resolveAppUrl()}/track-order`
   )
-  const emailCopy = loadOrderConfirmationEmailCopy(resolvedLocale, {
-    orderId,
-    quantity,
-    total,
-    currency: currency.toUpperCase(),
-  })
+  const brand = affiliateId
+    ? await resolveEmailBrandForAffiliate(affiliateId)
+    : await resolveEmailBrandForOrder(orderId)
+  const emailCopy = applyBrandToCopy(
+    loadOrderConfirmationEmailCopy(resolvedLocale, {
+      orderId,
+      quantity,
+      total,
+      currency: currency.toUpperCase(),
+    }),
+    brand
+  )
 
   const resolvedImageUrl = resolveOrderConfirmationImageUrl({
     variantImageUrl: productImageUrl,
@@ -89,14 +105,15 @@ export async function sendOrderConfirmationEmail({
       orderUrl: resolvedOrderUrl,
       trackingUrl: resolvedTrackingUrl,
       copy: emailCopy,
+      brand: toEmailBrandProps(brand),
     })
   )
 
   const sendResult = await sendResendEmail({
     context: "order-confirmation",
-    config,
+    config: { ...config, from: buildBrandedFrom(config.from, brand) },
     intendedTo: customerEmail,
-    subject: orderConfirmationEmailSubject(resolvedLocale, orderId),
+    subject: applyBrandToText(orderConfirmationEmailSubject(resolvedLocale, orderId), brand),
     html,
   })
 
