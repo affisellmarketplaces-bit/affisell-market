@@ -19,6 +19,7 @@ import {
   parseListingVariantPricing,
 } from "@/lib/affiliate-wholesale-change-guard"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
+import { exclusivityBlockBody } from "@/lib/product-exclusivity-shared"
 import { prisma } from "@/lib/prisma"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 import { revalidateListingCardImage } from "@/lib/revalidate-listing-card-image"
@@ -91,6 +92,9 @@ export async function POST(request: Request) {
   if (!product) {
     return NextResponse.json({ error: "Product not found or inactive" }, { status: 404 })
   }
+
+  const exclusiveBlock = exclusivityBlockBody(product, session.user.id)
+  if (exclusiveBlock) return NextResponse.json(exclusiveBlock, { status: 409 })
 
   /** Save Draft → keep listing off the public storefront */
   const saveDraft = body.saveDraft === true

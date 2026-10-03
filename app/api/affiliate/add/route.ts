@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { exclusivityBlockBody } from "@/lib/product-exclusivity-shared"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
@@ -41,6 +42,9 @@ export async function POST(request: Request) {
   if (!product) {
     return NextResponse.json({ error: "Product not found or inactive" }, { status: 404 })
   }
+
+  const exclusiveBlock = exclusivityBlockBody(product, session.user.id)
+  if (exclusiveBlock) return NextResponse.json(exclusiveBlock, { status: 409 })
 
   if (sellingPriceCents < product.basePriceCents) {
     return NextResponse.json(

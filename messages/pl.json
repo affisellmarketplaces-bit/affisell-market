@@ -8510,5 +8510,70 @@
     "status_failed": "Błąd",
     "loadError": "Nie udało się wczytać. Spróbuj ponownie.",
     "revokeConfirm": "Unieważnić ten klucz? AI od razu straci dostęp."
+  },
+  "productExclusivity": {
+    "supplier": {
+      "title": "Wyłączność dla sprzedawców",
+      "intro": "Przyznaj JEDNEMU sprzedawcy wyłączność na ten produkt na ustalony czas: nikt inny nie będzie mógł go sprzedawać. On zobowiązuje się go promować, Ty zyskujesz lojalnego partnera.",
+      "loading": "Ładowanie…",
+      "loadError": "Nie udało się teraz wczytać wyłączności.",
+      "holderTitle": "Wyłączność aktywna",
+      "holderLine": "{store} · do {date}",
+      "extend": "Przedłuż o {days} dni",
+      "revoke": "Anuluj to przyznanie",
+      "revokeHint": "Możesz anulować w ciągu {hours} godz. od przyznania (w razie pomyłki). Potem tylko sprzedawca może zwolnić wyłączność przed terminem.",
+      "noRevokeHint": "Czas na anulowanie ({hours} godz.) minął: tylko sprzedawca może zwolnić wyłączność przed terminem.",
+      "requestsTitle": "Prośby sprzedawców",
+      "noRequests": "Brak próśb.",
+      "accept": "Przyznaj",
+      "decline": "Odrzuć",
+      "grantTitle": "Przyznaj wyłączność",
+      "storeSlugLabel": "Sklep sprzedawcy (identyfikator)",
+      "storeSlugPlaceholder": "np. maison-lea",
+      "termLabel": "Czas trwania",
+      "termDays": "{days} dni",
+      "grantCta": "Przyznaj wyłączność",
+      "confirmEvict": "Ten produkt sprzedaje już {count} innych sprzedawców. Aby przyznać wyłączność, zostaną usunięci ze swoich sklepów i powiadomieni. Potwierdzić?",
+      "confirmEvictCta": "Usuń pozostałych i przyznaj",
+      "granted": "Wyłączność przyznana do {date}.",
+      "grantedEvicted": "Wyłączność przyznana do {date} · usunięto sklepów: {count}.",
+      "declined": "Prośba odrzucona.",
+      "revoked": "Przyznanie anulowane.",
+      "rules": "Zasady: od 7 do 365 dni · jeden sprzedawca naraz · inni sprzedawcy nie mogą dodać tego produktu w tym okresie.",
+      "errors": {
+        "generic": "Coś poszło nie tak. Spróbuj ponownie.",
+        "product_not_found": "Nie znaleziono produktu.",
+        "not_a_marketplace_product": "Najpierw opublikuj produkt.",
+        "affiliate_not_eligible": "Ten sprzedawca nie istnieje lub nie ma sklepu.",
+        "store_not_found": "Nie znaleziono sklepu.",
+        "held_by_other": "Ten produkt jest już na wyłączność innego sprzedawcy.",
+        "revoke_window_closed": "Czas na anulowanie minął.",
+        "not_exclusive": "Brak aktywnej wyłączności."
+      }
+    },
+    "affiliate": {
+      "title": "Wyłączność",
+      "none": "Poproś dostawcę, aby uczynił Cię jedynym sprzedawcą tego produktu: nikt inny nie będzie mógł go sprzedawać w przyznanym okresie.",
+      "request": "Poproś o wyłączność",
+      "messagePlaceholder": "Kilka słów do dostawcy (planowany wolumen, plan promocji…) — opcjonalnie",
+      "send": "Wyślij prośbę",
+      "requested": "Prośba wysłana — czekamy na odpowiedź dostawcy.",
+      "withdraw": "Wycofaj prośbę",
+      "mine": "Wyłączność aktywna do {date}: tylko Twój sklep może sprzedawać ten produkt.",
+      "release": "Zwolnij wyłączność",
+      "releaseConfirm": "Zwolnić wyłączność? Produkt będzie znów dostępny dla wszystkich sprzedawców.",
+      "other": "Ten produkt jest na wyłączność innego sprzedawcy.",
+      "sent": "Prośba wysłana.",
+      "released": "Wyłączność zwolniona.",
+      "withdrawn": "Prośba wycofana.",
+      "errors": {
+        "generic": "Coś poszło nie tak. Spróbuj ponownie.",
+        "already_exclusive": "Ten produkt jest już objęty wyłącznością.",
+        "already_requested": "Masz już oczekującą prośbę dotyczącą tego produktu.",
+        "no_store": "Najpierw utwórz swój sklep.",
+        "own_product": "Nie możesz prosić o wyłączność na własny produkt.",
+        "product_not_found": "Nie znaleziono produktu."
+      }
+    }
   }
 }

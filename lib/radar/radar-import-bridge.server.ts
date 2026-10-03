@@ -3,6 +3,7 @@ import "server-only"
 import type { Prisma } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
+import { exclusivityBlocksAffiliate } from "@/lib/product-exclusivity-shared"
 import { getRadarDb } from "@/lib/prisma-radar"
 import type {
   RadarImportDestination,
@@ -223,11 +224,24 @@ async function prepareEnrichedDraftRow(args: {
 
   const product = await prisma.product.findFirst({
     where: { id: productId, active: true },
-    select: { id: true, basePriceCents: true, images: true },
+    select: {
+      id: true,
+      basePriceCents: true,
+      images: true,
+      exclusiveAffiliateId: true,
+      exclusiveUntil: true,
+    },
   })
   if (!product) {
     return {
       product: { ...args.winner, importError: "catalog_product_inactive" },
+      createData: null,
+    }
+  }
+  // A product another reseller holds in exclusivity cannot be imported (not even as a draft).
+  if (exclusivityBlocksAffiliate(product, args.affiliateId)) {
+    return {
+      product: { ...args.winner, importError: "product_exclusive" },
       createData: null,
     }
   }

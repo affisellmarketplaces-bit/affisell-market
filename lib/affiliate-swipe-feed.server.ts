@@ -38,7 +38,7 @@ export async function buildSwipeFeedWhere(
   filters: SwipeFeedFilters,
   options?: { excludeSkipped?: boolean }
 ): Promise<Prisma.ProductWhereInput> {
-  const catalogWhere = await buildAffiliateCatalogProductWhere(filtersToSearchParams(filters))
+  const catalogWhere = await buildAffiliateCatalogProductWhere(filtersToSearchParams(filters), { affiliateId })
   const minCommission =
     typeof filters.minCommission === "number" && filters.minCommission > 0
       ? filters.minCommission

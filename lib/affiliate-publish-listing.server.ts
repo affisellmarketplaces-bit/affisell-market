@@ -1,10 +1,13 @@
 import { merchantVerificationGate, type MerchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
+import { checkAffiliateMayListProduct } from "@/lib/product-exclusivity-guard.server"
+import { catalogExclusivityWhere } from "@/lib/product-exclusivity-shared"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 
 export type PublishAffiliateListingResult =
   | { ok: true; listingId: string; alreadyLive: boolean }
   | { ok: false; reason: "not_found" | "forbidden" }
+  | { ok: false; reason: "exclusive"; until: Date }
   | { ok: false; reason: "kyc"; gate: MerchantVerificationGate }
 
 export type StorefrontAutoLiveSyncResult = {
@@ -20,12 +23,15 @@ export async function publishAffiliateListingIfAllowed(args: {
 }): Promise<PublishAffiliateListingResult> {
   const row = await prisma.affiliateProduct.findUnique({
     where: { id: args.listingId.trim() },
-    select: { id: true, affiliateId: true, isListed: true },
+    select: { id: true, affiliateId: true, isListed: true, productId: true },
   })
 
   if (!row) return { ok: false, reason: "not_found" }
   if (row.affiliateId !== args.affiliateId) return { ok: false, reason: "forbidden" }
   if (row.isListed) return { ok: true, listingId: row.id, alreadyLive: true }
+
+  const exclusivity = await checkAffiliateMayListProduct(row.productId, args.affiliateId)
+  if (!exclusivity.ok) return { ok: false, reason: "exclusive", until: exclusivity.until }
 
   const gate = await merchantVerificationGate(args.affiliateId)
   if (!gate.allowed) {
@@ -61,15 +67,19 @@ export async function syncAffiliateStorefrontListingsLive(
     return { publishedCount: 0, kycBlocked: true, kycReason: gate.reason }
   }
 
+  // Never auto-relist what a product's exclusivity holder has taken off other resellers' storefronts.
+  const now = new Date()
+  const publishable = { affiliateId, isListed: false, product: catalogExclusivityWhere(affiliateId, now) }
+
   const pending = await prisma.affiliateProduct.count({
-    where: { affiliateId, isListed: false },
+    where: publishable,
   })
   if (pending === 0) {
     return { publishedCount: 0, kycBlocked: false }
   }
 
   const updated = await prisma.affiliateProduct.updateMany({
-    where: { affiliateId, isListed: false },
+    where: publishable,
     data: { isListed: true },
   })
 

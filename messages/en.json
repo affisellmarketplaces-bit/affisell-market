@@ -8510,5 +8510,70 @@
     "status_failed": "Failed",
     "loadError": "Could not load. Try again.",
     "revokeConfirm": "Revoke this key? The AI loses access immediately."
+  },
+  "productExclusivity": {
+    "supplier": {
+      "title": "Reseller exclusivity",
+      "intro": "Grant ONE reseller exclusive rights on this product for a fixed term: nobody else can sell it. They commit to promoting it; you gain a loyal partner.",
+      "loading": "Loading…",
+      "loadError": "Couldn't load exclusivity right now.",
+      "holderTitle": "Exclusivity active",
+      "holderLine": "{store} · until {date}",
+      "extend": "Extend by {days} days",
+      "revoke": "Cancel this grant",
+      "revokeHint": "You can cancel within {hours} h of granting (in case of a mistake). After that, only the reseller can release it before the end date.",
+      "noRevokeHint": "The {hours} h cancellation window has passed: only the reseller can release the exclusivity before the end date.",
+      "requestsTitle": "Reseller requests",
+      "noRequests": "No requests yet.",
+      "accept": "Grant",
+      "decline": "Decline",
+      "grantTitle": "Grant exclusivity",
+      "storeSlugLabel": "Reseller's store (identifier)",
+      "storeSlugPlaceholder": "e.g. maison-lea",
+      "termLabel": "Term",
+      "termDays": "{days} days",
+      "grantCta": "Grant exclusivity",
+      "confirmEvict": "{count} other reseller(s) already sell this product. To grant exclusivity they will be removed from their store and notified. Confirm?",
+      "confirmEvictCta": "Remove the others and grant",
+      "granted": "Exclusivity granted until {date}.",
+      "grantedEvicted": "Exclusivity granted until {date} · {count} store(s) removed.",
+      "declined": "Request declined.",
+      "revoked": "Grant cancelled.",
+      "rules": "Rules: 7–365 days · one reseller at a time · other resellers can no longer add this product during the term.",
+      "errors": {
+        "generic": "Something went wrong. Please try again.",
+        "product_not_found": "Product not found.",
+        "not_a_marketplace_product": "Publish the product first.",
+        "affiliate_not_eligible": "This reseller doesn't exist or has no store.",
+        "store_not_found": "Store not found.",
+        "held_by_other": "This product is already exclusive to another reseller.",
+        "revoke_window_closed": "The cancellation window has passed.",
+        "not_exclusive": "No active exclusivity."
+      }
+    },
+    "affiliate": {
+      "title": "Exclusivity",
+      "none": "Ask the supplier to make you the only reseller of this product: nobody else will be able to sell it during the granted term.",
+      "request": "Request exclusivity",
+      "messagePlaceholder": "A word for the supplier (expected volume, promotion plan…) — optional",
+      "send": "Send request",
+      "requested": "Request sent — waiting for the supplier's answer.",
+      "withdraw": "Withdraw request",
+      "mine": "Exclusivity active until {date}: only your store can sell this product.",
+      "release": "Release exclusivity",
+      "releaseConfirm": "Release the exclusivity? The product will be open to all resellers again.",
+      "other": "This product is exclusive to another reseller.",
+      "sent": "Request sent.",
+      "released": "Exclusivity released.",
+      "withdrawn": "Request withdrawn.",
+      "errors": {
+        "generic": "Something went wrong. Please try again.",
+        "already_exclusive": "This product is already exclusive.",
+        "already_requested": "You already have a pending request for this product.",
+        "no_store": "Create your store first.",
+        "own_product": "You can't request exclusivity on your own product.",
+        "product_not_found": "Product not found."
+      }
+    }
   }
 }

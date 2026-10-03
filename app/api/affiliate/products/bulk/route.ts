@@ -5,6 +5,7 @@ import { removeAffiliateListingsFromStorefront } from "@/lib/affiliate-listing-r
 import { cancelAuctionsForListings } from "@/lib/auction-listing-lifecycle"
 import { affiliateListingsWhere } from "@/lib/merchant-tenant-scope"
 import { prisma } from "@/lib/prisma"
+import { findExclusiveProductsBlockedForAffiliate } from "@/lib/product-exclusivity-guard.server"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 
 export const runtime = "nodejs"
@@ -54,9 +55,25 @@ export async function PATCH(request: Request) {
     })
   }
 
+  /** Listings that could not go live because their product is held in exclusivity by another reseller. */
+  let exclusiveBlockedIds: string[] = []
+
   if (typeof body.isListed === "boolean") {
+    let listedWhere = where
+    if (body.isListed) {
+      const candidates = await prisma.affiliateProduct.findMany({ where, select: { id: true, productId: true } })
+      const blocked = await findExclusiveProductsBlockedForAffiliate(
+        candidates.map((c) => c.productId),
+        session.user.id
+      )
+      const blockedProducts = new Set(blocked.map((b) => b.productId))
+      exclusiveBlockedIds = candidates.filter((c) => blockedProducts.has(c.productId)).map((c) => c.id)
+      if (exclusiveBlockedIds.length > 0) {
+        listedWhere = { ...where, id: { in: candidates.filter((c) => !blockedProducts.has(c.productId)).map((c) => c.id) } }
+      }
+    }
     await prisma.affiliateProduct.updateMany({
-      where,
+      where: listedWhere,
       data: { isListed: body.isListed },
     })
     if (!body.isListed) {
@@ -85,7 +102,10 @@ export async function PATCH(request: Request) {
 
   await revalidateAffiliateShopfront(session.user.id)
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({
+    ok: true,
+    ...(exclusiveBlockedIds.length > 0 ? { exclusiveBlocked: exclusiveBlockedIds.length } : {}),
+  })
 }
 
 export async function DELETE(request: Request) {

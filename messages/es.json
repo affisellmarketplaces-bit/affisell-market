@@ -8510,5 +8510,70 @@
     "status_failed": "Fallida",
     "loadError": "No se pudo cargar. Inténtalo de nuevo.",
     "revokeConfirm": "¿Revocar esta clave? La IA pierde el acceso de inmediato."
+  },
+  "productExclusivity": {
+    "supplier": {
+      "title": "Exclusividad para revendedores",
+      "intro": "Concede a UN solo revendedor la exclusividad de este producto durante un plazo fijo: nadie más podrá venderlo. Se compromete a promocionarlo; tú ganas un socio fiel.",
+      "loading": "Cargando…",
+      "loadError": "No se pudo cargar la exclusividad en este momento.",
+      "holderTitle": "Exclusividad activa",
+      "holderLine": "{store} · hasta el {date}",
+      "extend": "Ampliar {days} días",
+      "revoke": "Cancelar esta concesión",
+      "revokeHint": "Puedes cancelarla en las {hours} h posteriores a la concesión (en caso de error). Después, solo el revendedor puede liberarla antes del vencimiento.",
+      "noRevokeHint": "El plazo de cancelación ({hours} h) ha pasado: solo el revendedor puede liberar la exclusividad antes del vencimiento.",
+      "requestsTitle": "Solicitudes de revendedores",
+      "noRequests": "Aún no hay solicitudes.",
+      "accept": "Conceder",
+      "decline": "Rechazar",
+      "grantTitle": "Conceder exclusividad",
+      "storeSlugLabel": "Tienda del revendedor (identificador)",
+      "storeSlugPlaceholder": "p. ej. maison-lea",
+      "termLabel": "Duración",
+      "termDays": "{days} días",
+      "grantCta": "Conceder exclusividad",
+      "confirmEvict": "{count} revendedor(es) más ya venden este producto. Para conceder la exclusividad se retirará de su tienda y se les avisará. ¿Confirmar?",
+      "confirmEvictCta": "Retirar a los demás y conceder",
+      "granted": "Exclusividad concedida hasta el {date}.",
+      "grantedEvicted": "Exclusividad concedida hasta el {date} · {count} tienda(s) retirada(s).",
+      "declined": "Solicitud rechazada.",
+      "revoked": "Concesión cancelada.",
+      "rules": "Reglas: de 7 a 365 días · un revendedor a la vez · los demás revendedores no pueden añadir este producto durante el periodo.",
+      "errors": {
+        "generic": "Algo salió mal. Inténtalo de nuevo.",
+        "product_not_found": "Producto no encontrado.",
+        "not_a_marketplace_product": "Publica primero el producto.",
+        "affiliate_not_eligible": "Este revendedor no existe o no tiene tienda.",
+        "store_not_found": "Tienda no encontrada.",
+        "held_by_other": "Este producto ya es exclusivo de otro revendedor.",
+        "revoke_window_closed": "El plazo de cancelación ha pasado.",
+        "not_exclusive": "No hay exclusividad activa."
+      }
+    },
+    "affiliate": {
+      "title": "Exclusividad",
+      "none": "Pide al proveedor ser el único revendedor de este producto: nadie más podrá venderlo durante el periodo concedido.",
+      "request": "Solicitar exclusividad",
+      "messagePlaceholder": "Unas palabras para el proveedor (volumen previsto, plan de promoción…) — opcional",
+      "send": "Enviar solicitud",
+      "requested": "Solicitud enviada — esperando la respuesta del proveedor.",
+      "withdraw": "Retirar la solicitud",
+      "mine": "Exclusividad activa hasta el {date}: solo tu tienda puede vender este producto.",
+      "release": "Liberar la exclusividad",
+      "releaseConfirm": "¿Liberar la exclusividad? El producto volverá a estar abierto a todos los revendedores.",
+      "other": "Este producto es exclusivo de otro revendedor.",
+      "sent": "Solicitud enviada.",
+      "released": "Exclusividad liberada.",
+      "withdrawn": "Solicitud retirada.",
+      "errors": {
+        "generic": "Algo salió mal. Inténtalo de nuevo.",
+        "already_exclusive": "Este producto ya es exclusivo.",
+        "already_requested": "Ya tienes una solicitud pendiente para este producto.",
+        "no_store": "Crea primero tu tienda.",
+        "own_product": "No puedes solicitar la exclusividad de tu propio producto.",
+        "product_not_found": "Producto no encontrado."
+      }
+    }
   }
 }

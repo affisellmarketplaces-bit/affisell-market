@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { flushSync } from "react-dom"
 import { Loader2, Rocket, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { AffiliateExclusivityPanel } from "@/components/affiliate/affiliate-exclusivity-panel"
 
 import { registerMerchantDraftFlush } from "@/lib/merchant-draft-flush"
 import { sanitizeListingDescriptionField } from "@/lib/html-description-extract-shared"
@@ -771,6 +772,8 @@ function ListingBuilderModalBody({
 
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6">
           {error ? <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
+
+          {onboardingFlow ? null : <AffiliateExclusivityPanel productId={product.id} />}
 
           {form.step === 1 ? (
             <>

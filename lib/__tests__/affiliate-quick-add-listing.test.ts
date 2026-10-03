@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-const { findUnique, findFirst, aggregate, create, update, count, updateMany } = vi.hoisted(() => ({
+const { findUnique, findFirst, aggregate, create, update, count, updateMany, productFindUnique } = vi.hoisted(() => ({
+  productFindUnique: vi.fn(),
   findUnique: vi.fn(),
   findFirst: vi.fn(),
   aggregate: vi.fn(),
@@ -17,7 +18,7 @@ const { merchantVerificationGate } = vi.hoisted(() => ({
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     affiliateProduct: { findUnique, aggregate, create, update, count, updateMany },
-    product: { findFirst },
+    product: { findFirst, findUnique: productFindUnique },
   },
 }))
 
@@ -49,6 +50,7 @@ describe("quickAddAffiliateListing", () => {
       isListed: false,
     })
     update.mockResolvedValue({ id: "listing_1", isListed: true })
+    productFindUnique.mockResolvedValue({ exclusiveAffiliateId: null, exclusiveUntil: null })
   })
 
   it("creates and auto-publishes listing at +30% suggested price", async () => {
@@ -123,6 +125,43 @@ describe("quickAddAffiliateListing", () => {
     if (!result.ok) return
     expect(result.listing.isListed).toBe(false)
     expect(result.publishBlocked).toBe("pending")
+    expect(update).not.toHaveBeenCalled()
+  })
+
+  it("refuses to create a listing for a product held in exclusivity by another reseller", async () => {
+    const until = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)
+    findFirst.mockResolvedValue({
+      id: "prod_1",
+      basePriceCents: 10_000,
+      images: [],
+      exclusiveAffiliateId: "someone_else",
+      exclusiveUntil: until,
+    })
+    const result = await quickAddAffiliateListing({ affiliateId: "aff_1", productId: "prod_1" })
+    expect(result).toMatchObject({ ok: false, status: 409, error: "product_exclusive", until: until.toISOString() })
+    expect(create).not.toHaveBeenCalled()
+  })
+
+  it("lets the exclusivity holder add the product", async () => {
+    findFirst.mockResolvedValue({
+      id: "prod_1",
+      basePriceCents: 10_000,
+      images: [],
+      exclusiveAffiliateId: "aff_1",
+      exclusiveUntil: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+    })
+    findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: "listing_1", affiliateId: "aff_1", isListed: false })
+    const result = await quickAddAffiliateListing({ affiliateId: "aff_1", productId: "prod_1" })
+    expect(result.ok).toBe(true)
+    expect(create).toHaveBeenCalled()
+  })
+
+  it("does not publish an existing draft once someone else holds the exclusivity", async () => {
+    const until = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)
+    findUnique.mockResolvedValueOnce({ id: "existing", productId: "prod_1", sellingPriceCents: 1, isListed: false })
+    productFindUnique.mockResolvedValue({ exclusiveAffiliateId: "someone_else", exclusiveUntil: until })
+    const result = await quickAddAffiliateListing({ affiliateId: "aff_1", productId: "prod_1" })
+    expect(result).toMatchObject({ ok: false, status: 409, error: "product_exclusive" })
     expect(update).not.toHaveBeenCalled()
   })
 

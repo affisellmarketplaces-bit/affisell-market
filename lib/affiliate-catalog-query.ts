@@ -18,6 +18,7 @@ import {
   type AffiliateCatalogProduct,
 } from "@/lib/affiliate-catalog-types"
 import { buildCategoryScopeProductFilter } from "@/lib/marketplace-category-product-filter"
+import { catalogExclusivityWhere } from "@/lib/product-exclusivity-shared"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
 
@@ -150,6 +151,8 @@ export async function buildAffiliateCatalogProductWhere(
   }
 
   const affiliateId = opts?.affiliateId?.trim()
+  // Products held in exclusivity by another reseller cannot be added — keep them out of every catalogue surface.
+  if (affiliateId) andParts.push(catalogExclusivityWhere(affiliateId))
   if (affiliateId && vitrine === "hors") {
     andParts.push({
       NOT: {

@@ -8510,5 +8510,70 @@
     "status_failed": "失败",
     "loadError": "加载失败，请重试。",
     "revokeConfirm": "撤销此密钥？AI 将立即失去访问权限。"
+  },
+  "productExclusivity": {
+    "supplier": {
+      "title": "分销商独家权",
+      "intro": "在固定期限内，仅授予一位分销商该商品的独家销售权：其他人无法销售。对方承诺积极推广，您将获得忠实的合作伙伴。",
+      "loading": "加载中…",
+      "loadError": "暂时无法加载独家权信息。",
+      "holderTitle": "独家权生效中",
+      "holderLine": "{store} · 至 {date}",
+      "extend": "延长 {days} 天",
+      "revoke": "撤销本次授予",
+      "revokeHint": "授予后 {hours} 小时内可撤销（用于更正错误）。之后只有分销商可以在到期前释放独家权。",
+      "noRevokeHint": "撤销期限（{hours} 小时）已过：到期前只有分销商可以释放独家权。",
+      "requestsTitle": "分销商申请",
+      "noRequests": "暂无申请。",
+      "accept": "授予",
+      "decline": "拒绝",
+      "grantTitle": "授予独家权",
+      "storeSlugLabel": "分销商店铺（标识）",
+      "storeSlugPlaceholder": "例如 maison-lea",
+      "termLabel": "期限",
+      "termDays": "{days} 天",
+      "grantCta": "授予独家权",
+      "confirmEvict": "已有 {count} 位其他分销商在销售该商品。授予独家权将把它们从各自店铺下架并通知对方。确认吗？",
+      "confirmEvictCta": "下架其他分销商并授予",
+      "granted": "已授予独家权，至 {date}。",
+      "grantedEvicted": "已授予独家权，至 {date} · 已下架 {count} 家店铺。",
+      "declined": "已拒绝申请。",
+      "revoked": "已撤销授予。",
+      "rules": "规则：7–365 天 · 同一时间仅一位分销商 · 期间其他分销商无法添加该商品。",
+      "errors": {
+        "generic": "出错了，请重试。",
+        "product_not_found": "未找到商品。",
+        "not_a_marketplace_product": "请先发布该商品。",
+        "affiliate_not_eligible": "该分销商不存在或没有店铺。",
+        "store_not_found": "未找到店铺。",
+        "held_by_other": "该商品已被其他分销商独家持有。",
+        "revoke_window_closed": "撤销期限已过。",
+        "not_exclusive": "没有生效的独家权。"
+      }
+    },
+    "affiliate": {
+      "title": "独家权",
+      "none": "请供应商让您成为该商品唯一的分销商：在授予期间其他人无法销售。",
+      "request": "申请独家权",
+      "messagePlaceholder": "给供应商的留言（预计销量、推广计划等）——可选",
+      "send": "发送申请",
+      "requested": "申请已发送——等待供应商答复。",
+      "withdraw": "撤回申请",
+      "mine": "独家权生效至 {date}：只有您的店铺可以销售该商品。",
+      "release": "释放独家权",
+      "releaseConfirm": "确认释放独家权？该商品将重新对所有分销商开放。",
+      "other": "该商品由其他分销商独家持有。",
+      "sent": "申请已发送。",
+      "released": "已释放独家权。",
+      "withdrawn": "已撤回申请。",
+      "errors": {
+        "generic": "出错了，请重试。",
+        "already_exclusive": "该商品已被独家持有。",
+        "already_requested": "您对该商品已有待处理的申请。",
+        "no_store": "请先创建您的店铺。",
+        "own_product": "不能为自己的商品申请独家权。",
+        "product_not_found": "未找到商品。"
+      }
+    }
   }
 }

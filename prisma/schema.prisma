@@ -1134,6 +1134,14 @@ model Product {
    * In-progress listing; always kept inactive until published.
    */
   isDraft                       Boolean            @default(false)
+  /**
+   * Per-product reseller exclusivity granted by the supplier: while `exclusiveUntil` is in the future, only
+   * `exclusiveAffiliateId` may list this product (see lib/product-exclusivity.*). Both null = open to everyone.
+   * Expiry is evaluated lazily from the date — no cron.
+   */
+  exclusiveAffiliateId          String?
+  exclusiveGrantedAt            DateTime?
+  exclusiveUntil                DateTime?
 
   /**
    * Normalized taxonomy (optional — legacy rows still match via `categories[]` in counts).
@@ -1373,6 +1381,7 @@ model Product {
   @@index([categoryId])
   @@index([aliexpressProductId])
   @@index([supplierId, isDraft])
+  @@index([exclusiveAffiliateId])
   @@index([supplierId, externalProvider, externalId])
   @@index([sourceIntegrationId])
   @@index([supplierId, isDecoupled])
@@ -4501,6 +4510,26 @@ model SupplierDeliveryStats {
   computedAt         DateTime @default(now())
 
   @@index([computedAt])
+}
+
+/**
+ * A reseller asks a supplier for exclusivity on one product. The supplier accepts (→ grant) or declines.
+ * One open (PENDING) request per reseller and product.
+ */
+model ProductExclusivityRequest {
+  id          String    @id @default(cuid())
+  productId   String
+  supplierId  String
+  affiliateId String
+  /** PENDING | ACCEPTED | DECLINED | CANCELLED */
+  status      String    @default("PENDING")
+  message     String?   @db.VarChar(500)
+  createdAt   DateTime  @default(now())
+  respondedAt DateTime?
+
+  @@index([productId, status])
+  @@index([supplierId, status])
+  @@index([affiliateId, status])
 }
 
 // ─── Market Intelli ───

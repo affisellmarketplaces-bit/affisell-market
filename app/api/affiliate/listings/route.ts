@@ -5,6 +5,7 @@ import {
   recordAffiliateSwipe,
 } from "@/lib/affiliate-swipe-feed.server"
 import { suggestedSellingPriceCents } from "@/lib/affiliate-catalog-margin-display"
+import { exclusivityBlockBody } from "@/lib/product-exclusivity-shared"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
@@ -45,6 +46,9 @@ export async function POST(request: Request) {
   if (!product) {
     return NextResponse.json({ error: "Product not found or inactive" }, { status: 404 })
   }
+
+  const exclusiveBlock = exclusivityBlockBody(product, session.user.id)
+  if (exclusiveBlock) return NextResponse.json(exclusiveBlock, { status: 409 })
 
   const kycBlocked = await requireMerchantVerifiedForPublish(session.user.id)
   if (kycBlocked) return kycBlocked

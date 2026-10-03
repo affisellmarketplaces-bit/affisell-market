@@ -8510,5 +8510,70 @@
     "status_failed": "Mislukt",
     "loadError": "Laden mislukt. Probeer opnieuw.",
     "revokeConfirm": "Deze sleutel intrekken? De AI verliest meteen toegang."
+  },
+  "productExclusivity": {
+    "supplier": {
+      "title": "Exclusiviteit voor wederverkopers",
+      "intro": "Geef ÉÉN wederverkoper voor een vaste periode het exclusieve recht op dit product: niemand anders kan het verkopen. Hij belooft het te promoten; jij krijgt een trouwe partner.",
+      "loading": "Laden…",
+      "loadError": "De exclusiviteit kan nu niet worden geladen.",
+      "holderTitle": "Exclusiviteit actief",
+      "holderLine": "{store} · tot {date}",
+      "extend": "Verlengen met {days} dagen",
+      "revoke": "Deze toekenning annuleren",
+      "revokeHint": "Je kunt annuleren binnen {hours} uur na toekenning (bij een vergissing). Daarna kan alleen de wederverkoper de exclusiviteit voor de einddatum vrijgeven.",
+      "noRevokeHint": "De annuleringstermijn ({hours} uur) is verstreken: alleen de wederverkoper kan de exclusiviteit voor de einddatum vrijgeven.",
+      "requestsTitle": "Verzoeken van wederverkopers",
+      "noRequests": "Nog geen verzoeken.",
+      "accept": "Toekennen",
+      "decline": "Afwijzen",
+      "grantTitle": "Exclusiviteit toekennen",
+      "storeSlugLabel": "Winkel van de wederverkoper (identificatie)",
+      "storeSlugPlaceholder": "bijv. maison-lea",
+      "termLabel": "Looptijd",
+      "termDays": "{days} dagen",
+      "grantCta": "Exclusiviteit toekennen",
+      "confirmEvict": "{count} andere wederverkoper(s) verkopen dit product al. Om exclusiviteit toe te kennen worden zij uit hun winkel verwijderd en op de hoogte gebracht. Bevestigen?",
+      "confirmEvictCta": "Anderen verwijderen en toekennen",
+      "granted": "Exclusiviteit toegekend tot {date}.",
+      "grantedEvicted": "Exclusiviteit toegekend tot {date} · {count} winkel(s) verwijderd.",
+      "declined": "Verzoek afgewezen.",
+      "revoked": "Toekenning geannuleerd.",
+      "rules": "Regels: 7–365 dagen · één wederverkoper tegelijk · andere wederverkopers kunnen dit product in die periode niet toevoegen.",
+      "errors": {
+        "generic": "Er ging iets mis. Probeer het opnieuw.",
+        "product_not_found": "Product niet gevonden.",
+        "not_a_marketplace_product": "Publiceer het product eerst.",
+        "affiliate_not_eligible": "Deze wederverkoper bestaat niet of heeft geen winkel.",
+        "store_not_found": "Winkel niet gevonden.",
+        "held_by_other": "Dit product is al exclusief voor een andere wederverkoper.",
+        "revoke_window_closed": "De annuleringstermijn is verstreken.",
+        "not_exclusive": "Geen actieve exclusiviteit."
+      }
+    },
+    "affiliate": {
+      "title": "Exclusiviteit",
+      "none": "Vraag de leverancier om de enige wederverkoper van dit product te worden: niemand anders kan het verkopen tijdens de toegekende periode.",
+      "request": "Exclusiviteit aanvragen",
+      "messagePlaceholder": "Een woordje voor de leverancier (verwacht volume, promotieplan…) — optioneel",
+      "send": "Verzoek versturen",
+      "requested": "Verzoek verstuurd — wacht op het antwoord van de leverancier.",
+      "withdraw": "Verzoek intrekken",
+      "mine": "Exclusiviteit actief tot {date}: alleen jouw winkel kan dit product verkopen.",
+      "release": "Exclusiviteit vrijgeven",
+      "releaseConfirm": "Exclusiviteit vrijgeven? Het product staat dan weer open voor alle wederverkopers.",
+      "other": "Dit product is exclusief voor een andere wederverkoper.",
+      "sent": "Verzoek verstuurd.",
+      "released": "Exclusiviteit vrijgegeven.",
+      "withdrawn": "Verzoek ingetrokken.",
+      "errors": {
+        "generic": "Er ging iets mis. Probeer het opnieuw.",
+        "already_exclusive": "Dit product is al exclusief.",
+        "already_requested": "Je hebt al een openstaand verzoek voor dit product.",
+        "no_store": "Maak eerst je winkel aan.",
+        "own_product": "Je kunt geen exclusiviteit aanvragen op je eigen product.",
+        "product_not_found": "Product niet gevonden."
+      }
+    }
   }
 }

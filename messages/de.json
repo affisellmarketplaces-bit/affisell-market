@@ -8510,5 +8510,70 @@
     "status_failed": "Fehlgeschlagen",
     "loadError": "Laden nicht möglich. Bitte erneut versuchen.",
     "revokeConfirm": "Diesen Schlüssel widerrufen? Die KI verliert sofort den Zugriff."
+  },
+  "productExclusivity": {
+    "supplier": {
+      "title": "Händler-Exklusivität",
+      "intro": "Gewähren Sie EINEM Händler für einen festen Zeitraum die exklusiven Rechte an diesem Produkt: Niemand sonst darf es verkaufen. Er verpflichtet sich zur Bewerbung, Sie gewinnen einen treuen Partner.",
+      "loading": "Wird geladen…",
+      "loadError": "Die Exklusivität konnte gerade nicht geladen werden.",
+      "holderTitle": "Exklusivität aktiv",
+      "holderLine": "{store} · bis {date}",
+      "extend": "Um {days} Tage verlängern",
+      "revoke": "Diese Vergabe stornieren",
+      "revokeHint": "Sie können innerhalb von {hours} Std. nach der Vergabe stornieren (bei einem Irrtum). Danach kann nur der Händler sie vor Ablauf freigeben.",
+      "noRevokeHint": "Die Stornofrist ({hours} Std.) ist abgelaufen: Nur der Händler kann die Exklusivität vor Ablauf freigeben.",
+      "requestsTitle": "Anfragen von Händlern",
+      "noRequests": "Noch keine Anfragen.",
+      "accept": "Gewähren",
+      "decline": "Ablehnen",
+      "grantTitle": "Exklusivität gewähren",
+      "storeSlugLabel": "Shop des Händlers (Kennung)",
+      "storeSlugPlaceholder": "z. B. maison-lea",
+      "termLabel": "Laufzeit",
+      "termDays": "{days} Tage",
+      "grantCta": "Exklusivität gewähren",
+      "confirmEvict": "{count} weitere(r) Händler verkaufen dieses Produkt bereits. Um Exklusivität zu gewähren, werden sie aus ihrem Shop entfernt und benachrichtigt. Bestätigen?",
+      "confirmEvictCta": "Andere entfernen und gewähren",
+      "granted": "Exklusivität bis {date} gewährt.",
+      "grantedEvicted": "Exklusivität bis {date} gewährt · {count} Shop(s) entfernt.",
+      "declined": "Anfrage abgelehnt.",
+      "revoked": "Vergabe storniert.",
+      "rules": "Regeln: 7–365 Tage · jeweils ein Händler · andere Händler können dieses Produkt während der Laufzeit nicht mehr hinzufügen.",
+      "errors": {
+        "generic": "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
+        "product_not_found": "Produkt nicht gefunden.",
+        "not_a_marketplace_product": "Veröffentlichen Sie das Produkt zuerst.",
+        "affiliate_not_eligible": "Dieser Händler existiert nicht oder hat keinen Shop.",
+        "store_not_found": "Shop nicht gefunden.",
+        "held_by_other": "Dieses Produkt ist bereits exklusiv bei einem anderen Händler.",
+        "revoke_window_closed": "Die Stornofrist ist abgelaufen.",
+        "not_exclusive": "Keine aktive Exklusivität."
+      }
+    },
+    "affiliate": {
+      "title": "Exklusivität",
+      "none": "Bitten Sie den Lieferanten, Sie zum einzigen Händler dieses Produkts zu machen: Niemand sonst kann es im gewährten Zeitraum verkaufen.",
+      "request": "Exklusivität anfragen",
+      "messagePlaceholder": "Ein paar Worte an den Lieferanten (erwartetes Volumen, Werbeplan …) – optional",
+      "send": "Anfrage senden",
+      "requested": "Anfrage gesendet – wartet auf die Antwort des Lieferanten.",
+      "withdraw": "Anfrage zurückziehen",
+      "mine": "Exklusivität aktiv bis {date}: Nur Ihr Shop kann dieses Produkt verkaufen.",
+      "release": "Exklusivität freigeben",
+      "releaseConfirm": "Exklusivität freigeben? Das Produkt steht dann wieder allen Händlern offen.",
+      "other": "Dieses Produkt ist exklusiv bei einem anderen Händler.",
+      "sent": "Anfrage gesendet.",
+      "released": "Exklusivität freigegeben.",
+      "withdrawn": "Anfrage zurückgezogen.",
+      "errors": {
+        "generic": "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
+        "already_exclusive": "Dieses Produkt ist bereits exklusiv vergeben.",
+        "already_requested": "Für dieses Produkt liegt bereits eine offene Anfrage von Ihnen vor.",
+        "no_store": "Erstellen Sie zuerst Ihren Shop.",
+        "own_product": "Für Ihr eigenes Produkt können Sie keine Exklusivität anfragen.",
+        "product_not_found": "Produkt nicht gefunden."
+      }
+    }
   }
 }

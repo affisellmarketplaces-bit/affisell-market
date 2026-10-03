@@ -8510,5 +8510,70 @@
     "status_failed": "Échec",
     "loadError": "Chargement impossible. Réessayez.",
     "revokeConfirm": "Révoquer cette clé ? L'IA perd l'accès immédiatement."
+  },
+  "productExclusivity": {
+    "supplier": {
+      "title": "Exclusivité revendeur",
+      "intro": "Accordez à un seul revendeur l'exclusivité de ce produit pour une durée fixe : personne d'autre ne pourra le vendre. Il s'engage à le promouvoir, vous gagnez un partenaire fidèle.",
+      "loading": "Chargement…",
+      "loadError": "Impossible de charger l'exclusivité pour le moment.",
+      "holderTitle": "Exclusivité active",
+      "holderLine": "{store} · jusqu'au {date}",
+      "extend": "Prolonger de {days} jours",
+      "revoke": "Annuler cette attribution",
+      "revokeHint": "Vous pouvez l'annuler dans les {hours} h suivant l'attribution (en cas d'erreur). Ensuite, seul le revendeur peut la libérer avant l'échéance.",
+      "noRevokeHint": "Le délai d'annulation ({hours} h) est dépassé : seul le revendeur peut libérer l'exclusivité avant l'échéance.",
+      "requestsTitle": "Demandes de revendeurs",
+      "noRequests": "Aucune demande pour l'instant.",
+      "accept": "Accorder",
+      "decline": "Refuser",
+      "grantTitle": "Accorder l'exclusivité",
+      "storeSlugLabel": "Boutique du revendeur (identifiant)",
+      "storeSlugPlaceholder": "ex. maison-lea",
+      "termLabel": "Durée",
+      "termDays": "{days} jours",
+      "grantCta": "Accorder l'exclusivité",
+      "confirmEvict": "{count} autre(s) revendeur(s) vendent déjà ce produit. Pour accorder l'exclusivité, il(s) seront retiré(s) de leur boutique et prévenu(s). Confirmer ?",
+      "confirmEvictCta": "Retirer les autres et accorder",
+      "granted": "Exclusivité accordée jusqu'au {date}.",
+      "grantedEvicted": "Exclusivité accordée jusqu'au {date} · {count} boutique(s) retirée(s).",
+      "declined": "Demande refusée.",
+      "revoked": "Attribution annulée.",
+      "rules": "Règles : durée de 7 à 365 jours · un seul revendeur à la fois · les autres revendeurs ne peuvent plus ajouter ce produit pendant la période.",
+      "errors": {
+        "generic": "Une erreur est survenue. Réessayez.",
+        "product_not_found": "Produit introuvable.",
+        "not_a_marketplace_product": "Publiez d'abord le produit.",
+        "affiliate_not_eligible": "Ce revendeur n'existe pas ou n'a pas de boutique.",
+        "store_not_found": "Boutique introuvable.",
+        "held_by_other": "Ce produit est déjà en exclusivité chez un autre revendeur.",
+        "revoke_window_closed": "Le délai d'annulation est dépassé.",
+        "not_exclusive": "Aucune exclusivité active."
+      }
+    },
+    "affiliate": {
+      "title": "Exclusivité",
+      "none": "Demandez au fournisseur d'être le seul revendeur de ce produit : personne d'autre ne pourra le vendre pendant la période accordée.",
+      "request": "Demander l'exclusivité",
+      "messagePlaceholder": "Un mot pour le fournisseur (volume prévu, plan de promotion…) — facultatif",
+      "send": "Envoyer la demande",
+      "requested": "Demande envoyée — en attente de la réponse du fournisseur.",
+      "withdraw": "Retirer la demande",
+      "mine": "Exclusivité active jusqu'au {date} : seule votre boutique peut vendre ce produit.",
+      "release": "Libérer l'exclusivité",
+      "releaseConfirm": "Libérer l'exclusivité ? Le produit sera de nouveau ouvert à tous les revendeurs.",
+      "other": "Ce produit est en exclusivité chez un autre revendeur.",
+      "sent": "Demande envoyée.",
+      "released": "Exclusivité libérée.",
+      "withdrawn": "Demande retirée.",
+      "errors": {
+        "generic": "Une erreur est survenue. Réessayez.",
+        "already_exclusive": "Ce produit est déjà en exclusivité.",
+        "already_requested": "Vous avez déjà une demande en cours pour ce produit.",
+        "no_store": "Créez d'abord votre boutique.",
+        "own_product": "Vous ne pouvez pas demander l'exclusivité de votre propre produit.",
+        "product_not_found": "Produit introuvable."
+      }
+    }
   }
 }

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-const { findUnique, update, count, updateMany } = vi.hoisted(() => ({
+const { findUnique, update, count, updateMany, productFindUnique } = vi.hoisted(() => ({
+  productFindUnique: vi.fn(),
   findUnique: vi.fn(),
   update: vi.fn(),
   count: vi.fn(),
@@ -14,6 +15,7 @@ const { merchantVerificationGate } = vi.hoisted(() => ({
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     affiliateProduct: { findUnique, update, count, updateMany },
+    product: { findUnique: productFindUnique },
   },
 }))
 
@@ -34,7 +36,9 @@ describe("publishAffiliateListingIfAllowed", () => {
       id: "listing_1",
       affiliateId: "aff_1",
       isListed: false,
+      productId: "prod_1",
     })
+    productFindUnique.mockResolvedValue({ exclusiveAffiliateId: null, exclusiveUntil: null })
     merchantVerificationGate.mockResolvedValue({ allowed: true, status: "APPROVED" })
     update.mockResolvedValue({ id: "listing_1", isListed: true })
   })
@@ -79,8 +83,9 @@ describe("syncAffiliateStorefrontListingsLive", () => {
   it("publishes all draft rows when KYC allows", async () => {
     const result = await syncAffiliateStorefrontListingsLive("aff_1")
     expect(result).toEqual({ publishedCount: 2, kycBlocked: false })
+    // Drafts go live — except products another reseller holds in exclusivity (see the exclusivity guards test).
     expect(updateMany).toHaveBeenCalledWith({
-      where: { affiliateId: "aff_1", isListed: false },
+      where: { affiliateId: "aff_1", isListed: false, product: { OR: expect.any(Array) } },
       data: { isListed: true },
     })
   })

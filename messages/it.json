@@ -8510,5 +8510,70 @@
     "status_failed": "Non riuscita",
     "loadError": "Impossibile caricare. Riprova.",
     "revokeConfirm": "Revocare questa chiave? L'IA perde subito l'accesso."
+  },
+  "productExclusivity": {
+    "supplier": {
+      "title": "Esclusiva rivenditori",
+      "intro": "Concedi a UN solo rivenditore l'esclusiva di questo prodotto per un periodo fisso: nessun altro potrà venderlo. Si impegna a promuoverlo; tu ottieni un partner fedele.",
+      "loading": "Caricamento…",
+      "loadError": "Impossibile caricare l'esclusiva al momento.",
+      "holderTitle": "Esclusiva attiva",
+      "holderLine": "{store} · fino al {date}",
+      "extend": "Prolunga di {days} giorni",
+      "revoke": "Annulla questa concessione",
+      "revokeHint": "Puoi annullarla entro {hours} h dalla concessione (in caso di errore). Dopo, solo il rivenditore può rilasciarla prima della scadenza.",
+      "noRevokeHint": "Il termine di annullamento ({hours} h) è scaduto: solo il rivenditore può rilasciare l'esclusiva prima della scadenza.",
+      "requestsTitle": "Richieste dei rivenditori",
+      "noRequests": "Nessuna richiesta per ora.",
+      "accept": "Concedi",
+      "decline": "Rifiuta",
+      "grantTitle": "Concedi l'esclusiva",
+      "storeSlugLabel": "Negozio del rivenditore (identificativo)",
+      "storeSlugPlaceholder": "es. maison-lea",
+      "termLabel": "Durata",
+      "termDays": "{days} giorni",
+      "grantCta": "Concedi l'esclusiva",
+      "confirmEvict": "{count} altro/i rivenditore/i vendono già questo prodotto. Per concedere l'esclusiva verranno rimossi dal loro negozio e avvisati. Confermi?",
+      "confirmEvictCta": "Rimuovi gli altri e concedi",
+      "granted": "Esclusiva concessa fino al {date}.",
+      "grantedEvicted": "Esclusiva concessa fino al {date} · {count} negozio/i rimosso/i.",
+      "declined": "Richiesta rifiutata.",
+      "revoked": "Concessione annullata.",
+      "rules": "Regole: da 7 a 365 giorni · un solo rivenditore alla volta · gli altri rivenditori non possono più aggiungere questo prodotto durante il periodo.",
+      "errors": {
+        "generic": "Qualcosa è andato storto. Riprova.",
+        "product_not_found": "Prodotto non trovato.",
+        "not_a_marketplace_product": "Pubblica prima il prodotto.",
+        "affiliate_not_eligible": "Questo rivenditore non esiste o non ha un negozio.",
+        "store_not_found": "Negozio non trovato.",
+        "held_by_other": "Questo prodotto è già in esclusiva presso un altro rivenditore.",
+        "revoke_window_closed": "Il termine di annullamento è scaduto.",
+        "not_exclusive": "Nessuna esclusiva attiva."
+      }
+    },
+    "affiliate": {
+      "title": "Esclusiva",
+      "none": "Chiedi al fornitore di essere l'unico rivenditore di questo prodotto: nessun altro potrà venderlo durante il periodo concesso.",
+      "request": "Richiedi l'esclusiva",
+      "messagePlaceholder": "Due parole per il fornitore (volume previsto, piano di promozione…) — facoltativo",
+      "send": "Invia richiesta",
+      "requested": "Richiesta inviata — in attesa della risposta del fornitore.",
+      "withdraw": "Ritira la richiesta",
+      "mine": "Esclusiva attiva fino al {date}: solo il tuo negozio può vendere questo prodotto.",
+      "release": "Rilascia l'esclusiva",
+      "releaseConfirm": "Rilasciare l'esclusiva? Il prodotto tornerà aperto a tutti i rivenditori.",
+      "other": "Questo prodotto è in esclusiva presso un altro rivenditore.",
+      "sent": "Richiesta inviata.",
+      "released": "Esclusiva rilasciata.",
+      "withdrawn": "Richiesta ritirata.",
+      "errors": {
+        "generic": "Qualcosa è andato storto. Riprova.",
+        "already_exclusive": "Questo prodotto è già in esclusiva.",
+        "already_requested": "Hai già una richiesta in corso per questo prodotto.",
+        "no_store": "Crea prima il tuo negozio.",
+        "own_product": "Non puoi richiedere l'esclusiva sul tuo stesso prodotto.",
+        "product_not_found": "Prodotto non trovato."
+      }
+    }
   }
 }

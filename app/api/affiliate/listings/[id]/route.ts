@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { cancelAuctionsForListings } from "@/lib/auction-listing-lifecycle"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
+import { exclusivityBlockBody } from "@/lib/product-exclusivity-shared"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 import { revalidateListingCardImage } from "@/lib/revalidate-listing-card-image"
 
@@ -65,6 +66,8 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   }
 
   if (nextListed && !row.isListed) {
+    const exclusiveBlock = exclusivityBlockBody(row.product, session.user.id)
+    if (exclusiveBlock) return NextResponse.json(exclusiveBlock, { status: 409 })
     const kycBlocked = await requireMerchantVerifiedForPublish(session.user.id)
     if (kycBlocked) return kycBlocked
   }

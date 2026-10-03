@@ -4,6 +4,8 @@ import { suggestedSellingPriceCents } from "@/lib/affiliate-catalog-margin-displ
 import { publishAffiliateListingIfAllowed } from "@/lib/affiliate-publish-listing.server"
 import type { MerchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
+import { checkAffiliateMayListProduct } from "@/lib/product-exclusivity-guard.server"
+import { exclusivityBlockBody, exclusivityConflictBody } from "@/lib/product-exclusivity-shared"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 
 export type QuickAddAffiliateListingInput = {
@@ -18,7 +20,7 @@ export type QuickAddAffiliateListingResult =
       created: boolean
       publishBlocked: MerchantVerificationGate["reason"] | null
     }
-  | { ok: false; status: number; error: string }
+  | { ok: false; status: number; error: string; message?: string; until?: string }
 
 function listingImagesFromProduct(images: unknown): string[] {
   if (!Array.isArray(images)) return []
@@ -68,6 +70,11 @@ export async function quickAddAffiliateListing(
         publishBlocked: null,
       }
     }
+    // An existing draft must not go live once someone else holds the exclusivity.
+    const exclusivity = await checkAffiliateMayListProduct(productId, input.affiliateId)
+    if (!exclusivity.ok) {
+      return { ok: false, status: 409, ...exclusivityConflictBody(exclusivity.until) }
+    }
     const live = await autoLiveAfterImport({
       affiliateId: input.affiliateId,
       listingId: existing.id,
@@ -83,7 +90,7 @@ export async function quickAddAffiliateListing(
   const [product, maxPos] = await Promise.all([
     prisma.product.findFirst({
       where: { id: productId, active: true, isDraft: false },
-      select: { id: true, basePriceCents: true, images: true },
+      select: { id: true, basePriceCents: true, images: true, exclusiveAffiliateId: true, exclusiveUntil: true },
     }),
     prisma.affiliateProduct.aggregate({
       where: { affiliateId: input.affiliateId },
@@ -93,6 +100,8 @@ export async function quickAddAffiliateListing(
   if (!product) {
     return { ok: false, status: 404, error: "Product not found or inactive" }
   }
+  const exclusiveBlock = exclusivityBlockBody(product, input.affiliateId)
+  if (exclusiveBlock) return { ok: false, status: 409, ...exclusiveBlock }
 
   const sellingPriceCents = suggestedSellingPriceCents(product.basePriceCents)
   const marginCents = computeAffiliateListingMarginCents(sellingPriceCents, product.basePriceCents)
