@@ -6,6 +6,7 @@ import {
   applyBrandToText,
   brandFooterLine,
   buildBrandedFrom,
+  buyerEmailLinks,
   readableTextOn,
   sanitizeBrandName,
   sanitizeHexColor,
@@ -132,5 +133,25 @@ describe("toEmailBrandProps", () => {
       primaryColor: "#be185d",
       buttonTextColor: "#ffffff",
     })
+  })
+})
+
+describe("buyerEmailLinks", () => {
+  it("keeps every link on the store's verified own domain", () => {
+    const links = buyerEmailLinks(store, "https://affisell-market.vercel.app/")
+    expect(links.orders).toBe("https://maison-lea.com/track-order")
+    expect(links.track).toBe("https://maison-lea.com/track-order")
+    expect(links.listing("ap_1")).toBe("https://maison-lea.com/product/ap_1")
+    expect(links.support("ord 1")).toBe("https://maison-lea.com/contact?order=ord%201")
+  })
+
+  it("falls back to the platform routes without a verified domain, or for the platform brand", () => {
+    for (const brand of [{ ...store, siteHost: null }, PLATFORM_EMAIL_BRAND]) {
+      const links = buyerEmailLinks(brand, "https://affisell-market.vercel.app/")
+      expect(links.orders).toBe("https://affisell-market.vercel.app/marketplace/account/orders")
+      expect(links.track).toBe("https://affisell-market.vercel.app/track-order")
+      expect(links.listing("ap_1")).toBe("https://affisell-market.vercel.app/marketplace/ap_1")
+      expect(links.support("o1")).toBe("https://affisell-market.vercel.app/contact?order=o1")
+    }
   })
 })

@@ -19,10 +19,10 @@ export function emailOnAccent(brand?: EmailBrandProps): string {
 }
 
 /** Store logo (or the store name as text) at the top of the email. Renders nothing for the platform brand. */
-export function EmailBrandHeader({ brand }: { brand?: EmailBrandProps }) {
+export function EmailBrandHeader({ brand, padding = "0 40px 8px" }: { brand?: EmailBrandProps; padding?: string }) {
   if (!brand) return null
   return (
-    <Section style={{ padding: "0 40px 8px" }}>
+    <Section style={{ padding }}>
       {brand.logoUrl ? (
         <Img
           src={brand.logoUrl}

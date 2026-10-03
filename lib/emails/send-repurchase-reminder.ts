@@ -16,6 +16,14 @@ import {
   resolveAppUrl,
   resolveOrderConfirmationImageUrl,
 } from "@/lib/emails/send-order-confirmation"
+import {
+  applyBrandToCopy,
+  applyBrandToText,
+  buildBrandedFrom,
+  buyerEmailLinks,
+  toEmailBrandProps,
+} from "@/lib/emails/email-brand-shared"
+import { resolveEmailBrandForOrder } from "@/lib/emails/email-brand.server"
 import type { AppLocale } from "@/lib/i18n-locale"
 
 export type RepurchaseReminderOrderPayload = {
@@ -54,15 +62,20 @@ export async function sendRepurchaseReminderEmail(
   }
   const resend = new Resend(config.apiKey)
   const { to } = resolveResendDeliveryRecipient("repurchase-reminder", order.customerEmail, config)
-  const repurchaseUrl = `${resolveAppUrl()}/marketplace/${order.affiliateProductId}?ref=repurchase`
+  const brand = await resolveEmailBrandForOrder(order.id)
+  const links = buyerEmailLinks(brand, resolveAppUrl())
+  const repurchaseUrl = `${links.listing(order.affiliateProductId)}?ref=repurchase`
   const customerName = resolveCustomerName(order, locale)
   const productName = order.product.name.trim() || "your product"
 
-  const copy = loadRepurchaseReminderEmailCopy(locale, {
-    orderId: order.id,
-    customerName,
-    productName,
-  })
+  const copy = applyBrandToCopy(
+    loadRepurchaseReminderEmailCopy(locale, {
+      orderId: order.id,
+      customerName,
+      productName,
+    }),
+    brand
+  )
 
   const html = await render(
     RepurchaseReminderEmail({
@@ -73,13 +86,14 @@ export async function sendRepurchaseReminderEmail(
       }),
       repurchaseUrl,
       copy,
+      brand: toEmailBrandProps(brand),
     })
   )
 
   const { data, error } = await resend.emails.send({
-    from: config.from,
+    from: buildBrandedFrom(config.from, brand),
     to,
-    subject: repurchaseReminderEmailSubject(locale, productName),
+    subject: applyBrandToText(repurchaseReminderEmailSubject(locale, productName), brand),
     html,
   })
 

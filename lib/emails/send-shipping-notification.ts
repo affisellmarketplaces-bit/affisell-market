@@ -20,6 +20,7 @@ import {
   applyBrandToCopy,
   applyBrandToText,
   buildBrandedFrom,
+  buyerEmailLinks,
   toEmailBrandProps,
 } from "@/lib/emails/email-brand-shared"
 import { resolveEmailBrandForOrder } from "@/lib/emails/email-brand.server"
@@ -54,15 +55,17 @@ export async function sendShippingNotificationEmail(
   }
   const resend = new Resend(config.apiKey)
   const { to } = resolveResendDeliveryRecipient("shipping-notification", order.customerEmail, config)
-  const orderUrl = sanitizePublicLink(`${resolveAppUrl()}/marketplace/account/orders/${order.id}`)
-  const trackingUrl = sanitizePublicLink(
-    order.trackingUrl?.trim() || `${resolveAppUrl()}/track-order`
+  const brand = await resolveEmailBrandForOrder(order.id)
+  const links = buyerEmailLinks(brand, resolveAppUrl())
+  // The per-order account page only exists on the platform; a store's own domain lists the buyer's orders instead.
+  const orderUrl = sanitizePublicLink(
+    brand.isStore && brand.siteHost ? links.orders : `${resolveAppUrl()}/marketplace/account/orders/${order.id}`
   )
+  const trackingUrl = sanitizePublicLink(order.trackingUrl?.trim() || links.track)
   const carrier =
     order.trackingCarrier?.trim() ||
     tMessage(locale, "emails.shippingNotification.defaultCarrier", "Carrier")
 
-  const brand = await resolveEmailBrandForOrder(order.id)
   const copy = applyBrandToCopy(
     loadShippingNotificationEmailCopy(locale, {
       orderId: order.id,

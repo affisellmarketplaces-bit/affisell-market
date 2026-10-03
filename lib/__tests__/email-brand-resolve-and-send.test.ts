@@ -25,6 +25,8 @@ import { resolveEmailBrandForAffiliate, resolveEmailBrandForOrder } from "@/lib/
 import { sendShippingNotificationEmail } from "@/lib/emails/send-shipping-notification"
 import { sendDeliveredNotificationEmail } from "@/lib/emails/send-delivered-notification"
 import { sendCancelledNotificationEmail } from "@/lib/emails/send-cancelled-notification"
+import { sendReviewReminderEmail } from "@/lib/emails/send-review-reminder"
+import { sendRepurchaseReminderEmail } from "@/lib/emails/send-repurchase-reminder"
 
 const STORE_ROW = {
   name: 'Maison "Léa" <x>',
@@ -115,6 +117,33 @@ describe("buyer status emails are sent under the store's brand", () => {
     expect(msg.html).toContain("https://cdn.example.com/lea.png")
   })
 
+  it("links stay on the store's own domain: shipping, delivered (review + repurchase) and cancelled", async () => {
+    orderFindUnique.mockResolvedValue({ affiliateId: "aff-1" })
+    storeFindUnique.mockResolvedValue({ ...STORE_ROW, name: "Maison Léa" })
+    await sendShippingNotificationEmail(shipOrder, { locale: "fr" })
+    await sendDeliveredNotificationEmail({ ...shipOrder, affiliateProductId: "ap1" }, { locale: "fr" })
+    await sendCancelledNotificationEmail({ ...shipOrder, sellingPriceCents: 4999 }, { locale: "fr", cancelReason: "Rupture" })
+
+    const [shipping, delivered, cancelled] = resendSend.mock.calls.map(([msg]) => msg.html as string)
+    expect(shipping).toContain("https://maison-lea.com/track-order")
+    expect(delivered).toContain("https://maison-lea.com/track-order")
+    expect(delivered).toContain("https://maison-lea.com/product/ap1?writeReview=true")
+    expect(delivered).toContain("https://maison-lea.com/product/ap1?ref=repurchase")
+    expect(cancelled).toContain("https://maison-lea.com/contact?order=")
+    for (const html of [shipping, delivered, cancelled]) {
+      expect(html).not.toContain("/marketplace/")
+    }
+  })
+
+  it("without a verified own domain the links stay on the platform (a store subdomain is not linked yet)", async () => {
+    orderFindUnique.mockResolvedValue({ affiliateId: "aff-1" })
+    storeFindUnique.mockResolvedValue({ ...STORE_ROW, name: "Maison Léa", domainVerified: false })
+    await sendShippingNotificationEmail(shipOrder, { locale: "fr" })
+    const html = resendSend.mock.calls[0]![0].html as string
+    expect(html).toContain("/marketplace/account/orders/")
+    expect(html).not.toContain("maison-lea.com/track-order")
+  })
+
   it("shipping: an order with no store keeps the platform identity exactly as before", async () => {
     orderFindUnique.mockResolvedValue({ affiliateId: null })
     await sendShippingNotificationEmail(shipOrder, { locale: "fr" })
@@ -141,6 +170,43 @@ describe("buyer status emails are sent under the store's brand", () => {
       expect(msg.html).toContain("Maison Léa")
     }
     expect(resendSend).toHaveBeenCalledTimes(2)
+  })
+
+  it("review and repurchase reminders: store sender, store links, no platform brand", async () => {
+    orderFindUnique.mockResolvedValue({ affiliateId: "aff-1" })
+    storeFindUnique.mockResolvedValue({ ...STORE_ROW, name: "Maison Léa" })
+    await sendReviewReminderEmail(
+      { ...shipOrder, deliveredAt: new Date("2026-05-12T00:00:00Z"), affiliateProductId: "ap1" },
+      { locale: "fr" }
+    )
+    await sendRepurchaseReminderEmail({ ...shipOrder, affiliateProductId: "ap1" }, { locale: "fr" })
+
+    expect(resendSend).toHaveBeenCalledTimes(2)
+    for (const [msg] of resendSend.mock.calls) {
+      expect(msg.from).toBe("Maison Léa <noreply@affisell.com>")
+      expect(msg.subject).not.toMatch(/affisell/i)
+      expect(msg.html).toContain("Maison Léa")
+      expect(msg.html).toContain("#be185d")
+      expect(msg.html).not.toContain("affisell-market.vercel.app")
+      expect(msg.html).not.toContain("/marketplace/")
+    }
+    expect(resendSend.mock.calls[0]![0].html).toContain("https://maison-lea.com/product/ap1?writeReview=true")
+    expect(resendSend.mock.calls[1]![0].html).toContain("https://maison-lea.com/product/ap1?ref=repurchase")
+  })
+
+  it("review and repurchase reminders keep the platform identity for an order with no store", async () => {
+    orderFindUnique.mockResolvedValue({ affiliateId: null })
+    await sendReviewReminderEmail(
+      { ...shipOrder, deliveredAt: new Date("2026-05-12T00:00:00Z"), affiliateProductId: "ap1" },
+      { locale: "fr" }
+    )
+    await sendRepurchaseReminderEmail({ ...shipOrder, affiliateProductId: "ap1" }, { locale: "fr" })
+    for (const [msg] of resendSend.mock.calls) {
+      expect(msg.from).toBe("Affisell <noreply@affisell.com>")
+      expect(msg.html).toContain("/marketplace/ap1?")
+    }
+    expect(resendSend.mock.calls[0]![0].html).toContain("#f59e0b")
+    expect(resendSend.mock.calls[1]![0].html).toContain("#7c3aed")
   })
 
   it("a brand lookup failure never blocks the email", async () => {

@@ -14,6 +14,7 @@ import {
   Row,
 } from "@react-email/components"
 
+import { EmailBrandHeader, emailOnAccent, type EmailBrandProps } from "@/lib/emails/email-brand-ui"
 import type { ReviewReminderEmailCopy } from "@/lib/emails/load-email-copy"
 
 export interface ReviewReminderEmailProps {
@@ -22,6 +23,8 @@ export interface ReviewReminderEmailProps {
   productImageUrl: string
   reviewUrl: string
   copy: ReviewReminderEmailCopy
+  /** Reseller brand — omitted for platform orders (renders exactly as before). */
+  brand?: EmailBrandProps
 }
 
 export const ReviewReminderEmail = ({
@@ -29,13 +32,17 @@ export const ReviewReminderEmail = ({
   productImageUrl,
   reviewUrl,
   copy,
+  brand,
 }: ReviewReminderEmailProps) => {
+  const accent = brand?.primaryColor || "#f59e0b"
+  const onAccent = emailOnAccent(brand)
   return (
     <Html>
       <Head />
       <Preview>{copy.preview}</Preview>
       <Body style={main}>
         <Container style={container}>
+          <EmailBrandHeader brand={brand} />
           <Heading style={h1}>{copy.heading}</Heading>
           <Text style={greeting}>{copy.greeting}</Text>
           <Text style={bodyText}>{copy.body}</Text>
@@ -67,8 +74,8 @@ export const ReviewReminderEmail = ({
             <Button
               href={reviewUrl}
               style={{
-                backgroundColor: "#f59e0b",
-                color: "#fff",
+                backgroundColor: accent,
+                color: onAccent,
                 padding: "12px 24px",
                 borderRadius: "6px",
                 textDecoration: "none",

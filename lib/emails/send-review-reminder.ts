@@ -16,6 +16,14 @@ import {
   resolveAppUrl,
   resolveOrderConfirmationImageUrl,
 } from "@/lib/emails/send-order-confirmation"
+import {
+  applyBrandToCopy,
+  applyBrandToText,
+  buildBrandedFrom,
+  buyerEmailLinks,
+  toEmailBrandProps,
+} from "@/lib/emails/email-brand-shared"
+import { resolveEmailBrandForOrder } from "@/lib/emails/email-brand.server"
 import type { AppLocale } from "@/lib/i18n-locale"
 
 export type ReviewReminderOrderPayload = {
@@ -55,13 +63,18 @@ export async function sendReviewReminderEmail(
   }
   const resend = new Resend(config.apiKey)
   const { to } = resolveResendDeliveryRecipient("review-reminder", order.customerEmail, config)
-  const reviewUrl = `${resolveAppUrl()}/marketplace/${order.affiliateProductId}?writeReview=true&orderId=${order.id}`
+  const brand = await resolveEmailBrandForOrder(order.id)
+  const links = buyerEmailLinks(brand, resolveAppUrl())
+  const reviewUrl = `${links.listing(order.affiliateProductId)}?writeReview=true&orderId=${order.id}`
 
-  const copy = loadReviewReminderEmailCopy(locale, {
-    orderId: order.id,
-    customerName: resolveCustomerName(order, locale),
-    deliveredAt: order.deliveredAt,
-  })
+  const copy = applyBrandToCopy(
+    loadReviewReminderEmailCopy(locale, {
+      orderId: order.id,
+      customerName: resolveCustomerName(order, locale),
+      deliveredAt: order.deliveredAt,
+    }),
+    brand
+  )
 
   const html = await render(
     ReviewReminderEmail({
@@ -73,13 +86,14 @@ export async function sendReviewReminderEmail(
       }),
       reviewUrl,
       copy,
+      brand: toEmailBrandProps(brand),
     })
   )
 
   const { data, error } = await resend.emails.send({
-    from: config.from,
+    from: buildBrandedFrom(config.from, brand),
     to,
-    subject: reviewReminderEmailSubject(locale, order.id),
+    subject: applyBrandToText(reviewReminderEmailSubject(locale, order.id), brand),
     html,
   })
 

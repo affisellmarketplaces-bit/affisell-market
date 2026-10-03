@@ -21,6 +21,7 @@ import {
   applyBrandToCopy,
   applyBrandToText,
   buildBrandedFrom,
+  buyerEmailLinks,
   toEmailBrandProps,
 } from "@/lib/emails/email-brand-shared"
 import { resolveEmailBrandForOrder } from "@/lib/emails/email-brand.server"
@@ -74,9 +75,10 @@ export async function sendCancelledNotificationEmail(
   }
   const resend = new Resend(config.apiKey)
   const { to } = resolveResendDeliveryRecipient("cancelled-notification", order.customerEmail, config)
-  const base = resolveAppUrl()
-  const orderUrl = `${base}/marketplace/account/orders`
-  const supportUrl = `${base}/contact?order=${order.id}`
+  const brand = await resolveEmailBrandForOrder(order.id)
+  const links = buyerEmailLinks(brand, resolveAppUrl())
+  const orderUrl = links.orders
+  const supportUrl = links.support(order.id)
   const refundCents = options?.refundAmountCents ?? order.sellingPriceCents
   const currency = "EUR"
   const customerName = resolveCustomerName(
@@ -86,7 +88,6 @@ export async function sendCancelledNotificationEmail(
     locale
   )
 
-  const brand = await resolveEmailBrandForOrder(order.id)
   const copy = applyBrandToCopy(
     loadCancelledNotificationEmailCopy(locale, {
       orderId: order.id,

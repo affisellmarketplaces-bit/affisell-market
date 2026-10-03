@@ -105,6 +105,40 @@ export function buildBrandedFrom(baseFrom: string, brand: EmailBrand): string {
   return `${brand.name} <${address}>`
 }
 
+export type BuyerEmailLinks = {
+  /** "View my order(s)". */
+  orders: string
+  /** Order tracking page. */
+  track: string
+  /** Product page of a listing. */
+  listing: (listingId: string) => string
+  /** Support / contact page, pre-filled with the order. */
+  support: (orderId: string) => string
+}
+
+/**
+ * Links a buyer e-mail points at. For a store with a verified own domain they stay on that domain (the buyer never
+ * lands on affisell.com); otherwise they are the platform marketplace routes, exactly as before.
+ */
+export function buyerEmailLinks(brand: EmailBrand, platformBase: string): BuyerEmailLinks {
+  const base = platformBase.replace(/\/$/, "")
+  if (brand.isStore && brand.siteHost) {
+    const origin = `https://${brand.siteHost}`
+    return {
+      orders: `${origin}/track-order`,
+      track: `${origin}/track-order`,
+      listing: (id) => `${origin}/product/${encodeURIComponent(id)}`,
+      support: (orderId) => `${origin}/contact?order=${encodeURIComponent(orderId)}`,
+    }
+  }
+  return {
+    orders: `${base}/marketplace/account/orders`,
+    track: `${base}/track-order`,
+    listing: (id) => `${base}/marketplace/${id}`,
+    support: (orderId) => `${base}/contact?order=${orderId}`,
+  }
+}
+
 /** Props for the React Email templates; undefined for the platform so templates render exactly as before. */
 export function toEmailBrandProps(
   brand: EmailBrand

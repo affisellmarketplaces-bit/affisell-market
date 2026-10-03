@@ -21,6 +21,7 @@ import {
   applyBrandToCopy,
   applyBrandToText,
   buildBrandedFrom,
+  buyerEmailLinks,
   toEmailBrandProps,
 } from "@/lib/emails/email-brand-shared"
 import { resolveEmailBrandForOrder } from "@/lib/emails/email-brand.server"
@@ -66,10 +67,11 @@ export async function sendDeliveredNotificationEmail(
   }
   const resend = new Resend(config.apiKey)
   const { to } = resolveResendDeliveryRecipient("delivered-notification", order.customerEmail, config)
-  const base = resolveAppUrl()
-  const orderUrl = `${base}/marketplace/account/orders`
-  const reviewUrl = `${base}/marketplace/${order.affiliateProductId}?writeReview=true&orderId=${order.id}`
-  const repurchaseUrl = `${base}/marketplace/${order.affiliateProductId}?ref=repurchase`
+  const brand = await resolveEmailBrandForOrder(order.id)
+  const links = buyerEmailLinks(brand, resolveAppUrl())
+  const orderUrl = links.orders
+  const reviewUrl = `${links.listing(order.affiliateProductId)}?writeReview=true&orderId=${order.id}`
+  const repurchaseUrl = `${links.listing(order.affiliateProductId)}?ref=repurchase`
   const customerName = resolveCustomerName(
     order.customerName,
     order.customerEmail,
@@ -77,7 +79,6 @@ export async function sendDeliveredNotificationEmail(
     locale
   )
 
-  const brand = await resolveEmailBrandForOrder(order.id)
   const copy = applyBrandToCopy(
     loadDeliveredNotificationEmailCopy(locale, {
       orderId: order.id,

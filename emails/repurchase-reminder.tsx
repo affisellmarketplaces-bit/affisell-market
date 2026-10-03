@@ -13,6 +13,7 @@ import {
   Row,
 } from "@react-email/components"
 
+import { EmailBrandHeader, emailOnAccent, type EmailBrandProps } from "@/lib/emails/email-brand-ui"
 import type { RepurchaseReminderEmailCopy } from "@/lib/emails/load-email-copy"
 
 export type RepurchaseReminderEmailProps = {
@@ -20,6 +21,8 @@ export type RepurchaseReminderEmailProps = {
   productImageUrl: string
   repurchaseUrl: string
   copy: RepurchaseReminderEmailCopy
+  /** Reseller brand — omitted for platform orders (renders exactly as before). */
+  brand?: EmailBrandProps
 }
 
 export function RepurchaseReminderEmail({
@@ -27,6 +30,7 @@ export function RepurchaseReminderEmail({
   productImageUrl,
   repurchaseUrl,
   copy,
+  brand,
 }: RepurchaseReminderEmailProps) {
   return (
     <Html>
@@ -34,6 +38,7 @@ export function RepurchaseReminderEmail({
       <Preview>{copy.preview}</Preview>
       <Body style={main}>
         <Container style={container}>
+          <EmailBrandHeader brand={brand} padding="0 0 12px" />
           <Heading style={h1}>{copy.heading}</Heading>
           <Text style={greeting}>{copy.greeting}</Text>
           <Text style={bodyText}>{copy.body}</Text>
@@ -55,7 +60,14 @@ export function RepurchaseReminderEmail({
 
           <Section style={{ textAlign: "center", margin: "24px 0" }}>
             <Text style={{ fontWeight: "600", margin: "0 0 16px" }}>{copy.ctaTitle}</Text>
-            <Button href={repurchaseUrl} style={button}>
+            <Button
+              href={repurchaseUrl}
+              style={
+                brand?.primaryColor
+                  ? { ...button, backgroundColor: brand.primaryColor, color: emailOnAccent(brand) }
+                  : button
+              }
+            >
               {copy.ctaRepurchase}
             </Button>
           </Section>

@@ -17,6 +17,7 @@ import {
   applyBrandToCopy,
   applyBrandToText,
   buildBrandedFrom,
+  buyerEmailLinks,
   toEmailBrandProps,
 } from "@/lib/emails/email-brand-shared"
 import { resolveEmailBrandForAffiliate, resolveEmailBrandForOrder } from "@/lib/emails/email-brand.server"
@@ -70,15 +71,12 @@ export async function sendOrderConfirmationEmail({
     console.error("[Resend] Order confirmation skipped: missing RESEND_API_KEY")
     return
   }
-  const resolvedOrderUrl = sanitizePublicLink(
-    orderUrl ?? `${resolveAppUrl()}/marketplace/account/orders`
-  )
-  const resolvedTrackingUrl = sanitizePublicLink(
-    trackingUrl?.trim() || `${resolveAppUrl()}/track-order`
-  )
   const brand = affiliateId
     ? await resolveEmailBrandForAffiliate(affiliateId)
     : await resolveEmailBrandForOrder(orderId)
+  const links = buyerEmailLinks(brand, resolveAppUrl())
+  const resolvedOrderUrl = sanitizePublicLink(orderUrl ?? links.orders)
+  const resolvedTrackingUrl = sanitizePublicLink(trackingUrl?.trim() || links.track)
   const emailCopy = applyBrandToCopy(
     loadOrderConfirmationEmailCopy(resolvedLocale, {
       orderId,
