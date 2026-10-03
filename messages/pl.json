@@ -3726,6 +3726,17 @@
     "more": {
       "title": "Więcej: poziom zaufania i opłaty",
       "hint": "Odznaki dostawcy, tabela opłat Affisell"
+    },
+    "delivery": {
+      "title": "Rzeczywiste czasy dostawy",
+      "notEnough": "Za mało dostaw śledzonych przez przewoźnika, aby zmierzyć Twoje rzeczywiste czasy dostawy ({count}/{min}). Kupujący zobaczą zmierzone czasy po dostarczeniu {min} zamówień.",
+      "statDispatch": "Mediana wysyłki",
+      "statMedian": "Mediana dostawy",
+      "statP90": "9 na 10 zamówień w ciągu",
+      "days": "{count} d",
+      "basis": "Na podstawie Twoich ostatnich {count} dostaw śledzonych przez przewoźnika (ostatnie {window} dni). Kupujący widzą to na Twoich stronach produktów.",
+      "optimistic": "Twoje oferty obiecują {declared} dni (przygotowanie + maks. transport), ale 9 na 10 zamówień trwa do {p90}. Dostosuj czasy dostawy, aby uniknąć sporów i złych opinii.",
+      "honest": "Zadeklarowane czasy dostawy ({declared} dni) odpowiadają temu, co faktycznie otrzymują kupujący."
     }
   },
   "supplierOrders": {
@@ -8395,7 +8406,9 @@
     "verified": "Zweryfikowany sprzedawca",
     "verifiedNamed": "Zweryfikowany sprzedawca — {name} · {country}",
     "returns": "Zwrot w 14 dni",
-    "payment": "Chroniona płatność"
+    "payment": "Chroniona płatność",
+    "shipGuarantee": "Automatyczny zwrot pieniędzy, jeśli sprzedawca nie wyśle zamówienia w terminie",
+    "measuredDelivery": "Zmierzony czas dostawy: 9 na 10 zamówień dociera w ciągu {p90} dni (mediana {median}) · {count} ostatnich zamówień"
   },
   "homeSelection": {
     "title": "Wybór Affisell",

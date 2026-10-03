@@ -91,6 +91,7 @@ jobs:
             "/api/cron/booking-supplier-digest" \
             "/api/cron/expansion-digest" \
             "/api/cron/refresh-supplier-trust-scores" \
+            "/api/cron/refresh-supplier-delivery-stats" \
             "/api/cron/brand-pulse-nudge" \
             "/api/cron/onboarding" \
             "/api/cron/ing-manual-nudge"

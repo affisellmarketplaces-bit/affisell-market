@@ -23,6 +23,8 @@ describe("i18n-slim-client-messages", () => {
       "/shops/demo-shop/product/ap_123"
     )
     expect(slim.Product).toBeTruthy()
+    // The PDP trust row (returns / payment / delivery) is a client component bound to this namespace.
+    expect(slim.pdpTrust).toBeTruthy()
     expect(slim.reviews).toBeTruthy()
     expect(slim.marketplace).toBeTruthy()
     expect((slim.storefront as Record<string, unknown>).brandStudio).toBeUndefined()

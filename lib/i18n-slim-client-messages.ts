@@ -26,6 +26,7 @@ const DEDICATED_SHOP_PDP_KEYS = [
   "checkout",
   "reviews",
   "marketplace",
+  "pdpTrust",
 ] as const
 
 /** Cart + `/success` client components read `marketplace.*` (checkout region notes) and `success.*` (confirmation + hub). */

@@ -3726,6 +3726,17 @@
     "more": {
       "title": "Más: nivel de confianza y tarifas",
       "hint": "Insignias de proveedor, tabla de tarifas de Affisell"
+    },
+    "delivery": {
+      "title": "Plazos de entrega reales",
+      "notEnough": "Aún no hay suficientes entregas con seguimiento del transportista para medir tus plazos reales ({count}/{min}). Los compradores verán tus plazos medidos cuando se entreguen {min} pedidos.",
+      "statDispatch": "Envío mediano",
+      "statMedian": "Entrega mediana",
+      "statP90": "9 de cada 10 pedidos en",
+      "days": "{count} d",
+      "basis": "Basado en tus últimas {count} entregas con seguimiento del transportista (últimos {window} días). Los compradores lo ven en tus fichas de producto.",
+      "optimistic": "Tus fichas prometen {declared} días (preparación + tránsito máx.), pero 9 de cada 10 pedidos tardan hasta {p90}. Ajusta tus plazos para evitar disputas y malas reseñas.",
+      "honest": "Tus plazos declarados ({declared} días) coinciden con lo que reciben realmente los compradores."
     }
   },
   "supplierOrders": {
@@ -8395,7 +8406,9 @@
     "verified": "Comerciante verificado",
     "verifiedNamed": "Comerciante verificado — {name} · {country}",
     "returns": "Devoluciones en 14 días",
-    "payment": "Pago protegido"
+    "payment": "Pago protegido",
+    "shipGuarantee": "Reembolso automático si no se envía a tiempo",
+    "measuredDelivery": "Entrega medida: 9 de cada 10 pedidos llegan en {p90} días como máximo (mediana {median}) · {count} pedidos recientes"
   },
   "homeSelection": {
     "title": "Selección Affisell",

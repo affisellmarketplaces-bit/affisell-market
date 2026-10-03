@@ -3726,6 +3726,17 @@
     "more": {
       "title": "Plus : niveau de confiance et frais",
       "hint": "Badges fournisseur, grille des frais Affisell"
+    },
+    "delivery": {
+      "title": "Délais de livraison réels",
+      "notEnough": "Pas encore assez de livraisons suivies par transporteur pour mesurer vos délais réels ({count}/{min}). Les acheteurs voient vos délais mesurés dès {min} commandes livrées.",
+      "statDispatch": "Expédition médiane",
+      "statMedian": "Livraison médiane",
+      "statP90": "9 commandes sur 10 en",
+      "days": "{count} j",
+      "basis": "Basé sur vos {count} dernières livraisons suivies par transporteur ({window} derniers jours). Les acheteurs le voient sur vos fiches produit.",
+      "optimistic": "Vos fiches promettent {declared} jours (préparation + livraison max), mais 9 commandes sur 10 prennent jusqu'à {p90}. Alignez vos délais pour éviter litiges et mauvais avis.",
+      "honest": "Vos délais annoncés ({declared} jours) correspondent à ce que reçoivent réellement les acheteurs."
     }
   },
   "supplierOrders": {
@@ -8395,7 +8406,9 @@
     "verified": "Marchand vérifié",
     "verifiedNamed": "Marchand vérifié — {name} · {country}",
     "returns": "Retours sous 14 jours",
-    "payment": "Paiement protégé"
+    "payment": "Paiement protégé",
+    "shipGuarantee": "Remboursement automatique si non expédié à temps",
+    "measuredDelivery": "Délai mesuré : 9 commandes sur 10 livrées en {p90} jours maximum (médiane {median} j) · {count} commandes récentes"
   },
   "homeSelection": {
     "title": "Sélection Affisell",

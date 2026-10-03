@@ -3726,6 +3726,17 @@
     "more": {
       "title": "Meer: vertrouwensniveau & kosten",
       "hint": "Leveranciersbadges, Affisell-tarieventabel"
+    },
+    "delivery": {
+      "title": "Werkelijke levertijden",
+      "notEnough": "Nog niet genoeg door de vervoerder gevolgde leveringen om je werkelijke levertijden te meten ({count}/{min}). Kopers zien je gemeten levertijden zodra {min} bestellingen zijn geleverd.",
+      "statDispatch": "Mediane verzending",
+      "statMedian": "Mediane levering",
+      "statP90": "9 van de 10 bestellingen binnen",
+      "days": "{count} d",
+      "basis": "Gebaseerd op je laatste {count} door de vervoerder gevolgde leveringen (laatste {window} dagen). Kopers zien dit op je productpagina's.",
+      "optimistic": "Je aanbod belooft {declared} dagen (verwerking + max. transport), maar 9 van de 10 bestellingen duren tot {p90}. Pas je levertijden aan om geschillen en slechte reviews te voorkomen.",
+      "honest": "Je opgegeven levertijden ({declared} dagen) komen overeen met wat kopers echt krijgen."
     }
   },
   "supplierOrders": {
@@ -8395,7 +8406,9 @@
     "verified": "Geverifieerde verkoper",
     "verifiedNamed": "Geverifieerde verkoper — {name} · {country}",
     "returns": "14 dagen retour",
-    "payment": "Beschermde betaling"
+    "payment": "Beschermde betaling",
+    "shipGuarantee": "Automatische terugbetaling als niet op tijd verzonden wordt",
+    "measuredDelivery": "Gemeten levertijd: 9 van de 10 bestellingen binnen {p90} dagen geleverd (mediaan {median}) · {count} recente bestellingen"
   },
   "homeSelection": {
     "title": "Affisell-selectie",

@@ -17,9 +17,11 @@ import { SupplierMissionControlHeader } from "@/components/supplier/mission-cont
 import { SupplierMissionControlLive } from "@/components/supplier/mission-control/supplier-mission-control-live"
 import { SupplierOnboardingChecklist } from "@/components/supplier/mission-control/supplier-onboarding-checklist"
 import { SupplierToolsRow } from "@/components/supplier/mission-control/supplier-tools-row"
+import { SupplierDeliveryPerformanceCard } from "@/components/supplier/mission-control/supplier-delivery-performance-card"
 import { SupplierTrustLadderCard } from "@/components/supplier/mission-control/supplier-trust-ladder-card"
 import { SupplierUrgentActions } from "@/components/supplier/mission-control/supplier-urgent-actions"
 import { loadSupplierTrustSnapshot } from "@/lib/supplier/compute-supplier-trust-tier"
+import { loadSupplierDeliveryInsight } from "@/lib/supplier-delivery-stats.server"
 import { coerceSupplierTrustTier } from "@/lib/supplier/supplier-trust-tier-shared"
 import { loadSupplierPublishReadiness } from "@/lib/supplier-publish-readiness"
 import { loadSupplierFirstSaleProgress } from "@/lib/merchant-first-sale-progress"
@@ -57,7 +59,7 @@ export default async function DashboardSupplierPage() {
   const locale = resolveAppLocale(await getLocale())
   const copyLocale = resolveBinaryCopyLocale(locale)
 
-  const [feeUser, trustSnapshot, publishReadiness, firstSaleProgress, analytics] = await Promise.all([
+  const [feeUser, trustSnapshot, publishReadiness, firstSaleProgress, analytics, deliveryInsight] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
@@ -72,6 +74,11 @@ export default async function DashboardSupplierPage() {
     loadSupplierPublishReadiness(session.user.id),
     loadSupplierFirstSaleProgress(session.user.id, data.storeSlug),
     getSupplierAnalytics(session.user.id),
+    // Never block the dashboard on a metric that only informs: a failure just hides the card.
+    loadSupplierDeliveryInsight(session.user.id).catch((error) => {
+      console.error("[supplier/dashboard] delivery insight failed", error)
+      return null
+    }),
   ])
 
   const resellerReach =
@@ -139,6 +146,7 @@ export default async function DashboardSupplierPage() {
               <aside className="min-w-0 space-y-6">
                 <SupplierPublishReadinessCard readiness={publishReadiness} />
                 <SupplierEscrowPulseCard summary={data.escrow} locale={copyLocale} />
+                {deliveryInsight ? <SupplierDeliveryPerformanceCard insight={deliveryInsight} /> : null}
                 <RadarSupplierDiscoveryCard supplierKind={feeUser?.supplierKind} resellerReach={resellerReach} />
                 <SupplierProductRequestsTeaser />
               </aside>

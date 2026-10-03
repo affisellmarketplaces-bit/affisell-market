@@ -1,4 +1,5 @@
 import type { ListingSellerTrust } from "@/lib/listing-seller-trust.server"
+import type { ProvenDeliveryStats } from "@/lib/supplier-delivery-stats-shared"
 import type { ReactNode } from "react"
 import type { ShopShippingOffer } from "@/lib/shipping/supplier-carrier-offers-shared"
 import type { ListingLogisticsInput } from "@/lib/listing-logistics-display"
@@ -27,6 +28,8 @@ export type ListingShippingBlock = ListingLogisticsInput & {
   shippingMethods: string[]
   /** Public facts about the merchant behind the listing (verified identity). */
   sellerTrust: ListingSellerTrust
+  /** Carrier-attested delivery times of the supplier — null until enough orders have been measured. */
+  measuredDelivery: ProvenDeliveryStats | null
 }
 
 export type SpecRow = { label: string; value: string }

@@ -3726,6 +3726,17 @@
     "more": {
       "title": "Mehr: Vertrauensstufe & Gebühren",
       "hint": "Lieferantenabzeichen, Affisell-Gebührentabelle"
+    },
+    "delivery": {
+      "title": "Tatsächliche Lieferzeiten",
+      "notEnough": "Noch nicht genug vom Versanddienstleister verfolgte Lieferungen, um Ihre tatsächlichen Lieferzeiten zu messen ({count}/{min}). Käufer sehen Ihre gemessenen Zeiten, sobald {min} Bestellungen zugestellt wurden.",
+      "statDispatch": "Median Versand",
+      "statMedian": "Median Lieferung",
+      "statP90": "9 von 10 Bestellungen innerhalb von",
+      "days": "{count} T",
+      "basis": "Basierend auf Ihren letzten {count} vom Versanddienstleister verfolgten Lieferungen (letzte {window} Tage). Käufer sehen dies auf Ihren Produktseiten.",
+      "optimistic": "Ihre Angebote versprechen {declared} Tage (Bearbeitung + max. Transit), aber 9 von 10 Bestellungen brauchen bis zu {p90}. Passen Sie Ihre Lieferzeiten an, um Streitfälle und schlechte Bewertungen zu vermeiden.",
+      "honest": "Ihre angegebenen Lieferzeiten ({declared} Tage) entsprechen dem, was Käufer tatsächlich erhalten."
     }
   },
   "supplierOrders": {
@@ -8395,7 +8406,9 @@
     "verified": "Verifizierter Händler",
     "verifiedNamed": "Verifizierter Händler — {name} · {country}",
     "returns": "14 Tage Rückgabe",
-    "payment": "Geschützte Zahlung"
+    "payment": "Geschützte Zahlung",
+    "shipGuarantee": "Automatische Erstattung, wenn nicht rechtzeitig versendet wird",
+    "measuredDelivery": "Gemessene Lieferzeit: 9 von 10 Bestellungen kommen innerhalb von {p90} Tagen an (Median {median}) · {count} aktuelle Bestellungen"
   },
   "homeSelection": {
     "title": "Affisell-Auswahl",

@@ -3726,6 +3726,17 @@
     "more": {
       "title": "More: trust level & fees",
       "hint": "Supplier badges, Affisell fee grid"
+    },
+    "delivery": {
+      "title": "Real delivery times",
+      "notEnough": "Not enough carrier-tracked deliveries yet to measure your real delivery times ({count}/{min}). Buyers see your measured times once {min} orders have been delivered.",
+      "statDispatch": "Median dispatch",
+      "statMedian": "Median delivery",
+      "statP90": "9 in 10 orders within",
+      "days": "{count} d",
+      "basis": "Based on your {count} latest carrier-tracked deliveries (last {window} days). Buyers see this on your product pages.",
+      "optimistic": "Your listings promise {declared} days (processing + max transit), but 9 in 10 orders take up to {p90}. Align your delivery times to avoid disputes and bad reviews.",
+      "honest": "Your declared delivery times ({declared} days) match what buyers actually get."
     }
   },
   "supplierOrders": {
@@ -8395,7 +8406,9 @@
     "verified": "Verified merchant",
     "verifiedNamed": "Verified merchant — {name} · {country}",
     "returns": "14-day returns",
-    "payment": "Protected payment"
+    "payment": "Protected payment",
+    "shipGuarantee": "Auto-refund if the seller doesn't ship in time",
+    "measuredDelivery": "Measured delivery: 9 in 10 orders arrive within {p90} days (median {median}) · {count} recent orders"
   },
   "homeSelection": {
     "title": "Affisell selection",

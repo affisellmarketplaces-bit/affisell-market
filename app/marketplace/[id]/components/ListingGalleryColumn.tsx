@@ -366,7 +366,7 @@ export function ListingGalleryColumn({
               onOpen={() => setTryOnOpen(true)}
             />
           ) : null}
-          <ListingLogisticsStrip logistics={shipping} compact trust={shipping.sellerTrust} />
+          <ListingLogisticsStrip logistics={shipping} compact trust={shipping.sellerTrust} measured={shipping.measuredDelivery} />
         </div>
       </section>
     </motion.div>

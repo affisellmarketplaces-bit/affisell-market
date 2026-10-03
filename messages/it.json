@@ -3726,6 +3726,17 @@
     "more": {
       "title": "Altro: livello di fiducia e commissioni",
       "hint": "Badge fornitore, tabella commissioni Affisell"
+    },
+    "delivery": {
+      "title": "Tempi di consegna reali",
+      "notEnough": "Non ci sono ancora abbastanza consegne tracciate dal corriere per misurare i tuoi tempi reali ({count}/{min}). Gli acquirenti vedranno i tempi misurati dopo {min} ordini consegnati.",
+      "statDispatch": "Spedizione mediana",
+      "statMedian": "Consegna mediana",
+      "statP90": "9 ordini su 10 entro",
+      "days": "{count} g",
+      "basis": "Basato sulle tue ultime {count} consegne tracciate dal corriere (ultimi {window} giorni). Gli acquirenti lo vedono nelle tue schede prodotto.",
+      "optimistic": "Le tue schede promettono {declared} giorni (preparazione + transito max), ma 9 ordini su 10 richiedono fino a {p90}. Allinea i tempi per evitare dispute e recensioni negative.",
+      "honest": "I tuoi tempi dichiarati ({declared} giorni) corrispondono a ciò che gli acquirenti ricevono davvero."
     }
   },
   "supplierOrders": {
@@ -8395,7 +8406,9 @@
     "verified": "Commerciante verificato",
     "verifiedNamed": "Commerciante verificato — {name} · {country}",
     "returns": "Resi entro 14 giorni",
-    "payment": "Pagamento protetto"
+    "payment": "Pagamento protetto",
+    "shipGuarantee": "Rimborso automatico se non spedito in tempo",
+    "measuredDelivery": "Consegna misurata: 9 ordini su 10 arrivano entro {p90} giorni (mediana {median}) · {count} ordini recenti"
   },
   "homeSelection": {
     "title": "Selezione Affisell",

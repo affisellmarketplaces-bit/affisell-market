@@ -1,6 +1,6 @@
 "use client"
 
-import { BadgeCheck, Globe2, MapPin, PackageCheck, RotateCcw, ShieldCheck, Truck } from "lucide-react"
+import { BadgeCheck, Gauge, Globe2, MapPin, PackageCheck, RotateCcw, ShieldCheck, Truck } from "lucide-react"
 import { isUsMarket } from "@/lib/market-config"
 import { useLocale, useTranslations } from "next-intl"
 
@@ -12,6 +12,7 @@ import {
   warehouseZoneKey,
 } from "@/lib/listing-logistics-display"
 import type { ListingSellerTrust } from "@/lib/listing-seller-trust.server"
+import type { ProvenDeliveryStats } from "@/lib/supplier-delivery-stats-shared"
 import { visitorCountryDisplayName } from "@/lib/visitor-country"
 import { cn } from "@/lib/utils"
 
@@ -21,9 +22,11 @@ type Props = {
   compact?: boolean
   /** Verified-merchant facts; omit to hide the trust row. */
   trust?: ListingSellerTrust
+  /** Carrier-attested delivery times of the supplier; omit (or null) when not enough orders were measured. */
+  measured?: ProvenDeliveryStats | null
 }
 
-export function ListingLogisticsStrip({ logistics, className, compact = false, trust }: Props) {
+export function ListingLogisticsStrip({ logistics, className, compact = false, trust, measured }: Props) {
   const tTrust = useTranslations("pdpTrust")
   const locale = useLocale()
   const t = useTranslations("Product.logistics")
@@ -103,6 +106,23 @@ export function ListingLogisticsStrip({ logistics, className, compact = false, t
               : tTrust("verified")}
           </li>
         ) : null}
+        {measured ? (
+          <li
+            data-testid="pdp-measured-delivery"
+            className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400"
+          >
+            <Gauge className="size-3.5 shrink-0" aria-hidden />
+            {tTrust("measuredDelivery", {
+              p90: measured.p90EndToEndDays,
+              median: measured.medianEndToEndDays,
+              count: measured.sampleSize,
+            })}
+          </li>
+        ) : null}
+        <li className="inline-flex items-center gap-1.5">
+          <Truck className="size-3.5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
+          {tTrust("shipGuarantee")}
+        </li>
         <li className="inline-flex items-center gap-1.5">
           <RotateCcw className="size-3.5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
           {tTrust("returns")}

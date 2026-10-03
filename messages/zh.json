@@ -3726,6 +3726,17 @@
     "more": {
       "title": "更多：信任等级与费用",
       "hint": "供应商徽章、Affisell 费用表"
+    },
+    "delivery": {
+      "title": "实际送达时间",
+      "notEnough": "承运商跟踪的已送达订单还不足以衡量您的实际送达时间（{count}/{min}）。累计送达 {min} 单后，买家将看到您的实测时间。",
+      "statDispatch": "发货中位数",
+      "statMedian": "送达中位数",
+      "statP90": "10 单中 9 单在",
+      "days": "{count} 天",
+      "basis": "基于您最近 {count} 笔由承运商跟踪的送达（近 {window} 天）。买家会在您的商品页看到这些数据。",
+      "optimistic": "您的商品承诺 {declared} 天（备货 + 最长运输），但 10 单中有 9 单最多需要 {p90} 天。请调整时效承诺，以避免纠纷和差评。",
+      "honest": "您声明的时效（{declared} 天）与买家实际收到的一致。"
     }
   },
   "supplierOrders": {
@@ -8395,7 +8406,9 @@
     "verified": "已验证商家",
     "verifiedNamed": "已验证商家 — {name} · {country}",
     "returns": "14 天退货",
-    "payment": "支付受保护"
+    "payment": "支付受保护",
+    "shipGuarantee": "卖家未按时发货将自动退款",
+    "measuredDelivery": "实测送达时间：10 单中有 9 单在 {p90} 天内送达（中位数 {median} 天）· 近期 {count} 单"
   },
   "homeSelection": {
     "title": "Affisell 甄选",
