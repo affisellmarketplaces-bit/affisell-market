@@ -26,6 +26,9 @@ const DEDICATED_SHOP_PDP_KEYS = [
   "marketplace",
 ] as const
 
+/** Cart + `/success` client components read `marketplace.*` (checkout region notes) and `success.*` (confirmation + hub). */
+const DEDICATED_SHOP_BUYER_FLOW_KEYS = ["success", "marketplace"] as const
+
 const DEDICATED_SUPPLIER_KEYS = ["errors", "cookieBanner", "CommandK"] as const
 
 function omitStorefrontBrandStudio(value: unknown): unknown {
@@ -54,6 +57,10 @@ function isDedicatedShopPdpPath(pathname: string): boolean {
   return /^\/shops\/[^/]+\/product\/[^/]+/.test(pathname)
 }
 
+function isDedicatedShopBuyerFlowPath(pathname: string): boolean {
+  return ["/success", "/cart"].some((p) => pathname === p || pathname.startsWith(`${p}/`))
+}
+
 function isDedicatedSupplierPath(pathname: string): boolean {
   return /^\/store\/supplier\/[^/]+/.test(pathname)
 }
@@ -71,7 +78,9 @@ export function slimClientMessagesForDedicatedStorefront(
 
   const keys = isDedicatedShopPdpPath(path)
     ? [...DEDICATED_SHOP_BASE_KEYS, ...DEDICATED_SHOP_PDP_KEYS]
-    : [...DEDICATED_SHOP_BASE_KEYS]
+    : isDedicatedShopBuyerFlowPath(path)
+      ? [...DEDICATED_SHOP_BASE_KEYS, ...DEDICATED_SHOP_BUYER_FLOW_KEYS]
+      : [...DEDICATED_SHOP_BASE_KEYS]
 
   return pickClientMessages(full, keys)
 }

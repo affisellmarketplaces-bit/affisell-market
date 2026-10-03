@@ -32,9 +32,11 @@ import {
 } from "@/lib/guest-cart"
 import { CartCheckoutIdentitySheet } from "@/components/cart/cart-checkout-identity-sheet"
 import { StripeCheckoutWarmup } from "@/components/checkout/stripe-checkout-warmup"
+import { useStorefrontHost } from "@/components/storefront/storefront-host-context"
 import { useCheckoutHandoff } from "@/hooks/use-checkout-handoff"
 import { dispatchCartUpdated } from "@/lib/buyer-cart-count-client"
 import { formatStoreCurrency } from "@/lib/market-config"
+import { buyerExploreHref, buyerListingHref } from "@/lib/storefront-buyer-links"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/stripe-minimum"
 
 type CartLine = {
@@ -154,6 +156,7 @@ async function fetchSession(signal?: AbortSignal): Promise<AuthSession> {
 export default function CartPage() {
   const t = useTranslations("cart")
   const router = useRouter()
+  const { isStoreHost } = useStorefrontHost()
   const { country: visitorCountry, checkoutAvailable, loading: visitorRegionLoading } =
     useVisitorCheckoutRegion()
   const checkoutBlocked = Boolean(visitorCountry && !checkoutAvailable)
@@ -488,14 +491,16 @@ export default function CartPage() {
           <h1 className="mb-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{t("title")}</h1>
           <p className="text-zinc-600 dark:text-zinc-400">{t("empty")}</p>
           <div className="mt-6 flex flex-wrap gap-3">
+            {isStoreHost ? null : (
+              <Link
+                href="/discover?coach=1"
+                className="inline-flex rounded-full bg-cyan-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-cyan-700"
+              >
+                {t("tryPulse")}
+              </Link>
+            )}
             <Link
-              href="/discover?coach=1"
-              className="inline-flex rounded-full bg-cyan-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-cyan-700"
-            >
-              {t("tryPulse")}
-            </Link>
-            <Link
-              href="/#explorer"
+              href={buyerExploreHref(isStoreHost)}
               className="inline-flex rounded-full border border-zinc-300 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-800 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
             >
               {t("discoverProducts")}
@@ -537,7 +542,7 @@ export default function CartPage() {
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{t("itemCountHint", { count: itemCount })}</p>
           </div>
           <Link
-            href="/#explorer"
+            href={buyerExploreHref(isStoreHost)}
             className="text-sm font-medium text-violet-700 hover:underline dark:text-violet-400"
           >
             {t("explore")}
@@ -557,7 +562,7 @@ export default function CartPage() {
               >
                 <div className="flex gap-4 p-4 sm:p-5">
                   <Link
-                    href={`/marketplace/${row.product.id}`}
+                    href={buyerListingHref(row.product.id, isStoreHost)}
                     className="relative shrink-0 rounded-xl ring-1 ring-zinc-200/80 transition-[box-shadow,ring-color] duration-300 hover:ring-violet-400/60 dark:ring-zinc-700"
                   >
                     <span
@@ -591,7 +596,7 @@ export default function CartPage() {
                         </p>
                       </div>
                       <Link
-                        href={`/marketplace/${row.product.id}`}
+                        href={buyerListingHref(row.product.id, isStoreHost)}
                         className="inline-flex shrink-0 items-center gap-1 rounded-full border border-zinc-200 px-2.5 py-1 text-xs font-medium text-zinc-600 transition hover:border-violet-300 hover:text-violet-700 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-violet-600 dark:hover:text-violet-300"
                       >
                         {t("view")} <ExternalLink className="h-3 w-3 opacity-70" aria-hidden />
@@ -757,7 +762,7 @@ export default function CartPage() {
             {checkoutBusy ? t("redirecting") : checkoutBlocked ? t("checkoutRegionBlocked") : t("validatePurchase")}
           </button>
           <Link
-            href="/#explorer"
+            href={buyerExploreHref(isStoreHost)}
             className="flex w-full items-center justify-center rounded-full border-2 border-zinc-900 py-3 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50 dark:border-zinc-100 dark:text-zinc-50 dark:hover:bg-zinc-800"
           >
             {t("continueShopping")}

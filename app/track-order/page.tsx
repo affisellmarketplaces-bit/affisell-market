@@ -3,18 +3,36 @@ import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
+import { StoreTrackOrder } from "@/components/storefront/store-track-order"
 import { buttonVariants } from "@/components/ui/button"
 import {
   loginCustomerPath,
   MARKETPLACE_BUYER_ORDERS_PATH,
   signupCustomerPath,
 } from "@/lib/login-redirect"
+import { loadAffiliateShopStore } from "@/lib/shop-storefront-data"
+import { getAffiliateStoreHostSlug } from "@/lib/storefront-buyer-host.server"
 import { cn } from "@/lib/utils"
 
 const ORDERS_CALLBACK = MARKETPLACE_BUYER_ORDERS_PATH
 
+/** Reseller store behind this host (null on the platform, or if the store can no longer be loaded). */
+async function loadStoreForHost() {
+  const slug = await getAffiliateStoreHostSlug()
+  if (!slug) return null
+  const store = await loadAffiliateShopStore(slug).catch(() => null)
+  return store ? { slug, store } : null
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("pages.trackOrder")
+  const host = await loadStoreForHost()
+  if (host) {
+    return {
+      title: t("store.metaTitle", { store: host.store.name }),
+      description: t("store.metaDescription", { store: host.store.name }),
+    }
+  }
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
@@ -22,6 +40,17 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function TrackOrderPage() {
+  const host = await loadStoreForHost()
+  if (host) {
+    return (
+      <StoreTrackOrder
+        storeSlug={host.slug}
+        storeName={host.store.name}
+        accent={host.store.theme.accent}
+      />
+    )
+  }
+
   const t = await getTranslations("pages.trackOrder")
   const loginHref = loginCustomerPath(ORDERS_CALLBACK)
   const signupHref = signupCustomerPath(ORDERS_CALLBACK)

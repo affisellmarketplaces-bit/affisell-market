@@ -5100,7 +5100,30 @@
       "myOrders": "Mes commandes",
       "contactSupport": "Contacter le support",
       "proNote": "Vous êtes revendeur ou fournisseur ?",
-      "proLogin": "Connexion professionnelle"
+      "proLogin": "Connexion professionnelle",
+      "store": {
+        "metaTitle": "Suivre ma commande | {store}",
+        "metaDescription": "Statut et suivi transporteur de vos achats chez {store}.",
+        "description": "Connectez-vous avec l'e-mail utilisé lors du paiement pour voir le statut et le suivi de vos commandes chez {store}.",
+        "signedInAs": "Connecté en tant que {email}",
+        "emptyTitle": "Aucune commande trouvée",
+        "emptyBody": "Nous ne trouvons aucune commande chez {store} pour ce compte. Utilisez l'adresse e-mail avec laquelle vous avez payé.",
+        "loadError": "Impossible de charger vos commandes pour le moment. Réessayez dans un instant.",
+        "emailHint": "{store} vous envoie aussi un e-mail à chaque étape clé : confirmation, expédition et livraison.",
+        "orderRef": "Commande n°{ref}",
+        "quantity": "Qté {count}",
+        "defaultCarrier": "Transporteur",
+        "trackingLabel": "{carrier} · suivi {number}",
+        "trackParcel": "Suivre le colis",
+        "backToStore": "Retour à la boutique",
+        "stage": {
+          "confirmed": "Commande confirmée",
+          "preparing": "En préparation",
+          "shipped": "Expédiée",
+          "delivered": "Livrée",
+          "refunded": "Remboursée"
+        }
+      }
     }
   },
   "legal": {

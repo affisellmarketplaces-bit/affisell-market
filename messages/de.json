@@ -5100,7 +5100,30 @@
       "myOrders": "Meine Bestellungen",
       "contactSupport": "Support kontaktieren",
       "proNote": "Ersteller oder Lieferant?",
-      "proLogin": "Professionelles Anmelden"
+      "proLogin": "Professionelles Anmelden",
+      "store": {
+        "metaTitle": "Bestellung verfolgen | {store}",
+        "metaDescription": "Bestellstatus und Sendungsverfolgung für Ihre Einkäufe bei {store}.",
+        "description": "Melden Sie sich mit der E-Mail-Adresse an, die Sie beim Bezahlen verwendet haben, um Status und Sendungsverfolgung Ihrer Bestellungen bei {store} zu sehen.",
+        "signedInAs": "Angemeldet als {email}",
+        "emptyTitle": "Keine Bestellung gefunden",
+        "emptyBody": "Wir finden keine Bestellung bei {store} für dieses Konto. Verwenden Sie die E-Mail-Adresse, mit der Sie bezahlt haben.",
+        "loadError": "Ihre Bestellungen konnten gerade nicht geladen werden. Bitte versuchen Sie es gleich noch einmal.",
+        "emailHint": "{store} schickt Ihnen außerdem bei jedem wichtigen Schritt eine E-Mail: Bestätigung, Versand und Zustellung.",
+        "orderRef": "Bestellung Nr. {ref}",
+        "quantity": "Menge {count}",
+        "defaultCarrier": "Versanddienstleister",
+        "trackingLabel": "{carrier} · Sendungsnummer {number}",
+        "trackParcel": "Paket verfolgen",
+        "backToStore": "Zurück zum Shop",
+        "stage": {
+          "confirmed": "Bestellung bestätigt",
+          "preparing": "In Vorbereitung",
+          "shipped": "Versendet",
+          "delivered": "Zugestellt",
+          "refunded": "Erstattet"
+        }
+      }
     }
   },
   "legal": {

@@ -5100,7 +5100,30 @@
       "myOrders": "Moje zamówienia",
       "contactSupport": "Kontakt z obsługą",
       "proNote": "Kto to: twórca czy dostawca?",
-      "proLogin": "Zaloguj się jako profesjonalista"
+      "proLogin": "Zaloguj się jako profesjonalista",
+      "store": {
+        "metaTitle": "Śledź moje zamówienie | {store}",
+        "metaDescription": "Status zamówienia i śledzenie przesyłki dla Twoich zakupów w {store}.",
+        "description": "Zaloguj się adresem e-mail użytym przy płatności, aby zobaczyć status i śledzenie zamówień w {store}.",
+        "signedInAs": "Zalogowano jako {email}",
+        "emptyTitle": "Nie znaleziono zamówienia",
+        "emptyBody": "Nie znajdujemy zamówień z {store} dla tego konta. Użyj adresu e-mail, którym płaciłeś(-aś).",
+        "loadError": "Nie udało się teraz wczytać Twoich zamówień. Spróbuj ponownie za chwilę.",
+        "emailHint": "{store} wysyła Ci też e-mail na każdym kluczowym etapie: potwierdzenie, wysyłka i dostawa.",
+        "orderRef": "Zamówienie nr {ref}",
+        "quantity": "Ilość {count}",
+        "defaultCarrier": "Przewoźnik",
+        "trackingLabel": "{carrier} · numer śledzenia {number}",
+        "trackParcel": "Śledź paczkę",
+        "backToStore": "Wróć do sklepu",
+        "stage": {
+          "confirmed": "Zamówienie potwierdzone",
+          "preparing": "W przygotowaniu",
+          "shipped": "Wysłane",
+          "delivered": "Dostarczone",
+          "refunded": "Zwrócone"
+        }
+      }
     }
   },
   "legal": {

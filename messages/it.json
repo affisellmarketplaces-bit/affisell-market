@@ -5100,7 +5100,30 @@
       "myOrders": "I miei ordini",
       "contactSupport": "Contatta il supporto",
       "proNote": "Creatore o fornitore?",
-      "proLogin": "Accedi come professionista"
+      "proLogin": "Accedi come professionista",
+      "store": {
+        "metaTitle": "Traccia il mio ordine | {store}",
+        "metaDescription": "Stato dell'ordine e tracciamento del corriere per i tuoi acquisti su {store}.",
+        "description": "Accedi con l'e-mail usata al momento del pagamento per vedere stato e tracciamento dei tuoi ordini su {store}.",
+        "signedInAs": "Accesso effettuato come {email}",
+        "emptyTitle": "Nessun ordine trovato",
+        "emptyBody": "Non troviamo ordini di {store} per questo account. Usa l'indirizzo e-mail con cui hai pagato.",
+        "loadError": "Impossibile caricare i tuoi ordini al momento. Riprova tra un istante.",
+        "emailHint": "{store} ti invia anche un'e-mail a ogni passaggio chiave: conferma, spedizione e consegna.",
+        "orderRef": "Ordine n. {ref}",
+        "quantity": "Qtà {count}",
+        "defaultCarrier": "Corriere",
+        "trackingLabel": "{carrier} · tracciamento {number}",
+        "trackParcel": "Traccia il pacco",
+        "backToStore": "Torna al negozio",
+        "stage": {
+          "confirmed": "Ordine confermato",
+          "preparing": "In preparazione",
+          "shipped": "Spedito",
+          "delivered": "Consegnato",
+          "refunded": "Rimborsato"
+        }
+      }
     }
   },
   "legal": {

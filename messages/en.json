@@ -5100,7 +5100,30 @@
       "myOrders": "My orders",
       "contactSupport": "Contact support",
       "proNote": "Reseller or supplier?",
-      "proLogin": "Professional sign in"
+      "proLogin": "Professional sign in",
+      "store": {
+        "metaTitle": "Track my order | {store}",
+        "metaDescription": "Order status and carrier tracking for your purchases at {store}.",
+        "description": "Sign in with the email you used at checkout to see the status and tracking of your orders from {store}.",
+        "signedInAs": "Signed in as {email}",
+        "emptyTitle": "No order found",
+        "emptyBody": "We couldn't find any order from {store} for this account. Use the email address you paid with.",
+        "loadError": "We couldn't load your orders right now. Please try again in a moment.",
+        "emailHint": "{store} also emails you at every key step: confirmation, shipping and delivery.",
+        "orderRef": "Order #{ref}",
+        "quantity": "Qty {count}",
+        "defaultCarrier": "Carrier",
+        "trackingLabel": "{carrier} · tracking {number}",
+        "trackParcel": "Track parcel",
+        "backToStore": "Back to the store",
+        "stage": {
+          "confirmed": "Order confirmed",
+          "preparing": "Being prepared",
+          "shipped": "Shipped",
+          "delivered": "Delivered",
+          "refunded": "Refunded"
+        }
+      }
     }
   },
   "legal": {

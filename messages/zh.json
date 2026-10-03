@@ -5100,7 +5100,30 @@
       "myOrders": "我的订单",
       "contactSupport": "联系支持",
       "proNote": "创作者还是供应商?",
-      "proLogin": "专业登录"
+      "proLogin": "专业登录",
+      "store": {
+        "metaTitle": "查询我的订单 | {store}",
+        "metaDescription": "查看您在 {store} 的订单状态和物流跟踪。",
+        "description": "请使用付款时填写的邮箱登录，查看您在 {store} 的订单状态和物流跟踪。",
+        "signedInAs": "当前登录：{email}",
+        "emptyTitle": "未找到订单",
+        "emptyBody": "该账户在 {store} 没有订单。请使用您付款时填写的邮箱地址。",
+        "loadError": "暂时无法加载您的订单，请稍后重试。",
+        "emailHint": "{store} 还会在每个关键节点给您发送邮件：订单确认、发货和送达。",
+        "orderRef": "订单号 {ref}",
+        "quantity": "数量 {count}",
+        "defaultCarrier": "承运商",
+        "trackingLabel": "{carrier} · 运单号 {number}",
+        "trackParcel": "查询包裹",
+        "backToStore": "返回店铺",
+        "stage": {
+          "confirmed": "订单已确认",
+          "preparing": "备货中",
+          "shipped": "已发货",
+          "delivered": "已送达",
+          "refunded": "已退款"
+        }
+      }
     }
   },
   "legal": {

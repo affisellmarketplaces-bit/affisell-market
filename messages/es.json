@@ -5100,7 +5100,30 @@
       "myOrders": "Mis órdenes",
       "contactSupport": "Contactar con soporte",
       "proNote": "Creador o proveedor?",
-      "proLogin": "Iniciar sesión profesional"
+      "proLogin": "Iniciar sesión profesional",
+      "store": {
+        "metaTitle": "Seguir mi pedido | {store}",
+        "metaDescription": "Estado del pedido y seguimiento del transportista de tus compras en {store}.",
+        "description": "Inicia sesión con el correo que usaste al pagar para ver el estado y el seguimiento de tus pedidos en {store}.",
+        "signedInAs": "Sesión iniciada como {email}",
+        "emptyTitle": "No se encontró ningún pedido",
+        "emptyBody": "No encontramos ningún pedido de {store} para esta cuenta. Usa el correo con el que pagaste.",
+        "loadError": "No pudimos cargar tus pedidos en este momento. Inténtalo de nuevo en un instante.",
+        "emailHint": "{store} también te envía un correo en cada paso clave: confirmación, envío y entrega.",
+        "orderRef": "Pedido n.º {ref}",
+        "quantity": "Cant. {count}",
+        "defaultCarrier": "Transportista",
+        "trackingLabel": "{carrier} · seguimiento {number}",
+        "trackParcel": "Seguir el paquete",
+        "backToStore": "Volver a la tienda",
+        "stage": {
+          "confirmed": "Pedido confirmado",
+          "preparing": "En preparación",
+          "shipped": "Enviado",
+          "delivered": "Entregado",
+          "refunded": "Reembolsado"
+        }
+      }
     }
   },
   "legal": {

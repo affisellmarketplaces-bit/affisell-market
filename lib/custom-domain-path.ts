@@ -31,6 +31,17 @@ export function isStoreStaticPagePath(barePath: string): boolean {
   return STORE_STATIC_PAGE_PATHS.some((p) => bare === p || bare.startsWith(`${p}/`))
 }
 
+/**
+ * Post-purchase pages that must stay on the reseller's own host: Stripe returns the buyer to the
+ * origin they paid from, so `/success` has to resolve here (not fall through to the store home).
+ */
+export const STORE_BUYER_FLOW_PATHS = ["/success", "/track-order"] as const
+
+export function isStoreBuyerFlowPath(barePath: string): boolean {
+  const bare = barePath || "/"
+  return STORE_BUYER_FLOW_PATHS.some((p) => bare === p || bare.startsWith(`${p}/`))
+}
+
 /** Buyer-safe platform pages served on merchant hosts (legal, support). */
 const MERCHANT_PUBLIC_PLATFORM_PREFIXES = [
   "/legal",
@@ -74,7 +85,7 @@ export function mapCustomDomainPath(
   }
 
   if (role === "AFFILIATE") {
-    if (bare === "/cart" || bare.startsWith("/cart/")) {
+    if (bare === "/cart" || bare.startsWith("/cart/") || isStoreBuyerFlowPath(bare)) {
       return bare
     }
     if (

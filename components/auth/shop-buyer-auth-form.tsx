@@ -15,9 +15,11 @@ type Props = {
   storeName: string
   shopSlug: string
   mode: "login" | "signup"
+  /** Served on the reseller's own host: keep every link on that host (no `/shops/:slug`, no platform signup). */
+  isStoreHost?: boolean
 }
 
-export function ShopBuyerAuthForm({ storeName, shopSlug, mode }: Props) {
+export function ShopBuyerAuthForm({ storeName, shopSlug, mode, isStoreHost = false }: Props) {
   const t = useTranslations("auth")
   const tShop = useTranslations("auth.shopBuyer")
   const search = useSearchParams()
@@ -26,7 +28,8 @@ export function ShopBuyerAuthForm({ storeName, shopSlug, mode }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const defaultReturn = `/shops/${shopSlug}`
+  const storeHomePath = isStoreHost ? "/" : `/shops/${shopSlug}`
+  const defaultReturn = storeHomePath
   const rawCallback = search.get("callbackUrl")
   const safeCallback = sanitizeInternalCallbackUrl(rawCallback)
   const returnTo = safeCallback ?? defaultReturn
@@ -34,9 +37,11 @@ export function ShopBuyerAuthForm({ storeName, shopSlug, mode }: Props) {
   const signupHref = useMemo(() => {
     const u = new URLSearchParams()
     u.set("callbackUrl", returnTo)
+    if (isStoreHost) return `/signup?${u.toString()}`
     u.set("shop", shopSlug)
     return `/signup/customer?${u.toString()}`
-  }, [returnTo, shopSlug])
+  }, [returnTo, shopSlug, isStoreHost])
+  const loginHref = `${isStoreHost ? "" : `/shops/${shopSlug}`}/login?callbackUrl=${encodeURIComponent(returnTo)}`
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -156,7 +161,7 @@ export function ShopBuyerAuthForm({ storeName, shopSlug, mode }: Props) {
             <>
               {tShop("alreadyClient")}{" "}
               <Link
-                href={`/shops/${shopSlug}/login?callbackUrl=${encodeURIComponent(returnTo)}`}
+                href={loginHref}
                 className="font-medium text-zinc-900 underline-offset-2 hover:underline dark:text-zinc-100"
               >
                 {tShop("submitLogin")}
@@ -166,7 +171,7 @@ export function ShopBuyerAuthForm({ storeName, shopSlug, mode }: Props) {
         </p>
 
         <p className="mt-4 text-center">
-          <Link href={`/shops/${shopSlug}`} className="text-sm text-zinc-500 hover:underline">
+          <Link href={storeHomePath} className="text-sm text-zinc-500 hover:underline">
             {tShop("backToStore")}
           </Link>
         </p>

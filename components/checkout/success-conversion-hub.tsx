@@ -10,6 +10,7 @@ import { HomePersonalizedPicksRailLive } from "@/components/home/home-personaliz
 import {
   requestPriceAlertPushSubscription,
 } from "@/components/push/request-price-alert-push"
+import { useStorefrontHost } from "@/components/storefront/storefront-host-context"
 import { buttonVariants } from "@/components/ui/button"
 import {
   brandOrbitTrustStripShell,
@@ -18,7 +19,7 @@ import {
 } from "@/lib/affisell-brand-orbit-shared"
 import type { BuyerPersonalizedPicksPayload } from "@/lib/buyer-personalization-shared"
 import { PUSH_SW_PATH } from "@/lib/push-subscribe-shared"
-import { buildSuccessReviewHref } from "@/lib/success-review-href"
+import { buyerReviewHref } from "@/lib/storefront-buyer-links"
 import { cn } from "@/lib/utils"
 
 const EMPTY_PICKS: BuyerPersonalizedPicksPayload = {
@@ -71,6 +72,7 @@ function SuccessReviewCta({
   orderId: string
 }) {
   const t = useTranslations("success.hub")
+  const { isStoreHost } = useStorefrontHost()
 
   return (
     <div
@@ -86,7 +88,7 @@ function SuccessReviewCta({
           <p className="mt-0.5 text-xs text-zinc-600 dark:text-zinc-400">{t("reviewHint")}</p>
         </div>
         <Link
-          href={buildSuccessReviewHref(affiliateProductId, orderId)}
+          href={buyerReviewHref(affiliateProductId, orderId, isStoreHost)}
           className={cn(
             buttonVariants({ size: "default" }),
             "inline-flex shrink-0 items-center justify-center gap-2 bg-violet-600 text-white hover:bg-violet-700 dark:bg-violet-500 dark:hover:bg-violet-400"
@@ -184,6 +186,7 @@ function SuccessRecommendedRail() {
 
 /** Post-checkout LTV hub — trust, review CTA, push opt-in, personalized picks. */
 export function SuccessConversionHub({ payload }: Props) {
+  const { isStoreHost } = useStorefrontHost()
   if (!payload.paid || payload.error) return null
 
   const reviewListingId = payload.affiliateProductId?.trim()
@@ -196,7 +199,8 @@ export function SuccessConversionHub({ payload }: Props) {
         <SuccessReviewCta affiliateProductId={reviewListingId} orderId={reviewOrderId} />
       ) : null}
       <SuccessPushOptIn />
-      <SuccessRecommendedRail />
+      {/* Marketplace-wide picks would advertise other sellers on a reseller's own storefront. */}
+      {isStoreHost ? null : <SuccessRecommendedRail />}
     </div>
   )
 }

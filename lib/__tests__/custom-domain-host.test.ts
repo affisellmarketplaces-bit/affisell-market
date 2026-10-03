@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import { isPlatformHost, normalizeRequestHost } from "@/lib/custom-domain-host"
 import {
   isMerchantPublicPlatformPath,
+  isStoreBuyerFlowPath,
   mapCustomDomainPath,
   storePublicPrefix,
 } from "@/lib/custom-domain-path"
@@ -40,6 +41,19 @@ describe("mapCustomDomainPath", () => {
 
   it("keeps cart on affiliate custom domain", () => {
     expect(mapCustomDomainPath("/cart", "my-shop", "AFFILIATE")).toBe("/cart")
+  })
+
+  it("keeps the post-purchase pages on the reseller's host instead of the store home", () => {
+    // Stripe returns the buyer to the origin they paid from — /success must resolve there.
+    expect(mapCustomDomainPath("/success", "my-shop", "AFFILIATE")).toBe("/success")
+    expect(mapCustomDomainPath("/track-order", "my-shop", "AFFILIATE")).toBe("/track-order")
+    expect(isStoreBuyerFlowPath("/success")).toBe(true)
+    expect(isStoreBuyerFlowPath("/success-story")).toBe(false)
+    expect(isStoreBuyerFlowPath("/order-success")).toBe(false)
+  })
+
+  it("does not expose buyer-flow pages on supplier storefronts", () => {
+    expect(mapCustomDomainPath("/success", "acme", "SUPPLIER")).toBe(storePublicPrefix("acme", "SUPPLIER"))
   })
 
   it("keeps legal pages on affiliate custom domain", () => {

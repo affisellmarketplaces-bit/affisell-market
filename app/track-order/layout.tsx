@@ -2,6 +2,6 @@ import { StorefrontBuyerFlowFrame } from "@/components/storefront/storefront-buy
 
 export const dynamic = "force-dynamic"
 
-export default function CartLayout({ children }: { children: React.ReactNode }) {
+export default function TrackOrderLayout({ children }: { children: React.ReactNode }) {
   return <StorefrontBuyerFlowFrame>{children}</StorefrontBuyerFlowFrame>
 }

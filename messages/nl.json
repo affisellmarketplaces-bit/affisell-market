@@ -5100,7 +5100,30 @@
       "myOrders": "Mijn bestellingen",
       "contactSupport": "Neem contact op met ondersteuning",
       "proNote": "Creator of leverancier?",
-      "proLogin": "Professioneel inloggen"
+      "proLogin": "Professioneel inloggen",
+      "store": {
+        "metaTitle": "Mijn bestelling volgen | {store}",
+        "metaDescription": "Bestelstatus en track & trace van je aankopen bij {store}.",
+        "description": "Log in met het e-mailadres dat je bij het afrekenen gebruikte om de status en tracking van je bestellingen bij {store} te zien.",
+        "signedInAs": "Ingelogd als {email}",
+        "emptyTitle": "Geen bestelling gevonden",
+        "emptyBody": "We vinden geen bestelling bij {store} voor dit account. Gebruik het e-mailadres waarmee je hebt betaald.",
+        "loadError": "We kunnen je bestellingen nu niet laden. Probeer het zo meteen opnieuw.",
+        "emailHint": "{store} stuurt je ook bij elke belangrijke stap een e-mail: bevestiging, verzending en levering.",
+        "orderRef": "Bestelling nr. {ref}",
+        "quantity": "Aantal {count}",
+        "defaultCarrier": "Vervoerder",
+        "trackingLabel": "{carrier} · trackingnummer {number}",
+        "trackParcel": "Pakket volgen",
+        "backToStore": "Terug naar de winkel",
+        "stage": {
+          "confirmed": "Bestelling bevestigd",
+          "preparing": "In voorbereiding",
+          "shipped": "Verzonden",
+          "delivered": "Geleverd",
+          "refunded": "Terugbetaald"
+        }
+      }
     }
   },
   "legal": {

@@ -14,8 +14,14 @@ import {
 } from "lucide-react"
 
 import { SuccessConversionHub } from "@/components/checkout/success-conversion-hub"
+import { useStorefrontHost } from "@/components/storefront/storefront-host-context"
 import { buttonVariants } from "@/components/ui/button"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import {
+  buyerContinueShoppingHref,
+  buyerOrdersHref,
+  buyerSignInHref,
+} from "@/lib/storefront-buyer-links"
 import { cn } from "@/lib/utils"
 
 function formatPaidAmount(cents: number, currency: string | null | undefined, locale: string): string {
@@ -144,6 +150,7 @@ export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props
   const locale = useLocale()
   const reducedMotion = useReducedMotion()
   const confettiFired = useRef(false)
+  const { isStoreHost } = useStorefrontHost()
 
   const isError = payload.error === "missing_session"
   const orderCount = payload.orderIds?.length ?? (payload.orderId ? 1 : 0)
@@ -330,7 +337,7 @@ export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props
           >
             {!isError ? (
               <Link
-                href="/marketplace/account/orders"
+                href={buyerOrdersHref(isStoreHost)}
                 data-testid="success-view-orders"
                 className={cn(
                   buttonVariants({ size: "lg" }),
@@ -343,14 +350,14 @@ export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props
             ) : null}
             {!signedInAsBuyer ? (
               <Link
-                href="/login/customer?callbackUrl=/marketplace/account/orders"
+                href={buyerSignInHref(isStoreHost)}
                 className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
               >
                 {t("signIn")}
               </Link>
             ) : null}
             <Link
-              href={isError ? "/" : "/shops/browse"}
+              href={isError ? "/" : buyerContinueShoppingHref(isStoreHost)}
               className={cn(buttonVariants({ variant: "ghost", size: "lg" }))}
             >
               {isError ? t("backHome") : t("continueShopping")}

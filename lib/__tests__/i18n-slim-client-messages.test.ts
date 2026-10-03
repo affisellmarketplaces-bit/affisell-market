@@ -38,6 +38,17 @@ describe("i18n-slim-client-messages", () => {
     expect(slim.ghostCheckout).toBeTruthy()
   })
 
+  it("ships the success + marketplace namespaces for the cart and post-purchase pages", () => {
+    const full = loadAppMessages("en")
+    for (const path of ["/success", "/cart"]) {
+      const slim = slimClientMessagesForDedicatedStorefront(full, path)
+      expect(slim.success).toBeTruthy()
+      expect(slim.marketplace).toBeTruthy()
+    }
+    const home = slimClientMessagesForDedicatedStorefront(full, "/shops/demo-shop")
+    expect(home.success).toBeUndefined()
+  })
+
   it("keeps minimal bundle on supplier storefront paths", () => {
     const full = loadAppMessages("en")
     const slim = slimClientMessagesForDedicatedStorefront(full, "/store/supplier/acme")
