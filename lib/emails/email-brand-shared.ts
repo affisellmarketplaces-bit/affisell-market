@@ -6,6 +6,8 @@
  * Everything here is pure (no DB, no React) so it can be unit-tested and shared by every sender.
  */
 
+import { replaceAffisellBrand } from "@/lib/brand-name-shared"
+
 export type EmailBrand = {
   name: string
   /** False = platform identity (Affisell): every helper below is then a no-op. */
@@ -75,12 +77,10 @@ export function brandFooterLine(brand: EmailBrand): string {
 }
 
 const PLATFORM_FOOTER_RE = /Affisell\s*[—–-]\s*affisell-market\.vercel\.app/gi
-const PLATFORM_WORD_RE = /\bAffisell\b/g
-
 /** Replaces the platform footer and any remaining "Affisell" mention by the store brand. No-op for the platform. */
 export function applyBrandToText(text: string, brand: EmailBrand): string {
   if (!brand.isStore) return text
-  return text.replace(PLATFORM_FOOTER_RE, () => brandFooterLine(brand)).replace(PLATFORM_WORD_RE, () => brand.name)
+  return replaceAffisellBrand(text.replace(PLATFORM_FOOTER_RE, () => brandFooterLine(brand)), brand.name)
 }
 
 /** `applyBrandToText` over every string field of an email copy object. */

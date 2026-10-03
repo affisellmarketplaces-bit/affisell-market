@@ -49,6 +49,15 @@ describe("i18n-slim-client-messages", () => {
     expect(home.success).toBeUndefined()
   })
 
+  it("ships the contact + legal namespaces on public support/legal pages (contact form is a client component)", () => {
+    const full = loadAppMessages("en")
+    for (const path of ["/contact", "/legal/cgv", "/support", "/cookies"]) {
+      const slim = slimClientMessagesForDedicatedStorefront(full, path)
+      expect(slim.contact, path).toBeTruthy()
+      expect(slim.legal, path).toBeTruthy()
+    }
+  })
+
   it("keeps minimal bundle on supplier storefront paths", () => {
     const full = loadAppMessages("en")
     const slim = slimClientMessagesForDedicatedStorefront(full, "/store/supplier/acme")

@@ -1,6 +1,7 @@
 import type Stripe from "stripe"
 
 import { appBaseUrl } from "@/lib/app-base-url"
+import { isPlatformHost } from "@/lib/custom-domain-host"
 import { isAffisellVatFranchise } from "@/lib/legal/company-env"
 
 /**
@@ -43,22 +44,39 @@ export function marketplaceCheckoutTaxOptions(): Pick<
  * Pre-pay CGV gate on Stripe Checkout (Code de la conso).
  * Requires Stripe Dashboard → Settings → Public details → Terms of service URL
  * = `{APP_URL}/legal/cgv` (same path as footer).
+ *
+ * `origin` is the host the buyer is checking out from. On a reseller's own host the link stays on that host and the
+ * acceptance text carries no platform brand ("les Conditions générales de vente" — the document itself names the
+ * operator); on the platform it is unchanged.
  */
-export function marketplaceCheckoutCgvConsentOptions(): Pick<
-  Stripe.Checkout.SessionCreateParams,
-  "consent_collection" | "custom_text"
-> {
-  const tosUrl = `${appBaseUrl().replace(/\/$/, "")}/legal/cgv`
-  console.log("[marketplace-stripe-checkout]", { result: "cgv_consent_required", tosUrl })
+export function marketplaceCheckoutCgvConsentOptions(
+  origin?: string
+): Pick<Stripe.Checkout.SessionCreateParams, "consent_collection" | "custom_text"> {
+  const storeHost = isStoreOrigin(origin)
+  const base = storeHost && origin ? origin : appBaseUrl()
+  const tosUrl = `${base.replace(/\/$/, "")}/legal/cgv`
+  console.log("[marketplace-stripe-checkout]", { result: "cgv_consent_required", tosUrl, storeHost })
   return {
     consent_collection: {
       terms_of_service: "required",
     },
     custom_text: {
       terms_of_service_acceptance: {
-        message: `J'accepte les Conditions générales de vente Affisell (${tosUrl}).`,
+        message: storeHost
+          ? `J'accepte les Conditions générales de vente (${tosUrl}).`
+          : `J'accepte les Conditions générales de vente Affisell (${tosUrl}).`,
       },
     },
+  }
+}
+
+/** True when `origin` is a reseller's own host (custom domain / store subdomain), not the Affisell platform. */
+function isStoreOrigin(origin: string | undefined): boolean {
+  if (!origin) return false
+  try {
+    return !isPlatformHost(new URL(origin).host)
+  } catch {
+    return false
   }
 }
 

@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server"
 import type { ReactNode } from "react"
 
 import { BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
+import { getAffiliateStoreHostSlug } from "@/lib/storefront-buyer-host.server"
 import { cn } from "@/lib/utils"
 
 const LEGAL_NAV = [
@@ -19,6 +20,9 @@ const LEGAL_NAV = [
   { href: "/contact", key: "contact" },
 ] as const
 
+/** B2B documents (supplier / reseller terms) are not buyer documents and are not routed on a store host. */
+const MERCHANT_ONLY_NAV_KEYS = new Set<string>(["supplier", "affiliate"])
+
 type Props = {
   title: string
   description?: string
@@ -28,12 +32,14 @@ type Props = {
 
 export async function LegalPageShell({ title, description, lastUpdated, children }: Props) {
   const t = await getTranslations("legal.nav")
+  const isStoreHost = Boolean(await getAffiliateStoreHostSlug())
+  const navItems = isStoreHost ? LEGAL_NAV.filter((item) => !MERCHANT_ONLY_NAV_KEYS.has(item.key)) : LEGAL_NAV
 
   return (
     <BentoShell>
       <BentoContainer maxWidth="4xl" className="py-10 sm:py-14">
         <nav aria-label={t("ariaLabel")} className="mb-8 flex flex-wrap gap-2">
-          {LEGAL_NAV.map((item) => (
+          {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}

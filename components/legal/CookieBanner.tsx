@@ -11,6 +11,7 @@ import {
   readCookieConsentPrefsFromDocument,
   removeNonEssentialCookies,
 } from "@/lib/legal/cookie-consent-runtime"
+import { replaceAffisellBrand } from "@/lib/brand-name-shared"
 import { isImmersiveBuyerRoute } from "@/lib/mobile-chrome"
 
 const STORAGE_KEY = "affisell_cookie_consent_ui"
@@ -36,7 +37,7 @@ function writeLocalChoice(choice: StoredChoice) {
 }
 
 /** Bandeau cookies RGPD — synchro cookie runtime Affisell + i18n. */
-export default function CookieBanner() {
+export default function CookieBanner({ brandName }: { brandName?: string }) {
   const pathname = usePathname() ?? ""
   const t = useTranslations("cookieBanner")
   const [visible, setVisible] = useState(false)
@@ -104,7 +105,7 @@ export default function CookieBanner() {
     >
       <div className="rounded-2xl border border-zinc-200/80 bg-white/90 p-4 shadow-xl shadow-zinc-900/10 backdrop-blur-xl dark:border-zinc-700 dark:bg-zinc-950/90 sm:p-5">
         <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
-          {t("body")}{" "}
+          {replaceAffisellBrand(t("body"), brandName)}{" "}
           <Link href="/legal/cookies" className="font-medium text-zinc-900 underline underline-offset-2 dark:text-white">
             {t("learnMore")}
           </Link>

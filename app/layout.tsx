@@ -15,6 +15,7 @@ import { bootstrapRootShell } from "@/lib/safe-root-bootstrap"
 import { slimClientMessagesForDedicatedStorefront } from "@/lib/i18n-slim-client-messages"
 import { isBuyerPremiumHomePath } from "@/lib/buyer-premium-home-path"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
+import { getStoreHostBrand } from "@/lib/storefront-host-brand.server"
 import { isLegionStorefrontPathname } from "@/lib/legion/username"
 import ClientGuardInitDeferred from "@/components/security/client-guard-init-deferred"
 import { DonaWidgetsDeferred } from "@/components/dona/dona-widgets-deferred"
@@ -22,17 +23,25 @@ import { cn } from "@/lib/utils"
 
 import "./globals.css"
 
-export const metadata: Metadata = {
-  applicationName: "Affisell",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "Affisell",
-    startupImage: [...PWA_SPLASH_IMAGES],
-  },
-  formatDetection: {
-    telephone: false,
-  },
+/**
+ * On a reseller's own host the app identity (home-screen title, default tab title) is the store's, and the Affisell
+ * iOS splash artwork is dropped. Pages that set their own `title` still win.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const storeBrand = await getStoreHostBrand()
+  return {
+    applicationName: storeBrand?.name ?? "Affisell",
+    ...(storeBrand ? { title: storeBrand.name } : {}),
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "black-translucent",
+      title: storeBrand?.name ?? "Affisell",
+      ...(storeBrand ? {} : { startupImage: [...PWA_SPLASH_IMAGES] }),
+    },
+    formatDetection: {
+      telephone: false,
+    },
+  }
 }
 
 export const viewport = {
@@ -53,6 +62,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const hdrs = await headers()
   const pathname = hdrs.get("x-affisell-pathname") ?? ""
   const isCustomDomain = isCustomDomainHeaders(hdrs)
+  const storeBrand = await getStoreHostBrand()
   const isLegionStorefront = isLegionStorefrontPathname(pathname)
   /** Dedicated storefront / admin: lean shell without marketplace header/footer noise. */
   const isAdminOpsSurface =
@@ -94,7 +104,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {children}
               {!leanPlatformChrome ? <Footer /> : null}
             </RootSessionShell>
-            <CookieBannerDeferred />
+            <CookieBannerDeferred brandName={storeBrand?.name} />
             {!leanPlatformChrome ? <DonaWidgetsDeferred /> : null}
           </IntlAppProvider>
         </AuthSessionProvider>

@@ -67,4 +67,25 @@ describe("marketplace-stripe-checkout VAT franchise", () => {
       })
     )
   })
+
+  const acceptanceMessage = (origin?: string): string | undefined => {
+    const acceptance = marketplaceCheckoutCgvConsentOptions(origin).custom_text?.terms_of_service_acceptance
+    return acceptance && typeof acceptance === "object" ? acceptance.message : undefined
+  }
+
+  it("keeps the Affisell wording on the platform origin", () => {
+    // Platform checkouts are unchanged: brand in the sentence, link built from the configured app URL.
+    expect(acceptanceMessage("https://affisell.com")).toMatch(
+      /^J'accepte les Conditions générales de vente Affisell \(https?:\/\/[^)]+\/legal\/cgv\)\.$/
+    )
+  })
+
+  it("links to the reseller's own host without the platform brand", () => {
+    for (const origin of ["https://maison-lea.com", "https://maison-lea.shops.affisell.com/"]) {
+      const message = acceptanceMessage(origin)
+      expect(message).toBe(`J'accepte les Conditions générales de vente (${origin.replace(/\/$/, "")}/legal/cgv).`)
+      // The sentence itself carries no brand (an auto subdomain's URL may legitimately sit under the platform domain).
+      expect(message!.replace(/\(https?:\/\/[^)]+\)/, "")).not.toMatch(/affisell/i)
+    }
+  })
 })

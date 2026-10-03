@@ -1,5 +1,7 @@
 import type { AbstractIntlMessages } from "next-intl"
 
+import { isMerchantPublicPlatformPath } from "@/lib/custom-domain-path"
+
 const DEDICATED_SHOP_BASE_KEYS = [
   "storefront",
   "boutique",
@@ -28,6 +30,9 @@ const DEDICATED_SHOP_PDP_KEYS = [
 
 /** Cart + `/success` client components read `marketplace.*` (checkout region notes) and `success.*` (confirmation + hub). */
 const DEDICATED_SHOP_BUYER_FLOW_KEYS = ["success", "marketplace"] as const
+
+/** Public support/legal pages served on a store host: the contact form is a client component (`contact.form`). */
+const DEDICATED_SHOP_PUBLIC_PLATFORM_KEYS = ["contact", "legal"] as const
 
 const DEDICATED_SUPPLIER_KEYS = ["errors", "cookieBanner", "CommandK"] as const
 
@@ -61,6 +66,10 @@ function isDedicatedShopBuyerFlowPath(pathname: string): boolean {
   return ["/success", "/cart"].some((p) => pathname === p || pathname.startsWith(`${p}/`))
 }
 
+function isDedicatedShopPublicPlatformPath(pathname: string): boolean {
+  return isMerchantPublicPlatformPath(pathname)
+}
+
 function isDedicatedSupplierPath(pathname: string): boolean {
   return /^\/store\/supplier\/[^/]+/.test(pathname)
 }
@@ -80,7 +89,9 @@ export function slimClientMessagesForDedicatedStorefront(
     ? [...DEDICATED_SHOP_BASE_KEYS, ...DEDICATED_SHOP_PDP_KEYS]
     : isDedicatedShopBuyerFlowPath(path)
       ? [...DEDICATED_SHOP_BASE_KEYS, ...DEDICATED_SHOP_BUYER_FLOW_KEYS]
-      : [...DEDICATED_SHOP_BASE_KEYS]
+      : isDedicatedShopPublicPlatformPath(path)
+        ? [...DEDICATED_SHOP_BASE_KEYS, ...DEDICATED_SHOP_PUBLIC_PLATFORM_KEYS]
+        : [...DEDICATED_SHOP_BASE_KEYS]
 
   return pickClientMessages(full, keys)
 }
