@@ -145,6 +145,12 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**.myshopify.com", pathname: "/**" },
       { protocol: "https", hostname: "**.supabase.co", pathname: "/**" },
       { protocol: "https", hostname: "api.qrserver.com", pathname: "/**" },
+      // Marketplace CDNs behind supplier URL imports: product images are stored with the source CDN URL. An import
+      // host missing here makes next/image throw on render and takes the whole dashboard section down with it.
+      { protocol: "https", hostname: "**.alicdn.com", pathname: "/**" }, // AliExpress / 1688 / Taobao (ae01, img, cbu01…)
+      { protocol: "https", hostname: "**.aliexpress-media.com", pathname: "/**" },
+      { protocol: "https", hostname: "**.kwcdn.com", pathname: "/**" }, // Temu
+      { protocol: "https", hostname: "**.ltwebstatic.com", pathname: "/**" }, // Shein
     ],
   },
 }
