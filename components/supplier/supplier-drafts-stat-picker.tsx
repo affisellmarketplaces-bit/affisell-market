@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useMemo, useState } from "react"
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ChevronRight, FileEdit, PlusCircle } from "lucide-react"

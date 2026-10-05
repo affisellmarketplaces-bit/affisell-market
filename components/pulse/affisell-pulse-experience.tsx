@@ -12,7 +12,7 @@ import {
   VolumeX,
   Zap,
 } from "lucide-react"
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"

@@ -1,4 +1,4 @@
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import { requireSupplierSession } from "@/lib/dashboard-session"
 import Link from "next/link"
 import { notFound } from "next/navigation"

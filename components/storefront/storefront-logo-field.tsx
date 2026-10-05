@@ -1,6 +1,6 @@
 "use client"
 
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import { useRef, useState } from "react"
 import { ImagePlus, Link2 } from "lucide-react"
 import { useTranslations } from "next-intl"

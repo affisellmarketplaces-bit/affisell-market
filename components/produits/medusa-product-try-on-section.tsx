@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 
 import { TryOnModal } from "@/components/try-on/TryOnModal"
 import { TryOnTrigger } from "@/components/try-on/TryOnEntry"

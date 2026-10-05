@@ -1,6 +1,6 @@
 "use client"
 
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import { Eye } from "lucide-react"
 
 import { ProductColorSwatchDots } from "@/components/product/product-color-swatch-dots"

@@ -2,6 +2,7 @@ import { withSentryConfig } from "@sentry/nextjs"
 import type { NextConfig } from "next"
 import createNextIntlPlugin from "next-intl/plugin"
 
+import { REMOTE_IMAGE_PATTERNS } from "@/lib/image-remote-hosts"
 import { buildEmbedSecurityHeaders, buildSecurityHeaders } from "@/lib/security-headers"
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts")
@@ -134,24 +135,8 @@ const nextConfig: NextConfig = {
     deviceSizes: [390, 768, 1024],
     imageSizes: [200, 400],
     minimumCacheTTL: 3600,
-    remotePatterns: [
-      { protocol: "https", hostname: "m.media-amazon.com", pathname: "/**" },
-      { protocol: "https", hostname: "images-na.ssl-images-amazon.com", pathname: "/**" },
-      { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
-      { protocol: "https", hostname: "**.public.blob.vercel-storage.com", pathname: "/**" },
-      { protocol: "https", hostname: "**.amazonaws.com", pathname: "/**" },
-      { protocol: "https", hostname: "**.cloudfront.net", pathname: "/**" },
-      { protocol: "https", hostname: "cdn.shopify.com", pathname: "/**" },
-      { protocol: "https", hostname: "**.myshopify.com", pathname: "/**" },
-      { protocol: "https", hostname: "**.supabase.co", pathname: "/**" },
-      { protocol: "https", hostname: "api.qrserver.com", pathname: "/**" },
-      // Marketplace CDNs behind supplier URL imports: product images are stored with the source CDN URL. An import
-      // host missing here makes next/image throw on render and takes the whole dashboard section down with it.
-      { protocol: "https", hostname: "**.alicdn.com", pathname: "/**" }, // AliExpress / 1688 / Taobao (ae01, img, cbu01…)
-      { protocol: "https", hostname: "**.aliexpress-media.com", pathname: "/**" },
-      { protocol: "https", hostname: "**.kwcdn.com", pathname: "/**" }, // Temu
-      { protocol: "https", hostname: "**.ltwebstatic.com", pathname: "/**" }, // Shein
-    ],
+    // Single list shared with <SafeImage> (lib/image-remote-hosts.ts) — add new import-source CDNs there.
+    remotePatterns: REMOTE_IMAGE_PATTERNS.map((p) => ({ ...p })),
   },
 }
 

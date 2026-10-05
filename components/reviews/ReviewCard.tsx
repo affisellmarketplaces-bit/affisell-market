@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { BadgeCheck, Share2, ThumbsDown, ThumbsUp } from "lucide-react"
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import { useState } from "react"
 
 import { Lightbox } from "@/components/reviews/Lightbox"

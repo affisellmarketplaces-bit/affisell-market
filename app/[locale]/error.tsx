@@ -1,7 +1,7 @@
 "use client"
 
 import * as Sentry from "@sentry/nextjs"
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import { useEffect } from "react"
 import { useTranslations } from "next-intl"
 

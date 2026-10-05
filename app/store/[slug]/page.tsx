@@ -1,5 +1,5 @@
 import { loadListingSalesStats } from "@/lib/listing-sales-stats"
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 

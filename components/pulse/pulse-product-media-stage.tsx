@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion"
 import { Maximize2 } from "lucide-react"
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import { useTranslations } from "next-intl"
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
 

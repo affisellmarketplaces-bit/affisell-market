@@ -33,7 +33,7 @@ import {
   UsersRound,
   Wallet,
 } from "lucide-react"
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import type { CSSProperties } from "react"

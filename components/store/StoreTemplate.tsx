@@ -1,6 +1,6 @@
 "use client"
 
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import Link from "next/link"
 import { Check, Copy, Zap } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"

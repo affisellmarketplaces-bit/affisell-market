@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import { useRouter } from "next/navigation"
 import { Camera, CheckCircle2, Loader2, Play, XCircle } from "lucide-react"
 import { toast } from "sonner"

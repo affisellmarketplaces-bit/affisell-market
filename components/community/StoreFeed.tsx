@@ -1,6 +1,6 @@
 "use client"
 
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import Link from "next/link"
 import { Heart, Share2 } from "lucide-react"
 import { useRouter } from "next/navigation"

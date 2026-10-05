@@ -1,4 +1,4 @@
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import Link from "next/link"
 import { Archive, Lightbulb, Rocket, TrendingUp } from "lucide-react"
 import { getTranslations } from "next-intl/server"

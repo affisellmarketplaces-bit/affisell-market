@@ -1,6 +1,6 @@
 "use client"
 
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import Link from "next/link"
 import { useCallback, useRef, useState } from "react"
 import { Loader2, Sparkles, Link2, CheckCircle2, AlertCircle } from "lucide-react"

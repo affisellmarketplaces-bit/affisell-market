@@ -3,27 +3,16 @@ import path from "node:path"
 
 import { describe, expect, it } from "vitest"
 
-/** Hostname patterns from next.config.ts `images.remotePatterns`, read as text (the config pulls in Sentry). */
-function configuredHostPatterns(): string[] {
-  const src = fs.readFileSync(path.resolve(__dirname, "../../next.config.ts"), "utf8")
-  const block = src.slice(src.indexOf("remotePatterns"))
-  return [...block.matchAll(/hostname:\s*"([^"]+)"/g)].map((m) => m[1]!)
-}
+import {
+  canOptimizeImageSrc,
+  hostnameMatchesPattern,
+  isConfiguredRemoteImageHost,
+  REMOTE_IMAGE_PATTERNS,
+} from "@/lib/image-remote-hosts"
 
-/** Next's matcher: `**.` = any number of subdomain labels (not the bare apex), `*.` = exactly one, else exact. */
-function hostAllowed(patterns: string[], host: string): boolean {
-  return patterns.some((p) => {
-    if (p.startsWith("**.")) return host.endsWith(p.slice(2)) && host.length > p.length - 2
-    if (p.startsWith("*.")) return host.endsWith(p.slice(1)) && !host.slice(0, -(p.length - 1)).includes(".")
-    return host === p
-  })
-}
-
-describe("next/image remote hosts", () => {
-  const patterns = configuredHostPatterns()
-
-  // Product images are stored with the source marketplace's CDN URL. A host missing from remotePatterns makes next/image
-  // throw during render — the whole dashboard section shows "This section failed to load" for one product.
+describe("remote image hosts", () => {
+  // Product images are stored with the source marketplace's CDN URL. A host missing here must not take a page down
+  // (SafeImage loads it directly), but the hosts the import flows rely on should still be optimized.
   it.each([
     "ae01.alicdn.com",
     "ae03.alicdn.com",
@@ -33,13 +22,43 @@ describe("next/image remote hosts", () => {
     "img.kwcdn.com",
     "img.ltwebstatic.com",
     "m.media-amazon.com",
-  ])("allows %s", (host) => {
-    expect(hostAllowed(patterns, host)).toBe(true)
+  ])("optimizes %s", (host) => {
+    expect(isConfiguredRemoteImageHost(host)).toBe(true)
   })
 
-  it("is not an open image proxy", () => {
-    expect(hostAllowed(patterns, "example.com")).toBe(false)
-    expect(hostAllowed(patterns, "evil-alicdn.com")).toBe(false)
-    expect(patterns.every((p) => p !== "**" && p !== "*")).toBe(true)
+  it("is not an open image proxy: every pattern is https, scoped to a domain, with the catch-all path", () => {
+    for (const p of REMOTE_IMAGE_PATTERNS) {
+      expect(p.protocol).toBe("https")
+      expect(p.pathname).toBe("/**")
+      expect(p.hostname).not.toMatch(/^\*+$/)
+      expect(p.hostname.replace(/^\*+\./, "")).toContain(".")
+    }
+    expect(isConfiguredRemoteImageHost("example.com")).toBe(false)
+    expect(isConfiguredRemoteImageHost("evil-alicdn.com")).toBe(false)
+    expect(isConfiguredRemoteImageHost("alicdn.com.evil.test")).toBe(false)
+  })
+
+  it("matches wildcards like Next does", () => {
+    expect(hostnameMatchesPattern("**.alicdn.com", "a.b.alicdn.com")).toBe(true)
+    expect(hostnameMatchesPattern("**.alicdn.com", "alicdn.com")).toBe(false)
+    expect(hostnameMatchesPattern("*.alicdn.com", "a.alicdn.com")).toBe(true)
+    expect(hostnameMatchesPattern("*.alicdn.com", "a.b.alicdn.com")).toBe(false)
+    expect(hostnameMatchesPattern("cdn.shopify.com", "cdn.shopify.com")).toBe(true)
+  })
+
+  it("canOptimizeImageSrc: local and data URLs yes; unknown hosts, http and junk no", () => {
+    expect(canOptimizeImageSrc("/uploads/a.jpg")).toBe(true)
+    expect(canOptimizeImageSrc("data:image/png;base64,AAAA")).toBe(true)
+    expect(canOptimizeImageSrc("https://ae01.alicdn.com/kf/a.jpg")).toBe(true)
+    expect(canOptimizeImageSrc("https://some-new-cdn.example/a.jpg")).toBe(false)
+    expect(canOptimizeImageSrc("http://ae01.alicdn.com/kf/a.jpg")).toBe(false)
+    expect(canOptimizeImageSrc("//ae01.alicdn.com/kf/a.jpg")).toBe(false)
+    expect(canOptimizeImageSrc("not a url")).toBe(false)
+  })
+
+  it("next.config.ts uses the shared list instead of its own copy", () => {
+    const src = fs.readFileSync(path.resolve(__dirname, "../../next.config.ts"), "utf8")
+    expect(src).toContain("REMOTE_IMAGE_PATTERNS")
+    expect(src).not.toMatch(/hostname:\s*"/)
   })
 })

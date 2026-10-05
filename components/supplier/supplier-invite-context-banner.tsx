@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import { BadgePercent, Handshake, Loader2, Sparkles } from "lucide-react"
 
 import { cn } from "@/lib/utils"

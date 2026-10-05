@@ -1,4 +1,4 @@
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import type { ReactNode } from "react"
 
 type Props = {

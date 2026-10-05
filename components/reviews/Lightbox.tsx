@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion"
 import { ChevronLeft, ChevronRight, X } from "lucide-react"
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import { useCallback, useEffect, useState } from "react"
 
 import type { ReviewMediaItem } from "@/lib/reviews/types"

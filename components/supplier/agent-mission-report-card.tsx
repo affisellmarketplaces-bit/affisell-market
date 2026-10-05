@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import { ChevronDown, Images } from "lucide-react"
 
 import type { AgentMissionRow } from "@/lib/agents/load-agent-network"

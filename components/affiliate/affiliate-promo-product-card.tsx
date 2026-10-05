@@ -1,6 +1,6 @@
 "use client"
 
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import { Check, Store } from "lucide-react"
 
 import { VerifiedBadge } from "@/components/suppliers/verified-badge"

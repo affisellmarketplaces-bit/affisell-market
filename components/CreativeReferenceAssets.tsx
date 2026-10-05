@@ -1,6 +1,6 @@
 "use client"
 
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import { useCallback, useRef, useState } from "react"
 import {
   Film,

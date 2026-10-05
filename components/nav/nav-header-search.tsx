@@ -1,6 +1,6 @@
 "use client"
 
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Search, Sparkles, Store, TrendingUp } from "lucide-react"
 import { useTranslations } from "next-intl"

@@ -2,7 +2,7 @@
 
 import type { FormEvent } from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signIn, useSession } from "next-auth/react"

@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 
 import { BubbleShareBar } from "@/components/product/BubbleShareBar"
 import { ProfitBadge } from "@/components/product/ProfitBadge"

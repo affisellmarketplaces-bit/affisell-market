@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { useTranslations } from "next-intl"

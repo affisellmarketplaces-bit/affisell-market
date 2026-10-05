@@ -1,7 +1,7 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import Image from "next/image"
+import Image from "@/components/ui/safe-image"
 
 import { Link } from "@/i18n/navigation"
 
