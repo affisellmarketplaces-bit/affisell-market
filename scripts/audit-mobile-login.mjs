@@ -32,6 +32,18 @@ const origin = new URL(BASE).origin
 const authPages = /^\/(login|signup|auth)(\/|$)/
 const out = join(ROOT, ".audit-sessions", `${role}.json`)
 
+// A stopped dev server used to surface as a raw Playwright stack trace; say what to do instead. A slow answer
+// (first compile after a start) is fine — only a refused connection means "not running".
+try {
+  await fetch(`${BASE}/`, { method: "HEAD", signal: AbortSignal.timeout(90_000), redirect: "manual" })
+} catch (err) {
+  const code = err?.cause?.code ?? err?.code
+  if (code === "ECONNREFUSED" || code === "ENOTFOUND" || code === "ECONNRESET") {
+    console.error(`The dev server is not running on ${BASE}.\nStart it in another terminal with: npm run dev\nthen run this command again.`)
+    process.exit(1)
+  }
+}
+
 const browser = await chromium.launch({ headless: false })
 const context = await browser.newContext({ viewport: { width: 430, height: 880 } })
 const page = await context.newPage()

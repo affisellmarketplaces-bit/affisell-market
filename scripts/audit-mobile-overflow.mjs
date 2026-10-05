@@ -99,11 +99,14 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 /** The dev server restarts itself under memory pressure; wait for it instead of reporting a false failure. */
 async function waitForServer(maxMs = 240_000) {
   const start = Date.now()
+  let told = false
   while (Date.now() - start < maxMs) {
     try {
       await fetch(`${BASE}/`, { method: "HEAD", signal: AbortSignal.timeout(5_000), redirect: "manual" })
       return
     } catch {
+      if (!told) console.log(`Waiting for ${BASE} … (not running? start it with: npm run dev)`)
+      told = true
       await sleep(2_000)
     }
   }
