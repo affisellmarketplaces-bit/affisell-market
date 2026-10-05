@@ -2978,6 +2978,14 @@
         "footnote": "Tipp: Karte in denselben Richtungen swipen wie die Buttons.",
         "cta": "Verstanden — los swipen",
         "dismiss": "Guide schließen"
+      },
+      "priceNudge": {
+        "title": "Werden Sie bei Preissenkung benachrichtigt",
+        "body": "Wir behalten dieses Produkt für Sie im Blick. Erstellen Sie ein kostenloses Konto, um die Benachrichtigung zu erhalten, sobald es unter {price} fällt.",
+        "signUp": "Konto erstellen",
+        "signIn": "Ich habe bereits ein Konto",
+        "later": "Später",
+        "closeAria": "Schließen"
       }
     },
     "scrollCoach": {

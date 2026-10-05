@@ -44,6 +44,12 @@ type Props = {
   viewerLoggedIn: boolean
 }
 
+/** Buyer sign-in for this store (follow / message are buyer actions — `/login` is the professional selector). */
+function storeBuyerLoginHref(storeSlug: string): string {
+  const slug = encodeURIComponent(storeSlug)
+  return `/shops/${slug}/login?callbackUrl=${encodeURIComponent(`/shops/${storeSlug}`)}`
+}
+
 export function StoreSocialBar(props: Props) {
   const {
     storeSlug,
@@ -71,7 +77,7 @@ export function StoreSocialBar(props: Props) {
 
   const toggleFollow = useCallback(async () => {
     if (!viewerLoggedIn) {
-      router.push(`/login?callbackUrl=${encodeURIComponent(`/shops/${storeSlug}`)}`)
+      router.push(storeBuyerLoginHref(storeSlug))
       return
     }
     setBusy(true)
@@ -94,7 +100,7 @@ export function StoreSocialBar(props: Props) {
 
   function onMessage() {
     if (!viewerLoggedIn) {
-      router.push(`/login?callbackUrl=${encodeURIComponent(`/shops/${storeSlug}`)}`)
+      router.push(storeBuyerLoginHref(storeSlug))
       return
     }
     const el = document.getElementById("community")

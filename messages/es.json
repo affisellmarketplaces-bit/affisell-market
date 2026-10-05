@@ -2978,6 +2978,14 @@
         "footnote": "Consejo: desliza la tarjeta en las mismas direcciones.",
         "cta": "Entendido — empezar",
         "dismiss": "Cerrar guía"
+      },
+      "priceNudge": {
+        "title": "Te avisamos si baja el precio",
+        "body": "Vigilamos este producto por ti. Crea una cuenta gratuita para recibir la alerta en cuanto baje de {price}.",
+        "signUp": "Crear mi cuenta",
+        "signIn": "Ya tengo una cuenta",
+        "later": "Más tarde",
+        "closeAria": "Cerrar"
       }
     },
     "scrollCoach": {

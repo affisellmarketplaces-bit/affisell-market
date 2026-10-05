@@ -8,6 +8,7 @@ import { CookieConsentScriptActivator } from "@/components/cookie-consent/cookie
 import { CookieBannerDeferred } from "@/components/CookieBanner-deferred"
 import { RootSessionShell } from "@/app/root-intl-session"
 import { AuthSessionProvider } from "@/components/providers/auth-session-provider"
+import { GuestWishlistMerger } from "@/components/wishlist/guest-wishlist-merger"
 import { IntlAppProvider } from "@/components/providers/intl-app-provider"
 import { getCachedSession } from "@/lib/get-cached-session"
 import { PWA_SPLASH_IMAGES } from "@/lib/pwa-splash-images"
@@ -92,6 +93,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       >
         <CookieConsentScriptActivator />
         <AuthSessionProvider session={session}>
+          <GuestWishlistMerger />
           <IntlAppProvider locale={locale} messages={clientMessages} now={now}>
             <RootSessionShell leanShell={leanPlatformChrome}>
               {!hideGlobalSiteHeader ? (

@@ -31,6 +31,7 @@ import { WishlistHeart } from "@/components/wishlist-heart"
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
 import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
+import { loginCustomerPath } from "@/lib/login-redirect"
 import { formatStoreCount } from "@/lib/market-config"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { notifyBuyerPersonalizationRefresh } from "@/lib/buyer-personalization-refresh.client"
@@ -182,7 +183,8 @@ function PulseCard({
   async function toggleFollow() {
     if (!item.storeSlug) return
     if (!viewerLoggedIn) {
-      push(`/login?callbackUrl=${encodeURIComponent("/discover")}`)
+      // Following a store is a BUYER action: `/login` is the professional (creator / supplier) selector.
+      push(loginCustomerPath("/discover"))
       return
     }
     const res = await fetch("/api/follow", {

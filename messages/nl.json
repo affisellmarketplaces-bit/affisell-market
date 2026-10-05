@@ -2978,6 +2978,14 @@
         "footnote": "Tip: swipe de kaart in dezelfde richtingen als de knoppen.",
         "cta": "Begrepen — start swipen",
         "dismiss": "Gids sluiten"
+      },
+      "priceNudge": {
+        "title": "Ontvang een melding als de prijs daalt",
+        "body": "We houden dit product voor je in de gaten. Maak een gratis account aan om de melding te krijgen zodra de prijs onder {price} komt.",
+        "signUp": "Account aanmaken",
+        "signIn": "Ik heb al een account",
+        "later": "Later",
+        "closeAria": "Sluiten"
       }
     },
     "scrollCoach": {

@@ -1812,6 +1812,12 @@ model GuestWishlist {
   id        String   @id @default(cuid())
   guestId   String
   productId String
+  /**
+   * Price intent captured at save time (Pulse "Favoris + alerte prix"). Carried over to Wishlist when the guest
+   * signs in, so the alert still works after the merge.
+   */
+  targetPriceCents   Int?
+  previousPriceCents Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

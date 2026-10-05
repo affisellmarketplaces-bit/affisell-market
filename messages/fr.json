@@ -2978,6 +2978,14 @@
         "footnote": "Astuce : swiper la carte dans les mêmes directions que les pads.",
         "cta": "Compris — je swipe",
         "dismiss": "Fermer le guide"
+      },
+      "priceNudge": {
+        "title": "Soyez prévenu(e) si le prix baisse",
+        "body": "On surveille ce produit pour vous. Créez un compte gratuit pour recevoir l'alerte dès qu'il passe sous {price}.",
+        "signUp": "Créer mon compte",
+        "signIn": "J'ai déjà un compte",
+        "later": "Plus tard",
+        "closeAria": "Fermer"
       }
     },
     "scrollCoach": {

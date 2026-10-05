@@ -2978,6 +2978,14 @@
         "footnote": "Suggerimento: swipa la card nelle stesse direzioni dei pad.",
         "cta": "Capito — inizia",
         "dismiss": "Chiudi guida"
+      },
+      "priceNudge": {
+        "title": "Ti avvisiamo se il prezzo scende",
+        "body": "Teniamo d'occhio questo prodotto per te. Crea un account gratuito per ricevere l'avviso appena scende sotto {price}.",
+        "signUp": "Crea il mio account",
+        "signIn": "Ho già un account",
+        "later": "Più tardi",
+        "closeAria": "Chiudi"
       }
     },
     "scrollCoach": {

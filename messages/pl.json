@@ -2978,6 +2978,14 @@
         "footnote": "Wskazówka: przeciągaj kartę w tych samych kierunkach.",
         "cta": "Rozumiem — zaczynam",
         "dismiss": "Zamknij przewodnik"
+      },
+      "priceNudge": {
+        "title": "Powiadomimy Cię o obniżce ceny",
+        "body": "Obserwujemy ten produkt dla Ciebie. Załóż darmowe konto, aby otrzymać powiadomienie, gdy cena spadnie poniżej {price}.",
+        "signUp": "Utwórz konto",
+        "signIn": "Mam już konto",
+        "later": "Później",
+        "closeAria": "Zamknij"
       }
     },
     "scrollCoach": {

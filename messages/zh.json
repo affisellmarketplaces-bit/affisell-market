@@ -2978,6 +2978,14 @@
         "footnote": "提示：卡片滑动方向与底部按钮一致。",
         "cta": "明白了 — 开始滑动",
         "dismiss": "关闭指南"
+      },
+      "priceNudge": {
+        "title": "降价时第一时间通知您",
+        "body": "我们正在为您关注该商品。创建免费账户，价格低于 {price} 时即可收到提醒。",
+        "signUp": "创建账户",
+        "signIn": "我已有账户",
+        "later": "稍后",
+        "closeAria": "关闭"
       }
     },
     "scrollCoach": {

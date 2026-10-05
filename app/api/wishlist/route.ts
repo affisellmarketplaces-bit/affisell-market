@@ -5,10 +5,14 @@ import {
   listGuestWishlistForDisplay,
   toggleGuestWishlist,
 } from "@/lib/guest-wishlist-server"
-import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { countProductLikesSingle } from "@/lib/product-like-count"
 import { prisma } from "@/lib/prisma"
 import { resolveWishlistCardStatuses } from "@/lib/wishlist-card-status.server"
+import {
+  currentPriceForProduct,
+  currentPricesForProducts,
+  parseTargetPriceCents,
+} from "@/lib/wishlist-current-price.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -16,29 +20,6 @@ export const dynamic = "force-dynamic"
 function dropPercent(current: number, previous: number | null): number {
   if (!previous || previous <= 0 || current >= previous) return 0
   return Math.max(1, Math.round(((previous - current) / previous) * 100))
-}
-
-async function currentPricesForProducts(productIds: string[]): Promise<Map<string, number>> {
-  const map = new Map<string, number>()
-  if (productIds.length === 0) return map
-
-  const listings = await prisma.affiliateProduct.findMany({
-    where: {
-      productId: { in: productIds },
-      ...buyerListedAffiliateProductWhere,
-    },
-    select: { productId: true, sellingPriceCents: true },
-    orderBy: { id: "asc" },
-  })
-  for (const row of listings) {
-    if (!map.has(row.productId)) map.set(row.productId, row.sellingPriceCents)
-  }
-  return map
-}
-
-async function currentPriceForProduct(productId: string): Promise<number | null> {
-  const map = await currentPricesForProducts([productId])
-  return map.get(productId) ?? null
 }
 
 export async function GET(req: Request) {
@@ -141,9 +122,13 @@ export async function POST(req: Request) {
   })
   if (!product) return Response.json({ error: "Product not found" }, { status: 404 })
 
+  const targetPriceCents = parseTargetPriceCents(body.targetPrice)
+
   if (!userId) {
     const guestId = await getOrCreateGuestWishlistId()
-    const result = await toggleGuestWishlist(guestId, productId)
+    // Same price intent as a signed-in save, so the alert survives sign-up (see mergeGuestWishlistForUser).
+    const previousPriceCents = (await currentPriceForProduct(productId)) ?? null
+    const result = await toggleGuestWishlist(guestId, productId, { targetPriceCents, previousPriceCents })
     return Response.json(result)
   }
 
@@ -159,10 +144,6 @@ export async function POST(req: Request) {
     return Response.json({ wished: false, likeCount })
   }
 
-  const targetPriceCents =
-    typeof body.targetPrice === "number" && Number.isFinite(body.targetPrice) && body.targetPrice > 0
-      ? Math.round(body.targetPrice * 100)
-      : null
   const current = await currentPriceForProduct(productId)
 
   await prisma.wishlist.create({

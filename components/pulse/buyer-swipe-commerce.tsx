@@ -30,11 +30,16 @@ import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
 import { fetchBuyerSessionSnapshot } from "@/lib/buyer-session-client"
 import { toggleProductWishlist } from "@/lib/wishlist-toggle-client"
 import { requestPriceAlertPushSubscription } from "@/components/push/request-price-alert-push"
+import { PriceAlertNudge } from "@/components/pulse/price-alert-nudge"
 import {
   consumePendingPricePushAfterLogin,
   markPendingPricePushAfterLogin,
 } from "@/lib/wishlist-push-nudge.client"
 import { affisellBrand } from "@/lib/affisell-brand"
+import { loginCustomerPath, signupCustomerPath } from "@/lib/login-redirect"
+import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { claimPriceAlertNudge, recordPriceAlertNudgeDismissed } from "@/lib/price-alert-nudge.client"
+import { pulseAlertTargetCents } from "@/lib/price-alert-nudge-policy"
 import { notifyBuyerPersonalizationRefresh } from "@/lib/buyer-personalization-refresh.client"
 import { discoverSwipeHref } from "@/lib/discover-swipe-url"
 import { pulseSwipeHaptic } from "@/lib/pulse-swipe-haptics"
@@ -113,6 +118,8 @@ export function BuyerSwipeCommerce({
   const [replayMode, setReplayMode] = useState(false)
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  /** Guest just saved a product: offer the price-alert sign-up (never a forced redirect). */
+  const [priceNudge, setPriceNudge] = useState<{ title: string; targetPriceLabel: string } | null>(null)
   const [dragGlow, setDragGlow] = useState({ x: 0, y: 0 })
 
   const fetchingRef = useRef(false)
@@ -288,7 +295,8 @@ export function BuyerSwipeCommerce({
         showToast(t("genericError"))
         return false
       }
-      const targetPriceEur = Math.max(0.01, Math.round(item.priceCents * 0.95) / 100)
+      const targetCents = pulseAlertTargetCents(item.priceCents)
+      const targetPriceEur = targetCents / 100
       const result = await toggleProductWishlist(item.productId, { targetPriceEur })
       if (!result.ok) {
         console.log("[buyer-swipe-commerce]", {
@@ -308,11 +316,16 @@ export function BuyerSwipeCommerce({
       if (result.wished) {
         const session = await fetchBuyerSessionSnapshot()
         if (!session.userId) {
+          // The favourite is already kept (cookie) with its price target, and moves into the account at sign-in.
+          // Remember to ask for push permission once they are back, but do NOT pull them out of the feed: offer the
+          // account non-blockingly, at most once a day (see price-alert-nudge-policy).
           markPendingPricePushAfterLogin()
-          showToast(t("saveDropLoginForPush"), { force: true })
-          const qs = searchParams.toString()
-          const callbackUrl = `${pathname}${qs ? `?${qs}` : ""}`
-          navigate(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`)
+          if (claimPriceAlertNudge()) {
+            setPriceNudge({
+              title: item.title,
+              targetPriceLabel: formatStoreCurrencyFromCents(targetCents),
+            })
+          }
           return true
         }
         const pushPermission = await requestPriceAlertPushSubscription()
@@ -322,8 +335,18 @@ export function BuyerSwipeCommerce({
       }
       return true
     },
-    [navigate, pathname, searchParams, showToast, t]
+    [showToast, t]
   )
+
+  const authCallbackUrl = useMemo(() => {
+    const qs = searchParams.toString()
+    return `${pathname}${qs ? `?${qs}` : ""}`
+  }, [pathname, searchParams])
+
+  const closePriceNudge = useCallback((reason: "later" | "timeout") => {
+    if (reason === "later") recordPriceAlertNudgeDismissed()
+    setPriceNudge(null)
+  }, [])
 
   const buyNow = useCallback(
     async (item: PulseFeedItem) => {
@@ -719,6 +742,21 @@ export function BuyerSwipeCommerce({
           </motion.p>
         ) : null}
       </AnimatePresence>
+      <PriceAlertNudge
+        open={priceNudge != null}
+        productTitle={priceNudge?.title ?? ""}
+        targetPriceLabel={priceNudge?.targetPriceLabel ?? ""}
+        onClose={closePriceNudge}
+        // BUYER sign-up / sign-in — `/login` is the professional (creator / supplier) selector.
+        onSignUp={() => {
+          setPriceNudge(null)
+          navigate(signupCustomerPath(authCallbackUrl))
+        }}
+        onSignIn={() => {
+          setPriceNudge(null)
+          navigate(loginCustomerPath(authCallbackUrl))
+        }}
+      />
       {identitySheet}
     </div>
   )

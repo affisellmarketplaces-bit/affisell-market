@@ -2978,6 +2978,14 @@
         "footnote": "Tip: swipe the card the same directions as the pads.",
         "cta": "Got it — start swiping",
         "dismiss": "Close guide"
+      },
+      "priceNudge": {
+        "title": "Get notified when the price drops",
+        "body": "We're watching this product for you. Create a free account to get the alert as soon as it falls below {price}.",
+        "signUp": "Create my account",
+        "signIn": "I already have an account",
+        "later": "Not now",
+        "closeAria": "Close"
       }
     },
     "scrollCoach": {
