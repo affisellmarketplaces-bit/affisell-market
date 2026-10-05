@@ -17,6 +17,8 @@ import {
 } from "@/components/dona/dona-chat-ui"
 import { DonaAvatarImage } from "@/components/dona/dona-avatar-image"
 import { DonaFabOrb } from "@/components/dona/dona-fab-orb"
+import { DonaLinkifiedText } from "@/components/dona/dona-linkify-text"
+import { DonaNavigationProvider } from "@/components/dona/dona-navigation"
 import { tMessage } from "@/lib/i18n-pick-message"
 
 type CaptainMeta = {
@@ -202,6 +204,7 @@ export function DonaCaptainWidget() {
               </button>
             </div>
 
+            <DonaNavigationProvider onNavigate={() => setIsOpen(false)}>
             <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
               <div className="mr-auto max-w-[90%] rounded-2xl rounded-bl-sm border border-white/10 bg-[#1A1A3D] px-4 py-2.5 text-sm text-white">
                 <DonaAvatarImage
@@ -254,7 +257,7 @@ export function DonaCaptainWidget() {
                                 loading="lazy"
                                 variant="circle"
                               />
-                              {part.text}
+                              <DonaLinkifiedText text={part.text} />
                             </div>
                           )
                         }
@@ -277,6 +280,7 @@ export function DonaCaptainWidget() {
                 </p>
               ) : null}
             </div>
+            </DonaNavigationProvider>
 
             <form
               className="shrink-0 border-t border-violet-500/20 p-3"

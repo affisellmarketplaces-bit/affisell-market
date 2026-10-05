@@ -7457,7 +7457,15 @@
       "closeAria": "Fermer Dona",
       "openFabAria": "Ouvrir Dona — IA de bord",
       "trustFooter": "Achat protégé · Stripe · 3D Secure · RGPD",
-      "localeBadge": "Multilingue"
+      "localeBadge": "Multilingue",
+      "signupCta": {
+        "title": "Inscription en un clic",
+        "pickRole": "Choisissez votre profil",
+        "supplier": "Créer mon compte fournisseur",
+        "reseller": "Créer ma vitrine revendeur",
+        "buyer": "Créer mon compte acheteur",
+        "haveAccount": "J'ai déjà un compte — me connecter"
+      }
     },
     "captain": {
       "dialogLabel": "Dona Capitaine — mode privé",

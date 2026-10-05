@@ -7457,7 +7457,15 @@
       "closeAria": "Dona sluiten",
       "openFabAria": "Dona openen — Onboard-AI",
       "trustFooter": "Beveiligde checkout · Stripe · 3D Secure · AVG",
-      "localeBadge": "Meertalig"
+      "localeBadge": "Meertalig",
+      "signupCta": {
+        "title": "Registreer met één klik",
+        "pickRole": "Kies je profiel",
+        "supplier": "Mijn leveranciersaccount aanmaken",
+        "reseller": "Mijn wederverkoperswinkel aanmaken",
+        "buyer": "Mijn kopersaccount aanmaken",
+        "haveAccount": "Ik heb al een account — inloggen"
+      }
     },
     "captain": {
       "dialogLabel": "Kapitein Dona — privémodus",

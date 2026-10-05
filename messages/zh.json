@@ -7457,7 +7457,15 @@
       "closeAria": "关闭 Dona",
       "openFabAria": "打开 Dona —— 引导式 AI",
       "trustFooter": "受保护的结账 · Stripe · 3D Secure · GDPR",
-      "localeBadge": "多语言"
+      "localeBadge": "多语言",
+      "signupCta": {
+        "title": "一键注册",
+        "pickRole": "选择您的身份",
+        "supplier": "创建供应商账户",
+        "reseller": "创建我的分销店铺",
+        "buyer": "创建买家账户",
+        "haveAccount": "我已有账户——登录"
+      }
     },
     "captain": {
       "dialogLabel": "船长 Dona —— 私密模式",

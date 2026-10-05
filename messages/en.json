@@ -7457,7 +7457,15 @@
       "closeAria": "Close Dona",
       "openFabAria": "Open Dona — onboard AI",
       "trustFooter": "Protected checkout · Stripe · 3D Secure · GDPR",
-      "localeBadge": "Multilingual"
+      "localeBadge": "Multilingual",
+      "signupCta": {
+        "title": "Sign up in one click",
+        "pickRole": "Pick your profile",
+        "supplier": "Create my supplier account",
+        "reseller": "Create my reseller storefront",
+        "buyer": "Create my buyer account",
+        "haveAccount": "I already have an account — sign in"
+      }
     },
     "captain": {
       "dialogLabel": "Captain Dona — private mode",

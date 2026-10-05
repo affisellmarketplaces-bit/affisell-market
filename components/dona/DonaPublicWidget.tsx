@@ -5,7 +5,7 @@ import { DefaultChatTransport } from "ai"
 import { AnimatePresence, motion } from "framer-motion"
 import { Send, X } from "lucide-react"
 import { usePathname } from "next/navigation"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { Fragment, useEffect, useMemo, useRef, useState } from "react"
 
 import { useAppLocale } from "@/hooks/use-app-locale"
 
@@ -21,6 +21,9 @@ import {
 } from "@/components/dona/dona-chat-ui"
 import { DonaAvatarImage } from "@/components/dona/dona-avatar-image"
 import { DonaFabOrb } from "@/components/dona/dona-fab-orb"
+import { DonaNavigationProvider } from "@/components/dona/dona-navigation"
+import { DonaSignupCta } from "@/components/dona/dona-signup-cta"
+import { findDonaSignupCtaPlacement } from "@/lib/dona/dona-signup-intent"
 import {
   donaPublicBadge,
   donaPublicPlaceholder,
@@ -67,6 +70,14 @@ export function DonaPublicWidget() {
   const badge = useMemo(() => donaPublicBadge(audience, locale), [audience, locale])
   const visibleMessages = useMemo(() => filterRenderableMessages(messages), [messages])
   const errorText = donaResolvedError(error, locale, donaGenericError(locale))
+  // A sign-up request gets real buttons under Dona's answer, whatever link the model wrote.
+  const signupCta = useMemo(
+    () =>
+      findDonaSignupCtaPlacement(
+        visibleMessages.map((m) => ({ role: m.role, text: donaMessageText(m) }))
+      ),
+    [visibleMessages]
+  )
 
   const copy = useMemo(
     () => ({
@@ -138,6 +149,7 @@ export function DonaPublicWidget() {
               </button>
             </div>
 
+            <DonaNavigationProvider onNavigate={() => setIsOpen(false)}>
             <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
               <div className="mr-auto max-w-[85%] rounded-2xl rounded-bl-sm border border-white/10 bg-[#1A1A3D] px-4 py-2.5 text-sm leading-relaxed text-white">
                 <DonaAvatarImage
@@ -150,13 +162,18 @@ export function DonaPublicWidget() {
                 <span className="mt-1 block text-[10px] text-white/40">{formatDonaTime(new Date())}</span>
               </div>
 
-              {visibleMessages.map((m) =>
-                m.role === "user" ? (
-                  <DonaUserBubble key={m.id} text={donaMessageText(m)} />
-                ) : (
-                  <DonaAssistantMessage key={m.id} message={m} />
-                )
-              )}
+              {visibleMessages.map((m, index) => (
+                <Fragment key={m.id}>
+                  {m.role === "user" ? (
+                    <DonaUserBubble text={donaMessageText(m)} />
+                  ) : (
+                    <DonaAssistantMessage message={m} />
+                  )}
+                  {signupCta?.afterIndex === index && !busy ? (
+                    <DonaSignupCta intent={signupCta.intent} locale={locale} />
+                  ) : null}
+                </Fragment>
+              ))}
 
               {busy ? <DonaTypingIndicator label={copy.typingLabel} /> : null}
 
@@ -165,7 +182,13 @@ export function DonaPublicWidget() {
                   {errorText}
                 </p>
               ) : null}
+
+              {/* No answer to the sign-up request yet (or it failed): the buttons are still there. */}
+              {signupCta && signupCta.afterIndex === null && !busy ? (
+                <DonaSignupCta intent={signupCta.intent} locale={locale} />
+              ) : null}
             </div>
+            </DonaNavigationProvider>
 
             <form
               className="shrink-0 border-t border-white/10 p-3"

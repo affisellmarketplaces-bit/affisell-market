@@ -7457,7 +7457,15 @@
       "closeAria": "Dona schließen",
       "openFabAria": "Dona öffnen — Onboard-KI",
       "trustFooter": "Geschützter Checkout · Stripe · 3D Secure · DSGVO",
-      "localeBadge": "Mehrsprachig"
+      "localeBadge": "Mehrsprachig",
+      "signupCta": {
+        "title": "Anmeldung mit einem Klick",
+        "pickRole": "Wählen Sie Ihr Profil",
+        "supplier": "Lieferantenkonto erstellen",
+        "reseller": "Meinen Händler-Shop erstellen",
+        "buyer": "Käuferkonto erstellen",
+        "haveAccount": "Ich habe schon ein Konto – anmelden"
+      }
     },
     "captain": {
       "dialogLabel": "Captain Dona — privater Modus",

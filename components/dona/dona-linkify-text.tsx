@@ -1,8 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import type { ReactNode } from "react"
+import type { MouseEvent as ReactMouseEvent, ReactNode } from "react"
 
+import { useDonaLinkClick } from "@/components/dona/dona-navigation"
+import { DONA_LINKABLE_FIRST_SEGMENTS, DONA_SITE_HOSTS, toInternalPath } from "@/lib/dona/dona-links"
 import type { DonaProductHit } from "@/lib/dona/dona-product-types"
 import { formatStoreCurrency } from "@/lib/market-config"
 
@@ -12,12 +14,17 @@ import { formatStoreCurrency } from "@/lib/market-config"
 const URL_CHAR = String.raw`(?:[A-Za-z0-9\-._~/?=&#+@:]|%[0-9A-Fa-f]{2})`
 const LINK_CLASS = "font-medium text-violet-300 underline underline-offset-2 hover:text-violet-200"
 
-// Alternation order matters: markdown link, then absolute URL, then a bare internal path (which
-// may sit anywhere in the sentence, not only at the start of the line).
+const SEGMENTS = DONA_LINKABLE_FIRST_SEGMENTS.map((seg) => seg.replace(/[-/]/g, "\\$&")).join("|")
+const HOSTS = DONA_SITE_HOSTS.map((h) => h.replace(/\./g, "\\.")).join("|")
+
+// Alternation order matters: markdown link, then absolute URL, then our own host + path without a scheme (models often
+// write `affisell.com/signup/supplier`; a bare "affisell.com" or an e-mail address is left alone), then a bare internal
+// path (which may sit anywhere in the sentence).
 const TOKEN_RE = new RegExp(
   String.raw`\[([^\]]+)\]\(([^)\s]+)\)` +
     String.raw`|(https?:\/\/${URL_CHAR}+)` +
-    String.raw`|(?<![\w/:.])(\/(?:marketplace|product|discover|bestsellers|shops|cart|checkout|signup|login|radar|dashboard)${URL_CHAR}*)`,
+    String.raw`|(?<![\w/:.@-])((?:${HOSTS})\/${URL_CHAR}+)` +
+    String.raw`|(?<![\w/:.])(\/(?:${SEGMENTS})(?![A-Za-z0-9_])${URL_CHAR}*)`,
   "gi"
 )
 
@@ -28,7 +35,11 @@ function stripInlineMarkers(line: string): string {
   return line.replace(/\*\*|__|`/g, "")
 }
 
-function renderPlainWithLinks(rawText: string, keyPrefix: string): ReactNode[] {
+function renderPlainWithLinks(
+  rawText: string,
+  keyPrefix: string,
+  onLinkClick: (e: ReactMouseEvent) => void
+): ReactNode[] {
   const text = stripInlineMarkers(rawText)
   const out: ReactNode[] = []
   let key = 0
@@ -39,12 +50,14 @@ function renderPlainWithLinks(rawText: string, keyPrefix: string): ReactNode[] {
     if (idx > cursor) out.push(text.slice(cursor, idx))
     cursor = idx + match[0].length
 
-    const [whole, mdLabel, mdHref, bareUrl, internalPath] = match
+    const [whole, mdLabel, mdHref, bareUrl, siteHost, internalPath] = match
 
     if (mdLabel != null && mdHref != null) {
-      if (mdHref.startsWith("/")) {
+      // Our own pages (relative, or absolute on our host) navigate in-app; anything else opens in a new tab.
+      const internal = toInternalPath(mdHref)
+      if (internal) {
         out.push(
-          <Link key={`${keyPrefix}-${key++}`} href={mdHref} className={LINK_CLASS}>
+          <Link key={`${keyPrefix}-${key++}`} href={internal} className={LINK_CLASS} onClick={onLinkClick}>
             {mdLabel}
           </Link>
         )
@@ -66,10 +79,17 @@ function renderPlainWithLinks(rawText: string, keyPrefix: string): ReactNode[] {
       continue
     }
 
-    const raw = bareUrl ?? internalPath ?? ""
+    const raw = bareUrl ?? siteHost ?? internalPath ?? ""
     const trail = raw.match(TRAILING_PUNCT_RE)?.[0] ?? ""
     const href = trail ? raw.slice(0, -trail.length) : raw
-    if (bareUrl) {
+    const internal = toInternalPath(href)
+    if (internal) {
+      out.push(
+        <Link key={`${keyPrefix}-${key++}`} href={internal} className={LINK_CLASS} onClick={onLinkClick}>
+          {internal}
+        </Link>
+      )
+    } else {
       out.push(
         <a
           key={`${keyPrefix}-${key++}`}
@@ -81,12 +101,6 @@ function renderPlainWithLinks(rawText: string, keyPrefix: string): ReactNode[] {
           {href}
         </a>
       )
-    } else {
-      out.push(
-        <Link key={`${keyPrefix}-${key++}`} href={href} className={LINK_CLASS}>
-          {href}
-        </Link>
-      )
     }
     if (trail) out.push(trail)
   }
@@ -96,13 +110,14 @@ function renderPlainWithLinks(rawText: string, keyPrefix: string): ReactNode[] {
 }
 
 export function DonaLinkifiedText({ text }: { text: string }) {
+  const onLinkClick = useDonaLinkClick()
   const lines = text.split("\n")
   return (
     <span className="whitespace-pre-wrap break-words">
       {lines.map((line, i) => (
         <span key={`line-${i}`}>
           {i > 0 ? <br /> : null}
-          {renderPlainWithLinks(line, `l${i}`)}
+          {renderPlainWithLinks(line, `l${i}`, onLinkClick)}
         </span>
       ))}
     </span>
@@ -110,9 +125,11 @@ export function DonaLinkifiedText({ text }: { text: string }) {
 }
 
 function DonaProductCardItem({ p }: { p: DonaProductHit }) {
+  const onLinkClick = useDonaLinkClick()
   return (
     <Link
       href={p.url}
+      onClick={onLinkClick}
       className="flex gap-3 rounded-xl border border-white/10 bg-[#12122e] p-2.5 transition hover:border-violet-500/40 hover:bg-[#161636]"
     >
       <div className="size-14 shrink-0 overflow-hidden rounded-lg bg-[#0E0E2C]">

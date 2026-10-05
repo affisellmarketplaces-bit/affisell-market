@@ -7457,7 +7457,15 @@
       "closeAria": "Zamknij Dona",
       "openFabAria": "Otwórz Donę — AI onboardingowa",
       "trustFooter": "Chroniona płatność · Stripe · 3D Secure · RODO",
-      "localeBadge": "Wielojęzyczny"
+      "localeBadge": "Wielojęzyczny",
+      "signupCta": {
+        "title": "Rejestracja jednym kliknięciem",
+        "pickRole": "Wybierz swój profil",
+        "supplier": "Utwórz konto dostawcy",
+        "reseller": "Utwórz mój sklep odsprzedawcy",
+        "buyer": "Utwórz konto kupującego",
+        "haveAccount": "Mam już konto — zaloguj się"
+      }
     },
     "captain": {
       "dialogLabel": "Kapitan Dona — tryb prywatny",

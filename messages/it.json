@@ -7457,7 +7457,15 @@
       "closeAria": "Chiudi Dona",
       "openFabAria": "Apri Dona — IA di onboarding",
       "trustFooter": "Checkout protetto · Stripe · 3D Secure · GDPR",
-      "localeBadge": "Multilingue"
+      "localeBadge": "Multilingue",
+      "signupCta": {
+        "title": "Registrati in un clic",
+        "pickRole": "Scegli il tuo profilo",
+        "supplier": "Crea il mio account fornitore",
+        "reseller": "Crea il mio negozio da rivenditore",
+        "buyer": "Crea il mio account acquirente",
+        "haveAccount": "Ho già un account — accedi"
+      }
     },
     "captain": {
       "dialogLabel": "Capitano Dona — modalità privata",

@@ -1,3 +1,4 @@
+import { DONA_LOGIN_PATH, DONA_SIGNUP_PATH } from "@/lib/dona/dona-links"
 import { donaMessageText } from "@/lib/dona/message-utils"
 import type { UIMessage } from "ai"
 
@@ -40,10 +41,17 @@ export function donaPublicOfflineReply(messages: UIMessage[]): string {
       : "No — Affisell reseller = supplier commission **+ your net markup** you configure. Not passive Amazon-style affiliation. 💜"
   }
 
+  // Supplier before the generic sign-up branch: a supplier is not a reseller, and needs account CREATION, not login.
+  if (/fournisseur|supplier|grossiste|wholesaler/.test(t) && /inscri|devenir|cr[ée]er|compte|sign|regist|become|join|account/.test(t)) {
+    return locale === "fr"
+      ? `Fournisseur : ${DONA_SIGNUP_PATH.supplier} → crée ton compte → liste ton catalogue dans /dashboard/supplier/products. Déjà un compte ? ${DONA_LOGIN_PATH.supplier}. 💜`
+      : `Supplier: ${DONA_SIGNUP_PATH.supplier} → create your account → list your catalog in /dashboard/supplier/products. Already registered? ${DONA_LOGIN_PATH.supplier}. 💜`
+  }
+
   if (/affili|revendeur|devenir|rejoin|seller|vendeur|supplier|inscri|commission|gagner/.test(t)) {
     return locale === "fr"
-      ? "Revendeur : /signup/affiliate → choisis produits sur /discover → fixe tes marges → vitrine /dashboard/affiliate. Fournisseur ≠ revendeur (/login/supplier). 💜"
-      : "Reseller: /signup/affiliate → pick products on /discover → set margins → storefront /dashboard/affiliate. Supplier ≠ reseller (/login/supplier). 💜"
+      ? `Revendeur : ${DONA_SIGNUP_PATH.reseller} → choisis produits sur /discover → fixe tes marges → vitrine /dashboard/affiliate. Fournisseur ≠ revendeur (inscription fournisseur : ${DONA_SIGNUP_PATH.supplier}). 💜`
+      : `Reseller: ${DONA_SIGNUP_PATH.reseller} → pick products on /discover → set margins → storefront /dashboard/affiliate. Supplier ≠ reseller (supplier sign-up: ${DONA_SIGNUP_PATH.supplier}). 💜`
   }
 
   if (/drop|arnaque|scam|trust|confiance|s[eé]cur|stripe|rgpd|3d/.test(t)) {

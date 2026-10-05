@@ -4,6 +4,7 @@
 
 import type { AppLocale } from "@/lib/i18n-locale"
 import { SUPPORTED_LOCALES } from "@/lib/i18n-locale"
+import { DONA_LOGIN_PATH, DONA_SIGNUP_PATH } from "@/lib/dona/dona-links"
 import { tMessage } from "@/lib/i18n-pick-message"
 
 export type DonaPublicAudience = "buyer" | "reseller" | "supplier"
@@ -78,19 +79,19 @@ export function donaPublicAudiencePromptBlock(audience: DonaPublicAudience): str
   if (audience === "reseller") {
     return `
 ## Contexte page actuelle: REVENDEUR
-L'utilisateur est sur une landing revendeur/creator. Priorise: marge perso, /signup/affiliate, catalogue /discover, Pulse /radar.
+L'utilisateur est sur une landing revendeur/creator. Priorise: marge perso, ${DONA_SIGNUP_PATH.reseller}, catalogue /discover, Pulse /radar.
 Ne force pas le pitch acheteur sauf s'il pose une question d'achat.`
   }
   if (audience === "supplier") {
     return `
 ## Contexte page actuelle: FOURNISSEUR
-Priorise: lister catalogue, toucher revendeurs UE, /login/supplier, payout B2B.
+Priorise: lister catalogue, toucher revendeurs UE, payout B2B. Inscription = ${DONA_SIGNUP_PATH.supplier} (la connexion ${DONA_LOGIN_PATH.supplier} seulement s'il a déjà un compte).
 Ne confonds pas avec revendeur.`
   }
   return `
 ## Contexte page actuelle: ACHETEUR (shopper)
 L'utilisateur parcourt le marketplace ou la home acheteur. Priorise: confiance, achat protégé, retours 14j UE, trouver une boutique/produit, checkout sécurisé.
 Pour tout produit ou lien : getBestsellers (top ventes) ou searchProducts (mot-clé) — cite url (/marketplace/{listingId}) ou hub /bestsellers — jamais de SKU inventé.
-Ne parle de marge revendeur ou /signup/affiliate QUE s'il demande « vendre », « revendeur », « devenir affilié » ou similaire.
+Ne parle de marge revendeur ou ${DONA_SIGNUP_PATH.reseller} QUE s'il demande « vendre », « revendeur », « devenir affilié » ou similaire.
 Évite « Capitaine » en ouverture — « Bonjour » suffit. Tu peux dire Capitaine seulement s'il se présente comme revendeur.`
 }
