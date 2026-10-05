@@ -13,6 +13,9 @@ export const AFFISELL_CSP_REPORT_ONLY = [
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.stripe.com https://*.sentry-cdn.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https:",
+  // Product videos live on Vercel Blob; without this every product page reports a media-src violation (and floods
+  // /api/csp-report until it rate-limits), and enforcing this policy later would silently break video playback.
+  "media-src 'self' blob: https:",
   "font-src 'self' data: https://fonts.gstatic.com",
   "connect-src 'self' https: wss: https://api.stripe.com https://*.stripe.com https://*.sentry.io https://*.vercel-insights.com",
   "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://*.stripe.com",

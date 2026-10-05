@@ -9,6 +9,7 @@ import {
 } from "@/lib/crm/supplier-pipeline-status"
 import type { SupplierPipelineRow } from "@/lib/crm/supplier-pipeline-types"
 import { cn } from "@/lib/utils"
+import { truncateText } from "@/lib/truncate-text"
 
 type ViewMode = "kanban" | "pipeline"
 
@@ -319,5 +320,5 @@ function formatDate(iso: string | null): string {
 }
 
 function truncate(value: string, max: number): string {
-  return value.length > max ? `${value.slice(0, max)}…` : value
+  return truncateText(value, max)
 }

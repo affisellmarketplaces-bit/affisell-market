@@ -1110,6 +1110,7 @@ export function MerchantBrandStudio({
                 value={presetId}
                 onApply={applyPreset}
                 generate={brandGenerateProps}
+                slug={storeSlug}
               />
 
               <div className="space-y-2">

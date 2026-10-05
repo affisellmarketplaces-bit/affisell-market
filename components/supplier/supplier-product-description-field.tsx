@@ -33,6 +33,7 @@ import {
 } from "@/lib/supplier-generate-description"
 import { cn } from "@/lib/utils"
 import { readJsonResponse } from "@/lib/read-json-response"
+import { truncateText } from "@/lib/truncate-text"
 
 const MAX_GALLERY_FOR_AI = 2
 const MAX_ILLUSTRATIONS_FOR_AI = 3
@@ -60,7 +61,7 @@ function parseGenerateDescriptionError(
   if (/too many images/i.test(trimmed)) {
     return messages.tooManyImages
   }
-  return trimmed.length > 200 ? `${trimmed.slice(0, 200)}…` : trimmed
+  return truncateText(trimmed, 200)
 }
 
 type Props = {

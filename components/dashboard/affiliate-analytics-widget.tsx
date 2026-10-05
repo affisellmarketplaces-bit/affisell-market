@@ -9,6 +9,7 @@ import { RevenueCompareChart } from "@/components/dashboard/revenue-compare-char
 import type { AffiliateDashboardAnalytics } from "@/lib/affiliate-dashboard-analytics-types"
 import { formatMoneyFromCents } from "@/lib/app-locale-format"
 import { resolveAppLocale } from "@/lib/i18n-locale"
+import { sliceSafe } from "@/lib/truncate-text"
 
 type Props = {
   analytics: AffiliateDashboardAnalytics
@@ -20,7 +21,7 @@ export function AffiliateAnalyticsWidget({ analytics }: Props) {
   const money = (cents: number) => formatMoneyFromCents(cents, locale, { maximumFractionDigits: 0 })
 
   const barData = analytics.topProductsEpc.map((row) => ({
-    name: row.productName.length > 18 ? `${row.productName.slice(0, 16)}…` : row.productName,
+    name: row.productName.length > 18 ? `${sliceSafe(row.productName, 16)}…` : row.productName,
     epc: row.epcCents / 100,
     fullName: row.productName,
   }))

@@ -52,6 +52,7 @@ import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/stripe-minimum"
 import { descriptionHasImageMarkers, stripDescriptionImageMarkers } from "@/lib/description-rich-content"
 import type { ListingDetailProps } from "./listing-detail-types"
 import { EMPTY_SIZE_OPTIONS, listingAtAGlance, splitListingTitle, t } from "./listing-detail-utils"
+import { sliceSafe } from "@/lib/truncate-text"
 
 export function useListingDetailController(props: ListingDetailProps) {
   const {
@@ -371,7 +372,7 @@ export function useListingDetailController(props: ListingDetailProps) {
     if (!d) return null
     const max = 420
     if (d.length <= max) return d
-    const slice = d.slice(0, max)
+    const slice = sliceSafe(d, max)
     const cut = slice.lastIndexOf(" ")
     return `${(cut > 200 ? slice.slice(0, cut) : slice).trimEnd()}…`
   }, [description])

@@ -10,6 +10,7 @@ import { buttonVariants } from "@/components/ui/button"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { buildPayoutTweetText, referralShareUrl } from "@/lib/referral-shared"
 import { cn } from "@/lib/utils"
+import { useBrowserOrigin } from "@/lib/use-hydrated"
 
 export type ReferralDashboardStats = {
   referralCode: string
@@ -30,10 +31,8 @@ export function ReferralStudio({ stats }: { stats: ReferralDashboardStats }) {
   const [tweetUrl, setTweetUrl] = useState("")
   const [screenshot, setScreenshot] = useState<File | null>(null)
 
-  const shareUrl = useMemo(
-    () => referralShareUrl(stats.referralCode, typeof window !== "undefined" ? window.location.origin : undefined),
-    [stats.referralCode]
-  )
+  const origin = useBrowserOrigin()
+  const shareUrl = useMemo(() => referralShareUrl(stats.referralCode, origin), [stats.referralCode, origin])
 
   const earnedMonthLabel = formatStoreCurrencyFromCents(stats.earnedThisMonthCents)
   const balanceLabel = formatStoreCurrencyFromCents(stats.balanceCents)

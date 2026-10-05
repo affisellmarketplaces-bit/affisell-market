@@ -12,6 +12,8 @@
  *   npm run audit:mobile-overflow -- --locales=de,nl,pl,zh     same pages with each UI language (longer strings)
  *   npm run audit:mobile-overflow -- --stress                  swap data-like text (truncate / clamp / break-words)
  *                                                              for worst-case long strings first (--stress=all: every leaf)
+ *   npm run audit:mobile-overflow -- --console                also report, per page, console errors, uncaught exceptions
+ *                                                              and failing same-origin requests (HTTP >= 400)
  *   npm run audit:mobile-login -- buyer                         ONE-TIME, you log in yourself in a real window; the
  *                                                              session is saved to .audit-sessions/ (git-ignored)
  *   npm run audit:mobile-overflow -- --preset=buyer            signed-in pages of that role (uses that saved session)
@@ -49,6 +51,7 @@ const SESSION_FILE = process.env.STORAGE_STATE ?? (SESSION_NAME ? join(ROOT, ".a
 const STORAGE_STATE = SESSION_FILE && existsSync(SESSION_FILE) ? SESSION_FILE : null
 const MAX_PAGES = Number(FLAGS.get("max") ?? 40)
 const LOCALES = (FLAGS.get("locales") ?? "").split(",").filter(Boolean)
+const CONSOLE = FLAGS.has("console")
 const STRESS = FLAGS.has("stress") ? (FLAGS.get("stress") === "all" ? "all" : "hinted") : null
 
 const DEFAULT_PATHS = [
@@ -213,8 +216,29 @@ async function main() {
     const context = await newContext(locale)
     const page = await context.newPage()
 
+    // --console: what the page complained about while loading. Dev-server noise (HMR socket) and third-party
+    // resource failures are not the app's errors; same-origin HTTP >= 400 and any script error are.
+    const problems = new Set()
+    const origin = new URL(BASE).origin
+    if (CONSOLE) {
+      page.on("console", (m) => {
+        const text = m.text().split("\n")[0].slice(0, 220)
+        if (m.type() === "error" && !/webpack-hmr|WebSocket connection|Failed to load resource/.test(text)) {
+          problems.add(`console.error: ${text}`)
+        }
+      })
+      page.on("pageerror", (e) => problems.add(`exception: ${String(e.message).split("\n")[0].slice(0, 220)}`))
+      page.on("response", (r) => {
+        const url = r.url()
+        if (r.status() >= 400 && url.startsWith(origin) && !/_next\/static|favicon|webpack-hmr|__nextjs/.test(url)) {
+          problems.add(`HTTP ${r.status()} ${new URL(url).pathname}`)
+        }
+      })
+    }
+
     for (const path of paths) {
       try {
+        problems.clear()
         await visit(page, path)
         const finalPath = new URL(page.url()).pathname
         const stressed = STRESS ? await page.evaluate((m) => window.__mobileProbe.stress(m), STRESS) : 0
@@ -228,12 +252,13 @@ async function main() {
           console.log(`⚠ ${path} → ${finalPath}  (session expired or wrong role — NOT audited)`)
           continue
         }
-        const bad = roots.length > 0
+        const bad = roots.length > 0 || (CONSOLE && problems.size > 0)
         if (bad) failed += 1
         const redirected = finalPath !== path ? ` → ${finalPath}` : ""
         const stressNote = STRESS ? ` [${stressed} stressed]` : ""
         const note = !bad && (shellOverflowPx ?? 0) > 1 ? `  (note: ${shellOverflowPx}px of clipped decoration)` : ""
-        console.log(`${bad ? "✗" : "✓"} ${path}${redirected}${stressNote}${bad ? `  (shell overflow ${shellOverflowPx}px)` : note}`)
+        console.log(`${bad ? "✗" : "✓"} ${path}${redirected}${stressNote}${roots.length > 0 ? `  (shell overflow ${shellOverflowPx}px)` : note}`)
+        if (CONSOLE) for (const issue of problems) console.log(`    ! ${issue}`)
         for (const o of roots) {
           console.log(`    <${o.tag}> x ${o.left}→${o.right}${o.stressed ? " [stressed]" : ""}  "${o.text}"  ${o.cls}`)
         }
@@ -246,7 +271,13 @@ async function main() {
   }
 
   await browser.close()
-  console.log(failed ? `\n${failed} page(s) overflow.` : `\nNo horizontal overflow.`)
+  console.log(
+    failed
+      ? `\n${failed} page(s) with ${CONSOLE ? "overflow or errors" : "overflow"}.`
+      : CONSOLE
+        ? "\nNo horizontal overflow, console errors or failing requests."
+        : "\nNo horizontal overflow."
+  )
   process.exit(failed ? 1 : 0)
 }
 

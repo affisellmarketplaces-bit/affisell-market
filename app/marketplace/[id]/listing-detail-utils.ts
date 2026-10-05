@@ -1,6 +1,7 @@
 import { formatStoreCurrency } from "@/lib/market-config"
 import { stripDescriptionImageMarkers } from "@/lib/description-rich-content"
 import { shopperVisibleTags } from "@/lib/product-shopper-tags"
+import { sliceSafe } from "@/lib/truncate-text"
 
 export const EMPTY_SIZE_OPTIONS: string[] = []
 
@@ -22,7 +23,7 @@ export function listingAtAGlance(description: string, name: string, tags: string
   if (d.length >= 28) {
     const max = 220
     if (d.length <= max) return d
-    const slice = d.slice(0, max)
+    const slice = sliceSafe(d, max)
     const last = Math.max(slice.lastIndexOf(". "), slice.lastIndexOf("! "), slice.lastIndexOf("? "))
     const cut = last > 80 ? slice.slice(0, last + 1) : slice
     return `${cut.trim()}…`

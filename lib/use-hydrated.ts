@@ -17,3 +17,20 @@ export function useHydrated(): boolean {
     () => false
   )
 }
+
+const noopSubscribe = () => () => {}
+
+/**
+ * The page origin (`https://host`), or `undefined` on the server and during hydration, then the real value.
+ *
+ * Reading `window.location.origin` while rendering gives the server one value and the browser another
+ * (`https://affisell.com` fallback vs `http://localhost:3001`), so React reports a hydration mismatch and discards the
+ * server HTML. This hook renders the server's value first and updates right after hydration.
+ */
+export function useBrowserOrigin(): string | undefined {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => window.location.origin,
+    () => undefined
+  )
+}

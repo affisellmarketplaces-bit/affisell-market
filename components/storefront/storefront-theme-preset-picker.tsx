@@ -16,16 +16,19 @@ type Props = {
     disabled?: boolean
     onApply: (result: BrandFieldGenerateResponse) => void
   }
+  /** Store slug, shown in the hint's public URLs; "…" until it is known. */
+  slug?: string
 }
 
-export function StorefrontThemePresetPicker({ value, onApply, generate }: Props) {
+export function StorefrontThemePresetPicker({ value, onApply, generate, slug }: Props) {
   const t = useTranslations("storefront.brandStudio.presets")
 
   return (
     <div className="space-y-3">
       <BrandStudioFieldHeader
         label={t("title")}
-        hint={t("hint")}
+        // The hint names the public URLs (/boutique/{slug}, /shops/{slug}) — next-intl throws without the variable.
+        hint={t("hint", { slug: slug?.trim() || "…" })}
         generate={
           generate
             ? {

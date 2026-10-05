@@ -21,6 +21,7 @@ import type { SupplierDashboardAnalytics } from "@/lib/supplier-dashboard-analyt
 import { bcp47ForAppLocale, formatMoneyFromCents } from "@/lib/app-locale-format"
 import { resolveAppLocale } from "@/lib/i18n-locale"
 import { cn } from "@/lib/utils"
+import { sliceSafe } from "@/lib/truncate-text"
 
 type Props = {
   analytics: SupplierDashboardAnalytics
@@ -63,7 +64,7 @@ export function SupplierAnalyticsWidget({ analytics }: Props) {
     : null
   const barData = analytics.topAffiliates.map((row) => ({
     name:
-      row.displayName.length > 16 ? `${row.displayName.slice(0, 14)}…` : row.displayName,
+      row.displayName.length > 16 ? `${sliceSafe(row.displayName, 14)}…` : row.displayName,
     revenue: row.revenueCents / 100,
     fullName: row.displayName,
   }))

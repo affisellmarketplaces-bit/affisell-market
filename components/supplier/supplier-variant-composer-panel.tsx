@@ -26,6 +26,7 @@ import {
 } from "@/lib/supplier-generate-variants"
 import { readJsonResponse } from "@/lib/read-json-response"
 import { cn } from "@/lib/utils"
+import { truncateText } from "@/lib/truncate-text"
 
 export type { VariantComposerFormPatch }
 
@@ -288,7 +289,7 @@ export function SupplierVariantComposerPanel({
                   "dark:border-violet-800/60 dark:bg-zinc-900/60 dark:text-violet-100 dark:hover:bg-violet-950/50"
                 )}
               >
-                {text.length > 72 ? `${text.slice(0, 72)}…` : text}
+                {truncateText(text, 72)}
               </button>
             ))}
           </div>
