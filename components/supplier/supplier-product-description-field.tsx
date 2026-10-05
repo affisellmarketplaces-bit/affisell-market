@@ -498,14 +498,15 @@ export function SupplierProductDescriptionField({
           <Label htmlFor="p-desc" className="mb-0 text-zinc-800 dark:text-zinc-100">
             {t("label")}
           </Label>
-        <div className="flex flex-wrap items-center justify-end gap-2">
+        {/* Phones: the two AI actions share the width (2 equal columns, label may wrap); from sm up they sit right of the label. */}
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:justify-end">
           <Button
             type="button"
             size="sm"
             variant="outline"
             disabled={composerDisabled}
             onClick={() => void handleOptimizeDescription()}
-            className="gap-1.5 border-violet-200 text-violet-800 hover:bg-violet-50 dark:border-violet-800 dark:text-violet-200 dark:hover:bg-violet-950/40"
+            className="h-auto min-h-9 w-full gap-1.5 whitespace-normal border-violet-200 py-1.5 leading-tight sm:w-auto sm:whitespace-nowrap text-violet-800 hover:bg-violet-50 dark:border-violet-800 dark:text-violet-200 dark:hover:bg-violet-950/40"
           >
             {optimizeLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -519,7 +520,7 @@ export function SupplierProductDescriptionField({
             size="sm"
             disabled={composerDisabled}
             onClick={() => void handleGenerateDescription()}
-            className="gap-1.5 border-0 bg-gradient-to-r from-cyan-600 via-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-500/20 hover:opacity-95 disabled:opacity-50"
+            className="h-auto min-h-9 w-full gap-1.5 whitespace-normal border-0 bg-gradient-to-r from-cyan-600 via-violet-600 to-fuchsia-600 py-1.5 leading-tight text-white shadow-lg shadow-violet-500/20 hover:opacity-95 disabled:opacity-50 sm:w-auto sm:whitespace-nowrap"
           >
             {aiLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />

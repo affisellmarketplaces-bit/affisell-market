@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Box, CloudUpload, Link2, ShoppingBag, Star } from "lucide-react"
 import type { ChangeEvent } from "react"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import {
@@ -404,6 +404,18 @@ function normalizeImportPreviewRow(raw: Record<string, unknown>): ImportPreviewR
 export function SupplierProductImport() {
   const router = useRouter()
   const [importMethod, setImportMethod] = useState<ImportMethod>("csv")
+  const tabListRef = useRef<HTMLDivElement>(null)
+
+  // Keep the selected tab visible inside the sideways-scrolling strip — horizontal only, so the page never jumps.
+  useEffect(() => {
+    const list = tabListRef.current
+    const tab = list?.querySelector<HTMLElement>('[aria-selected="true"]')
+    if (!list || !tab) return
+    const start = tab.offsetLeft - 8
+    const end = tab.offsetLeft + tab.offsetWidth + 8
+    if (start < list.scrollLeft) list.scrollTo({ left: start, behavior: "smooth" })
+    else if (end > list.scrollLeft + list.clientWidth) list.scrollTo({ left: end - list.clientWidth, behavior: "smooth" })
+  }, [importMethod])
   const [isImporting, setIsImporting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -727,7 +739,13 @@ export function SupplierProductImport() {
         </p>
       ) : null}
 
-      <div className="mb-6 flex gap-2 border-b border-zinc-200 dark:border-zinc-700">
+      {/* Tabs scroll sideways on a phone (snap + hidden scrollbar) instead of overflowing the screen: the last tab used
+          to sit past the right edge, cut off and unreachable. */}
+      <div
+        ref={tabListRef}
+        role="tablist"
+        className="relative mb-6 flex snap-x snap-mandatory gap-2 overflow-x-auto overscroll-x-contain border-b border-zinc-200 [scrollbar-width:none] dark:border-zinc-700 [&::-webkit-scrollbar]:hidden"
+      >
         {tabs.map((method) => {
           const Icon = TAB_ICONS[method.id]
           const active = importMethod === method.id
@@ -735,8 +753,10 @@ export function SupplierProductImport() {
             <button
               key={method.id}
               type="button"
+              role="tab"
+              aria-selected={active}
               onClick={() => setImportMethod(method.id)}
-              className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition ${
+              className={`flex shrink-0 snap-start items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition ${
                 active
                   ? "border-black text-black dark:border-white dark:text-white"
                   : "border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"

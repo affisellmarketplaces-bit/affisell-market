@@ -37,11 +37,16 @@ export function SupplierTitleQualityHint({ title, onApply }: Props) {
         <button
           type="button"
           onClick={() => onApply(suggestion)}
-          className="mt-2 inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-amber-600 px-3 text-xs font-semibold text-white transition hover:bg-amber-500"
+          className="mt-2 flex min-h-9 w-full flex-col items-start gap-0.5 rounded-lg bg-amber-600 px-3 py-2 text-left text-xs text-white transition hover:bg-amber-500 sm:inline-flex sm:w-auto sm:max-w-full sm:flex-row sm:items-center sm:gap-1.5 sm:py-0"
         >
-          <Sparkles className="size-3.5" aria-hidden />
-          {t("apply")}
-          <span className="ml-1 max-w-[16rem] truncate font-normal opacity-90">“{suggestion}”</span>
+          <span className="inline-flex shrink-0 items-center gap-1.5 font-semibold">
+            <Sparkles className="size-3.5" aria-hidden />
+            {t("apply")}
+          </span>
+          {/* On a phone the cleaned title wraps under the label (2 lines max); from sm up it stays on one line. */}
+          <span className="line-clamp-2 min-w-0 max-w-full break-words font-normal opacity-90 sm:ml-1 sm:max-w-[16rem] sm:line-clamp-none sm:block sm:truncate">
+            “{suggestion}”
+          </span>
         </button>
       ) : null}
     </div>

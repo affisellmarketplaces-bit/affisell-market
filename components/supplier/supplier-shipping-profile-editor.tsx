@@ -315,7 +315,7 @@ export function SupplierShippingProfileEditor({ initialOffers }: Props) {
           <p className="rounded-xl border border-zinc-200 p-6 text-center text-sm text-zinc-500 dark:border-zinc-800">{t("noResults")}</p>
         ) : (
           <>
-            <ul className="grid gap-2 sm:grid-cols-2">
+            <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {catalog.slice(0, limit).map((c) => {
                 const pan = c.country.includes("EUROPE")
                 const label = pan

@@ -427,6 +427,16 @@ body.affisell-demo-lab .affisell-header-shell {
       overflow-x: clip;
     }
 
+    /*
+     * The shell is a flex column and an `mx-auto` child opts out of `align-items: stretch`, so it sizes to its content
+     * instead of the screen: one non-wrapping row (carousel track, chip strip, `truncate` text) then inflates the whole
+     * page past the viewport, where `overflow-x: clip` silently cuts it off. A page root that declares a `max-w-*`
+     * cap means "full width up to that cap" — say so. Base layer: an explicit `w-*` utility on a root still wins.
+     */
+    .affisell-page-shell > [class*="max-w-"] {
+      width: 100%;
+    }
+
     .affisell-site-footer__pad {
       padding-bottom: max(4.1rem, var(--affisell-mobile-dock-offset));
     }

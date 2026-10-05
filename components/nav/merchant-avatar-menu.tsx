@@ -8,6 +8,7 @@ import { createPortal } from "react-dom"
 import { useTranslations } from "next-intl"
 
 import { cn } from "@/lib/utils"
+import { rightAlignedPanelLeft } from "@/lib/anchored-panel-position"
 
 type Props = {
   className?: string
@@ -27,7 +28,7 @@ export function MerchantAvatarMenu({ className }: Props) {
   useLayoutEffect(() => {
     if (!open || !btnRef.current) return
     const r = btnRef.current.getBoundingClientRect()
-    setCoords({ top: r.bottom + 6, left: Math.max(8, r.right - 200) })
+    setCoords({ top: r.bottom + 6, left: rightAlignedPanelLeft({ anchorRight: r.right, panelWidth: 200, viewportWidth: document.documentElement.clientWidth }) })
   }, [open])
 
   return (

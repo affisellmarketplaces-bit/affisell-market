@@ -62,7 +62,7 @@ export default async function SupplierSupplyHubPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
+    <div className="mx-auto w-full max-w-5xl px-4 py-10">
       <Link
         href="/dashboard/supplier"
         className={cn(

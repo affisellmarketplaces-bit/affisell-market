@@ -262,10 +262,10 @@ export function SupplierExpressTaxonomyRail({
           type="button"
           variant="outline"
           size="sm"
-          className="relative mt-3 w-full justify-between gap-2 rounded-xl border-violet-300/80 bg-white/90 text-left text-xs font-semibold text-violet-800 shadow-sm hover:border-violet-400 hover:bg-violet-50 dark:border-violet-700 dark:bg-zinc-950/80 dark:text-violet-100 dark:hover:bg-violet-950/50"
+          className="relative mt-3 h-auto min-h-9 w-full shrink justify-between gap-2 whitespace-normal rounded-xl border-violet-300/80 bg-white/90 py-1.5 text-left text-xs font-semibold text-violet-800 shadow-sm hover:border-violet-400 hover:bg-violet-50 dark:border-violet-700 dark:bg-zinc-950/80 dark:text-violet-100 dark:hover:bg-violet-950/50"
           onClick={onBrowseCatalogManually}
         >
-          <span>{confirmed ? t("editCategory") : t("browseManualAlt")}</span>
+          <span className="min-w-0 flex-1">{confirmed ? t("editCategory") : t("browseManualAlt")}</span>
           <ChevronRight className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
         </Button>
       ) : null}

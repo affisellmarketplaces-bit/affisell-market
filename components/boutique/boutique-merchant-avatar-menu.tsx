@@ -9,6 +9,7 @@ import { useTranslations } from "next-intl"
 
 import { resolveStoreAvatarUrl } from "@/lib/boutique/boutique-merchant-header-shared"
 import { cn } from "@/lib/utils"
+import { rightAlignedPanelLeft } from "@/lib/anchored-panel-position"
 
 type Props = {
   storeName: string
@@ -42,7 +43,7 @@ export function BoutiqueMerchantAvatarMenu({
   useLayoutEffect(() => {
     if (!open || !btnRef.current) return
     const r = btnRef.current.getBoundingClientRect()
-    setCoords({ top: r.bottom + 8, left: Math.max(8, r.right - 224) })
+    setCoords({ top: r.bottom + 8, left: rightAlignedPanelLeft({ anchorRight: r.right, panelWidth: 224, viewportWidth: document.documentElement.clientWidth }) })
   }, [open])
 
   return (

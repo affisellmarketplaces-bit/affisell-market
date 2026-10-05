@@ -17,6 +17,7 @@ import { SUPPLIER_INVITE_NOTIF } from "@/lib/supplier-invite-notif-constants"
 import { SUPPLIER_AFFILIATE_INVITE_NOTIF } from "@/lib/supplier-affiliate-invite-notif-constants"
 import { SUPPLIER_PRICE_CHANGE_NOTIF } from "@/lib/affiliate-wholesale-change-notif-constants"
 import type { MerchantNotificationOrderSummary } from "@/lib/merchant-notification-order-summary-types"
+import { computeAnchoredPanelPosition, type AnchoredPanelPosition } from "@/lib/anchored-panel-position"
 import { cn } from "@/lib/utils"
 
 type NotificationRow = {
@@ -162,7 +163,7 @@ export function MerchantNotificationsMenu({
   const [rows, setRows] = useState<NotificationRow[]>([])
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const [dropdownCoords, setDropdownCoords] = useState<{ top: number; right: number } | null>(null)
+  const [dropdownCoords, setDropdownCoords] = useState<AnchoredPanelPosition | null>(null)
 
   const load = useCallback(async (opts?: { forceSync?: boolean }) => {
     try {
@@ -246,10 +247,12 @@ export function MerchantNotificationsMenu({
       const el = buttonRef.current
       if (!el) return
       const rect = el.getBoundingClientRect()
-      setDropdownCoords({
-        top: rect.bottom + 8,
-        right: Math.max(8, window.innerWidth - rect.right),
-      })
+      setDropdownCoords(
+        computeAnchoredPanelPosition({
+          anchor: { bottom: rect.bottom, right: rect.right },
+          viewportWidth: document.documentElement.clientWidth,
+        })
+      )
     }
     updatePosition()
     window.addEventListener("resize", updatePosition)
@@ -308,10 +311,12 @@ export function MerchantNotificationsMenu({
         style={{
           position: "fixed",
           top: dropdownCoords.top,
+          left: dropdownCoords.left,
           right: dropdownCoords.right,
+          width: dropdownCoords.width,
           zIndex: 200,
         }}
-        className="w-[min(100vw-1.5rem,26rem)] overflow-hidden rounded-2xl border border-violet-200/60 bg-white/95 shadow-[0_24px_80px_-12px_rgba(91,33,182,0.35)] ring-1 ring-violet-500/10 backdrop-blur-xl dark:border-violet-900/50 dark:bg-zinc-950/95 dark:ring-violet-400/10"
+        className="overflow-hidden rounded-2xl border border-violet-200/60 bg-white/95 shadow-[0_24px_80px_-12px_rgba(91,33,182,0.35)] ring-1 ring-violet-500/10 backdrop-blur-xl dark:border-violet-900/50 dark:bg-zinc-950/95 dark:ring-violet-400/10"
       >
         <div className="relative border-b border-violet-100/80 bg-gradient-to-r from-violet-600/[0.08] via-emerald-500/[0.05] to-transparent px-4 py-3 dark:border-violet-900/40">
           <div className="flex items-center justify-between gap-2">
@@ -342,7 +347,7 @@ export function MerchantNotificationsMenu({
             ) : null}
           </div>
         </div>
-        <ul className="max-h-[min(24rem,60vh)] overflow-y-auto overscroll-contain">
+        <ul className="max-h-[min(24rem,60dvh)] overflow-y-auto overscroll-contain">
           {rows.length === 0 ? (
             <li className="px-4 py-10 text-center text-sm text-zinc-500">{t(cfg.emptyKey)}</li>
           ) : (

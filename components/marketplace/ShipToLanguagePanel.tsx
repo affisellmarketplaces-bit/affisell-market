@@ -21,6 +21,7 @@ import {
   writeShipsToDocumentCookie,
 } from "@/lib/ships-to-preference"
 import { cn } from "@/lib/utils"
+import { rightAlignedPanelLeft } from "@/lib/anchored-panel-position"
 
 /** ISO-3166 alpha-2 → flag emoji (regional indicator pair) — no hardcoded flag table to maintain. */
 function flagEmoji(iso2: string): string {
@@ -86,7 +87,7 @@ export function ShipToLanguagePanel() {
     const btn = btnRef.current
     if (!btn) return
     const r = btn.getBoundingClientRect()
-    setMenuPos({ top: r.bottom + 8, left: Math.max(8, r.right - MENU_WIDTH_PX) })
+    setMenuPos({ top: r.bottom + 8, left: rightAlignedPanelLeft({ anchorRight: r.right, panelWidth: MENU_WIDTH_PX, viewportWidth: document.documentElement.clientWidth }) })
   }, [])
 
   const openPanel = useCallback(() => {

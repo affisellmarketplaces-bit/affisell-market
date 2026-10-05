@@ -63,7 +63,7 @@ export function SupplierShippingCarriersPicker({ value, onChange, className }: P
   return (
     <div className={cn("space-y-3", className)}>
       <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("pickerHint")}</p>
-      <ul className="grid gap-2 sm:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {carriers.map(({ carrier, offer }) => {
           const on = value.includes(carrier.id)
           return (

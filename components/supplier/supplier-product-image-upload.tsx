@@ -344,9 +344,12 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
 
   const remaining = pickEmptySlotIndices(slots, processingSlots).length
 
+  // Sized from the gallery's own width (container query units), never from the viewport: `22vw` ignored the page
+  // padding and the cards around the gallery, so on a phone the 4-column thumbnail strip (354px) was wider than its
+  // card (~270px) and pushed the whole editor past the screen edge.
   const cellVars: CSSProperties = {
-    ["--cell" as string]: "min(5.25rem, 22vw)",
     ["--g" as string]: "0.5rem",
+    ["--cell" as string]: "min(5.25rem, calc((100cqw - 3 * var(--g)) / 4))",
     ["--main" as string]: "calc(2 * var(--cell) + var(--g))",
   }
 
@@ -389,7 +392,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
 
       <div
         className={cn(
-          "relative rounded-xl transition-[box-shadow,ring]",
+          "@container relative rounded-xl transition-[box-shadow,ring]",
           dragActive && "ring-2 ring-violet-400/80 ring-offset-2 ring-offset-white dark:ring-offset-zinc-950"
         )}
         style={cellVars}
@@ -408,11 +411,11 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
           </div>
         ) : null}
 
-        <div className="flex flex-wrap items-start gap-3">
-          <div
-            className="group relative shrink-0"
-            style={{ width: "var(--main)", height: "var(--main)", minWidth: "var(--main)" }}
-          >
+        <div
+          className="grid justify-start [grid-template-columns:repeat(4,var(--cell))] @[34rem]:[grid-template-columns:repeat(6,var(--cell))]"
+          style={{ gap: "var(--g)", gridAutoRows: "var(--cell)" }}
+        >
+          <div className="group relative" style={{ gridColumn: "span 2", gridRow: "span 2" }}>
             {slots[0] ? (
               <div className="relative h-full w-full overflow-hidden rounded-xl border border-zinc-200/90 bg-[#f4f4f5] shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -457,16 +460,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
             )}
           </div>
 
-          <div
-            className="grid shrink-0 grid-cols-4 grid-rows-2 gap-2"
-            style={{
-              width: "calc(4 * var(--cell) + 3 * var(--g))",
-              height: "var(--main)",
-              gridTemplateColumns: "repeat(4, var(--cell))",
-              gridTemplateRows: "repeat(2, var(--cell))",
-            }}
-          >
-            {Array.from({ length: 8 }, (_, idx) => {
+          {Array.from({ length: 8 }, (_, idx) => {
               const slotIndex = idx + 1
               const url = slots[slotIndex]
               const processing = processingSlots.has(slotIndex)
@@ -513,7 +507,6 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
                 </div>
               )
             })}
-          </div>
         </div>
       </div>
 
