@@ -47,4 +47,4 @@ Mogą Państwo zablokować pliki cookie w ustawieniach przeglądarki. Niektóre 
 
 ## Artykuł 5 — Kontakt
 
-Pytania: {{DPO}} — <mailto:{{EMAIL}}>{{EMAIL}}</mailto>
+Pytania: {{DPO}} — {{EMAIL}}

@@ -47,4 +47,4 @@ U kunt cookies blokkeren via uw browserinstellingen. Sommige functies (inloggen,
 
 ## Artikel 5 — Contact
 
-Vragen: {{DPO}} — <mailto:{{EMAIL}}>{{EMAIL}}</mailto>
+Vragen: {{DPO}} — {{EMAIL}}

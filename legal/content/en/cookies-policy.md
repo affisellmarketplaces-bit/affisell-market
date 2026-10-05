@@ -47,4 +47,4 @@ You can block cookies through your browser settings. Some features (login, cart)
 
 ## Article 5 — Contact
 
-Questions: {{DPO}} — <mailto:{{EMAIL}}>{{EMAIL}}</mailto>
+Questions: {{DPO}} — {{EMAIL}}

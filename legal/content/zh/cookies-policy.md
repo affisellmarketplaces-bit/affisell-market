@@ -47,4 +47,4 @@ Cookie 是您访问平台时存储在终端上的文本文件。可能使用类�
 
 ## 第 5 条 — 联系方式
 
-咨询：{{DPO}} — <mailto:{{EMAIL}}>{{EMAIL}}</mailto>
+咨询：{{DPO}} — {{EMAIL}}

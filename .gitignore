@@ -85,3 +85,6 @@ medusa-backend/.medusa-dev.lock
 
 # Files written by `vercel env pull`
 .env.vercel*
+
+# Mobile-audit sign-in sessions (equivalent to a logged-in browser) — never commit
+.audit-sessions/

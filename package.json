@@ -127,6 +127,7 @@
     "verify:notion-crm": "node scripts/verify-notion-crm-ready.mjs",
     "check:client-prisma": "node scripts/check-client-prisma-imports.mjs",
     "audit:mobile-overflow": "node scripts/audit-mobile-overflow.mjs",
+    "audit:mobile-login": "node scripts/audit-mobile-login.mjs",
     "brand:icons": "node scripts/generate-brand-icons.mjs",
     "i18n:parity": "node scripts/i18n-parity-check.mjs",
     "i18n:brand-terminology": "node scripts/i18n-apply-reseller-creator-brand.mjs",

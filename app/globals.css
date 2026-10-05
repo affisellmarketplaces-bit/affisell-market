@@ -437,6 +437,30 @@ body.affisell-demo-lab .affisell-header-shell {
       width: 100%;
     }
 
+    /*
+     * A `grid` with no base `grid-cols-*` (only `sm:`/`md:` ones) has an implicit `auto` column, and an auto track grows
+     * to its widest item's min-content — a `truncate` title, a long e-mail, a chip row — pushing the whole grid past the
+     * screen. One flexible, shrinkable column is what every such grid means below its first breakpoint. Utilities win
+     * over this base layer (any `grid-cols-*`, arbitrary template, responsive override), and flow/auto-column grids
+     * and inline templates are left alone. Measured inert (0 boxes moved) on pages that don't overflow.
+     */
+    .grid:not(
+        [class^="grid-cols-"],
+        [class*=" grid-cols-"],
+        [class^="grid-flow-"],
+        [class*=" grid-flow-"],
+        [class^="auto-cols-"],
+        [class*=" auto-cols-"],
+        [style*="grid-template"]
+      ) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* A single unbreakable token (e-mail, URL, SKU) wraps instead of spilling off the screen; ordinary words are unaffected. */
+    .affisell-page-shell {
+      overflow-wrap: break-word;
+    }
+
     .affisell-site-footer__pad {
       padding-bottom: max(4.1rem, var(--affisell-mobile-dock-offset));
     }

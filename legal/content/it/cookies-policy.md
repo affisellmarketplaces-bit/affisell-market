@@ -47,4 +47,4 @@ Può bloccare i cookie tramite le impostazioni del browser. Alcune funzionalità
 
 ## Articolo 5 — Contatto
 
-Domande: {{DPO}} — <mailto:{{EMAIL}}>{{EMAIL}}</mailto>
+Domande: {{DPO}} — {{EMAIL}}

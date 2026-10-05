@@ -47,4 +47,4 @@ Puede bloquear las cookies a través de la configuración de su navegador. Algun
 
 ## Artículo 5 — Contacto
 
-Preguntas: {{DPO}} — <mailto:{{EMAIL}}>{{EMAIL}}</mailto>
+Preguntas: {{DPO}} — {{EMAIL}}
