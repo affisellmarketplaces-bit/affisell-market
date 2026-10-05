@@ -14,6 +14,7 @@ import { useSearchParams } from "next/navigation"
 import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
 import { loginCustomerPath } from "@/lib/login-redirect"
 import { LegalSignupConsent } from "@/components/legal/legal-signup-consent"
+import { useHydrated } from "@/lib/use-hydrated"
 
 function CustomerSignupForm() {
   const t = useTranslations("auth.customerSignup")
@@ -30,6 +31,7 @@ function CustomerSignupForm() {
   const [cguChecked, setCguChecked] = useState(false)
   const [privacyChecked, setPrivacyChecked] = useState(false)
   const [loading, setLoading] = useState(false)
+  const hydrated = useHydrated()
   const [error, setError] = useState<string | null>(null)
 
   async function onSubmit(e: FormEvent) {
@@ -95,7 +97,7 @@ function CustomerSignupForm() {
         </div>
 
         <div className="rounded-2xl bg-white p-8 shadow-sm">
-          <form onSubmit={onSubmit} className="space-y-5">
+          <form method="post" onSubmit={onSubmit} className="space-y-5">
             <div>
               <p className="mb-2 text-sm font-medium text-gray-700">{t("accountTypeLabel")}</p>
               <div className="grid grid-cols-2 gap-2">
@@ -193,7 +195,7 @@ function CustomerSignupForm() {
             />
             <button
               type="submit"
-              disabled={loading || !cguChecked || !privacyChecked}
+              disabled={loading || !hydrated || !cguChecked || !privacyChecked}
               className="w-full rounded-xl bg-blue-600 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-60"
             >
               {loading ? t("submitLoading") : t("submit")}

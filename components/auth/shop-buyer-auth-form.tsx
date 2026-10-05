@@ -10,6 +10,7 @@ import { useMemo, useState } from "react"
 import { forgotPasswordHref } from "@/lib/auth-forgot-password-href"
 import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages"
 import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
+import { useHydrated } from "@/lib/use-hydrated"
 
 type Props = {
   storeName: string
@@ -26,6 +27,7 @@ export function ShopBuyerAuthForm({ storeName, shopSlug, mode, isStoreHost = fal
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
+  const hydrated = useHydrated()
   const [error, setError] = useState<string | null>(null)
 
   const storeHomePath = isStoreHost ? "/" : `/shops/${shopSlug}`
@@ -97,7 +99,7 @@ export function ShopBuyerAuthForm({ storeName, shopSlug, mode, isStoreHost = fal
           </p>
         ) : null}
 
-        <form onSubmit={onSubmit} className="space-y-5">
+        <form method="post" onSubmit={onSubmit} className="space-y-5">
           <div>
             <label htmlFor="shop-buyer-email" className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
               {tShop("email")}
@@ -138,7 +140,7 @@ export function ShopBuyerAuthForm({ storeName, shopSlug, mode, isStoreHost = fal
           </div>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !hydrated}
             className="w-full rounded-xl bg-zinc-900 py-2.5 font-medium text-white hover:bg-zinc-800 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
           >
             {loading

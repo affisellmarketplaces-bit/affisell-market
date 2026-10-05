@@ -21,6 +21,7 @@ import { toast } from "sonner"
 
 import type { PublicSupplierInvitationPayload } from "@/lib/supplier-invitation-types"
 import { cn } from "@/lib/utils"
+import { useHydrated } from "@/lib/use-hydrated"
 
 type Props = {
   invite: PublicSupplierInvitationPayload
@@ -34,6 +35,7 @@ export function SupplierInvitationLanding({ invite }: Props) {
   const [companyName, setCompanyName] = useState("")
   const [siret, setSiret] = useState("")
   const [loading, setLoading] = useState(false)
+  const hydrated = useHydrated()
   const [claiming, setClaiming] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const autoClaimStarted = useRef(false)
@@ -267,7 +269,7 @@ export function SupplierInvitationLanding({ invite }: Props) {
                   <Building2 className="h-4 w-4 text-emerald-400" aria-hidden />
                   Créer mon compte fournisseur
                 </div>
-                <form onSubmit={onSignup} className="space-y-4">
+                <form method="post" onSubmit={onSignup} className="space-y-4">
                   <div>
                     <label htmlFor="inv-company" className="mb-1 block text-xs font-medium text-zinc-400">
                       Entreprise
@@ -329,7 +331,7 @@ export function SupplierInvitationLanding({ invite }: Props) {
                   </p>
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || !hydrated}
                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-3 font-semibold text-zinc-950 shadow-lg shadow-emerald-500/20 transition hover:brightness-110 disabled:opacity-60"
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Store className="h-4 w-4" />}

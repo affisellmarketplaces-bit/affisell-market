@@ -114,7 +114,7 @@ export function ResetPasswordForm({ token }: Props) {
         </p>
       ) : null}
 
-      <form onSubmit={onSubmit} className="space-y-5">
+      <form method="post" onSubmit={onSubmit} className="space-y-5">
         <div>
           <label htmlFor="new-password" className="mb-2 block text-sm font-medium text-zinc-300">
             {t("newPassword")}

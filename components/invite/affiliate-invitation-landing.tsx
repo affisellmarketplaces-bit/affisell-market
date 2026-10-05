@@ -20,6 +20,7 @@ import { toast } from "sonner"
 
 import type { PublicAffiliateInvitationPayload } from "@/lib/supplier-affiliate-invitation-types"
 import { cn } from "@/lib/utils"
+import { useHydrated } from "@/lib/use-hydrated"
 
 type Props = {
   invite: PublicAffiliateInvitationPayload
@@ -33,6 +34,7 @@ export function AffiliateInvitationLanding({ invite }: Props) {
   const [storeName, setStoreName] = useState("")
   const [socialHandle, setSocialHandle] = useState("")
   const [loading, setLoading] = useState(false)
+  const hydrated = useHydrated()
   const [claiming, setClaiming] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const autoClaimStarted = useRef(false)
@@ -267,7 +269,7 @@ export function AffiliateInvitationLanding({ invite }: Props) {
                   <Store className="h-4 w-4 text-violet-400" aria-hidden />
                   Créer mon compte affilié
                 </div>
-                <form onSubmit={onSignup} className="space-y-4">
+                <form method="post" onSubmit={onSignup} className="space-y-4">
                   <div>
                     <label htmlFor="inv-store" className="mb-1 block text-xs font-medium text-zinc-400">
                       Nom de vitrine
@@ -323,7 +325,7 @@ export function AffiliateInvitationLanding({ invite }: Props) {
                   </div>
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || !hydrated}
                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3 font-semibold text-white shadow-lg shadow-violet-500/20 transition hover:brightness-110 disabled:opacity-60"
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}

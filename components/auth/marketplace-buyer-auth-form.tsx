@@ -15,6 +15,7 @@ import {
   MARKETPLACE_BUYER_ORDERS_PATH,
   signupCustomerPath,
 } from "@/lib/login-redirect"
+import { useHydrated } from "@/lib/use-hydrated"
 
 type Props = {
   mode: "login" | "signup"
@@ -33,6 +34,7 @@ export function MarketplaceBuyerAuthForm({
   const [cguChecked, setCguChecked] = useState(false)
   const [privacyChecked, setPrivacyChecked] = useState(false)
   const [loading, setLoading] = useState(false)
+  const hydrated = useHydrated()
   const [error, setError] = useState<string | null>(null)
 
   const rawCallback = search.get("callbackUrl")
@@ -126,7 +128,7 @@ export function MarketplaceBuyerAuthForm({
           </p>
         ) : null}
 
-        <form onSubmit={onSubmit} className="space-y-5">
+        <form method="post" onSubmit={onSubmit} className="space-y-5">
           <div>
             <label
               htmlFor="marketplace-buyer-email"
@@ -182,7 +184,7 @@ export function MarketplaceBuyerAuthForm({
           ) : null}
           <button
             type="submit"
-            disabled={loading || (mode === "signup" && (!cguChecked || !privacyChecked))}
+            disabled={loading || !hydrated || (mode === "signup" && (!cguChecked || !privacyChecked))}
             className="w-full rounded-xl bg-violet-600 py-2.5 font-medium text-white hover:bg-violet-700 disabled:opacity-60"
           >
             {loading

@@ -11,6 +11,7 @@ import type { LoginPortal } from "@/lib/auth-login-portal"
 import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
 import { PasswordResetForgotLink } from "@/components/auth/password-reset-forgot-link"
 import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages"
+import { useHydrated } from "@/lib/use-hydrated"
 
 type Props = {
   portal: LoginPortal | null
@@ -41,6 +42,7 @@ export function PortalSignInForm({
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
+  const hydrated = useHydrated()
   const [error, setError] = useState<string | null>(null)
 
   const rawCallback = search.get("callbackUrl")
@@ -170,7 +172,7 @@ export function PortalSignInForm({
           </>
         ) : null}
 
-        <form onSubmit={onSubmit} className="space-y-5">
+        <form method="post" onSubmit={onSubmit} className="space-y-5">
           <div>
             <label htmlFor="portal-signin-email" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-zinc-300">
               {t("email")}
@@ -216,7 +218,7 @@ export function PortalSignInForm({
           </div>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !hydrated}
             className="w-full rounded-xl bg-blue-600 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-60"
           >
             {loading ? t("connecting") : t("submitLogin")}

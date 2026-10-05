@@ -37,6 +37,7 @@ import {
   HumanoidShield,
   type ShieldAnalyzeResult,
 } from "@/lib/security/humanoid-shield"
+import { scrubCredentialParams } from "@/lib/scrub-credential-query"
 
 const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
 const FORCED_CUSTOMER_HEADER = "x-affisell-view-role"
@@ -298,6 +299,13 @@ export async function proxy(req: NextRequest) {
 
   if (isPublicStaticAssetPath(pathname)) {
     return NextResponse.next()
+  }
+
+  // A password in the query string (a login form submitted as a plain GET before hydration) must not stay in the
+  // address bar, history, logs or Referer: bounce to the same URL without it. Pages only — APIs are left alone.
+  if ((req.method === "GET" || req.method === "HEAD") && !pathname.startsWith("/api/")) {
+    const cleaned = scrubCredentialParams(req.nextUrl)
+    if (cleaned) return NextResponse.redirect(cleaned, 307)
   }
 
   const barePath = pathnameWithoutLocale(pathname)

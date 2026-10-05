@@ -110,6 +110,7 @@ export function ProviderForm({
 
   return (
     <form
+      method="post"
       onSubmit={handleSubmit(onSubmit)}
       className={compact ? "space-y-4" : "mt-8 max-w-xl space-y-6"}
     >
