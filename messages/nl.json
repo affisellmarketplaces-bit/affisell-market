@@ -4669,7 +4669,8 @@
       "trustLine": "Beveiligde checkout · Veilige levering",
       "freeShipping": "Gratis levering",
       "warrantyYears": "{count, plural, one {# jaar garantie} other {# jaar garantie}}",
-      "warrantyMonths": "{count, plural, one {# maand garantie} other {# maanden garantie}}"
+      "warrantyMonths": "{count, plural, one {# maand garantie} other {# maanden garantie}}",
+      "klarnaTitle": "Betaal in {count} termijnen van {amount} met Klarna"
     },
     "merchantHeader": {
       "aria": "Reseller-boutique navigatie",

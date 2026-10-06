@@ -4669,7 +4669,8 @@
       "trustLine": "安全结账 · 安全配送",
       "freeShipping": "免运费",
       "warrantyYears": "{count}年质保",
-      "warrantyMonths": "{count}个月质保"
+      "warrantyMonths": "{count}个月质保",
+      "klarnaTitle": "使用 Klarna 分 {count} 期支付，每期 {amount}"
     },
     "merchantHeader": {
       "aria": "分销商精品店导航",

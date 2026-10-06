@@ -4669,7 +4669,8 @@
       "trustLine": "Bezpieczna płatność · Bezpieczna dostawa",
       "freeShipping": "Darmowa dostawa",
       "warrantyYears": "{count, plural, one {# rok gwarancji} few {# lata gwarancji} other {# lat gwarancji}}",
-      "warrantyMonths": "{count, plural, one {# miesiąc gwarancji} few {# miesiące gwarancji} other {# miesięcy gwarancji}}"
+      "warrantyMonths": "{count, plural, one {# miesiąc gwarancji} few {# miesiące gwarancji} other {# miesięcy gwarancji}}",
+      "klarnaTitle": "Zapłać w {count} ratach po {amount} z Klarna"
     },
     "merchantHeader": {
       "aria": "Nawigacja butiku resellera",

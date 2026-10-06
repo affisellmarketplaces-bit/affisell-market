@@ -10,6 +10,15 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts")
 const nextConfig: NextConfig = {
   /** Dev HMR + hydration on merchant subdomains (e.g. slug.shops.localhost:3001). */
   allowedDevOrigins: ["*.shops.localhost", "127.0.0.1", "localhost"],
+  /**
+   * Klarna on buyer cards is decided in a client component (<ProductCard>), which cannot read a server-only env var: it
+   * would always see "enabled" while the server — and Stripe Checkout — saw "0", so the card would promise Klarna that
+   * checkout does not offer, and React would report a hydration mismatch on every card. Inlining the value at build time
+   * gives server render, hydration and checkout one answer (changing it needs a redeploy, as on Vercel env changes do).
+   */
+  env: process.env.MARKETPLACE_BNPL_ENABLED
+    ? { MARKETPLACE_BNPL_ENABLED: process.env.MARKETPLACE_BNPL_ENABLED }
+    : {},
   async headers() {
     return [
       {

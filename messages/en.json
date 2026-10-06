@@ -4669,7 +4669,8 @@
       "trustLine": "Secure checkout · Secure delivery",
       "freeShipping": "Free delivery",
       "warrantyYears": "{count, plural, one {# year warranty} other {# years warranty}}",
-      "warrantyMonths": "{count, plural, one {# month warranty} other {# months warranty}}"
+      "warrantyMonths": "{count, plural, one {# month warranty} other {# months warranty}}",
+      "klarnaTitle": "Pay in {count} × {amount} with Klarna"
     },
     "merchantHeader": {
       "aria": "Reseller boutique navigation",

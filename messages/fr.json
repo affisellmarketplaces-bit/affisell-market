@@ -4669,7 +4669,8 @@
       "trustLine": "Paiement sécurisé · Livraison sécurisée",
       "freeShipping": "Livraison offerte",
       "warrantyYears": "{count, plural, one {Garantie # an} other {Garantie # ans}}",
-      "warrantyMonths": "Garantie {count} mois"
+      "warrantyMonths": "Garantie {count} mois",
+      "klarnaTitle": "Payez en {count}× {amount} avec Klarna"
     },
     "merchantHeader": {
       "aria": "Navigation revendeur boutique",

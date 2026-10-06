@@ -19,6 +19,11 @@ import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { Badge } from "@/components/ui/badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import {
+  isKlarnaEligibleCents,
+  klarnaInstallmentCents,
+  MARKETPLACE_BNPL_INSTALLMENTS,
+} from "@/lib/marketplace-checkout-payment-methods"
 import { calcMarginCents } from "@/lib/product-card-margin"
 import { cn } from "@/lib/utils"
 
@@ -219,14 +224,20 @@ function BusinessBadges({
   )
 }
 
-function CustomerConversionBadges({
+/**
+ * Trust chips under a buyer-facing card. The Klarna chip mirrors checkout exactly: Stripe Checkout only offers Klarna when
+ * BNPL is enabled and the cart reaches the minimum (`isKlarnaEligibleCents`), so the card only advertises it then.
+ */
+export function CustomerConversionBadges({
   freeShipping,
   warrantyLabel,
   warrantyMonths,
+  priceCents,
 }: {
   freeShipping: boolean
   warrantyLabel: string | null
   warrantyMonths: number | null
+  priceCents: number
 }) {
   const t = useTranslations("boutique.productCard")
   const localWarranty =
@@ -235,7 +246,14 @@ function CustomerConversionBadges({
         ? t("warrantyYears", { count: warrantyMonths / 12 })
         : t("warrantyMonths", { count: warrantyMonths })
       : warrantyLabel
-  const hasAny = freeShipping || localWarranty
+  const klarnaEligible = isKlarnaEligibleCents(priceCents)
+  const klarnaLabel = klarnaEligible
+    ? t("klarnaTitle", {
+        count: MARKETPLACE_BNPL_INSTALLMENTS,
+        amount: formatStoreCurrencyFromCents(klarnaInstallmentCents(priceCents)),
+      })
+    : null
+  const hasAny = freeShipping || localWarranty || klarnaEligible
   if (!hasAny) return null
   return (
     <ul className="mt-1.5 flex flex-wrap gap-1 sm:mt-2 sm:gap-1.5">
@@ -253,11 +271,18 @@ function CustomerConversionBadges({
           </span>
         </li>
       ) : null}
-      <li className="max-sm:hidden">
-        <span className="inline-flex rounded-full bg-violet-100 px-1.5 py-px text-[9px] font-semibold text-violet-900 sm:px-2 sm:py-0.5 sm:text-[10px] dark:bg-violet-950/60 dark:text-violet-200">
-          Paiement 3x
-        </span>
-      </li>
+      {klarnaLabel ? (
+        <li className="max-sm:hidden">
+          <span
+            data-testid="klarna-chip"
+            title={klarnaLabel}
+            className="inline-flex items-center rounded-full bg-[#FFB3C7] px-1.5 py-px text-[9px] font-bold tracking-tight text-neutral-950 sm:px-2 sm:py-0.5 sm:text-[10px]"
+          >
+            Klarna
+            <span className="sr-only"> — {klarnaLabel}</span>
+          </span>
+        </li>
+      ) : null}
     </ul>
   )
 }
@@ -426,8 +451,11 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
             ) : null}
           </>
         ) : (
-          <CustomerConversionBadges freeShipping={p.freeShipping} warrantyLabel={p.warrantyLabel}
+          <CustomerConversionBadges
+            freeShipping={p.freeShipping}
+            warrantyLabel={p.warrantyLabel}
             warrantyMonths={p.warrantyMonths}
+            priceCents={Math.round(priceN * 100)}
           />
         )}
       </div>

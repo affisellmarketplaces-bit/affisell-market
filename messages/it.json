@@ -4669,7 +4669,8 @@
       "trustLine": "Checkout sicuro · Consegna sicura",
       "freeShipping": "Consegna gratuita",
       "warrantyYears": "{count, plural, one {# anno di garanzia} other {# anni di garanzia}}",
-      "warrantyMonths": "{count, plural, one {# mese di garanzia} other {# mesi di garanzia}}"
+      "warrantyMonths": "{count, plural, one {# mese di garanzia} other {# mesi di garanzia}}",
+      "klarnaTitle": "Paga in {count} rate da {amount} con Klarna"
     },
     "merchantHeader": {
       "aria": "Navigazione boutique del rivenditore",
