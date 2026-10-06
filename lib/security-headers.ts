@@ -23,7 +23,8 @@ export const AFFISELL_CSP_REPORT_ONLY = [
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self' https://checkout.stripe.com https://*.stripe.com",
-  "frame-ancestors 'self'",
+  // No `frame-ancestors` here: the spec ignores it in a Report-Only policy and Safari logs a console error for it on
+  // every page. Clickjacking is enforced by AFFISELL_CSP_ENFORCE (+ X-Frame-Options) above.
   "report-uri /api/csp-report",
 ].join("; ")
 

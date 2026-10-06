@@ -65,6 +65,14 @@ describe("security-headers", () => {
     expect(AFFISELL_CSP_REPORT_ONLY).toContain("https://js.stripe.com")
     expect(AFFISELL_CSP_REPORT_ONLY).toContain("report-uri /api/csp-report")
   })
+
+  it("keeps frame-ancestors out of the Report-Only policy (ignored by the spec, logged as an error by Safari)", () => {
+    expect(AFFISELL_CSP_REPORT_ONLY).not.toContain("frame-ancestors")
+    // ...while clickjacking protection stays enforced, twice over.
+    const headers = buildSecurityHeaders()
+    expect(headers.find((h) => h.key === "Content-Security-Policy")?.value).toContain("frame-ancestors 'self'")
+    expect(headers.find((h) => h.key === "X-Frame-Options")?.value).toBe("SAMEORIGIN")
+  })
 })
 
 describe("request-origin-guard", () => {
