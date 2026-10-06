@@ -1,6 +1,6 @@
 /* Affisell service worker — Web Push + buyer catalog offline shell */
 
-const CACHE_VERSION = "affisell-buyer-v1"
+const CACHE_VERSION = "affisell-buyer-v2"
 const SHELL_CACHE = `${CACHE_VERSION}-shell`
 const CATALOG_CACHE = `${CACHE_VERSION}-catalog`
 const PRECACHE_URLS = [
@@ -10,11 +10,20 @@ const PRECACHE_URLS = [
   "/placeholder-product.jpg",
 ]
 const CATALOG_API_PATH = "/api/marketplace/products"
+// Navigations that get an offline fallback (network-first): the buyer shell.
 const OFFLINE_NAV_PREFIXES = ["/", "/marketplace", "/cart", "/wishlist"]
+// The ONLY pages whose HTML is stored, and only as an ANONYMOUS copy. Every page embeds the signed-in user's session, so
+// storing the visitor's own navigation would leave their identity readable offline after sign-out. Fail-closed.
+const PUBLIC_SHELL_PATHS = ["/", "/marketplace/bestsellers"]
+const SHELL_REFRESH_MS = 60 * 60 * 1000
+const shellRefreshedAt = new Map()
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(SHELL_CACHE).then((cache) => cache.addAll(PRECACHE_URLS).catch(() => undefined))
+    caches.open(SHELL_CACHE).then((cache) =>
+      // Without cookies, like every stored page; one unavailable URL must not abort the rest.
+      Promise.all(PRECACHE_URLS.map((url) => cache.add(new Request(url, { credentials: "omit" })).catch(() => undefined)))
+    )
   )
   self.skipWaiting()
 })
@@ -52,7 +61,7 @@ self.addEventListener("fetch", (event) => {
       (prefix) => url.pathname === prefix || url.pathname.startsWith(`${prefix}/`)
     )
     if (isBuyerShell) {
-      event.respondWith(networkFirstNavigation(request))
+      event.respondWith(networkFirstNavigation(event, request, url))
     }
   }
 })
@@ -76,21 +85,41 @@ async function staleWhileRevalidate(request, cacheName) {
   })
 }
 
-async function networkFirstNavigation(request) {
-  const cache = await caches.open(SHELL_CACHE)
+async function networkFirstNavigation(event, request, url) {
+  const isPublicShell = PUBLIC_SHELL_PATHS.includes(url.pathname)
   try {
     const response = await fetch(request)
-    if (response.ok) void cache.put(request, response.clone())
+    // The visitor's own response is never stored; a separate cookie-less copy refreshes the offline shell.
+    if (response.ok && isPublicShell) event.waitUntil(refreshAnonymousShell(url, request))
     return response
   } catch {
-    const cached = await cache.match(request)
-    if (cached) return cached
+    const cache = await caches.open(SHELL_CACHE)
+    const shell = isPublicShell ? await cache.match(url.pathname) : undefined
+    if (shell) return shell
     const offline = await cache.match("/offline")
     if (offline) return offline
     return new Response("Offline", {
       status: 503,
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     })
+  }
+}
+
+async function refreshAnonymousShell(url, request) {
+  const last = shellRefreshedAt.get(url.pathname) ?? 0
+  if (Date.now() - last < SHELL_REFRESH_MS) return
+  try {
+    const headers = {}
+    const language = request.headers.get("Accept-Language")
+    if (language) headers["Accept-Language"] = language
+    // credentials: "omit" = no cookies, so the stored page can never contain a signed-in user's session.
+    const anonymous = await fetch(new Request(url.pathname, { credentials: "omit", headers }))
+    if (!anonymous.ok || anonymous.redirected || anonymous.type !== "basic") return
+    const cache = await caches.open(SHELL_CACHE)
+    await cache.put(url.pathname, anonymous)
+    shellRefreshedAt.set(url.pathname, Date.now())
+  } catch {
+    /* offline or transient: try again on the next visit */
   }
 }
 

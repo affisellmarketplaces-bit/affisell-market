@@ -6,7 +6,8 @@ import { describe, expect, it } from "vitest"
 /**
  * The proxy (next-intl + guards) must only see page requests. A metadata file it intercepts is treated as a page and
  * answers 404 — `/manifest.webmanifest` did, so Safari/iOS (which fetches it on every page and uses it for "Add to Home
- * Screen") logged a 404 and the PWA manifest never loaded in dev.
+ * Screen") logged a 404 and the PWA manifest never loaded in dev. `/sw.js` had the same problem: it was answered with the
+ * home page HTML, so the service worker (Web Push, offline shell) could never register.
  */
 function catchAllMatcher(): RegExp {
   const src = readFileSync(join(process.cwd(), "proxy.ts"), "utf8")
@@ -21,6 +22,7 @@ describe("proxy matcher", () => {
 
   it.each([
     "/manifest.webmanifest",
+    "/sw.js",
     "/_next/static/chunks/main.js",
     "/_next/image",
     "/icons/icon-192.png",

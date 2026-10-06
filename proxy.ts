@@ -656,7 +656,7 @@ export async function proxy(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|[^?]*\\.(?:webp|avif|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot|mp4|webm|txt|xml|json|webmanifest|map|pdf)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|sw\\.js$|[^?]*\\.(?:webp|avif|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot|mp4|webm|txt|xml|json|webmanifest|map|pdf)$).*)",
     "/",
     "/auth/signin",
     "/bestsellers",
