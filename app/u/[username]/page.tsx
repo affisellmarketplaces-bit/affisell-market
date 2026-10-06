@@ -8,6 +8,7 @@ import {
   normalizeLegionUsername,
 } from "@/lib/legion/username"
 import { listingGalleryUrls } from "@/lib/affiliate-listing-display"
+import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -45,9 +46,11 @@ export default async function LegionStorefrontPage({ params, searchParams }: Pag
   if (!profile) notFound()
 
   const affiliateListings = await prisma.affiliateProduct.findMany({
+    // Same visibility rule as the reseller brand stores (/shops, /boutique): a deactivated, draft or internal-test
+    // product must not show on a vitrine, nor a listing from a non-reseller account.
     where: {
       affiliateId: profile.userId,
-      isListed: true,
+      ...buyerListedAffiliateProductWhere,
     },
     take: 24,
     orderBy: [{ isFeatured: "desc" }, { position: "asc" }, { updatedAt: "desc" }],
@@ -78,7 +81,7 @@ export default async function LegionStorefrontPage({ params, searchParams }: Pag
 
   if (products.length === 0) {
     const featured = await prisma.affiliateProduct.findMany({
-      where: { isListed: true, isFeatured: true },
+      where: { ...buyerListedAffiliateProductWhere, isFeatured: true },
       take: 12,
       orderBy: { updatedAt: "desc" },
       select: {
