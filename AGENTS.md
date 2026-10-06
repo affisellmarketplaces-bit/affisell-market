@@ -21,6 +21,7 @@
 - **Vercel SSL (1-click)**: `VERCEL_API_TOKEN` + `VERCEL_PROJECT_ID` → `POST /api/store/verify-domain` registers hostname + www redirect on the Affisell Vercel project. Cron `GET /api/cron/sync-store-vercel-domains` (every 30 min via GitHub Actions) auto-verifies DNS + retries pending SSL. Preflight: `npm run verify:store-domains`.
 - **Theme**: `Store.storefrontTheme` JSON (`primary`, `accent` hex) — **Brand Studio** (`/dashboard/affiliate/brand-studio`, `/dashboard/supplier/storefront`); applied via `StorefrontThemeStyles` on public shops.
 - **Status**: `Store.vercelDomainStatus` (`active` | `pending` | `failed` | `skipped`); polled in UI via `GET /api/store/domain-status`.
+- **Smart header** (live `/shops/{slug}` only — `StorefrontBuyerChrome smartHeader`, Brand Studio preview keeps the plain header): `position: sticky` can't work there (the header's container is as tall as the header; mobile html/body are `overflow-x: hidden`), so the header is `fixed` + an in-flow spacer of the same height (zero layout shift). Away while reading down, back as a compact bar (trust rail folded via `[data-chrome-rail]` in `globals.css`) on the way up, full again near the top; stays visible while the menu is open or focus is inside it; `prefers-reduced-motion` keeps the static header. Pure logic + tests: `lib/storefront/header-mode.ts`; hooks: `hooks/use-header-mode.ts`.
 
 ## Ship to panel — city autocomplete
 

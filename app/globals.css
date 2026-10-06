@@ -4418,3 +4418,17 @@ button,
     animation-direction: alternate-reverse;
   }
 }
+
+/*
+ * Smart storefront header: while the visitor is reading (header "bar" or "hidden") the trust rail is folded away, so the
+ * header never costs more than its compact bar. Applies only where the chrome sets data-header-state.
+ */
+[data-header-state="bar"] [data-chrome-rail],
+[data-header-state="hidden"] [data-chrome-rail] {
+  grid-template-rows: 0fr;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-chrome-rail] {
+    transition: none;
+  }
+}

@@ -20,6 +20,7 @@ type Props = {
   shopHomePath?: string
   trust?: StorefrontTrustSnapshot | null
   isCustomDomain?: boolean
+  smartHeader?: boolean
 }
 
 export function StorefrontBuyerChromeBar(props: Props) {

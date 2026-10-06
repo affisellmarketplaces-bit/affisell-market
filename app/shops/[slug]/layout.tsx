@@ -77,6 +77,7 @@ async function ShopStorefrontHeader({
           shopHomePath={shopHomePath}
           trust={trust}
           isCustomDomain={isCustomDomain}
+          smartHeader
         />
       ) : null}
       <AffiliateStorePreviewBannerGate storeSlug={slug} storeUserId={store?.userId ?? ""} />

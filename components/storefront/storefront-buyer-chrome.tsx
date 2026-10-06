@@ -3,11 +3,13 @@
 import { X } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useTranslations } from "next-intl"
-import { Suspense, useCallback, useEffect, useRef, useState } from "react"
+import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 
 import { StorefrontBuyerHeader } from "@/components/storefront/storefront-buyer-header"
 import { StorefrontCategoryDrawerNav } from "@/components/storefront/storefront-category-drawer-nav"
 import { useBuyerCartCount } from "@/hooks/use-buyer-cart-count"
+import { useHeaderMode, useMotionAllowed } from "@/hooks/use-header-mode"
+import { visibleHeaderMode } from "@/lib/storefront/header-mode"
 import type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
 import type { StorefrontCategoryGroup } from "@/lib/shop-storefront-categories"
 import type { StorefrontTrustSnapshot } from "@/lib/storefront-trust-shared"
@@ -35,6 +37,11 @@ type Props = {
   shopHomePath?: string
   trust?: StorefrontTrustSnapshot | null
   isCustomDomain?: boolean
+  /**
+   * Smart header: fixed to the top, away while reading down, back as a compact bar on the way up. Live storefront only —
+   * the Brand Studio preview scrolls inside the editor and keeps the plain header.
+   */
+  smartHeader?: boolean
 }
 
 const EMPTY_CATEGORIES: StorefrontCategoryGroup[] = []
@@ -53,6 +60,7 @@ export function StorefrontBuyerChrome({
   shopHomePath = "/",
   trust = null,
   isCustomDomain = false,
+  smartHeader = false,
 }: Props) {
   const serverCategories = categories ?? EMPTY_CATEGORIES
   const t = useTranslations("storefront.buyerChrome")
@@ -62,6 +70,47 @@ export function StorefrontBuyerChrome({
   // Search needs the store slug (live storefront); the Brand Studio preview has none and shows no search.
   const searchEnabled = Boolean(categoriesSlug)
   const closeSearch = useCallback(() => setSearchOpen(false), [])
+
+  // ---- smart header ---------------------------------------------------------------------------------------------
+  // `position: sticky` cannot work here: the header's container is only as tall as the header, and on phones html/body
+  // are `overflow-x: hidden`, which makes body a scroll container that never scrolls. So the header is `fixed` and an
+  // in-flow spacer of the same height keeps the page layout exactly where it was.
+  const motionAllowed = useMotionAllowed()
+  const wantsSmartHeader = smartHeader && motionAllowed
+  const headerRef = useRef<HTMLDivElement>(null)
+  const [spacerHeight, setSpacerHeight] = useState<number | null>(null)
+  const [focusWithin, setFocusWithin] = useState(false)
+
+  // Measured BEFORE paint and switched to fixed in the same commit: no frame where the page jumps up under the header.
+  useLayoutEffect(() => {
+    if (!wantsSmartHeader) {
+      setSpacerHeight(null)
+      return
+    }
+    const el = headerRef.current
+    if (el) setSpacerHeight(Math.ceil(el.getBoundingClientRect().height))
+  }, [wantsSmartHeader])
+
+  const smartActive = wantsSmartHeader && spacerHeight !== null
+  const scrollMode = useHeaderMode(smartActive)
+  const headerMode = visibleHeaderMode(scrollMode, drawerOpen || focusWithin)
+
+  // The spacer always matches the COMPLETE header (fonts loading, trust rail wrapping on resize): read only while complete.
+  const headerModeRef = useRef(headerMode)
+  useEffect(() => {
+    headerModeRef.current = headerMode
+  }, [headerMode])
+  useEffect(() => {
+    const el = headerRef.current
+    if (!smartActive || !el || typeof ResizeObserver === "undefined") return
+    const observer = new ResizeObserver(() => {
+      if (headerModeRef.current !== "full") return
+      const h = Math.ceil(el.getBoundingClientRect().height)
+      setSpacerHeight((current) => (current !== null && Math.abs(current - h) > 1 ? h : current))
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [smartActive])
   const [lazyCategories, setLazyCategories] = useState<StorefrontCategoryGroup[] | null>(null)
   const [lazyTotalProducts, setLazyTotalProducts] = useState(0)
   const [categoriesLoading, setCategoriesLoading] = useState(false)
@@ -149,7 +198,24 @@ export function StorefrontBuyerChrome({
 
   return (
     <>
-      <div className="sticky top-0 z-[120]">
+      <div style={smartActive ? { height: spacerHeight ?? undefined } : undefined}>
+        <div
+          ref={headerRef}
+          data-header-state={smartActive ? headerMode : undefined}
+          className={cn(
+            smartActive
+              ? "fixed inset-x-0 top-0 z-[120] transition-[transform,box-shadow] duration-300 ease-out will-change-transform"
+              : "sticky top-0 z-[120]",
+            smartActive && headerMode === "hidden" && "-translate-y-full",
+            // The floating bar casts a shadow; a hidden header must not leak one into the top of the viewport.
+            smartActive && headerMode === "bar" && "shadow-[0_12px_32px_-14px_rgba(0,0,0,0.5)]"
+          )}
+          // A header in use is never hidden: keyboard focus anywhere inside keeps it on screen.
+          onFocusCapture={() => setFocusWithin(true)}
+          onBlurCapture={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocusWithin(false)
+          }}
+        >
         <StorefrontBuyerHeader
           storeName={storeName}
           logoUrl={logoUrl}
@@ -170,6 +236,7 @@ export function StorefrontBuyerChrome({
           isCustomDomain={isCustomDomain}
           shopHomePath={shopHomePath}
         />
+        </div>
       </div>
 
       {searchOpen && categoriesSlug ? (

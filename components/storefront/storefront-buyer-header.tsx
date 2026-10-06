@@ -267,15 +267,21 @@ export function StorefrontBuyerHeader({
 
       {/* LOGIC PRESERVED — trust sub-bar render gate + props */}
       {trust ? (
-        <StorefrontHeaderTrustRail
-          trust={trust}
-          accent={accent}
-          primary={primary}
-          trustRailText={trustRailText}
-          isCustomDomain={isCustomDomain}
-          variant="integrated"
-          visual="futuristic"
-        />
+        // Collapsible by CSS alone (grid rows 1fr → 0fr, see globals.css): the smart header folds the rail away once the
+        // visitor is reading, with no measuring — and no effect at all unless an ancestor sets data-header-state.
+        <div data-chrome-rail className="grid grid-rows-[1fr] transition-[grid-template-rows] duration-300 ease-out">
+          <div className="min-h-0 overflow-hidden">
+            <StorefrontHeaderTrustRail
+              trust={trust}
+              accent={accent}
+              primary={primary}
+              trustRailText={trustRailText}
+              isCustomDomain={isCustomDomain}
+              variant="integrated"
+              visual="futuristic"
+            />
+          </div>
+        </div>
       ) : null}
     </header>
   )
