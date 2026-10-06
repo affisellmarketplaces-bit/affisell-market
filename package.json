@@ -106,6 +106,7 @@
     "verify:video-paywall:prod": "VIDEO_PAYWALL_PAUSED=0 node scripts/verify-video-paywall-ready.mjs",
     "verify:growth-pricing": "node scripts/verify-growth-pricing-ready.mjs",
     "verify:web-push": "node scripts/verify-web-push-ready.mjs",
+    "pwa:rollback": "node scripts/pwa-rollback.mjs",
     "verify:pwa-shell": "node scripts/verify-pwa-shell-ready.mjs",
     "lighthouse:mobile": "lhci autorun",
     "lighthouse:mobile:summary": "node scripts/lighthouse-ci-summary.mjs",
