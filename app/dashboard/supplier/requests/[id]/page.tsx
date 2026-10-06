@@ -76,12 +76,18 @@ export default async function SupplierRequestDetailPage({ params }: PageProps) {
         </div>
 
         {request.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={request.imageUrl}
-            alt=""
-            className="h-48 w-full rounded-xl object-cover"
-          />
+          // The supplier must see the WHOLE product the reseller is asking for: never crop it to a fixed box
+          // (object-cover on a fixed height cut off drones, long items, anything not shaped like the frame).
+          <div className="flex justify-center overflow-hidden rounded-xl border border-zinc-200 bg-white p-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={request.imageUrl}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="h-auto max-h-96 w-auto max-w-full object-contain"
+            />
+          </div>
         ) : null}
 
         <div className="rounded-xl border border-zinc-200 bg-white p-4">
