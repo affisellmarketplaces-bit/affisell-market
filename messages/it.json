@@ -3971,7 +3971,8 @@
         "platformLabel": "Percorso Affisell (backup)",
         "openPrimary": "Apri negozio",
         "subdomainPending": "HTTPS in fase di provisioning sul tuo sottodominio — il link principale usa affisell.com come backup. Aggiorna dopo 1–2 min dall'apertura di Brand Studio.",
-        "subdomainActive": "HTTPS attivo — il tuo URL dedicato è pronto per Google Ads."
+        "subdomainActive": "HTTPS attivo — il tuo URL dedicato è pronto per Google Ads.",
+        "subdomainUnreachable": "Questo indirizzo non è ancora raggiungibile in HTTPS, quindi non lo mettiamo in evidenza. Il tuo negozio resta disponibile su {address}."
       },
       "storeName": "Nome del negozio",
       "heroBanner": "Banner eroe (HTTPS URL)",

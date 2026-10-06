@@ -3971,7 +3971,8 @@
         "platformLabel": "Chemin Affisell (secours)",
         "openPrimary": "Ouvrir la boutique",
         "subdomainPending": "HTTPS en cours sur votre sous-domaine — le lien principal utilise Affisell.com en secours. Actualisez dans 1–2 min après ouverture du Brand Studio.",
-        "subdomainActive": "HTTPS actif — votre URL dédiée est prête pour Google Ads."
+        "subdomainActive": "HTTPS actif — votre URL dédiée est prête pour Google Ads.",
+        "subdomainUnreachable": "Cette adresse n'est pas encore joignable en HTTPS — nous ne la mettons pas en avant. Votre boutique reste disponible sur {address}."
       },
       "storeName": "Nom de la boutique",
       "heroBanner": "Bannière hero (URL HTTPS)",

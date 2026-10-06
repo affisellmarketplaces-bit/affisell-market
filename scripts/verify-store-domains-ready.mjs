@@ -1,10 +1,18 @@
 #!/usr/bin/env node
 /**
  * Pre-flight before merchant custom domain auto-SSL in prod.
- * Run: npm run verify:store-domains
+ * Run: npm run verify:store-domains              (config + a REAL HTTPS check of the storefront wildcard)
+ *      npm run verify:store-domains -- my-slug   (also checks that store's own host)
+ *      npm run verify:store-domains -- --offline (config only, no network)
+ *
+ * The HTTPS check opens a real TLS connection, exactly like a browser. "Vercel says the domain is verified" is not
+ * evidence that visitors can open it: a proxy in front (Cloudflare) ends TLS first, and its free certificate covers only
+ * ONE label under the apex — `*.affisell.com`, not `{slug}.shops.affisell.com`.
  */
 import { existsSync, readFileSync } from "node:fs"
+import dns from "node:dns/promises"
 import { resolve } from "node:path"
+import tls from "node:tls"
 
 function loadDotEnv(path) {
   if (!existsSync(path)) return
@@ -59,13 +67,80 @@ for (const rel of [
   else fail(`file ${rel}`, "Missing")
 }
 
+/** Real TLS handshake with SNI and full verification — the browser's view. */
+function probeTls(host, timeoutMs = 8000) {
+  return new Promise((done) => {
+    const socket = tls.connect({ host, port: 443, servername: host, rejectUnauthorized: true })
+    const finish = (r) => {
+      clearTimeout(timer)
+      socket.destroy()
+      done(r)
+    }
+    const timer = setTimeout(() => finish({ ok: false, code: "TIMEOUT" }), timeoutMs)
+    socket.once("secureConnect", () => finish(socket.authorized ? { ok: true } : { ok: false, code: "CERT_UNTRUSTED" }))
+    socket.once("error", (e) => finish({ ok: false, code: e.code || e.message }))
+  })
+}
+
+const REMEDIATION = `
+  Why: a proxy in front of the app (Cloudflare) answers the TLS handshake first. Its free Universal certificate covers
+  only ONE label under the apex (*.affisell.com). A two-level host such as {slug}.shops.affisell.com gets NO certificate,
+  so browsers show ERR_SSL_VERSION_OR_CIPHER_MISMATCH — even though Vercel reports the domain as configured.
+
+  Fix (choose one):
+   1. Cloudflare → SSL/TLS → Edge Certificates → "Order Advanced Certificate" for  shops.affisell.com  and
+      *.shops.affisell.com  (Advanced Certificate Manager, paid). Keep SSL/TLS mode on "Full".
+   2. Free alternative: set the *.shops DNS record to "DNS only" (grey cloud) pointing to cname.vercel-dns.com so Vercel
+      issues a certificate per store host (the app registers each one). You lose Cloudflare's proxy/WAF for these hosts.
+
+  Until it is fixed the app keeps stores on https://affisell.com/shops/{slug} (their status shows "unreachable") and
+  recovers by itself on the next cron run (every 30 min) once the handshake succeeds.`
+
+const offline = process.argv.includes("--offline")
+const slugArg = process.argv.slice(2).find((a) => !a.startsWith("--"))
+
+let wildcardBroken = false
+if (!offline) {
+  const suffix = (process.env.AFFISELL_STORE_HOST_SUFFIX?.trim() || "shops.affisell.com").toLowerCase().replace(/\.$/, "")
+  const apex = suffix.split(".").slice(1).join(".") || suffix
+  const targets = [
+    { host: apex, label: `HTTPS on the apex (${apex})` },
+    { host: `tls-check.${suffix}`, label: `HTTPS on the storefront wildcard (*.${suffix})`, critical: true },
+    ...(slugArg ? [{ host: `${slugArg}.${suffix}`, label: `HTTPS on store host ${slugArg}.${suffix}`, critical: true }] : []),
+  ]
+
+  let cloudflare = false
+  try {
+    cloudflare = (await dns.resolveNs(apex)).some((n) => /cloudflare/i.test(n))
+  } catch {
+    /* no NS info — not essential */
+  }
+
+  for (const t of targets) {
+    const r = await probeTls(t.host)
+    if (r.ok) ok(t.label)
+    else {
+      fail(t.label, `${t.host}: ${r.code}${cloudflare ? " (DNS is on Cloudflare)" : ""}`)
+      if (t.critical) wildcardBroken = true
+    }
+  }
+  if (wildcardBroken) {
+    console.error(REMEDIATION)
+    console.error("")
+  }
+}
+
 const failed = checks.filter((c) => !c.pass)
 for (const c of checks) {
   console.log(c.pass ? `✓ ${c.label}` : `✗ ${c.label}${c.hint ? ` — ${c.hint}` : ""}`)
 }
 
 if (failed.length > 0) {
-  console.error(`\n${failed.length} check(s) failed — merchants will need manual Vercel Domains.`)
+  console.error(
+    wildcardBroken
+      ? `\n${failed.length} check(s) failed — store subdomains cannot be opened over HTTPS yet (fix above).`
+      : `\n${failed.length} check(s) failed — merchants will need manual Vercel Domains.`
+  )
   process.exit(1)
 }
 

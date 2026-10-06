@@ -3971,7 +3971,8 @@
         "platformLabel": "Affisell 路径（备用）",
         "openPrimary": "打开店面",
         "subdomainPending": "正在为你的子域名配置 HTTPS —— 主链接暂时使用 affisell.com 作为备用。打开品牌工作室后1-2分钟刷新即可。",
-        "subdomainActive": "HTTPS 已启用 —— 你的专属链接已可用于 Google Ads。"
+        "subdomainActive": "HTTPS 已启用 —— 你的专属链接已可用于 Google Ads。",
+        "subdomainUnreachable": "此地址暂时无法通过 HTTPS 打开，因此我们不会将其作为主地址。您的店铺仍可通过 {address} 访问。"
       },
       "storeName": "商店名称",
       "heroBanner": "英雄 banner (HTTPS URL)",

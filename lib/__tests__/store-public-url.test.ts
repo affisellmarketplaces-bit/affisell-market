@@ -62,6 +62,31 @@ describe("storePublicUrl", () => {
     expect(urls.subdomainSslActive).toBe(false)
   })
 
+  it("an 'unreachable' subdomain is never the primary address — the store stays on its working platform URL", () => {
+    vi.stubEnv("NODE_ENV", "production")
+    vi.stubEnv("AFFISELL_STORE_HOST_SUFFIX", "shops.affisell.com")
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://affisell.com")
+
+    const urls = resolveStorePublicUrls({ slug: "ecom-store", role: "AFFILIATE", subdomainVercelStatus: "unreachable" })
+    expect(urls.primaryUrl).toBe("https://affisell.com/shops/ecom-store")
+    expect(urls.subdomainSslActive).toBe(false)
+    expect(urls.subdomainState).toBe("unreachable")
+  })
+
+  it("exposes why the subdomain is (not) primary", () => {
+    vi.stubEnv("NODE_ENV", "production")
+    vi.stubEnv("AFFISELL_STORE_HOST_SUFFIX", "shops.affisell.com")
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://affisell.com")
+
+    const state = (subdomainVercelStatus: string | null) =>
+      resolveStorePublicUrls({ slug: "s", role: "AFFILIATE", subdomainVercelStatus }).subdomainState
+    expect(state("active")).toBe("active")
+    expect(state("unreachable")).toBe("unreachable")
+    expect(state("pending")).toBe("pending")
+    expect(state("registered")).toBe("pending")
+    expect(state(null)).toBe("pending")
+  })
+
   it("uses platform path in local dev for clickable links", () => {
     vi.stubEnv("NODE_ENV", "development")
     vi.stubEnv("NEXT_PUBLIC_APP_URL", "http://localhost:3001")

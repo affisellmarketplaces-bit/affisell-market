@@ -94,6 +94,11 @@ export function resolveStorePublicUrls(input: StorePublicUrlInput): StorePublicU
     platformPathUrl,
     customDomainUrl,
     subdomainSslActive: isSubdomainSslActive(input),
+    subdomainState: isSubdomainSslActive(input)
+      ? "active"
+      : input.subdomainVercelStatus === "unreachable"
+        ? "unreachable"
+        : "pending",
   }
 }
 

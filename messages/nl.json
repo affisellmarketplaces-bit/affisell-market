@@ -3971,7 +3971,8 @@
         "platformLabel": "Affisell-pad (backup)",
         "openPrimary": "Storefront openen",
         "subdomainPending": "HTTPS wordt ingericht op jouw subdomein — de primaire link gebruikt affisell.com als backup. Ververs na 1–2 min na het openen van Brand Studio.",
-        "subdomainActive": "HTTPS actief — jouw eigen URL is klaar voor Google Ads."
+        "subdomainActive": "HTTPS actief — jouw eigen URL is klaar voor Google Ads.",
+        "subdomainUnreachable": "Dit adres is nog niet via HTTPS te openen, daarom lichten we het niet uit. Je winkel blijft beschikbaar op {address}."
       },
       "storeName": "Winkelnaam",
       "heroBanner": "Hero-banner (HTTPS-URL)",

@@ -57,3 +57,14 @@ describe("storefront type card strings", () => {
     }
   })
 })
+
+describe("live store card: unreachable subdomain message", () => {
+  it.each(LOCALES)("%s has the message and its {address} variable", (locale) => {
+    const file = path.resolve(__dirname, `../../messages/${locale}.json`)
+    const msg = (JSON.parse(fs.readFileSync(file, "utf8")) as {
+      storefront: { brandStudio: { liveStore: Record<string, string> } }
+    }).storefront.brandStudio.liveStore.subdomainUnreachable
+    expect(msg?.trim().length ?? 0, locale).toBeGreaterThan(0)
+    expect(msg).toContain("{address}")
+  })
+})

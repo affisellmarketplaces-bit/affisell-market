@@ -99,9 +99,16 @@ export function StoreLiveUrlCard({ urls, storeHostSuffix, loading }: Props) {
           </div>
         </div>
 
-        <CopyRow label={t("subdomainLabel")} url={urls.subdomainUrl} highlight />
+        <CopyRow label={t("subdomainLabel")} url={urls.subdomainUrl} highlight={urls.subdomainState === "active"} />
 
-        {!urls.subdomainSslActive ? (
+        {urls.subdomainState === "unreachable" ? (
+          <p
+            role="status"
+            className="rounded-xl border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-xs leading-relaxed text-rose-100"
+          >
+            {t("subdomainUnreachable", { address: urls.platformPathUrl })}
+          </p>
+        ) : !urls.subdomainSslActive ? (
           <p className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-100">
             {t("subdomainPending")}
           </p>

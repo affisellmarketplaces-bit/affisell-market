@@ -3971,7 +3971,8 @@
         "platformLabel": "Ruta de Affisell (respaldo)",
         "openPrimary": "Abrir tienda",
         "subdomainPending": "HTTPS se está aprovisionando en tu subdominio — el enlace principal usa affisell.com como respaldo. Actualiza en 1–2 min tras abrir Brand Studio.",
-        "subdomainActive": "HTTPS activo — tu URL dedicada está lista para Google Ads."
+        "subdomainActive": "HTTPS activo — tu URL dedicada está lista para Google Ads.",
+        "subdomainUnreachable": "Esta dirección aún no se puede abrir por HTTPS, por eso no la destacamos. Su tienda sigue disponible en {address}."
       },
       "storeName": "Nombre de la tienda",
       "heroBanner": "Banner de héroe (HTTPS URL)",

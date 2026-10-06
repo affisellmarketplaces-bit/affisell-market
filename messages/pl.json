@@ -3971,7 +3971,8 @@
         "platformLabel": "Ścieżka Affisell (kopia zapasowa)",
         "openPrimary": "Otwórz sklep",
         "subdomainPending": "HTTPS jest konfigurowane na Twojej subdomenie — link główny używa affisell.com jako kopii zapasowej. Odśwież po 1–2 min od otwarcia Brand Studio.",
-        "subdomainActive": "HTTPS aktywne — Twój dedykowany adres URL jest gotowy na Google Ads."
+        "subdomainActive": "HTTPS aktywne — Twój dedykowany adres URL jest gotowy na Google Ads.",
+        "subdomainUnreachable": "Ten adres nie jest jeszcze dostępny przez HTTPS, dlatego go nie promujemy. Twój sklep pozostaje dostępny pod adresem {address}."
       },
       "storeName": "Nazwa sklepu",
       "heroBanner": "Baner bohatera (adres URL HTTPS)",
