@@ -4613,7 +4613,8 @@
       "allProducts": "Alle Produkte",
       "otherCategory": "Sonstiges",
       "cart": "Warenkorb",
-      "showingCategory": "{category} · {count, plural, one {# Produkt} other {# Produkte}}"
+      "showingCategory": "{category} · {count, plural, one {# Produkt} other {# Produkte}}",
+      "search": "Im Shop suchen"
     },
     "domain": {
       "title": "Deine eigene Domain",
@@ -4685,6 +4686,26 @@
       },
       "openStore": "Shop öffnen",
       "currentAddress": "Aktuelle Adresse"
+    },
+    "hero": {
+      "ariaLabel": "Vorstellung von {name}",
+      "eyebrow": "{count, plural, one {# ausgewähltes Produkt} other {# ausgewählte Produkte}}",
+      "ctaShop": "Kollektion entdecken",
+      "ctaBestsellers": "Bestseller",
+      "chipSales": "{count, plural, one {# Verkauf} other {# Verkäufe}} beim Bestseller",
+      "chipFreeShipping": "Kostenlose Lieferung",
+      "chipReturns": "14 Tage Rückgabe",
+      "chipKlarna": "In 3× zahlen mit Klarna"
+    },
+    "search": {
+      "open": "Im Shop suchen",
+      "title": "Im Shop suchen",
+      "placeholder": "Produkt suchen …",
+      "empty": "Kein Produkt passt zu „{query}“.",
+      "hint": "Mindestens 2 Buchstaben eingeben",
+      "loading": "Suche läuft …",
+      "close": "Suche schließen",
+      "resultsCount": "{count, plural, one {# Ergebnis} other {# Ergebnisse}}"
     }
   },
   "pwa": {

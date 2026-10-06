@@ -10,6 +10,7 @@ import { StorefrontHashScroll } from "@/components/storefront/storefront-hash-sc
 import { StorefrontNewsletterSection } from "@/components/storefront/storefront-newsletter-section"
 import { StorefrontSocialProofSection } from "@/components/storefront/storefront-social-proof-section"
 import { StorefrontTaglineBand } from "@/components/storefront/storefront-tagline-band"
+import { computeHeroStats, type HeroStats } from "@/lib/storefront/storefront-hero-stats"
 import type { ShopProductCard, ShopStoreSummary } from "@/lib/shop-storefront-shared"
 import {
   getEnabledHomepageSections,
@@ -41,6 +42,9 @@ export async function StorefrontHomeSections({
   const sections = getEnabledHomepageSections(store.theme.homepageSections ?? [])
   const t = await getTranslations("storefront.homeSections")
   const storySectionEnabled = sections.some((s) => s.type === "story")
+  const heroStats = computeHeroStats(catalogProducts)
+  const productsAnchor = sections.some((s) => s.type === "products") ? "#products" : null
+  const bestsellersAnchor = sections.some((s) => s.type === "bestsellers") ? "#bestsellers" : null
 
   if (sections.length === 0) return null
 
@@ -57,6 +61,12 @@ export async function StorefrontHomeSections({
                 key="hero"
                 store={store}
                 suppressDescription={storySectionEnabled}
+                identity={{
+                  stats: heroStats,
+                  // The primary button points at the catalog, else at the best sellers; never at nothing.
+                  productsHref: productsAnchor ?? bestsellersAnchor,
+                  bestsellersHref: productsAnchor && bestsellersAnchor ? bestsellersAnchor : null,
+                }}
               />
             )
           case "flash-sale":
@@ -111,7 +121,7 @@ export async function StorefrontHomeSections({
             )
           case "products":
             return (
-              <div key="products" className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+              <div key="products" id="products" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-8 sm:px-6">
                 <ProductGrid
                   storeSlug={slug}
                   products={products}
@@ -224,9 +234,11 @@ export async function StorefrontHomeSections({
 function StorefrontHeroBlock({
   store,
   suppressDescription = false,
+  identity,
 }: {
   store: ShopStoreSummary
   suppressDescription?: boolean
+  identity: { stats: HeroStats; productsHref: string | null; bestsellersHref: string | null }
 }) {
   if (suppressDescription) {
     return (
@@ -236,6 +248,7 @@ function StorefrontHeroBlock({
         theme={store.theme}
         brandAlign={store.theme.headerBrandAlign}
         suppressDescription
+        identity={identity}
       />
     )
   }
@@ -258,6 +271,7 @@ function StorefrontHeroBlock({
       bannerUrl={store.bannerUrl}
       theme={store.theme}
       brandAlign={store.theme.headerBrandAlign}
+      identity={identity}
     />
   )
 }

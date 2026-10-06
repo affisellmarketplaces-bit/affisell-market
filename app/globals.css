@@ -4364,3 +4364,57 @@ button,
   --glass-card: #17142e;
   --glass-row-active: #3b2f7a;
 }
+
+/*
+ * Storefront hero identity — entrance, and a slow drifting mesh of the merchant's own palette behind a gradient hero.
+ * Motion only when the visitor allows it; with reduced motion everything is simply there.
+ */
+.affisell-hero-mesh {
+  position: absolute;
+  width: 60%;
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  filter: blur(70px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+.affisell-hero-mesh--a {
+  top: -25%;
+  left: -10%;
+}
+.affisell-hero-mesh--b {
+  bottom: -35%;
+  right: -10%;
+  opacity: 0.35;
+}
+@keyframes affisell-hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes affisell-hero-drift {
+  from {
+    transform: translate3d(-6%, -4%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(8%, 6%, 0) scale(1.15);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .affisell-hero-rise {
+    animation: affisell-hero-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--hero-delay, 0ms);
+  }
+  .affisell-hero-mesh {
+    animation: affisell-hero-drift 18s ease-in-out infinite alternate;
+  }
+  .affisell-hero-mesh--b {
+    animation-duration: 24s;
+    animation-direction: alternate-reverse;
+  }
+}

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 const m = vi.hoisted(() => ({
   updateMany: vi.fn(),
@@ -35,6 +35,11 @@ import {
 } from "@/lib/store-subdomain-provisioning"
 
 const HANDSHAKE_FAILED = { state: "unreachable", reason: "tls_handshake_failed", code: "ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE" }
+
+afterEach(() => {
+  // These tests stub env vars; never leave them behind for the next test file in the same worker.
+  vi.unstubAllEnvs()
+})
 
 beforeEach(() => {
   vi.clearAllMocks()

@@ -4613,7 +4613,8 @@
       "allProducts": "全部商品",
       "otherCategory": "其他",
       "cart": "购物车",
-      "showingCategory": "{category} · {count, plural, other {# 件商品}}"
+      "showingCategory": "{category} · {count, plural, other {# 件商品}}",
+      "search": "在店内搜索"
     },
     "domain": {
       "title": "您的个人域名",
@@ -4685,6 +4686,26 @@
       },
       "openStore": "打开店铺",
       "currentAddress": "当前地址"
+    },
+    "hero": {
+      "ariaLabel": "{name} 店铺介绍",
+      "eyebrow": "{count} 件精选商品",
+      "ctaShop": "选购系列",
+      "ctaBestsellers": "热销商品",
+      "chipSales": "热销款已售 {count} 件",
+      "chipFreeShipping": "免费配送",
+      "chipReturns": "14 天内可退货",
+      "chipKlarna": "Klarna 分 3 期付款"
+    },
+    "search": {
+      "open": "在店内搜索",
+      "title": "在店内搜索",
+      "placeholder": "搜索商品…",
+      "empty": "没有与“{query}”匹配的商品。",
+      "hint": "请至少输入 2 个字符",
+      "loading": "搜索中…",
+      "close": "关闭搜索",
+      "resultsCount": "{count} 个结果"
     }
   },
   "pwa": {

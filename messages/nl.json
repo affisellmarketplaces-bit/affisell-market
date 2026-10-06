@@ -4613,7 +4613,8 @@
       "allProducts": "Alle producten",
       "otherCategory": "Overig",
       "cart": "Winkelwagen",
-      "showingCategory": "{category} · {count, plural, one {# product} other {# producten}}"
+      "showingCategory": "{category} · {count, plural, one {# product} other {# producten}}",
+      "search": "Zoeken in de winkel"
     },
     "domain": {
       "title": "Eigen domein",
@@ -4685,6 +4686,26 @@
       },
       "openStore": "Winkel openen",
       "currentAddress": "Huidig adres"
+    },
+    "hero": {
+      "ariaLabel": "Kennismaking met {name}",
+      "eyebrow": "{count, plural, one {# geselecteerd product} other {# geselecteerde producten}}",
+      "ctaShop": "Ontdek de collectie",
+      "ctaBestsellers": "Bestsellers",
+      "chipSales": "{count, plural, one {# verkoop} other {# verkopen}} op onze bestseller",
+      "chipFreeShipping": "Gratis levering",
+      "chipReturns": "14 dagen retour",
+      "chipKlarna": "Betaal in 3× met Klarna"
+    },
+    "search": {
+      "open": "Zoeken in de winkel",
+      "title": "Zoeken in de winkel",
+      "placeholder": "Zoek een product…",
+      "empty": "Geen product gevonden voor “{query}”.",
+      "hint": "Typ minstens 2 letters",
+      "loading": "Zoeken…",
+      "close": "Zoeken sluiten",
+      "resultsCount": "{count, plural, one {# resultaat} other {# resultaten}}"
     }
   },
   "pwa": {

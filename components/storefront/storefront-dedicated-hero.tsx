@@ -1,7 +1,9 @@
 "use client"
 
+import { StorefrontHeroIdentity } from "@/components/storefront/storefront-hero-identity"
 import { StorefrontHeroVideoNameOverlay } from "@/components/storefront/storefront-hero-video-name-overlay"
 import { StorefrontTaglineBand } from "@/components/storefront/storefront-tagline-band"
+import { heroTagline, type HeroStats } from "@/lib/storefront/storefront-hero-stats"
 import { resolveHeroVideoShowStoreName } from "@/lib/storefront-hero-video-shared"
 import type {
   StorefrontHeaderBrandAlign,
@@ -21,6 +23,15 @@ type Props = {
   brandAlign?: StorefrontHeaderBrandAlign
   /** When a story section owns the pitch, hero stays visual-only. */
   suppressDescription?: boolean
+  /**
+   * When provided, the hero carries the store's identity (name, pitch, calls to action, proof chips) on top of its
+   * image / video / gradient. Without it the hero renders exactly as before.
+   */
+  identity?: {
+    stats: HeroStats
+    productsHref: string | null
+    bestsellersHref: string | null
+  }
 }
 
 /** Hero strip for dedicated storefront hosts — no duplicate logo/name (buyer chrome handles that). */
@@ -31,6 +42,7 @@ export function StorefrontDedicatedHero({
   theme,
   brandAlign,
   suppressDescription = false,
+  identity,
 }: Props) {
   const pitch = suppressDescription ? null : description?.trim() || null
   const accent = theme?.accent ?? "#7c3aed"
@@ -49,6 +61,89 @@ export function StorefrontDedicatedHero({
     showVideoHero && resolveHeroVideoShowStoreName(theme) && Boolean(storeName?.trim())
 
   if (!showHero && !pitch) return null
+
+  if (identity && showHero && storeName?.trim()) {
+    // The name stays hidden only when the merchant switched it off on a video hero (their explicit choice).
+    const showName = heroStyle !== "video" || resolveHeroVideoShowStoreName(theme)
+    return (
+      <section
+        aria-label={storeName.trim()}
+        className={cn(
+          "@container border-b border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-950",
+          immersive && STOREFRONT_IMMERSIVE_HERO_CLASS
+        )}
+      >
+        <div
+          className={cn(
+            "relative isolate flex w-full overflow-hidden bg-zinc-950",
+            "min-h-[17rem] @[34rem]:min-h-[20rem] @[56rem]:min-h-[22rem]",
+            immersive && "@[56rem]:min-h-[26rem]"
+          )}
+        >
+          {immersive ? (
+            <>
+              <div className="affisell-immersive-orb affisell-immersive-orb--left" aria-hidden />
+              <div className="affisell-immersive-orb affisell-immersive-orb--right" aria-hidden />
+            </>
+          ) : null}
+
+          {showImageBanner && bannerUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={bannerUrl}
+              alt=""
+              className={cn("absolute inset-0 h-full w-full object-cover", immersive && "affisell-immersive-ken-burns")}
+              loading="eager"
+            />
+          ) : showVideoHero ? (
+            <video
+              src={heroVideoUrl}
+              className="absolute inset-0 h-full w-full object-cover"
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              poster={bannerUrl ?? undefined}
+              aria-hidden
+            />
+          ) : (
+            <>
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: `linear-gradient(135deg, ${primary} 0%, ${accent} 62%, color-mix(in srgb, ${accent} 35%, #000) 100%)`,
+                }}
+                aria-hidden
+              />
+              <div className="affisell-hero-mesh affisell-hero-mesh--a" style={{ background: accent }} aria-hidden />
+              <div className="affisell-hero-mesh affisell-hero-mesh--b" style={{ background: primary }} aria-hidden />
+            </>
+          )}
+
+          {/* Legibility: text sits on a scrim, whatever the merchant's image / video / palette. */}
+          <div
+            className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/20"
+            aria-hidden
+          />
+          <div className="absolute inset-x-0 bottom-0 h-px bg-white/15" aria-hidden />
+
+          <StorefrontHeroIdentity
+            storeName={storeName}
+            nameBadge={theme?.nameBadge}
+            accent={accent}
+            primary={primary}
+            align={headerAlign}
+            tagline={suppressDescription ? null : heroTagline(description)}
+            stats={identity.stats}
+            showName={showName}
+            productsHref={identity.productsHref}
+            bestsellersHref={identity.bestsellersHref}
+          />
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section

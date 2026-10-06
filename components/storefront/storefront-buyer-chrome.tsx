@@ -1,6 +1,7 @@
 "use client"
 
 import { X } from "lucide-react"
+import dynamic from "next/dynamic"
 import { useTranslations } from "next-intl"
 import { Suspense, useCallback, useEffect, useRef, useState } from "react"
 
@@ -12,6 +13,12 @@ import type { StorefrontCategoryGroup } from "@/lib/shop-storefront-categories"
 import type { StorefrontTrustSnapshot } from "@/lib/storefront-trust-shared"
 import type { StorefrontHeaderBrandAlign } from "@/lib/storefront-theme-shared"
 import { cn } from "@/lib/utils"
+
+// Downloaded the first time someone opens the search — never part of the initial page weight.
+const StorefrontSearchPalette = dynamic(
+  () => import("@/components/storefront/storefront-search-palette").then((m) => m.StorefrontSearchPalette),
+  { ssr: false }
+)
 
 type Props = {
   storeName: string
@@ -51,6 +58,10 @@ export function StorefrontBuyerChrome({
   const t = useTranslations("storefront.buyerChrome")
   const cartCount = useBuyerCartCount()
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  // Search needs the store slug (live storefront); the Brand Studio preview has none and shows no search.
+  const searchEnabled = Boolean(categoriesSlug)
+  const closeSearch = useCallback(() => setSearchOpen(false), [])
   const [lazyCategories, setLazyCategories] = useState<StorefrontCategoryGroup[] | null>(null)
   const [lazyTotalProducts, setLazyTotalProducts] = useState(0)
   const [categoriesLoading, setCategoriesLoading] = useState(false)
@@ -62,6 +73,24 @@ export function StorefrontBuyerChrome({
     serverCategories.length > 0 ? totalProducts : lazyTotalProducts
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), [])
+
+  // "/" or Ctrl/⌘+K opens the search from anywhere on the page (never while typing in a field).
+  useEffect(() => {
+    if (!searchEnabled) return
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null
+      const typing =
+        !!target && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
+      const slash = e.key === "/" && !e.metaKey && !e.ctrlKey && !e.altKey
+      const palette = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k"
+      if ((slash && !typing) || palette) {
+        e.preventDefault()
+        setSearchOpen(true)
+      }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [searchEnabled])
 
   useEffect(() => {
     categoriesFetchedRef.current = false
@@ -133,6 +162,8 @@ export function StorefrontBuyerChrome({
           menuLabel={t("openCategories")}
           cartLabel={t("cart")}
           onOpenMenu={() => setDrawerOpen(true)}
+          onOpenSearch={searchEnabled ? () => setSearchOpen(true) : undefined}
+          searchLabel={t("search")}
           menuExpanded={drawerOpen}
           menuControlsId="storefront-category-drawer"
           trust={trust}
@@ -140,6 +171,10 @@ export function StorefrontBuyerChrome({
           shopHomePath={shopHomePath}
         />
       </div>
+
+      {searchOpen && categoriesSlug ? (
+        <StorefrontSearchPalette slug={categoriesSlug} accent={accent} onClose={closeSearch} />
+      ) : null}
 
       {drawerOpen ? (
         <button

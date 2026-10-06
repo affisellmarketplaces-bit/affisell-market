@@ -58,6 +58,13 @@ const MOCK_TILES = [
   { id: "4", tone: "from-amber-500/15 to-orange-500/10" },
 ]
 
+/** What the preview hero shows for a store with a healthy catalog — the real page computes these from the store's products. */
+const PREVIEW_HERO_IDENTITY = {
+  stats: { productCount: 12, topSales: 24, freeShippingCount: 3, klarnaEligible: true },
+  productsHref: "#preview-products",
+  bestsellersHref: null,
+}
+
 const PREVIEW_CATEGORIES = [
   { id: "c1", slug: "beauty", name: "Health & Beauty", icon: "💄", count: 2 },
   { id: "c2", slug: "tech", name: "Electronics", icon: "⚡", count: 1 },
@@ -138,7 +145,13 @@ export function StorefrontLivePreview({ draft, className }: Props) {
           viewport === "mobile" ? "max-w-[280px]" : "w-full"
         )}
       >
-        <div className={cn("relative min-h-[420px]", storefrontSurfaceClass(draft.surface))}>
+        {/* A preview is not a page: a click on one of its links must never navigate the merchant away from the editor. */}
+        <div
+          onClickCapture={(e) => {
+            if ((e.target as HTMLElement).closest("a")) e.preventDefault()
+          }}
+          className={cn("relative min-h-[420px]", storefrontSurfaceClass(draft.surface))}
+        >
           <StorefrontThemeStyles theme={theme} />
           <StorefrontBuyerChromeBar
             storeName={draft.name.trim() || t("sampleName")}
@@ -175,6 +188,7 @@ export function StorefrontLivePreview({ draft, className }: Props) {
                       theme={heroTheme}
                       brandAlign={draft.headerBrandAlign}
                       suppressDescription
+                      identity={PREVIEW_HERO_IDENTITY}
                     />
                   )
                 }
@@ -196,6 +210,7 @@ export function StorefrontLivePreview({ draft, className }: Props) {
                     bannerUrl={bannerForHero}
                     theme={heroTheme}
                     brandAlign={draft.headerBrandAlign}
+                    identity={PREVIEW_HERO_IDENTITY}
                   />
                 )
               case "flash-sale":

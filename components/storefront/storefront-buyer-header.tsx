@@ -1,6 +1,6 @@
 "use client"
 
-import { Menu, ShoppingBag } from "lucide-react"
+import { Menu, Search, ShoppingBag } from "lucide-react"
 import Link from "next/link"
 import type { CSSProperties, ReactNode } from "react"
 
@@ -28,6 +28,9 @@ type Props = {
   menuLabel: string
   cartLabel: string
   onOpenMenu?: () => void
+  /** In-store search (live storefront only): shows a search button when provided. */
+  onOpenSearch?: () => void
+  searchLabel?: string
   menuExpanded?: boolean
   menuControlsId?: string
   compact?: boolean
@@ -127,6 +130,8 @@ export function StorefrontBuyerHeader({
   menuLabel,
   cartLabel,
   onOpenMenu,
+  onOpenSearch,
+  searchLabel = "Search",
   menuExpanded = false,
   menuControlsId = "storefront-category-drawer",
   compact = false,
@@ -226,13 +231,27 @@ export function StorefrontBuyerHeader({
         >
           <span
             className={cn(
-              "pointer-events-auto max-w-[min(72vw,16rem)] truncate text-sm font-medium uppercase tracking-[0.2em]",
+              "pointer-events-auto truncate text-sm font-medium uppercase tracking-[0.2em]",
+              // Room for the extra search button on the right.
+              onOpenSearch ? "max-w-[min(52vw,16rem)] sm:max-w-[min(72vw,16rem)]" : "max-w-[min(72vw,16rem)]",
               lightHeader ? "text-zinc-900" : "text-zinc-100"
             )}
           >
             {displayName}
           </span>
         </Link>
+
+        {onOpenSearch ? (
+          <ChromeIconButton
+            label={searchLabel}
+            onClick={onOpenSearch}
+            accent={accent}
+            className="relative z-30"
+            lightHeader={lightHeader}
+          >
+            <Search className="size-5" aria-hidden />
+          </ChromeIconButton>
+        ) : null}
 
         <ChromeIconButton
           label={cartLabel}

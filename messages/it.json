@@ -4613,7 +4613,8 @@
       "allProducts": "Tutti i prodotti",
       "otherCategory": "Altro",
       "cart": "Carrello",
-      "showingCategory": "{category} · {count, plural, one {# prodotto} other {# prodotti}}"
+      "showingCategory": "{category} · {count, plural, one {# prodotto} other {# prodotti}}",
+      "search": "Cerca nel negozio"
     },
     "domain": {
       "title": "Il tuo dominio",
@@ -4685,6 +4686,26 @@
       },
       "openStore": "Apri il negozio",
       "currentAddress": "Indirizzo attuale"
+    },
+    "hero": {
+      "ariaLabel": "Presentazione di {name}",
+      "eyebrow": "{count, plural, one {# prodotto selezionato} other {# prodotti selezionati}}",
+      "ctaShop": "Scopri la collezione",
+      "ctaBestsellers": "Più venduti",
+      "chipSales": "{count, plural, one {# vendita} other {# vendite}} sul nostro best seller",
+      "chipFreeShipping": "Spedizione gratuita",
+      "chipReturns": "Resi entro 14 giorni",
+      "chipKlarna": "Paga in 3× con Klarna"
+    },
+    "search": {
+      "open": "Cerca nel negozio",
+      "title": "Cerca nel negozio",
+      "placeholder": "Cerca un prodotto…",
+      "empty": "Nessun prodotto corrisponde a «{query}».",
+      "hint": "Digita almeno 2 lettere",
+      "loading": "Ricerca in corso…",
+      "close": "Chiudi la ricerca",
+      "resultsCount": "{count, plural, one {# risultato} other {# risultati}}"
     }
   },
   "pwa": {

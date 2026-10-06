@@ -4613,7 +4613,8 @@
       "allProducts": "All products",
       "otherCategory": "Other",
       "cart": "Cart",
-      "showingCategory": "{category} · {count, plural, one {# product} other {# products}}"
+      "showingCategory": "{category} · {count, plural, one {# product} other {# products}}",
+      "search": "Search the store"
     },
     "domain": {
       "title": "Your own domain",
@@ -4685,6 +4686,26 @@
       },
       "openStore": "Open the store",
       "currentAddress": "Current address"
+    },
+    "hero": {
+      "ariaLabel": "Introducing {name}",
+      "eyebrow": "{count, plural, one {# curated product} other {# curated products}}",
+      "ctaShop": "Shop the collection",
+      "ctaBestsellers": "Best sellers",
+      "chipSales": "{count, plural, one {# sale} other {# sales}} on our best seller",
+      "chipFreeShipping": "Free delivery",
+      "chipReturns": "14-day returns",
+      "chipKlarna": "Pay in 3× with Klarna"
+    },
+    "search": {
+      "open": "Search the store",
+      "title": "Search the store",
+      "placeholder": "Search for a product…",
+      "empty": "No product matches “{query}”.",
+      "hint": "Type at least 2 letters",
+      "loading": "Searching…",
+      "close": "Close search",
+      "resultsCount": "{count, plural, one {# result} other {# results}}"
     }
   },
   "pwa": {

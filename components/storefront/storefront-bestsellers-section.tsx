@@ -41,7 +41,7 @@ export function StorefrontBestsellersSection({
   const hint = sectionCopyString(content, "body", labels.hint)
 
   return (
-    <section className={cn("border-b border-zinc-200/80 dark:border-zinc-800", className)}>
+    <section id="bestsellers" className={cn("scroll-mt-24 border-b border-zinc-200/80 dark:border-zinc-800", className)}>
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
           <div>
