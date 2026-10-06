@@ -4641,6 +4641,49 @@
       "vercelAuto": " · Enregistré automatiquement sur l’hébergement Affisell (sans action Vercel manuelle)",
       "vercelManual": " · Configurez VERCEL_API_TOKEN sur la plateforme pour le HTTPS automatique",
       "cronHint": "Astuce : une fois le CNAME actif, l’activation tourne toutes les 30 min — ou cliquez Activer ci-dessus."
+    },
+    "mode": {
+      "eyebrow": "Type de boutique",
+      "ariaLabel": "Type de boutique : {type}",
+      "loading": "Chargement du type de boutique…",
+      "vitrine": {
+        "badge": "Vitrine Affisell",
+        "title": "Votre boutique est une vitrine Affisell",
+        "body": "Elle est hébergée sur Affisell, à l'adresse {address} — prête sans aucune configuration.",
+        "upgrade": "Passez en boutique Brand : vos clients achètent sur votre propre nom de domaine, sous votre marque."
+      },
+      "brand": {
+        "badge": "Boutique Brand",
+        "title": "Votre boutique Brand est en ligne",
+        "body": "Vos clients achètent sur {domain}, en HTTPS, sous votre propre marque."
+      },
+      "progress": {
+        "title": "Passer en boutique Brand",
+        "dns_pending": "DNS en attente",
+        "ssl_pending": "HTTPS en cours d'activation",
+        "ssl_failed": "Échec du certificat HTTPS",
+        "none": "Aucun domaine connecté",
+        "live": "Domaine actif"
+      },
+      "hints": {
+        "none": "Connectez un nom de domaine que vous possédez : trois étapes, quelques minutes.",
+        "dns_pending": "Ajoutez l'enregistrement CNAME chez votre registrar de domaine, puis cliquez sur « Vérifier ».",
+        "ssl_pending": "Domaine vérifié : le certificat HTTPS est en cours de création (quelques minutes).",
+        "ssl_failed": "Le certificat HTTPS n'a pas pu être créé. Vérifiez votre DNS puis relancez la vérification."
+      },
+      "steps": {
+        "domain": "Ajouter le domaine",
+        "dns": "Vérifier le DNS",
+        "https": "Activer HTTPS"
+      },
+      "cta": {
+        "connect": "Connecter mon domaine",
+        "continue": "Continuer la configuration",
+        "retry": "Corriger et relancer",
+        "manage": "Gérer le domaine"
+      },
+      "openStore": "Ouvrir la boutique",
+      "currentAddress": "Adresse actuelle"
     }
   },
   "pwa": {

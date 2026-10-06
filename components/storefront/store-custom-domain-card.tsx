@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { STORE_DOMAIN_CHANGED_EVENT } from "@/lib/storefront/storefront-mode"
 import { vercelDomainStatusMessageKey } from "@/lib/vercel-domain-status-label"
 import { cn } from "@/lib/utils"
 
@@ -104,6 +105,7 @@ export function StoreCustomDomainCard({ className, variant = "default" }: Props)
       }
       setMessage(t("domainSaved"))
       await refreshStatus()
+      window.dispatchEvent(new Event(STORE_DOMAIN_CHANGED_EVENT))
     } catch (e) {
       setError(e instanceof Error ? e.message : t("saveFailed"))
     } finally {
@@ -136,6 +138,7 @@ export function StoreCustomDomainCard({ className, variant = "default" }: Props)
         setMessage(json.message ?? t("notVerifiedYet"))
       }
       await refreshStatus()
+      window.dispatchEvent(new Event(STORE_DOMAIN_CHANGED_EVENT))
     } catch (e) {
       setError(e instanceof Error ? e.message : t("verificationFailed"))
     } finally {

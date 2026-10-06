@@ -4641,6 +4641,49 @@
       "vercelAuto": " · Auto-registered on Affisell hosting (no manual Vercel step)",
       "vercelManual": " · Set VERCEL_API_TOKEN on the platform for automatic HTTPS",
       "cronHint": "Tip: once CNAME is set, activation runs automatically every 30 minutes — or click Activate above."
+    },
+    "mode": {
+      "eyebrow": "Store type",
+      "ariaLabel": "Store type: {type}",
+      "loading": "Loading store type…",
+      "vitrine": {
+        "badge": "Affisell showcase",
+        "title": "Your store is an Affisell showcase",
+        "body": "It is hosted on Affisell at {address} — ready with no setup at all.",
+        "upgrade": "Upgrade to a Brand store: customers buy on your own domain name, under your brand."
+      },
+      "brand": {
+        "badge": "Brand store",
+        "title": "Your Brand store is live",
+        "body": "Customers buy on {domain}, over HTTPS, under your own brand."
+      },
+      "progress": {
+        "title": "Go Brand",
+        "dns_pending": "DNS pending",
+        "ssl_pending": "HTTPS being activated",
+        "ssl_failed": "HTTPS certificate failed",
+        "none": "No domain connected",
+        "live": "Domain active"
+      },
+      "hints": {
+        "none": "Connect a domain name you own: three steps, a few minutes.",
+        "dns_pending": "Add the CNAME record at your domain registrar, then click “Verify”.",
+        "ssl_pending": "Domain verified: the HTTPS certificate is being issued (a few minutes).",
+        "ssl_failed": "The HTTPS certificate could not be issued. Check your DNS, then run the verification again."
+      },
+      "steps": {
+        "domain": "Add the domain",
+        "dns": "Verify DNS",
+        "https": "Activate HTTPS"
+      },
+      "cta": {
+        "connect": "Connect my domain",
+        "continue": "Continue setup",
+        "retry": "Fix and retry",
+        "manage": "Manage domain"
+      },
+      "openStore": "Open the store",
+      "currentAddress": "Current address"
     }
   },
   "pwa": {

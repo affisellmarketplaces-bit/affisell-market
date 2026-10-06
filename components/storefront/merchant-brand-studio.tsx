@@ -31,6 +31,7 @@ import { BrandPaletteFromLogo } from "@/components/storefront/brand-palette-from
 import { BrandStudioDraftBanner } from "@/components/storefront/brand-studio-draft-banner"
 import { BrandStudioHistoryBar } from "@/components/storefront/brand-studio-history-bar"
 import { LazyPanel } from "@/components/storefront/lazy-panel"
+import { StorefrontModeCard } from "@/components/storefront/storefront-mode-card"
 import type { StorePublicUrls } from "@/lib/store-public-url-shared"
 import {
   buildDraft,
@@ -220,6 +221,8 @@ export function MerchantBrandStudio({
   const pagesPanelRef = useRef<HTMLDivElement | null>(null)
   const embedPanelRef = useRef<HTMLDivElement | null>(null)
   const sharePanelRef = useRef<HTMLDivElement | null>(null)
+  const domainPanelRef = useRef<HTMLDivElement | null>(null)
+  const [domainEager, setDomainEager] = useState(false)
 
   useEffect(() => {
     mountedRef.current = true
@@ -284,6 +287,22 @@ export function MerchantBrandStudio({
     const current = latestSnapshotRef.current
     if (!current) return
     setHistory((h) => (h ? recordChange(h, current, snapshotsEqual) : h))
+  }, [])
+
+  /** "Connect my domain": mount the (lazy) domain panel now and bring it into view. */
+  const manageDomain = useCallback(() => {
+    setDomainEager(true)
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    const bringIntoView = (behavior: ScrollBehavior) =>
+      domainPanelRef.current?.scrollIntoView({ behavior, block: "center" })
+    window.setTimeout(() => bringIntoView(reduceMotion ? "auto" : "smooth"), 150)
+    // Other lazy panels mount as the page scrolls past them and push the target down: re-check until it settles in view.
+    for (const delay of [900, 1500, 2300]) {
+      window.setTimeout(() => {
+        const rect = domainPanelRef.current?.getBoundingClientRect()
+        if (rect && (rect.top < 0 || rect.bottom > window.innerHeight)) bringIntoView("auto")
+      }, delay)
+    }
   }, [])
 
   const applyLaunchConfig = useCallback((config: BrandLaunchConfig) => {
@@ -1115,6 +1134,8 @@ export function MerchantBrandStudio({
           </div>
         </div>
 
+        <StorefrontModeCard variant="studio" onManageDomain={manageDomain} />
+
         {draftOffer ? (
           <BrandStudioDraftBanner savedAt={draftOffer.savedAt} onRestore={restoreDraft} onDiscard={discardDraft} />
         ) : null}
@@ -1482,9 +1503,11 @@ export function MerchantBrandStudio({
                 </LazyPanel>
               </div>
             ) : null}
-            <LazyPanel minHeight={180}>
-              <StoreCustomDomainCard variant="studio" />
-            </LazyPanel>
+            <div ref={domainPanelRef} id="store-domain-card">
+              <LazyPanel minHeight={180} eager={domainEager}>
+                <StoreCustomDomainCard variant="studio" />
+              </LazyPanel>
+            </div>
             <BentoCard className="text-sm text-gray-600 dark:text-zinc-400">
               <p className="flex items-center gap-2 font-medium text-gray-900 dark:text-zinc-100">
                 <Palette className="size-4 text-violet-600" aria-hidden />

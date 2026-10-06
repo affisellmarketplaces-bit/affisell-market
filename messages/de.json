@@ -4641,6 +4641,49 @@
       "vercelAuto": " · Automatisch auf Hosting registriert",
       "vercelManual": " · Füge Hostname in Domains hinzu, wenn HTTPS nicht aktiv ist",
       "cronHint": "Tipp: Sobald der CNAME gesetzt ist, läuft die Aktivierung automatisch alle 30 Minuten — oder klicke oben auf Aktivieren."
+    },
+    "mode": {
+      "eyebrow": "Shop-Typ",
+      "ariaLabel": "Shop-Typ: {type}",
+      "loading": "Shop-Typ wird geladen …",
+      "vitrine": {
+        "badge": "Affisell-Schaufenster",
+        "title": "Ihr Shop ist ein Affisell-Schaufenster",
+        "body": "Er wird bei Affisell unter {address} gehostet – ganz ohne Einrichtung startklar.",
+        "upgrade": "Wechseln Sie zum Brand-Shop: Kunden kaufen unter Ihrer eigenen Domain, unter Ihrer Marke."
+      },
+      "brand": {
+        "badge": "Brand-Shop",
+        "title": "Ihr Brand-Shop ist online",
+        "body": "Kunden kaufen unter {domain}, per HTTPS, unter Ihrer eigenen Marke."
+      },
+      "progress": {
+        "title": "Zum Brand-Shop wechseln",
+        "dns_pending": "DNS ausstehend",
+        "ssl_pending": "HTTPS wird aktiviert",
+        "ssl_failed": "HTTPS-Zertifikat fehlgeschlagen",
+        "none": "Keine Domain verbunden",
+        "live": "Domain aktiv"
+      },
+      "hints": {
+        "none": "Verbinden Sie eine Domain, die Ihnen gehört: drei Schritte, wenige Minuten.",
+        "dns_pending": "Fügen Sie den CNAME-Eintrag bei Ihrem Domain-Registrar hinzu und klicken Sie dann auf „Prüfen“.",
+        "ssl_pending": "Domain geprüft: Das HTTPS-Zertifikat wird erstellt (wenige Minuten).",
+        "ssl_failed": "Das HTTPS-Zertifikat konnte nicht erstellt werden. Prüfen Sie Ihr DNS und starten Sie die Prüfung erneut."
+      },
+      "steps": {
+        "domain": "Domain hinzufügen",
+        "dns": "DNS prüfen",
+        "https": "HTTPS aktivieren"
+      },
+      "cta": {
+        "connect": "Meine Domain verbinden",
+        "continue": "Einrichtung fortsetzen",
+        "retry": "Korrigieren und erneut versuchen",
+        "manage": "Domain verwalten"
+      },
+      "openStore": "Shop öffnen",
+      "currentAddress": "Aktuelle Adresse"
     }
   },
   "pwa": {

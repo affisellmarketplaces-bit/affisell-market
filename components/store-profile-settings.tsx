@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { StoreCustomDomainCard } from "@/components/storefront/store-custom-domain-card"
+import { StorefrontModeCard } from "@/components/storefront/storefront-mode-card"
 import { parseSupplierLogisticsAddress, type SupplierLogisticsAddress } from "@/lib/supplier-logistics-address"
 
 type StoreRow = {
@@ -680,8 +681,11 @@ export function StoreProfileSettings({ backHref, backLabel, brandStudioHref, bra
         {message ? <p className="text-sm text-green-700">{message}</p> : null}
       </form>
 
-      <div className="mt-10">
-        <StoreCustomDomainCard className="max-w-2xl" />
+      <div className="mt-10 max-w-2xl space-y-4">
+        <StorefrontModeCard variant="compact" manageHref="#store-domain-card" />
+        <div id="store-domain-card" className="scroll-mt-24">
+          <StoreCustomDomainCard />
+        </div>
       </div>
     </div>
   )

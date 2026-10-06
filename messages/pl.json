@@ -4641,6 +4641,49 @@
       "vercelAuto": " · Zarejestrowano automatycznie na hostingu",
       "vercelManual": " · Dodaj nazwę hosta w Domains, jeśli HTTPS nie jest aktywny",
       "cronHint": "Wskazówka: po ustawieniu CNAME aktywacja uruchamia się automatycznie co 30 minut — lub kliknij Aktywuj powyżej."
+    },
+    "mode": {
+      "eyebrow": "Typ sklepu",
+      "ariaLabel": "Typ sklepu: {type}",
+      "loading": "Ładowanie typu sklepu…",
+      "vitrine": {
+        "badge": "Witryna Affisell",
+        "title": "Twój sklep to witryna Affisell",
+        "body": "Jest hostowany w Affisell pod adresem {address} — gotowy bez żadnej konfiguracji.",
+        "upgrade": "Przejdź na sklep Brand: klienci kupują pod Twoją własną domeną, pod Twoją marką."
+      },
+      "brand": {
+        "badge": "Sklep Brand",
+        "title": "Twój sklep Brand jest online",
+        "body": "Klienci kupują na {domain}, przez HTTPS, pod Twoją marką."
+      },
+      "progress": {
+        "title": "Przejdź na Brand",
+        "dns_pending": "DNS oczekuje",
+        "ssl_pending": "Aktywacja HTTPS w toku",
+        "ssl_failed": "Certyfikat HTTPS nie powiódł się",
+        "none": "Brak połączonej domeny",
+        "live": "Domena aktywna"
+      },
+      "hints": {
+        "none": "Połącz domenę, którą posiadasz: trzy kroki, kilka minut.",
+        "dns_pending": "Dodaj rekord CNAME u rejestratora domeny, a następnie kliknij „Zweryfikuj”.",
+        "ssl_pending": "Domena zweryfikowana: certyfikat HTTPS jest tworzony (kilka minut).",
+        "ssl_failed": "Nie udało się utworzyć certyfikatu HTTPS. Sprawdź DNS i ponów weryfikację."
+      },
+      "steps": {
+        "domain": "Dodaj domenę",
+        "dns": "Zweryfikuj DNS",
+        "https": "Aktywuj HTTPS"
+      },
+      "cta": {
+        "connect": "Połącz moją domenę",
+        "continue": "Kontynuuj konfigurację",
+        "retry": "Popraw i spróbuj ponownie",
+        "manage": "Zarządzaj domeną"
+      },
+      "openStore": "Otwórz sklep",
+      "currentAddress": "Aktualny adres"
     }
   },
   "pwa": {

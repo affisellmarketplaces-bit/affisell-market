@@ -4641,6 +4641,49 @@
       "vercelAuto": " · Auto-geïnregistreerd op hosting",
       "vercelManual": " · Voeg hostname toe in Domeinen als HTTPS niet live is",
       "cronHint": "Tip: zodra CNAME is ingesteld, wordt activering elke 30 minuten automatisch uitgevoerd — of klik hierboven op Activeren."
+    },
+    "mode": {
+      "eyebrow": "Winkeltype",
+      "ariaLabel": "Winkeltype: {type}",
+      "loading": "Winkeltype laden…",
+      "vitrine": {
+        "badge": "Affisell-etalage",
+        "title": "Je winkel is een Affisell-etalage",
+        "body": "Hij wordt gehost bij Affisell op {address} — direct klaar, zonder configuratie.",
+        "upgrade": "Stap over op een Brand-winkel: klanten kopen op je eigen domeinnaam, onder je eigen merk."
+      },
+      "brand": {
+        "badge": "Brand-winkel",
+        "title": "Je Brand-winkel is live",
+        "body": "Klanten kopen op {domain}, via HTTPS, onder je eigen merk."
+      },
+      "progress": {
+        "title": "Overstappen naar Brand",
+        "dns_pending": "DNS in afwachting",
+        "ssl_pending": "HTTPS wordt geactiveerd",
+        "ssl_failed": "HTTPS-certificaat mislukt",
+        "none": "Geen domein gekoppeld",
+        "live": "Domein actief"
+      },
+      "hints": {
+        "none": "Koppel een domeinnaam die je bezit: drie stappen, een paar minuten.",
+        "dns_pending": "Voeg het CNAME-record toe bij je domeinregistrar en klik op “Controleren”.",
+        "ssl_pending": "Domein geverifieerd: het HTTPS-certificaat wordt aangemaakt (een paar minuten).",
+        "ssl_failed": "Het HTTPS-certificaat kon niet worden aangemaakt. Controleer je DNS en start de controle opnieuw."
+      },
+      "steps": {
+        "domain": "Domein toevoegen",
+        "dns": "DNS controleren",
+        "https": "HTTPS activeren"
+      },
+      "cta": {
+        "connect": "Mijn domein koppelen",
+        "continue": "Configuratie voortzetten",
+        "retry": "Herstellen en opnieuw proberen",
+        "manage": "Domein beheren"
+      },
+      "openStore": "Winkel openen",
+      "currentAddress": "Huidig adres"
     }
   },
   "pwa": {

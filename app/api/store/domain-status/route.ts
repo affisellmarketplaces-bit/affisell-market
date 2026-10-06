@@ -5,6 +5,18 @@ import { syncStoreVercelDomainStatus } from "@/lib/store-domain-provisioning"
 import { ensureStoreSubdomainReady, syncStoreSubdomainVercelStatus } from "@/lib/store-subdomain-provisioning"
 import { isVercelDomainAutoProvisionEnabled } from "@/lib/vercel-project-domains"
 
+/**
+ * The store's address on Affisell itself, ignoring any custom domain. `publicStoreUrl` switches to the custom domain as soon
+ * as its DNS is verified — even before the HTTPS certificate exists — so a status display that must say where the
+ * showcase lives (and not claim a half-set-up domain) needs this one.
+ */
+function platformStoreUrlFor(
+  store: Parameters<typeof storePublicUrlInputFromStore>[0],
+  role: "AFFILIATE" | "SUPPLIER"
+): string {
+  return storePublicUrl(storePublicUrlInputFromStore({ ...store, customDomain: null, domainVerified: false }, role))
+}
+
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
@@ -73,6 +85,7 @@ export async function GET() {
         subdomainVercelSyncedAt: merged.subdomainVercelSyncedAt?.toISOString() ?? null,
         vercelAutoProvision: true,
         publicStoreUrl: storePublicUrl(storePublicUrlInputFromStore(merged, merchantRole)),
+        platformStoreUrl: platformStoreUrlFor(merged, merchantRole),
       })
     }
   }
@@ -91,5 +104,6 @@ export async function GET() {
     subdomainVercelSyncedAt: latest.subdomainVercelSyncedAt?.toISOString() ?? null,
     vercelAutoProvision: isVercelDomainAutoProvisionEnabled(),
     publicStoreUrl: storePublicUrl(storePublicUrlInputFromStore(latest, merchantRole)),
+    platformStoreUrl: platformStoreUrlFor(latest, merchantRole),
   })
 }

@@ -4641,6 +4641,49 @@
       "vercelAuto": " · Registrado automáticamente en alojamiento",
       "vercelManual": " · Agrega el nombre de host en Dominios si HTTPS no está vivo",
       "cronHint": "Consejo: una vez configurado el CNAME, la activación se ejecuta automáticamente cada 30 minutos — o haz clic en Activar arriba."
+    },
+    "mode": {
+      "eyebrow": "Tipo de tienda",
+      "ariaLabel": "Tipo de tienda: {type}",
+      "loading": "Cargando el tipo de tienda…",
+      "vitrine": {
+        "badge": "Escaparate Affisell",
+        "title": "Su tienda es un escaparate Affisell",
+        "body": "Está alojada en Affisell, en {address}, lista sin ninguna configuración.",
+        "upgrade": "Pase a tienda Brand: sus clientes compran en su propio nombre de dominio, bajo su marca."
+      },
+      "brand": {
+        "badge": "Tienda Brand",
+        "title": "Su tienda Brand está en línea",
+        "body": "Sus clientes compran en {domain}, con HTTPS, bajo su propia marca."
+      },
+      "progress": {
+        "title": "Pasar a tienda Brand",
+        "dns_pending": "DNS pendiente",
+        "ssl_pending": "Activando HTTPS",
+        "ssl_failed": "Falló el certificado HTTPS",
+        "none": "Ningún dominio conectado",
+        "live": "Dominio activo"
+      },
+      "hints": {
+        "none": "Conecte un dominio que posea: tres pasos, unos minutos.",
+        "dns_pending": "Añada el registro CNAME en su registrador de dominios y pulse «Verificar».",
+        "ssl_pending": "Dominio verificado: el certificado HTTPS se está creando (unos minutos).",
+        "ssl_failed": "No se pudo crear el certificado HTTPS. Revise su DNS y vuelva a verificar."
+      },
+      "steps": {
+        "domain": "Añadir el dominio",
+        "dns": "Verificar el DNS",
+        "https": "Activar HTTPS"
+      },
+      "cta": {
+        "connect": "Conectar mi dominio",
+        "continue": "Continuar la configuración",
+        "retry": "Corregir y reintentar",
+        "manage": "Gestionar el dominio"
+      },
+      "openStore": "Abrir la tienda",
+      "currentAddress": "Dirección actual"
     }
   },
   "pwa": {

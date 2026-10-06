@@ -4641,6 +4641,49 @@
       "vercelAuto": " · 在 Vercel 自动注册",
       "vercelManual": " · 在域名中添加主机名，如果 HTTPS 未启用，请在域名中添加",
       "cronHint": "提示：设置 CNAME 后，系统将每30分钟自动激活一次 —— 你也可以点击上方的“激活”按钮。"
+    },
+    "mode": {
+      "eyebrow": "店铺类型",
+      "ariaLabel": "店铺类型：{type}",
+      "loading": "正在加载店铺类型…",
+      "vitrine": {
+        "badge": "Affisell 展示店",
+        "title": "您的店铺是 Affisell 展示店",
+        "body": "托管在 Affisell，地址为 {address}——无需任何配置即可使用。",
+        "upgrade": "升级为品牌店：顾客在您自己的域名下、以您的品牌购买。"
+      },
+      "brand": {
+        "badge": "品牌店",
+        "title": "您的品牌店已上线",
+        "body": "顾客在 {domain} 通过 HTTPS 购买，使用您自己的品牌。"
+      },
+      "progress": {
+        "title": "升级为品牌店",
+        "dns_pending": "DNS 待验证",
+        "ssl_pending": "正在启用 HTTPS",
+        "ssl_failed": "HTTPS 证书申请失败",
+        "none": "尚未连接域名",
+        "live": "域名已生效"
+      },
+      "hints": {
+        "none": "连接您拥有的域名：三个步骤，几分钟即可完成。",
+        "dns_pending": "在域名注册商处添加 CNAME 记录，然后点击“验证”。",
+        "ssl_pending": "域名已验证：HTTPS 证书正在生成（几分钟）。",
+        "ssl_failed": "无法生成 HTTPS 证书。请检查 DNS 后重新验证。"
+      },
+      "steps": {
+        "domain": "添加域名",
+        "dns": "验证 DNS",
+        "https": "启用 HTTPS"
+      },
+      "cta": {
+        "connect": "连接我的域名",
+        "continue": "继续配置",
+        "retry": "修复并重试",
+        "manage": "管理域名"
+      },
+      "openStore": "打开店铺",
+      "currentAddress": "当前地址"
     }
   },
   "pwa": {

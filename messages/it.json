@@ -4641,6 +4641,49 @@
       "vercelAuto": " · Registrato automaticamente sull'hosting",
       "vercelManual": " · Aggiungi hostname nelle Domains se HTTPS non è live",
       "cronHint": "Suggerimento: una volta impostato il CNAME, l'attivazione viene eseguita automaticamente ogni 30 minuti — oppure clicca su Attiva qui sopra."
+    },
+    "mode": {
+      "eyebrow": "Tipo di negozio",
+      "ariaLabel": "Tipo di negozio: {type}",
+      "loading": "Caricamento del tipo di negozio…",
+      "vitrine": {
+        "badge": "Vetrina Affisell",
+        "title": "Il tuo negozio è una vetrina Affisell",
+        "body": "È ospitato su Affisell all'indirizzo {address}, pronto senza alcuna configurazione.",
+        "upgrade": "Passa a un negozio Brand: i clienti acquistano sul tuo nome di dominio, con il tuo marchio."
+      },
+      "brand": {
+        "badge": "Negozio Brand",
+        "title": "Il tuo negozio Brand è online",
+        "body": "I clienti acquistano su {domain}, in HTTPS, con il tuo marchio."
+      },
+      "progress": {
+        "title": "Passa a negozio Brand",
+        "dns_pending": "DNS in attesa",
+        "ssl_pending": "Attivazione HTTPS in corso",
+        "ssl_failed": "Certificato HTTPS non riuscito",
+        "none": "Nessun dominio collegato",
+        "live": "Dominio attivo"
+      },
+      "hints": {
+        "none": "Collega un dominio di tua proprietà: tre passaggi, pochi minuti.",
+        "dns_pending": "Aggiungi il record CNAME presso il tuo registrar, poi clicca su «Verifica».",
+        "ssl_pending": "Dominio verificato: il certificato HTTPS è in corso di creazione (pochi minuti).",
+        "ssl_failed": "Impossibile creare il certificato HTTPS. Controlla il DNS e rilancia la verifica."
+      },
+      "steps": {
+        "domain": "Aggiungi il dominio",
+        "dns": "Verifica il DNS",
+        "https": "Attiva HTTPS"
+      },
+      "cta": {
+        "connect": "Collega il mio dominio",
+        "continue": "Continua la configurazione",
+        "retry": "Correggi e riprova",
+        "manage": "Gestisci il dominio"
+      },
+      "openStore": "Apri il negozio",
+      "currentAddress": "Indirizzo attuale"
     }
   },
   "pwa": {
