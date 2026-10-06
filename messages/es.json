@@ -4515,6 +4515,35 @@
         "underlineMarkDesc": "Texto simple con un subrayado de acento animado.",
         "classic": "Clásico",
         "classicDesc": "Texto plano, sin banda."
+      },
+      "history": {
+        "label": "Historial de cambios",
+        "undo": "Deshacer",
+        "redo": "Rehacer",
+        "undoTitle": "Deshacer el último cambio (Ctrl/⌘ + Z)",
+        "redoTitle": "Rehacer (Ctrl/⌘ + Mayús + Z)"
+      },
+      "draft": {
+        "title": "Borrador sin guardar recuperado",
+        "body": "Editado {when}. Su sesión anterior se cerró antes de guardar.",
+        "restore": "Restaurar borrador",
+        "discard": "Descartar",
+        "restored": "Borrador restaurado: puede volver atrás con Deshacer.",
+        "relativeNow": "ahora mismo"
+      },
+      "palette": {
+        "title": "Paleta de su logotipo",
+        "hint": "Colores de marca detectados en su logotipo, ajustados para que sigan siendo legibles (WCAG AA).",
+        "primary": "Principal",
+        "accent": "Acento",
+        "derived": "Acento derivado de su color principal",
+        "apply": "Aplicar paleta",
+        "applied": "Paleta del logotipo aplicada: puede deshacerla cuando quiera.",
+        "aa": "Legible AA",
+        "current": "Ya en uso"
+      },
+      "shortcuts": {
+        "save": "Guardar (Ctrl/⌘ + S)"
       }
     },
     "embedWidget": {

@@ -4515,6 +4515,35 @@
         "underlineMarkDesc": "Plain text with a shimmering accent underline.",
         "classic": "Classic",
         "classicDesc": "Plain text, no band."
+      },
+      "history": {
+        "label": "Edit history",
+        "undo": "Undo",
+        "redo": "Redo",
+        "undoTitle": "Undo last change (Ctrl/⌘ + Z)",
+        "redoTitle": "Redo (Ctrl/⌘ + Shift + Z)"
+      },
+      "draft": {
+        "title": "Unsaved draft recovered",
+        "body": "Last edited {when}. Your previous session closed before you saved.",
+        "restore": "Restore draft",
+        "discard": "Discard",
+        "restored": "Draft restored — you can step back with Undo.",
+        "relativeNow": "just now"
+      },
+      "palette": {
+        "title": "Palette from your logo",
+        "hint": "Brand colors detected in your logo, adjusted to stay readable (WCAG AA).",
+        "primary": "Primary",
+        "accent": "Accent",
+        "derived": "Accent derived from your main color",
+        "apply": "Apply palette",
+        "applied": "Logo palette applied — undo any time.",
+        "aa": "AA readable",
+        "current": "Already in use"
+      },
+      "shortcuts": {
+        "save": "Save (Ctrl/⌘ + S)"
       }
     },
     "embedWidget": {

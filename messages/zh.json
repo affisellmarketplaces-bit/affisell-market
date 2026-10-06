@@ -4515,6 +4515,35 @@
         "underlineMarkDesc": "简洁文字配闪烁强调色下划线。",
         "classic": "经典",
         "classicDesc": "简洁文本，带无边框。"
+      },
+      "history": {
+        "label": "修改历史",
+        "undo": "撤销",
+        "redo": "重做",
+        "undoTitle": "撤销上一次修改（Ctrl/⌘ + Z）",
+        "redoTitle": "重做（Ctrl/⌘ + Shift + Z）"
+      },
+      "draft": {
+        "title": "找回未保存的草稿",
+        "body": "最后编辑于{when}。上一次会话在保存前已关闭。",
+        "restore": "恢复草稿",
+        "discard": "忽略",
+        "restored": "草稿已恢复——可用“撤销”回到之前的状态。",
+        "relativeNow": "刚刚"
+      },
+      "palette": {
+        "title": "来自您徽标的配色",
+        "hint": "从徽标中识别出的品牌色，已调整到保持可读（WCAG AA）。",
+        "primary": "主色",
+        "accent": "强调色",
+        "derived": "强调色由主色推导而来",
+        "apply": "应用配色",
+        "applied": "已应用徽标配色——随时可撤销。",
+        "aa": "AA 可读",
+        "current": "已在使用"
+      },
+      "shortcuts": {
+        "save": "保存（Ctrl/⌘ + S）"
       }
     },
     "embedWidget": {

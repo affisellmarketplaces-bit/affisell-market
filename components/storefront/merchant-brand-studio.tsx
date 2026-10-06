@@ -1,20 +1,19 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { ExternalLink, Layers, Palette, Save, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import type { FormEvent } from "react"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
-import { StoreCustomDomainCard } from "@/components/storefront/store-custom-domain-card"
 import { StorefrontAiCopyButton } from "@/components/storefront/storefront-ai-copy-button"
 import { BrandStudioFieldHeader } from "@/components/storefront/brand-studio-field-header"
 import { StorefrontAiThemeStudioPanel } from "@/components/storefront/storefront-ai-theme-studio-panel"
 import { BoutiqueAiPersonalizePanel } from "@/components/storefront/boutique-ai-personalize-panel"
 import { BoutiqueTitleStudioPanel } from "@/components/storefront/boutique-title-studio-panel"
-import { StorefrontBrandAnalyticsPanel } from "@/components/storefront/storefront-brand-analytics-panel"
 import { StorefrontBrandLaunchPanel } from "@/components/storefront/storefront-brand-launch-panel"
 import { StorefrontBrandPreviewPanel } from "@/components/storefront/storefront-brand-preview-panel"
 import { StorefrontBrandPulsePanel } from "@/components/storefront/storefront-brand-pulse-panel"
@@ -27,11 +26,35 @@ import { StorefrontLogoField } from "@/components/storefront/storefront-logo-fie
 import { StorefrontSectionsEditor } from "@/components/storefront/storefront-sections-editor"
 import { StorefrontStaticPagesEditor } from "@/components/storefront/storefront-static-pages-editor"
 import { StorefrontThemePresetPicker } from "@/components/storefront/storefront-theme-preset-picker"
-import { StorefrontPresetAbPanel } from "@/components/storefront/storefront-preset-ab-panel"
-import { StorefrontPresetOptimizerPanel } from "@/components/storefront/storefront-preset-optimizer-panel"
-import { StorefrontShareGrowPanel } from "@/components/storefront/storefront-share-grow-panel"
 import { StoreLiveUrlCard } from "@/components/storefront/store-live-url-card"
+import { BrandPaletteFromLogo } from "@/components/storefront/brand-palette-from-logo"
+import { BrandStudioDraftBanner } from "@/components/storefront/brand-studio-draft-banner"
+import { BrandStudioHistoryBar } from "@/components/storefront/brand-studio-history-bar"
+import { LazyPanel } from "@/components/storefront/lazy-panel"
 import type { StorePublicUrls } from "@/lib/store-public-url-shared"
+import {
+  buildDraft,
+  clearDraft,
+  evaluateDraft,
+  readDraft,
+  writeDraft,
+} from "@/lib/storefront/brand-studio-draft"
+import {
+  canRedo,
+  canUndo,
+  createHistory,
+  recordChange,
+  redo,
+  undo,
+  type History,
+} from "@/lib/storefront/brand-studio-history"
+import {
+  snapshotFromDraft,
+  snapshotFromStore,
+  snapshotsEqual,
+  type BrandStudioSnapshot,
+  type BrandStudioStoreRow,
+} from "@/lib/storefront/brand-studio-snapshot"
 import { StoreNameBadgePicker } from "@/components/storefront/store-name-badge-picker"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -57,7 +80,6 @@ import {
 } from "@/lib/storefront-theme-shared"
 import {
   DEFAULT_HOMEPAGE_SECTIONS,
-  homepageSectionsEqual,
   serializeHomepageSections,
   updateHomepageSectionContent,
   type HomepageSection,
@@ -67,13 +89,11 @@ import {
   DEFAULT_STATIC_PAGES,
   hasMeaningfulStaticPages,
   serializeStaticPages,
-  staticPagesEqual,
   type StorefrontStaticPages,
 } from "@/lib/storefront-static-pages-shared"
 import {
   buildDefaultEmbedWidget,
   DEFAULT_EMBED_WIDGET,
-  embedWidgetsEqual,
   hasMeaningfulEmbedWidget,
   serializeEmbedWidget,
   type StorefrontEmbedWidget,
@@ -90,131 +110,29 @@ import { cn } from "@/lib/utils"
 
 type MerchantRole = "AFFILIATE" | "SUPPLIER"
 
-type StoreRow = {
-  name: string
-  slug: string
-  logoUrl: string | null
-  bannerUrl: string | null
-  description: string | null
-  storefrontTheme?: unknown
-}
-
-type BrandStudioSnapshot = {
-  name: string
-  description: string
-  bannerUrl: string
-  logoUrl: string
-  primaryHex: string
-  accent: string
-  trustRailText: string
-  nameBadge: StoreNameBadgeStyle
-  layout: StorefrontLayoutMode
-  heroStyle: StorefrontHeroStyle
-  gridDensity: StorefrontGridDensity
-  surface: StorefrontSurface
-  headerBrandAlign: StorefrontHeaderBrandAlign
-  presetId: string | null
-  homepageSections: HomepageSection[]
-  staticPages: StorefrontStaticPages
-  heroVideoUrl: string
-  heroVideoShowStoreName: boolean
-  embedWidget: StorefrontEmbedWidget
-}
+/** Below-the-fold panels: separate chunks, downloaded and mounted only when scrolled near (see <LazyPanel>). */
+const StorefrontPresetOptimizerPanel = dynamic(
+  () => import("@/components/storefront/storefront-preset-optimizer-panel").then((m) => m.StorefrontPresetOptimizerPanel),
+  { ssr: false }
+)
+const StorefrontPresetAbPanel = dynamic(
+  () => import("@/components/storefront/storefront-preset-ab-panel").then((m) => m.StorefrontPresetAbPanel),
+  { ssr: false }
+)
+const StorefrontBrandAnalyticsPanel = dynamic(
+  () => import("@/components/storefront/storefront-brand-analytics-panel").then((m) => m.StorefrontBrandAnalyticsPanel),
+  { ssr: false }
+)
+const StorefrontShareGrowPanel = dynamic(
+  () => import("@/components/storefront/storefront-share-grow-panel").then((m) => m.StorefrontShareGrowPanel),
+  { ssr: false }
+)
+const StoreCustomDomainCard = dynamic(
+  () => import("@/components/storefront/store-custom-domain-card").then((m) => m.StoreCustomDomainCard),
+  { ssr: false }
+)
 
 const BRAND_STUDIO_FORM_ID = "brand-studio-form"
-
-function snapshotFromStore(st: StoreRow): BrandStudioSnapshot {
-  const theme = parseStorefrontTheme(st.storefrontTheme)
-  return {
-    name: st.name,
-    description: st.description ?? "",
-    bannerUrl: st.bannerUrl ?? "",
-    logoUrl: st.logoUrl ?? "",
-    primaryHex: theme.primary ?? DEFAULT_STOREFRONT_THEME.primary!,
-    accent: theme.accent ?? DEFAULT_STOREFRONT_THEME.accent!,
-    trustRailText: theme.trustRailText ?? DEFAULT_STOREFRONT_THEME.trustRailText!,
-    nameBadge: theme.nameBadge ?? DEFAULT_STORE_NAME_BADGE,
-    layout: theme.layout ?? DEFAULT_STOREFRONT_THEME.layout!,
-    heroStyle: theme.heroStyle ?? DEFAULT_STOREFRONT_THEME.heroStyle!,
-    gridDensity: theme.gridDensity ?? DEFAULT_STOREFRONT_THEME.gridDensity!,
-    surface: theme.surface ?? DEFAULT_STOREFRONT_THEME.surface!,
-    headerBrandAlign: theme.headerBrandAlign ?? DEFAULT_STOREFRONT_THEME.headerBrandAlign!,
-    presetId: theme.presetId ?? null,
-    homepageSections: theme.homepageSections ?? DEFAULT_HOMEPAGE_SECTIONS,
-    staticPages: theme.staticPages ?? DEFAULT_STATIC_PAGES,
-    heroVideoUrl: theme.heroVideoUrl ?? "",
-    heroVideoShowStoreName: theme.heroVideoShowStoreName !== false,
-    embedWidget: theme.embedWidget ?? DEFAULT_EMBED_WIDGET,
-  }
-}
-
-function snapshotFromDraft(input: {
-  name: string
-  description: string
-  bannerUrl: string
-  logoUrl: string
-  primaryHex: string
-  accent: string
-  trustRailText: string
-  nameBadge: StoreNameBadgeStyle
-  layout: StorefrontLayoutMode
-  heroStyle: StorefrontHeroStyle
-  gridDensity: StorefrontGridDensity
-  surface: StorefrontSurface
-  headerBrandAlign: StorefrontHeaderBrandAlign
-  presetId: string | null
-  homepageSections: HomepageSection[]
-  staticPages: StorefrontStaticPages
-  heroVideoUrl: string
-  heroVideoShowStoreName: boolean
-  embedWidget: StorefrontEmbedWidget
-}): BrandStudioSnapshot {
-  return {
-    name: input.name.trim().slice(0, 40),
-    description: input.description.trim(),
-    bannerUrl: input.bannerUrl.trim(),
-    logoUrl: input.logoUrl.trim(),
-    primaryHex: input.primaryHex,
-    accent: input.accent,
-    trustRailText: input.trustRailText,
-    nameBadge: input.nameBadge,
-    layout: input.layout,
-    heroStyle: input.heroStyle,
-    gridDensity: input.gridDensity,
-    surface: input.surface,
-    headerBrandAlign: input.headerBrandAlign,
-    presetId: input.presetId,
-    homepageSections: input.homepageSections,
-    staticPages: input.staticPages,
-    heroVideoUrl: input.heroVideoUrl.trim(),
-    heroVideoShowStoreName: input.heroVideoShowStoreName,
-    embedWidget: input.embedWidget,
-  }
-}
-
-function snapshotsEqual(a: BrandStudioSnapshot, b: BrandStudioSnapshot): boolean {
-  return (
-    a.name === b.name &&
-    a.description === b.description &&
-    a.bannerUrl === b.bannerUrl &&
-    a.logoUrl === b.logoUrl &&
-    a.primaryHex === b.primaryHex &&
-    a.accent === b.accent &&
-    a.trustRailText === b.trustRailText &&
-    a.nameBadge === b.nameBadge &&
-    a.layout === b.layout &&
-    a.heroStyle === b.heroStyle &&
-    a.gridDensity === b.gridDensity &&
-    a.surface === b.surface &&
-    a.headerBrandAlign === b.headerBrandAlign &&
-    a.presetId === b.presetId &&
-    homepageSectionsEqual(a.homepageSections, b.homepageSections) &&
-    staticPagesEqual(a.staticPages, b.staticPages) &&
-    a.heroVideoUrl === b.heroVideoUrl &&
-    a.heroVideoShowStoreName === b.heroVideoShowStoreName &&
-    embedWidgetsEqual(a.embedWidget, b.embedWidget)
-  )
-}
 
 type Props = {
   role: MerchantRole
@@ -291,6 +209,10 @@ export function MerchantBrandStudio({
   const [amplifyKitUsed, setAmplifyKitUsed] = useState(false)
   const [previewRefreshKey, setPreviewRefreshKey] = useState(0)
   const [savedSnapshot, setSavedSnapshot] = useState<BrandStudioSnapshot | null>(null)
+  const [history, setHistory] = useState<History<BrandStudioSnapshot> | null>(null)
+  const [draftOffer, setDraftOffer] = useState<{ snapshot: BrandStudioSnapshot; savedAt: number } | null>(null)
+  const [draftChecked, setDraftChecked] = useState(false)
+  const latestSnapshotRef = useRef<BrandStudioSnapshot | null>(null)
   const mountedRef = useRef(false)
   const trustAutofillConsumedRef = useRef(false)
   const embedAutofillConsumedRef = useRef(false)
@@ -331,6 +253,39 @@ export function MerchantBrandStudio({
     return () => window.clearTimeout(timer)
   }, [focusTarget])
 
+  /** Puts every editable field back to a snapshot — used by hydrate, undo/redo and draft restore. */
+  const applySnapshot = useCallback((snap: BrandStudioSnapshot) => {
+    setName(snap.name)
+    setBannerUrl(snap.bannerUrl)
+    setDescription(snap.description)
+    setLogoUrl(snap.logoUrl)
+    setAccent(snap.accent)
+    setPrimaryHex(snap.primaryHex)
+    setTrustRailText(snap.trustRailText)
+    setNameBadge(snap.nameBadge)
+    setLayout(snap.layout)
+    setHeroStyle(snap.heroStyle)
+    setGridDensity(snap.gridDensity)
+    setSurface(snap.surface)
+    setHeaderBrandAlign(snap.headerBrandAlign)
+    setPresetId(snap.presetId)
+    setHomepageSections(snap.homepageSections)
+    setStaticPages(snap.staticPages)
+    setHeroVideoUrl(snap.heroVideoUrl)
+    setHeroVideoShowStoreName(snap.heroVideoShowStoreName)
+    setEmbedWidget(snap.embedWidget)
+  }, [])
+
+  /**
+   * Commits whatever is being edited as its own history step. Called before every discrete action (preset, Generate, theme,
+   * palette, launch) so those become one undo step each instead of merging into the typing that preceded them.
+   */
+  const flushHistory = useCallback(() => {
+    const current = latestSnapshotRef.current
+    if (!current) return
+    setHistory((h) => (h ? recordChange(h, current, snapshotsEqual) : h))
+  }, [])
+
   const applyLaunchConfig = useCallback((config: BrandLaunchConfig) => {
     setPresetId(config.presetId)
     setPrimaryHex(config.primary)
@@ -354,7 +309,7 @@ export function MerchantBrandStudio({
     try {
       const res = await fetch("/api/store/me", { credentials: "include", cache: "no-store" })
       const json = (await res.json()) as {
-        store?: StoreRow
+        store?: BrandStudioStoreRow
         publicStoreUrl?: string
         storeUrls?: StorePublicUrls
         storeHostSuffix?: string | null
@@ -384,31 +339,15 @@ export function MerchantBrandStudio({
       const st = json.store
       if (st) {
         const snap = snapshotFromStore(st)
-        setName(snap.name)
-        setBannerUrl(snap.bannerUrl)
-        setDescription(snap.description)
-        setLogoUrl(snap.logoUrl)
+        applySnapshot(snap)
         setLogoPreview(st.logoUrl)
         setLogoFile(null)
-        setAccent(snap.accent)
-        setPrimaryHex(snap.primaryHex)
-        setTrustRailText(snap.trustRailText)
-        setNameBadge(snap.nameBadge)
-        setLayout(snap.layout)
-        setHeroStyle(snap.heroStyle)
-        setGridDensity(snap.gridDensity)
-        setSurface(snap.surface)
-        setHeaderBrandAlign(snap.headerBrandAlign)
-        setPresetId(snap.presetId)
-        setHomepageSections(snap.homepageSections)
-        setStaticPages(snap.staticPages)
-        setHeroVideoUrl(snap.heroVideoUrl)
-        setHeroVideoShowStoreName(snap.heroVideoShowStoreName)
-        setEmbedWidget(snap.embedWidget)
         setStoreSlug(st.slug)
         setBoutiqueTitleTypography(parseBoutiqueTitleTypography(parseStorefrontTheme(st.storefrontTheme)))
         setPresetAb(parseStorefrontTheme(st.storefrontTheme).brandOps?.presetAb ?? null)
         setSavedSnapshot(snap)
+        // A fresh load (or a reload after saving an A/B test) starts a new history from what is saved.
+        setHistory(createHistory(snapshotFromDraft(snap)))
       }
     } catch (e) {
       if (mountedRef.current) {
@@ -417,7 +356,7 @@ export function MerchantBrandStudio({
     } finally {
       if (mountedRef.current) setLoading(false)
     }
-  }, [t])
+  }, [applySnapshot, t])
 
   useEffect(() => {
     void hydrate()
@@ -644,6 +583,7 @@ export function MerchantBrandStudio({
 
   const handleBrandLaunch = useCallback(
     async (config: BrandLaunchConfig) => {
+      flushHistory()
       applyLaunchConfig(config)
       const launchSnapshot = snapshotFromDraft({
         name,
@@ -718,10 +658,11 @@ export function MerchantBrandStudio({
         })
       }
     },
-    [applyLaunchConfig, bannerUrl, embedWidget, heroVideoUrl, logoUrl, name, persistSnapshot, role, t]
+    [applyLaunchConfig, bannerUrl, embedWidget, flushHistory, heroVideoUrl, logoUrl, name, persistSnapshot, role, t]
   )
 
   function applyPreset(theme: StorefrontTheme, id: string) {
+    flushHistory()
     capturePosthogClient("brand_preset_selected", { presetId: id, role })
     setPresetId(id)
     setPrimaryHex(theme.primary ?? DEFAULT_STOREFRONT_THEME.primary!)
@@ -736,6 +677,7 @@ export function MerchantBrandStudio({
 
   const applyBrandFieldResult = useCallback(
     (result: BrandFieldGenerateResponse) => {
+      flushHistory()
       if (result.name) setName(result.name)
       if (result.logoUrl) {
         setLogoUrl(result.logoUrl)
@@ -777,7 +719,7 @@ export function MerchantBrandStudio({
         applyPreset(brandAiThemeToStorefrontTheme(payload), result.presetId)
       }
     },
-    [description]
+    [description, flushHistory]
   )
 
   const brandGenerateProps = useMemo(
@@ -967,6 +909,122 @@ export function MerchantBrandStudio({
 
   const isDirty = Boolean(logoFile) || (savedSnapshot ? !snapshotsEqual(currentSnapshot, savedSnapshot) : false)
 
+  // The live preview re-renders a whole mock storefront; let typing and clicking stay first-class and the preview follow.
+  const deferredPreviewDraft = useDeferredValue(previewDraft)
+
+  // ---- history: record settled edits, undo / redo ---------------------------------------------------------------
+  useEffect(() => {
+    latestSnapshotRef.current = currentSnapshot
+  }, [currentSnapshot])
+
+  useEffect(() => {
+    // Typing is coalesced: a step is recorded once the design has been still for a moment (and always before a
+    // discrete action, via flushHistory). Applying an undo/redo result is a no-op here — it equals the present.
+    const timer = window.setTimeout(() => {
+      setHistory((h) => (h ? recordChange(h, currentSnapshot, snapshotsEqual) : h))
+    }, 600)
+    return () => window.clearTimeout(timer)
+  }, [currentSnapshot])
+
+  const handleUndo = useCallback(() => {
+    if (!history) return
+    // Make sure edits made in the last fraction of a second are a step too, so Undo never skips them.
+    const settled = recordChange(history, currentSnapshot, snapshotsEqual)
+    const next = undo(settled)
+    setHistory(next)
+    if (next !== settled) applySnapshot(next.present)
+  }, [applySnapshot, currentSnapshot, history])
+
+  const handleRedo = useCallback(() => {
+    if (!history) return
+    const next = redo(history)
+    setHistory(next)
+    if (next !== history) applySnapshot(next.present)
+  }, [applySnapshot, history])
+
+  const undoAvailable = history
+    ? canUndo(history) || !snapshotsEqual(history.present, currentSnapshot)
+    : false
+  const redoAvailable = history ? canRedo(history) && snapshotsEqual(history.present, currentSnapshot) : false
+
+  // ---- local draft: survive an accidental close, offer it back next time ---------------------------------------
+  useEffect(() => {
+    if (draftChecked || !savedSnapshot || !storeSlug) return
+    setDraftChecked(true)
+    const stored = readDraft(typeof window === "undefined" ? null : window.localStorage, storeSlug)
+    if (!stored) return
+    const verdict = evaluateDraft(stored, savedSnapshot, Date.now())
+    if (verdict.action === "restore") {
+      setDraftOffer({ snapshot: verdict.snapshot, savedAt: verdict.savedAt })
+    } else {
+      clearDraft(window.localStorage, storeSlug)
+    }
+  }, [draftChecked, savedSnapshot, storeSlug])
+
+  useEffect(() => {
+    // Never touch storage while a recovered draft is waiting for the merchant's answer.
+    if (!draftChecked || draftOffer || !savedSnapshot || !storeSlug) return
+    const storage = window.localStorage
+    if (snapshotsEqual(currentSnapshot, savedSnapshot)) {
+      clearDraft(storage, storeSlug)
+      return
+    }
+    const timer = window.setTimeout(() => {
+      writeDraft(storage, buildDraft({ slug: storeSlug, snapshot: currentSnapshot, base: savedSnapshot, now: Date.now() }))
+    }, 1000)
+    return () => window.clearTimeout(timer)
+  }, [currentSnapshot, draftChecked, draftOffer, savedSnapshot, storeSlug])
+
+  const restoreDraft = useCallback(() => {
+    if (!draftOffer) return
+    flushHistory()
+    applySnapshot(draftOffer.snapshot)
+    setDraftOffer(null)
+    setMessage(t("draft.restored"))
+  }, [applySnapshot, draftOffer, flushHistory, t])
+
+  const discardDraft = useCallback(() => {
+    if (storeSlug) clearDraft(window.localStorage, storeSlug)
+    setDraftOffer(null)
+  }, [storeSlug])
+
+  // Closing the tab with unsaved edits asks first (in-app navigation is covered by the draft above).
+  useEffect(() => {
+    if (!isDirty) return
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ""
+    }
+    window.addEventListener("beforeunload", onBeforeUnload)
+    return () => window.removeEventListener("beforeunload", onBeforeUnload)
+  }, [isDirty])
+
+  // Editor shortcuts. Inside a text field the browser's own undo keeps working on the characters being typed.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.altKey) return
+      const key = e.key.toLowerCase()
+      const target = e.target as HTMLElement | null
+      const inTextField =
+        !!target && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
+      if (key === "s") {
+        e.preventDefault()
+        if (isDirty && !saving) void persistSnapshot(currentSnapshot, t("saved"))
+        return
+      }
+      if (inTextField) return
+      if (key === "z" && !e.shiftKey) {
+        e.preventDefault()
+        handleUndo()
+      } else if ((key === "z" && e.shiftKey) || key === "y") {
+        e.preventDefault()
+        handleRedo()
+      }
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [currentSnapshot, handleRedo, handleUndo, isDirty, persistSnapshot, saving, t])
+
   const eyebrow = role === "AFFILIATE" ? t("affiliateEyebrow") : t("supplierEyebrow")
   const title = role === "AFFILIATE" ? t("affiliateTitle") : t("supplierTitle")
   const desc = role === "AFFILIATE" ? t("affiliateDescription") : t("supplierDescription")
@@ -978,6 +1036,7 @@ export function MerchantBrandStudio({
       variant="bentoSolid"
       size="bento"
       disabled={saving || !isDirty}
+      title={t("shortcuts.save")}
       className="min-w-[9.5rem] shrink-0"
     >
       <Save className="size-5" aria-hidden />
@@ -1006,6 +1065,12 @@ export function MerchantBrandStudio({
             className="max-w-2xl"
           />
           <div className="flex flex-wrap items-center gap-2">
+            <BrandStudioHistoryBar
+              canUndo={undoAvailable}
+              canRedo={redoAvailable}
+              onUndo={handleUndo}
+              onRedo={handleRedo}
+            />
             {saveButton}
             {publicStoreUrl ? (
               <a
@@ -1049,6 +1114,10 @@ export function MerchantBrandStudio({
             </Link>
           </div>
         </div>
+
+        {draftOffer ? (
+          <BrandStudioDraftBanner savedAt={draftOffer.savedAt} onRestore={restoreDraft} onDiscard={discardDraft} />
+        ) : null}
 
         {isDirty ? (
           <BentoCard className="border-amber-200/80 bg-amber-50/70 py-3 text-sm text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-100">
@@ -1125,6 +1194,7 @@ export function MerchantBrandStudio({
               <div
                 ref={logoPanelRef}
                 className={cn(
+                  "space-y-3",
                   focusTarget === "logo" &&
                     "rounded-3xl ring-2 ring-emerald-400/70 ring-offset-2 ring-offset-white dark:ring-emerald-500/60 dark:ring-offset-zinc-950"
                 )}
@@ -1135,6 +1205,17 @@ export function MerchantBrandStudio({
                   onLogoUrlChange={setLogoUrl}
                   onLogoFile={setLogoFile}
                   generate={brandGenerateProps}
+                />
+                <BrandPaletteFromLogo
+                  logoSrc={logoFile ? logoPreview : logoUrl.trim() || logoPreview}
+                  primary={primaryHex}
+                  accent={accent}
+                  onApply={(nextPrimary, nextAccent) => {
+                    flushHistory()
+                    setPrimaryHex(nextPrimary)
+                    setAccent(nextAccent)
+                    setMessage(t("palette.applied"))
+                  }}
                 />
               </div>
 
@@ -1334,7 +1415,7 @@ export function MerchantBrandStudio({
                 <StorefrontBrandPreviewPanel
                   previewHref={previewHref}
                   isDirty={isDirty}
-                  draft={previewDraft}
+                  draft={deferredPreviewDraft}
                   refreshKey={previewRefreshKey}
                 />
               </BentoCard>
@@ -1343,33 +1424,39 @@ export function MerchantBrandStudio({
               pulse={brandPulse}
               lastScore={brandPulseMetrics.brandPulseLastScore}
             />
-            <StorefrontPresetOptimizerPanel
-              pulse={brandPulse}
-              presetId={presetId}
-              lastScore={brandPulseMetrics.brandPulseLastScore}
-              presetAb={presetAb}
-              role={role}
-              onApplyPreset={applyPreset}
-              onAbStarted={() => void hydrate()}
-            />
-            <StorefrontPresetAbPanel
-              role={role}
-              storeSlug={storeSlug}
-              controlPresetId={presetId}
-              presetAb={presetAb}
-              onUpdated={() => void hydrate()}
-            />
-            <StorefrontBrandAnalyticsPanel
-              role={role}
-              presetId={presetId}
-              liveCatalogCount={brandPulseMetrics.liveCatalogCount}
-              totalListingClicks={brandPulseMetrics.totalListingClicks}
-              totalListingConversions={brandPulseMetrics.totalListingConversions}
-              embedEnabled={embedWidget.enabled}
-              amplifyKitUsed={amplifyKitUsed}
-              studioPath={studioPath}
-              createListingHref={createListingHref}
-            />
+            <LazyPanel minHeight={220}>
+              <StorefrontPresetOptimizerPanel
+                pulse={brandPulse}
+                presetId={presetId}
+                lastScore={brandPulseMetrics.brandPulseLastScore}
+                presetAb={presetAb}
+                role={role}
+                onApplyPreset={applyPreset}
+                onAbStarted={() => void hydrate()}
+              />
+            </LazyPanel>
+            <LazyPanel minHeight={200}>
+              <StorefrontPresetAbPanel
+                role={role}
+                storeSlug={storeSlug}
+                controlPresetId={presetId}
+                presetAb={presetAb}
+                onUpdated={() => void hydrate()}
+              />
+            </LazyPanel>
+            <LazyPanel minHeight={220}>
+              <StorefrontBrandAnalyticsPanel
+                role={role}
+                presetId={presetId}
+                liveCatalogCount={brandPulseMetrics.liveCatalogCount}
+                totalListingClicks={brandPulseMetrics.totalListingClicks}
+                totalListingConversions={brandPulseMetrics.totalListingConversions}
+                embedEnabled={embedWidget.enabled}
+                amplifyKitUsed={amplifyKitUsed}
+                studioPath={studioPath}
+                createListingHref={createListingHref}
+              />
+            </LazyPanel>
             <StoreLiveUrlCard urls={storeUrls} storeHostSuffix={storeHostSuffix} loading={loading} />
             {storeSlug && storeUrls?.primaryUrl ? (
               <div
@@ -1379,21 +1466,25 @@ export function MerchantBrandStudio({
                     "rounded-3xl ring-2 ring-emerald-400/70 ring-offset-2 ring-offset-white dark:ring-emerald-500/60 dark:ring-offset-zinc-950"
                 )}
               >
-                <StorefrontShareGrowPanel
-                  slug={storeSlug}
-                  storeName={name}
-                  shopUrl={storeUrls.primaryUrl}
-                  embedEnabled={embedWidget.enabled}
-                  onEnableEmbed={() => setEmbedWidget((prev) => ({ ...prev, enabled: true }))}
-                  amplifyMode={amplifyShare && role === "AFFILIATE"}
-                  onAmplifyCopied={() => setAmplifyKitUsed(true)}
-                  postShareLoop={postShareLoop && role === "AFFILIATE"}
-                  initialTotalClicks={brandPulseMetrics.totalListingClicks}
-                  initialTotalConversions={brandPulseMetrics.totalListingConversions}
-                />
+                <LazyPanel minHeight={320} eager={focusSharePanel}>
+                  <StorefrontShareGrowPanel
+                    slug={storeSlug}
+                    storeName={name}
+                    shopUrl={storeUrls.primaryUrl}
+                    embedEnabled={embedWidget.enabled}
+                    onEnableEmbed={() => setEmbedWidget((prev) => ({ ...prev, enabled: true }))}
+                    amplifyMode={amplifyShare && role === "AFFILIATE"}
+                    onAmplifyCopied={() => setAmplifyKitUsed(true)}
+                    postShareLoop={postShareLoop && role === "AFFILIATE"}
+                    initialTotalClicks={brandPulseMetrics.totalListingClicks}
+                    initialTotalConversions={brandPulseMetrics.totalListingConversions}
+                  />
+                </LazyPanel>
               </div>
             ) : null}
-            <StoreCustomDomainCard variant="studio" />
+            <LazyPanel minHeight={180}>
+              <StoreCustomDomainCard variant="studio" />
+            </LazyPanel>
             <BentoCard className="text-sm text-gray-600 dark:text-zinc-400">
               <p className="flex items-center gap-2 font-medium text-gray-900 dark:text-zinc-100">
                 <Palette className="size-4 text-violet-600" aria-hidden />
@@ -1423,6 +1514,12 @@ export function MerchantBrandStudio({
         >
           <div className="mx-auto flex max-w-6xl items-center gap-3">
             <p className="min-w-0 flex-1 text-xs font-medium text-violet-100/90">{t("unsavedChanges")}</p>
+            <BrandStudioHistoryBar
+              canUndo={undoAvailable}
+              canRedo={redoAvailable}
+              onUndo={handleUndo}
+              onRedo={handleRedo}
+            />
             {saveButton}
           </div>
         </div>

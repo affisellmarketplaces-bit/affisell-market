@@ -4515,6 +4515,35 @@
         "underlineMarkDesc": "Testo semplice con sottolineatura animata.",
         "classic": "Classico",
         "classicDesc": "Testo semplice, senza banda."
+      },
+      "history": {
+        "label": "Cronologia delle modifiche",
+        "undo": "Annulla",
+        "redo": "Ripristina",
+        "undoTitle": "Annulla l'ultima modifica (Ctrl/⌘ + Z)",
+        "redoTitle": "Ripristina (Ctrl/⌘ + Maiusc + Z)"
+      },
+      "draft": {
+        "title": "Bozza non salvata recuperata",
+        "body": "Modificata {when}. La sessione precedente si è chiusa prima del salvataggio.",
+        "restore": "Ripristina la bozza",
+        "discard": "Ignora",
+        "restored": "Bozza ripristinata: puoi tornare indietro con Annulla.",
+        "relativeNow": "adesso"
+      },
+      "palette": {
+        "title": "Palette dal tuo logo",
+        "hint": "Colori del brand rilevati nel logo, regolati per restare leggibili (WCAG AA).",
+        "primary": "Principale",
+        "accent": "Accento",
+        "derived": "Accento derivato dal colore principale",
+        "apply": "Applica la palette",
+        "applied": "Palette del logo applicata: annullabile in qualsiasi momento.",
+        "aa": "Leggibile AA",
+        "current": "Già in uso"
+      },
+      "shortcuts": {
+        "save": "Salva (Ctrl/⌘ + S)"
       }
     },
     "embedWidget": {

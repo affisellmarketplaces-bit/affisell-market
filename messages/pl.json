@@ -4515,6 +4515,35 @@
         "underlineMarkDesc": "Zwykły tekst z migoczącym podkreśleniem akcentu.",
         "classic": "Klasyczny",
         "classicDesc": "Prosty tekst, bez paska."
+      },
+      "history": {
+        "label": "Historia zmian",
+        "undo": "Cofnij",
+        "redo": "Ponów",
+        "undoTitle": "Cofnij ostatnią zmianę (Ctrl/⌘ + Z)",
+        "redoTitle": "Ponów (Ctrl/⌘ + Shift + Z)"
+      },
+      "draft": {
+        "title": "Odzyskano niezapisany szkic",
+        "body": "Ostatnia edycja: {when}. Poprzednia sesja zakończyła się przed zapisaniem.",
+        "restore": "Przywróć szkic",
+        "discard": "Odrzuć",
+        "restored": "Szkic przywrócony — możesz wrócić przyciskiem Cofnij.",
+        "relativeNow": "przed chwilą"
+      },
+      "palette": {
+        "title": "Paleta z Twojego logo",
+        "hint": "Kolory marki wykryte w logo, dopasowane tak, by pozostały czytelne (WCAG AA).",
+        "primary": "Główny",
+        "accent": "Akcent",
+        "derived": "Akcent wyprowadzony z koloru głównego",
+        "apply": "Zastosuj paletę",
+        "applied": "Zastosowano paletę z logo — możesz to w każdej chwili cofnąć.",
+        "aa": "Czytelny AA",
+        "current": "Już używana"
+      },
+      "shortcuts": {
+        "save": "Zapisz (Ctrl/⌘ + S)"
       }
     },
     "embedWidget": {

@@ -4515,6 +4515,35 @@
         "underlineMarkDesc": "Platte tekst met een animerende accentstreep.",
         "classic": "Klassiek",
         "classicDesc": "Gewoon tekst, geen band."
+      },
+      "history": {
+        "label": "Wijzigingsgeschiedenis",
+        "undo": "Ongedaan maken",
+        "redo": "Opnieuw",
+        "undoTitle": "Laatste wijziging ongedaan maken (Ctrl/⌘ + Z)",
+        "redoTitle": "Opnieuw (Ctrl/⌘ + Shift + Z)"
+      },
+      "draft": {
+        "title": "Niet-opgeslagen concept teruggevonden",
+        "body": "Laatst bewerkt {when}. Je vorige sessie is gesloten voordat je opsloeg.",
+        "restore": "Concept herstellen",
+        "discard": "Negeren",
+        "restored": "Concept hersteld — met Ongedaan maken ga je terug.",
+        "relativeNow": "zojuist"
+      },
+      "palette": {
+        "title": "Palet uit je logo",
+        "hint": "Merkkleuren uit je logo, aangepast zodat ze leesbaar blijven (WCAG AA).",
+        "primary": "Primair",
+        "accent": "Accent",
+        "derived": "Accent afgeleid van je hoofdkleur",
+        "apply": "Palet toepassen",
+        "applied": "Logopalet toegepast — altijd ongedaan te maken.",
+        "aa": "AA-leesbaar",
+        "current": "Al in gebruik"
+      },
+      "shortcuts": {
+        "save": "Opslaan (Ctrl/⌘ + S)"
       }
     },
     "embedWidget": {

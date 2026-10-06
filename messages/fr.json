@@ -4515,6 +4515,35 @@
         "underlineMarkDesc": "Texte simple avec un soulignement accent animé.",
         "classic": "Classique",
         "classicDesc": "Texte simple sans bande."
+      },
+      "history": {
+        "label": "Historique des modifications",
+        "undo": "Annuler",
+        "redo": "Rétablir",
+        "undoTitle": "Annuler la dernière modification (Ctrl/⌘ + Z)",
+        "redoTitle": "Rétablir (Ctrl/⌘ + Maj + Z)"
+      },
+      "draft": {
+        "title": "Brouillon non enregistré retrouvé",
+        "body": "Modifié {when}. Votre session précédente s'est fermée avant l'enregistrement.",
+        "restore": "Restaurer le brouillon",
+        "discard": "Ignorer",
+        "restored": "Brouillon restauré — vous pouvez revenir en arrière avec Annuler.",
+        "relativeNow": "à l'instant"
+      },
+      "palette": {
+        "title": "Palette tirée de votre logo",
+        "hint": "Couleurs de marque détectées dans votre logo, ajustées pour rester lisibles (WCAG AA).",
+        "primary": "Principale",
+        "accent": "Accent",
+        "derived": "Accent déduit de votre couleur principale",
+        "apply": "Appliquer la palette",
+        "applied": "Palette du logo appliquée — annulable à tout moment.",
+        "aa": "Lisible AA",
+        "current": "Déjà utilisée"
+      },
+      "shortcuts": {
+        "save": "Enregistrer (Ctrl/⌘ + S)"
       }
     },
     "embedWidget": {

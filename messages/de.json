@@ -4515,6 +4515,35 @@
         "underlineMarkDesc": "Schlichter Text mit schimmernder Akzentlinie.",
         "classic": "Klassisch",
         "classicDesc": "Einfacher Text, ohne Band."
+      },
+      "history": {
+        "label": "Änderungsverlauf",
+        "undo": "Rückgängig",
+        "redo": "Wiederholen",
+        "undoTitle": "Letzte Änderung rückgängig machen (Strg/⌘ + Z)",
+        "redoTitle": "Wiederholen (Strg/⌘ + Umschalt + Z)"
+      },
+      "draft": {
+        "title": "Nicht gespeicherter Entwurf gefunden",
+        "body": "Zuletzt bearbeitet {when}. Ihre letzte Sitzung wurde vor dem Speichern geschlossen.",
+        "restore": "Entwurf wiederherstellen",
+        "discard": "Verwerfen",
+        "restored": "Entwurf wiederhergestellt – mit „Rückgängig“ gehen Sie zurück.",
+        "relativeNow": "gerade eben"
+      },
+      "palette": {
+        "title": "Palette aus Ihrem Logo",
+        "hint": "Im Logo erkannte Markenfarben, so angepasst, dass sie lesbar bleiben (WCAG AA).",
+        "primary": "Primärfarbe",
+        "accent": "Akzent",
+        "derived": "Akzent aus Ihrer Hauptfarbe abgeleitet",
+        "apply": "Palette anwenden",
+        "applied": "Logo-Palette angewendet – jederzeit rückgängig zu machen.",
+        "aa": "AA-lesbar",
+        "current": "Bereits in Verwendung"
+      },
+      "shortcuts": {
+        "save": "Speichern (Strg/⌘ + S)"
       }
     },
     "embedWidget": {
