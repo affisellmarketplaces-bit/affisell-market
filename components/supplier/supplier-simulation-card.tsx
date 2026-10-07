@@ -10,6 +10,7 @@ import {
   illustrativePublicPriceEur,
 } from "@/lib/supplier-sku-affiliate-earning"
 import { formatStoreCurrency } from "@/lib/market-config"
+import { computeEarningPreview } from "@/lib/supplier-earning-preview"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -23,6 +24,8 @@ type Props = {
   weightGrams?: number | null
   shippingCostEur?: number
   freeShipping?: boolean
+  /** Affisell's supplier-side rate (bps) for the chosen category; null/undefined while unknown. */
+  feeBps?: number | null
   className?: string
 }
 
@@ -37,6 +40,7 @@ export function SupplierSimulationCard({
   weightGrams,
   shippingCostEur = 0,
   freeShipping,
+  feeBps = null,
   className,
 }: Props) {
   const supplier = supplierPriceEur > 0 ? supplierPriceEur : 0
@@ -44,7 +48,10 @@ export function SupplierSimulationCard({
   const publicEur = supplier > 0 ? illustrativePublicPriceEur({ supplierPrice: supplier, commissionRate: rate, compareAtEur }) : 0
   const affiliateMargin = supplier > 0 ? affiliateMarginEur({ supplierPrice: supplier, commissionRate: rate, compareAtEur }) : 0
   const tone = affiliateMarginTone(affiliateMargin)
-  const supplierNet = supplier > 0 ? Math.round(supplier * 100) / 100 : 0
+  // What the supplier really receives: price − the commission paid to the reseller − Affisell's fee (same arithmetic as the
+  // settlement). It used to show the full catalogue price, i.e. more than is ever paid out.
+  const earning = computeEarningPreview({ priceEur: supplier, commissionPct: rate, feeBps })
+  const supplierNet = earning.netCents / 100
 
   const previewLine =
     supplier > 0
@@ -111,7 +118,17 @@ export function SupplierSimulationCard({
             </dd>
           </div>
           <div className="flex justify-between gap-2">
-            <dt className="font-medium text-zinc-700 dark:text-zinc-300">Vous recevez / vente</dt>
+            <dt className="text-zinc-500 dark:text-zinc-400">
+              {earning.feeKnown && feeBps != null ? `Frais Affisell (${Math.round(feeBps) / 100} %)` : "Frais Affisell : selon la catégorie"}
+            </dt>
+            <dd className="font-medium tabular-nums text-zinc-800 dark:text-zinc-200">
+              {earning.feeCents != null ? `−${formatStoreCurrency(earning.feeCents / 100)}` : "—"}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-2">
+            <dt className="font-medium text-zinc-700 dark:text-zinc-300">
+              {earning.feeKnown ? "Vous recevez / vente" : "Vous recevez / vente (avant frais Affisell)"}
+            </dt>
             <dd className="font-bold tabular-nums text-emerald-700 dark:text-emerald-400">
               {formatStoreCurrency(supplierNet)}
             </dd>

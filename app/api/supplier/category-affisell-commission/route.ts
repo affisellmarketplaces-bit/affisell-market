@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { affisellCommissionRateBpsToPercent } from "@/lib/affisell-platform-commission"
 import { resolveCategoryAffisellCommissionBps } from "@/lib/affisell-platform-commission.server"
+import { resolveSupplierFeeBpsForOrder } from "@/lib/marketplace-supplier-fee"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -33,6 +34,20 @@ export async function GET(req: Request) {
 
   const effectiveBps = await resolveCategoryAffisellCommissionBps(categoryId)
 
+  // The rate THIS supplier is actually charged on the catalogue channel: a negotiated per-supplier rate wins over the
+  // category grid (same resolution as at settlement). A read failure falls back to the category rate.
+  const overrides = await prisma.user
+    .findUnique({
+      where: { id: session.user.id },
+      select: { supplierFeeBps: true, supplierFeeBpsCatalog: true },
+    })
+    .catch(() => null)
+  const supplierCatalogFeeBps = resolveSupplierFeeBpsForOrder({
+    usesAffisellAutoBuy: false,
+    supplier: overrides ?? {},
+    categoryFeeBps: effectiveBps,
+  })
+
   return NextResponse.json({
     categoryId: category.id,
     categoryName: category.name,
@@ -40,5 +55,7 @@ export async function GET(req: Request) {
     affisellCommissionRateBps: category.affisellCommissionRateBps,
     effectiveBps,
     effectivePercent: affisellCommissionRateBpsToPercent(effectiveBps),
+    supplierCatalogFeeBps,
+    supplierCatalogFeePercent: affisellCommissionRateBpsToPercent(supplierCatalogFeeBps),
   })
 }

@@ -96,6 +96,7 @@ import {
 import { ProductWizard } from "@/components/supplier/ProductWizard"
 import { SupplierWizardSaveFooter, type WizardAutosaveStatus } from "@/components/supplier/supplier-wizard-save-footer"
 import { SupplierSimulationCard } from "@/components/supplier/supplier-simulation-card"
+import { useSupplierFeeBps } from "@/components/supplier/use-supplier-fee-bps"
 import { SupplierSkuErrorsAlert } from "@/components/supplier/supplier-sku-errors-alert"
 import {
   SupplierWizardQualityPanel,
@@ -2914,6 +2915,7 @@ export function SupplierAddProductForm({
     return Number.isFinite(n) ? Math.round(n) : 0
   }, [variantFormMode, advancedSkuRows, commission])
 
+  const { bps: simulationFeeBps } = useSupplierFeeBps(categoryId)
   const simulationCard = (
     <SupplierSimulationCard
       supplierPriceEur={simulationSupplierPrice}
@@ -2933,6 +2935,7 @@ export function SupplierAddProductForm({
       }
       shippingCostEur={Number(shippingCost) || 0}
       freeShipping={freeShipping}
+      feeBps={simulationFeeBps}
       className="lg:top-24 lg:sticky"
     />
   )
