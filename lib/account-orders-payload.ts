@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { buyerVisibleMarketplaceOrderWhere } from "@/lib/buyer-order-visibility"
+import { loadOrderReturnWindowDays } from "@/lib/return-terms.server"
 import {
   getActiveReturn,
   hasBlockingReturnHistory,
@@ -156,11 +157,13 @@ export async function buildBuyerOrdersPayloadForEmail(
   ])
 
   const autoBuyByOrderId = await loadAutoBuyLogsByOrderId(marketplaceOrders.map((o) => o.id))
+  const returnDaysByOrderId = await loadOrderReturnWindowDays(marketplaceOrders.map((o) => o.id))
 
   const rows: BuyerOrderRow[] = marketplaceOrders.map((o) => {
     const autoBuyLog = autoBuyByOrderId.get(o.id)
     const active = getActiveReturn(o.returns)
     const latest = o.returns[0] ?? null
+    const returnDays = returnDaysByOrderId.get(o.id)
     return {
       id: o.id,
       fulfillmentSource: "marketplace",
@@ -177,10 +180,10 @@ export async function buildBuyerOrdersPayloadForEmail(
         name: o.product.name,
         imageUrl: o.product.images[0] ?? null,
       },
-      returnWindowEndsAt: buyerReturnWindowEndsAt(o)?.toISOString() ?? orderReturnWindowEndsAt(o).toISOString(),
+      returnWindowEndsAt: buyerReturnWindowEndsAt(o, returnDays)?.toISOString() ?? orderReturnWindowEndsAt(o).toISOString(),
       returnEligible:
         (o.status === "paid" || o.status === "preparing" || o.status === "shipped") &&
-        isWithinBuyerReturnWindow(o) &&
+        isWithinBuyerReturnWindow(o, now, returnDays) &&
         !active &&
         !hasBlockingReturnHistory(o.returns),
       deliveredAt: (o.deliveredAt ?? o.deliveryConfirmedAt)?.toISOString() ?? null,

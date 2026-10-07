@@ -6,6 +6,7 @@ import { resolveMarketplaceOrderLineImageUrl } from "@/lib/cart-line-image"
 import { formatCartVariantLabel, parseCartVariantSignature } from "@/lib/cart-variant"
 import { buyerEarnCentsForLinePaid } from "@/lib/buyer-reward-earn"
 import { runAfterResponse } from "@/lib/after-response"
+import { recordOrderReturnTerms } from "@/lib/return-terms.server"
 import { earnBuyerRewardIdempotent, redeemBuyerRewardIdempotent } from "@/lib/buyer-reward-ledger"
 import { ensureBuyerUserIdFromStripeCheckout } from "@/lib/ensure-buyer-from-stripe-checkout"
 import { resolveBuyerUserIdForEarn } from "@/lib/buyer-reward-resolve-user"
@@ -634,6 +635,9 @@ function scheduleMerchantOrderAlerts(orderIds: string[]): void {
   void runAfterResponse("merchant_order_alerts", () =>
     Promise.allSettled(ids.flatMap((id) => [dispatchMerchantOrderAlerts(id), healMarketplaceOrderNotifications(id)]))
   )
+  // Freeze the return window the product offered at this purchase (supplier-extended returns). Outside the payment
+  // transaction on purpose: it is idempotent, never throws, and a failure only means the buyer keeps the legal 14 days.
+  void runAfterResponse("order_return_terms", () => recordOrderReturnTerms(ids))
 }
 
 async function redeemBuyerRewardOrSkip(

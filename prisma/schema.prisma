@@ -388,6 +388,18 @@ model SupplierComplianceProfile {
   updatedAt           DateTime @updatedAt
 }
 
+/**
+ * Return window a buyer was OFFERED at purchase, when the supplier extended it beyond the legal 14 days
+ * (see lib/return-terms.ts). One row per order, written right after payment; no row = the legal 14 days.
+ * Isolated table on purpose (no column on Order): if its migration lags behind a deploy, orders are unaffected and
+ * buyers simply fall back to the legal window.
+ */
+model OrderReturnTerms {
+  orderId          String   @id
+  returnWindowDays Int
+  createdAt        DateTime @default(now())
+}
+
 model MerchantDefault {
   id                   String   @id @default(cuid())
   userId               String   @unique

@@ -1,6 +1,6 @@
 "use client"
 
-import { BadgeCheck, Package } from "lucide-react"
+import { BadgeCheck, Package, RotateCcw } from "lucide-react"
 import { motion } from "framer-motion"
 import { SupplierTrustBadge } from "@/components/suppliers/supplier-trust-badge"
 import { ProductOfferBadge } from "@/components/product/product-offer-badge"
@@ -32,6 +32,8 @@ type Props = {
   onToggleTitleExpanded: () => void
   categoryEyebrow: string | null
   availableStock: number
+  /** "Returns accepted within N days" — only when the supplier offers more than the legal 14 days. */
+  returnWindowLabel: string | null
 }
 
 export function ProductInfo({
@@ -51,6 +53,7 @@ export function ProductInfo({
   onToggleTitleExpanded,
   categoryEyebrow,
   availableStock,
+  returnWindowLabel,
 }: Props) {
   return (
     <header className="space-y-2 lg:space-y-3 lg:pt-3">
@@ -145,6 +148,12 @@ export function ProductInfo({
             productT.outOfStock
           )}
         </span>
+        {returnWindowLabel ? (
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+            <RotateCcw className="h-3 w-3" aria-hidden />
+            {returnWindowLabel}
+          </span>
+        ) : null}
       </motion.div>
     </header>
   )

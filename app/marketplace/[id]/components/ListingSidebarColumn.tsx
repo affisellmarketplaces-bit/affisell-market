@@ -185,6 +185,7 @@ export function ListingSidebarColumn({
             onToggleTitleExpanded={() => setTitleExpanded((v) => !v)}
             categoryEyebrow={categoryEyebrow}
             availableStock={availableStock}
+            returnWindowLabel={shipping.returnWindowLabel}
           />
 
           <TrustBadges

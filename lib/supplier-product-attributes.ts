@@ -1,6 +1,7 @@
 import { CATEGORIES } from "@/lib/product-catalog-constants"
 import { parseProductColorImagesFromBody, type ProductColorImageRow } from "@/lib/product-color-images"
 import { parseVariantsPayload, type ProductVariantsJson } from "@/lib/product-variants"
+import { sanitizeReturnWindowRows } from "@/lib/return-terms"
 
 const CATEGORY_SET = new Set(CATEGORIES as readonly string[])
 
@@ -66,7 +67,7 @@ export function normalizeProductAttributesFromBody(
   rows: unknown
 ): NormalizedProductAttribute[] {
   if (!Array.isArray(rows)) return []
-  return rows
+  const normalized = rows
     .map((row) => (row && typeof row === "object" ? (row as Record<string, unknown>) : null))
     .filter((row): row is Record<string, unknown> => row != null)
     .map((row) => ({
@@ -75,6 +76,9 @@ export function normalizeProductAttributesFromBody(
       value: String(row.value ?? "").trim(),
     }))
     .filter((r) => r.key.length > 0 && r.value.length > 0)
+  // The offered return window is only ever a valid extension of the legal 14 days; anything else is dropped here, for
+  // every route that accepts attribute rows.
+  return sanitizeReturnWindowRows(normalized)
 }
 
 function attributeSignature(rows: NormalizedProductAttribute[]): string {

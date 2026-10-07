@@ -9,6 +9,7 @@ import {
   sellerRespondByFromNow,
 } from "@/lib/order-return-policy"
 import { RETURN_REASON_CODES, type ReturnReasonCode } from "@/lib/order-return-types"
+import { loadOrderReturnWindowDaysFor } from "@/lib/return-terms.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -61,7 +62,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ orderId: strin
     return Response.json({ error: "Returns are not available for this order state." }, { status: 400 })
   }
 
-  if (!isWithinBuyerReturnWindow(order)) {
+  // The legal 14 days, or the longer window the supplier offered on this product when it was bought.
+  if (!isWithinBuyerReturnWindow(order, new Date(), await loadOrderReturnWindowDaysFor(order.id))) {
     return Response.json({ error: "Return window has expired" }, { status: 400 })
   }
 

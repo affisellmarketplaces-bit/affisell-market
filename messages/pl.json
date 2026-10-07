@@ -2174,6 +2174,14 @@
       "title": "Wysyłka jest wliczona w Twoją cenę",
       "body": "Affisell nie pobiera od kupującego kosztów wysyłki. Otrzymujesz swoją cenę pomniejszoną o prowizję resellera i opłatę Affisell, więc wlicz koszt dostawy w cenę.",
       "badgeLabel": "Wyróżnij „Darmowa wysyłka” przy tej ofercie (plakietka i filtr marketplace). Wysyłka jest i tak wliczona w Twoją cenę."
+    },
+    "returnTerms": {
+      "title": "Zwroty",
+      "label": "Termin zwrotu",
+      "optionLegal": "14 dni (minimum ustawowe)",
+      "optionDays": "{days} dni",
+      "hint": "Przez ile dni po dostawie kupujący może zwrócić ten produkt. 14 dni to ustawowe minimum dla każdego kupującego; zaoferowanie więcej może pomóc w sprzedaży.",
+      "cost": "Zwroty przyjmowane w tym terminie idą na Twój koszt, tak jak w ustawowych 14 dniach: kupujący otrzymuje zwrot, a Twoja część sprzedaży zostaje odzyskana. Termin jest utrwalany w chwili zakupu – późniejsze skrócenie nigdy nie wpływa na złożone już zamówienia."
     }
   },
   "affiliate": {
@@ -8820,6 +8828,7 @@
       "color": "Kolor",
       "size": "Rozmiar",
       "dimensions": "Wymiary"
-    }
+    },
+    "returnWindowBadge": "Zwrot możliwy w ciągu {days} dni"
   }
 }

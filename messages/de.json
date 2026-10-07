@@ -2174,6 +2174,14 @@
       "title": "Der Versand ist in Ihrem Preis enthalten",
       "body": "Affisell berechnet Käufern keine Versandkosten. Sie erhalten Ihren Preis abzüglich der Reseller-Provision und der Affisell-Gebühr – kalkulieren Sie Ihre Lieferkosten daher in Ihren Preis ein.",
       "badgeLabel": "„Kostenloser Versand“ bei diesem Angebot hervorheben (Badge und Marktplatz-Filter). Der Versand ist in jedem Fall in Ihrem Preis enthalten."
+    },
+    "returnTerms": {
+      "title": "Rückgabe",
+      "label": "Rückgabefrist",
+      "optionLegal": "14 Tage (gesetzliches Minimum)",
+      "optionDays": "{days} Tage",
+      "hint": "Wie lange nach der Lieferung Käufer dieses Produkt zurückgeben können. 14 Tage sind für alle Käufer das gesetzliche Minimum; mehr anzubieten kann den Verkauf fördern.",
+      "cost": "Rückgaben innerhalb dieser Frist gehen auf Ihre Kosten, wie innerhalb der gesetzlichen 14 Tage: Der Käufer wird erstattet und Ihr Anteil am Verkauf wird zurückgebucht. Die Frist wird beim Kauf festgeschrieben – eine spätere Verkürzung wirkt sich nie auf bereits aufgegebene Bestellungen aus."
     }
   },
   "affiliate": {
@@ -8820,6 +8828,7 @@
       "color": "Farbe",
       "size": "Größe",
       "dimensions": "Abmessungen"
-    }
+    },
+    "returnWindowBadge": "Rückgabe innerhalb von {days} Tagen möglich"
   }
 }

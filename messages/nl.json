@@ -2174,6 +2174,14 @@
       "title": "Verzending is inbegrepen in uw prijs",
       "body": "Affisell rekent de koper geen verzendkosten aan. U ontvangt uw prijs minus de commissie van de reseller en de Affisell-vergoeding, dus reken uw leverkosten in uw prijs mee.",
       "badgeLabel": "Markeer «Gratis verzending» bij dit aanbod (badge en marktplaatsfilter). Verzending is hoe dan ook inbegrepen in uw prijs."
+    },
+    "returnTerms": {
+      "title": "Retouren",
+      "label": "Retourtermijn",
+      "optionLegal": "14 dagen (wettelijk minimum)",
+      "optionDays": "{days} dagen",
+      "hint": "Hoeveel dagen na levering de koper dit product kan retourneren. 14 dagen is het wettelijke minimum voor elke koper; meer aanbieden kan helpen bij het verkopen.",
+      "cost": "Retouren die binnen deze termijn worden geaccepteerd komen voor uw rekening, net als binnen de wettelijke 14 dagen: de koper krijgt zijn geld terug en uw deel van de verkoop wordt teruggenomen. De termijn wordt bij aankoop vastgelegd: later inkorten raakt nooit bestellingen die al zijn geplaatst."
     }
   },
   "affiliate": {
@@ -8820,6 +8828,7 @@
       "color": "Kleur",
       "size": "Maat",
       "dimensions": "Afmetingen"
-    }
+    },
+    "returnWindowBadge": "Retour mogelijk binnen {days} dagen"
   }
 }

@@ -2174,6 +2174,14 @@
       "title": "La spedizione è inclusa nel tuo prezzo",
       "body": "Affisell non addebita spese di spedizione all'acquirente. Ricevi il tuo prezzo meno la commissione del rivenditore e la tariffa Affisell: includi quindi il costo di consegna nel prezzo.",
       "badgeLabel": "Metti in evidenza «Spedizione gratuita» su questo annuncio (badge e filtro del marketplace). La spedizione è comunque inclusa nel tuo prezzo."
+    },
+    "returnTerms": {
+      "title": "Resi",
+      "label": "Termine di reso",
+      "optionLegal": "14 giorni (minimo di legge)",
+      "optionDays": "{days} giorni",
+      "hint": "Per quanti giorni dopo la consegna l'acquirente può restituire questo prodotto. 14 giorni è il minimo di legge per ogni acquirente; offrirne di più può aiutare a vendere.",
+      "cost": "I resi accettati in questo termine sono a tuo carico, come entro i 14 giorni di legge: l'acquirente viene rimborsato e la tua quota della vendita viene recuperata. Il termine viene fissato al momento dell'acquisto: ridurlo in seguito non influisce mai sugli ordini già effettuati."
     }
   },
   "affiliate": {
@@ -8820,6 +8828,7 @@
       "color": "Colore",
       "size": "Taglia",
       "dimensions": "Dimensioni"
-    }
+    },
+    "returnWindowBadge": "Resi accettati entro {days} giorni"
   }
 }

@@ -124,3 +124,24 @@ describe("shipping is included in the price — nothing invites a cost the buyer
     expect(form).not.toContain('id="ship-sc"')
   })
 })
+
+describe("return terms — supplier field and buyer badge", () => {
+  const KEYS = ["title", "label", "optionLegal", "optionDays", "hint", "cost"]
+
+  it("every static key used by the field exists", () => {
+    const src = readFileSync("components/supplier/return-window-field.tsx", "utf8")
+    const tree = at(en as Tree, "supplier.returnTerms") as Tree
+    const used = [...src.matchAll(/\bt\(\s*"([A-Za-z0-9_.]+)"/g)].map((m) => m[1]!)
+    expect(used.filter((k) => at(tree, k) === undefined)).toEqual([])
+    for (const k of KEYS) expect(tree[k], k).toBeTruthy()
+  })
+
+  it.each(LOCALES)("%s has every string, with the {days} placeholder intact", (loc) => {
+    const messages = load(loc)
+    const tree = at(messages, "supplier.returnTerms") as Tree
+    for (const k of KEYS) expect(typeof tree[k] === "string" && (tree[k] as string).trim().length > 0, `${loc}:${k}`).toBe(true)
+    expect(tree.optionDays).toContain("{days}")
+    expect(String(at(messages, "productSpecs.returnWindowBadge"))).toContain("{days}")
+    if (loc !== "en") expect(tree.title).not.toBe((at(en as Tree, "supplier.returnTerms") as Tree).title)
+  })
+})

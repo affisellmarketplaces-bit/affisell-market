@@ -9,6 +9,7 @@ import { notFound, redirect } from "next/navigation"
 import { getLocale, getTranslations } from "next-intl/server"
 import { isListingComplianceKey } from "@/lib/listing-compliance/keys"
 import { HIDDEN_SPEC_KEYS, localizeSpecLabel } from "@/lib/listing-compliance/spec-labels"
+import { parseReturnWindowDays, RETURN_WINDOW_KEY } from "@/lib/return-terms"
 import { headers } from "next/headers"
 
 import { BuyerBestsellersPage } from "@/components/buyer/buyer-bestsellers-page"
@@ -399,6 +400,10 @@ export default async function MarketplaceListingPage({
     loadProvenSupplierDeliveryStats(p.supplierId),
   ])
 
+  const offeredReturnDays = parseReturnWindowDays(
+    (p.attributes ?? []).find((a) => a.key === RETURN_WINDOW_KEY)?.value
+  )
+
   const shipping = {
     ...buildListingLogisticsInput({
       shippingCountry: p.shippingCountry,
@@ -412,6 +417,8 @@ export default async function MarketplaceListingPage({
       locale: locale as AppLocale,
     }),
     processingTime: p.processingTime ?? 1,
+    // Only shown when the supplier offers MORE than the legal 14 days every buyer already has.
+    returnWindowLabel: offeredReturnDays ? tSpecs("returnWindowBadge", { days: offeredReturnDays }) : null,
     shippingCarrierIds: p.shippingCarrierIds ?? [],
     shopShippingOffers,
     sellerTrust,

@@ -2174,6 +2174,14 @@
       "title": "Le port est inclus dans votre prix",
       "body": "Affisell ne facture pas de frais de port à l'acheteur. Vous recevez votre prix moins la commission du revendeur et les frais Affisell : intégrez donc votre coût de livraison dans votre prix.",
       "badgeLabel": "Mettre en avant « Livraison offerte » sur cette annonce (badge et filtre du marketplace). Le port est de toute façon inclus dans votre prix."
+    },
+    "returnTerms": {
+      "title": "Retours",
+      "label": "Délai de retour",
+      "optionLegal": "14 jours (minimum légal)",
+      "optionDays": "{days} jours",
+      "hint": "Pendant combien de jours après la livraison l'acheteur peut retourner ce produit. 14 jours est le minimum légal pour tout acheteur ; en offrir plus peut aider à vendre.",
+      "cost": "Les retours acceptés dans ce délai sont à votre charge, comme dans le délai légal de 14 jours : l'acheteur est remboursé et votre part de la vente est reprise. Le délai est figé à l'achat : le raccourcir plus tard n'affecte jamais les commandes déjà passées."
     }
   },
   "affiliate": {
@@ -8820,6 +8828,7 @@
       "color": "Couleur",
       "size": "Taille",
       "dimensions": "Dimensions"
-    }
+    },
+    "returnWindowBadge": "Retours acceptés sous {days} jours"
   }
 }

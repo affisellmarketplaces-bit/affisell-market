@@ -2174,6 +2174,14 @@
       "title": "Shipping is included in your price",
       "body": "Affisell does not charge buyers a shipping fee. You receive your price minus the reseller commission and Affisell's fee, so build your delivery cost into your price.",
       "badgeLabel": "Highlight “Free shipping” on this listing (badge and marketplace filter). Shipping is included in your price either way."
+    },
+    "returnTerms": {
+      "title": "Returns",
+      "label": "Return window",
+      "optionLegal": "14 days (legal minimum)",
+      "optionDays": "{days} days",
+      "hint": "How long after delivery a buyer can return this product. 14 days is the legal minimum for every buyer; offering more can win sales.",
+      "cost": "Returns accepted in this window are at your expense, like a return inside the legal 14 days: the buyer is refunded and your share of the sale is taken back. The window is frozen when someone buys, so shortening it later never affects orders already placed."
     }
   },
   "affiliate": {
@@ -8820,6 +8828,7 @@
       "color": "Color",
       "size": "Size",
       "dimensions": "Dimensions"
-    }
+    },
+    "returnWindowBadge": "Returns accepted within {days} days"
   }
 }

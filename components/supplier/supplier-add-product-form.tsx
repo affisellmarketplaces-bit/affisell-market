@@ -11,6 +11,7 @@ import {
   Loader2,
   Plus,
   Recycle,
+  RotateCcw,
   Trash2,
   Package,
   ShieldCheck,
@@ -86,6 +87,8 @@ import { SupplierPhotoQualityHint } from "@/components/supplier/supplier-photo-q
 import { SupplierTitleQualityHint } from "@/components/supplier/supplier-title-quality-hint"
 import { SupplierShippingCarriersPicker } from "@/components/supplier/supplier-shipping-carriers-picker"
 import { SupplierShippingIncludedNotice } from "@/components/supplier/shipping-included-notice"
+import { ReturnWindowField } from "@/components/supplier/return-window-field"
+import { CANONICAL_RETURN_WINDOW_LABEL, parseReturnWindowDays, RETURN_WINDOW_KEY } from "@/lib/return-terms"
 import { shippingMethodsFromCarrierIds } from "@/lib/shipping/supplier-carrier-offers-shared"
 import { SupplierOfferModePicker } from "@/components/supplier/supplier-offer-mode-picker"
 import { SupplierKycPublishBanner } from "@/components/supplier/supplier-kyc-publish-banner"
@@ -291,6 +294,9 @@ function hasVariantDraftSnapshot(
   return false
 }
 
+/** Spec keys that describe the PRODUCT (not its category): what the form owns beyond the category's characteristics. */
+const PRODUCT_LEVEL_SPEC_KEYS: readonly string[] = [...LISTING_COMPLIANCE_KEYS, RETURN_WINDOW_KEY]
+
 function SectionCard({
   icon: Icon,
   title,
@@ -396,6 +402,7 @@ export function SupplierAddProductForm({
   const cacheMode: SupplierAddProductCacheMode = assistShortcuts ? "assist" : composeQs ? "compose" : "plain"
   const tForm = useTranslations("supplier.form")
   const tShippingIncluded = useTranslations("supplier.shippingIncluded")
+  const tReturnTerms = useTranslations("supplier.returnTerms")
   const tCompliance = useTranslations("supplier.compliance")
   const tVariantComposer = useTranslations("supplier.variantComposer")
   const locale = useLocale() as "fr" | "en"
@@ -738,7 +745,15 @@ export function SupplierAddProductForm({
     (leafId: string, path: CategoryPathSegment[], origin: CategoryPickOrigin = "manual") => {
       setCategoryId(leafId)
       setCategoryPath(path)
-      setSpecValues({})
+      // Characteristics belong to the category and go with it; identity, product-safety and return terms describe the
+      // PRODUCT and stay (they are declared as managed on save, so wiping them here would delete them server-side).
+      setSpecValues((prev) => {
+        const kept: Record<string, string> = {}
+        for (const key of PRODUCT_LEVEL_SPEC_KEYS) {
+          if (prev[key]?.trim()) kept[key] = prev[key]
+        }
+        return kept
+      })
       setSpecFormErrors([])
       setCategoryAiTag(origin === "suggested")
       if (origin === "manual") {
@@ -1321,6 +1336,11 @@ export function SupplierAddProductForm({
           const value = (specValues[key] ?? "").trim()
           if (value && !have.has(key)) productAttributes.push({ key, label: CANONICAL_LABELS[key] ?? key, value })
         }
+        // Return window the supplier offers beyond the legal 14 days (empty = legal window, no row).
+        const returnDays = parseReturnWindowDays(specValues[RETURN_WINDOW_KEY])
+        if (returnDays) {
+          productAttributes.push({ key: RETURN_WINDOW_KEY, label: CANONICAL_RETURN_WINDOW_LABEL, value: String(returnDays) })
+        }
       }
 
       let priceN =
@@ -1466,7 +1486,7 @@ export function SupplierAddProductForm({
         productAttributes,
         // The attributes this form OWNS. Rows it does not know (e.g. the manufacturer data of a guided-wizard product) are
         // left alone by the server instead of being deleted by this save.
-        managedAttributeKeys: [...mergedCategoryAttrs.map((a) => a.key), ...LISTING_COMPLIANCE_KEYS],
+        managedAttributeKeys: [...mergedCategoryAttrs.map((a) => a.key), ...PRODUCT_LEVEL_SPEC_KEYS],
         shipsFrom: shipsFrom.trim() || undefined,
         deliveryDays:
           deliveryDays.trim() === ""
@@ -4019,6 +4039,13 @@ export function SupplierAddProductForm({
                   <SupplierShippingCarriersPicker
                     value={shippingCarrierIds}
                     onChange={setShippingCarrierIds}
+                  />
+                </SectionCard>
+
+                <SectionCard id="add-product-returns" icon={RotateCcw} title={tReturnTerms("title")}>
+                  <ReturnWindowField
+                    value={specValues[RETURN_WINDOW_KEY] ?? ""}
+                    onChange={(next) => setSpecValues((prev) => ({ ...prev, [RETURN_WINDOW_KEY]: next }))}
                   />
                 </SectionCard>
 

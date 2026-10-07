@@ -29,17 +29,20 @@ export function isWithinReturnWindow(order: Pick<Order, "createdAt">, now = new 
 
 /** EU 14-day withdrawal — starts at delivery (not order date). */
 export function buyerReturnWindowEndsAt(
-  order: Pick<Order, "deliveredAt" | "deliveryConfirmedAt">
+  order: Pick<Order, "deliveredAt" | "deliveryConfirmedAt">,
+  days?: number
 ): Date | null {
-  return euWithdrawalEndsAt(order)
+  return euWithdrawalEndsAt(order, days)
 }
 
+/** `days`: the window frozen on the order (supplier-offered extension); omitted = the legal 14 days. */
 export function isWithinBuyerReturnWindow(
   order: Pick<Order, "deliveredAt" | "deliveryConfirmedAt">,
-  now = new Date()
+  now = new Date(),
+  days?: number
 ): boolean {
   if (!withdrawalAnchorAt(order)) return false
-  return isWithinEuWithdrawalWindow(order, now)
+  return isWithinEuWithdrawalWindow(order, now, days)
 }
 
 export function buyerOwnsOrder(

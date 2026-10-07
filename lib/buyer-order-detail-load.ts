@@ -21,6 +21,7 @@ import { orderChargedTotalCents } from "@/lib/money/split-guard"
 import { fulfillmentOrchestrator } from "@/lib/fulfillment/orchestrator"
 import type { UnifiedTrackingParcel } from "@/lib/fulfillment/unified-tracking-types"
 import { prisma } from "@/lib/prisma"
+import { loadOrderReturnWindowDaysFor } from "@/lib/return-terms.server"
 
 export type BuyerOrderDetailDto = {
   id: string
@@ -86,11 +87,12 @@ export async function loadBuyerOrderDetail(
     order.supplier.store?.returnAddress ?? order.supplier.store?.shipFromAddress ?? null
   const returnAddress = formatBuyerSafeReturnAddress(returnAddrRaw)
   const estimated = estimateBuyerDeliveryAt(order)
-  const withdrawalEnd = euWithdrawalEndsAt(order)
+  const returnDays = await loadOrderReturnWindowDaysFor(order.id)
+  const withdrawalEnd = euWithdrawalEndsAt(order, returnDays)
 
   const returnEligible =
     withdrawalAnchorAt(order) !== null &&
-    isWithinEuWithdrawalWindow(order) &&
+    isWithinEuWithdrawalWindow(order, new Date(), returnDays) &&
     (order.status === "paid" ||
       order.status === "preparing" ||
       order.status === "shipped") &&

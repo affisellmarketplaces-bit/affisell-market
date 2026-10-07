@@ -2174,6 +2174,14 @@
       "title": "El envío está incluido en su precio",
       "body": "Affisell no cobra gastos de envío al comprador. Usted recibe su precio menos la comisión del revendedor y la tarifa de Affisell, así que incluya su coste de entrega en el precio.",
       "badgeLabel": "Destacar «Envío gratis» en este anuncio (insignia y filtro del marketplace). El envío está incluido en su precio de todos modos."
+    },
+    "returnTerms": {
+      "title": "Devoluciones",
+      "label": "Plazo de devolución",
+      "optionLegal": "14 días (mínimo legal)",
+      "optionDays": "{days} días",
+      "hint": "Cuántos días después de la entrega puede el comprador devolver este producto. 14 días es el mínimo legal para todo comprador; ofrecer más puede ayudar a vender.",
+      "cost": "Las devoluciones aceptadas en este plazo corren por su cuenta, igual que dentro de los 14 días legales: se reembolsa al comprador y se recupera su parte de la venta. El plazo queda fijado en el momento de la compra: acortarlo después nunca afecta a los pedidos ya realizados."
     }
   },
   "affiliate": {
@@ -8820,6 +8828,7 @@
       "color": "Color",
       "size": "Talla",
       "dimensions": "Dimensiones"
-    }
+    },
+    "returnWindowBadge": "Devoluciones aceptadas hasta {days} días"
   }
 }

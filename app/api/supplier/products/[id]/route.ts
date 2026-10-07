@@ -20,6 +20,7 @@ import {
 } from "@/lib/supplier-product-attributes"
 import { applyListingReadinessGate } from "@/lib/listing-compliance/gate.server"
 import { LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
+import { RETURN_WINDOW_KEY } from "@/lib/return-terms"
 import { parseCompareAtDraftLax, parseCompareAtStrict } from "@/lib/supplier-product-compare-at"
 import { parseDescriptionBullets } from "@/lib/supplier-product-description-bullets"
 import {
@@ -422,7 +423,7 @@ export async function PUT(
           {
             // Moving the product to another category drops the old category's characteristics, as it always did.
             categoryChanged: categoryId !== undefined && categoryId !== putLoad.categoryId,
-            alwaysKeep: new Set(LISTING_COMPLIANCE_KEYS),
+            alwaysKeep: new Set([...LISTING_COMPLIANCE_KEYS, RETURN_WINDOW_KEY]),
           }
         )
       : putLoad.attributes
