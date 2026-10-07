@@ -1467,7 +1467,8 @@
       "missingImagesShort": "Missing images",
       "compareAtMustExceedShort": "Compare-at must exceed price",
       "compareAtDiscountOverShort": "Compare-at discount over 70%",
-      "catalogCapReached": "Catalog limit reached. Upgrade to Dominator for an unlimited catalog."
+      "catalogCapReached": "Catalog limit reached. Upgrade to Dominator for an unlimited catalog.",
+      "listingNotReady": "Product-safety information is missing (manufacturer name, address, email and country; an EU responsible person if the manufacturer is outside the EU)."
     },
     "wizard": {
       "backToMethods": "← Other creation methods",

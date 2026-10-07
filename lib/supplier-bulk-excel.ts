@@ -7,6 +7,11 @@ import {
 } from "@/lib/supplier-commission"
 import { tMessage } from "@/lib/i18n-pick-message"
 import type { AppLocale } from "@/lib/i18n-locale"
+import { evaluateListingReadiness } from "@/lib/listing-compliance/evaluate"
+import { normalizeCountryCode } from "@/lib/listing-compliance/eu-countries"
+import { normalizeGtin } from "@/lib/listing-compliance/gtin"
+import { CANONICAL_LABELS, GPSR_KEYS, IDENTITY_KEYS } from "@/lib/listing-compliance/keys"
+import { readListingReadinessMode } from "@/lib/listing-compliance/mode"
 
 const BV = "supplier.bulkExcelValidation"
 
@@ -25,6 +30,22 @@ export type BulkCategoryAttrDef = {
   options: string[]
   required: boolean
 }
+
+/**
+ * Optional product-safety / identity columns → the attribute key they are stored under. Optional today (an old template
+ * still imports); required for physical products once LISTING_READINESS_MODE=enforce.
+ */
+export const BULK_COMPLIANCE_COLUMNS: readonly { column: string; key: string; description: string }[] = [
+  { column: "gtin", key: IDENTITY_KEYS.gtin, description: "GTIN / EAN / UPC (8, 12, 13 or 14 digits). Leave empty if the product has none." },
+  { column: "manufacturer_name", key: GPSR_KEYS.manufacturerName, description: "GPSR — manufacturer name (required for physical products when enforced)" },
+  { column: "manufacturer_address", key: GPSR_KEYS.manufacturerAddress, description: "GPSR — manufacturer postal address" },
+  { column: "manufacturer_email", key: GPSR_KEYS.manufacturerEmail, description: "GPSR — manufacturer contact email" },
+  { column: "manufacturer_country", key: GPSR_KEYS.manufacturerCountry, description: "GPSR — ISO-2 country where the manufacturer is established, e.g. FR or CN" },
+  { column: "eu_rep_name", key: GPSR_KEYS.euRepName, description: "GPSR — EU responsible person name (required when the manufacturer is outside the EU)" },
+  { column: "eu_rep_address", key: GPSR_KEYS.euRepAddress, description: "GPSR — EU responsible person postal address" },
+  { column: "eu_rep_email", key: GPSR_KEYS.euRepEmail, description: "GPSR — EU responsible person contact email" },
+  { column: "safety_warning", key: GPSR_KEYS.safetyWarning, description: "Optional safety warning shown to buyers" },
+] as const
 
 /** Fixed columns (sheet header = key). */
 export const BULK_FIXED_COLUMNS: readonly {
@@ -51,6 +72,7 @@ export const BULK_FIXED_COLUMNS: readonly {
   { key: "delivery_min", description: "Delivery min days (default 2)" },
   { key: "delivery_max", description: "Delivery max days (default 5)" },
   { key: "shipping_cost_eur", description: "Flat shipping cost EUR (default 0)" },
+  ...BULK_COMPLIANCE_COLUMNS.map((c) => ({ key: c.column, description: c.description })),
 ] as const
 
 export const BULK_ATTR_PREFIX = "attr__"
@@ -235,6 +257,22 @@ export function validateAndParseBulkRow(
     })
   }
 
+  // Product-safety / identity columns. A value from a category attribute column (attr__…) wins over the generic column.
+  const haveKey = new Set(productAttributes.map((a) => a.key))
+  for (const c of BULK_COMPLIANCE_COLUMNS) {
+    let raw = (cells[c.column] ?? "").trim()
+    if (!raw || haveKey.has(c.key)) continue
+    if (c.key === IDENTITY_KEYS.gtin) raw = normalizeGtin(raw)
+    if (c.key === GPSR_KEYS.manufacturerCountry) raw = normalizeCountryCode(raw)
+    productAttributes.push({ key: c.key, label: CANONICAL_LABELS[c.key] ?? c.key, value: raw.slice(0, 500) })
+    haveKey.add(c.key)
+  }
+  // A heads-up in the preview (never an error here: the commit step enforces, per LISTING_READINESS_MODE).
+  if (readListingReadinessMode() !== "off") {
+    const readiness = evaluateListingReadiness({ listingKind, attributes: productAttributes })
+    if (readiness.applicable && readiness.blocking.length > 0) warnings.push(t("listingNotReady"))
+  }
+
   if (errors.length > 0) {
     return { rowNumber, errors, warnings, data: null }
   }
@@ -335,6 +373,7 @@ export async function buildBulkImportTemplateBuffer(params: {
     "3. images: use full https URLs, separated by | or ; . At least one image per row.",
     "4. Characteristics columns start with attr__ — match required fields for this category.",
     "5. Upload the file on the bulk import page → validate → publish. Invalid rows are skipped or fixed and re-uploaded.",
+    "6. Product-safety columns (manufacturer_*, eu_rep_*, gtin) are optional for now; physical products will need the manufacturer details (and an EU responsible person when the manufacturer is outside the EU).",
     "",
     "Tips (innovations):",
     "• Validate first: you get a row-by-row report before anything is created.",

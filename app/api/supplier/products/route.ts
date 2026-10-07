@@ -58,6 +58,7 @@ import { routeChinaBuy } from "@/lib/china-buying/route-china-buy"
 import { revalidateSupplierShopfront } from "@/lib/revalidate-supplier-shopfront"
 import { rejectIfHoneypotBody } from "@/lib/security/honeypot-api"
 import { UNTITLED_DRAFT_SENTINEL } from "@/lib/supplier-add-product-draft-cache"
+import { applyListingReadinessGate } from "@/lib/listing-compliance/gate.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -309,6 +310,15 @@ export async function POST(req: Request) {
     if (!categoryId) {
       return Response.json({ error: "category_required" }, { status: 400 })
     }
+    // Product-safety (GPSR) + identity data. Mode: LISTING_READINESS_MODE (default "warn" = log only).
+    const readiness = applyListingReadinessGate({
+      source: "api_create",
+      supplierId: session.user.id,
+      listingKind,
+      attributes: productAttributes,
+      context: "new_publication",
+    })
+    if (readiness.blockResponse) return readiness.blockResponse
   }
 
   const variantCommissionRates =

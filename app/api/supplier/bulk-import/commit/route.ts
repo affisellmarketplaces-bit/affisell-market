@@ -6,6 +6,7 @@ import {
   assertParsedBulkProductRow,
   insertBulkParsedProduct,
 } from "@/lib/supplier-bulk-import-commit"
+import { applyListingReadinessGate } from "@/lib/listing-compliance/gate.server"
 import { BULK_MAX_ROWS_COMMIT } from "@/lib/supplier-bulk-excel"
 import { prisma } from "@/lib/prisma"
 import { parseListingKind } from "@/lib/supplier-commission"
@@ -173,7 +174,21 @@ export async function POST(req: Request) {
     const row = parsedRows[i]!
     const baseErr = assertParsedBulkProductRow(row, locale)
     const attrErr = attrsSatisfyDefs(row, defs, locale)
-    const errMsg = baseErr ?? attrErr
+    // Product-safety (GPSR) + identity data. LISTING_READINESS_MODE: "warn" (default) only logs what would be refused.
+    const readiness =
+      baseErr ?? attrErr
+        ? null
+        : applyListingReadinessGate({
+            source: "bulk_commit",
+            supplierId,
+            listingKind: row.listingKind,
+            attributes: row.productAttributes,
+            context: "new_publication",
+          })
+    const readinessErr = readiness?.blockResponse
+      ? tMessage(locale, `${V}.listingNotReady`) || "Product-safety information is missing"
+      : null
+    const errMsg = baseErr ?? attrErr ?? readinessErr
     if (errMsg) {
       if (skipInvalid) {
         failed.push({ index: i, error: errMsg })

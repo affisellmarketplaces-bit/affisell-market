@@ -12,10 +12,13 @@ import { onSupplierProductPublishedFromInvite } from "@/lib/supplier-invitation"
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
 import { scheduleProductAutoCategorization } from "@/lib/product-auto-categorize"
 import {
+  mergeManagedProductAttributes,
   normalizeProductAttributesFromBody,
+  parseManagedAttributeKeys,
   parseProductAttributesBody,
   supplierProductAttributesEqual,
 } from "@/lib/supplier-product-attributes"
+import { applyListingReadinessGate } from "@/lib/listing-compliance/gate.server"
 import { parseCompareAtDraftLax, parseCompareAtStrict } from "@/lib/supplier-product-compare-at"
 import { parseDescriptionBullets } from "@/lib/supplier-product-description-bullets"
 import {
@@ -406,6 +409,31 @@ export async function PUT(
   }
   // The platform commission (category grid / admin override) is never set by suppliers.
   const productAttributes = normalizeProductAttributesFromBody(body.productAttributes)
+  // The attributes this save leaves on the product. A form that does not send `productAttributes` leaves them untouched;
+  // one that does replaces either the whole set (legacy) or only the keys it declares in `managedAttributeKeys`, so a form
+  // that does not know an attribute (e.g. the manufacturer data of a guided-wizard product) no longer deletes it.
+  const attributesAfterSave =
+    "productAttributes" in rawBody
+      ? mergeManagedProductAttributes(
+          putLoad.attributes,
+          productAttributes,
+          parseManagedAttributeKeys(rawBody.managedAttributeKeys)
+        )
+      : putLoad.attributes
+
+  if (isPublishing) {
+    // Product-safety (GPSR) + identity data. Only a draft going live is ever refused (and only in enforce mode):
+    // edits of listings that are already live are never blocked, so legacy listings can still be repriced / restocked.
+    const readiness = applyListingReadinessGate({
+      source: "api_update",
+      supplierId: session.user.id,
+      productId: id,
+      listingKind,
+      attributes: attributesAfterSave,
+      context: activatingFromDraft ? "new_publication" : "live_edit",
+    })
+    if (readiness.blockResponse) return readiness.blockResponse
+  }
 
   let customColumnsUpdate: CustomColumn[] | undefined
   if ("customColumns" in rawBody) {
@@ -624,13 +652,13 @@ export async function PUT(
 
     const shouldSyncProductAttributes =
       "productAttributes" in rawBody &&
-      !supplierProductAttributesEqual(putLoad.attributes, productAttributes)
+      !supplierProductAttributesEqual(putLoad.attributes, attributesAfterSave)
 
     if (shouldSyncProductAttributes) {
       await tx.productAttribute.deleteMany({ where: { productId: id } })
-      if (productAttributes.length) {
+      if (attributesAfterSave.length) {
         await tx.productAttribute.createMany({
-          data: productAttributes.map((a) => ({
+          data: attributesAfterSave.map((a) => ({
             productId: id,
             key: a.key,
             label: a.label || a.key,

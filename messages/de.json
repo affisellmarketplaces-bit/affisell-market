@@ -1467,7 +1467,8 @@
       "missingImagesShort": "Bilder fehlen",
       "compareAtMustExceedShort": "Vergleichspreis muss über dem Preis liegen",
       "compareAtDiscountOverShort": "Vergleichspreis-Rabatt über 70%",
-      "catalogCapReached": "Kataloglimit erreicht. Upgrade auf Dominator für einen unbegrenzten Katalog."
+      "catalogCapReached": "Kataloglimit erreicht. Upgrade auf Dominator für einen unbegrenzten Katalog.",
+      "listingNotReady": "Angaben zur Produktsicherheit fehlen (Name, Adresse, E-Mail und Land des Herstellers; ein EU-Verantwortlicher, wenn der Hersteller außerhalb der EU sitzt)."
     },
     "wizard": {
       "backToMethods": "← Andere Erstellungsmethoden",

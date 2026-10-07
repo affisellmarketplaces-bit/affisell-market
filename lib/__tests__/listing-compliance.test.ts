@@ -162,7 +162,8 @@ describe("rollout mode", () => {
 
   it("enforce blocks only NEW publications — never the edit of a listing that is already live", () => {
     expect(decideListingReadiness(dirty, "new_publication", "enforce").block).toBe(true)
-    expect(decideListingReadiness(dirty, "live_edit", "enforce")).toMatchObject({ block: false, log: true })
+    // ...and it is not logged either: a live listing is re-saved on every autosave.
+    expect(decideListingReadiness(dirty, "live_edit", "enforce")).toMatchObject({ block: false, log: false })
   })
 
   it("enforce does not block on advisories alone, and a clean listing is not even logged", () => {

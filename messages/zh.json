@@ -1467,7 +1467,8 @@
       "missingImagesShort": "缺少图片",
       "compareAtMustExceedShort": "对比价必须高于价格",
       "compareAtDiscountOverShort": "对比价折扣超过 70%",
-      "catalogCapReached": "已达到目录上限。升级到 Dominator 以获得无限目录。"
+      "catalogCapReached": "已达到目录上限。升级到 Dominator 以获得无限目录。",
+      "listingNotReady": "缺少产品安全信息（制造商名称、地址、电子邮箱和所在国家；若制造商位于欧盟以外，还需提供欧盟责任人）。"
     },
     "wizard": {
       "backToMethods": "← 其他创建方式",

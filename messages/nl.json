@@ -1467,7 +1467,8 @@
       "missingImagesShort": "Afbeeldingen ontbreken",
       "compareAtMustExceedShort": "Vergelijkingsprijs moet hoger zijn dan de prijs",
       "compareAtDiscountOverShort": "Korting op vergelijkingsprijs boven 70%",
-      "catalogCapReached": "Cataloguslimiet bereikt. Upgrade naar Dominator voor een onbeperkte catalogus."
+      "catalogCapReached": "Cataloguslimiet bereikt. Upgrade naar Dominator voor een onbeperkte catalogus.",
+      "listingNotReady": "Productveiligheidsgegevens ontbreken (naam, adres, e-mail en land van de fabrikant; een EU-verantwoordelijke als de fabrikant buiten de EU is gevestigd)."
     },
     "wizard": {
       "backToMethods": "← Andere aanmaakmethoden",

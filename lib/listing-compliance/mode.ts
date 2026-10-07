@@ -49,7 +49,9 @@ export function decideListingReadiness(
   return {
     mode,
     block: mode === "enforce" && context === "new_publication" && result.blocking.length > 0,
-    log: dirty,
+    // Only new publications are logged: a live listing is re-saved on every autosave, which would flood the logs.
+    // Coverage of the existing catalogue is measured by `npm run report:listing-readiness` instead.
+    log: dirty && context === "new_publication",
     issues: result.issues,
     blocking: result.blocking,
   }
