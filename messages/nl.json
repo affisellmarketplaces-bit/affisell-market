@@ -2061,6 +2061,87 @@
       "scanning": "Foto wordt geanalyseerd — beschrijving, kenmerken en een prijssuggestie worden ingevuld…",
       "filled": "Ingevuld vanaf de foto — controleer en pas aan vóór publicatie.",
       "filledWithDuplicateWarning": "Ingevuld vanaf de foto — mogelijk staat er al een vergelijkbaar product in je catalogus."
+    },
+    "compliance": {
+      "sectionTitle": "Productidentiteit en veiligheid",
+      "sectionDescription": "EU-regels vereisen dat elk fysiek product vermeldt wie het heeft gemaakt en wie er in de EU voor instaat. Vul het één keer in en gebruik het voor elke advertentie opnieuw.",
+      "identityHeading": "Productidentiteit",
+      "gtinLabel": "Barcode (GTIN / EAN / UPC)",
+      "gtinHint": "8, 12, 13 of 14 cijfers, zoals op de verpakking gedrukt.",
+      "gtinPlaceholder": "bijv. 4006381333931",
+      "gtinExemptLabel": "Dit product heeft geen barcode (handgemaakt, op maat, eigen merk)",
+      "mpnLabel": "Artikelnummer van de fabrikant",
+      "mpnHint": "De referentie die de fabrikant aan dit model geeft (optioneel).",
+      "manufacturerHeading": "Fabrikant",
+      "manufacturerHint": "Wie het product heeft gemaakt: het bedrijf op de verpakking, niet per se jijzelf.",
+      "manufacturerName": "Naam",
+      "manufacturerAddress": "Postadres",
+      "manufacturerEmail": "Contact-e-mail",
+      "manufacturerCountry": "Land van vestiging",
+      "countryPlaceholder": "Kies een land",
+      "euRepHeading": "EU-verantwoordelijke",
+      "euRepHint": "Vereist omdat de fabrikant buiten de EU is gevestigd. Dat kun jij zijn (als je in de EU bent gevestigd), een importeur of een gemachtigde.",
+      "euRepName": "Naam",
+      "euRepAddress": "Postadres",
+      "euRepEmail": "Contact-e-mail",
+      "safetyWarningLabel": "Veiligheidswaarschuwing (optioneel)",
+      "safetyWarningHint": "Getoond aan kopers, bijv. leeftijdsgrens, verstikkingsgevaar of batterijwaarschuwing.",
+      "traceabilityLabel": "Batch- of serienummer (optioneel)",
+      "traceabilityHint": "Maakt identificatie van het product mogelijk bij een terugroepactie.",
+      "useMyManufacturer": "Mijn opgeslagen fabrikant gebruiken",
+      "useMyEuRep": "Mijn opgeslagen EU-verantwoordelijke gebruiken",
+      "editProfile": "Mijn profiel bewerken",
+      "statusReady": "Veiligheidsgegevens compleet",
+      "statusMissing": "Vul de onderstaande punten aan voordat je publiceert.",
+      "issuesHeading": "Aan te vullen",
+      "advisoryHeading": "Aanbevolen",
+      "notReadyToast": "Productveiligheidsgegevens ontbreken. Vul de gemarkeerde velden in om te publiceren.",
+      "issue": {
+        "gpsr_manufacturer_name_missing": "De naam van de fabrikant ontbreekt",
+        "gpsr_manufacturer_address_missing": "Het postadres van de fabrikant ontbreekt",
+        "gpsr_manufacturer_email_missing": "Het contact-e-mailadres van de fabrikant ontbreekt",
+        "gpsr_manufacturer_email_invalid": "Het e-mailadres van de fabrikant is ongeldig",
+        "gpsr_manufacturer_country_missing": "Het land van de fabrikant ontbreekt",
+        "gpsr_manufacturer_country_invalid": "Kies het land van de fabrikant uit de lijst",
+        "gpsr_eu_rep_name_missing": "De naam van de EU-verantwoordelijke ontbreekt (de fabrikant zit buiten de EU)",
+        "gpsr_eu_rep_address_missing": "Het adres van de EU-verantwoordelijke ontbreekt",
+        "gpsr_eu_rep_email_missing": "Het e-mailadres van de EU-verantwoordelijke ontbreekt",
+        "gpsr_eu_rep_email_invalid": "Het e-mailadres van de EU-verantwoordelijke is ongeldig",
+        "gtin_invalid": "Deze barcode is ongeldig, controleer de cijfers",
+        "gtin_missing": "Voeg de barcode (GTIN / EAN) toe als het product er een heeft",
+        "brand_missing": "Voeg het merk toe, of laat het algemeen als er geen is"
+      },
+      "duplicate": {
+        "title": "Je hebt al een vergelijkbaar product",
+        "gtin": "Dezelfde barcode",
+        "image": "Dezelfde hoofdfoto",
+        "name": "Dezelfde naam",
+        "draft": "Concept",
+        "open": "Openen"
+      },
+      "profile": {
+        "title": "Profiel productveiligheid",
+        "intro": "Je standaardwaarden voor de GPSR-gegevens. Ze worden bij elk product alleen aangeboden als invulling met één klik en je bevestigt ze elke keer, want de fabrikant van een product is wie het heeft gemaakt.",
+        "manufacturerNote": "Vul dit alleen in als je de producten zelf maakt of altijd met dezelfde fabrikant werkt.",
+        "euRepNote": "Vaak voor alle producten gelijk: jijzelf (als je in de EU bent gevestigd), je importeur of een gemachtigde.",
+        "save": "Profiel opslaan",
+        "saving": "Opslaan…",
+        "saved": "Profiel opgeslagen",
+        "saveFailed": "Het profiel kon niet worden opgeslagen. Probeer het opnieuw.",
+        "unavailable": "Het profiel kan nu niet worden opgeslagen. Probeer het zo meteen opnieuw.",
+        "loadFailed": "Je profiel kon niet worden geladen.",
+        "settingsLink": "Profiel productveiligheid",
+        "settingsLinkHint": "Standaard fabrikant en EU-verantwoordelijke"
+      },
+      "errors": {
+        "invalid_email": "Voer een geldig e-mailadres in",
+        "invalid_country": "Kies een land uit de lijst",
+        "too_long": "Deze waarde is te lang"
+      },
+      "noticeLabel": "Gebruiksaanwijzing (optioneel)",
+      "noticeHint": "Een link of korte tekst voor de handleiding en veiligheidsinstructies.",
+      "brandLabel": "Merk",
+      "brandHint": "Vul het merk in dat op het product staat, of laat het leeg als er geen is."
     }
   },
   "affiliate": {
@@ -8686,6 +8767,27 @@
         "own_product": "Je kunt geen exclusiviteit aanvragen op je eigen product.",
         "product_not_found": "Product niet gevonden."
       }
+    }
+  },
+  "productSpecs": {
+    "keys": {
+      "brand": "Merk",
+      "gtin": "Barcode (GTIN / EAN)",
+      "mpn": "Artikelnummer van de fabrikant",
+      "manufacturerName": "Fabrikant",
+      "manufacturerAddress": "Adres van de fabrikant",
+      "manufacturerEmail": "E-mail van de fabrikant",
+      "manufacturerCountry": "Land van de fabrikant",
+      "euRepName": "EU-verantwoordelijke",
+      "euRepAddress": "Adres van de EU-verantwoordelijke",
+      "euRepEmail": "E-mail van de EU-verantwoordelijke",
+      "safetyWarning": "Veiligheidswaarschuwing",
+      "notice": "Gebruiksaanwijzing",
+      "traceability": "Batch-/serienummer",
+      "material": "Materiaal",
+      "color": "Kleur",
+      "size": "Maat",
+      "dimensions": "Afmetingen"
     }
   }
 }

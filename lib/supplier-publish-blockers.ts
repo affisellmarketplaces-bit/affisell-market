@@ -13,6 +13,7 @@ export type PublishFieldKey =
   | "images"
   | "category"
   | "specs"
+  | "compliance"
   | "price"
   | "compareAt"
   | "commission"
@@ -31,6 +32,7 @@ export const PUBLISH_FIELD_SCROLL_ID: Record<PublishFieldKey, string> = {
   images: "add-product-media",
   category: "add-product-classify",
   specs: "product-spec-fields",
+  compliance: "add-product-compliance",
   price: "add-product-pricing",
   compareAt: "p-compare",
   commission: "add-product-commission",
@@ -41,7 +43,7 @@ export const PUBLISH_FIELD_SCROLL_ID: Record<PublishFieldKey, string> = {
 }
 
 export function publishBlockerStep(field: PublishFieldKey): 1 | 2 | 3 {
-  if (field === "name" || field === "images" || field === "category" || field === "specs") {
+  if (field === "name" || field === "images" || field === "category" || field === "specs" || field === "compliance") {
     return 1
   }
   if (field === "price" || field === "compareAt" || field === "variants") {
@@ -248,6 +250,11 @@ export function mapServerPublishBlockers(
     for (const msg of json.errors) {
       out.push({ field: "specs", message: msg })
     }
+  }
+
+  // Product-safety / identity data missing (422): the issue codes are shown on the fields themselves.
+  if (json.error === "listing_not_ready") {
+    return [{ field: "compliance", message: tMessage(locale, "supplier.compliance.notReadyToast") }]
   }
 
   if (typeof json.error === "string" && json.error.trim()) {

@@ -2061,6 +2061,87 @@
       "scanning": "Scanning the photo — filling description, specs and a price suggestion…",
       "filled": "Filled from the photo — check and adjust before publishing.",
       "filledWithDuplicateWarning": "Filled from the photo — a similar product may already be in your catalog."
+    },
+    "compliance": {
+      "sectionTitle": "Product identity & safety",
+      "sectionDescription": "EU rules require every physical product to show who made it and who answers for it in the EU. Fill this in once and reuse it on every listing.",
+      "identityHeading": "Product identity",
+      "gtinLabel": "Barcode (GTIN / EAN / UPC)",
+      "gtinHint": "8, 12, 13 or 14 digits, as printed on the packaging.",
+      "gtinPlaceholder": "e.g. 4006381333931",
+      "gtinExemptLabel": "This product has no barcode (handmade, custom, private label)",
+      "mpnLabel": "Manufacturer part number",
+      "mpnHint": "The reference the manufacturer gives this model (optional).",
+      "manufacturerHeading": "Manufacturer",
+      "manufacturerHint": "Who made the product: the company named on the packaging, not necessarily you.",
+      "manufacturerName": "Name",
+      "manufacturerAddress": "Postal address",
+      "manufacturerEmail": "Contact email",
+      "manufacturerCountry": "Country of establishment",
+      "countryPlaceholder": "Select a country",
+      "euRepHeading": "EU responsible person",
+      "euRepHint": "Required because the manufacturer is outside the EU. It can be you (if you are established in the EU), an importer or an authorised representative.",
+      "euRepName": "Name",
+      "euRepAddress": "Postal address",
+      "euRepEmail": "Contact email",
+      "safetyWarningLabel": "Safety warning (optional)",
+      "safetyWarningHint": "Shown to buyers, e.g. age limit, choking hazard or battery warning.",
+      "traceabilityLabel": "Batch or serial reference (optional)",
+      "traceabilityHint": "Lets the product be identified in the event of a recall.",
+      "useMyManufacturer": "Use my saved manufacturer",
+      "useMyEuRep": "Use my saved EU responsible person",
+      "editProfile": "Edit my profile",
+      "statusReady": "Safety information complete",
+      "statusMissing": "Complete the items below before publishing.",
+      "issuesHeading": "To complete",
+      "advisoryHeading": "Recommended",
+      "notReadyToast": "Product-safety information is missing. Complete the highlighted fields to publish.",
+      "issue": {
+        "gpsr_manufacturer_name_missing": "Manufacturer name is missing",
+        "gpsr_manufacturer_address_missing": "Manufacturer postal address is missing",
+        "gpsr_manufacturer_email_missing": "Manufacturer contact email is missing",
+        "gpsr_manufacturer_email_invalid": "Manufacturer email is not valid",
+        "gpsr_manufacturer_country_missing": "Manufacturer country is missing",
+        "gpsr_manufacturer_country_invalid": "Pick the manufacturer's country from the list",
+        "gpsr_eu_rep_name_missing": "EU responsible person name is missing (the manufacturer is outside the EU)",
+        "gpsr_eu_rep_address_missing": "EU responsible person address is missing",
+        "gpsr_eu_rep_email_missing": "EU responsible person email is missing",
+        "gpsr_eu_rep_email_invalid": "EU responsible person email is not valid",
+        "gtin_invalid": "This barcode is not valid, check the digits",
+        "gtin_missing": "Add the barcode (GTIN / EAN) if the product has one",
+        "brand_missing": "Add the brand, or leave it generic if there is none"
+      },
+      "duplicate": {
+        "title": "You already have a similar product",
+        "gtin": "Same barcode",
+        "image": "Same main photo",
+        "name": "Same name",
+        "draft": "Draft",
+        "open": "Open"
+      },
+      "profile": {
+        "title": "Product-safety profile",
+        "intro": "Your defaults for the GPSR information. They are only offered as a one-click prefill on each product and you confirm them every time, because the manufacturer of a product is whoever made it.",
+        "manufacturerNote": "Fill this only if you make the products yourself, or always work with the same manufacturer.",
+        "euRepNote": "Often the same for every product: you (if established in the EU), your importer or an authorised representative.",
+        "save": "Save profile",
+        "saving": "Saving…",
+        "saved": "Profile saved",
+        "saveFailed": "Could not save the profile. Please try again.",
+        "unavailable": "The profile cannot be saved right now. Please try again shortly.",
+        "loadFailed": "Could not load your profile.",
+        "settingsLink": "Product-safety profile",
+        "settingsLinkHint": "Manufacturer and EU responsible person defaults"
+      },
+      "errors": {
+        "invalid_email": "Enter a valid email address",
+        "invalid_country": "Pick a country from the list",
+        "too_long": "This value is too long"
+      },
+      "noticeLabel": "Instructions (optional)",
+      "noticeHint": "A link or a short text for the user manual and safety instructions.",
+      "brandLabel": "Brand",
+      "brandHint": "Write the brand shown on the product, or leave it empty if there is none."
     }
   },
   "affiliate": {
@@ -8686,6 +8767,27 @@
         "own_product": "You can't request exclusivity on your own product.",
         "product_not_found": "Product not found."
       }
+    }
+  },
+  "productSpecs": {
+    "keys": {
+      "brand": "Brand",
+      "gtin": "Barcode (GTIN / EAN)",
+      "mpn": "Manufacturer part number",
+      "manufacturerName": "Manufacturer",
+      "manufacturerAddress": "Manufacturer address",
+      "manufacturerEmail": "Manufacturer email",
+      "manufacturerCountry": "Manufacturer country",
+      "euRepName": "EU responsible person",
+      "euRepAddress": "EU responsible person address",
+      "euRepEmail": "EU responsible person email",
+      "safetyWarning": "Safety warning",
+      "notice": "Instructions",
+      "traceability": "Batch / serial reference",
+      "material": "Material",
+      "color": "Color",
+      "size": "Size",
+      "dimensions": "Dimensions"
     }
   }
 }

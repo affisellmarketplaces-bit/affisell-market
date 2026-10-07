@@ -116,7 +116,8 @@ export function compactHighlightLabel(raw: string, max = MAX_LABEL): string {
 
 export type HighlightSource = {
   bullets?: readonly string[] | null
-  specs?: ReadonlyArray<{ label: string; value: string }> | null
+  /** `highlight: false` keeps a row (e.g. regulatory data) out of the highlights while it stays in the specifications. */
+  specs?: ReadonlyArray<{ label: string; value: string; highlight?: boolean }> | null
 }
 
 /**
@@ -151,7 +152,7 @@ export function deriveProductHighlights(source: HighlightSource, max = 4): Produ
     for (const row of source.specs ?? []) {
       const value = row.value?.trim()
       const label = row.label?.trim()
-      if (!label || !value || value.length > 24) continue
+      if (row.highlight === false || !label || !value || value.length > 24) continue
       push(`${label} ${value}`, true)
     }
   }

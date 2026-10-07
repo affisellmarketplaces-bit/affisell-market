@@ -2061,6 +2061,87 @@
       "scanning": "Analisi della foto in corso — compilazione di descrizione, specifiche e prezzo suggerito…",
       "filled": "Compilato dalla foto — controlla e correggi prima di pubblicare.",
       "filledWithDuplicateWarning": "Compilato dalla foto — potrebbe già esistere un prodotto simile nel tuo catalogo."
+    },
+    "compliance": {
+      "sectionTitle": "Identità e sicurezza del prodotto",
+      "sectionDescription": "Le norme UE richiedono che ogni prodotto fisico indichi chi lo ha fabbricato e chi ne risponde nell'UE. Compilalo una volta e riutilizzalo su ogni inserzione.",
+      "identityHeading": "Identità del prodotto",
+      "gtinLabel": "Codice a barre (GTIN / EAN / UPC)",
+      "gtinHint": "8, 12, 13 o 14 cifre, come stampate sulla confezione.",
+      "gtinPlaceholder": "es. 4006381333931",
+      "gtinExemptLabel": "Questo prodotto non ha un codice a barre (artigianale, su misura, marchio proprio)",
+      "mpnLabel": "Codice articolo del produttore",
+      "mpnHint": "Il riferimento che il produttore assegna a questo modello (facoltativo).",
+      "manufacturerHeading": "Produttore",
+      "manufacturerHint": "Chi ha fabbricato il prodotto: l'azienda indicata sulla confezione, non necessariamente tu.",
+      "manufacturerName": "Nome",
+      "manufacturerAddress": "Indirizzo postale",
+      "manufacturerEmail": "E-mail di contatto",
+      "manufacturerCountry": "Paese di stabilimento",
+      "countryPlaceholder": "Seleziona un paese",
+      "euRepHeading": "Responsabile nell'UE",
+      "euRepHint": "Obbligatorio perché il produttore è fuori dall'UE. Puoi essere tu (se sei stabilito nell'UE), un importatore o un mandatario.",
+      "euRepName": "Nome",
+      "euRepAddress": "Indirizzo postale",
+      "euRepEmail": "E-mail di contatto",
+      "safetyWarningLabel": "Avvertenza di sicurezza (facoltativa)",
+      "safetyWarningHint": "Mostrata agli acquirenti, ad es. età minima, rischio di soffocamento o avviso sulle batterie.",
+      "traceabilityLabel": "Lotto o numero di serie (facoltativo)",
+      "traceabilityHint": "Consente di identificare il prodotto in caso di richiamo.",
+      "useMyManufacturer": "Usa il mio produttore salvato",
+      "useMyEuRep": "Usa il mio responsabile UE salvato",
+      "editProfile": "Modifica il mio profilo",
+      "statusReady": "Informazioni di sicurezza complete",
+      "statusMissing": "Completa le voci qui sotto prima di pubblicare.",
+      "issuesHeading": "Da completare",
+      "advisoryHeading": "Consigliato",
+      "notReadyToast": "Mancano informazioni sulla sicurezza del prodotto. Completa i campi evidenziati per pubblicare.",
+      "issue": {
+        "gpsr_manufacturer_name_missing": "Manca il nome del produttore",
+        "gpsr_manufacturer_address_missing": "Manca l'indirizzo postale del produttore",
+        "gpsr_manufacturer_email_missing": "Manca l'e-mail di contatto del produttore",
+        "gpsr_manufacturer_email_invalid": "L'e-mail del produttore non è valida",
+        "gpsr_manufacturer_country_missing": "Manca il paese del produttore",
+        "gpsr_manufacturer_country_invalid": "Scegli il paese del produttore dall'elenco",
+        "gpsr_eu_rep_name_missing": "Manca il nome del responsabile UE (il produttore è fuori dall'UE)",
+        "gpsr_eu_rep_address_missing": "Manca l'indirizzo del responsabile UE",
+        "gpsr_eu_rep_email_missing": "Manca l'e-mail del responsabile UE",
+        "gpsr_eu_rep_email_invalid": "L'e-mail del responsabile UE non è valida",
+        "gtin_invalid": "Questo codice a barre non è valido, controlla le cifre",
+        "gtin_missing": "Aggiungi il codice a barre (GTIN / EAN) se il prodotto ne ha uno",
+        "brand_missing": "Aggiungi il marchio, oppure lascialo generico se non c'è"
+      },
+      "duplicate": {
+        "title": "Hai già un prodotto simile",
+        "gtin": "Stesso codice a barre",
+        "image": "Stessa foto principale",
+        "name": "Stesso nome",
+        "draft": "Bozza",
+        "open": "Apri"
+      },
+      "profile": {
+        "title": "Profilo di sicurezza del prodotto",
+        "intro": "I tuoi valori predefiniti per le informazioni GPSR. Sono proposti solo come compilazione con un clic su ogni prodotto e li confermi ogni volta, perché il produttore di un prodotto è chi lo ha fabbricato.",
+        "manufacturerNote": "Compila solo se fabbrichi tu stesso i prodotti o lavori sempre con lo stesso produttore.",
+        "euRepNote": "Spesso uguale per tutti i prodotti: tu (se sei stabilito nell'UE), il tuo importatore o un mandatario.",
+        "save": "Salva profilo",
+        "saving": "Salvataggio…",
+        "saved": "Profilo salvato",
+        "saveFailed": "Impossibile salvare il profilo. Riprova.",
+        "unavailable": "Il profilo non può essere salvato in questo momento. Riprova tra poco.",
+        "loadFailed": "Impossibile caricare il tuo profilo.",
+        "settingsLink": "Profilo di sicurezza del prodotto",
+        "settingsLinkHint": "Produttore e responsabile UE predefiniti"
+      },
+      "errors": {
+        "invalid_email": "Inserisci un indirizzo e-mail valido",
+        "invalid_country": "Scegli un paese dall'elenco",
+        "too_long": "Questo valore è troppo lungo"
+      },
+      "noticeLabel": "Istruzioni (facoltative)",
+      "noticeHint": "Un link o un breve testo per il manuale e le istruzioni di sicurezza.",
+      "brandLabel": "Marchio",
+      "brandHint": "Indica il marchio riportato sul prodotto, oppure lascia vuoto se non c'è."
     }
   },
   "affiliate": {
@@ -8686,6 +8767,27 @@
         "own_product": "Non puoi richiedere l'esclusiva sul tuo stesso prodotto.",
         "product_not_found": "Prodotto non trovato."
       }
+    }
+  },
+  "productSpecs": {
+    "keys": {
+      "brand": "Marchio",
+      "gtin": "Codice a barre (GTIN / EAN)",
+      "mpn": "Codice articolo del produttore",
+      "manufacturerName": "Produttore",
+      "manufacturerAddress": "Indirizzo del produttore",
+      "manufacturerEmail": "E-mail del produttore",
+      "manufacturerCountry": "Paese del produttore",
+      "euRepName": "Responsabile nell'UE",
+      "euRepAddress": "Indirizzo del responsabile UE",
+      "euRepEmail": "E-mail del responsabile UE",
+      "safetyWarning": "Avvertenza di sicurezza",
+      "notice": "Istruzioni",
+      "traceability": "Lotto / numero di serie",
+      "material": "Materiale",
+      "color": "Colore",
+      "size": "Taglia",
+      "dimensions": "Dimensioni"
     }
   }
 }

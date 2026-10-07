@@ -13,6 +13,7 @@ import {
   Recycle,
   Trash2,
   Package,
+  ShieldCheck,
   Sparkles,
   ScanLine,
   Globe2,
@@ -112,6 +113,9 @@ import {
   type CategoryAttrRow,
 } from "@/components/supplier/category-attribute-fields"
 import { DynamicAttributes } from "@/components/product-form-dynamic"
+import { ListingComplianceSection } from "@/components/supplier/listing-compliance/listing-compliance-section"
+import type { ReadinessIssue } from "@/lib/listing-compliance/evaluate"
+import { CANONICAL_LABELS, LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
 import type { CategoryAttributeDto } from "@/lib/category-attribute-api"
 import {
   SupplierAiPublishPanel,
@@ -389,6 +393,7 @@ export function SupplierAddProductForm({
 
   const cacheMode: SupplierAddProductCacheMode = assistShortcuts ? "assist" : composeQs ? "compose" : "plain"
   const tForm = useTranslations("supplier.form")
+  const tCompliance = useTranslations("supplier.compliance")
   const tVariantComposer = useTranslations("supplier.variantComposer")
   const locale = useLocale() as "fr" | "en"
   const tQuality = useTranslations("supplier.quality")
@@ -476,6 +481,8 @@ export function SupplierAddProductForm({
   const [simpleVariantsOptimizing, setSimpleVariantsOptimizing] = useState(false)
   const [simpleColorRows, setSimpleColorRows] = useState<SupplierSimpleColorRow[]>([])
   const [listingKind, setListingKind] = useState<ListingKind>("PHYSICAL")
+  // Issues the server returned when it refused a publication (422 listing_not_ready): shown on the compliance fields.
+  const [complianceServerIssues, setComplianceServerIssues] = useState<ReadinessIssue[] | null>(null)
   const [digitalAccessUrl, setDigitalAccessUrl] = useState("")
   const [digitalAccessInstructions, setDigitalAccessInstructions] = useState("")
   const [digitalInstantDelivery, setDigitalInstantDelivery] = useState(true)
@@ -1307,6 +1314,15 @@ export function SupplierAddProductForm({
           value: (specValues[a.key] ?? "").trim(),
         }))
         .filter((row) => row.value.length > 0)
+      // Identity + product-safety rows (reserved keys) are not category attributes: add them unless a category field
+      // already carries the same key (e.g. the category's own barcode field).
+      {
+        const have = new Set(productAttributes.map((r) => r.key))
+        for (const key of LISTING_COMPLIANCE_KEYS) {
+          const value = (specValues[key] ?? "").trim()
+          if (value && !have.has(key)) productAttributes.push({ key, label: CANONICAL_LABELS[key] ?? key, value })
+        }
+      }
 
       let priceN =
         effectiveSupplierCatalogPriceEur({
@@ -1450,6 +1466,9 @@ export function SupplierAddProductForm({
         shippingCarrierIds,
         shippingMethods: shippingMethodsFromCarrierIds(shippingCarrierIds),
         productAttributes,
+        // The attributes this form OWNS. Rows it does not know (e.g. the manufacturer data of a guided-wizard product) are
+        // left alone by the server instead of being deleted by this save.
+        managedAttributeKeys: [...mergedCategoryAttrs.map((a) => a.key), ...LISTING_COMPLIANCE_KEYS],
         shipsFrom: shipsFrom.trim() || undefined,
         deliveryDays:
           deliveryDays.trim() === ""
@@ -2321,6 +2340,7 @@ export function SupplierAddProductForm({
         listedAffiliateCount?: number
         id?: string
         errors?: string[]
+        issues?: unknown
         isDraft?: boolean
         active?: boolean
       }>(res)
@@ -2338,6 +2358,9 @@ export function SupplierAddProductForm({
         return
       }
       if (!res.ok) {
+        if (json.error === "listing_not_ready" && Array.isArray(json.issues)) {
+          setComplianceServerIssues(json.issues as ReadinessIssue[])
+        }
         const serverBlockers = mapServerPublishBlockers(
           json as { error?: string; errors?: string[]; issues?: unknown },
           locale
@@ -2369,6 +2392,7 @@ export function SupplierAddProductForm({
       autosaveSuppressedRef.current = true
       setPublishBlockers([])
       setSpecFormErrors([])
+      setComplianceServerIssues(null)
       if (categoryId && categoryPath.length) {
         void fetch("/api/supplier/recent-categories", {
           method: "POST",
@@ -3368,6 +3392,31 @@ export function SupplierAddProductForm({
                         />
                       </div>
                     </SectionCard>
+
+                    {listingKind === "PHYSICAL" ? (
+                      <SectionCard
+                        id="add-product-compliance"
+                        icon={ShieldCheck}
+                        title={tCompliance("sectionTitle")}
+                        description={tCompliance("sectionDescription")}
+                        hasError={hasPublishFieldError("compliance")}
+                      >
+                        <ListingComplianceSection
+                          values={specValues}
+                          onChange={(key, value) => {
+                            setSpecValues((prev) => ({ ...prev, [key]: value }))
+                            setComplianceServerIssues((prev) => (prev ? prev.filter((i) => i.field !== key) : prev))
+                            clearPublishFieldError("compliance")
+                          }}
+                          listingKind={listingKind}
+                          productId={editId || autosaveListingId || null}
+                          name={name}
+                          mainImageUrl={images[0] ?? null}
+                          hideGtin={mergedCategoryAttrs.some((a) => a.key === "ean")}
+                          serverIssues={complianceServerIssues}
+                        />
+                      </SectionCard>
+                    ) : null}
                   </div>
 
                   {editId ? (

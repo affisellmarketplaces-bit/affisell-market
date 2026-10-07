@@ -7,6 +7,8 @@ import type { ReactNode } from "react"
 import { Suspense } from "react"
 import { notFound, redirect } from "next/navigation"
 import { getLocale, getTranslations } from "next-intl/server"
+import { isListingComplianceKey } from "@/lib/listing-compliance/keys"
+import { HIDDEN_SPEC_KEYS, localizeSpecLabel } from "@/lib/listing-compliance/spec-labels"
 import { headers } from "next/headers"
 
 import { BuyerBestsellersPage } from "@/components/buyer/buyer-bestsellers-page"
@@ -142,6 +144,7 @@ export default async function MarketplaceListingPage({
     publicListingPromise,
   ])
   const { checkoutAvailable, graduatedCheckout, rolloutOnly } = checkoutFlags
+  const tSpecs = await getTranslations("productSpecs")
 
   const isAffiliateSession = String(session?.user?.role ?? "").toUpperCase() === "AFFILIATE"
   const ownerPreviewByQuery = isAffiliateOwnerPreviewUrl({
@@ -472,9 +475,18 @@ export default async function MarketplaceListingPage({
   const productSpecs = [
     ...customSpecs,
     ...(listing.product.attributes ?? [])
+      // Internal flags (e.g. "no barcode") are never shown. Labels of the keys we know are translated from the KEY: rows
+      // were stored with the French label the wizard wrote, which an English or German buyer used to see.
+      .filter((row) => !HIDDEN_SPEC_KEYS.has(row.key))
       .map((row) => ({
-        label: String(row.label || row.key || "").trim(),
+        label: localizeSpecLabel(
+          row.key,
+          String(row.label || row.key || "").trim(),
+          Object.assign((key: string) => tSpecs(key as never), { has: (key: string) => tSpecs.has(key as never) })
+        ),
         value: String(row.value ?? "").trim(),
+        // Barcode, manufacturer, EU contact… are information, not selling points.
+        highlight: !isListingComplianceKey(row.key) || row.key === "brand",
       }))
       .filter((row) => row.label.length > 0 && row.value.length > 0),
   ]

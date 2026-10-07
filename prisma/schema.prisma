@@ -292,6 +292,10 @@ model User {
    */
   merchantDefault MerchantDefault?
   supplierShippingProfile SupplierShippingProfile?
+  /**
+   * GPSR defaults (manufacturer / EU responsible person) a supplier can apply to a product in one click.
+   */
+  complianceProfile SupplierComplianceProfile?
 
   /**
    * Reseller Margin Lock 7j — protected supplier cost windows.
@@ -362,6 +366,28 @@ model MerchantLegalProfile {
 /**
  * Wizard v2 — persisted merchant defaults for faster repeat listings.
  */
+/**
+ * Product-safety (GPSR) details a supplier reuses across listings. A DEFAULT to offer, never applied silently: the
+ * manufacturer of a given product is whoever made it (a dropshipper is rarely the manufacturer), so each listing still
+ * carries — and the supplier still confirms — its own values (see ProductAttribute keys `gpsr_*`).
+ * Isolated table on purpose: if its migration lags behind a deploy, only the profile screens are affected.
+ */
+model SupplierComplianceProfile {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  manufacturerName    String?
+  manufacturerAddress String?
+  manufacturerEmail   String?
+  /// ISO 3166-1 alpha-2 of the manufacturer's establishment.
+  manufacturerCountry String?
+  euRepName           String?
+  euRepAddress        String?
+  euRepEmail          String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
 model MerchantDefault {
   id                   String   @id @default(cuid())
   userId               String   @unique

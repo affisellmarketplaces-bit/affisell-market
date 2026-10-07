@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   collectClientPublishBlockers,
   mapServerPublishBlockers,
+  PUBLISH_FIELD_SCROLL_ID,
   publishBlockerStep,
 } from "@/lib/supplier-publish-blockers"
 
@@ -104,5 +105,26 @@ describe("supplier-publish-blockers", () => {
       deliveryCountryCodes: [],
     })
     expect(blockers.some((b) => b.field === "deliveryCountries")).toBe(true)
+  })
+})
+
+describe("listing_not_ready (product-safety / identity data missing)", () => {
+  it("maps the 422 to a single blocker on the compliance section, in the visitor's language", () => {
+    const issues = [{ code: "gpsr_manufacturer_name_missing", field: "gpsr_manufacturer_name", group: "gpsr", severity: "blocking" }]
+    const fr = mapServerPublishBlockers({ error: "listing_not_ready", issues }, "fr")
+    expect(fr).toHaveLength(1)
+    expect(fr[0]).toMatchObject({ field: "compliance" })
+    expect(fr[0]!.message).toContain("sécurité")
+    const en = mapServerPublishBlockers({ error: "listing_not_ready", issues }, "en")
+    expect(en[0]!.message).toMatch(/safety/i)
+  })
+
+  it("is shown on step 1, where the section lives, and scrolls to it", () => {
+    expect(publishBlockerStep("compliance")).toBe(1)
+    expect(PUBLISH_FIELD_SCROLL_ID.compliance).toBe("add-product-compliance")
+  })
+
+  it("does not swallow other server errors", () => {
+    expect(mapServerPublishBlockers({ error: "warehouse_type_required" }, "en")[0]!.field).toBe("warehouseType")
   })
 })

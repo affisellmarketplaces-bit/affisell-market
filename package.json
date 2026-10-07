@@ -107,6 +107,7 @@
     "verify:growth-pricing": "node scripts/verify-growth-pricing-ready.mjs",
     "verify:web-push": "node scripts/verify-web-push-ready.mjs",
     "pwa:rollback": "node scripts/pwa-rollback.mjs",
+    "report:listing-readiness": "tsx scripts/report-listing-readiness.ts",
     "verify:pwa-shell": "node scripts/verify-pwa-shell-ready.mjs",
     "lighthouse:mobile": "lhci autorun",
     "lighthouse:mobile:summary": "node scripts/lighthouse-ci-summary.mjs",

@@ -12,20 +12,24 @@ import { GPSR_KEYS, IDENTITY_KEYS } from "@/lib/listing-compliance/keys"
 export type ReadinessGroup = "gpsr" | "identity"
 export type ReadinessSeverity = "blocking" | "advisory"
 
-export type ReadinessIssueCode =
-  | "gpsr_manufacturer_name_missing"
-  | "gpsr_manufacturer_address_missing"
-  | "gpsr_manufacturer_email_missing"
-  | "gpsr_manufacturer_email_invalid"
-  | "gpsr_manufacturer_country_missing"
-  | "gpsr_manufacturer_country_invalid"
-  | "gpsr_eu_rep_name_missing"
-  | "gpsr_eu_rep_address_missing"
-  | "gpsr_eu_rep_email_missing"
-  | "gpsr_eu_rep_email_invalid"
-  | "gtin_invalid"
-  | "gtin_missing"
-  | "brand_missing"
+/** Every code the evaluator can emit — also what the translation catalogues must cover (see the i18n test). */
+export const READINESS_ISSUE_CODES = [
+  "gpsr_manufacturer_name_missing",
+  "gpsr_manufacturer_address_missing",
+  "gpsr_manufacturer_email_missing",
+  "gpsr_manufacturer_email_invalid",
+  "gpsr_manufacturer_country_missing",
+  "gpsr_manufacturer_country_invalid",
+  "gpsr_eu_rep_name_missing",
+  "gpsr_eu_rep_address_missing",
+  "gpsr_eu_rep_email_missing",
+  "gpsr_eu_rep_email_invalid",
+  "gtin_invalid",
+  "gtin_missing",
+  "brand_missing",
+] as const
+
+export type ReadinessIssueCode = (typeof READINESS_ISSUE_CODES)[number]
 
 export type ReadinessIssue = {
   code: ReadinessIssueCode

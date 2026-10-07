@@ -2061,6 +2061,87 @@
       "scanning": "正在分析照片——自动填写描述、规格和建议价格…",
       "filled": "已根据照片自动填写——发布前请检查并调整。",
       "filledWithDuplicateWarning": "已根据照片自动填写——你的目录中可能已有类似商品。"
+    },
+    "compliance": {
+      "sectionTitle": "产品身份与安全",
+      "sectionDescription": "欧盟法规要求每件实体产品标明制造商以及在欧盟境内对其负责的主体。只需填写一次，即可在每个商品中重复使用。",
+      "identityHeading": "产品身份",
+      "gtinLabel": "条形码（GTIN / EAN / UPC）",
+      "gtinHint": "8、12、13 或 14 位数字，与包装上印刷的一致。",
+      "gtinPlaceholder": "例如 4006381333931",
+      "gtinExemptLabel": "该产品没有条形码（手工、定制、自有品牌）",
+      "mpnLabel": "制造商零件编号",
+      "mpnHint": "制造商为该型号设定的编号（选填）。",
+      "manufacturerHeading": "制造商",
+      "manufacturerHint": "产品的制造者：包装上标明的公司，不一定是您。",
+      "manufacturerName": "名称",
+      "manufacturerAddress": "通信地址",
+      "manufacturerEmail": "联系邮箱",
+      "manufacturerCountry": "所在国家/地区",
+      "countryPlaceholder": "选择国家/地区",
+      "euRepHeading": "欧盟责任人",
+      "euRepHint": "因制造商位于欧盟以外而必填。可以是您本人（若您在欧盟设有机构）、进口商或授权代表。",
+      "euRepName": "名称",
+      "euRepAddress": "通信地址",
+      "euRepEmail": "联系邮箱",
+      "safetyWarningLabel": "安全警示（选填）",
+      "safetyWarningHint": "向买家展示，例如年龄限制、窒息风险或电池警告。",
+      "traceabilityLabel": "批次或序列号（选填）",
+      "traceabilityHint": "便于在召回时识别该产品。",
+      "useMyManufacturer": "使用我已保存的制造商",
+      "useMyEuRep": "使用我已保存的欧盟责任人",
+      "editProfile": "编辑我的资料",
+      "statusReady": "安全信息已完整",
+      "statusMissing": "发布前请补全以下各项。",
+      "issuesHeading": "待补全",
+      "advisoryHeading": "建议",
+      "notReadyToast": "缺少产品安全信息。请补全高亮字段后再发布。",
+      "issue": {
+        "gpsr_manufacturer_name_missing": "缺少制造商名称",
+        "gpsr_manufacturer_address_missing": "缺少制造商通信地址",
+        "gpsr_manufacturer_email_missing": "缺少制造商联系邮箱",
+        "gpsr_manufacturer_email_invalid": "制造商邮箱无效",
+        "gpsr_manufacturer_country_missing": "缺少制造商所在国家/地区",
+        "gpsr_manufacturer_country_invalid": "请从列表中选择制造商所在国家/地区",
+        "gpsr_eu_rep_name_missing": "缺少欧盟责任人名称（制造商位于欧盟以外）",
+        "gpsr_eu_rep_address_missing": "缺少欧盟责任人地址",
+        "gpsr_eu_rep_email_missing": "缺少欧盟责任人邮箱",
+        "gpsr_eu_rep_email_invalid": "欧盟责任人邮箱无效",
+        "gtin_invalid": "该条形码无效，请检查数字",
+        "gtin_missing": "如产品有条形码（GTIN / EAN），请添加",
+        "brand_missing": "请添加品牌；若无品牌可保持通用"
+      },
+      "duplicate": {
+        "title": "您已有类似的产品",
+        "gtin": "相同的条形码",
+        "image": "相同的主图",
+        "name": "相同的名称",
+        "draft": "草稿",
+        "open": "打开"
+      },
+      "profile": {
+        "title": "产品安全资料",
+        "intro": "您的 GPSR 信息默认值。它们只会在每个产品上作为一键预填提供，每次都需由您确认，因为产品的制造商是实际制造它的一方。",
+        "manufacturerNote": "仅当您自己制造产品，或始终与同一制造商合作时才填写。",
+        "euRepNote": "通常对所有产品相同：您本人（若在欧盟设有机构）、您的进口商或授权代表。",
+        "save": "保存资料",
+        "saving": "正在保存…",
+        "saved": "资料已保存",
+        "saveFailed": "无法保存资料，请重试。",
+        "unavailable": "目前无法保存资料，请稍后再试。",
+        "loadFailed": "无法加载您的资料。",
+        "settingsLink": "产品安全资料",
+        "settingsLinkHint": "默认制造商与欧盟责任人"
+      },
+      "errors": {
+        "invalid_email": "请输入有效的电子邮箱",
+        "invalid_country": "请从列表中选择国家/地区",
+        "too_long": "该值过长"
+      },
+      "noticeLabel": "使用说明（选填）",
+      "noticeHint": "用户手册和安全说明的链接或简短文字。",
+      "brandLabel": "品牌",
+      "brandHint": "填写产品上标注的品牌；若无品牌可留空。"
     }
   },
   "affiliate": {
@@ -8686,6 +8767,27 @@
         "own_product": "不能为自己的商品申请独家权。",
         "product_not_found": "未找到商品。"
       }
+    }
+  },
+  "productSpecs": {
+    "keys": {
+      "brand": "品牌",
+      "gtin": "条形码（GTIN / EAN）",
+      "mpn": "制造商零件编号",
+      "manufacturerName": "制造商",
+      "manufacturerAddress": "制造商地址",
+      "manufacturerEmail": "制造商邮箱",
+      "manufacturerCountry": "制造商所在国家/地区",
+      "euRepName": "欧盟责任人",
+      "euRepAddress": "欧盟责任人地址",
+      "euRepEmail": "欧盟责任人邮箱",
+      "safetyWarning": "安全警示",
+      "notice": "说明书",
+      "traceability": "批次/序列号",
+      "material": "材质",
+      "color": "颜色",
+      "size": "尺码",
+      "dimensions": "尺寸"
     }
   }
 }

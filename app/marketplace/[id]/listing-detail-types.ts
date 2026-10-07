@@ -32,7 +32,7 @@ export type ListingShippingBlock = ListingLogisticsInput & {
   measuredDelivery: ProvenDeliveryStats | null
 }
 
-export type SpecRow = { label: string; value: string }
+export type SpecRow = { label: string; value: string; /** false = never used as a product highlight (regulatory rows) */ highlight?: boolean }
 
 export type ListingDetailProps = {
   /** Buyer-facing pages hide wholesale / partner seller attribution. */

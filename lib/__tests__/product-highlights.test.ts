@@ -86,3 +86,17 @@ describe("isShowcasePopular", () => {
     expect(isShowcasePopular({ reviewCount: 100, averageRating: 4.1 })).toBe(false)
   })
 })
+
+describe("deriveProductHighlights — regulatory rows", () => {
+  it("never turns a row flagged highlight:false into a highlight, but still uses its neighbours", () => {
+    const out = deriveProductHighlights({
+      bullets: [],
+      specs: [
+        { label: "Battery life", value: "14 days", highlight: false },
+        { label: "Autonomie", value: "14 jours" },
+      ],
+    })
+    expect(out.map((h) => h.label.toLowerCase())).toEqual(expect.arrayContaining(["autonomie 14 jours"]))
+    expect(out.some((h) => /battery life/i.test(h.label))).toBe(false)
+  })
+})

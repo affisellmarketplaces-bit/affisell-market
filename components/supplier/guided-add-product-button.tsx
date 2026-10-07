@@ -26,7 +26,9 @@ import {
   type GuidedCategoryLabel,
   type GuidedProductAiSuggestion,
 } from "@/lib/guided-product-ai-shared"
-import { isGpsrCompliant } from "@/lib/legal/gpsr-compliance-shared"
+import { ListingComplianceSection } from "@/components/supplier/listing-compliance/listing-compliance-section"
+import { evaluateListingReadiness } from "@/lib/listing-compliance/evaluate"
+import { CANONICAL_LABELS, LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
 import { blockIfHoneypotValue } from "@/lib/security/honeypot-client"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { DELIVERY_WORLDWIDE, suggestDeliveryCountriesFromWarehouse } from "@/lib/supplier-delivery-countries"
@@ -55,11 +57,11 @@ type FormState = {
   dimensions: string
   stock: string
   price: string
-  manufacturerName: string
-  manufacturerAddress: string
-  manufacturerEmail: string
-  safetyWarning: string
-  notice: string
+  /**
+   * Product-identity + product-safety (GPSR) values keyed by attribute key (brand, ean, gpsr_*…) — the same record shape the
+   * classic form keeps, so both flows store exactly the same rows.
+   */
+  compliance: Record<string, string>
 }
 
 const DEFAULT_FORM: FormState = {
@@ -78,11 +80,7 @@ const DEFAULT_FORM: FormState = {
   dimensions: "",
   stock: "",
   price: "",
-  manufacturerName: "",
-  manufacturerAddress: "",
-  manufacturerEmail: "",
-  safetyWarning: "",
-  notice: "",
+  compliance: {},
 }
 
 const DESCRIPTION_MIN_LENGTH = 40
@@ -144,7 +142,7 @@ async function uploadProcessedBlob(blob: Blob, fileName: string): Promise<string
 }
 
 export function GuidedAddProductButton({
-  supplierId,
+  supplierId: _supplierId,
   shopId: _shopId,
   defaultOpen = false,
 }: Props) {
@@ -243,17 +241,12 @@ export function GuidedAddProductButton({
     if (defaultOpen) setOpen(true)
   }, [defaultOpen])
 
-  const gpsrCheck = useMemo(
-    () =>
-      isGpsrCompliant({
-        manufacturerName: form.manufacturerName,
-        manufacturerAddress: form.manufacturerAddress,
-        manufacturerEmail: form.manufacturerEmail,
-        safetyWarning: form.safetyWarning,
-        notice: form.notice,
-      }),
-    [form.manufacturerAddress, form.manufacturerEmail, form.manufacturerName, form.notice, form.safetyWarning]
+  // One definition of "ready to publish" for product safety, shared with the classic form and the API.
+  const readiness = useMemo(
+    () => evaluateListingReadiness({ listingKind: "PHYSICAL", attributes: form.compliance }),
+    [form.compliance]
   )
+  const gpsrCheck = { compliant: readiness.ready }
 
   const priceCents = Math.round(Number.parseFloat(form.price.replace(",", ".")) * 100)
   const priceValid = Number.isFinite(priceCents) && priceCents > 0
@@ -522,19 +515,16 @@ export function GuidedAddProductButton({
     else setPublishing(true)
     setStepError(null)
     try {
+      // Canonical (English) labels: buyers see the label translated from the KEY, never the stored text.
       const productAttributes = [
-        { key: "material", label: "Matériau", value: form.material.trim() },
-        { key: "color", label: "Couleur", value: form.color.trim() },
+        { key: "material", label: "Material", value: form.material.trim() },
+        { key: "color", label: "Color", value: form.color.trim() },
         { key: "dimensions", label: "Dimensions", value: form.dimensions.trim() },
-        { key: "gpsr_manufacturer_name", label: "Fabricant", value: form.manufacturerName.trim() },
-        { key: "gpsr_manufacturer_address", label: "Adresse fabricant", value: form.manufacturerAddress.trim() },
-        { key: "gpsr_manufacturer_email", label: "Email fabricant", value: form.manufacturerEmail.trim() },
-        ...(form.safetyWarning.trim()
-          ? [{ key: "gpsr_safety_warning", label: "Avertissement sécurité", value: form.safetyWarning.trim() }]
-          : []),
-        ...(form.notice.trim()
-          ? [{ key: "gpsr_notice", label: "Notice", value: form.notice.trim() }]
-          : []),
+        ...LISTING_COMPLIANCE_KEYS.map((key) => ({
+          key,
+          label: CANONICAL_LABELS[key] ?? key,
+          value: (form.compliance[key] ?? "").trim(),
+        })),
       ].filter((a) => a.value.length > 0)
 
       const send = (withLeaf: boolean) =>
@@ -582,12 +572,6 @@ export function GuidedAddProductButton({
       }
       if (!data.id) throw new Error("missing_product_id")
 
-      console.log("[guided-add-product]", {
-        result: asDraft ? "draft_saved" : "published",
-        supplierId,
-        productId: data.id,
-        gpsrCompliant: !asDraft,
-      })
 
       toast.success(asDraft ? tWiz("draftSaved") : tWiz("published"))
       close()
@@ -874,55 +858,15 @@ export function GuidedAddProductButton({
                     {tWiz("gpsrBody")}
                   </p>
                 </BentoCard>
-                {(
-                  [
-                    ["manufacturerName", tWiz("mfrName"), form.manufacturerName],
-                    ["manufacturerAddress", tWiz("mfrAddress"), form.manufacturerAddress],
-                    ["manufacturerEmail", tWiz("mfrEmail"), form.manufacturerEmail],
-                  ] as const
-                ).map(([key, label, value]) => (
-                  <div key={key}>
-                    <label className={labelClass} htmlFor={`guided-${key}`}>
-                      {label}
-                    </label>
-                    <input
-                      id={`guided-${key}`}
-                      className={fieldClass}
-                      value={value}
-                      onChange={(e) => patchForm({ [key]: e.target.value } as Partial<FormState>)}
-                    />
-                  </div>
-                ))}
-                <div>
-                  <label className={labelClass} htmlFor="guided-safety">
-                    {tWiz("safetyWarning")}
-                  </label>
-                  <textarea
-                    id="guided-safety"
-                    rows={2}
-                    className={fieldClass}
-                    value={form.safetyWarning}
-                    onChange={(e) => patchForm({ safetyWarning: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass} htmlFor="guided-notice">
-                    {tWiz("notice")}
-                  </label>
-                  <textarea
-                    id="guided-notice"
-                    rows={2}
-                    className={fieldClass}
-                    value={form.notice}
-                    onChange={(e) => patchForm({ notice: e.target.value })}
-                  />
-                </div>
-                {!gpsrCheck.compliant && (form.manufacturerName || form.manufacturerEmail) ? (
-                  <p className="flex items-center gap-2 text-sm font-medium text-red-600 dark:text-red-400">
-                    <XCircle className="size-4 shrink-0" />
-                    Obligatoire pour vendre en EU (GPSR)
-                  </p>
-                ) : null}
+                <ListingComplianceSection
+                  values={form.compliance}
+                  onChange={(key, value) => patchForm({ compliance: { ...form.compliance, [key]: value } })}
+                  listingKind="PHYSICAL"
+                  name={form.title}
+                  mainImageUrl={form.imageUrl}
+                  showBrand
+                  idPrefix="guided"
+                />
               </div>
             )}
 
