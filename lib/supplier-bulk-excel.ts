@@ -71,7 +71,6 @@ export const BULK_FIXED_COLUMNS: readonly {
   { key: "processing_time", description: "Processing days (default 1)" },
   { key: "delivery_min", description: "Delivery min days (default 2)" },
   { key: "delivery_max", description: "Delivery max days (default 5)" },
-  { key: "shipping_cost_eur", description: "Flat shipping cost EUR (default 0)" },
   ...BULK_COMPLIANCE_COLUMNS.map((c) => ({ key: c.column, description: c.description })),
 ] as const
 
@@ -222,11 +221,10 @@ export function validateAndParseBulkRow(
     const n = Math.round(Number(dmax))
     if (Number.isFinite(n)) shippingBody.deliveryMax = n
   }
-  const sc = (cells.shipping_cost_eur ?? "").trim()
-  if (sc) {
-    const n = Number(sc.replace(",", "."))
-    if (Number.isFinite(n) && n >= 0) shippingBody.shippingCostEUR = n
-  }
+  // Legacy column (removed from the template): buyers are never charged shipping, so a cost entered here would be a
+  // number nobody pays. Ignored — with a heads-up when it was non-zero — instead of being stored as if it were honoured.
+  const legacyShipping = Number((cells.shipping_cost_eur ?? "").trim().replace(",", "."))
+  if (Number.isFinite(legacyShipping) && legacyShipping > 0) warnings.push(t("shippingCostIgnored"))
 
   const productAttributes: Array<{ key: string; label: string; value: string }> = []
   for (const def of attrDefs) {
@@ -373,7 +371,8 @@ export async function buildBulkImportTemplateBuffer(params: {
     "3. images: use full https URLs, separated by | or ; . At least one image per row.",
     "4. Characteristics columns start with attr__ — match required fields for this category.",
     "5. Upload the file on the bulk import page → validate → publish. Invalid rows are skipped or fixed and re-uploaded.",
-    "6. Product-safety columns (manufacturer_*, eu_rep_*, gtin) are optional for now; physical products will need the manufacturer details (and an EU responsible person when the manufacturer is outside the EU).",
+    "6. Shipping is not charged to the buyer: include your delivery cost in price_eur (there is no shipping column).",
+    "7. Product-safety columns (manufacturer_*, eu_rep_*, gtin) are optional for now; physical products will need the manufacturer details (and an EU responsible person when the manufacturer is outside the EU).",
     "",
     "Tips (innovations):",
     "• Validate first: you get a row-by-row report before anything is created.",

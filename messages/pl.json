@@ -1468,7 +1468,8 @@
       "compareAtMustExceedShort": "Cena porównawcza musi przewyższać cenę",
       "compareAtDiscountOverShort": "Rabat ceny porównawczej powyżej 70%",
       "catalogCapReached": "Osiągnięto limit katalogu. Przejdź na Dominator, aby uzyskać nieograniczony katalog.",
-      "listingNotReady": "Brak informacji o bezpieczeństwie produktu (nazwa, adres, e-mail i kraj producenta; podmiot odpowiedzialny w UE, jeśli producent ma siedzibę poza UE)."
+      "listingNotReady": "Brak informacji o bezpieczeństwie produktu (nazwa, adres, e-mail i kraj producenta; podmiot odpowiedzialny w UE, jeśli producent ma siedzibę poza UE).",
+      "shippingCostIgnored": "shipping_cost_eur zignorowano: kupujący nie płaci za wysyłkę, wlicz ją w cenę"
     },
     "wizard": {
       "backToMethods": "← Inne metody tworzenia",
@@ -2167,6 +2168,12 @@
       "feeHint": "Wybierz dokładną kategorię, aby zobaczyć opłatę Affisell.",
       "footnote": "Bez VAT. Kanał katalogowy; marża odsprzedawcy jest doliczana osobno i Cię nie dotyczy.",
       "enterPrice": "Wpisz cenę, aby zobaczyć, ile otrzymasz."
+    },
+    "shippingIncluded": {
+      "priceHint": "Kupujący nie płaci kosztów wysyłki poza tą ceną – uwzględnij w niej koszt dostawy.",
+      "title": "Wysyłka jest wliczona w Twoją cenę",
+      "body": "Affisell nie pobiera od kupującego kosztów wysyłki. Otrzymujesz swoją cenę pomniejszoną o prowizję resellera i opłatę Affisell, więc wlicz koszt dostawy w cenę.",
+      "badgeLabel": "Wyróżnij „Darmowa wysyłka” przy tej ofercie (plakietka i filtr marketplace). Wysyłka jest i tak wliczona w Twoją cenę."
     }
   },
   "affiliate": {

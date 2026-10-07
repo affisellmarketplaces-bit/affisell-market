@@ -1468,7 +1468,8 @@
       "compareAtMustExceedShort": "Il prezzo di confronto deve superare il prezzo",
       "compareAtDiscountOverShort": "Sconto sul prezzo di confronto superiore al 70%",
       "catalogCapReached": "Limite catalogo raggiunto. Passa a Dominator per un catalogo illimitato.",
-      "listingNotReady": "Mancano le informazioni sulla sicurezza del prodotto (nome, indirizzo, e-mail e paese del produttore; un responsabile UE se il produttore è fuori dall'UE)."
+      "listingNotReady": "Mancano le informazioni sulla sicurezza del prodotto (nome, indirizzo, e-mail e paese del produttore; un responsabile UE se il produttore è fuori dall'UE).",
+      "shippingCostIgnored": "shipping_cost_eur ignorato: la spedizione non viene addebitata all'acquirente, includila nel tuo prezzo"
     },
     "wizard": {
       "backToMethods": "← Altri metodi di creazione",
@@ -2167,6 +2168,12 @@
       "feeHint": "Scegli una categoria precisa per vedere la commissione Affisell.",
       "footnote": "IVA esclusa. Canale catalogo; il ricarico del rivenditore si aggiunge e non ti riguarda.",
       "enterPrice": "Inserisci un prezzo per vedere quanto ricevi."
+    },
+    "shippingIncluded": {
+      "priceHint": "L'acquirente non paga spese di spedizione oltre a questo prezzo: includi in esso il tuo costo di consegna.",
+      "title": "La spedizione è inclusa nel tuo prezzo",
+      "body": "Affisell non addebita spese di spedizione all'acquirente. Ricevi il tuo prezzo meno la commissione del rivenditore e la tariffa Affisell: includi quindi il costo di consegna nel prezzo.",
+      "badgeLabel": "Metti in evidenza «Spedizione gratuita» su questo annuncio (badge e filtro del marketplace). La spedizione è comunque inclusa nel tuo prezzo."
     }
   },
   "affiliate": {

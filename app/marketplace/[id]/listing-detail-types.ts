@@ -20,7 +20,6 @@ export type StorefrontInfo = {
 
 export type ListingShippingBlock = ListingLogisticsInput & {
   processingTime: number
-  freeShippingThresholdEUR: number | null
   /** Product-level subset of the shop carriers (may be empty). */
   shippingCarrierIds: string[]
   /** The supplier's shop shipping profile — the ONLY source of the "Pro shipping" block. */

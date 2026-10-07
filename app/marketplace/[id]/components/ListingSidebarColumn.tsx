@@ -185,7 +185,6 @@ export function ListingSidebarColumn({
             onToggleTitleExpanded={() => setTitleExpanded((v) => !v)}
             categoryEyebrow={categoryEyebrow}
             availableStock={availableStock}
-            freeShippingThresholdEUR={shipping.freeShippingThresholdEUR}
           />
 
           <TrustBadges

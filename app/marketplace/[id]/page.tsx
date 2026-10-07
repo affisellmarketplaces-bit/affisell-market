@@ -392,11 +392,6 @@ export default async function MarketplaceListingPage({
     }
   }
 
-  const freeThresh =
-    p.freeShippingThreshold != null && Number(p.freeShippingThreshold) > 0
-      ? Number(p.freeShippingThreshold)
-      : null
-
   // Shop-level carriers the supplier committed to. Empty (or unavailable) → no shipping block is shown.
   const [shopShippingOffers, sellerTrust, measuredDelivery] = await Promise.all([
     loadSupplierShopShippingOffers(p.supplierId),
@@ -417,7 +412,6 @@ export default async function MarketplaceListingPage({
       locale: locale as AppLocale,
     }),
     processingTime: p.processingTime ?? 1,
-    freeShippingThresholdEUR: freeThresh,
     shippingCarrierIds: p.shippingCarrierIds ?? [],
     shopShippingOffers,
     sellerTrust,

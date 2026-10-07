@@ -94,3 +94,33 @@ describe("supplier add-product phase 2 — translations", () => {
   })
 })
 
+
+describe("shipping is included in the price — nothing invites a cost the buyer never pays", () => {
+  const KEYS = ["priceHint", "title", "body", "badgeLabel"]
+
+  it("every static key used by the notice exists", () => {
+    const src = readFileSync("components/supplier/shipping-included-notice.tsx", "utf8")
+    const tree = at(en as Tree, "supplier.shippingIncluded") as Tree
+    const used = [...src.matchAll(/\bt\(\s*"([A-Za-z0-9_.]+)"/g)].map((m) => m[1]!)
+    expect(used.filter((k) => at(tree, k) === undefined)).toEqual([])
+    for (const k of KEYS) expect(tree[k], k).toBeTruthy()
+  })
+
+  it.each(LOCALES)("%s has the shipping-included strings (and the CSV warning)", (loc) => {
+    const messages = load(loc)
+    const tree = at(messages, "supplier.shippingIncluded") as Tree
+    for (const k of KEYS) expect(typeof tree[k] === "string" && (tree[k] as string).trim().length > 0, `${loc}:${k}`).toBe(true)
+    const warning = at(messages, "supplier.bulkExcelValidation.shippingCostIgnored")
+    expect(typeof warning === "string" && warning.includes("shipping_cost_eur")).toBe(true)
+    if (loc !== "en") expect(tree.title).not.toBe((at(en as Tree, "supplier.shippingIncluded") as Tree).title)
+  })
+
+  it("the buyer page no longer promises a free-shipping threshold, and the classic form no longer collects a shipping cost", () => {
+    const pdp = readFileSync("app/marketplace/[id]/components/ProductInfo.tsx", "utf8")
+    expect(pdp).not.toMatch(/Free shipping over/i)
+    expect(pdp).not.toMatch(/freeShippingThreshold/)
+    const form = readFileSync("components/supplier/supplier-add-product-form.tsx", "utf8")
+    expect(form).not.toMatch(/shippingCostEUR/)
+    expect(form).not.toContain('id="ship-sc"')
+  })
+})

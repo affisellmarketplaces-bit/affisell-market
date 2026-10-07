@@ -22,8 +22,6 @@ type Props = {
   warehouseCode?: string | null
   processingDays?: number | null
   weightGrams?: number | null
-  shippingCostEur?: number
-  freeShipping?: boolean
   /** Affisell's supplier-side rate (bps) for the chosen category; null/undefined while unknown. */
   feeBps?: number | null
   className?: string
@@ -38,8 +36,6 @@ export function SupplierSimulationCard({
   warehouseCode,
   processingDays,
   weightGrams,
-  shippingCostEur = 0,
-  freeShipping,
   feeBps = null,
   className,
 }: Props) {
@@ -145,8 +141,7 @@ export function SupplierSimulationCard({
       <div className="mt-4 flex items-start gap-2 border-t border-violet-100 pt-3 text-xs text-zinc-600 dark:border-violet-900/40 dark:text-zinc-400">
         <Truck className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
         <p>
-          Expédition depuis {warehouse} · {shipDays} j
-          {freeShipping ? " · Livraison gratuite" : shippingCostEur > 0 ? ` · ${formatStoreCurrency(shippingCostEur)}` : ""}
+          Expédition depuis {warehouse} · {shipDays} j · Port inclus dans votre prix : l&apos;acheteur ne paie pas de frais de livraison
         </p>
       </div>
     </div>

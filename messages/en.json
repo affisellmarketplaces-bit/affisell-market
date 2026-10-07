@@ -1468,7 +1468,8 @@
       "compareAtMustExceedShort": "Compare-at must exceed price",
       "compareAtDiscountOverShort": "Compare-at discount over 70%",
       "catalogCapReached": "Catalog limit reached. Upgrade to Dominator for an unlimited catalog.",
-      "listingNotReady": "Product-safety information is missing (manufacturer name, address, email and country; an EU responsible person if the manufacturer is outside the EU)."
+      "listingNotReady": "Product-safety information is missing (manufacturer name, address, email and country; an EU responsible person if the manufacturer is outside the EU).",
+      "shippingCostIgnored": "shipping_cost_eur ignored: buyers are not charged shipping, include it in your price"
     },
     "wizard": {
       "backToMethods": "← Other creation methods",
@@ -2167,6 +2168,12 @@
       "feeHint": "Choose an exact category to see the Affisell fee.",
       "footnote": "Excl. VAT. Catalogue channel; the reseller's own markup comes on top and does not affect you.",
       "enterPrice": "Enter a price to see what you receive."
+    },
+    "shippingIncluded": {
+      "priceHint": "Buyers pay no shipping on top of this price — include your delivery cost in it.",
+      "title": "Shipping is included in your price",
+      "body": "Affisell does not charge buyers a shipping fee. You receive your price minus the reseller commission and Affisell's fee, so build your delivery cost into your price.",
+      "badgeLabel": "Highlight “Free shipping” on this listing (badge and marketplace filter). Shipping is included in your price either way."
     }
   },
   "affiliate": {

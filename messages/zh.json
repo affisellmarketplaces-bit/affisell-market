@@ -1468,7 +1468,8 @@
       "compareAtMustExceedShort": "对比价必须高于价格",
       "compareAtDiscountOverShort": "对比价折扣超过 70%",
       "catalogCapReached": "已达到目录上限。升级到 Dominator 以获得无限目录。",
-      "listingNotReady": "缺少产品安全信息（制造商名称、地址、电子邮箱和所在国家；若制造商位于欧盟以外，还需提供欧盟责任人）。"
+      "listingNotReady": "缺少产品安全信息（制造商名称、地址、电子邮箱和所在国家；若制造商位于欧盟以外，还需提供欧盟责任人）。",
+      "shippingCostIgnored": "已忽略 shipping_cost_eur：买家不支付运费，请将其计入价格"
     },
     "wizard": {
       "backToMethods": "← 其他创建方式",
@@ -2167,6 +2168,12 @@
       "feeHint": "请选择具体类目以查看 Affisell 平台费。",
       "footnote": "不含增值税。目录渠道；分销商自己的加价另计，与您无关。",
       "enterPrice": "输入价格即可查看您将收到的金额。"
+    },
+    "shippingIncluded": {
+      "priceHint": "买家不会在此价格之外另付运费——请把您的配送成本计入价格。",
+      "title": "运费已包含在您的价格中",
+      "body": "Affisell 不向买家收取运费。您收到的是您设定的价格减去分销商佣金和 Affisell 费用，因此请将配送成本计入价格。",
+      "badgeLabel": "在此商品上突出显示“免运费”（徽章和市场筛选）。无论是否勾选，运费都已包含在您的价格中。"
     }
   },
   "affiliate": {

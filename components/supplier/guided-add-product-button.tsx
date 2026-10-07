@@ -16,6 +16,7 @@ import { GuidedTaxonomySuggestions } from "@/components/supplier/guided-taxonomy
 import { useGuidedProductAi } from "@/components/supplier/use-guided-product-ai"
 import { useGuidedTaxonomySuggestions } from "@/components/supplier/use-guided-taxonomy-suggestions"
 import { SupplierEarningPreview } from "@/components/supplier/supplier-earning-preview"
+import { SupplierShippingIncludedNotice } from "@/components/supplier/shipping-included-notice"
 import { SupplierPhotoQualityHint } from "@/components/supplier/supplier-photo-quality-hint"
 import { buttonVariants } from "@/components/ui/button"
 import {
@@ -1081,6 +1082,7 @@ export function GuidedAddProductButton({
                         patchForm({ [key]: e.target.value } as Partial<FormState>, { user: true })
                       }
                     />
+                    {key === "price" ? <SupplierShippingIncludedNotice variant="hint" /> : null}
                   </div>
                 ))}
                 <div className="sm:col-span-2">

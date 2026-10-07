@@ -5,7 +5,7 @@ import { motion } from "framer-motion"
 import { SupplierTrustBadge } from "@/components/suppliers/supplier-trust-badge"
 import { ProductOfferBadge } from "@/components/product/product-offer-badge"
 import type { OfferModeBadge } from "@/lib/product-offer-mode"
-import { fmtMoney, t } from "../listing-detail-utils"
+import { t } from "../listing-detail-utils"
 
 type BrandClasses = ReturnType<typeof import("@/lib/storefront-pdp-brand").storefrontPdpBrandClasses>
 
@@ -32,7 +32,6 @@ type Props = {
   onToggleTitleExpanded: () => void
   categoryEyebrow: string | null
   availableStock: number
-  freeShippingThresholdEUR: number | null
 }
 
 export function ProductInfo({
@@ -52,7 +51,6 @@ export function ProductInfo({
   onToggleTitleExpanded,
   categoryEyebrow,
   availableStock,
-  freeShippingThresholdEUR,
 }: Props) {
   return (
     <header className="space-y-2 lg:space-y-3 lg:pt-3">
@@ -147,11 +145,6 @@ export function ProductInfo({
             productT.outOfStock
           )}
         </span>
-        {freeShippingThresholdEUR != null && freeShippingThresholdEUR > 0 ? (
-          <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
-            Free shipping over {fmtMoney(freeShippingThresholdEUR)}
-          </span>
-        ) : null}
       </motion.div>
     </header>
   )

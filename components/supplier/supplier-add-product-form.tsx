@@ -85,6 +85,7 @@ import { SupplierTrustQualityBlock } from "@/components/supplier/supplier-trust-
 import { SupplierPhotoQualityHint } from "@/components/supplier/supplier-photo-quality-hint"
 import { SupplierTitleQualityHint } from "@/components/supplier/supplier-title-quality-hint"
 import { SupplierShippingCarriersPicker } from "@/components/supplier/supplier-shipping-carriers-picker"
+import { SupplierShippingIncludedNotice } from "@/components/supplier/shipping-included-notice"
 import { shippingMethodsFromCarrierIds } from "@/lib/shipping/supplier-carrier-offers-shared"
 import { SupplierOfferModePicker } from "@/components/supplier/supplier-offer-mode-picker"
 import { SupplierKycPublishBanner } from "@/components/supplier/supplier-kyc-publish-banner"
@@ -394,6 +395,7 @@ export function SupplierAddProductForm({
 
   const cacheMode: SupplierAddProductCacheMode = assistShortcuts ? "assist" : composeQs ? "compose" : "plain"
   const tForm = useTranslations("supplier.form")
+  const tShippingIncluded = useTranslations("supplier.shippingIncluded")
   const tCompliance = useTranslations("supplier.compliance")
   const tVariantComposer = useTranslations("supplier.variantComposer")
   const locale = useLocale() as "fr" | "en"
@@ -525,7 +527,6 @@ export function SupplierAddProductForm({
   const [deliveryMin, setDeliveryMin] = useState("2")
   const [deliveryMax, setDeliveryMax] = useState("5")
   const [shippingCarrierIds, setShippingCarrierIds] = useState<string[]>([])
-  const [shippingCost, setShippingCost] = useState("0")
   const [shipsFrom, setShipsFrom] = useState("")
   const [deliveryDays, setDeliveryDays] = useState("")
   const [freeShipping, setFreeShipping] = useState(false)
@@ -957,7 +958,6 @@ export function SupplierAddProductForm({
     setProcessingTime(patch.processingTime)
     setDeliveryMin(patch.deliveryMin)
     setDeliveryMax(patch.deliveryMax)
-    setShippingCost(patch.shippingCost)
     setSpecValues((prev) => ({ ...prev, ...patch.specValuesPatch }))
     if (patch.categoryId?.trim()) setCategoryId(patch.categoryId.trim())
     if (patch.sourceUrl?.trim()) setChinaSourceUrl(patch.sourceUrl.trim())
@@ -1089,8 +1089,6 @@ export function SupplierAddProductForm({
           ? (data.shippingCarrierIds as unknown[]).filter((x): x is string => typeof x === "string")
           : []
       )
-      const sc = data.shippingCost
-      setShippingCost(sc != null ? String(Number(sc)) : "0")
       setShipsFrom(typeof data.shipsFrom === "string" ? data.shipsFrom : "")
       const dd = data.deliveryDays
       setDeliveryDays(dd != null && Number.isFinite(Number(dd)) ? String(dd) : "")
@@ -1463,7 +1461,6 @@ export function SupplierAddProductForm({
         processingTime: Math.round(Number(processingTime) || 1),
         deliveryMin: Math.round(Number(deliveryMin) || 2),
         deliveryMax: Math.round(Number(deliveryMax) || 5),
-        shippingCostEUR: Number(shippingCost) || 0,
         shippingCarrierIds,
         shippingMethods: shippingMethodsFromCarrierIds(shippingCarrierIds),
         productAttributes,
@@ -1544,7 +1541,6 @@ export function SupplierAddProductForm({
       processingTime,
       deliveryMin,
       deliveryMax,
-      shippingCost,
       shipsFrom,
       deliveryDays,
       freeShipping,
@@ -1591,7 +1587,6 @@ export function SupplierAddProductForm({
       setProcessingTime(c.processingTime)
       setDeliveryMin(c.deliveryMin)
       setDeliveryMax(c.deliveryMax)
-      setShippingCost(c.shippingCost)
       setShipsFrom(c.shipsFrom)
       setDeliveryDays(c.deliveryDays)
       setFreeShipping(c.freeShipping)
@@ -2188,7 +2183,6 @@ export function SupplierAddProductForm({
         processingTime,
         deliveryMin,
         deliveryMax,
-        shippingCost,
         shipsFrom,
         deliveryDays,
         freeShipping,
@@ -2236,7 +2230,6 @@ export function SupplierAddProductForm({
     price,
     productIsDraft,
     processingTime,
-    shippingCost,
     shippingCountry,
     shipsFrom,
     specValues,
@@ -2933,8 +2926,6 @@ export function SupplierAddProductForm({
           ? Math.round(Number(processingTime))
           : null
       }
-      shippingCostEur={Number(shippingCost) || 0}
-      freeShipping={freeShipping}
       feeBps={simulationFeeBps}
       className="lg:top-24 lg:sticky"
     />
@@ -3535,6 +3526,7 @@ export function SupplierAddProductForm({
                           {tForm("variantSkuPriceHint")}
                         </p>
                       ) : null}
+                      <SupplierShippingIncludedNotice variant="hint" />
                       {priceError || hasPublishFieldError("price") ? (
                         <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">
                           {priceError ?? publishBlockers.find((b) => b.field === "price")?.message}
@@ -4069,7 +4061,7 @@ export function SupplierAddProductForm({
                         className="mt-1 h-4 w-4 rounded border-zinc-300 text-violet-600 focus:ring-violet-500 dark:border-zinc-600"
                       />
                       <Label htmlFor="m-free" className="font-normal leading-snug text-zinc-700 dark:text-zinc-300">
-                        Offer free shipping (shows in marketplace filters when enabled)
+                        {tShippingIncluded("badgeLabel")}
                       </Label>
                     </div>
                     <div className="flex items-start gap-3 rounded-2xl border border-amber-200/80 bg-gradient-to-br from-amber-50/90 to-white p-4 sm:col-span-2 dark:border-amber-900/50 dark:from-amber-950/30 dark:to-zinc-950">
@@ -4270,18 +4262,7 @@ export function SupplierAddProductForm({
                           onChange={(e) => setProcessingTime(e.target.value)}
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="ship-sc">Shipping cost (EUR)</Label>
-                        <Input
-                          id="ship-sc"
-                          type="number"
-                          min={0}
-                          step="0.01"
-                          className="mt-1.5"
-                          value={shippingCost}
-                          onChange={(e) => setShippingCost(e.target.value)}
-                        />
-                      </div>
+                      <SupplierShippingIncludedNotice className="sm:col-span-2" />
                       <div>
                         <Label htmlFor="ship-dmin">Delivery min (days)</Label>
                         <Input

@@ -85,10 +85,12 @@ describe("bulk import: compliance columns", () => {
 
   it("exposes the optional columns in the template, after the existing ones (old templates keep working)", () => {
     const keys = BULK_FIXED_COLUMNS.map((c) => c.key)
-    expect(keys.slice(0, 14)).toEqual([
+    expect(keys.slice(0, 13)).toEqual([
       "name", "description", "price_eur", "compare_at_eur", "stock", "commission_pct", "listing_kind", "images",
-      "shipping_country", "warehouse_type", "processing_time", "delivery_min", "delivery_max", "shipping_cost_eur",
+      "shipping_country", "warehouse_type", "processing_time", "delivery_min", "delivery_max",
     ])
+    // Buyers are never charged shipping: the template no longer offers a column for it.
+    expect(keys).not.toContain("shipping_cost_eur")
     for (const c of BULK_COMPLIANCE_COLUMNS) expect(keys).toContain(c.column)
   })
 
@@ -97,6 +99,15 @@ describe("bulk import: compliance columns", () => {
     expect(r.errors).toEqual([])
     expect(r.data).not.toBeNull()
     expect(r.warnings.some((w) => /manufacturer/i.test(w))).toBe(true)
+  })
+
+  it("a legacy shipping_cost_eur value is never stored, and the supplier is told why (zero stays silent)", () => {
+    const r = validateAndParseBulkRow(2, { ...row, shipping_cost_eur: "4,90" }, [])
+    expect(r.errors).toEqual([])
+    expect(r.data!.shippingBody).not.toHaveProperty("shippingCostEUR")
+    expect(r.warnings.some((w) => /shipping_cost_eur/.test(w))).toBe(true)
+    const zero = validateAndParseBulkRow(2, { ...row, shipping_cost_eur: "0" }, [])
+    expect(zero.warnings.some((w) => /shipping_cost_eur/.test(w))).toBe(false)
   })
 
   it("maps the columns to the reserved attribute keys (GTIN digits only, country upper-cased)", () => {

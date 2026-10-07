@@ -1468,7 +1468,8 @@
       "compareAtMustExceedShort": "Vergelijkingsprijs moet hoger zijn dan de prijs",
       "compareAtDiscountOverShort": "Korting op vergelijkingsprijs boven 70%",
       "catalogCapReached": "Cataloguslimiet bereikt. Upgrade naar Dominator voor een onbeperkte catalogus.",
-      "listingNotReady": "Productveiligheidsgegevens ontbreken (naam, adres, e-mail en land van de fabrikant; een EU-verantwoordelijke als de fabrikant buiten de EU is gevestigd)."
+      "listingNotReady": "Productveiligheidsgegevens ontbreken (naam, adres, e-mail en land van de fabrikant; een EU-verantwoordelijke als de fabrikant buiten de EU is gevestigd).",
+      "shippingCostIgnored": "shipping_cost_eur genegeerd: de koper betaalt geen verzendkosten, reken ze mee in uw prijs"
     },
     "wizard": {
       "backToMethods": "← Andere aanmaakmethoden",
@@ -2167,6 +2168,12 @@
       "feeHint": "Kies een exacte categorie om de Affisell-kosten te zien.",
       "footnote": "Excl. btw. Cataloguskanaal; de eigen marge van de wederverkoper komt erbovenop en raakt jou niet.",
       "enterPrice": "Vul een prijs in om te zien wat je ontvangt."
+    },
+    "shippingIncluded": {
+      "priceHint": "De koper betaalt geen verzendkosten bovenop deze prijs: reken uw leverkosten erin mee.",
+      "title": "Verzending is inbegrepen in uw prijs",
+      "body": "Affisell rekent de koper geen verzendkosten aan. U ontvangt uw prijs minus de commissie van de reseller en de Affisell-vergoeding, dus reken uw leverkosten in uw prijs mee.",
+      "badgeLabel": "Markeer «Gratis verzending» bij dit aanbod (badge en marktplaatsfilter). Verzending is hoe dan ook inbegrepen in uw prijs."
     }
   },
   "affiliate": {

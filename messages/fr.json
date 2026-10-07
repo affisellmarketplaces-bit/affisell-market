@@ -1468,7 +1468,8 @@
       "compareAtMustExceedShort": "Le prix barré doit dépasser le prix",
       "compareAtDiscountOverShort": "Réduction du prix barré supérieure à 70 %",
       "catalogCapReached": "Limite de catalogue atteinte. Passez Dominator pour un catalogue illimité.",
-      "listingNotReady": "Informations de sécurité produit manquantes (nom, adresse, e-mail et pays du fabricant ; un responsable UE si le fabricant est hors UE)."
+      "listingNotReady": "Informations de sécurité produit manquantes (nom, adresse, e-mail et pays du fabricant ; un responsable UE si le fabricant est hors UE).",
+      "shippingCostIgnored": "shipping_cost_eur ignoré : le port n'est pas facturé à l'acheteur, incluez-le dans votre prix"
     },
     "wizard": {
       "backToMethods": "← Autres méthodes de création",
@@ -2167,6 +2168,12 @@
       "feeHint": "Choisissez une catégorie précise pour voir les frais Affisell.",
       "footnote": "HT. Canal catalogue ; la marge propre du revendeur s'ajoute par-dessus et ne vous concerne pas.",
       "enterPrice": "Indiquez un prix pour voir ce que vous recevez."
+    },
+    "shippingIncluded": {
+      "priceHint": "L'acheteur ne paie aucun frais de port en plus de ce prix : intégrez-y votre coût de livraison.",
+      "title": "Le port est inclus dans votre prix",
+      "body": "Affisell ne facture pas de frais de port à l'acheteur. Vous recevez votre prix moins la commission du revendeur et les frais Affisell : intégrez donc votre coût de livraison dans votre prix.",
+      "badgeLabel": "Mettre en avant « Livraison offerte » sur cette annonce (badge et filtre du marketplace). Le port est de toute façon inclus dans votre prix."
     }
   },
   "affiliate": {

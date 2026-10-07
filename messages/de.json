@@ -1468,7 +1468,8 @@
       "compareAtMustExceedShort": "Vergleichspreis muss über dem Preis liegen",
       "compareAtDiscountOverShort": "Vergleichspreis-Rabatt über 70%",
       "catalogCapReached": "Kataloglimit erreicht. Upgrade auf Dominator für einen unbegrenzten Katalog.",
-      "listingNotReady": "Angaben zur Produktsicherheit fehlen (Name, Adresse, E-Mail und Land des Herstellers; ein EU-Verantwortlicher, wenn der Hersteller außerhalb der EU sitzt)."
+      "listingNotReady": "Angaben zur Produktsicherheit fehlen (Name, Adresse, E-Mail und Land des Herstellers; ein EU-Verantwortlicher, wenn der Hersteller außerhalb der EU sitzt).",
+      "shippingCostIgnored": "shipping_cost_eur ignoriert: Käufern werden keine Versandkosten berechnet, rechnen Sie sie in Ihren Preis ein"
     },
     "wizard": {
       "backToMethods": "← Andere Erstellungsmethoden",
@@ -2167,6 +2168,12 @@
       "feeHint": "Wählen Sie eine genaue Kategorie, um die Affisell-Gebühr zu sehen.",
       "footnote": "Netto, ohne MwSt. Katalogkanal; der Aufschlag des Wiederverkäufers kommt obendrauf und betrifft Sie nicht.",
       "enterPrice": "Geben Sie einen Preis ein, um Ihren Erlös zu sehen."
+    },
+    "shippingIncluded": {
+      "priceHint": "Käufer zahlen zusätzlich zu diesem Preis keine Versandkosten – rechnen Sie Ihre Lieferkosten in den Preis ein.",
+      "title": "Der Versand ist in Ihrem Preis enthalten",
+      "body": "Affisell berechnet Käufern keine Versandkosten. Sie erhalten Ihren Preis abzüglich der Reseller-Provision und der Affisell-Gebühr – kalkulieren Sie Ihre Lieferkosten daher in Ihren Preis ein.",
+      "badgeLabel": "„Kostenloser Versand“ bei diesem Angebot hervorheben (Badge und Marktplatz-Filter). Der Versand ist in jedem Fall in Ihrem Preis enthalten."
     }
   },
   "affiliate": {

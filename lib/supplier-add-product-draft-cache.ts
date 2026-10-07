@@ -55,7 +55,8 @@ export type SupplierAddProductCachePayload = {
   processingTime: string
   deliveryMin: string
   deliveryMax: string
-  shippingCost: string
+  /** Legacy: shipping is included in the price and no longer entered. Old drafts may carry it; it is ignored. */
+  shippingCost?: string
   shipsFrom: string
   deliveryDays: string
   freeShipping: boolean
