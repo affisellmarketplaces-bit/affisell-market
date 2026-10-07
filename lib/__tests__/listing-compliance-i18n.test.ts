@@ -22,6 +22,7 @@ describe("listing compliance — translations", () => {
     "components/supplier/supplier-compliance-profile-card.tsx",
     "components/supplier/guided-add-product-button.tsx",
     "components/supplier/supplier-add-product-form.tsx",
+    "components/products/wizard/WizardHub.tsx",
   ]
 
   it.each(FILES)("every static t(\"…\") key used by %s exists in the catalogue", (file) => {
@@ -29,7 +30,7 @@ describe("listing compliance — translations", () => {
     const tree = at(en as Tree, "supplier.compliance") as Tree
     const used = [...src.matchAll(/\b(?:t|tCompliance|tComp)\(\s*"([A-Za-z0-9_.]+)"/g)].map((m) => m[1]!)
     // Only the compliance translators: other `t(` calls of a big form belong to other namespaces.
-    const own = file.endsWith("supplier-add-product-form.tsx") || file.endsWith("guided-add-product-button.tsx")
+    const own = ["supplier-add-product-form.tsx", "guided-add-product-button.tsx", "WizardHub.tsx"].some((f) => file.endsWith(f))
       ? [...src.matchAll(/\btCompliance\(\s*"([A-Za-z0-9_.]+)"/g)].map((m) => m[1]!)
       : used
     const missing = own.filter((k) => at(tree, k) === undefined)

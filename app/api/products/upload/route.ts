@@ -2,6 +2,7 @@ import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
 import { NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { applyListingReadinessGate } from "@/lib/listing-compliance/gate.server"
 import { prisma } from "@/lib/prisma"
 import { isImageSniff, sniffUploadBytes } from "@/lib/upload-content-sniff"
 
@@ -31,6 +32,17 @@ export async function POST(request: NextRequest) {
   if (!session?.user?.id || session.user.role !== "SUPPLIER") {
     return NextResponse.json({ error: "Supplier session required" }, { status: 401 })
   }
+
+  // This quick-upload creates a LIVE physical product and has no way to declare the manufacturer: with
+  // LISTING_READINESS_MODE=enforce it is refused (422), in "warn" it only logs. Checked before anything is uploaded or written.
+  const readiness = applyListingReadinessGate({
+    source: "api_upload",
+    supplierId: session.user.id,
+    listingKind: "PHYSICAL",
+    attributes: [],
+    context: "new_publication",
+  })
+  if (readiness.blockResponse) return readiness.blockResponse
 
   const bucket = process.env.AWS_BUCKET_NAME?.trim()
   const region = process.env.AWS_REGION?.trim()

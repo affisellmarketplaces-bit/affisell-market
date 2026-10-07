@@ -12,6 +12,8 @@ export type WizardV2Draft = {
   descriptionIllustrationImages?: string[]
   /** AE / Express multi-SKU matrix — synced on create when hasVariants. */
   skuVariants?: { hasVariants: boolean; variants: ProductVariantInput[] } | null
+  /** Product-safety / identity rows (reserved attribute keys), as the classic form sends them. */
+  attributes?: Array<{ key: string; label: string; value: string }>
 }
 
 export function buildWizardV2PublishBody(
@@ -48,6 +50,9 @@ export function buildWizardV2PublishBody(
       u.startsWith("http")
     )
   }
+
+  const attributes = (draft.attributes ?? []).filter((a) => a.key && a.value.trim())
+  if (attributes.length > 0) body.productAttributes = attributes
 
   const sku = draft.skuVariants
   if (sku?.hasVariants && Array.isArray(sku.variants) && sku.variants.length > 1) {

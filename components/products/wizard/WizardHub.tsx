@@ -9,6 +9,9 @@ import { toast } from "sonner"
 import { BentoShell } from "@/components/affisell/bento-ui"
 import { CategoryAutosuggest } from "@/components/product/CategoryAutosuggest"
 import { SmartMarginAiPanel } from "@/components/supplier/smart-margin-ai-panel"
+import { ListingComplianceSection } from "@/components/supplier/listing-compliance/listing-compliance-section"
+import type { ReadinessIssue } from "@/lib/listing-compliance/evaluate"
+import { CANONICAL_LABELS, LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
 import { ProductLivePreview } from "@/components/supplier/product-live-preview"
 import type { BrowsePayload } from "@/components/supplier/supplier-category-picker"
 import { SupplierAddProductForm } from "@/components/supplier/supplier-add-product-form"
@@ -181,6 +184,11 @@ type ExpressTabProps = {
   openFullWizardPrefilled: () => void
   publish: () => void
   previewData: { name: string; description: string; price: number; imageUrl: string | null }
+  /** Product-identity + product-safety values keyed by attribute key (same record shape as the classic form). */
+  compliance: Record<string, string>
+  onComplianceChange: (key: string, value: string) => void
+  /** Set when the server refused the publication for missing safety data: opens the section and marks the fields. */
+  complianceIssues: ReadinessIssue[] | null
 }
 
 function WizardExpressTab(props: ExpressTabProps) {
@@ -220,7 +228,11 @@ function WizardExpressTab(props: ExpressTabProps) {
     openFullWizardPrefilled,
     publish,
     previewData,
+    compliance,
+    onComplianceChange,
+    complianceIssues,
   } = props
+  const tCompliance = useTranslations("supplier.compliance")
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,400px)_1fr] animate-in fade-in duration-200">
@@ -369,6 +381,28 @@ function WizardExpressTab(props: ExpressTabProps) {
             </div>
           ) : null}
 
+          <details
+            id="express-compliance"
+            className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800"
+            open={complianceIssues !== null ? true : undefined}
+          >
+            <summary className="cursor-pointer text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+              {tCompliance("sectionTitle")}
+            </summary>
+            <div className="mt-4">
+              <ListingComplianceSection
+                values={compliance}
+                onChange={onComplianceChange}
+                listingKind="PHYSICAL"
+                name={name}
+                mainImageUrl={images[0] ?? null}
+                showBrand
+                serverIssues={complianceIssues}
+                idPrefix="express"
+              />
+            </div>
+          </details>
+
           <Button
             type="button"
             size="lg"
@@ -436,6 +470,13 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
   const [publishing, setPublishing] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [commissionPct, setCommissionPct] = useState(15)
+  const [compliance, setCompliance] = useState<Record<string, string>>({})
+  const [complianceIssues, setComplianceIssues] = useState<ReadinessIssue[] | null>(null)
+  const tCompliance = useTranslations("supplier.compliance")
+  const onComplianceChange = useCallback((key: string, value: string) => {
+    setCompliance((prev) => ({ ...prev, [key]: value }))
+    setComplianceIssues((prev) => (prev ? prev.filter((i) => i.field !== key) : prev))
+  }, [])
   const lastStepRef = useRef(mode === "express" ? "express" : "pro")
 
   const setModeInUrl = useCallback(
@@ -819,6 +860,11 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
           commission: commissionPct,
           descriptionIllustrationImages: expressImportPatch?.illustrationImages,
           skuVariants,
+          attributes: LISTING_COMPLIANCE_KEYS.map((key) => ({
+            key,
+            label: CANONICAL_LABELS[key] ?? key,
+            value: (compliance[key] ?? "").trim(),
+          })).filter((a) => a.value.length > 0),
         },
         defaults
       )
@@ -829,7 +875,15 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
         credentials: "include",
         body: JSON.stringify(body),
       })
-      const data = (await res.json()) as { error?: string; id?: string }
+      const data = (await res.json()) as { error?: string; id?: string; issues?: unknown }
+      if (!res.ok && data.error === "listing_not_ready") {
+        // Product-safety data missing: open the section and mark the fields instead of showing a raw error code.
+        setComplianceIssues(Array.isArray(data.issues) ? (data.issues as ReadinessIssue[]) : [])
+        trackWizardV2PublishBlocked({ mode, reason: "listing_not_ready", field: "api" })
+        toast.error(tCompliance("notReadyToast"))
+        window.setTimeout(() => document.getElementById("express-compliance")?.scrollIntoView({ block: "center", behavior: "smooth" }), 50)
+        return
+      }
       if (!res.ok) throw new Error(data.error ?? "publish_failed")
 
       void fetch("/api/supplier/gamification/award-product", {
@@ -869,6 +923,8 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
     push,
     skuVariants,
     t,
+    tCompliance,
+    compliance,
     uploadBusy,
   ])
 
@@ -920,6 +976,9 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
               expressImportPatch={expressImportPatch}
               openFullWizardPrefilled={openFullWizardPrefilled}
               publish={() => void publish()}
+              compliance={compliance}
+              onComplianceChange={onComplianceChange}
+              complianceIssues={complianceIssues}
               previewData={previewData}
             />
           )}

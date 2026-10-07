@@ -10,7 +10,7 @@ import {
   type ReadinessDecision,
 } from "@/lib/listing-compliance/mode"
 
-export type ReadinessSource = "api_create" | "api_update" | "bulk_commit"
+export type ReadinessSource = "api_create" | "api_update" | "bulk_commit" | "api_upload"
 
 export type ReadinessGateArgs = {
   source: ReadinessSource

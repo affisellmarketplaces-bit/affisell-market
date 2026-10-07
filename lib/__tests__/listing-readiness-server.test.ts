@@ -139,3 +139,14 @@ describe("bulk import: compliance columns", () => {
     expect(validateAndParseBulkRow(2, row, []).warnings.some((w) => /manufacturer/i.test(w))).toBe(false)
   })
 })
+
+describe("quick-upload endpoint (a live physical product with no way to declare the manufacturer)", () => {
+  it("is observed in warn mode and refused in enforce mode, before anything is uploaded", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined)
+    const base = { source: "api_upload" as const, supplierId: "sup_1", listingKind: "PHYSICAL", attributes: [], context: "new_publication" as const }
+    expect(applyListingReadinessGate({ ...base, mode: "warn" }).blockResponse).toBeNull()
+    const refused = applyListingReadinessGate({ ...base, mode: "enforce" })
+    expect(refused.blockResponse?.status).toBe(422)
+    expect((await refused.blockResponse!.json()).error).toBe("listing_not_ready")
+  })
+})
