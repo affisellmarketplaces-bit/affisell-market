@@ -11,6 +11,7 @@ import { PrismaClient } from "@prisma/client"
 import { config as loadEnv } from "dotenv"
 
 import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 const root = resolve(import.meta.dirname, "..")
 for (const name of [".env.local", ".env"]) {
@@ -24,6 +25,7 @@ if (!databaseUrl) {
   throw new Error("[seed-social-proof] Missing DATABASE_URL in .env.local")
 }
 
+assertNotProductionByAccident("scripts/seed-social-proof-local.ts")
 const prisma = new PrismaClient({
   datasources: { db: { url: databaseUrl } },
 })

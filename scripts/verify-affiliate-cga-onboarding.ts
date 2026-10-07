@@ -10,6 +10,7 @@ config({ path: ".env" })
 
 import bcrypt from "bcryptjs"
 import { PrismaClient } from "@prisma/client"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 const EMAIL = "affiliate-test@affisell.com"
 const PASSWORD = "AffiliateTest!2026"
@@ -17,6 +18,7 @@ const EXPECTED_HASH =
   "bf914462fecc08479b9b677ba7b96c73f3b547113b730afee2d648a15fc399fd"
 const EXPECTED_VERSION_ID = "cmrdpn2ho001hthnpcbpxfqay"
 
+assertNotProductionByAccident("scripts/verify-affiliate-cga-onboarding.ts")
 const prisma = new PrismaClient()
 
 async function getCurrentVersionId(slug: string): Promise<string | null> {

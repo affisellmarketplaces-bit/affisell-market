@@ -10,10 +10,12 @@ import path from "node:path"
 
 import { config } from "dotenv"
 import { PrismaClient } from "@prisma/client"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 config({ path: ".env.local" })
 config({ path: ".env" })
 
+assertNotProductionByAccident("scripts/taxonomy-upsert-extensions.mjs")
 const prisma = new PrismaClient()
 const dryRun = process.argv.includes("--dry-run")
 const ROOT_PARENT = "__ROOT__"

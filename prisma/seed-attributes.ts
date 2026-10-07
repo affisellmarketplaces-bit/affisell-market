@@ -3,7 +3,9 @@
  * Run: npx tsx prisma/seed-attributes.ts
  */
 import { PrismaClient } from "@prisma/client"
+import { assertNotProductionByAccident } from "../scripts/lib/production-guard.mjs"
 
+assertNotProductionByAccident("prisma/seed-attributes.ts")
 const prisma = new PrismaClient()
 
 const SMARTPHONE_ATTRS = [

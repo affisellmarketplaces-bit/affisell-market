@@ -2,8 +2,10 @@
 // DRY-RUN by default. Writes ONLY with --apply. Never calls Stripe.
 // Fingerprint: taxCents > 0 AND totalCents <= subtotal(HT). Restores total = HT + VAT.
 import { PrismaClient } from "@prisma/client"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 const apply = process.argv.includes("--apply")
+if (apply) assertNotProductionByAccident("scripts/repair-order-totals.mjs")
 const p = new PrismaClient()
 
 const rows = await p.order.findMany({

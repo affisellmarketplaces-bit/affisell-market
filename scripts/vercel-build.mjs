@@ -1,325 +1,105 @@
 #!/usr/bin/env node
 /**
- * Vercel build helper (vercel.json: `node scripts/vercel-build.mjs`).
- * Always attempts `prisma migrate deploy` when DATABASE_URL is set (warn-only on failure).
- * Backup: GET /api/cron/migrate daily 04:00 UTC. Health: GET /api/health/migrations.
+ * Vercel build (vercel.json: `node scripts/vercel-build.mjs`).
+ *
+ *   1. prisma generate                                        no database
+ *   2. SCHEMA VERIFY  node scripts/schema-deploy.mjs verify   HARD FAIL; READ-ONLY (the database session itself refuses writes):
+ *                                                             the schema must already be migrated and proven in the catalog
+ *   3. check:client-prisma
+ *   4. APPLICATION BUILD   npm run build                      never writes to PostgreSQL (lib/build-write-guard.ts)
+ *
+ * The build NEVER migrates. Migrating is a separate step that runs BEFORE the push, on purpose, with an explicit target:
+ *     DATABASE_URL='<url>' npm run schema:migrate -- --expect-endpoint <ep>      then      git push
+ * A schema that is not migrated makes step 2 fail (exit 5): no application build, hence no deployment. `BUILD_RUN_MIGRATIONS`
+ * (which used to turn this build into a migration) is gone — not read here, not set in vercel.json — and `schema:migrate` itself
+ * refuses to run in any Vercel context, so re-adding it to the plan below would only produce a refusal.
+ *
+ * What this script no longer does, and why (docs/DEPLOY-SCHEMA-CHANGES.md): it read `.env*` files with `override: true`, ran
+ * `db:unlock` (terminated any session holding an advisory lock — payment transactions included), ran prisma/deploy-repair.sql
+ * (DDL) and prisma/fix-p3009-migrations.sql (recorded a FAILED migration as applied), turned a failed `migrate deploy` into a
+ * warning so the build — and the deployment — went on, and (until S1.6.1) could itself run `migrate deploy`.
+ *
+ * Pure planning functions are exported for tests; the commands only run when this file is executed directly.
  */
-import { execSync } from "node:child_process"
-import { existsSync } from "node:fs"
-import { readdirSync } from "node:fs"
-import { join, resolve } from "node:path"
-import { setTimeout } from "node:timers/promises"
-import { config as loadEnv } from "dotenv"
-import { ensureDirectUrl } from "./ensure-direct-url.mjs"
+import { spawnSync } from "node:child_process"
+import { resolve } from "node:path"
+import { fileURLToPath } from "node:url"
 
-const root = process.cwd()
-for (const name of [".env.pre-local-merge.bak", ".env", ".env.local"]) {
-  const path = resolve(root, name)
-  if (existsSync(path)) loadEnv({ path, override: true })
-}
+import { hasDeveloperEnvFiles } from "./build-isolated.mjs"
 
-const MIGRATION_DIR = join(process.cwd(), "prisma/migrations")
-const RETRY_DELAYS_MS = [3_000, 5_000, 8_000, 12_000, 15_000, 20_000]
-
-function run(command, options = {}) {
-  console.log(`\n> ${command}`)
-  try {
-    return execSync(command, { stdio: "inherit", env: process.env, ...options })
-  } catch (error) {
-    const err = error
-    const stderr = err?.stderr?.toString?.() ?? ""
-    const stdout = err?.stdout?.toString?.() ?? ""
-    console.error(`\n✗ Command failed: ${command}`)
-    if (stdout.trim()) console.error(stdout.trim())
-    if (stderr.trim()) console.error(stderr.trim())
-    if (err instanceof Error && err.message) console.error(err.message)
-    process.exit(err?.status ?? 1)
+/**
+ * @typedef {{ name: string, command: string }} Step
+ * @param {Record<string, string | undefined>} env
+ * @param {{ developerMachine: boolean }} options
+ * @returns {{ refused?: string, steps: Step[] }}
+ */
+export function planVercelBuild(env, { developerMachine }) {
+  if (env.VERCEL !== "1") {
+    return {
+      refused: "not a Vercel build (VERCEL is not 1). Locally: `npm run schema:migrate -- --expect-endpoint <ep>` then `npm run build`.",
+      steps: [],
+    }
+  }
+  if (developerMachine) {
+    return {
+      refused:
+        "VERCEL=1 on a developer machine (secret .env files present): `vercel build` run locally is not a Vercel builder. " +
+        "Push to git and let Vercel build, or use `npm run schema:migrate` / `npm run build` on purpose.",
+      steps: [],
+    }
+  }
+  return {
+    steps: [
+      { name: "prisma generate", command: "npx prisma generate" },
+      { name: "schema verify", command: "node scripts/schema-deploy.mjs verify" },
+      { name: "check:client-prisma", command: "npm run check:client-prisma" },
+      { name: "application build", command: "npm run build" },
+    ],
   }
 }
 
 /**
- * Best-effort command: retries transient DB errors (Neon cold start, network blip), then warns and
- * continues. Never fails the build — for optional housekeeping such as releasing stuck migration locks.
+ * Runs the steps in order and STOPS at the first failure: later steps never run.
+ * @param {Step[]} steps
+ * @param {(step: Step) => number} run exit code of a step
+ * @returns {{ code: number, failed?: Step, ran: string[] }}
  */
-async function runWarnOnly(command, label = command) {
-  console.log(`\n> ${command} (warn-only)`)
-  const maxAttempts = RETRY_DELAYS_MS.length + 1
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      const out = execSync(command, { encoding: "utf8", env: process.env, stdio: ["ignore", "pipe", "pipe"] })
-      if (out.trim()) console.log(out.trim())
-      console.log(`✓ ${label}`)
-      return true
-    } catch (error) {
-      const output = `${error?.stdout?.toString?.() ?? ""}\n${error?.stderr?.toString?.() ?? ""}`.trim()
-      if (isTransientDbError(output) && attempt < maxAttempts) {
-        const wait = RETRY_DELAYS_MS[attempt - 1] ?? 10_000
-        console.log(`\n⚠ ${label}: DB unreachable, retry ${attempt}/${maxAttempts - 1} in ${wait / 1000}s…`)
-        await setTimeout(wait)
-        continue
-      }
-      console.warn(`\n⚠ ${label} failed — continuing build`)
-      if (output) console.warn(output)
-      return false
-    }
+export function runSteps(steps, run) {
+  const ran = []
+  for (const step of steps) {
+    ran.push(step.name)
+    const code = run(step)
+    if (code !== 0) return { code, failed: step, ran }
   }
-  return false
+  return { code: 0, ran }
 }
 
-function maskUrl(url) {
-  if (!url?.trim()) return "(unset)"
-  try {
-    const parsed = new URL(url)
-    if (parsed.password) parsed.password = "***"
-    return `${parsed.hostname}${parsed.pathname}${parsed.search ? "?…" : ""}`
-  } catch {
-    return "(invalid)"
-  }
-}
-
-function isTransientDbError(output) {
-  return /P1001|P1002|P1017|Can't reach database server|connection timed out|ECONNREFUSED|ENOTFOUND/i.test(
-    output
-  )
-}
-
-function execPrismaOnce(args) {
-  const cmd = `npx prisma ${args}`
-  try {
-    const stdout = execSync(cmd, {
-      encoding: "utf8",
-      env: process.env,
-      stdio: ["ignore", "pipe", "pipe"],
-    })
-    return { ok: true, output: stdout.trim() }
-  } catch (error) {
-    const err = error
-    const stdout = err?.stdout?.toString?.() ?? ""
-    const stderr = err?.stderr?.toString?.() ?? ""
-    return { ok: false, output: `${stdout}\n${stderr}`.trim(), code: err?.status }
-  }
-}
-
-async function execPrisma(args, label = args) {
-  const maxAttempts = RETRY_DELAYS_MS.length + 1
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const result = execPrismaOnce(args)
-    if (result.ok || !isTransientDbError(result.output)) {
-      return result
-    }
-    if (attempt >= maxAttempts) {
-      return result
-    }
-    const wait = RETRY_DELAYS_MS[attempt - 1] ?? 10_000
-    console.log(
-      `\n⚠ ${label}: DB unreachable (P1001/transient), retry ${attempt}/${maxAttempts - 1} in ${wait / 1000}s…`
-    )
-    await setTimeout(wait)
-  }
-  return { ok: false, output: "retry exhausted" }
-}
-
-function listLocalMigrationNames() {
-  return readdirSync(MIGRATION_DIR, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .filter((name) => /^\d{14}_/.test(name))
-    .sort()
-}
-
-function parseFailedMigrationNames(text) {
-  const names = new Set()
-  if (!text) return []
-
-  const failedBlock = text.match(
-    /following migration\(s\) have failed:\s*([\s\S]*?)(?:\n\n|To fix|Run|$)/i
-  )
-  if (failedBlock?.[1]) {
-    for (const line of failedBlock[1].split("\n")) {
-      const match = line.trim().match(/^(\d{14}_[a-z0-9_]+)/i)
-      if (match) names.add(match[1])
-    }
+function main() {
+  const env = process.env
+  const plan = planVercelBuild(env, { developerMachine: hasDeveloperEnvFiles(process.cwd()) })
+  if (plan.refused) {
+    console.error(`✗ [vercel-build] REFUSED: ${plan.refused}`)
+    return 2
   }
 
-  for (const match of text.matchAll(/`(\d{14}_[a-z0-9_]+)` migration/gi)) {
-    names.add(match[1])
+  if (!`${env.NODE_OPTIONS ?? ""}`.includes("max-old-space-size")) {
+    env.NODE_OPTIONS = `${env.NODE_OPTIONS ?? ""} --max-old-space-size=6144`.trim()
   }
-
-  return [...names]
-}
-
-function parsePendingMigrationNames(text) {
-  if (!text || /database schema is up to date/i.test(text)) return []
-
-  const names = new Set()
-  const pendingBlock = text.match(
-    /following migrations have not yet been applied:\s*([\s\S]*?)(?:\n\n|To apply|$)/i
-  )
-  if (pendingBlock?.[1]) {
-    for (const line of pendingBlock[1].split("\n")) {
-      const match = line.trim().match(/^(\d{14}_[a-z0-9_]+)/i)
-      if (match) names.add(match[1])
-    }
-  }
-
-  return [...names]
-}
-
-async function countPendingMigrations() {
-  const status = await execPrisma("migrate status", "migrate status pending count")
-  return parsePendingMigrationNames(status.output).length
-}
-
-async function resolveFailedMigrations(names) {
-  for (const name of names) {
-    console.log(`\n> npx prisma migrate resolve --applied ${name}`)
-    const result = await execPrisma(`migrate resolve --applied ${name}`, `resolve ${name}`)
-    if (result.ok) {
-      console.log(`✓ ${name}`)
-      continue
-    }
-    if (/P3008/i.test(result.output)) {
-      console.log(`  (${name} already applied)`)
-      continue
-    }
-    console.log(`  (resolve note: ${(result.output.split("\n").find(Boolean) ?? "skipped").slice(0, 120)})`)
-  }
-}
-
-async function execSqlFile(relativePath, label) {
-  console.log(`\n> ${label}`)
-  const result = await execPrisma(
-    `db execute --file ${relativePath} --schema prisma/schema.prisma`,
-    label
-  )
-  if (result.ok) {
-    console.log(`✓ ${label}`)
-    return true
-  }
-  if (isTransientDbError(result.output)) {
-    console.error(`✗ ${label} — database unreachable after retries`)
-    if (result.output) console.log(result.output)
-    return false
-  }
-  console.log(`⚠ ${label} (continuing)`)
-  if (result.output) console.log(result.output)
-  return false
-}
-
-async function healMigrationHistory() {
-  await execSqlFile("prisma/deploy-repair.sql", "deploy-repair.sql (schema)")
-  await execSqlFile("prisma/fix-p3009-migrations.sql", "fix-p3009-migrations.sql (clear failed rows)")
-
-  const status = await execPrisma("migrate status", "migrate status")
-  const failed = parseFailedMigrationNames(status.output)
-  if (failed.length > 0) {
-    console.log(`\nPrisma still reports failed: ${failed.join(", ")}`)
-    await resolveFailedMigrations(failed)
-    await execSqlFile("prisma/fix-p3009-migrations.sql", "fix-p3009-migrations.sql (retry)")
-  }
-}
-
-async function runMigrations() {
-  console.log("\n[vercel-build] Running migrate deploy (warn-only on failure)")
-  if (process.env.BUILD_RUN_MIGRATIONS === "1") {
-    console.log("[vercel-build] BUILD_RUN_MIGRATIONS=1")
-  }
-
-  await runWarnOnly("npm run db:unlock", "db:unlock (release stuck migration locks)")
-
-  await healMigrationHistory()
-
-  const localMigrations = listLocalMigrationNames()
-  console.log(`\nLocal migrations: ${localMigrations.length} in prisma/migrations/`)
-
-  const pendingBefore = await countPendingMigrations()
-
-  console.log("\n> npx prisma migrate deploy")
-  let deploy = await execPrisma("migrate deploy", "migrate deploy")
-  if (deploy.output) console.log(deploy.output)
-
-  if (!deploy.ok) {
-    if (/P3009/i.test(deploy.output)) {
-      console.log("\nP3009 after heal — running second repair cycle")
-      await healMigrationHistory()
-      deploy = await execPrisma("migrate deploy", "migrate deploy retry")
-      if (deploy.output) console.log(deploy.output)
-    }
-    if (!deploy.ok) {
-      console.warn("\n⚠ migrate deploy failed — continuing build (cron backup: GET /api/cron/migrate)")
-      if (isTransientDbError(deploy.output)) {
-        console.warn(
-          [
-            "Neon P1001 checklist:",
-            "  1. Wake project in Neon console (compute may be suspended)",
-            "  2. Vercel env: DATABASE_URL (pooler) + DATABASE_URL_UNPOOLED (direct host, no -pooler)",
-            "  3. sslmode=require on both URLs",
-            "  4. Cron backup at 04:00 UTC or manual GET /api/cron/migrate",
-          ].join("\n")
-        )
-      }
-      if (deploy.output) console.warn(deploy.output)
-      const pendingAfterFail = await countPendingMigrations()
-      console.log(`[vercel-build] Migrations: deployed 0 pending (${pendingAfterFail} still pending)`)
-      return
-    }
-  }
-
-  const pendingAfter = await countPendingMigrations()
-  const deployedCount = Math.max(0, pendingBefore - pendingAfter)
-  console.log(`[vercel-build] Migrations: deployed ${deployedCount} pending`)
-
-  const status = await execPrisma("migrate status", "migrate status final")
-  if (status.output.includes("Database schema is up to date")) {
-    console.log("\n✓ Prisma migrations: up to date")
-    return
-  }
-
-  const failed = parseFailedMigrationNames(status.output)
-  if (failed.length > 0) {
-    console.warn("\n⚠ Failed migrations remain after deploy (build continues):")
-    console.warn(status.output)
-    return
-  }
-
-  if (pendingAfter > 0) {
-    console.warn(`\n⚠ ${pendingAfter} migration(s) still pending after deploy`)
-    if (status.output) console.warn(status.output)
-    return
-  }
-
-  console.log(status.output || "\n✓ migrate deploy completed")
-}
-
-async function main() {
-  if (process.env.VERCEL === "1" && !`${process.env.NODE_OPTIONS ?? ""}`.includes("max-old-space-size")) {
-    process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS ?? ""} --max-old-space-size=6144`.trim()
-  }
-
-  ensureDirectUrl()
-  if (process.env.DATABASE_URL?.trim()) {
-    console.log("[vercel-build] DATABASE_URL host:", maskUrl(process.env.DATABASE_URL))
-    console.log(
-      "[vercel-build] DATABASE_URL_UNPOOLED host:",
-      maskUrl(process.env.DATABASE_URL_UNPOOLED ?? process.env.DIRECT_URL)
-    )
-  }
-
   console.log("BUILD_START")
-  run("npx prisma generate")
-  if (process.env.DATABASE_URL?.trim()) {
-    await runMigrations()
-  } else {
-    console.log("[vercel-build] DATABASE_URL unset — skip migrate (generate + next build only)")
+  const result = runSteps(plan.steps, (step) => {
+    console.log(`\n> [${step.name}] ${step.command}`)
+    // A spawn failure (status null) is a failure too.
+    return spawnSync(step.command, { shell: true, stdio: "inherit", env }).status ?? 1
+  })
+  if (result.code !== 0) {
+    console.error(`\n✗ Vercel build STOPPED at "${result.failed?.name}" (exit ${result.code}). Nothing after it ran: no application build, no deployment.`)
+    return result.code
   }
-  run("npm run check:client-prisma")
-  run("npm run build")
   console.log("\nNext.js build completed")
   console.log("✓ Vercel build completed successfully.")
+  return 0
 }
 
-main().catch((error) => {
-  console.error("\n✗ Vercel build failed (uncaught).")
-  if (error instanceof Error && error.message) console.error(error.message)
-  process.exit(1)
-})
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+  process.exit(main())
+}

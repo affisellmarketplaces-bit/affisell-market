@@ -3,7 +3,9 @@
  * Usage: npx tsx scripts/legion-ensure-demo-profiles.ts
  */
 import { PrismaClient } from "@prisma/client"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
+assertNotProductionByAccident("scripts/legion-ensure-demo-profiles.ts")
 const prisma = new PrismaClient()
 
 async function ensureUser(email: string, name: string) {

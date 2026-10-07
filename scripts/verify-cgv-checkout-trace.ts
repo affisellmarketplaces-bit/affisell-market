@@ -10,11 +10,13 @@ config({ path: ".env.local" })
 config({ path: ".env" })
 
 import { PrismaClient } from "@prisma/client"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 const EXPECTED_CGV_VERSION_ID = "cmrdpmy3m000jthnpnq2ox0em"
 const EXPECTED_CGV_HASH =
   "652b0e845c7153c225e95cdfb0532de95a4026607b3ff382a4803fca150e43b4"
 
+assertNotProductionByAccident("scripts/verify-cgv-checkout-trace.ts")
 const prisma = new PrismaClient()
 
 async function attachCgvTrace(args: {

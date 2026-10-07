@@ -8,6 +8,7 @@ import { resolve } from "node:path"
 
 import { PrismaClient } from "@prisma/client"
 import { config as loadEnv } from "dotenv"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 const root = resolve(import.meta.dirname, "..")
 for (const name of [".env.local", ".env"]) {
@@ -21,6 +22,7 @@ if (!databaseUrl) {
   throw new Error("[ensure-seo-parasite] Missing DATABASE_URL in .env.local")
 }
 
+assertNotProductionByAccident("scripts/ensure-seo-parasite-fixture.ts")
 const prisma = new PrismaClient({
   datasources: { db: { url: databaseUrl } },
 })

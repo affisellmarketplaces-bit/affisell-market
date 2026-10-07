@@ -17,6 +17,7 @@ import {
   buildMockWinnersForCountry,
 } from "../lib/radar/world-mock-catalog"
 import { WORLD_RADAR_CACHE_TTL_MS } from "../lib/radar/world-radar-types"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 const root = resolve(import.meta.dirname, "..")
 for (const name of [".env.pre-local-merge.bak", ".env", ".env.local"]) {
@@ -111,6 +112,7 @@ function createRadarDb(url: string): RadarDb {
       log?: Array<"error" | "warn">
     }) => RadarDb
   }
+  assertNotProductionByAccident("scripts/seed-world-radar.ts")
   return new PrismaClient({
     datasources: { db: { url } },
     log: ["error", "warn"],

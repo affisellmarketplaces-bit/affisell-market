@@ -11,10 +11,12 @@ import PQueue from "p-queue"
 import { PrismaClient } from "@prisma/client"
 
 import { autoCategorizeProduct } from "../lib/product-auto-categorize"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 config({ path: ".env.local" })
 config({ path: ".env" })
 
+assertNotProductionByAccident("scripts/reclassify-products.ts")
 const prisma = new PrismaClient()
 const MS_DAY = 86_400_000
 

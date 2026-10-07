@@ -8,7 +8,7 @@ import {
 } from "@/lib/security/human-pass"
 import { HumanoidShield } from "@/lib/security/humanoid-shield"
 
-process.env.AUTH_SECRET = process.env.AUTH_SECRET ?? "vitest-human-pass-secret"
+process.env.AUTH_SECRET = process.env.AUTH_SECRET || "vitest-human-pass-secret" // `||`: the test setup leaves keys of .env defined-but-empty
 
 function mockReq(
   path: string,

@@ -3,7 +3,9 @@ import path from "path"
 
 import { PrismaClient } from "@prisma/client"
 import { hash } from "bcryptjs"
+import { assertNotProductionByAccident } from "../scripts/lib/production-guard.mjs"
 
+assertNotProductionByAccident("prisma/seed.ts")
 const prisma = new PrismaClient()
 
 async function seedGoogleTaxonomy() {

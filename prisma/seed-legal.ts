@@ -10,10 +10,12 @@ import path from "node:path"
 
 import { config } from "dotenv"
 import { LegalDocumentType, PrismaClient } from "@prisma/client"
+import { assertNotProductionByAccident } from "../scripts/lib/production-guard.mjs"
 
 config({ path: ".env.local" })
 config({ path: ".env" })
 
+assertNotProductionByAccident("prisma/seed-legal.ts")
 const prisma = new PrismaClient()
 
 const LOCALES = ["fr", "en", "de", "es", "it", "nl", "pl", "zh"] as const

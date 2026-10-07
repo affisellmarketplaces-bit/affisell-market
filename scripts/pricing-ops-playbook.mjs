@@ -60,12 +60,12 @@ if (cronSecret) {
   console.log("\n  curl -fsS -H \"Authorization: Bearer $CRON_SECRET\" \\")
   console.log(`    "${base}/api/cron/migrate"`)
 } else {
-  console.log("\n  npx prisma migrate deploy   # with prod DATABASE_URL")
+  console.log("\n  DATABASE_URL='<prod url>' npm run schema:migrate -- --expect-endpoint <ep-id> --confirm-production   # never a bare `prisma migrate deploy`: it targets the default (.env.local) database")
 }
 
 console.log("\n── Crons (GitHub Actions daily 09:00 UTC) ──")
 console.log("  • GET /api/cron/adjust-variant-pricing  — AI ±5% on pricingAutoAdjust listings")
-console.log("  • GET /api/cron/migrate                 — schema deploy")
+console.log("  • GET /api/cron/migrate                 — schema status (read-only diagnostic since S1.6)")
 if (cronSecret) {
   console.log("\n  curl -fsS -H \"Authorization: Bearer $CRON_SECRET\" \\")
   console.log(`    "${base}/api/cron/adjust-variant-pricing"`)

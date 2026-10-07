@@ -6,6 +6,7 @@ if (typeof window !== "undefined") {
 
 import { Prisma, PrismaClient } from "@prisma/client"
 
+import { withBuildWriteGuard } from "@/lib/build-write-guard"
 import {
   isRetryablePrismaConnectionError,
   prismaErrorCode,
@@ -153,7 +154,7 @@ async function executeWithReconnect({
   throw lastError
 }
 
-function createPrismaClient(baseFactory: () => PrismaClient): PrismaClient {
+function createPrismaClient(baseFactory: () => PrismaClient, databaseUrl?: string): PrismaClient {
   const base = baseFactory()
   const extended = base.$extends({
     name: "affisell-reconnect",
@@ -186,7 +187,10 @@ function createPrismaClient(baseFactory: () => PrismaClient): PrismaClient {
       },
     },
   })
-  return extended as unknown as PrismaClient
+  // Outermost extension: `next build` must never write (see lib/build-write-guard.ts), and a developer machine must not write to the
+  // PRODUCTION database by accident (lib/developer-production-guard.ts — it needs the URL this client was created with). A refused
+  // write never reaches the reconnect / retry / circuit-breaker logic above, nor the engine.
+  return withBuildWriteGuard(extended, { databaseUrl }) as unknown as PrismaClient
 }
 
 function assertPrismaServerOnly(): void {
@@ -265,7 +269,7 @@ function getPrismaSingleton(): PrismaClient {
     void cached.$disconnect().catch(() => {})
   }
 
-  const client = createPrismaClient(createDefaultBasePrismaClient)
+  const client = createPrismaClient(createDefaultBasePrismaClient, url)
   globalForPrisma.__affisellPrisma = client
   return client
 }
@@ -288,7 +292,7 @@ function getFulfillmentPrismaSingleton(): PrismaClient {
   }
 
   globalForPrisma.__affisellFulfillmentPrismaUrl = directUrl
-  const client = createPrismaClient(() => createBasePrismaClient(directUrl, "fulfillment"))
+  const client = createPrismaClient(() => createBasePrismaClient(directUrl, "fulfillment"), directUrl)
   globalForPrisma.__affisellFulfillmentPrisma = client
   return client
 }

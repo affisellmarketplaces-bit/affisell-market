@@ -12,6 +12,7 @@
 import "dotenv/config"
 
 import { Prisma, PrismaClient } from "@prisma/client"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 /** Map DB JSON nulls to Prisma input (read rows use `JsonValue` with `null`). */
 function jsonOrNull(v: Prisma.JsonValue | null | undefined): Prisma.InputJsonValue | typeof Prisma.JsonNull | undefined {
@@ -112,6 +113,7 @@ async function main() {
   const dbUrl = requireEnv("DATABASE_URL", localUrl)
   const prodDbUrl = requireEnv("PROD_DB", prodUrl)
 
+  assertNotProductionByAccident("scripts/copy-to-prod.ts", { urlVariables: ["DATABASE_URL", "PROD_DB"] })
   const localDb = new PrismaClient({
     datasources: { db: { url: dbUrl } },
     log: ["warn", "error"],

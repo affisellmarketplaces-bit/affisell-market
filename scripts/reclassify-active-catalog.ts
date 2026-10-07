@@ -9,10 +9,12 @@ import { resolve } from "node:path"
 import { PrismaClient } from "@prisma/client"
 
 import { autoCategorizeProduct } from "@/lib/product-auto-categorize"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 config({ path: resolve(process.cwd(), ".env.local") })
 config({ path: resolve(process.cwd(), ".env") })
 
+assertNotProductionByAccident("scripts/reclassify-active-catalog.ts")
 const prisma = new PrismaClient()
 
 async function main() {

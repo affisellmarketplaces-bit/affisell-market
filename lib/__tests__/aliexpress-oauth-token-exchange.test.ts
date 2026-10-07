@@ -6,6 +6,18 @@ import {
   extractAliExpressTokenPayload,
   resolveAliExpressOAuthRedirectUri,
 } from "@/lib/aliexpress-oauth-token-exchange"
+import { saveAliExpressTokens } from "@/lib/aliexpress-token-store"
+
+/**
+ * HERMETIC on purpose. A successful exchange PERSISTS the tokens (`saveAliExpressTokens` → PlatformOAuthCredential). This test used to
+ * run that for real: on a developer machine `@prisma/client` loaded `.env` (production DATABASE_URL + ENCRYPTION_KEY) and the fake
+ * `access_iop` / `refresh_iop` tokens were written into the PRODUCTION database. The token store is replaced here, so this test cannot
+ * write anywhere whatever the environment looks like (vitest-env/no-real-datastores.ts and the developer-production guard are the
+ * other two layers; lib/__tests__/vitest-env-isolation.test.ts pins the real store's behaviour).
+ */
+vi.mock("@/lib/aliexpress-token-store", () => ({
+  saveAliExpressTokens: vi.fn(async () => ({ ok: true as const })),
+}))
 
 describe("aliexpress-oauth-token-exchange", () => {
   afterEach(() => {
@@ -58,6 +70,9 @@ describe("aliexpress-oauth-token-exchange", () => {
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.tokens.access_token).toBe("access_iop")
+    // The persistence was attempted — against the stand-in, never a database.
+    expect(saveAliExpressTokens).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(saveAliExpressTokens).mock.calls[0]![0]).toMatchObject({ accessToken: "access_iop", refreshToken: "refresh_iop" })
     const firstUrl = String(fetchMock.mock.calls[0]?.[0] ?? "")
     expect(firstUrl).toContain("/rest/auth/token/create?")
     expect(firstUrl).not.toContain("+")

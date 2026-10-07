@@ -14,6 +14,7 @@ import Stripe from "stripe"
 
 import { computeTransferAmountsFromOrder } from "../lib/marketplace-split-amounts"
 import { computeMarketplaceOrderSettlement } from "../lib/marketplace-order-settlement"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 const SUPPLIER_ACCOUNT_ID = "acct_1TaaA6FXp6SP9lqY"
 const CHECKOUT_SUCCESS_URL =
@@ -32,6 +33,7 @@ function requireStripeKey(): string {
   return key
 }
 
+assertNotProductionByAccident("scripts/create-test-order-three-way.ts")
 const prisma = new PrismaClient()
 
 const SUPPLIER_PRICE_CENTS = 9_000

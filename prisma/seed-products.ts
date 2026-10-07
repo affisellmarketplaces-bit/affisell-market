@@ -9,10 +9,12 @@ import { createHash } from "node:crypto"
 
 import { config } from "dotenv"
 import { PrismaClient } from "@prisma/client"
+import { assertNotProductionByAccident } from "../scripts/lib/production-guard.mjs"
 
 config({ path: ".env.local" })
 config({ path: ".env" })
 
+assertNotProductionByAccident("prisma/seed-products.ts")
 const prisma = new PrismaClient()
 
 const SUPPLIER_SLUG = "boutique-affisell"

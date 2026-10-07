@@ -7,7 +7,6 @@
   },
   "build": {
     "env": {
-      "BUILD_RUN_MIGRATIONS": "1",
       "PRISMA_SKIP_POSTINSTALL_GENERATE": "false"
     }
   },

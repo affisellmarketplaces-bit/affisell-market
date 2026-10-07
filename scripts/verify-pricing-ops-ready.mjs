@@ -123,7 +123,7 @@ if (existsSync(workflowPath)) {
   if (wf.includes("/api/cron/adjust-variant-pricing")) ok("GitHub daily cron → adjust-variant-pricing")
   else fail("scheduled-crons.yml", "Add /api/cron/adjust-variant-pricing to daily job")
   if (wf.includes("/api/cron/migrate")) ok("GitHub daily cron → migrate")
-  else warn("scheduled-crons migrate", "Daily /api/cron/migrate recommended for prod schema")
+  else warn("scheduled-crons migrate", "Daily /api/cron/migrate (read-only schema diagnostic) recommended")
 } else {
   fail("scheduled-crons.yml", "Missing")
 }
@@ -185,7 +185,7 @@ if (process.env.DATABASE_URL?.trim()) {
   } else if (out.includes("following migration") || out.includes("not yet been applied")) {
     warn(
       "DATABASE_URL migrations",
-      "Pending migrations — run: npx prisma migrate deploy OR GET /api/cron/migrate"
+      "Pending migrations — run: DATABASE_URL=<url> npm run schema:migrate -- --expect-endpoint <ep-id> (GET /api/cron/migrate only reports; it applies nothing)"
     )
   } else if (status.status !== 0) {
     warn("DATABASE_URL migrate status", `Could not verify (${status.status ?? "?"})`)

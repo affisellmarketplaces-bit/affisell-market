@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client'
+import { assertNotProductionByAccident } from "../scripts/lib/production-guard.mjs"
+assertNotProductionByAccident("prisma/seed-slow-cooker.ts")
 const prisma = new PrismaClient()
 
 async function main() {

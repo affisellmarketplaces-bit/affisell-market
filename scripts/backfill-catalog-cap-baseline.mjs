@@ -13,12 +13,14 @@
  *   DATABASE_URL=$DATABASE_URL_STAGING node scripts/backfill-catalog-cap-baseline.mjs --apply
  */
 import { loadEnv } from "../lib/env.loader.mjs"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 loadEnv()
 
 const apply = process.argv.includes("--apply")
 
 const { PrismaClient } = await import("@prisma/client")
+assertNotProductionByAccident("scripts/backfill-catalog-cap-baseline.mjs")
 const prisma = new PrismaClient()
 
 const suppliers = await prisma.user.findMany({

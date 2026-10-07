@@ -7,10 +7,12 @@ import { config } from "dotenv"
 import { resolve } from "node:path"
 
 import { PrismaClient } from "@prisma/client"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 config({ path: resolve(process.cwd(), ".env.local") })
 config({ path: resolve(process.cwd(), ".env") })
 
+assertNotProductionByAccident("scripts/fix-category-suggestions.ts")
 const prisma = new PrismaClient()
 
 async function main() {

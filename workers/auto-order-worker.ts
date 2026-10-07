@@ -12,10 +12,14 @@ import { createAutoBuyWorker } from "@/lib/fulfillment/bullmq/auto-buy.queue"
 import { createOrderPaidWorker } from "@/lib/fulfillment/order-paid-queue"
 import { MAX_DAILY_ORDERS, MAX_ORDER_VALUE_EUR } from "@/lib/fulfillment/auto-buy"
 import { getRedisUrl } from "@/lib/auto-order/redis"
+import { assertNotProductionByAccident } from "../scripts/lib/production-guard.mjs"
 
 const DRY_RUN = process.env.AE_DRY_RUN === "true"
 
 async function main() {
+  // Started from a laptop whose .env points at the production database / the shared Redis, this worker would CONSUME the production
+  // queues and place real supplier orders. Refuse, unless the endpoints were named explicitly.
+  assertNotProductionByAccident("workers/auto-order-worker.ts", { redis: true })
   if (!getRedisUrl()) {
     console.error("[auto-order-worker] REDIS_URL is required")
     process.exit(1)

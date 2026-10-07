@@ -94,14 +94,14 @@ git push origin main
 | Command | Where | Safe? |
 |---------|-------|-------|
 | `npx prisma migrate dev` | **LOCAL** only (staging branch) | ✅ |
-| `prisma migrate deploy` | Vercel build / cron | ✅ prod |
+| `npm run schema:migrate` (= `migrate deploy` + schema check, hard fail) | **by hand, BEFORE the push**, with an explicit URL — a Vercel build never migrates, it only runs `schema:verify` | ✅ prod |
 | `prisma db push` | local experiments | ❌ never prod |
 
 **Rule:** never `db push` on production from a laptop.
 
 1. Write migration locally on **staging branch** (`migrate dev`)
-2. Push PR → Preview runs `migrate deploy`
-3. Merge `main` → Production `migrate deploy` (via `scripts/vercel-build.mjs` + cron)
+2. Migrate the STAGING branch by hand (`DATABASE_URL=<staging> npm run schema:migrate -- --expect-endpoint ep-shy-wind-aly4bmc7`), then push the PR → the Preview build only VERIFIES (a Preview that points at production is refused)
+3. Migrate production by hand (`schema:migrate -- --expect-endpoint ep-misty-sea-al1ne07p --confirm-production`), then merge `main` → the Production build only VERIFIES and STOPS the deployment if the schema is not there (see `docs/DEPLOY-SCHEMA-CHANGES.md`)
 
 ```bash
 npm run db:migrate:dev      # local — staging branch

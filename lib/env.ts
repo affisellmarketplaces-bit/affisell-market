@@ -106,8 +106,27 @@ export function resolveStagingDatabaseUrl(): string | null {
   return null
 }
 
+/** The direct (non-pooled) form of a Neon URL — what Prisma's fulfillment client and the Prisma CLI use. */
+export function directFormOfDatabaseUrl(url: string): string {
+  try {
+    const u = new URL(url)
+    u.hostname = u.hostname.replace(/-pooler/g, "")
+    u.searchParams.delete("pgbouncer")
+    u.searchParams.delete("connection_limit")
+    return u.toString()
+  } catch {
+    return url.replace(/-pooler/g, "")
+  }
+}
+
 export function applyStagingDevEnv(stagingUrl: string): void {
-  process.env.DATABASE_URL = normalizePostgresDatabaseUrl(stagingUrl)
+  const url = normalizePostgresDatabaseUrl(stagingUrl)
+  const direct = directFormOfDatabaseUrl(url)
+  process.env.DATABASE_URL = url
+  // `fulfillmentPrisma` and the Prisma CLI PREFER DIRECT_URL / DATABASE_URL_UNPOOLED, which .env.local points at PRODUCTION: re-pointing only
+  // DATABASE_URL sent a "staging" dev session's fulfilment writes to production.
+  process.env.DIRECT_URL = direct
+  process.env.DATABASE_URL_UNPOOLED = direct
   process.env.AFFISELL_DEV_STAGING = "1"
 }
 

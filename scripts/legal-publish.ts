@@ -21,10 +21,12 @@ import matter from "gray-matter"
 import { PrismaClient } from "@prisma/client"
 
 import { agreementPath, parseArgs } from "@/lib/legal/legal-publish-shared"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 config({ path: ".env.local" })
 config({ path: ".env" })
 
+assertNotProductionByAccident("scripts/legal-publish.ts")
 const prisma = new PrismaClient()
 
 const DEFAULT_TITLES: Record<string, string> = {

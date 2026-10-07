@@ -9,10 +9,12 @@ import { resolve } from "node:path"
 import { PrismaClient } from "@prisma/client"
 
 import { syncProductCategoryLabelsFromTaxonomy } from "@/lib/sync-product-category-labels"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 config({ path: resolve(process.cwd(), ".env.local") })
 config({ path: resolve(process.cwd(), ".env") })
 
+assertNotProductionByAccident("scripts/sync-product-category-labels.ts")
 const prisma = new PrismaClient()
 
 async function main() {

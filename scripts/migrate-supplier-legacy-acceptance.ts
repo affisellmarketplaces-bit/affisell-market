@@ -10,10 +10,12 @@ config({ path: ".env.local" })
 config({ path: ".env" })
 
 import { LegalAcceptanceContext, PrismaClient } from "@prisma/client"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 const EXPECTED_SUPPLIER_HASH =
   "0dab6258c7b17195a0253541f4c5bbdf593d0a3d4a1b9925e5dade6c1d18c150"
 
+assertNotProductionByAccident("scripts/migrate-supplier-legacy-acceptance.ts")
 const prisma = new PrismaClient()
 
 type MigrationStats = {

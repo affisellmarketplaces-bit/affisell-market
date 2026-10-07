@@ -8,6 +8,11 @@ export default defineConfig({
     environment: "node",
     include: ["**/*.test.ts"],
     exclude: ["node_modules", ".next", "e2e", "medusa-backend/**"],
+    /**
+     * `envDir` above only stops VITE from loading `.env`; `@prisma/client` loads it on its own when imported, which put the
+     * production DATABASE_URL and the encryption key in front of tests (see vitest-env/no-real-datastores.ts).
+     */
+    setupFiles: [path.resolve(__dirname, "vitest-env/no-real-datastores.ts")],
   },
   resolve: {
     alias: {

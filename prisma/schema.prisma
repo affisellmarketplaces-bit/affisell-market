@@ -1930,7 +1930,14 @@ model SearchHistory {
 }
 
 /**
- * Homepage carousel analytics (view / hover / add-to-cart).
+ * Event spine (code: lib/events/*). One table, two CLASSES of rows that must never be mixed:
+ *  - behavioral    analytics events (impression, click, view, search, cart, attribution touch…). Recorded ONLY with the
+ *                  visitor's analytics consent; may carry anonymousId / sessionId.
+ *  - transactional business journal entries (purchase, refund, return, delivery…). They exist whatever the visitor's cookie
+ *                  choices are and NEVER carry anonymousId / sessionId (enforced by a CHECK constraint, not just by code).
+ * Rows written before the spine (homepage carousel / Pulse / agent checkout) have NULL in every spine column; their
+ * `eventType` is one of view | hover | add_to_cart | checkout_initiated and the existing readers rely on that.
+ * `eventType` IS the event name (not renamed: seven readers select it).
  */
 model AffisellTrackEvent {
   id         String   @id @default(cuid())
@@ -1941,9 +1948,38 @@ model AffisellTrackEvent {
   durationMs Int?
   createdAt  DateTime @default(now())
 
+  /// Idempotency key: a client UUID for behavioral events, a deterministic business key for transactional ones
+  /// (`purchase:{orderId}`, `refund:{stripeRefundId}`…). Replays / retries never create a second row.
+  eventId       String?   @unique
+  /// "behavioral" | "transactional" (NULL on pre-spine rows). Validated by CHECK constraints.
+  eventClass    String?
+  /// When it happened (clamped on ingestion); `createdAt` is when it was stored.
+  occurredAt    DateTime?
+  /// Consent-bound visitor id: only ever set on behavioral rows.
+  anonymousId   String?
+  /// AffiliateProduct.id (the creator's listing). `productId` above is a Product.id.
+  listingId     String?
+  storeId       String?
+  creatorId     String?
+  supplierId    String?
+  orderId       String?
+  /// Emitting surface inside Affisell (pdp, grid, carousel, search, cart, webhook…).
+  source        String?
+  /// Normalised acquisition channel (see lib/events/channel.ts) — behavioral rows only.
+  channel       String?
+  country       String?   @db.VarChar(2)
+  locale        String?   @db.VarChar(8)
+  /// 1 for rows written by the spine.
+  schemaVersion Int?
+  /// Whitelisted, sanitised extras (search_query, result_count, position, utm_*, referrer_host, content_id…).
+  properties    Json?
+
   @@index([productId, createdAt])
   @@index([eventType, createdAt])
   @@index([sessionId, createdAt])
+  @@index([creatorId, createdAt])
+  @@index([orderId])
+  @@index([anonymousId, createdAt])
 }
 
 model CommunityPost {

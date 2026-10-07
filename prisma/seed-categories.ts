@@ -5,10 +5,12 @@
 
 import { config } from "dotenv"
 import { PrismaClient } from "@prisma/client"
+import { assertNotProductionByAccident } from "../scripts/lib/production-guard.mjs"
 
 config({ path: ".env.local" })
 config({ path: ".env" })
 
+assertNotProductionByAccident("prisma/seed-categories.ts")
 const prisma = new PrismaClient()
 
 const CATEGORIES_TREE = [

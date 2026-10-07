@@ -163,6 +163,9 @@ const hasUploadCredentials = Boolean(authToken && org && project)
  * is not linked in Sentry. Next’s exported types omit `false`; the bundler accepts it.
  */
 export default withSentryConfig(withNextIntl(nextConfig), {
+  // The bundler plugin posts its own error / performance telemetry to a Sentry-owned project on every build (measured: 7 POSTs to
+  // o1.ingest.sentry.io). Not needed; the source-map upload below is unaffected.
+  telemetry: false,
   ...(hasUploadCredentials
     ? {
         authToken,

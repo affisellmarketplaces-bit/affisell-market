@@ -16,7 +16,9 @@ import type Stripe from "stripe"
 import { handleMarketplaceThreeWaySplit } from "../lib/stripe-marketplace-commission-split"
 import { processStripeWebhookEvent } from "../lib/stripe-webhook-processor"
 import { getStripeClient } from "../lib/stripe"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
+assertNotProductionByAccident("scripts/test-webhook-idempotence.ts")
 const prisma = new PrismaClient()
 
 async function main() {

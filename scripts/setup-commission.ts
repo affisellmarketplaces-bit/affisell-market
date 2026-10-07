@@ -24,7 +24,9 @@ import {
 } from "@/lib/commission-grid-apply"
 import { COMMISSION_GRID_MAP, formatBpsPercent } from "@/lib/commission-grid-config"
 import { supplierCommissionRateBpsToPercent } from "@/lib/supplier-commission-rate"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
+assertNotProductionByAccident("scripts/setup-commission.ts")
 const prisma = new PrismaClient()
 const dryRun = process.argv.includes("--dry-run")
 

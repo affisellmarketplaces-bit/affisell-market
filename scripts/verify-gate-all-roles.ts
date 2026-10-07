@@ -6,11 +6,13 @@ config({ path: ".env" })
 import { PrismaClient } from "@prisma/client"
 import bcrypt from "bcryptjs"
 import { randomUUID } from "crypto"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10)
 }
 
+assertNotProductionByAccident("scripts/verify-gate-all-roles.ts")
 const prisma = new PrismaClient()
 const ACCEPT = process.argv.includes("--accept")
 

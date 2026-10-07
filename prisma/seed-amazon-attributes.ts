@@ -3,7 +3,9 @@
  * Run: npx tsx prisma/seed-amazon-attributes.ts
  */
 import { Prisma, PrismaClient } from "@prisma/client"
+import { assertNotProductionByAccident } from "../scripts/lib/production-guard.mjs"
 
+assertNotProductionByAccident("prisma/seed-amazon-attributes.ts")
 const prisma = new PrismaClient()
 
 type AttrSeed = {

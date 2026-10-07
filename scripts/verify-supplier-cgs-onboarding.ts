@@ -10,6 +10,7 @@ config({ path: ".env" })
 
 import bcrypt from "bcryptjs"
 import { PrismaClient } from "@prisma/client"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 const EMAIL = "supplier-test@affisell.com"
 const PASSWORD = "SupplierTest!2026"
@@ -17,6 +18,7 @@ const EXPECTED_HASH =
   "0dab6258c7b17195a0253541f4c5bbdf593d0a3d4a1b9925e5dade6c1d18c150"
 const EXPECTED_VERSION_ID = "cmrdpn0a70010thnpp4qygk98"
 
+assertNotProductionByAccident("scripts/verify-supplier-cgs-onboarding.ts")
 const prisma = new PrismaClient()
 
 async function getCurrentVersionId(slug: string): Promise<string | null> {

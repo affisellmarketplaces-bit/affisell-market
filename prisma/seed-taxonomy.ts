@@ -9,10 +9,12 @@ import { config } from "dotenv"
 import { PrismaClient } from "@prisma/client"
 
 import { AFFISELL_CATEGORY_TAXONOMY } from "../lib/ai/categories"
+import { assertNotProductionByAccident } from "../scripts/lib/production-guard.mjs"
 
 config({ path: ".env.local" })
 config({ path: ".env" })
 
+assertNotProductionByAccident("prisma/seed-taxonomy.ts")
 const prisma = new PrismaClient()
 
 function slugify(s: string): string {

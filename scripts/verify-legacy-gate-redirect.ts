@@ -9,7 +9,9 @@ config({ path: ".env" })
 
 import bcrypt from "bcryptjs"
 import { PrismaClient } from "@prisma/client"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
+assertNotProductionByAccident("scripts/verify-legacy-gate-redirect.ts")
 const prisma = new PrismaClient()
 const EMAIL = "gate-legacy@affisell.com"
 

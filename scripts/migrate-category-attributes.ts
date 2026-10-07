@@ -19,10 +19,12 @@ import { resolve } from "node:path"
 import { PrismaClient, type AttributeValueType } from "@prisma/client"
 
 import { mapLegacyTypeToEnum, slugifyAttributeKey } from "@/lib/category-attribute-catalog"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 config({ path: ".env.local" })
 config({ path: ".env" })
 
+assertNotProductionByAccident("scripts/migrate-category-attributes.ts")
 const prisma = new PrismaClient()
 
 const REPORT_PATH = resolve(process.cwd(), "scripts/migration-report.csv")

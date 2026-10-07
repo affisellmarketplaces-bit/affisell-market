@@ -11,10 +11,12 @@ import { createHash } from "node:crypto"
 
 import { config } from "dotenv"
 import { PrismaClient } from "@prisma/client"
+import { assertNotProductionByAccident } from "../scripts/lib/production-guard.mjs"
 
 config({ path: ".env.local" })
 config({ path: ".env" })
 
+assertNotProductionByAccident("prisma/backfill-product-images.ts")
 const prisma = new PrismaClient()
 
 /** Unsplash photo paths (same host pattern as prisma/seed.ts). */

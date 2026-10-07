@@ -17,7 +17,9 @@ import {
   affisellCommissionRateBpsToPercent,
   clampAffisellCommissionRateBps,
 } from "../lib/affisell-platform-commission"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
+assertNotProductionByAccident("scripts/set-category-affisell-commission.ts")
 const prisma = new PrismaClient()
 
 function arg(name: string): string | undefined {

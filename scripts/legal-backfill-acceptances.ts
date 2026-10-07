@@ -6,10 +6,12 @@
 
 import { config } from "dotenv"
 import { LegalAcceptanceContext, PrismaClient } from "@prisma/client"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 config({ path: ".env.local" })
 config({ path: ".env" })
 
+assertNotProductionByAccident("scripts/legal-backfill-acceptances.ts")
 const prisma = new PrismaClient()
 
 type BackfillDb = Pick<PrismaClient, "user" | "legalAcceptance" | "legalDocument">

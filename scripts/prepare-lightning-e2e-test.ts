@@ -16,7 +16,9 @@ import Stripe from "stripe"
 import { PrismaClient } from "@prisma/client"
 
 import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
+assertNotProductionByAccident("scripts/prepare-lightning-e2e-test.ts")
 const prisma = new PrismaClient()
 
 const DEFAULT_SUPPLIER_STRIPE = "acct_1TaaA6FXp6SP9lqY"

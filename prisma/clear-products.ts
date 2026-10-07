@@ -5,10 +5,12 @@
 
 import { config } from "dotenv"
 import { PrismaClient } from "@prisma/client"
+import { assertNotProductionByAccident } from "../scripts/lib/production-guard.mjs"
 
 config({ path: ".env.local" })
 config({ path: ".env" })
 
+assertNotProductionByAccident("prisma/clear-products.ts")
 const prisma = new PrismaClient()
 
 async function main() {

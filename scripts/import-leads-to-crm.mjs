@@ -15,6 +15,7 @@ import { resolve } from "node:path"
 import { config } from "dotenv"
 import { PrismaClient } from "@prisma/client"
 import { devLocalhostOrigin } from "./dev-localhost-url.mjs"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 config({ path: resolve(process.cwd(), ".env.local") })
 config({ path: resolve(process.cwd(), ".env") })
@@ -148,6 +149,7 @@ async function main() {
     `[import-leads-to-crm] mode=${direct ? "direct" : "api"} rows=${payloads.length} target=${direct ? "database" : APP_URL}`
   )
 
+  if (direct) assertNotProductionByAccident("scripts/import-leads-to-crm.mjs")
   const prisma = direct ? new PrismaClient() : null
   let created = 0
   let skipped = 0

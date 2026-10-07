@@ -2,6 +2,7 @@ import "server-only"
 
 import type { PrismaClient } from ".prisma/client-mi"
 
+import { withBuildWriteGuard } from "@/lib/build-write-guard"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 
 const globalForRadar = globalThis as unknown as { radarDb?: PrismaClient }
@@ -37,10 +38,15 @@ function createRadarDb(): PrismaClient {
     })
   }
 
-  return new RadarPrismaClient({
-    datasources: { db: { url } },
-    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
-  })
+  // Same rule as the main client: `next build` never writes. The Radar client falls back to DATABASE_URL (schema
+  // market_intelli), so it can reach the same server — it gets the same guard.
+  return withBuildWriteGuard(
+    new RadarPrismaClient({
+      datasources: { db: { url } },
+      log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+    }),
+    { databaseUrl: url }
+  )
 }
 
 /** Lazy singleton — safe for build when RADAR_ENABLED=false (no import-time connect). */

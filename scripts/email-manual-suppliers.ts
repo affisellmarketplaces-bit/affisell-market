@@ -22,6 +22,7 @@ import {
   sendResendEmail,
 } from "@/lib/emails/resend-delivery"
 import { getPrismaDirectDatasourceUrl, getPrismaDatasourceUrl } from "@/lib/prisma-datasource-url"
+import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 type SupplierAgg = {
   supplierId: string
@@ -37,6 +38,7 @@ function sleep(ms: number): Promise<void> {
 
 function createScriptPrisma(): PrismaClient {
   const url = getPrismaDirectDatasourceUrl() ?? getPrismaDatasourceUrl()
+  assertNotProductionByAccident("scripts/email-manual-suppliers.ts")
   return new PrismaClient({ datasources: { db: { url } } })
 }
 
