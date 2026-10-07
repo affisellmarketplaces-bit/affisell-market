@@ -90,3 +90,33 @@ export function supplierProductAttributesEqual(
 ): boolean {
   return attributeSignature(existing) === attributeSignature(incoming)
 }
+
+/**
+ * Keys a form declares it OWNS (`managedAttributeKeys` in the request body). Absent / empty = the legacy contract, where
+ * `productAttributes` replaces the whole set.
+ *
+ * Why it exists: a form only knows the attributes of the category it renders. Saving from it used to delete every other
+ * row — e.g. editing a product created by the guided wizard in the classic form silently wiped its manufacturer (GPSR),
+ * material and dimensions. With a managed list, only the rows the form owns are replaced; the rest is preserved.
+ */
+export function parseManagedAttributeKeys(raw: unknown): string[] | null {
+  if (!Array.isArray(raw)) return null
+  const keys = raw
+    .filter((k): k is string => typeof k === "string")
+    .map((k) => k.trim())
+    .filter((k) => k.length > 0 && k.length <= 120)
+    .slice(0, 300)
+  return keys.length > 0 ? [...new Set(keys)] : null
+}
+
+export function mergeManagedProductAttributes(
+  existing: NormalizedProductAttribute[],
+  incoming: NormalizedProductAttribute[],
+  managedKeys: string[] | null
+): NormalizedProductAttribute[] {
+  if (!managedKeys) return incoming
+  const managed = new Set(managedKeys)
+  const incomingKeys = new Set(incoming.map((r) => r.key))
+  const preserved = existing.filter((r) => !managed.has(r.key) && !incomingKeys.has(r.key))
+  return [...preserved, ...incoming]
+}
