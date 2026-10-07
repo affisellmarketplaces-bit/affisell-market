@@ -1954,7 +1954,20 @@
       "catFashionHint": "时尚 · 服装 · 鞋履 · 配饰",
       "catHomeHint": "家居 · 装饰 · 厨房 · 科技 · 园艺",
       "catBeautyHint": "美妆 · 护肤 · 彩妆 · 香水",
-      "catFoodHint": "食品 · 饮品 · 精品杂货"
+      "catFoodHint": "食品 · 饮品 · 精品杂货",
+      "morePhotosTitle": "更多照片",
+      "morePhotosHint": "最多可添加 {max} 张照片：多角度展示有助于买家做决定。",
+      "addPhotos": "添加照片",
+      "makeMain": "设为主图",
+      "removePhoto": "删除照片",
+      "mainPhotoBadge": "主图",
+      "photoLimitReached": "已达到最多 {max} 张照片。",
+      "draftResumeTitle": "继续未完成的产品？",
+      "draftResumeBody": "{title} · 保存于 {when}",
+      "draftUntitled": "未命名产品",
+      "draftResume": "继续",
+      "draftDiscard": "重新开始",
+      "draftAutosaved": "草稿已保存在此设备上"
     },
     "guidedDefaults": {
       "title": "已应用您的店铺设置",
@@ -2142,6 +2155,18 @@
       "noticeHint": "用户手册和安全说明的链接或简短文字。",
       "brandLabel": "品牌",
       "brandHint": "填写产品上标注的品牌；若无品牌可留空。"
+    },
+    "earningPreview": {
+      "title": "每笔销售您将收到",
+      "price": "您的价格",
+      "commission": "分销商佣金（{pct}%）",
+      "fee": "Affisell 平台费（{pct}%）",
+      "feeUnknown": "Affisell 平台费：取决于类目",
+      "net": "您将收到",
+      "netBeforeFee": "您将收到（扣除 Affisell 平台费前）",
+      "feeHint": "请选择具体类目以查看 Affisell 平台费。",
+      "footnote": "不含增值税。目录渠道；分销商自己的加价另计，与您无关。",
+      "enterPrice": "输入价格即可查看您将收到的金额。"
     }
   },
   "affiliate": {

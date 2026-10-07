@@ -1954,7 +1954,20 @@
       "catFashionHint": "Fashion · clothing · shoes · accessories",
       "catHomeHint": "Home · decor · kitchen · tech · garden",
       "catBeautyHint": "Beauty · skincare · make-up · fragrances",
-      "catFoodHint": "Food · drinks · fine grocery"
+      "catFoodHint": "Food · drinks · fine grocery",
+      "morePhotosTitle": "More photos",
+      "morePhotosHint": "Add up to {max} photos in total. Several angles help buyers decide.",
+      "addPhotos": "Add photos",
+      "makeMain": "Make main photo",
+      "removePhoto": "Remove photo",
+      "mainPhotoBadge": "Main",
+      "photoLimitReached": "Maximum of {max} photos reached.",
+      "draftResumeTitle": "Resume your product in progress?",
+      "draftResumeBody": "{title} · saved {when}",
+      "draftUntitled": "Untitled product",
+      "draftResume": "Resume",
+      "draftDiscard": "Start over",
+      "draftAutosaved": "Draft saved on this device"
     },
     "guidedDefaults": {
       "title": "Applied from your shop settings",
@@ -2142,6 +2155,18 @@
       "noticeHint": "A link or a short text for the user manual and safety instructions.",
       "brandLabel": "Brand",
       "brandHint": "Write the brand shown on the product, or leave it empty if there is none."
+    },
+    "earningPreview": {
+      "title": "What you receive per sale",
+      "price": "Your price",
+      "commission": "Reseller commission ({pct}%)",
+      "fee": "Affisell fee ({pct}%)",
+      "feeUnknown": "Affisell fee: depends on the category",
+      "net": "You receive",
+      "netBeforeFee": "You receive (before Affisell fee)",
+      "feeHint": "Choose an exact category to see the Affisell fee.",
+      "footnote": "Excl. VAT. Catalogue channel; the reseller's own markup comes on top and does not affect you.",
+      "enterPrice": "Enter a price to see what you receive."
     }
   },
   "affiliate": {

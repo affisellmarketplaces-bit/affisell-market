@@ -62,3 +62,35 @@ describe("listing compliance — translations", () => {
     expect(at(messages, "supplier.compliance.sectionTitle")).not.toBe(at(en as Tree, "supplier.compliance.sectionTitle"))
   })
 })
+
+describe("supplier add-product phase 2 — translations", () => {
+  const WIZARD_KEYS = [
+    "morePhotosTitle", "morePhotosHint", "addPhotos", "makeMain", "removePhoto", "mainPhotoBadge", "photoLimitReached",
+    "draftResumeTitle", "draftResumeBody", "draftUntitled", "draftResume", "draftDiscard", "draftAutosaved",
+  ]
+  const EARNING_KEYS = ["title", "price", "commission", "fee", "feeUnknown", "net", "netBeforeFee", "feeHint", "footnote", "enterPrice"]
+
+  it("every static key used by the earnings preview exists", () => {
+    const src = readFileSync("components/supplier/supplier-earning-preview.tsx", "utf8")
+    const tree = at(en as Tree, "supplier.earningPreview") as Tree
+    const used = [...src.matchAll(/\bt\(\s*"([A-Za-z0-9_.]+)"/g)].map((m) => m[1]!)
+    expect(used.filter((k) => at(tree, k) === undefined)).toEqual([])
+    for (const k of EARNING_KEYS) expect(tree[k], k).toBeTruthy()
+  })
+
+  it.each(LOCALES)("%s has every new earnings-preview and guided-wizard string, with their placeholders intact", (loc) => {
+    const messages = load(loc)
+    const earning = at(messages, "supplier.earningPreview") as Tree
+    const wizard = at(messages, "supplier.guidedWizard") as Tree
+    for (const k of EARNING_KEYS) expect(typeof earning[k] === "string" && (earning[k] as string).trim().length > 0, `${loc}:earningPreview.${k}`).toBe(true)
+    for (const k of WIZARD_KEYS) expect(typeof wizard[k] === "string" && (wizard[k] as string).trim().length > 0, `${loc}:guidedWizard.${k}`).toBe(true)
+    // ICU placeholders must survive translation.
+    expect(earning.commission).toContain("{pct}")
+    expect(earning.fee).toContain("{pct}")
+    expect(wizard.morePhotosHint).toContain("{max}")
+    expect(wizard.photoLimitReached).toContain("{max}")
+    expect(wizard.draftResumeBody).toContain("{title}")
+    expect(wizard.draftResumeBody).toContain("{when}")
+  })
+})
+

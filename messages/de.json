@@ -1954,7 +1954,20 @@
       "catFashionHint": "Mode · Kleidung · Schuhe · Accessoires",
       "catHomeHint": "Zuhause · Deko · Küche · Technik · Garten",
       "catBeautyHint": "Beauty · Pflege · Make-up · Düfte",
-      "catFoodHint": "Lebensmittel · Getränke · Feinkost"
+      "catFoodHint": "Lebensmittel · Getränke · Feinkost",
+      "morePhotosTitle": "Weitere Fotos",
+      "morePhotosHint": "Fügen Sie insgesamt bis zu {max} Fotos hinzu. Mehrere Blickwinkel helfen Käufern bei der Entscheidung.",
+      "addPhotos": "Fotos hinzufügen",
+      "makeMain": "Als Hauptfoto festlegen",
+      "removePhoto": "Foto entfernen",
+      "mainPhotoBadge": "Haupt",
+      "photoLimitReached": "Maximal {max} Fotos erreicht.",
+      "draftResumeTitle": "Angefangenes Produkt fortsetzen?",
+      "draftResumeBody": "{title} · gespeichert {when}",
+      "draftUntitled": "Produkt ohne Titel",
+      "draftResume": "Fortsetzen",
+      "draftDiscard": "Neu beginnen",
+      "draftAutosaved": "Entwurf auf diesem Gerät gespeichert"
     },
     "guidedDefaults": {
       "title": "Aus Ihren Shop-Einstellungen übernommen",
@@ -2142,6 +2155,18 @@
       "noticeHint": "Ein Link oder ein kurzer Text zur Anleitung und zu den Sicherheitshinweisen.",
       "brandLabel": "Marke",
       "brandHint": "Geben Sie die auf dem Produkt angegebene Marke an oder lassen Sie das Feld leer, falls es keine gibt."
+    },
+    "earningPreview": {
+      "title": "Das erhalten Sie pro Verkauf",
+      "price": "Ihr Preis",
+      "commission": "Wiederverkäufer-Provision ({pct} %)",
+      "fee": "Affisell-Gebühr ({pct} %)",
+      "feeUnknown": "Affisell-Gebühr: je nach Kategorie",
+      "net": "Sie erhalten",
+      "netBeforeFee": "Sie erhalten (vor Affisell-Gebühr)",
+      "feeHint": "Wählen Sie eine genaue Kategorie, um die Affisell-Gebühr zu sehen.",
+      "footnote": "Netto, ohne MwSt. Katalogkanal; der Aufschlag des Wiederverkäufers kommt obendrauf und betrifft Sie nicht.",
+      "enterPrice": "Geben Sie einen Preis ein, um Ihren Erlös zu sehen."
     }
   },
   "affiliate": {

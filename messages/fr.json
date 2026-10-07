@@ -1954,7 +1954,20 @@
       "catFashionHint": "Mode · vêtements · chaussures · accessoires",
       "catHomeHint": "Maison · déco · cuisine · high-tech · jardin",
       "catBeautyHint": "Beauté · soins · maquillage · parfums",
-      "catFoodHint": "Alimentation · boissons · épicerie fine"
+      "catFoodHint": "Alimentation · boissons · épicerie fine",
+      "morePhotosTitle": "Plus de photos",
+      "morePhotosHint": "Ajoutez jusqu'à {max} photos au total : plusieurs angles aident l'acheteur à se décider.",
+      "addPhotos": "Ajouter des photos",
+      "makeMain": "Définir comme photo principale",
+      "removePhoto": "Supprimer la photo",
+      "mainPhotoBadge": "Principale",
+      "photoLimitReached": "Maximum de {max} photos atteint.",
+      "draftResumeTitle": "Reprendre votre produit en cours ?",
+      "draftResumeBody": "{title} · enregistré {when}",
+      "draftUntitled": "Produit sans titre",
+      "draftResume": "Reprendre",
+      "draftDiscard": "Recommencer",
+      "draftAutosaved": "Brouillon enregistré sur cet appareil"
     },
     "guidedDefaults": {
       "title": "Repris de vos réglages boutique",
@@ -2142,6 +2155,18 @@
       "noticeHint": "Un lien ou un court texte pour la notice et les consignes de sécurité.",
       "brandLabel": "Marque",
       "brandHint": "Indiquez la marque visible sur le produit, ou laissez vide s'il n'y en a pas."
+    },
+    "earningPreview": {
+      "title": "Ce que vous recevez par vente",
+      "price": "Votre prix",
+      "commission": "Commission du revendeur ({pct} %)",
+      "fee": "Frais Affisell ({pct} %)",
+      "feeUnknown": "Frais Affisell : selon la catégorie",
+      "net": "Vous recevez",
+      "netBeforeFee": "Vous recevez (avant frais Affisell)",
+      "feeHint": "Choisissez une catégorie précise pour voir les frais Affisell.",
+      "footnote": "HT. Canal catalogue ; la marge propre du revendeur s'ajoute par-dessus et ne vous concerne pas.",
+      "enterPrice": "Indiquez un prix pour voir ce que vous recevez."
     }
   },
   "affiliate": {

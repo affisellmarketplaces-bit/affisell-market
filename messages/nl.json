@@ -1954,7 +1954,20 @@
       "catFashionHint": "Mode · kleding · schoenen · accessoires",
       "catHomeHint": "Wonen · decor · keuken · tech · tuin",
       "catBeautyHint": "Beauty · verzorging · make-up · geuren",
-      "catFoodHint": "Voeding · dranken · delicatessen"
+      "catFoodHint": "Voeding · dranken · delicatessen",
+      "morePhotosTitle": "Meer foto's",
+      "morePhotosHint": "Voeg in totaal maximaal {max} foto's toe. Meerdere hoeken helpen kopers beslissen.",
+      "addPhotos": "Foto's toevoegen",
+      "makeMain": "Als hoofdfoto instellen",
+      "removePhoto": "Foto verwijderen",
+      "mainPhotoBadge": "Hoofd",
+      "photoLimitReached": "Maximaal {max} foto's bereikt.",
+      "draftResumeTitle": "Je product in uitvoering hervatten?",
+      "draftResumeBody": "{title} · opgeslagen {when}",
+      "draftUntitled": "Product zonder titel",
+      "draftResume": "Hervatten",
+      "draftDiscard": "Opnieuw beginnen",
+      "draftAutosaved": "Concept opgeslagen op dit apparaat"
     },
     "guidedDefaults": {
       "title": "Overgenomen uit je winkelinstellingen",
@@ -2142,6 +2155,18 @@
       "noticeHint": "Een link of korte tekst voor de handleiding en veiligheidsinstructies.",
       "brandLabel": "Merk",
       "brandHint": "Vul het merk in dat op het product staat, of laat het leeg als er geen is."
+    },
+    "earningPreview": {
+      "title": "Wat je per verkoop ontvangt",
+      "price": "Jouw prijs",
+      "commission": "Commissie van de wederverkoper ({pct} %)",
+      "fee": "Affisell-kosten ({pct} %)",
+      "feeUnknown": "Affisell-kosten: afhankelijk van de categorie",
+      "net": "Je ontvangt",
+      "netBeforeFee": "Je ontvangt (vóór Affisell-kosten)",
+      "feeHint": "Kies een exacte categorie om de Affisell-kosten te zien.",
+      "footnote": "Excl. btw. Cataloguskanaal; de eigen marge van de wederverkoper komt erbovenop en raakt jou niet.",
+      "enterPrice": "Vul een prijs in om te zien wat je ontvangt."
     }
   },
   "affiliate": {

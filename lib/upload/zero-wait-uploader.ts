@@ -2,6 +2,7 @@
  * Zero-Wait CDN uploader — starts on file select, blocks publish until durable URL ready.
  */
 
+import { imageUrlToBlob } from "@/lib/data-url-to-blob"
 import { PRODUCT_IMAGE_CANVAS } from "@/lib/product-image-upload"
 
 export const ZERO_WAIT_CHUNK_BYTES = 512 * 1024
@@ -91,8 +92,7 @@ export async function encodeProductImageBlob(
 ): Promise<Blob> {
   const dataUrl = await processFile(file)
   onProcessedDataUrl?.(dataUrl)
-  const res = await fetch(dataUrl)
-  const jpegBlob = await res.blob()
+  const jpegBlob = await imageUrlToBlob(dataUrl)
 
   if (typeof createImageBitmap !== "function") return jpegBlob
 

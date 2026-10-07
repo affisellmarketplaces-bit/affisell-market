@@ -1954,7 +1954,20 @@
       "catFashionHint": "Moda · abbigliamento · scarpe · accessori",
       "catHomeHint": "Casa · arredo · cucina · tecnologia · giardino",
       "catBeautyHint": "Bellezza · cura · trucco · profumi",
-      "catFoodHint": "Alimentari · bevande · gastronomia"
+      "catFoodHint": "Alimentari · bevande · gastronomia",
+      "morePhotosTitle": "Altre foto",
+      "morePhotosHint": "Aggiungi fino a {max} foto in totale. Più angolazioni aiutano l'acquirente a decidere.",
+      "addPhotos": "Aggiungi foto",
+      "makeMain": "Imposta come foto principale",
+      "removePhoto": "Rimuovi foto",
+      "mainPhotoBadge": "Principale",
+      "photoLimitReached": "Raggiunto il massimo di {max} foto.",
+      "draftResumeTitle": "Riprendere il prodotto in corso?",
+      "draftResumeBody": "{title} · salvato {when}",
+      "draftUntitled": "Prodotto senza titolo",
+      "draftResume": "Riprendi",
+      "draftDiscard": "Ricomincia",
+      "draftAutosaved": "Bozza salvata su questo dispositivo"
     },
     "guidedDefaults": {
       "title": "Applicato dalle impostazioni del tuo negozio",
@@ -2142,6 +2155,18 @@
       "noticeHint": "Un link o un breve testo per il manuale e le istruzioni di sicurezza.",
       "brandLabel": "Marchio",
       "brandHint": "Indica il marchio riportato sul prodotto, oppure lascia vuoto se non c'è."
+    },
+    "earningPreview": {
+      "title": "Quanto ricevi per vendita",
+      "price": "Il tuo prezzo",
+      "commission": "Commissione del rivenditore ({pct} %)",
+      "fee": "Commissione Affisell ({pct} %)",
+      "feeUnknown": "Commissione Affisell: dipende dalla categoria",
+      "net": "Ricevi",
+      "netBeforeFee": "Ricevi (prima della commissione Affisell)",
+      "feeHint": "Scegli una categoria precisa per vedere la commissione Affisell.",
+      "footnote": "IVA esclusa. Canale catalogo; il ricarico del rivenditore si aggiunge e non ti riguarda.",
+      "enterPrice": "Inserisci un prezzo per vedere quanto ricevi."
     }
   },
   "affiliate": {

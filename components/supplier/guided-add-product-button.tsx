@@ -4,7 +4,7 @@ import Image from "@/components/ui/safe-image"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { CheckCircle2, ChevronLeft, ChevronRight, ImagePlus, Loader2, Sparkles, X, XCircle } from "lucide-react"
+import { CheckCircle2, ChevronLeft, ChevronRight, ImagePlus, Loader2, Sparkles, Star, Trash2, X, XCircle } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
@@ -15,6 +15,8 @@ import { GuidedCategoryPicker } from "@/components/supplier/guided-category-pick
 import { GuidedTaxonomySuggestions } from "@/components/supplier/guided-taxonomy-suggestions"
 import { useGuidedProductAi } from "@/components/supplier/use-guided-product-ai"
 import { useGuidedTaxonomySuggestions } from "@/components/supplier/use-guided-taxonomy-suggestions"
+import { SupplierEarningPreview } from "@/components/supplier/supplier-earning-preview"
+import { SupplierPhotoQualityHint } from "@/components/supplier/supplier-photo-quality-hint"
 import { buttonVariants } from "@/components/ui/button"
 import {
   GUIDED_WIZARD_CATEGORIES,
@@ -33,7 +35,21 @@ import { blockIfHoneypotValue } from "@/lib/security/honeypot-client"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { DELIVERY_WORLDWIDE, suggestDeliveryCountriesFromWarehouse } from "@/lib/supplier-delivery-countries"
 import { visitorCountryDisplayName } from "@/lib/visitor-country"
+import { imageUrlToBlob } from "@/lib/data-url-to-blob"
 import { processProductGalleryImageFile } from "@/lib/product-image-upload"
+import { formatProductRequestRelativeTime } from "@/lib/product-request-i18n"
+import {
+  GUIDED_MAX_PHOTOS,
+  buildGuidedDraft,
+  clearGuidedDraft,
+  isMeaningfulGuidedForm,
+  readGuidedDraft,
+  sanitizeGuidedDraftForm,
+  writeGuidedDraft,
+  type GuidedDraftForm,
+  type StorageLike,
+  type StoredGuidedDraft,
+} from "@/lib/supplier-guided-draft"
 import { cn } from "@/lib/utils"
 
 const STEP_KEYS = ["stepBasics", "stepDetails", "stepGpsr", "stepPreview"] as const
@@ -44,7 +60,10 @@ type FormFieldKey = keyof FormState
 
 type FormState = {
   imagePreview: string | null
+  /** Main photo (durable URL). */
   imageUrl: string | null
+  /** Additional photos (durable URLs), after the main one. Together at most GUIDED_MAX_PHOTOS. */
+  extraImages: string[]
   title: string
   category: GuidedCategory | ""
   /** Exact leaf of the real taxonomy (optional — empty keeps the coarse shelf + background auto-categorisation). */
@@ -67,6 +86,7 @@ type FormState = {
 const DEFAULT_FORM: FormState = {
   imagePreview: null,
   imageUrl: null,
+  extraImages: [],
   title: "",
   category: "",
   leafId: "",
@@ -141,8 +161,37 @@ async function uploadProcessedBlob(blob: Blob, fileName: string): Promise<string
   return url
 }
 
+const CATEGORY_LABELS = GUIDED_WIZARD_CATEGORIES.map((c) => c.label)
+
+function getStorage(): StorageLike | null {
+  try {
+    return window.localStorage
+  } catch {
+    return null // private mode / blocked storage: drafts are a convenience, never an error
+  }
+}
+
+function toDraftForm(form: FormState): GuidedDraftForm {
+  return {
+    title: form.title,
+    category: form.category,
+    leafId: form.leafId,
+    leafBreadcrumb: form.leafBreadcrumb,
+    description: form.description,
+    descriptionBullets: form.descriptionBullets,
+    material: form.material,
+    color: form.color,
+    dimensions: form.dimensions,
+    stock: form.stock,
+    price: form.price,
+    imageUrl: form.imageUrl ?? "",
+    extraImages: form.extraImages,
+    compliance: form.compliance,
+  }
+}
+
 export function GuidedAddProductButton({
-  supplierId: _supplierId,
+  supplierId,
   shopId: _shopId,
   defaultOpen = false,
 }: Props) {
@@ -164,6 +213,11 @@ export function GuidedAddProductButton({
   const [step, setStep] = useState(0)
   const [form, setForm] = useState<FormState>(DEFAULT_FORM)
   const [uploading, setUploading] = useState(false)
+  const [uploadingExtra, setUploadingExtra] = useState(false)
+  const extraInputId = useId()
+  // A draft kept on this device from an earlier, unfinished session — offered back, never applied silently.
+  const [resumeOffer, setResumeOffer] = useState<StoredGuidedDraft | null>(null)
+  const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null)
   const [publishing, setPublishing] = useState(false)
   const [stepError, setStepError] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
@@ -342,6 +396,15 @@ export function GuidedAddProductButton({
     }
   }
 
+  /**
+   * Functional update on purpose: the one-click "use my saved manufacturer" prefill sets several keys in the SAME event, and
+   * each call must build on the previous one. Spreading `form.compliance` from the render closure kept only the last key.
+   */
+  function patchCompliance(key: string, value: string) {
+    setForm((prev) => ({ ...prev, compliance: { ...prev.compliance, [key]: value } }))
+    setStepError(null)
+  }
+
   function applyAiTitle(title: string) {
     patchForm({ title: title.trim().slice(0, 120) }, { user: true })
   }
@@ -358,7 +421,7 @@ export function GuidedAddProductButton({
       const dataUrl = await processProductGalleryImageFile(file)
       if (form.imagePreview?.startsWith("blob:")) URL.revokeObjectURL(form.imagePreview)
       patchForm({ imagePreview: dataUrl })
-      const blob = await (await fetch(dataUrl)).blob()
+      const blob = await imageUrlToBlob(dataUrl)
       const url = await uploadProcessedBlob(blob, file.name.replace(/\.[^.]+$/, "") || "product")
       patchForm({ imageUrl: url })
       void refreshAi()
@@ -367,6 +430,107 @@ export function GuidedAddProductButton({
     } finally {
       setUploading(false)
     }
+  }
+
+  /** Every photo, main first. */
+  const allImages = useMemo(
+    () => [form.imageUrl, ...form.extraImages].filter((u): u is string => Boolean(u)),
+    [form.imageUrl, form.extraImages]
+  )
+
+  async function handleExtraImagesPick(files: File[]) {
+    if (files.length === 0) return
+    const room = GUIDED_MAX_PHOTOS - allImages.length
+    if (room <= 0) {
+      setStepError(tWiz("photoLimitReached", { max: GUIDED_MAX_PHOTOS }))
+      return
+    }
+    setUploadingExtra(true)
+    setStepError(null)
+    const added: string[] = []
+    try {
+      for (const file of files.slice(0, room)) {
+        const dataUrl = await processProductGalleryImageFile(file)
+        const blob = await imageUrlToBlob(dataUrl)
+        added.push(await uploadProcessedBlob(blob, file.name.replace(/\.[^.]+$/, "") || "product"))
+      }
+      if (files.length > room) setStepError(tWiz("photoLimitReached", { max: GUIDED_MAX_PHOTOS }))
+    } catch (e) {
+      setStepError(e instanceof Error ? e.message : "upload_failed")
+    } finally {
+      // Keep what did upload, even if a later photo failed.
+      if (added.length > 0) setForm((prev) => ({ ...prev, extraImages: [...prev.extraImages, ...added].slice(0, GUIDED_MAX_PHOTOS - 1) }))
+      setUploadingExtra(false)
+    }
+  }
+
+  function removePhoto(url: string) {
+    setForm((prev) => {
+      if (prev.imageUrl === url) {
+        // Removing the main photo promotes the next one.
+        const [next, ...rest] = prev.extraImages
+        return { ...prev, imageUrl: next ?? null, imagePreview: null, extraImages: rest }
+      }
+      return { ...prev, extraImages: prev.extraImages.filter((u) => u !== url) }
+    })
+  }
+
+  function makeMainPhoto(url: string) {
+    setForm((prev) => {
+      if (!prev.imageUrl || prev.imageUrl === url) return prev
+      return { ...prev, imageUrl: url, imagePreview: null, extraImages: [prev.imageUrl, ...prev.extraImages.filter((u) => u !== url)] }
+    })
+  }
+
+  /** A better version of a photo (e.g. original resolution) proposed by the photo-quality hint. */
+  function replacePhotoUrl(from: string, to: string) {
+    setForm((prev) => ({
+      ...prev,
+      imageUrl: prev.imageUrl === from ? to : prev.imageUrl,
+      imagePreview: prev.imageUrl === from ? null : prev.imagePreview,
+      extraImages: prev.extraImages.map((u) => (u === from ? to : u)),
+    }))
+  }
+
+  // ---- local draft: resume an unfinished product -------------------------------------------------------------------
+  useEffect(() => {
+    if (!open) return
+    const draft = readGuidedDraft(getStorage(), supplierId, CATEGORY_LABELS)
+    setResumeOffer(draft)
+  }, [open, supplierId])
+
+  useEffect(() => {
+    // While an offer is pending the stored draft must not be overwritten by the (still empty) form.
+    if (!open || resumeOffer) return
+    const draftForm = toDraftForm(form)
+    if (!isMeaningfulGuidedForm(draftForm)) return
+    const timer = window.setTimeout(() => {
+      writeGuidedDraft(getStorage(), buildGuidedDraft({ supplierId, form: draftForm, step, now: Date.now() }))
+      setDraftSavedAt(Date.now())
+    }, 800)
+    return () => window.clearTimeout(timer)
+  }, [open, form, step, resumeOffer, supplierId])
+
+  function resumeDraft() {
+    if (!resumeOffer) return
+    const f = sanitizeGuidedDraftForm(resumeOffer.form, CATEGORY_LABELS)
+    if (!f) return
+    setForm({
+      ...DEFAULT_FORM,
+      ...f,
+      category: (f.category as GuidedCategory | "") ?? "",
+      imageUrl: f.imageUrl || null,
+      imagePreview: null,
+    })
+    setStep(resumeOffer.step)
+    setResumeOffer(null)
+    setStepError(null)
+  }
+
+  function discardDraft() {
+    clearGuidedDraft(getStorage(), supplierId)
+    setResumeOffer(null)
+    setDraftSavedAt(null)
   }
 
   function validateStep(current: number): boolean {
@@ -539,7 +703,7 @@ export function GuidedAddProductButton({
             // A draft may be incomplete: only send what the supplier actually filled in.
             ...(priceValid || !asDraft ? { price: Number.parseFloat(form.price.replace(",", ".")) } : {}),
             ...(form.stock.trim() || !asDraft ? { stock: stockN } : {}),
-            images: form.imageUrl ? [form.imageUrl] : [],
+            images: allImages,
             // With an exact taxonomy category the coarse shelf is redundant (the full form sends only categoryId).
             categories: categoryValue && !(withLeaf && form.leafId) ? [categoryValue] : [],
             // Exact category of the real taxonomy when chosen (better discovery, right commission grid).
@@ -568,12 +732,19 @@ export function GuidedAddProductButton({
         if (data.error === "merchant_verification_pending") {
           throw new Error(tWiz("errMerchant"))
         }
+        if (data.error === "listing_not_ready") {
+          // The server refused for missing product-safety data: take the supplier to that step, in words, not a code.
+          setStep(2)
+          throw new Error(tWiz("errGpsr"))
+        }
         throw new Error(data.error ?? `HTTP ${res.status}`)
       }
       if (!data.id) throw new Error("missing_product_id")
 
 
       toast.success(asDraft ? tWiz("draftSaved") : tWiz("published"))
+      // Saved on the server (draft) or published: the local copy is no longer needed.
+      clearGuidedDraft(getStorage(), supplierId)
       close()
       router.push(`/dashboard/supplier/products/${data.id}`)
       router.refresh()
@@ -662,6 +833,37 @@ export function GuidedAddProductButton({
                 </div>
 
                 <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-zinc-50 px-4 py-5 dark:bg-zinc-950 sm:px-6">
+            {resumeOffer ? (
+              <section
+                aria-label={tWiz("draftResumeTitle")}
+                className="mb-4 rounded-xl border border-violet-300/80 bg-violet-50 p-3 dark:border-violet-800 dark:bg-violet-950/40"
+              >
+                <p className="text-sm font-semibold text-violet-950 dark:text-violet-100">{tWiz("draftResumeTitle")}</p>
+                <p className="mt-0.5 text-xs text-violet-900/80 dark:text-violet-200/80">
+                  {tWiz("draftResumeBody", {
+                    title: resumeOffer.form.title.trim() || tWiz("draftUntitled"),
+                    when: formatProductRequestRelativeTime(new Date(resumeOffer.savedAt), locale),
+                  })}
+                </p>
+                <div className="mt-2.5 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={resumeDraft}
+                    className="inline-flex min-h-9 items-center rounded-lg bg-violet-600 px-3 text-xs font-semibold text-white transition hover:bg-violet-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/50"
+                  >
+                    {tWiz("draftResume")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={discardDraft}
+                    className="inline-flex min-h-9 items-center rounded-lg border border-violet-300 px-3 text-xs font-semibold text-violet-800 transition hover:bg-violet-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/50 dark:border-violet-700 dark:text-violet-200 dark:hover:bg-violet-900/40"
+                  >
+                    {tWiz("draftDiscard")}
+                  </button>
+                </div>
+              </section>
+            ) : null}
+
             {step === 0 && (
               <div className="space-y-4">
                 {(form.imageUrl || form.imagePreview || form.title.trim() || aiLoading) ? (
@@ -701,7 +903,7 @@ export function GuidedAddProductButton({
                       type="file"
                       accept="image/*"
                       className="sr-only"
-                      disabled={uploading}
+                      disabled={uploading || uploadingExtra}
                       onChange={(e) => void handleImagePick(e.target.files?.[0] ?? null)}
                     />
                   </label>
@@ -711,6 +913,82 @@ export function GuidedAddProductButton({
                     </p>
                   ) : null}
                 </div>
+                {form.imageUrl ? (
+                  <div>
+                    <p className={labelClass}>{tWiz("morePhotosTitle")}</p>
+                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                      {tWiz("morePhotosHint", { max: GUIDED_MAX_PHOTOS })}
+                    </p>
+                    <ul className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-5">
+                      {allImages.map((url, i) => (
+                        <li
+                          key={url}
+                          className="group relative aspect-square overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900"
+                        >
+                          <Image src={url} alt="" fill sizes="96px" className="object-cover" />
+                          {i === 0 ? (
+                            <span className="absolute left-1 top-1 rounded-full bg-violet-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                              {tWiz("mainPhotoBadge")}
+                            </span>
+                          ) : null}
+                          <div className="absolute inset-x-0 bottom-0 flex justify-between gap-1 bg-gradient-to-t from-black/60 to-transparent p-1 sm:opacity-0 sm:transition group-focus-within:opacity-100 sm:group-hover:opacity-100">
+                            {i > 0 ? (
+                              <button
+                                type="button"
+                                onClick={() => makeMainPhoto(url)}
+                                aria-label={tWiz("makeMain")}
+                                title={tWiz("makeMain")}
+                                className="inline-flex size-8 items-center justify-center rounded-full bg-white/95 text-violet-700 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                              >
+                                <Star className="size-4" aria-hidden />
+                              </button>
+                            ) : (
+                              <span />
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => removePhoto(url)}
+                              aria-label={tWiz("removePhoto")}
+                              title={tWiz("removePhoto")}
+                              className="inline-flex size-8 items-center justify-center rounded-full bg-white/95 text-red-600 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                            >
+                              <Trash2 className="size-4" aria-hidden />
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                      {allImages.length < GUIDED_MAX_PHOTOS ? (
+                        <li>
+                          <label
+                            htmlFor={extraInputId}
+                            className={cn(
+                              "flex aspect-square cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-violet-300 text-violet-700 transition hover:bg-violet-50 focus-within:ring-2 focus-within:ring-violet-500/40 dark:border-violet-700 dark:text-violet-300 dark:hover:bg-violet-950/40",
+                              (uploading || uploadingExtra) && "pointer-events-none opacity-60"
+                            )}
+                          >
+                            {uploadingExtra ? <Loader2 className="size-5 animate-spin" aria-hidden /> : <ImagePlus className="size-5" aria-hidden />}
+                            <span className="mt-1 px-1 text-center text-[11px] font-semibold leading-tight">{tWiz("addPhotos")}</span>
+                            <input
+                              id={extraInputId}
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              className="sr-only"
+                              disabled={uploading || uploadingExtra}
+                              onChange={(e) => {
+                                // Copy BEFORE clearing: a FileList is live, and in Safari/Firefox emptying the input empties it too.
+                                const picked = Array.from(e.target.files ?? [])
+                                e.target.value = ""
+                                void handleExtraImagesPick(picked)
+                              }}
+                            />
+                          </label>
+                        </li>
+                      ) : null}
+                    </ul>
+                    <SupplierPhotoQualityHint images={allImages} onReplace={replacePhotoUrl} />
+                  </div>
+                ) : null}
                 <div>
                   <label className={labelClass} htmlFor="guided-title">
                     {tWiz("titleLabel")}
@@ -860,7 +1138,7 @@ export function GuidedAddProductButton({
                 </BentoCard>
                 <ListingComplianceSection
                   values={form.compliance}
-                  onChange={(key, value) => patchForm({ compliance: { ...form.compliance, [key]: value } })}
+                  onChange={patchCompliance}
                   listingKind="PHYSICAL"
                   name={form.title}
                   mainImageUrl={form.imageUrl}
@@ -894,6 +1172,7 @@ export function GuidedAddProductButton({
                     </p>
                   </div>
                 </BentoCard>
+                <SupplierEarningPreview priceEur={priceValid ? priceCents / 100 : 0} commissionPct={shipDefaults.commissionPct} categoryId={form.leafId} />
                 <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 text-sm dark:border-zinc-700 dark:bg-zinc-900/60">
                   <p className="font-semibold text-zinc-900 dark:text-zinc-50">{tDef("title")}</p>
                   <ul className="mt-1.5 space-y-0.5 text-zinc-600 dark:text-zinc-300">
@@ -928,6 +1207,12 @@ export function GuidedAddProductButton({
               </div>
             )}
 
+            {draftSavedAt && !resumeOffer ? (
+              <p role="status" className="mt-3 text-[11px] text-zinc-500 dark:text-zinc-400">
+                {tWiz("draftAutosaved")}
+              </p>
+            ) : null}
+
             {stepError ? (
               <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
                 {stepError}
@@ -953,7 +1238,7 @@ export function GuidedAddProductButton({
               type="button"
               className="ml-auto rounded-xl px-3 py-2 text-sm font-semibold text-violet-700 underline-offset-2 hover:underline disabled:opacity-50 dark:text-violet-300"
               onClick={() => void saveDraft()}
-              disabled={publishing || savingDraft || uploading || !form.title.trim()}
+              disabled={publishing || savingDraft || uploading || uploadingExtra || !form.title.trim()}
             >
               {savingDraft ? (
                 <span className="inline-flex items-center gap-1.5">

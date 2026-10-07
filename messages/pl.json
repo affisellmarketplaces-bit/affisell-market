@@ -1954,7 +1954,20 @@
       "catFashionHint": "Moda · odzież · obuwie · akcesoria",
       "catHomeHint": "Dom · dekoracje · kuchnia · technologia · ogród",
       "catBeautyHint": "Uroda · pielęgnacja · makijaż · perfumy",
-      "catFoodHint": "Żywność · napoje · delikatesy"
+      "catFoodHint": "Żywność · napoje · delikatesy",
+      "morePhotosTitle": "Więcej zdjęć",
+      "morePhotosHint": "Dodaj łącznie do {max} zdjęć. Kilka ujęć pomaga kupującym podjąć decyzję.",
+      "addPhotos": "Dodaj zdjęcia",
+      "makeMain": "Ustaw jako zdjęcie główne",
+      "removePhoto": "Usuń zdjęcie",
+      "mainPhotoBadge": "Główne",
+      "photoLimitReached": "Osiągnięto maksimum {max} zdjęć.",
+      "draftResumeTitle": "Wznowić rozpoczęty produkt?",
+      "draftResumeBody": "{title} · zapisano {when}",
+      "draftUntitled": "Produkt bez tytułu",
+      "draftResume": "Wznów",
+      "draftDiscard": "Zacznij od nowa",
+      "draftAutosaved": "Wersja robocza zapisana na tym urządzeniu"
     },
     "guidedDefaults": {
       "title": "Przejęte z ustawień Twojego sklepu",
@@ -2142,6 +2155,18 @@
       "noticeHint": "Link lub krótki tekst z instrukcją obsługi i wskazówkami bezpieczeństwa.",
       "brandLabel": "Marka",
       "brandHint": "Wpisz markę widoczną na produkcie lub zostaw puste, jeśli jej nie ma."
+    },
+    "earningPreview": {
+      "title": "Ile otrzymujesz za sprzedaż",
+      "price": "Twoja cena",
+      "commission": "Prowizja odsprzedawcy ({pct} %)",
+      "fee": "Opłata Affisell ({pct} %)",
+      "feeUnknown": "Opłata Affisell: zależy od kategorii",
+      "net": "Otrzymujesz",
+      "netBeforeFee": "Otrzymujesz (przed opłatą Affisell)",
+      "feeHint": "Wybierz dokładną kategorię, aby zobaczyć opłatę Affisell.",
+      "footnote": "Bez VAT. Kanał katalogowy; marża odsprzedawcy jest doliczana osobno i Cię nie dotyczy.",
+      "enterPrice": "Wpisz cenę, aby zobaczyć, ile otrzymasz."
     }
   },
   "affiliate": {

@@ -1954,7 +1954,20 @@
       "catFashionHint": "Moda · ropa · calzado · accesorios",
       "catHomeHint": "Hogar · decoración · cocina · tecnología · jardín",
       "catBeautyHint": "Belleza · cuidado · maquillaje · perfumes",
-      "catFoodHint": "Alimentación · bebidas · gourmet"
+      "catFoodHint": "Alimentación · bebidas · gourmet",
+      "morePhotosTitle": "Más fotos",
+      "morePhotosHint": "Añade hasta {max} fotos en total. Varios ángulos ayudan al comprador a decidirse.",
+      "addPhotos": "Añadir fotos",
+      "makeMain": "Usar como foto principal",
+      "removePhoto": "Eliminar foto",
+      "mainPhotoBadge": "Principal",
+      "photoLimitReached": "Máximo de {max} fotos alcanzado.",
+      "draftResumeTitle": "¿Retomar tu producto en curso?",
+      "draftResumeBody": "{title} · guardado {when}",
+      "draftUntitled": "Producto sin título",
+      "draftResume": "Retomar",
+      "draftDiscard": "Empezar de nuevo",
+      "draftAutosaved": "Borrador guardado en este dispositivo"
     },
     "guidedDefaults": {
       "title": "Aplicado desde los ajustes de tu tienda",
@@ -2142,6 +2155,18 @@
       "noticeHint": "Un enlace o un texto breve con el manual y las instrucciones de seguridad.",
       "brandLabel": "Marca",
       "brandHint": "Escribe la marca que figura en el producto o déjalo vacío si no tiene."
+    },
+    "earningPreview": {
+      "title": "Lo que recibes por venta",
+      "price": "Tu precio",
+      "commission": "Comisión del revendedor ({pct} %)",
+      "fee": "Comisión de Affisell ({pct} %)",
+      "feeUnknown": "Comisión de Affisell: según la categoría",
+      "net": "Recibes",
+      "netBeforeFee": "Recibes (antes de la comisión de Affisell)",
+      "feeHint": "Elige una categoría exacta para ver la comisión de Affisell.",
+      "footnote": "Sin IVA. Canal catálogo; el margen propio del revendedor se suma aparte y no te afecta.",
+      "enterPrice": "Introduce un precio para ver lo que recibes."
     }
   },
   "affiliate": {
