@@ -185,6 +185,25 @@ describe("PUT /api/supplier/products/[id] — attributes are no longer wiped by 
     expect(m.txAttrDeleteMany).not.toHaveBeenCalled()
   })
 
+  it("moving the product to another category drops the old category's characteristics, keeping product-level and safety data", async () => {
+    m.load.mockResolvedValue(
+      load({
+        isDraft: false,
+        attributes: [...existing, { key: "item_volume_ml", label: "Volume", value: "250" }],
+      })
+    )
+    await put(body({ categoryId: "cat_other", productAttributes: [{ key: "brand", label: "Marque", value: "Acme" }], managedAttributeKeys: ["brand"] }))
+    expect(createdKeys().map((r) => r.key).sort()).toEqual(["brand", "gpsr_manufacturer_name", "material"])
+  })
+
+  it("an unchanged category (the form always sends it) keeps everything the form does not own", async () => {
+    m.load.mockResolvedValue(
+      load({ isDraft: false, attributes: [...existing, { key: "item_volume_ml", label: "Volume", value: "250" }] })
+    )
+    await put(body({ categoryId: "cat_leaf", productAttributes: [{ key: "brand", label: "Marque", value: "Nova" }], managedAttributeKeys: ["brand"] }))
+    expect(createdKeys().map((r) => r.key).sort()).toEqual(["brand", "gpsr_manufacturer_name", "item_volume_ml", "material"])
+  })
+
   it("a save that does not send productAttributes leaves them untouched", async () => {
     m.load.mockResolvedValue(load({ isDraft: false, attributes: existing }))
     await put(body({}))

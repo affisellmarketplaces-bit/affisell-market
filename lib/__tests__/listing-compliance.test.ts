@@ -213,6 +213,18 @@ describe("managed attribute keys (no more silent wipe)", () => {
     expect(out.filter((r) => r.key === "material")).toEqual([{ key: "material", label: "Material", value: "Lin" }])
   })
 
+  it("after a category change, the old category's characteristics go (as before) but product-level data stays", () => {
+    const rows = [
+      { key: "item_volume_ml", label: "Volume", value: "250" }, // characteristic of the OLD category
+      { key: "material", label: "Matériau", value: "Coton" }, // describes the product itself
+      { key: k.manufacturerName, label: "Fabricant", value: "Atelier Dupont" }, // safety data
+    ]
+    const out = mergeManagedProductAttributes(rows, [], ["brand"], { categoryChanged: true, alwaysKeep: new Set(LISTING_COMPLIANCE_KEYS) })
+    expect(out.map((r) => r.key).sort()).toEqual([k.manufacturerName, "material"].sort())
+    // same save WITHOUT a category change keeps every row the form does not own
+    expect(mergeManagedProductAttributes(rows, [], ["brand"]).map((r) => r.key)).toHaveLength(3)
+  })
+
   it("parses and bounds the declared keys", () => {
     expect(parseManagedAttributeKeys(undefined)).toBeNull()
     expect(parseManagedAttributeKeys([])).toBeNull()

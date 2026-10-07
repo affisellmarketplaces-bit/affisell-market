@@ -19,6 +19,7 @@ import {
   supplierProductAttributesEqual,
 } from "@/lib/supplier-product-attributes"
 import { applyListingReadinessGate } from "@/lib/listing-compliance/gate.server"
+import { LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
 import { parseCompareAtDraftLax, parseCompareAtStrict } from "@/lib/supplier-product-compare-at"
 import { parseDescriptionBullets } from "@/lib/supplier-product-description-bullets"
 import {
@@ -417,7 +418,12 @@ export async function PUT(
       ? mergeManagedProductAttributes(
           putLoad.attributes,
           productAttributes,
-          parseManagedAttributeKeys(rawBody.managedAttributeKeys)
+          parseManagedAttributeKeys(rawBody.managedAttributeKeys),
+          {
+            // Moving the product to another category drops the old category's characteristics, as it always did.
+            categoryChanged: categoryId !== undefined && categoryId !== putLoad.categoryId,
+            alwaysKeep: new Set(LISTING_COMPLIANCE_KEYS),
+          }
         )
       : putLoad.attributes
 

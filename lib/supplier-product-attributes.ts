@@ -109,14 +109,28 @@ export function parseManagedAttributeKeys(raw: unknown): string[] | null {
   return keys.length > 0 ? [...new Set(keys)] : null
 }
 
+/**
+ * Attributes that describe the PRODUCT, not its category: they stay when the supplier moves it to another category
+ * (everything else was a characteristic of the old category and must go, exactly as before this contract existed).
+ */
+const CATEGORY_INDEPENDENT_KEYS = new Set(["material", "color", "size", "dimensions"])
+
 export function mergeManagedProductAttributes(
   existing: NormalizedProductAttribute[],
   incoming: NormalizedProductAttribute[],
-  managedKeys: string[] | null
+  managedKeys: string[] | null,
+  opts: { categoryChanged?: boolean; alwaysKeep?: ReadonlySet<string> } = {}
 ): NormalizedProductAttribute[] {
   if (!managedKeys) return incoming
   const managed = new Set(managedKeys)
   const incomingKeys = new Set(incoming.map((r) => r.key))
-  const preserved = existing.filter((r) => !managed.has(r.key) && !incomingKeys.has(r.key))
+  const keepAfterCategoryChange = (key: string) =>
+    CATEGORY_INDEPENDENT_KEYS.has(key) || (opts.alwaysKeep?.has(key) ?? false)
+  const preserved = existing.filter(
+    (r) =>
+      !managed.has(r.key) &&
+      !incomingKeys.has(r.key) &&
+      (!opts.categoryChanged || keepAfterCategoryChange(r.key))
+  )
   return [...preserved, ...incoming]
 }
