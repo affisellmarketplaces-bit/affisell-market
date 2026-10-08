@@ -4,7 +4,6 @@ import { unstable_cache } from "next/cache"
 import { Prisma } from "@prisma/client"
 
 import { applyBattleFlashUnitCents } from "@/lib/pulse/battle-engine"
-import { ensurePulseBattleSchema } from "@/lib/pulse/ensure-battle-schema"
 import { listingDisplayTitle, listingPrimaryImageUrl, pickListingCardImageUrl } from "@/lib/affiliate-listing-display"
 import { DEMO_LAB_EMAIL_BY_PERSONA } from "@/lib/demo/demo-accounts-shared"
 import { startHomeRace } from "@/lib/home-race-diagnostics"
@@ -35,7 +34,8 @@ const MIN_REMAINING_MS = 20_000
 
 export async function loadFlashDealsUncached(): Promise<FlashDeal[]> {
   try {
-    await ensurePulseBattleSchema()
+    // No DDL on the Home request path: the PulseBattle schema is owned by the migrations 20260726180000_pulse_battle and
+    // 20260727190000_battle_reseller_legal (catalog verified complete in production). A missing table lands in the catch → [].
     const now = Date.now()
     const battles = await withPrismaReconnect(() =>
       prisma.pulseBattle.findMany({
