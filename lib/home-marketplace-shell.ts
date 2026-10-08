@@ -5,6 +5,7 @@ import type { AppLocale } from "@/lib/i18n-locale"
 import { getCachedHomeProducts } from "@/lib/cache/home-products"
 import { FLAGS } from "@/lib/flags"
 import { withHomeCatalogFallback } from "@/lib/home-catalog-fallback"
+import { startHomeRace } from "@/lib/home-race-diagnostics"
 import { loadMarketplaceCategoryTreeCached } from "@/lib/marketplace-category-tree"
 import { loadOfferModeRailCounts } from "@/lib/marketplace-discovery-facets"
 import { fetchMarketplaceListingsForHome } from "@/lib/marketplace-listings-query"
@@ -74,10 +75,15 @@ let currentShellTimings: Record<string, number> = {}
 export const loadHomeMarketplaceShellSafe = cache(async (locale: AppLocale) => {
   let timer: ReturnType<typeof setTimeout> | undefined
   try {
+    // Diagnostic only (see lib/home-race-diagnostics.ts): passive observation, no behaviour change.
+    const raceProbe = startHomeRace("home_shell", HOME_SHELL_TIMEOUT_MS)
     const shell = await Promise.race([
-      loadHomeMarketplaceShellUncached(locale),
+      raceProbe.watch(loadHomeMarketplaceShellUncached(locale)),
       new Promise<never>((_, reject) => {
-        timer = setTimeout(() => reject(new Error("home_shell_timeout")), HOME_SHELL_TIMEOUT_MS)
+        timer = setTimeout(() => {
+          reject(new Error("home_shell_timeout"))
+          raceProbe.onTimeout(() => ({ parts_finished: Object.keys(currentShellTimings).join(",") }))
+        }, HOME_SHELL_TIMEOUT_MS)
       }),
     ])
     return shell

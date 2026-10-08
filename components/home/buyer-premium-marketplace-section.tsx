@@ -13,8 +13,11 @@ import { loadHomeDiscoverySafe } from "@/lib/home-discovery.server"
 import { loadHomeFlashDealsSafe, loadHomeShopsSafe } from "@/lib/home-flash-shops.server"
 import { loadHomeSelectionSafe } from "@/lib/home-selection.server"
 import { loadHomeBestSellers7dSafe } from "@/lib/public-home-data"
+import { startHomeRace } from "@/lib/home-race-diagnostics"
 import { resolveBuyerCardImageHref } from "@/lib/listing-card-image-shared"
 import { loadBrowseDepartmentsCached } from "@/lib/taxonomy/resolve-browse-departments.server"
+
+const BEST_SELLERS_TIMEOUT_MS = 2500
 
 /**
  * Flash sales, collections, shops and the department directory stream in on their own: they must never share the
@@ -47,13 +50,20 @@ async function HomeDiscoveryStream({ locale }: { locale: ReturnType<typeof resol
 
 async function PremiumMarketplaceSection() {
   const locale = resolveAppLocale(await getLocale())
+  // Diagnostic only (see lib/home-race-diagnostics.ts): the probe allocates state and starts nothing.
+  const bestSellersProbe = startHomeRace("home_best_sellers_7d", BEST_SELLERS_TIMEOUT_MS)
   const [shell, browsePayload, trendingRaw] = await Promise.all([
     loadHomeMarketplaceShellSafe(locale),
     loadBrowseDepartmentsCached(locale),
     // Best sellers of the week (confirmed sales). Never allowed to delay the home: 2.5s cap, empty on failure.
     Promise.race([
-      loadHomeBestSellers7dSafe(3),
-      new Promise<[]>((resolve) => setTimeout(() => resolve([]), 2500)),
+      bestSellersProbe.watch(loadHomeBestSellers7dSafe(3)),
+      new Promise<[]>((resolve) =>
+        setTimeout(() => {
+          resolve([])
+          bestSellersProbe.onTimeout()
+        }, BEST_SELLERS_TIMEOUT_MS)
+      ),
     ]),
   ])
   const trending = trendingRaw.map((p) => ({

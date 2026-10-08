@@ -7,6 +7,7 @@ import { applyBattleFlashUnitCents } from "@/lib/pulse/battle-engine"
 import { ensurePulseBattleSchema } from "@/lib/pulse/ensure-battle-schema"
 import { listingDisplayTitle, listingPrimaryImageUrl, pickListingCardImageUrl } from "@/lib/affiliate-listing-display"
 import { DEMO_LAB_EMAIL_BY_PERSONA } from "@/lib/demo/demo-accounts-shared"
+import { startHomeRace } from "@/lib/home-race-diagnostics"
 import { resolveListingCardImageHref } from "@/lib/listing-card-image-shared"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma, withPrismaReconnect } from "@/lib/prisma"
@@ -109,9 +110,16 @@ const loadFlashCached = unstable_cache(loadFlashDealsUncached, ["home-flash-v1"]
 
 export async function loadHomeFlashDealsSafe(timeoutMs = 2000): Promise<FlashDeal[]> {
   try {
+    // Diagnostic only (see lib/home-race-diagnostics.ts): passive observation, no behaviour change.
+    const raceProbe = startHomeRace("home_flash_deals", timeoutMs)
     return await Promise.race([
-      loadFlashCached(),
-      new Promise<FlashDeal[]>((resolve) => setTimeout(() => resolve([]), timeoutMs)),
+      raceProbe.watch(loadFlashCached()),
+      new Promise<FlashDeal[]>((resolve) =>
+        setTimeout(() => {
+          resolve([])
+          raceProbe.onTimeout()
+        }, timeoutMs)
+      ),
     ])
   } catch {
     return []
@@ -194,9 +202,16 @@ const loadShopsCached = (limit: number) =>
 
 export async function loadHomeShopsSafe(limit = 6, timeoutMs = 2500): Promise<HomeShop[]> {
   try {
+    // Diagnostic only (see lib/home-race-diagnostics.ts): passive observation, no behaviour change.
+    const raceProbe = startHomeRace("home_shops", timeoutMs)
     return await Promise.race([
-      loadShopsCached(limit),
-      new Promise<HomeShop[]>((resolve) => setTimeout(() => resolve([]), timeoutMs)),
+      raceProbe.watch(loadShopsCached(limit)),
+      new Promise<HomeShop[]>((resolve) =>
+        setTimeout(() => {
+          resolve([])
+          raceProbe.onTimeout()
+        }, timeoutMs)
+      ),
     ])
   } catch (error) {
     console.error("[home-shops]", error instanceof Error ? error.message : String(error))
