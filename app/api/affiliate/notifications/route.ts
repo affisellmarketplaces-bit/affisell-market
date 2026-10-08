@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-export async function GET(req: Request) {
+export async function GET() {
   const session = await auth()
   if (!session?.user?.id) {
     return Response.json({ error: "Not authenticated" }, { status: 401 })
@@ -16,12 +16,10 @@ export async function GET(req: Request) {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  const forceSync = new URL(req.url).searchParams.get("sync") === "1"
-
+  // `?sync=1` (sent by the bell when it is opened) used to schedule a background catch-up. The read no longer starts
+  // any: the parameter is accepted and ignored so existing clients keep working. READ-ONLY.
   try {
-    const payload = await loadAffiliateNotificationInbox(session.user.id, {
-      forceSync,
-    })
+    const payload = await loadAffiliateNotificationInbox(session.user.id)
     return Response.json(payload)
   } catch (error) {
     console.error("[affiliate-notifications]", {

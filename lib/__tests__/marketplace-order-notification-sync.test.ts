@@ -68,4 +68,26 @@ describe("syncPartnerMarketplaceAlertsBeforeInbox", () => {
     expect(reconcilePartnerPendingCheckoutOrders).toHaveBeenCalledTimes(2)
     expect(healRecentPartnerMarketplaceNotifications).toHaveBeenCalledTimes(2)
   })
+
+  it("does not ask for the refresh pass unless explicitly requested", async () => {
+    reconcilePartnerPendingCheckoutOrders.mockResolvedValue({ scanned: 0, healed: 0 })
+    healRecentPartnerMarketplaceNotifications.mockResolvedValue({ scanned: 0, healed: 0, refreshed: 0 })
+
+    await syncPartnerMarketplaceAlertsBeforeInbox({ supplierId: "sup_1" })
+    await syncPartnerMarketplaceAlertsBeforeInboxIfDue({ affiliateId: "aff_1" })
+
+    expect(healRecentPartnerMarketplaceNotifications).toHaveBeenNthCalledWith(1, { supplierId: "sup_1" }, { includeRefresh: false })
+    expect(healRecentPartnerMarketplaceNotifications).toHaveBeenNthCalledWith(2, { affiliateId: "aff_1" }, { includeRefresh: false })
+  })
+
+  it("passes the refresh request through to the heal when explicitly asked", async () => {
+    reconcilePartnerPendingCheckoutOrders.mockResolvedValue({ scanned: 0, healed: 0 })
+    healRecentPartnerMarketplaceNotifications.mockResolvedValue({ scanned: 0, healed: 0, refreshed: 0 })
+
+    await syncPartnerMarketplaceAlertsBeforeInbox({ supplierId: "sup_1" }, { includeRefresh: true })
+    await syncPartnerMarketplaceAlertsBeforeInboxIfDue({ affiliateId: "aff_1" }, { force: true, includeRefresh: true })
+
+    expect(healRecentPartnerMarketplaceNotifications).toHaveBeenNthCalledWith(1, { supplierId: "sup_1" }, { includeRefresh: true })
+    expect(healRecentPartnerMarketplaceNotifications).toHaveBeenNthCalledWith(2, { affiliateId: "aff_1" }, { includeRefresh: true })
+  })
 })

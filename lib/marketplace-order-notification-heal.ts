@@ -208,9 +208,20 @@ export type HealPartnerNotificationsResult = {
 
 type PartnerScope = { supplierId: string } | { affiliateId: string }
 
+export type HealPartnerNotificationsOptions = {
+  /**
+   * Also re-render the inbox copy of the {@link STALE_REFRESH_BATCH_SIZE} most recent already-notified orders.
+   * OFF by default: the refresh pass re-reads and re-heals the same orders every time (≈ 15–20 queries per order),
+   * and the money-changing paths already refresh the copy themselves (post-payment heal, VAT sync). Only an
+   * EXPLICIT catch-up (never a GET handler) may ask for it.
+   */
+  includeRefresh?: boolean
+}
+
 /** Heal recent paid orders missing inbox alerts for one supplier or affiliate dashboard. */
 async function healRecentPartnerMarketplaceNotificationsPass(
-  scope: PartnerScope
+  scope: PartnerScope,
+  options: HealPartnerNotificationsOptions
 ): Promise<HealPartnerNotificationsResult> {
   const partnerWhere =
     "supplierId" in scope ? { supplierId: scope.supplierId } : { affiliateId: scope.affiliateId }
@@ -260,17 +271,19 @@ async function healRecentPartnerMarketplaceNotificationsPass(
   const notifiedFlag =
     "supplierId" in scope ? "merchantSupplierInboxNotifiedAt" : "merchantAffiliateInboxNotifiedAt"
 
-  const refreshCandidates = await prisma.order.findMany({
-    where: {
-      ...partnerWhere,
-      status: { in: [...HEALABLE_ORDER_STATUSES] },
-      createdAt: { gte: lookback },
-      [notifiedFlag]: { not: null },
-    },
-    select: { id: true },
-    orderBy: { paidAt: "desc" },
-    take: STALE_REFRESH_BATCH_SIZE,
-  })
+  const refreshCandidates = options.includeRefresh
+    ? await prisma.order.findMany({
+        where: {
+          ...partnerWhere,
+          status: { in: [...HEALABLE_ORDER_STATUSES] },
+          createdAt: { gte: lookback },
+          [notifiedFlag]: { not: null },
+        },
+        select: { id: true },
+        orderBy: { paidAt: "desc" },
+        take: STALE_REFRESH_BATCH_SIZE,
+      })
+    : []
 
   for (const row of refreshCandidates) {
     const result = await healMarketplaceOrderNotifications(row.id)
@@ -290,15 +303,21 @@ async function healRecentPartnerMarketplaceNotificationsPass(
   return { scanned, healed, refreshed }
 }
 
+/**
+ * EXPLICIT catch-up only (post-payment follow-ups, a bounded background job): it reads, calls
+ * {@link healMarketplaceOrderNotifications} (which can WRITE `Order` amounts and inbox rows inside a transaction).
+ * It must never run inside a GET handler — see `lib/__tests__/notifications-get-read-only.test.ts`.
+ */
 export async function healRecentPartnerMarketplaceNotifications(
-  scope: PartnerScope
+  scope: PartnerScope,
+  options: HealPartnerNotificationsOptions = {}
 ): Promise<HealPartnerNotificationsResult> {
   let scanned = 0
   let healed = 0
   let refreshed = 0
 
   for (let pass = 0; pass < HEAL_MAX_PASSES; pass++) {
-    const batch = await healRecentPartnerMarketplaceNotificationsPass(scope)
+    const batch = await healRecentPartnerMarketplaceNotificationsPass(scope, options)
     scanned += batch.scanned
     healed += batch.healed
     refreshed += batch.refreshed

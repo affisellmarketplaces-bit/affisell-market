@@ -114,56 +114,19 @@ async function readAffiliateNotificationInbox(
   return { unreadCount, notifications }
 }
 
-/** Kick off Stripe reconcile + inbox heal without blocking the response. */
-export function scheduleAffiliateMarketplaceAlertSync(
-  affiliateId: string,
-  options?: { force?: boolean }
-): void {
-  void (async () => {
-    try {
-      const { syncPartnerMarketplaceAlertsBeforeInboxIfDue } = await import(
-        "@/lib/marketplace-order-notification-sync"
-      )
-      await syncPartnerMarketplaceAlertsBeforeInboxIfDue(
-        { affiliateId },
-        { force: options?.force ?? false }
-      )
-    } catch (error) {
-      console.error("[affiliate-notifications]", {
-        affiliateId,
-        stage: "background_sync",
-        error: error instanceof Error ? error.message : String(error),
-      })
-    }
-  })()
-}
-
 /**
- * Read affiliate sale alerts from inbox — optionally sync first when force=true.
- * Default: return persisted rows immediately (fast poll), heal in background.
- * forceSync: still returns inbox immediately; Stripe reconcile runs async.
+ * Read affiliate sale alerts from the inbox. READ-ONLY.
+ *
+ * It used to kick off a floating `void (async () => …)()` Stripe reconcile + inbox heal after every read. That work
+ * was cut or frozen once the response was sent (no `waitUntil`), leaving Prisma transactions open until they expired
+ * (the bulk of the production "Transaction already closed" errors, 2026-10). Reading the inbox now never starts any
+ * business catch-up, implicit or not: that is an explicit mechanism, decided separately, which calls
+ * `lib/marketplace-order-notification-sync` itself. Guarded by `lib/__tests__/notifications-get-read-only.test.ts`.
  */
 export async function loadAffiliateNotificationInbox(
-  affiliateId: string,
-  options?: { forceSync?: boolean; skipBackgroundSync?: boolean }
+  affiliateId: string
 ): Promise<AffiliateNotificationInboxPayload> {
-  if (options?.forceSync) {
-    const payload = await readAffiliateNotificationInbox(affiliateId)
-    scheduleAffiliateMarketplaceAlertSync(affiliateId, { force: true })
-    console.log("[affiliate-notifications]", {
-      affiliateId,
-      unreadCount: payload.unreadCount,
-      notificationRows: payload.notifications.length,
-      result: "ok_force_sync_async",
-    })
-    return payload
-  }
-
   const payload = await readAffiliateNotificationInbox(affiliateId)
-
-  if (!options?.skipBackgroundSync) {
-    scheduleAffiliateMarketplaceAlertSync(affiliateId)
-  }
 
   console.log("[affiliate-notifications]", {
     affiliateId,

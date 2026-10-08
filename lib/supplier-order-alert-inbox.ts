@@ -105,7 +105,11 @@ export async function reopenLegacySupplierToShipAlerts(
   return reopened
 }
 
-/** Throttled legacy reopen — avoids transaction on every 3s notification poll. */
+/**
+ * Throttled legacy reopen. It WRITES (flips already-read alerts back to unread, sets the order flag) and must
+ * never run implicitly: no GET handler calls it (`lib/__tests__/notifications-get-read-only.test.ts`). The production
+ * backlog (46 legacy orders, 32 already-read alerts) is a product decision to be taken and run explicitly.
+ */
 export async function reopenLegacySupplierToShipAlertsIfDue(
   supplierId: string,
   options?: { force?: boolean }

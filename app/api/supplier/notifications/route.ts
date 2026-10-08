@@ -8,7 +8,6 @@ import { assertNoSupplierRetailLeak } from "@/lib/supplier-retail-veil"
 import {
   enrichSupplierNotificationRows,
   loadSupplierToShipSnapshot,
-  reopenLegacySupplierToShipAlertsIfDue,
 } from "@/lib/supplier-order-alert-inbox"
 import {
   invalidateSupplierNotificationsDevCache,
@@ -19,6 +18,14 @@ import {
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
+/**
+ * READ-ONLY. This handler only reads the inbox and the data needed to display it.
+ *
+ * It must never wait for — or trigger — any business catch-up: no Stripe, no fulfilment, no amount reconciliation,
+ * no notification heal/refresh, no legacy "reopen". Those used to run here on every poll, took far longer than the
+ * 10 s API budget on a cold instance, and made ~96 % of cold supplier polls fail (HTTP 504, 2026-10).
+ * The guard test `lib/__tests__/notifications-get-read-only.test.ts` fails if that dependency comes back.
+ */
 export async function GET(req: Request) {
   const session = await auth()
   if (!session?.user?.id) {
@@ -28,30 +35,15 @@ export async function GET(req: Request) {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  const forceSync = new URL(req.url).searchParams.get("sync") === "1"
+  // `?sync=1` is still sent by the bell when it is opened. It now only means "fresh read": it bypasses the
+  // development-only cache. It does NOT trigger any catch-up (that is a separate, explicit mechanism).
+  const freshRead = new URL(req.url).searchParams.get("sync") === "1"
 
-  if (!forceSync) {
+  if (!freshRead) {
     const cached = readSupplierNotificationsDevCache(session.user.id)
     if (cached) {
       return Response.json(cached)
     }
-  }
-
-  try {
-    const { syncPartnerMarketplaceAlertsBeforeInboxIfDue } = await import(
-      "@/lib/marketplace-order-notification-sync"
-    )
-    await syncPartnerMarketplaceAlertsBeforeInboxIfDue(
-      { supplierId: session.user.id },
-      { force: forceSync }
-    )
-    await reopenLegacySupplierToShipAlertsIfDue(session.user.id, { force: forceSync })
-  } catch (error) {
-    console.error("[supplier-notifications]", {
-      userId: session.user.id,
-      stage: "sync",
-      error: error instanceof Error ? error.message : String(error),
-    })
   }
 
   try {
