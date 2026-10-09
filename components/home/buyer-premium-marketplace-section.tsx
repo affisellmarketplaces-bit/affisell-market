@@ -12,12 +12,16 @@ import { loadHomeMarketplaceShellSafe } from "@/lib/home-marketplace-shell"
 import { loadHomeDiscoverySafe } from "@/lib/home-discovery.server"
 import { loadHomeFlashDealsSafe, loadHomeShopsSafe } from "@/lib/home-flash-shops.server"
 import { loadHomeSelectionSafe } from "@/lib/home-selection.server"
-import { loadHomeBestSellers7dSafe } from "@/lib/public-home-data"
+import { loadHomeBestSellers7dBucketedSafe } from "@/lib/public-home-cache"
 import { startHomeRace } from "@/lib/home-race-diagnostics"
 import { resolveBuyerCardImageHref } from "@/lib/listing-card-image-shared"
 import { loadBrowseDepartmentsCached } from "@/lib/taxonomy/resolve-browse-departments.server"
 
-const BEST_SELLERS_TIMEOUT_MS = 2500
+/**
+ * Render deadline for the widget on a cache MISS (a HIT answers in milliseconds). It only stops THIS render from waiting:
+ * the loader keeps running after it (no cancellation exists), which is why the cache is single-flight and bucketed.
+ */
+const BEST_SELLERS_TIMEOUT_MS = 5000
 
 /**
  * Flash sales, collections, shops and the department directory stream in on their own: they must never share the
@@ -55,9 +59,9 @@ async function PremiumMarketplaceSection() {
   const [shell, browsePayload, trendingRaw] = await Promise.all([
     loadHomeMarketplaceShellSafe(locale),
     loadBrowseDepartmentsCached(locale),
-    // Best sellers of the week (confirmed sales). Never allowed to delay the home: 2.5s cap, empty on failure.
+    // Best sellers of the week (confirmed sales). Never allowed to delay the home beyond the deadline above, empty on failure.
     Promise.race([
-      bestSellersProbe.watch(loadHomeBestSellers7dSafe(3)),
+      bestSellersProbe.watch(loadHomeBestSellers7dBucketedSafe(3)),
       new Promise<[]>((resolve) =>
         setTimeout(() => {
           resolve([])
