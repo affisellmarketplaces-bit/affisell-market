@@ -17,6 +17,12 @@ import {
   notePrismaUnreachable,
 } from "@/lib/prisma-circuit-breaker"
 import { getPrismaDatasourceUrl, getPrismaDirectDatasourceUrl } from "@/lib/prisma-datasource-url"
+import {
+  beginPrismaOp,
+  countPrismaAttempt,
+  endPrismaOp,
+  noteClientCreated,
+} from "@/lib/prisma-diagnostics"
 import { logDbEnvBoot } from "@/lib/db-env"
 
 type PrismaGlobal = typeof globalThis & {
@@ -86,6 +92,8 @@ function createBasePrismaClient(url: string, logLabel: "default" | "fulfillment"
     /* ignore bad URL parse — create already has datasources url */
   }
 
+  noteClientCreated(logLabel) // diagnostics only (lib/prisma-diagnostics.ts): never throws
+
   return client
 }
 
@@ -115,7 +123,7 @@ function shouldResetPrismaEngine(error: unknown): boolean {
   return isRetryablePrismaConnectionError(error)
 }
 
-async function executeWithReconnect({
+async function executeWithReconnectCore({
   model: _model,
   operation: _operation,
   args,
@@ -152,6 +160,31 @@ async function executeWithReconnect({
   }
 
   throw lastError
+}
+
+/**
+ * Passive diagnostics around `executeWithReconnectCore` (see lib/prisma-diagnostics.ts). Same arguments in, same value out, the same
+ * rejection object re-thrown; the core above — retries, delays, circuit — is untouched. It is an `async` function: with diagnostics on
+ * it `await`s the core only to observe the outcome (result and rejection pass through unchanged); with diagnostics off (or the registry
+ * full) it returns the core's promise. Either way it schedules no timer and holds no promise other than this one operation's.
+ */
+async function executeWithReconnect(input: QueryExtensionArgs): Promise<unknown> {
+  const circuitAtStart = isPrismaCircuitOpen()
+  const op = beginPrismaOp(input.model, input.operation)
+  if (op === 0) return executeWithReconnectCore(input)
+  const query = (queryArgs: unknown) => {
+    countPrismaAttempt(op)
+    return input.query(queryArgs)
+  }
+  let result: unknown
+  try {
+    result = await executeWithReconnectCore({ ...input, query })
+  } catch (error) {
+    endPrismaOp(op, true, error, circuitAtStart)
+    throw error
+  }
+  endPrismaOp(op, false, undefined, circuitAtStart)
+  return result
 }
 
 function createPrismaClient(baseFactory: () => PrismaClient, databaseUrl?: string): PrismaClient {

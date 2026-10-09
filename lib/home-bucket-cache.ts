@@ -3,6 +3,7 @@ import "server-only"
 import { unstable_cache } from "next/cache"
 
 import { logBusiness } from "@/lib/business-log"
+import { RUNTIME_INSTANCE_ID as INSTANCE_ID } from "@/lib/runtime-instance"
 
 /**
  * Bucketed cache + local single-flight for a Home loader (Lot 1A).
@@ -37,8 +38,7 @@ import { logBusiness } from "@/lib/business-log"
 export const HOME_CACHE_LOG_MODULE = "home_cache"
 export const HOME_CACHE_BUCKET_MS = 300_000
 
-/** One id per process (serverless instance), to tell instances apart and group the flights of one instance. */
-const INSTANCE_ID = Math.random().toString(36).slice(2, 8)
+// `INSTANCE_ID` (imported above) is the per-process id shared with `[home_race]` and `[prisma_diag]` — see lib/runtime-instance.ts for its scope.
 
 type Fields = Record<string, string | number | boolean | undefined>
 type Flight = { bucket: number; state: { computed: boolean }; promise: Promise<unknown> }

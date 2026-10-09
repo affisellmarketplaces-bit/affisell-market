@@ -1,4 +1,5 @@
 import { logBusiness } from "@/lib/business-log"
+import { RUNTIME_INSTANCE_ID as INSTANCE_ID } from "@/lib/runtime-instance"
 
 /**
  * DIAGNOSTIC ONLY — passive observation of the `Promise.race(work, timeout)` calls on the home page.
@@ -24,8 +25,7 @@ export const HOME_RACE_LOG_MODULE = "home_race"
 
 type Fields = Record<string, string | number | boolean | undefined>
 
-/** One id per process (serverless instance), to tell instances apart and to group the races of one instance. */
-const INSTANCE_ID = Math.random().toString(36).slice(2, 8)
+// `INSTANCE_ID` (imported above) is the per-process id shared with `[home_cache]` and `[prisma_diag]` — see lib/runtime-instance.ts for its scope.
 
 let raceSequence = 0
 /** Watched promises not settled yet in THIS process — abandoned losers included. Per-instance memory only. */
