@@ -1,9 +1,11 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
+import { unstable_cache } from "next/cache"
 
 import PQueue from "p-queue"
 
 import { groqChatText } from "@/lib/ai/groq-client"
+import { rateLimitClientKey, rateLimitResponseAsync } from "@/lib/api-rate-limit"
 import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
 import { generateCategoryCard } from "@/lib/merchandise/generate-card"
 import { resolveMerchandisingDepartment } from "@/lib/merchandise/templates"
@@ -13,6 +15,17 @@ import { prisma } from "@/lib/prisma"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 export const maxDuration = 120
+
+/** The whole block is rebuilt (DB, image compositing, one language-model call) at most once an hour per department. */
+const BLOCK_CACHE_SECONDS = 3600
+
+/** Thrown for a department whose root category is not in the database. Errors are never cached, so seeding fixes it at once. */
+class MerchRootMissing extends Error {
+  constructor() {
+    super("merch_root_missing")
+    this.name = "MerchRootMissing"
+  }
+}
 
 async function descendantCategoryIds(rootId: string): Promise<string[]> {
   const ids = new Set<string>([rootId])
@@ -59,21 +72,21 @@ function scoreProduct(views: number, basePriceCents: number): number {
   return views * basePriceCents
 }
 
-export async function GET(request: NextRequest) {
-  try {
-  const categoryParam = request.nextUrl.searchParams.get("category")?.trim() ?? ""
-  const resolved = resolveMerchandisingDepartment(categoryParam)
-  if (!resolved) {
-    return NextResponse.json({ error: "Unknown category" }, { status: 400 })
-  }
+type ResolvedDepartment = NonNullable<ReturnType<typeof resolveMerchandisingDepartment>>
 
+type MerchandiseBlock = {
+  title: string
+  categoryId: string
+  browseSlug: string | null
+  items: Array<{ image: string; label: string; href: string }>
+}
+
+async function buildMerchandiseBlock(resolved: ResolvedDepartment): Promise<MerchandiseBlock> {
   const root = await prisma.category.findFirst({
     where: { name: resolved.dbRootName, parentId: null },
     select: { id: true, name: true, slug: true },
   })
-  if (!root) {
-    return NextResponse.json({ error: "Category not seeded in database" }, { status: 404 })
-  }
+  if (!root) throw new MerchRootMissing()
 
   const catIds = await descendantCategoryIds(root.id)
 
@@ -171,13 +184,45 @@ export async function GET(request: NextRequest) {
     }
   })
 
-  return NextResponse.json({
+  return {
     title,
     categoryId: root.id,
     browseSlug: root.slug,
     items,
+  }
+}
+
+/**
+ * Public. Each uncached build reads 80 products, composites four images with `sharp` and calls a language model, so the
+ * route is limited per client and the finished block is cached for an hour per department (it used to be rebuilt on
+ * every request).
+ */
+export async function GET(request: NextRequest) {
+  const limited = await rateLimitResponseAsync(rateLimitClientKey(request), {
+    limit: 30,
+    windowMs: 60_000,
+    prefix: "merch-generate",
   })
+  if (limited) return limited
+
+  try {
+    const categoryParam = request.nextUrl.searchParams.get("category")?.trim() ?? ""
+    const resolved = resolveMerchandisingDepartment(categoryParam)
+    if (!resolved) {
+      return NextResponse.json({ error: "Unknown category" }, { status: 400 })
+    }
+
+    const block = await unstable_cache(
+      () => buildMerchandiseBlock(resolved),
+      ["merch-block-v1", resolved.dbRootName, resolved.template.shape, resolved.template.bg],
+      { revalidate: BLOCK_CACHE_SECONDS, tags: ["merchandise-block"] }
+    )()
+
+    return NextResponse.json(block)
   } catch (e) {
+    if (e instanceof MerchRootMissing) {
+      return NextResponse.json({ error: "Category not seeded in database" }, { status: 404 })
+    }
     console.error("[api/merchandise/generate]", e)
     return NextResponse.json(
       { title: "", categoryId: null, items: [], ...dbUnavailablePayload(e) },
