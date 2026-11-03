@@ -2,6 +2,15 @@ import { NextRequest } from "next/server"
 import { encode } from "next-auth/jwt"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
+// `getToken` is the REAL library by default; a test can make it throw to exercise the safety net whatever version of
+// `@auth/core` is installed (0.41.2 threw on a malformed Bearer header, 0.41.3 returns null, but any future failure
+// must still end up as "anonymous").
+const m = vi.hoisted(() => ({ getToken: vi.fn() }))
+vi.mock("next-auth/jwt", async (importActual) => ({
+  ...(await importActual<typeof import("next-auth/jwt")>()),
+  getToken: m.getToken,
+}))
+
 const SECRET = "test-secret-with-enough-length-0123456789"
 const COOKIE = "authjs.session-token"
 
@@ -33,7 +42,11 @@ describe("resolveAuthSecret", () => {
 })
 
 describe("readProxySessionToken", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    // the real library again before every test (restoreAllMocks in afterEach wipes the default implementation)
+    const actual = await vi.importActual<typeof import("next-auth/jwt")>("next-auth/jwt")
+    m.getToken.mockReset()
+    m.getToken.mockImplementation(actual.getToken)
     vi.spyOn(console, "warn").mockImplementation(() => undefined)
   })
 
@@ -64,12 +77,19 @@ describe("readProxySessionToken", () => {
     expect(await readProxySessionToken(request({ cookie: `${COOKIE}=${jwt}` }), SECRET, false)).toBeNull()
   })
 
-  it("does not throw on a malformed Bearer header (the library alone does: URIError)", async () => {
+  it("is anonymous on a malformed Bearer header (@auth/core 0.41.2 threw URIError, 0.41.3 returns null)", async () => {
     const { readProxySessionToken } = await load()
 
     await expect(
       readProxySessionToken(request({ authorization: "Bearer %E0%A4%A" }), SECRET, false)
     ).resolves.toBeNull()
+  })
+
+  it("is anonymous when getToken throws, whatever the reason", async () => {
+    const { readProxySessionToken } = await load()
+    m.getToken.mockRejectedValueOnce(new URIError("URI malformed"))
+
+    await expect(readProxySessionToken(request(), SECRET, false)).resolves.toBeNull()
   })
 
   it("stays anonymous for a Bearer header that is merely not a valid token", async () => {
@@ -82,7 +102,8 @@ describe("readProxySessionToken", () => {
 
   it("logs an unreadable token, but not on every request", async () => {
     const { readProxySessionToken } = await load()
-    const bad = () => readProxySessionToken(request({ authorization: "Bearer %E0%A4%A" }), SECRET, false)
+    m.getToken.mockRejectedValue(new URIError("URI malformed"))
+    const bad = () => readProxySessionToken(request(), SECRET, false)
 
     await bad()
     await bad()

@@ -6,6 +6,12 @@ export default defineConfig({
   envDir: path.resolve(__dirname, "vitest-env"),
   test: {
     environment: "node",
+    /**
+     * `next-auth` / `@auth/core` are ESM packages that import `next/server` WITHOUT an extension: Node's own loader cannot
+     * resolve that outside Next's bundler. Inlining them lets Vite resolve it, which is what makes the tests that run
+     * Affisell's real `lib/auth.ts` on the real library possible (`authjs-flows.test.ts`).
+     */
+    server: { deps: { inline: [/next-auth/, /@auth\/core/] } },
     include: ["**/*.test.ts"],
     exclude: ["node_modules", ".next", "e2e", "medusa-backend/**"],
     /**
