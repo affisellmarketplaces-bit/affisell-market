@@ -918,6 +918,7 @@
       "handoffPowered": "Passaggio crittografato Affisell",
       "legalNote": "Continuando, accetti di creare un account Affisell acquirente per i premi cashback.",
       "identifyFailed": "Non è stato possibile continuare. Prova di nuovo.",
+      "accountExists": "Esiste già un account con questo identificativo. Accedi per continuare.",
       "signInFailed": "Fallito l'accesso dopo l'identificazione.",
       "networkError": "Rete non disponibile. Prova di nuovo."
     },

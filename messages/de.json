@@ -918,6 +918,7 @@
       "handoffPowered": "Verschlüsselte Übergabe von Affisell",
       "legalNote": "Durch Fortfahren stimmen Sie der Erstellung eines Affisell-Käuferkontos für Bargeld-Rückvergütungen zu.",
       "identifyFailed": "Konnte nicht fortfahren. Versuchen Sie es erneut.",
+      "accountExists": "Mit dieser Angabe besteht bereits ein Konto. Melden Sie sich an, um fortzufahren.",
       "signInFailed": "Anmeldung nach Identifizierung fehlgeschlagen.",
       "networkError": "Netzwerk nicht verfügbar. Versuchen Sie es erneut."
     },

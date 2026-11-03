@@ -918,6 +918,7 @@
       "handoffPowered": "Passerelle chiffrée Affisell",
       "legalNote": "En validant, vous acceptez la création d'un compte acheteur Affisell pour vos bonus cashback.",
       "identifyFailed": "Impossible de continuer. Réessayez.",
+      "accountExists": "Un compte existe déjà avec cet identifiant. Connectez-vous pour continuer.",
       "signInFailed": "Connexion impossible après identification.",
       "networkError": "Réseau indisponible. Réessayez."
     },

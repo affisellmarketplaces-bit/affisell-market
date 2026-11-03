@@ -103,7 +103,17 @@ export function CartCheckoutIdentitySheet({
         credentials: "include",
         body: JSON.stringify(identityBody),
       })
-      const data = await readJsonSafely<{ error?: string; sessionEstablished?: boolean }>(res)
+      const data = await readJsonSafely<{
+        error?: string
+        sessionEstablished?: boolean
+        requiresSignIn?: boolean
+      }>(res)
+      if (res.ok && data?.requiresSignIn) {
+        // Existing account: no session was opened, so keep the guest cart and ask the buyer to sign in.
+        setHandoffOpen(false)
+        setError(t("accountExists"))
+        return
+      }
       if (!res.ok || !data?.sessionEstablished) {
         setHandoffOpen(false)
         setError(data?.error ?? t("identifyFailed"))

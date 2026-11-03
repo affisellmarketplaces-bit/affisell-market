@@ -918,6 +918,7 @@
       "handoffPowered": "Traspaso cifrado de Affisell",
       "legalNote": "Al continuar, acepta crear una cuenta de comprador de Affisell para recompensas de cashback.",
       "identifyFailed": "No se pudo continuar. Intenta de nuevo.",
+      "accountExists": "Ya existe una cuenta con este identificador. Inicia sesión para continuar.",
       "signInFailed": "Falló la autenticación de inicio de sesión después de la identificación.",
       "networkError": "Red no disponible. Intenta de nuevo."
     },

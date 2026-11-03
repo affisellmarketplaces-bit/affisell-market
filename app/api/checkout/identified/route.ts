@@ -51,7 +51,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: identified.error }, { status: identified.status })
     }
 
-    if (Array.isArray(body.guestCartItems) && body.guestCartItems.length > 0) {
+    // No session was opened (existing account with an owner or history): pay as a guest. The order is still
+    // linked to the account by the e-mail given to Stripe, but nothing is merged into or read from that account.
+    const sessionOpen = identified.sessionEstablished
+
+    if (sessionOpen && Array.isArray(body.guestCartItems) && body.guestCartItems.length > 0) {
       const lines = body.guestCartItems
         .map((item) => ({
           productId: item.productId,
@@ -77,13 +81,15 @@ export async function POST(req: Request) {
       body: JSON.stringify(body.checkout),
     })
 
-    const checkoutResponse = await marketplaceCheckoutPOST(checkoutRequest, {
-      buyerUserId: identified.userId,
-    })
+    const checkoutResponse = await marketplaceCheckoutPOST(
+      checkoutRequest,
+      sessionOpen ? { buyerUserId: identified.userId } : undefined
+    )
 
     console.log("[checkout-identified]", {
       userId: identified.userId,
       isNew: identified.isNew,
+      signInRequired: identified.requiresSignIn,
       channel,
       status: checkoutResponse.status,
       result: checkoutResponse.ok ? "checkout_ready" : "checkout_failed",
