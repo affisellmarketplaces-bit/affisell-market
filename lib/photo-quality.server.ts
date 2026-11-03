@@ -1,6 +1,6 @@
 import "server-only"
 
-import sharp from "sharp"
+import sharp, { type Sharp } from "sharp"
 
 import { assertSafeOutboundUrl } from "@/lib/safe-outbound-url"
 import type { PhotoMetrics } from "@/lib/photo-quality"
@@ -50,7 +50,7 @@ function fromDataUrl(dataUrl: string): Buffer | null {
 }
 
 /** 64-bit difference hash: 9×8 greyscale, each bit = pixel brighter than its right neighbour. */
-async function dHashOf(img: sharp.Sharp): Promise<string> {
+async function dHashOf(img: Sharp): Promise<string> {
   const px = await img.clone().greyscale().resize(9, 8, { fit: "fill" }).raw().toBuffer()
   let bits = ""
   for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) bits += px[y * 9 + x]! > px[y * 9 + x + 1]! ? "1" : "0"
@@ -59,7 +59,7 @@ async function dHashOf(img: sharp.Sharp): Promise<string> {
   return hex
 }
 
-async function cornerLumaOf(img: sharp.Sharp): Promise<PhotoMetrics["cornerLuma"]> {
+async function cornerLumaOf(img: Sharp): Promise<PhotoMetrics["cornerLuma"]> {
   // 16×16 greyscale on white (transparent PNGs are judged as they will appear on the storefront).
   const N = 16
   const px = await img.clone().flatten({ background: "#ffffff" }).greyscale().resize(N, N, { fit: "fill" }).raw().toBuffer()
