@@ -1,6 +1,5 @@
 import createIntlMiddleware from "next-intl/middleware"
 import { NextRequest, NextResponse } from "next/server"
-import { getToken } from "next-auth/jwt"
 
 import { routing } from "@/i18n/routing"
 import {
@@ -32,6 +31,7 @@ import {
   normalizeLegionUsername,
 } from "@/lib/legion/username"
 import { isPublicStaticAssetPath } from "@/lib/public-static-asset-path"
+import { readProxySessionToken, resolveAuthSecret } from "@/lib/proxy-session-token"
 import { staticAppRewriteTarget, isStaticAppPathname } from "@/lib/reserved-locale-segments"
 import {
   HumanoidShield,
@@ -39,7 +39,14 @@ import {
 } from "@/lib/security/humanoid-shield"
 import { scrubCredentialParams } from "@/lib/scrub-credential-query"
 
-const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
+/** Same rule as Auth.js (first non-empty of AUTH_SECRET / NEXTAUTH_SECRET). null = none: every visitor is anonymous here. */
+const secret = resolveAuthSecret()
+if (!secret && process.env.NEXT_PHASE !== "phase-production-build") {
+  console.error("[proxy]", {
+    result: "auth_secret_missing",
+    note: "AUTH_SECRET / NEXTAUTH_SECRET is not set: no session can be read, so protected pages redirect to the login.",
+  })
+}
 const FORCED_CUSTOMER_HEADER = "x-affisell-view-role"
 const intlMiddleware = createIntlMiddleware(routing)
 
@@ -191,19 +198,13 @@ async function handleHomePath(
 ): Promise<NextResponse> {
   const pathname = req.nextUrl.pathname
 
-  if (secret) {
-    const token = await getToken({
-      req,
-      secret,
-      secureCookie: secureSessionCookieForRequest(req),
-    })
-    const role = typeof token?.role === "string" ? token.role : undefined
-    if (role === "AFFILIATE") {
-      return NextResponse.redirect(new URL("/dashboard/affiliate", req.url))
-    }
-    if (role === "SUPPLIER") {
-      return NextResponse.redirect(new URL("/dashboard/supplier", req.url))
-    }
+  const homeToken = await readProxySessionToken(req, secret, secureSessionCookieForRequest(req))
+  const homeRole = typeof homeToken?.role === "string" ? homeToken.role : undefined
+  if (homeRole === "AFFILIATE") {
+    return NextResponse.redirect(new URL("/dashboard/affiliate", req.url))
+  }
+  if (homeRole === "SUPPLIER") {
+    return NextResponse.redirect(new URL("/dashboard/supplier", req.url))
   }
 
   if (pathname === "/en") {
@@ -486,13 +487,11 @@ export async function proxy(req: NextRequest) {
     return withForcedCustomerRole(req, shieldResult)
   }
 
-  if (secret) {
+  // Page guards run for EVERY visitor. Without a secret, or with a session token that cannot be read, the visitor is
+  // anonymous (`token` null) and protected areas redirect to the login — they used to be skipped altogether.
+  {
     const path = bare + (req.nextUrl.search || "")
-    const token = await getToken({
-      req,
-      secret,
-      secureCookie: secureSessionCookieForRequest(req),
-    })
+    const token = await readProxySessionToken(req, secret, secureSessionCookieForRequest(req))
     const role = typeof token?.role === "string" ? token.role : undefined
     const loggedIn = Boolean(token?.sub)
 
