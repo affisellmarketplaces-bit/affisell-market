@@ -411,7 +411,7 @@ export class FulfillmentOrchestrator {
       )
 
       for (const order of orders) {
-        void dispatchMerchantOrderAlerts(order.id)
+        await dispatchMerchantOrderAlerts(order.id)
       }
 
       await recalcOrderFulfillmentStatus(orders.map((o) => o.id))
@@ -465,7 +465,7 @@ export class FulfillmentOrchestrator {
         })
       )
       for (const order of orders) {
-        void dispatchMerchantOrderAlerts(order.id)
+        await dispatchMerchantOrderAlerts(order.id)
       }
       return { ok: true }
     }

@@ -11,14 +11,19 @@ import { findOrderIdsForCheckoutSession } from "@/lib/stripe-marketplace-commiss
 import { syncOrderVatFromCheckoutSession } from "@/lib/stripe-sync-order-vat-from-session"
 import { logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
 
-/** True when checkout has no rows yet, or pre-created rows are still unpaid (PENDING). */
+/** True when checkout has no rows yet, unpaid rows, or paid rows missing buyer email (settle-before-fulfill race). */
 export async function marketplaceCheckoutNeedsFulfillment(sessionId: string): Promise<boolean> {
   const orderIds = await findOrderIdsForCheckoutSession(sessionId)
   if (orderIds.length === 0) return true
   const unpaid = await prisma.order.count({
     where: { id: { in: orderIds }, status: { not: "paid" } },
   })
-  return unpaid > 0
+  if (unpaid > 0) return true
+  const paidRows = await prisma.order.findMany({
+    where: { id: { in: orderIds }, status: "paid" },
+    select: { customerEmail: true },
+  })
+  return paidRows.some((o) => !(o.customerEmail ?? "").trim())
 }
 
 /** True when every marketplace row for this Stripe session is paid. */

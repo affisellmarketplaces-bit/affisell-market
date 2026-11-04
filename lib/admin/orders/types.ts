@@ -53,6 +53,8 @@ export type AdminOrderDetail = {
   productName: string
   variantLabel: string | null
   supplierName: string
+  supplierEmail: string
+  merchantSupplierEmailSentAt: string | null
   affiliateName: string | null
   stripeSessionId: string
   batchId: string | null

@@ -1,4 +1,7 @@
-import { ensureCheckoutFulfilledBeforeSettle } from "@/lib/marketplace-checkout-fulfill-before-settle"
+import {
+  ensureCheckoutFulfilledBeforeSettle,
+  orderPaidWithoutBuyerDetails,
+} from "@/lib/marketplace-checkout-fulfill-before-settle"
 import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
 
@@ -144,19 +147,27 @@ export async function settleMarketplaceOrdersFromCheckoutSession(
   }
 
   // Never settle (which marks the order PAID) before the checkout has been fulfilled with the buyer's details.
+  // If fulfill fails, abort settle — continuing would recreate the race this guard exists to prevent.
   try {
     await ensureCheckoutFulfilledBeforeSettle(session)
   } catch (error) {
-    console.error("[settle-before-fulfil]", {
+    const message = error instanceof Error ? error.message : String(error)
+    console.error("[settle-before-fulfill]", {
       sessionId: session.id,
-      error: error instanceof Error ? error.message : String(error),
+      error: message,
     })
+    return { processedOrderIds: [], errors: [`fulfill_before_settle_failed:${message.slice(0, 160)}`] }
   }
 
   const processedOrderIds: string[] = []
   const errors: string[] = []
 
   for (const orderId of orderIds) {
+    if (await orderPaidWithoutBuyerDetails(orderId)) {
+      errors.push(`${orderId}:paid_without_buyer_details`)
+      continue
+    }
+
     try {
       const { applyReferralBonus } = await import("@/lib/referral")
       await applyReferralBonus(orderId)
