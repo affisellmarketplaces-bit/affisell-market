@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server"
 import { auth } from "@/auth"
 import {
   HumanoidShield,
+  shieldLogsRedisKey,
   type ShieldEventLog,
 } from "@/lib/security/humanoid-shield"
 
@@ -22,7 +23,7 @@ async function readRedisLogs(limit: number): Promise<ShieldEventLog[] | null> {
   try {
     const { Redis } = await import("@upstash/redis")
     const redis = Redis.fromEnv()
-    const raw = await redis.lrange("affisell:shield:logs", 0, limit - 1)
+    const raw = await redis.lrange(shieldLogsRedisKey(), 0, limit - 1)
     if (!Array.isArray(raw)) return null
     return raw
       .map((item) => {
@@ -159,8 +160,8 @@ export async function POST(req: Request) {
     try {
       const { Redis } = await import("@upstash/redis")
       const redis = Redis.fromEnv()
-      await redis.lpush("affisell:shield:logs", JSON.stringify(entry))
-      await redis.ltrim("affisell:shield:logs", 0, MAX_LOGS - 1)
+      await redis.lpush(shieldLogsRedisKey(), JSON.stringify(entry))
+      await redis.ltrim(shieldLogsRedisKey(), 0, MAX_LOGS - 1)
     } catch (err) {
       console.warn("[shield-client]", {
         step: "redis_log_failed",

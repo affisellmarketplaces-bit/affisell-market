@@ -31,14 +31,38 @@ export function resolveAuthSecret(env: Record<string, string | undefined> = proc
 
 const UNREADABLE_LOG_EVERY_MS = 60_000
 let lastUnreadableLogAt = 0
+let lastMissingSecretLogAt = 0
 
-/** The visitor's session token, or null when there is none, no secret to read it with, or it cannot be read. Never throws. */
+/** Test seam: forget when the missing-secret error was last logged. */
+export function resetProxySessionTokenLogsForTests(): void {
+  lastUnreadableLogAt = 0
+  lastMissingSecretLogAt = 0
+}
+
+/**
+ * The visitor's session token, or null when there is none, no secret to read it with, or it cannot be read. Never throws.
+ *
+ * With NO secret every visitor — admins and suppliers included — is anonymous here. That used to be silent beyond one line at module
+ * load (a line that scrolls away on a long-lived instance); it is now an ERROR repeated at most once a minute per instance for as long
+ * as requests keep arriving without a usable secret (finalisation master J3). Variable names only.
+ */
 export async function readProxySessionToken(
   req: NextRequest,
   secret: string | null,
   secureCookie: boolean
 ): Promise<ProxySessionToken> {
-  if (!secret) return null
+  if (!secret) {
+    const now = Date.now()
+    if (now - lastMissingSecretLogAt >= UNREADABLE_LOG_EVERY_MS) {
+      lastMissingSecretLogAt = now
+      console.error("[proxy]", {
+        result: "auth_secret_missing_on_request",
+        variables: ["AUTH_SECRET", "NEXTAUTH_SECRET"],
+        note: "No session secret is set: every visitor is treated as anonymous and no session can be read. Set AUTH_SECRET (or NEXTAUTH_SECRET) on this environment.",
+      })
+    }
+    return null
+  }
   try {
     return await getToken({ req, secret, secureCookie })
   } catch (error) {

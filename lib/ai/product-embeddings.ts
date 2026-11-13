@@ -14,6 +14,7 @@ import {
   TOP_PRODUCTS_2026,
   type TopProductEntry,
 } from "@/lib/ai/top-products-2026"
+import { redisKey } from "@/lib/redis-namespace"
 
 export const PRODUCT_EMBED_REDIS_PREFIX = "product:embed:"
 export const PRODUCT_EMBED_TTL_SEC = 7 * 24 * 60 * 60
@@ -42,7 +43,7 @@ function getRedis(): Redis | null {
 
 export function productImageEmbedKey(imageFingerprint: string): string {
   const hash = createHash("sha256").update(imageFingerprint).digest("hex")
-  return `${PRODUCT_EMBED_REDIS_PREFIX}${hash}`
+  return redisKey(`${PRODUCT_EMBED_REDIS_PREFIX}${hash}`)
 }
 
 export function visualCuesEmbeddingText(cues: {

@@ -10,6 +10,7 @@ import type { PlaceSupplierOrderJobData } from "@/lib/auto-order/bullmq/place-or
 import { processPlaceSupplierOrderJob } from "@/lib/auto-order/bullmq/place-order.processor"
 import { createBullMqConnection, getBullMqConnection, isAutoOrderQueueEnabled } from "@/lib/auto-order/redis"
 import { logAutoOrder } from "@/lib/auto-order/telemetry"
+import { bullmqPrefix } from "@/lib/redis-namespace"
 
 const PLACE_ORDER_ATTEMPTS = 6
 const PLACE_ORDER_BACKOFF_MS = 5_000
@@ -35,6 +36,7 @@ export function getPlaceSupplierOrderQueue(): Queue<PlaceSupplierOrderJobData> {
   if (!placeQueue) {
     placeQueue = new Queue<PlaceSupplierOrderJobData>(PLACE_SUPPLIER_ORDER_QUEUE, {
       connection: getBullMqConnection(),
+      prefix: bullmqPrefix(), // "bull" in production (the BullMQ default: existing queue unchanged), "preview:bull" on a Preview
       defaultJobOptions: defaultJobOptions(),
     })
   }
@@ -45,6 +47,7 @@ export function getPlaceSupplierOrderDlq(): Queue<PlaceSupplierOrderJobData> {
   if (!dlqQueue) {
     dlqQueue = new Queue<PlaceSupplierOrderJobData>(PLACE_SUPPLIER_ORDER_DLQ, {
       connection: getBullMqConnection(),
+      prefix: bullmqPrefix(),
       defaultJobOptions: { removeOnComplete: false, removeOnFail: false },
     })
   }
@@ -98,6 +101,7 @@ export function createPlaceSupplierOrderWorker(): Worker<PlaceSupplierOrderJobDa
     },
     {
       connection,
+      prefix: bullmqPrefix(),
       concurrency: Number(process.env.AUTO_ORDER_WORKER_CONCURRENCY ?? "4"),
     }
   )
@@ -122,6 +126,7 @@ export function getBatchFulfillQueue(): Queue<BatchFulfillJobData> {
   if (!batchQueue) {
     batchQueue = new Queue<BatchFulfillJobData>(BATCH_FULFILL_QUEUE, {
       connection: getBullMqConnection(),
+      prefix: bullmqPrefix(),
       defaultJobOptions: {
         attempts: 4,
         backoff: { type: "exponential", delay: 10_000 },
@@ -148,6 +153,6 @@ export function createBatchFulfillWorker(): Worker<BatchFulfillJobData> {
       if (!stripeSessionId) throw new Error("missing_stripeSessionId")
       await runAutoFulfillmentBatch(stripeSessionId)
     },
-    { connection, concurrency: 2 }
+    { connection, prefix: bullmqPrefix(), concurrency: 2 }
   )
 }

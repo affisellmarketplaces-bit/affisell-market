@@ -150,6 +150,38 @@ export function previewPointsAtProdDb(databaseUrl?: string): boolean {
   return host.includes(PROD_NEON_MARKER)
 }
 
+export class PreviewProductionDatabaseError extends Error {
+  readonly client: string
+
+  constructor(client: string, maskedHost: string) {
+    super(
+      `[env-guard] This is a Vercel PREVIEW deployment and the ${client} database URL names the PRODUCTION database (${maskedHost}). ` +
+        `The client is not created: a Preview must never read or write production data. Point this variable at the staging branch ` +
+        `(ep-shy-wind-…) in Vercel → Environment Variables → Preview, or remove it. The URL itself is not shown.`
+    )
+    this.name = "PreviewProductionDatabaseError"
+    this.client = client
+  }
+}
+
+/**
+ * RUNTIME guard (finalisation master K1): a Vercel Preview whose database URL names the production endpoint refuses to create the
+ * database client — so every query fails, loudly, instead of silently serving or modifying production data. Until now
+ * `previewPointsAtProdDb` was only used by the `env:check` script and the build pipeline (`scripts/schema-deploy.mjs`); a deployment
+ * could still start with the wrong variable (changed in the dashboard, copied from Production) and run.
+ *
+ * Applied in `lib/prisma.ts` (default and fulfillment clients) and `lib/prisma-radar.ts`. Inert outside `VERCEL_ENV=preview`, so
+ * production, local development and tests are unaffected. Never prints the URL: only the masked endpoint.
+ */
+export function assertPreviewNotOnProductionDatabase(databaseUrl: string | undefined | null, client: string): void {
+  const url = databaseUrl?.trim()
+  if (!url) return
+  if (!previewPointsAtProdDb(url)) return
+  const maskedHost = maskDbHost(extractHostFromDatabaseUrl(url))
+  console.error("[env-guard]", { result: "preview_points_at_production_database", client, host: maskedHost })
+  throw new PreviewProductionDatabaseError(client, maskedHost)
+}
+
 /** Current Affisell environment + masked DB metadata (safe to log). */
 export function getDbEnv(databaseUrl?: string): DbEnvInfo {
   const env = resolveAffisellEnv()

@@ -16,9 +16,16 @@ const nextConfig: NextConfig = {
    * checkout does not offer, and React would report a hydration mismatch on every card. Inlining the value at build time
    * gives server render, hydration and checkout one answer (changing it needs a redeploy, as on Vercel env changes do).
    */
-  env: process.env.MARKETPLACE_BNPL_ENABLED
-    ? { MARKETPLACE_BNPL_ENABLED: process.env.MARKETPLACE_BNPL_ENABLED }
-    : {},
+  env: {
+    ...(process.env.MARKETPLACE_BNPL_ENABLED
+      ? { MARKETPLACE_BNPL_ENABLED: process.env.MARKETPLACE_BNPL_ENABLED }
+      : {}),
+    // Which Vercel environment this build is for (production | preview | development), for the BROWSER bundle: Sentry's client init
+    // files events under it, so a Preview error is never filed as "production" (finalisation master K1; lib/runtime-environment.ts).
+    // Vercel exposes the same value itself when "Automatically expose System Environment Variables" is on; this makes it independent
+    // of that project setting. Nothing sensitive: it is one of three words.
+    ...(process.env.VERCEL_ENV ? { NEXT_PUBLIC_VERCEL_ENV: process.env.VERCEL_ENV } : {}),
+  },
   async headers() {
     return [
       {

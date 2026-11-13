@@ -1,6 +1,7 @@
 import "server-only"
 
 import { getRedisUrl } from "@/lib/auto-order/redis"
+import { redisKey } from "@/lib/redis-namespace"
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -46,7 +47,7 @@ async function consumeRedis(
 ): Promise<{ allowed: number; remaining: number }> {
   const { getRedisConnection } = await import("@/lib/auto-order/redis")
   const redis = getRedisConnection()
-  const mapKey = `growth:winners-quota:${key}`
+  const mapKey = redisKey(`growth:winners-quota:${key}`)
   const windowSec = Math.ceil(WEEK_MS / 1000)
 
   if (redis.status === "wait") {

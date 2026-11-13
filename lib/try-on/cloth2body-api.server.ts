@@ -14,6 +14,7 @@ import {
 import { type IdmVtonCategory } from "@/lib/try-on/infer-idm-vton-category"
 import { getTryOnProvider } from "@/lib/try-on/provider-types"
 import { prisma } from "@/lib/prisma"
+import { redisKey } from "@/lib/redis-namespace"
 
 export function isTryOnFeatureEnabledStrict(): boolean {
   return process.env.TRY_ON_ENABLED === "1"
@@ -31,7 +32,7 @@ function getIpLimiter(): Ratelimit | null {
     ipLimiter = new Ratelimit({
       redis: new Redis({ url, token }),
       limiter: Ratelimit.slidingWindow(5, "1 m"),
-      prefix: "tryon:ip",
+      prefix: redisKey("tryon:ip"), // namespaced (lib/redis-namespace.ts)
       analytics: true,
     })
   }

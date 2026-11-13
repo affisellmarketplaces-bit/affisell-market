@@ -23,7 +23,7 @@ import {
   endPrismaOp,
   noteClientCreated,
 } from "@/lib/prisma-diagnostics"
-import { logDbEnvBoot } from "@/lib/db-env"
+import { assertPreviewNotOnProductionDatabase, logDbEnvBoot } from "@/lib/db-env"
 
 type PrismaGlobal = typeof globalThis & {
   __affisellPrisma?: PrismaClient
@@ -39,6 +39,9 @@ function sleep(ms: number): Promise<void> {
 }
 
 function createBasePrismaClient(url: string, logLabel: "default" | "fulfillment" = "default"): PrismaClient {
+  // Runtime guard (finalisation master K1): a Vercel Preview never gets a client on the PRODUCTION database. Throws before any connection.
+  assertPreviewNotOnProductionDatabase(url, logLabel)
+
   const useEventLogs =
     process.env.PRISMA_LOG !== "1" && process.env.NODE_ENV === "development"
 

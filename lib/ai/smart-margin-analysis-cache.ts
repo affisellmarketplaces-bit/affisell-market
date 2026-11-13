@@ -5,6 +5,7 @@ import { createHash } from "node:crypto"
 import { Redis } from "@upstash/redis"
 
 import type { MarginAnalysisResponse } from "@/lib/ai/smart-margin-types"
+import { redisKey } from "@/lib/redis-namespace"
 
 export const MARGIN_ANALYSIS_TTL_SEC = 60 * 60
 const MEMORY_MAX = 200
@@ -22,7 +23,7 @@ function getRedis(): Redis | null {
 export function marginAnalysisCacheKey(productKey: string, userId: string, userMargin: number): string {
   const raw = `${productKey}:${userId}:${userMargin}`
   const hash = createHash("sha256").update(raw).digest("hex").slice(0, 24)
-  return `margin:${hash}`
+  return redisKey(`margin:${hash}`)
 }
 
 export async function getCachedMarginAnalysis(key: string): Promise<MarginAnalysisResponse | null> {

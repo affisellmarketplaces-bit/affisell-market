@@ -5,6 +5,7 @@ import { createHash } from "node:crypto"
 import { Redis } from "@upstash/redis"
 
 import type { ProductAnalysisResult } from "@/lib/ai/product-analyzer"
+import { redisKey } from "@/lib/redis-namespace"
 
 const CACHE_TTL_SEC = 24 * 60 * 60
 const MEMORY_MAX = 200
@@ -22,7 +23,7 @@ function getRedis(): Redis | null {
 
 export function productAnalysisCacheKey(imageFingerprint: string): string {
   const hash = createHash("sha256").update(imageFingerprint).digest("hex")
-  return `product-analysis:${hash}`
+  return redisKey(`product-analysis:${hash}`)
 }
 
 export function fingerprintImageInput(input: { imageUrl?: string; imageDataUrl?: string }): string {

@@ -688,6 +688,7 @@ const CLIENT_CREATOR_REGISTRY: Record<string, string> = {
 }
 const ENV_NAME_READERS: Record<string, string> = {
   "apps/api/src/shared/env.ts": "the legacy market-intelli API (its own schema and client)",
+  "lib/env-validation.ts": "the startup environment validator (variable NAMES only; a Preview whose Radar URL names production is a critical finding — K1/J3)",
   "lib/prisma-radar.ts": "the application's Radar client",
   "lib/radar/env.ts": "the application's resolver (R > M > U > D)",
   "prisma.config.ts": "Prisma CLI configuration (loads env files; guard for write commands)",

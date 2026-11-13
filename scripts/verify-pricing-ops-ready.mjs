@@ -84,7 +84,7 @@ for (const name of PRICING_MIGRATIONS) {
   const dir = resolve(process.cwd(), "prisma/migrations", name)
   const sql = resolve(dir, "migration.sql")
   if (existsSync(sql)) ok(`migration ${name}`)
-  else fail(`migration ${name}`, "Missing — run prisma migrate dev or restore from main")
+  else fail(`migration ${name}`, "Missing — restore the migration folder from main (a migration is written by hand; never `prisma migrate dev` on this database — AGENTS.md)")
 }
 
 const schemaPath = resolve(process.cwd(), "prisma/schema.prisma")
