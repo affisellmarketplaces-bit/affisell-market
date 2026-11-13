@@ -318,16 +318,12 @@ async function applyFullDisputeLoss(
     alertClawbackBlocked(order.id, safety.reason)
   }
 
-  // 4. Order state (the same words as a Stripe refund). A pending clawback keeps its status until the cron completes it.
-  await tx.order.update({
-    where: { id: order.id },
-    data: {
-      paymentSettlementStatus: result === "refunded" ? "REFUNDED" : "REFUND_PENDING_CLAWBACK",
-      ...(result === "refunded" ? { status: "refunded" } : {}),
-    },
-  })
-
-  // 5. Best-effort follow-ups of a full refund: stop an upstream purchase, give back sponsor fees. Neither ever throws.
+  // 4. Best-effort follow-ups of a full refund: stop an upstream purchase, give back sponsor fees. Neither ever throws.
+  //    They write to the Order row through the GLOBAL Prisma client (the sponsor fee reversal updates `affisellFeeCents`).
+  //    This handler runs inside the webhook's interactive transaction: the `tx.order.update` below takes that row's lock and
+  //    keeps it until the whole event is done, so any global write to the same row AFTER it would wait for the transaction
+  //    that is itself waiting for it (a self-block until the 25 s timeout — finalisation review #7). Hence: every
+  //    global-client write first, the transaction's own Order write LAST.
   try {
     const { attemptExternalOrderCancellation } = await import("@/lib/fulfillment/external-order-cancellation")
     await attemptExternalOrderCancellation(order.id)
@@ -348,6 +344,16 @@ async function applyFullDisputeLoss(
       message: error instanceof Error ? error.message : String(error),
     })
   }
+
+  // 5. Order state (the same words as a Stripe refund), through the transaction: LAST, see above. A pending clawback keeps
+  //    its status until the cron completes it.
+  await tx.order.update({
+    where: { id: order.id },
+    data: {
+      paymentSettlementStatus: result === "refunded" ? "REFUNDED" : "REFUND_PENDING_CLAWBACK",
+      ...(result === "refunded" ? { status: "refunded" } : {}),
+    },
+  })
 
   return result
 }

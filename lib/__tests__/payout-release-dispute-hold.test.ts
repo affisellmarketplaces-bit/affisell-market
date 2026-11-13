@@ -87,6 +87,21 @@ describe("Lightning instant payout", () => {
     const result = await triggerLightningPayout("ord_1")
     expect(result.success === false && result.reason === "dispute_open").toBe(false)
   })
+
+  // Finalisation review #8: after a LOST dispute the ledger row is terminal and the order is refunded, but its
+  // `payoutStatus` is still PENDING: only the closed-order rule stops the AfterShip "delivered" webhook from paying it.
+  it.each([
+    ["refunded", { status: "refunded", paymentSettlementStatus: "REFUNDED" }],
+    ["lost dispute with a clawback still pending", { status: "disputed", paymentSettlementStatus: "REFUND_PENDING_CLAWBACK" }],
+    ["lost dispute, status left as it was", { status: "shipped", paymentSettlementStatus: "REFUND_PENDING_CLAWBACK" }],
+    ["cancelled", { status: "CANCELLED", paymentSettlementStatus: "CANCELLED" }],
+    ["stale paid status, REFUNDED settlement", { status: "paid", paymentSettlementStatus: "REFUNDED" }],
+  ])("refuses a closed order (%s) — no transfer, even with no open dispute", async (_label, over) => {
+    state.openHolds = 0
+    state.order = { ...state.order, ...over }
+    expect(await triggerLightningPayout("ord_1")).toEqual({ success: false, reason: "order_closed" })
+    expect(transfersCreate).not.toHaveBeenCalled()
+  })
 })
 
 describe("Légion override payout", () => {
@@ -117,5 +132,17 @@ describe("Légion override payout", () => {
   it("carries on to the normal checks when no dispute is open", async () => {
     // no active referral in the fake: the normal path stops there, i.e. AFTER the dispute guard
     expect(await payLegionOverrideForOrder("ord_1")).toMatchObject({ paid: false, reason: "sponsor_connect_missing" })
+  })
+
+  // Finalisation review #8: the catch-up of process-transfers pays `reserved` overrides of orders whose affiliate leg
+  // settled; after a reversal that is still true, so the closed-order rule is what stops the 2% override.
+  it.each([
+    ["refunded", { status: "refunded", paymentSettlementStatus: "REFUNDED" }],
+    ["lost dispute with a clawback still pending", { status: "shipped", paymentSettlementStatus: "REFUND_PENDING_CLAWBACK" }],
+    ["cancelled", { status: "cancelled" }],
+  ])("does not pay the override of a closed order (%s)", async (_label, over) => {
+    state.order = { ...state.order, ...over }
+    expect(await payLegionOverrideForOrder("ord_1")).toEqual({ paid: false, transferId: null, reason: "order_closed" })
+    expect(transfersCreate).not.toHaveBeenCalled()
   })
 })
