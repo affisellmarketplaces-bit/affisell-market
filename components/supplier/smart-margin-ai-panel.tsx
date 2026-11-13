@@ -10,6 +10,7 @@ import {
   trackSuccessProbabilityShown,
 } from "@/lib/analytics/smart-margin-posthog"
 import { fetchSmartMarginAnalysis } from "@/lib/ai/smart-margin-client"
+import { marketDataNote } from "@/lib/ai/smart-margin-labels"
 import type { MarginAnalysisResponse } from "@/lib/ai/smart-margin-types"
 import {
   CONVERSION_DISCLAIMER,
@@ -118,16 +119,13 @@ export function SmartMarginAiPanel({
         Smart Margin
       </h3>
       <p className="-mt-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400" data-testid="smart-margin-rule-note">
-        Calcul par règles fixes (formules), pas un modèle d&apos;IA.{" "}
-        {analysis?.market_data?.origin === "fixture"
-          ? "Données de marché : exemple de démonstration, non mesurées."
-          : "Données de marché : estimation par règle (catégorie et prix), non mesurée."}
+        Calcul par règles fixes (formules), pas un modèle d&apos;IA. {marketDataNote(analysis?.market_data?.origin)}
       </p>
 
       {loading ? (
         <p className="flex items-center gap-2 text-sm text-zinc-600">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-          Analyse marché…
+          Calcul en cours…
         </p>
       ) : analysis ? (
         <>
@@ -207,7 +205,7 @@ export function SmartMarginAiPanel({
           <p className="text-[10px] leading-relaxed text-zinc-500">{SMART_MARGIN_FOOTER}</p>
         </>
       ) : (
-        <p className="text-sm text-zinc-500">Estimation marché indisponible — marge par défaut conservée.</p>
+        <p className="text-sm text-zinc-500">Estimation indisponible — marge par défaut conservée.</p>
       )}
     </div>
   )

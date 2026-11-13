@@ -121,3 +121,52 @@ describe("margin analysis says what it is", () => {
     expect(again.market_data?.measured).toBe(false)
   })
 })
+
+describe("legal text served with a cached analysis is the CURRENT one (review #25)", () => {
+  beforeEach(() => {
+    resetMarketCacheForTests()
+    resetMarginAnalysisCacheForTests()
+    vi.spyOn(console, "log").mockImplementation(() => undefined)
+  })
+
+  it("an analysis cached before the wording fix is served with the corrected disclaimers", async () => {
+    const input = { userId: "u9", userMargin: 15, title: "JBL Tune Flex", categoryId: "audio", catalogPriceEur: 79 }
+    const fresh = await runMarginAnalysis(input)
+    const { marginAnalysisCacheKey, setCachedMarginAnalysis } = await import("@/lib/ai/smart-margin-analysis-cache")
+    const { resolveMarketProductKey } = await import("@/lib/ai/market-intelligence")
+    const stale = {
+      ...fresh,
+      disclaimers: {
+        revenue: "*Estimation basée sur données marché. Résultats non garantis.",
+        probability: "*Probabilité estimée à partir de signaux marché publics. Non contractuelle.",
+        conversion: fresh.disclaimers.conversion,
+        footer: "*Estimations basées sur données marché agrégées. Aucun résultat garanti.",
+      },
+      market_data: undefined,
+      method: undefined,
+    }
+    const productKey = resolveMarketProductKey({
+      title: input.title,
+      categoryId: input.categoryId,
+      priceEur: input.catalogPriceEur,
+    })
+    await setCachedMarginAnalysis(marginAnalysisCacheKey(productKey, input.userId, input.userMargin), stale as never)
+    const served = await runMarginAnalysis(input)
+    expect(served.cached).toBe(true)
+    expect(served.disclaimers.revenue).toBe(fresh.disclaimers.revenue)
+    expect(served.disclaimers.footer).toBe(fresh.disclaimers.footer)
+    expect(served.disclaimers.probability).toBe(fresh.disclaimers.probability)
+    expect(JSON.stringify(served.disclaimers)).not.toMatch(/agrégées|signaux marché publics/i)
+  })
+
+  it("the note under the panel title never calls an unknown origin 'estimation par règle (catégorie et prix)'", async () => {
+    const { marketDataNote } = await import("@/lib/ai/smart-margin-labels")
+    expect(marketDataNote("fixture")).toMatch(/démonstration/i)
+    expect(marketDataNote("heuristic")).toMatch(/catégorie et prix/i)
+    // an analysis cached before `market_data` existed: its origin is unknown, so the note does not guess one
+    const unknown = marketDataNote(undefined)
+    expect(unknown).toMatch(/non mesur/i)
+    expect(unknown).not.toMatch(/catégorie et prix/i)
+    expect(unknown).not.toMatch(/démonstration/i)
+  })
+})
