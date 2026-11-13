@@ -25,9 +25,13 @@ import { parseCartVariantSignature } from "@/lib/cart-variant"
 /**
  * Rollout switch `CHECKOUT_STOCK_MODE` = `off` | `warn` (DEFAULT) | `enforce`, read per request (flip it on Vercel, no code
  * deploy) — the same pattern as `LISTING_READINESS_MODE`.
- * - `warn`: the check before the payment only LOGS "would refuse" and lets the buyer through; the fulfilment still takes the
- *   units from the stock but never below 0, never removes a paid line and logs "would_drop" where it would have.
- * - `enforce`: the check refuses (409) and a paid line the stock can not serve becomes an unallocated line.
+ * - `warn`: a pure DRY RUN. The check before the payment only LOGS "would refuse" and lets the buyer through; the
+ *   fulfilment WRITES NOTHING to the stock (no decrement, no row lock — `Product.stock` is what the PDP / showcase card /
+ *   JSON-LD read as "sold out", so a write would already change what shoppers see), computes what it would have done and
+ *   logs it (`[stock] would_decrement` with before / after, `would_drop` when the stock could not serve a paid line). It
+ *   never removes a paid line.
+ * - `enforce`: the check refuses (409), the fulfilment decrements atomically and a paid line the stock can not serve
+ *   becomes an unallocated line.
  * - `off`: neither check nor decrement.
  * `CHECKOUT_STOCK_GUARD=off` (or `0` / `false`) stays the emergency valve and wins over the mode.
  * Run `npm run report:checkout-stock` (read-only) before moving from `warn` to `enforce`.
@@ -50,8 +54,6 @@ export function isCheckoutStockGuardEnabled(env: Record<string, string | undefin
 
 export type StockScope = "product" | "variant"
 
-export type StockShortfallInfo = { available: number; requested: number }
-
 export type StockPlan =
   | {
       kind: "unmanaged"
@@ -67,8 +69,6 @@ export type StockPlan =
       /** New `Product.variants` JSON (raw, only the row's stock changed), `null` for a product-level movement. */
       nextVariants: unknown | null
       variantRowName?: string
-      /** Set only with `onShortfall: "clamp"`: the stock could not serve the quantity, it was emptied instead. */
-      shortfall?: StockShortfallInfo
     }
 
 function normLabel(s: string): string {
@@ -126,9 +126,6 @@ function resolveRowIndex(rows: Array<Record<string, unknown>>, variantSignature:
 /**
  * Decides what buying `qty` units of a line does to the stock, from the CURRENT stock of the product.
  * The caller applies `nextStock` / `nextVariants` atomically (see `lib/checkout-stock.server.ts`).
- *
- * `onShortfall`: `refuse` (default) answers `insufficient`; `clamp` (warn mode) answers `ok` with the stock emptied (never
- * below 0) and the shortfall reported, so a paid line is never dropped.
  */
 export function planStockMovement(input: {
   listingKind: string | null | undefined
@@ -138,29 +135,17 @@ export function planStockMovement(input: {
   hasVariants?: boolean | null
   variantSignature: string | null | undefined
   qty: number
-  onShortfall?: "refuse" | "clamp"
 }): StockPlan {
   const qty = Math.round(Number(input.qty))
   if (!Number.isFinite(qty) || qty < 1) return { kind: "unmanaged", reason: "invalid_quantity" }
   if (parseListingKind(input.listingKind) !== "PHYSICAL") return { kind: "unmanaged", reason: "non_physical" }
 
-  const clamp = input.onShortfall === "clamp"
   const productStock = Math.max(0, Math.round(Number(input.stock)) || 0)
   const rows = rawVariantRows(input.variants)
 
   if (rows.length === 0) {
     if (input.hasVariants === true) return { kind: "unmanaged", reason: "variants_not_tracked" }
-    if (productStock < qty) {
-      if (!clamp) return { kind: "insufficient", scope: "product", available: productStock }
-      return {
-        kind: "ok",
-        scope: "product",
-        available: productStock,
-        nextStock: 0,
-        nextVariants: null,
-        shortfall: { available: productStock, requested: qty },
-      }
-    }
+    if (productStock < qty) return { kind: "insufficient", scope: "product", available: productStock }
     return {
       kind: "ok",
       scope: "product",
@@ -175,23 +160,20 @@ export function planStockMovement(input: {
 
   const row = rows[index]!
   const rowStock = rawRowStock(row)
-  const short = rowStock < qty
-  if (short && !clamp) return { kind: "insufficient", scope: "variant", available: rowStock }
+  if (rowStock < qty) return { kind: "insufficient", scope: "variant", available: rowStock }
 
-  const taken = short ? rowStock : qty
   // Rewrite the RAW json (never the parsed copy: parsing normalises values and would corrupt the stored rows).
   const next = JSON.parse(JSON.stringify(asRawObject(input.variants))) as Record<string, unknown>
   const nextRows = rawVariantRows(next)
-  nextRows[index]!.stock = rowStock - taken
+  nextRows[index]!.stock = rowStock - qty
   return {
     kind: "ok",
     scope: "variant",
     available: rowStock,
     // `Product.stock` is the supplier-maintained sum of the rows: keep it in step, never below 0.
-    nextStock: Math.max(0, productStock - taken),
+    nextStock: Math.max(0, productStock - qty),
     nextVariants: next,
     variantRowName: rawRowName(row),
-    ...(short ? { shortfall: { available: rowStock, requested: qty } } : {}),
   }
 }
 

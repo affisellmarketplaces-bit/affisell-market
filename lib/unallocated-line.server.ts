@@ -3,16 +3,20 @@ import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
 
 import { opsWebhookAlert } from "@/lib/ops-webhook"
+import { isOrderClosedForPayout, orderIsFulfilledForCheckout } from "@/lib/orders/payment-state"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
 import { logStripeWebhookError, logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
 import {
+  UNALLOCATED_LINE_ALERTED_AUDIT_ACTION,
   UNALLOCATED_LINE_AUDIT_ACTION,
   UNALLOCATED_LINE_AUDIT_ENTITY_TYPE,
   UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION,
   UNALLOCATED_LINE_REFUND_METADATA_KEY,
+  buildUnallocatedLineTraceRow,
   computeUnallocatedLineRefundCents,
   isUnallocatedLineAutoRefundEnabled,
+  unallocatedLineAlertedAuditId,
   unallocatedLineAuditId,
   unallocatedLineKey,
   unallocatedLineRefundedAuditId,
@@ -137,30 +141,19 @@ async function recordOneLine(
   const autoRefundEnabled = isUnallocatedLineAutoRefundEnabled()
   const piId = paymentIntentId(session)
 
-  // 1. Durable trace.
+  // 1. Durable trace. Normally it already exists: the fulfilment wrote it INSIDE its own transaction
+  // (`writeUnallocatedTracesInTransaction`), so it survives whatever happens to this after-response task. This write
+  // covers the paths that have no transaction (and heals a missing row): same row, same deterministic id.
   let trace: UnallocatedLineOutcome["trace"] = "created"
+  const row = buildUnallocatedLineTraceRow({ session, line, appliedRewardCents, autoRefundEnabled })
   try {
     await prisma.auditLog.create({
       data: {
-        id: unallocatedLineAuditId(key),
-        action: UNALLOCATED_LINE_AUDIT_ACTION,
-        entityType: UNALLOCATED_LINE_AUDIT_ENTITY_TYPE,
-        entityId: key,
-        payload: {
-          checkoutSessionId: session.id,
-          lineIndex: line.lineIndex,
-          reason: line.reason,
-          affiliateProductId: line.affiliateProductId,
-          productId: line.productId,
-          qty: line.qty,
-          paidLineCents: line.paidLineCents,
-          refundableCents: refundCents,
-          currency,
-          paymentIntentId: piId,
-          appliedRewardCents,
-          autoRefundEnabled,
-          ...(line.detail ? { detail: line.detail } : {}),
-        } as Prisma.InputJsonObject,
+        id: row.id,
+        action: row.action,
+        entityType: row.entityType,
+        entityId: row.entityId,
+        payload: row.payload as Prisma.InputJsonObject,
       },
     })
   } catch (error) {
@@ -172,8 +165,14 @@ async function recordOneLine(
     }
   }
 
-  // 2. Alert — once per line (a replay finds the trace and stays quiet; a trace that could not be written still alerts).
-  if (trace !== "existing") {
+  // 2. Alert — once per line. "Alerted" is its own deterministic row (the trace is written before the response, the alert
+  // after it): a replay finds it and stays quiet; a lost after-response task leaves it missing and the next pass alerts.
+  const alertedId = unallocatedLineAlertedAuditId(key)
+  const alreadyAlerted = await prisma.auditLog
+    .findUnique({ where: { id: alertedId }, select: { id: true } })
+    .then((r) => Boolean(r))
+    .catch(() => false)
+  if (!alreadyAlerted) {
     const message =
       `[Affisell] UNALLOCATED_LINE session=${session.id} line=${line.lineIndex} reason=${line.reason} ` +
       `paid=${money(refundCents, currency)} auto_refund=${autoRefundEnabled ? "on" : "off"} payment_intent=${piId ?? "unknown"} — ` +
@@ -191,6 +190,21 @@ async function recordOneLine(
       trace,
     })
     await raiseOpsAlert(message, { key, reason: line.reason, refundableCents: refundCents, appliedRewardCents })
+    try {
+      await prisma.auditLog.create({
+        data: {
+          id: alertedId,
+          action: UNALLOCATED_LINE_ALERTED_AUDIT_ACTION,
+          entityType: UNALLOCATED_LINE_AUDIT_ENTITY_TYPE,
+          entityId: key,
+          payload: { checkoutSessionId: session.id, lineIndex: line.lineIndex, reason: line.reason },
+        },
+      })
+    } catch (error) {
+      if (!isUniqueViolation(error)) {
+        logStripeWebhookError({ metric: "unallocated_line_alerted_mark_failed", key, error: errorMessage(error) })
+      }
+    }
   } else {
     logStripeWebhookInfo({ metric: "unallocated_line_known", key, reason: line.reason })
   }
@@ -382,4 +396,167 @@ export async function alertUnattributedChargeRefund(args: {
       `No payout was touched; reconcile it by hand (refund the order through the app, or re-issue the line refund with the exact traced amount).`,
     { chargeId: args.chargeId, stripeRefundId: args.stripeRefundId }
   )
+}
+
+/**
+ * Writes the traces of unallocated lines INSIDE the caller's transaction — the one that closes the order / creates the other
+ * lines' orders — so "order closed" and "trace written" are ONE atomic fact: a pre-created order closed without its trace
+ * (the after-response task never ran, the database blinked) would be invisible to every later pass (the closed order is
+ * skipped by the fulfilment and the cron only looks at PENDING rows). Idempotent: `createMany` with `skipDuplicates` is an
+ * `INSERT … ON CONFLICT DO NOTHING` (catching a unique violation inside a transaction would abort it). The alert and the
+ * refund stay after the response (`recordUnallocatedLines`). A failure here fails the transaction on purpose.
+ */
+export async function writeUnallocatedTracesInTransaction(
+  tx: Pick<Prisma.TransactionClient, "auditLog">,
+  args: { session: UnallocatedLineSession; lines: UnallocatedLine[]; appliedRewardCents?: number }
+): Promise<void> {
+  if (args.lines.length === 0) return
+  const autoRefundEnabled = isUnallocatedLineAutoRefundEnabled()
+  await tx.auditLog.createMany({
+    data: args.lines.map((line) => {
+      const row = buildUnallocatedLineTraceRow({
+        session: args.session,
+        line,
+        appliedRewardCents: args.appliedRewardCents ?? 0,
+        autoRefundEnabled,
+      })
+      return {
+        id: row.id,
+        action: row.action,
+        entityType: row.entityType,
+        entityId: row.entityId,
+        payload: row.payload as Prisma.InputJsonObject,
+      }
+    }),
+    skipDuplicates: true,
+  })
+}
+
+/** The order facts `reportPaidSessionOnClosedOrders` reads. */
+export type ClosedOrderFacts = {
+  id: string
+  stripeSessionId: string
+  status: string | null
+  paymentSettlementStatus: string | null
+  paidAt?: Date | null
+  bookingSlotId?: string | null
+  sellingPriceCents?: number | null
+  quantity?: number | null
+  currency?: string | null
+  affiliateProductId?: string | null
+  productId?: string | null
+}
+
+/**
+ * A PAID session whose orders are ALL closed or never became sales, with nothing accounting for it, used to be swallowed
+ * without a word (the fulfilment gate returns for a closed order). The case: an order cancelled while still unpaid (admin
+ * cancel — nothing expires the Stripe session, it stays payable ~24 h) and then paid. Nobody was told, nothing was traced,
+ * nothing was refunded. A closure is ACCOUNTED FOR (silent) when the order was ever paid (`paidAt`), when its money went
+ * back (refunded / refund settlement states), when it is a booking order (its hold has its own release), or when the
+ * unallocated-line trace already exists (the skeleton closed by the unallocated-line rule). Otherwise the line is recorded
+ * as `order_closed_before_payment`: durable trace (deterministic id), ONE alert (an "alerted" row), automatic refund only
+ * with the flag. Never throws; replays are quiet.
+ */
+export async function reportPaidSessionOnClosedOrders(args: {
+  sessionId: string
+  orders: ClosedOrderFacts[]
+  /** The full session when the caller has it (payment intent, amounts); otherwise a minimal one is built. */
+  session?: UnallocatedLineSession
+}): Promise<void> {
+  try {
+    const norm = (v: string | null | undefined) => (v ?? "").trim()
+    // Anything that is a sale already: nothing to report.
+    if (args.orders.some((o) => orderIsFulfilledForCheckout(o))) return
+    for (const order of args.orders) {
+      if (!isOrderClosedForPayout(order)) continue
+      const settlement = norm(order.paymentSettlementStatus).toUpperCase()
+      const refundedBack =
+        norm(order.status).toLowerCase() === "refunded" ||
+        settlement === "REFUNDED" ||
+        settlement === "REFUND_PENDING_CLAWBACK" ||
+        settlement === "PARTIALLY_REFUNDED"
+      if (order.paidAt || refundedBack || order.bookingSlotId) continue
+
+      const sep = order.stripeSessionId.lastIndexOf(":line:")
+      const lineIndex = sep >= 0 ? Number(order.stripeSessionId.slice(sep + ":line:".length)) || 0 : 0
+      const key = unallocatedLineKey(args.sessionId, lineIndex)
+      const traced = await prisma.auditLog.findUnique({
+        where: { id: unallocatedLineAuditId(key) },
+        select: { payload: true },
+      })
+      if (traced) {
+        // The unallocated-line rule closed it and its trace exists (written in the fulfilment transaction). If the
+        // after-response task that alerts / refunds never ran (instance cut, database blip), no row says "alerted": do it
+        // now — same alert path, one alert, refund only with the flag. Otherwise nothing to do.
+        const alerted = await prisma.auditLog.findUnique({
+          where: { id: unallocatedLineAlertedAuditId(key) },
+          select: { id: true },
+        })
+        if (!alerted) await recordUnallocatedLines(healFromTrace(args.sessionId, lineIndex, traced.payload, args.session))
+        continue
+      }
+
+      await recordUnallocatedLines({
+        session: args.session ?? {
+          id: args.sessionId,
+          currency: order.currency ?? "eur",
+          payment_intent: null,
+          amount_total: null,
+          amount_subtotal: null,
+          total_details: null,
+        },
+        lines: [
+          {
+            lineIndex,
+            reason: "order_closed_before_payment",
+            affiliateProductId: order.affiliateProductId ?? null,
+            productId: order.productId ?? null,
+            qty: order.quantity ?? 1,
+            paidLineCents: order.sellingPriceCents ?? null,
+            detail: { orderId: order.id, orderStatus: order.status, orderSettlementStatus: order.paymentSettlementStatus },
+          },
+        ],
+      })
+    }
+  } catch (error) {
+    logStripeWebhookError({ metric: "closed_order_paid_session_report_failed", sessionId: args.sessionId, error: errorMessage(error) })
+  }
+}
+
+/** Rebuilds what `recordUnallocatedLines` needs from a stored trace (the exact refundable amount is kept in the payload). */
+function healFromTrace(
+  sessionId: string,
+  lineIndex: number,
+  payload: unknown,
+  session?: UnallocatedLineSession
+): { session: UnallocatedLineSession; lines: UnallocatedLine[]; appliedRewardCents: number } {
+  const p = (payload ?? {}) as Record<string, unknown>
+  const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null)
+  const str = (v: unknown): string | null => (typeof v === "string" && v.trim() ? v : null)
+  const paid = num(p.paidLineCents)
+  const refundable = num(p.refundableCents)
+  return {
+    // `amount_subtotal` / `amount_total` are chosen so the line's refundable amount comes out EXACTLY as it was traced.
+    session:
+      session ?? {
+        id: sessionId,
+        currency: str(p.currency) ?? "eur",
+        payment_intent: str(p.paymentIntentId),
+        amount_subtotal: paid,
+        amount_total: refundable,
+        total_details: { amount_tax: refundable != null && paid != null ? Math.max(0, refundable - paid) : 0 } as never,
+      },
+    appliedRewardCents: num(p.appliedRewardCents) ?? 0,
+    lines: [
+      {
+        lineIndex,
+        reason: (str(p.reason) as UnallocatedLine["reason"] | null) ?? "order_closed_before_payment",
+        affiliateProductId: str(p.affiliateProductId),
+        productId: str(p.productId),
+        qty: num(p.qty) ?? 1,
+        paidLineCents: paid,
+        ...(p.detail && typeof p.detail === "object" ? { detail: p.detail as Record<string, unknown> } : {}),
+      },
+    ],
+  }
 }

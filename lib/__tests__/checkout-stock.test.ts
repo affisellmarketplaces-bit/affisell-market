@@ -237,33 +237,8 @@ describe("CHECKOUT_STOCK_MODE (rollout switch, same pattern as LISTING_READINESS
   })
 })
 
-describe("planStockMovement — clamp (warn mode) and table-only variants", () => {
+describe("planStockMovement — table-only variants (and the plan never clamps: warn mode writes nothing)", () => {
   const base = { listingKind: "PHYSICAL", variants: null, variantSignature: "" }
-
-  it("clamp: a shortfall empties the stock instead of refusing, never below 0, and reports it", () => {
-    expect(planStockMovement({ ...base, stock: 2, qty: 5, onShortfall: "clamp" })).toEqual({
-      kind: "ok",
-      scope: "product",
-      available: 2,
-      nextStock: 0,
-      nextVariants: null,
-      shortfall: { available: 2, requested: 5 },
-    })
-    expect(planStockMovement({ ...base, stock: 0, qty: 1, onShortfall: "clamp" })).toMatchObject({ kind: "ok", nextStock: 0, shortfall: { available: 0, requested: 1 } })
-    // no shortfall: identical to the default plan
-    expect(planStockMovement({ ...base, stock: 5, qty: 2, onShortfall: "clamp" })).toEqual(planStockMovement({ ...base, stock: 5, qty: 2 }))
-  })
-
-  it("clamp on a variant row empties that row only, keeps the aggregate in step, never below 0", () => {
-    const variants = rows({ name: "Rouge / S", stock: 1 }, { name: "Rouge / M", stock: 4 })
-    const plan = planStockMovement({ listingKind: "PHYSICAL", stock: 5, variants, variantSignature: "c:Rouge|s:S", qty: 3, onShortfall: "clamp" })
-    if (plan.kind !== "ok") throw new Error("expected ok")
-    expect(plan).toMatchObject({ scope: "variant", nextStock: 4, shortfall: { available: 1, requested: 3 } })
-    expect((plan.nextVariants as { variantRows: Array<{ stock: number }> }).variantRows.map((r) => r.stock)).toEqual([0, 4])
-    // an aggregate that already drifted below the row never goes negative
-    const drifted = planStockMovement({ listingKind: "PHYSICAL", stock: 0, variants, variantSignature: "c:Rouge|s:S", qty: 3, onShortfall: "clamp" })
-    expect(drifted).toMatchObject({ kind: "ok", nextStock: 0 })
-  })
 
   it("a product with variants but NO variantRows json (stock in the ProductVariant table) is unmanaged", () => {
     expect(planStockMovement({ ...base, hasVariants: true, stock: 0, variantSignature: "c:Rouge|s:M", qty: 1 })).toEqual({

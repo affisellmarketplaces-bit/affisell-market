@@ -1,4 +1,5 @@
 import { ensureCheckoutFulfilledBeforeSettle } from "@/lib/marketplace-checkout-fulfill-before-settle"
+import { orderAwaitsCheckoutFulfilment } from "@/lib/orders/payment-state"
 import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
 
@@ -144,9 +145,11 @@ export async function settleMarketplaceOrdersFromCheckoutSession(
   }
 
   // Never settle (which marks the order PAID) before the checkout has been fulfilled with the buyer's details.
+  let fulfilmentFailed = false
   try {
     await ensureCheckoutFulfilledBeforeSettle(session)
   } catch (error) {
+    fulfilmentFailed = true
     console.error("[settle-before-fulfil]", {
       sessionId: session.id,
       error: error instanceof Error ? error.message : String(error),
@@ -156,7 +159,24 @@ export async function settleMarketplaceOrdersFromCheckoutSession(
   const processedOrderIds: string[] = []
   const errors: string[] = []
 
+  // The fulfilment failed (deadlock, timeout, database blip…): an order that still AWAITS it — the pre-created PENDING
+  // skeleton, with no buyer details and possibly a line that was meant to be unallocated (no stock) — must NOT be promoted to
+  // "paid" with payouts by the settlement. It is reported as an error so the event is retried; the normal flow (the
+  // fulfilment succeeded, then the settlement marks the order paid) is unchanged. Orders already paid / closed go on.
+  const awaitingFulfilment = new Set<string>()
+  if (fulfilmentFailed) {
+    const rows = await prisma.order.findMany({
+      where: { id: { in: orderIds } },
+      select: { id: true, status: true, paymentSettlementStatus: true, bookingSlotId: true, bookingConfirmedAt: true },
+    })
+    for (const row of rows) if (orderAwaitsCheckoutFulfilment(row)) awaitingFulfilment.add(row.id)
+  }
+
   for (const orderId of orderIds) {
+    if (awaitingFulfilment.has(orderId)) {
+      errors.push(`${orderId}:fulfilment_failed_not_settled`)
+      continue
+    }
     try {
       const { applyReferralBonus } = await import("@/lib/referral")
       await applyReferralBonus(orderId)

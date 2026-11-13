@@ -8,9 +8,11 @@
  *   npm run report:checkout-stock -- --limit=5000     # cap the number of variant products scanned (default 20000)
  *
  * Uses the DATABASE_URL of .env.local / .env — read that carefully: the default one may be PRODUCTION (reads only).
- * Decide when to flip `warn` -> `enforce` from this report plus the "[stock] would_drop" and "[checkout]
- * would_refuse_insufficient_stock" log lines. The guard treats `Product.stock` as the inventory; the Express wizard writes
- * 99, the classic form defaults to 0, importers write 1 / 99 / 999 — those rows are exactly what this report counts.
+ * Decide when to flip `warn` -> `enforce` from this report plus the "[stock] would_decrement" / "[stock] would_drop" and
+ * "[checkout] would_refuse_insufficient_stock" log lines. In `warn` (the default) the guard is a DRY RUN: it writes nothing
+ * to `Product.stock` and refuses nothing — it only logs what `enforce` WOULD do. The guard treats `Product.stock` as the
+ * inventory; the Express wizard writes 99, the classic form defaults to 0, importers write 1 / 99 / 999 — those rows are
+ * exactly what this report counts.
  */
 import { PrismaClient } from "@prisma/client"
 import { config } from "dotenv"
@@ -85,7 +87,7 @@ async function main() {
     variantScanTruncatedAtLimit: scanned >= LIMIT,
     topSuppliersWithEmptyStock: bySupplier.map((s) => ({ supplierId: s.supplierId, products: s._count._all })),
     note:
-      "A product with stock <= 0 is sold out on the PDP but NOT on every surface (grid cards, discover feed): enforce would start refusing those sales. A placeholder stock (99 / 999 / 1 / 100) is not an inventory: it will be drained by the decrement and then refused. Table-only variant products are left unmanaged by the guard.",
+      "A product with stock <= 0 is sold out on the PDP but NOT on every surface (grid cards, discover feed): enforce would start refusing those sales. A placeholder stock (99 / 999 / 1 / 100) is not an inventory: once enforced, the decrement drains it and the product is then refused / shown sold out (in warn nothing is written). Table-only variant products are left unmanaged by the guard.",
   }
 
   if (asJson) {
