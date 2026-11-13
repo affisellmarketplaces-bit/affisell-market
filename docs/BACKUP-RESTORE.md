@@ -17,7 +17,7 @@
 
 | Donnée | Où elle vit | Source de vérité ? | Perte = | Restauration |
 |---|---|---|---|---|
-| Comptes, commandes, paiements, virements, catalogue, retours | **Neon** Postgres, branche `main` (endpoint `ep-misty-sea-al1ne07p`) — **[FAIT]** schéma `public` + `market_intelli` (Radar, même base) + tables Medusa dans la même base | **Oui** | Irréparable sans sauvegarde | §3 (PITR) + §4 (sauvegarde logique) |
+| Comptes, commandes, paiements, virements, catalogue, retours, **gel des virements d'un litige** (`Order.status = "disputed"` + lignes de registre `ProcessedWebhook` d'identifiant `dispute:<dp_id>:<orderId>`, D7) | **Neon** Postgres, branche `main` (endpoint `ep-misty-sea-al1ne07p`) — **[FAIT]** schéma `public` + `market_intelli` (Radar, même base) + tables Medusa dans la même base | **Oui** | Irréparable sans sauvegarde | §3 (PITR) + §4 (sauvegarde logique) |
 | L'argent réellement déplacé (paiements, remboursements, virements Connect, litiges) | **Stripe** | **Oui, côté argent** — la base n'en est que le reflet | Réconciliation à refaire à la main | §3.7 (réconciliation) — Stripe n'est pas à restaurer, il est à **relire** |
 | Compteurs de limitation de débit, bannissements IP, caches IA, états OAuth (10 min), verrous de cron | **Upstash Redis** (clés `affisell:shield:*`, `rl:*`, `radar:*`…, préfixe d'environnement depuis K1) | Non — reconstructibles | Faible : se reconstitue seul | §5 |
 | Files BullMQ (`bull:<file>:*`) : `auto-order-place-supplier-order(+dlq)`, `auto-order-batch-fulfill`, `auto-buy`, `order-paid` | **Redis** (`REDIS_URL`) | Non — la **base** est la vérité (les tâches se rejouent depuis les commandes) | Tâches en attente perdues → commandes payées non transmises au fournisseur | §5.3 |
@@ -145,7 +145,8 @@ curl -sS -X POST "https://console.neon.tech/api/v2/projects/<NEON_PROJECT_ID>/br
 6. **Si T est antérieur à une migration** appliquée depuis : la base restaurée ne l'a plus, alors que le code déployé l'attend. Réappliquer **avant**
    toute autre chose, avec la procédure de `docs/DEPLOY-SCHEMA-CHANGES.md` §5 :
    `DATABASE_URL='<URL_PROD>' npm run schema:migrate -- --expect-endpoint ep-misty-sea-al1ne07p --confirm-production`, puis `npm run schema:verify`.
-7. `gh workflow enable …` pour les deux workflows. Noter l'heure de fin : **c'est le RTO mesuré**.
+7. **Ne PAS réactiver encore les workflows `Scheduled crons` et `Process Stripe transfers`** : ils paient (`process-order-payouts`, `/api/jobs/process-transfers`…) et le registre de litiges vient d'être effacé pour tout litige
+   postérieur à T. Passer d'abord par la §3.7 (commandes, puis **litiges**, puis doublons) ; la réactivation est son **dernier** point. Noter l'heure de fin de la restauration elle-même.
 
 ### 3.6 Restauration ciblée (incident étroit) — le choix par défaut [NON TESTÉ]
 
@@ -164,11 +165,13 @@ s'applique qu'aux outils du dépôt, pas à `psql` : **la vigilance est humaine*
 
 ### 3.7 Après une restauration sur place : réconcilier avec Stripe (l'argent n'est pas revenu en arrière)
 
-Entre T et la restauration, Stripe a pu encaisser, rembourser, virer, ouvrir des litiges ; la base ne le sait plus.
+Entre T et la restauration, Stripe a pu encaisser, rembourser, virer, ouvrir ou clore des litiges ; la base ne le sait plus. **Les workflows de paiement restent désactivés (§3.5 point 2) pendant toute cette section.**
 
 1. **Lister côté Stripe** ce qui s'est passé après T : `stripe checkout sessions list --live --limit 100 -d "created[gte]=<T en epoch>"`,
-   `stripe refunds list --live -d "created[gte]=<epoch>"`, `stripe transfers list --live -d "created[gte]=<epoch>"` [NON TESTÉ : flags à confirmer avec `--help`].
-2. Les **sessions payées sans commande** se recréent en **rejouant** l'événement `checkout.session.completed` correspondant :
+   `stripe refunds list --live -d "created[gte]=<epoch>"`, `stripe transfers list --live -d "created[gte]=<epoch>"`,
+   `stripe disputes list --live --limit 100 -d "created[gte]=<epoch>"`, et **les événements de litige émis depuis T** (y compris pour un litige ouvert AVANT T et modifié depuis) :
+   `stripe events list --live --limit 100 -d "type=charge.dispute.*" -d "created[gte]=<epoch>"` [NON TESTÉ : flags à confirmer avec `--help` ; Stripe ne conserve les événements que 30 jours].
+2. **Commandes d'abord.** Les **sessions payées sans commande** se recréent en **rejouant** l'événement `checkout.session.completed` correspondant :
    `stripe events resend <evt_…> --webhook-endpoint=<we_…> --live` (ou Tableau de bord → Développeurs → Webhooks → l'événement → *Resend*). Les lignes
    `ProcessedWebhook` postérieures à T ont disparu : l'événement sera traité comme neuf.
 3. **Danger — doublons de virements** [HYPOTHÈSE à vérifier en base de test] : `createConnectTransfer` (`lib/stripe-connect-transfer.ts`) protège avec la clé
@@ -176,9 +179,18 @@ Entre T et la restauration, Stripe a pu encaisser, rembourser, virer, ouvrir des
    été émis avant la restauration, le rejeu pourrait le **dupliquer**. Avant de rejouer, comparer avec `stripe transfers list --live` pour la même
    `transfer_group`, et ne rejouer que ce qui n'a pas de virement. Ceci est la raison pour laquelle la restauration ciblée (§3.6) est préférable chaque fois qu'elle suffit,
    et pourquoi le RPO de la §2 compte.
-4. Les crons de guérison (`/api/cron/reconcile-checkout-orders`, `npm run reconcile:checkout`) ne traitent que les commandes **déjà présentes** en `PENDING` :
-   ils ne recréent pas une commande absente.
-5. Journaliser la réconciliation (qui, quand, quels `evt_`), puis la clore avec le fondateur.
+4. **Litiges ensuite — avant tout paiement.** Depuis D7, le gel des virements d'une commande en litige **n'existe que dans la base** : `Order.status = "disputed"` **et** une ligne `ProcessedWebhook` d'identifiant `dispute:<dp_id>:<orderId>`
+   (statut `dispute_open`, `won`, `lost` ou `closed` ; `lib/orders/dispute-hold.server.ts`). Le déblocage des virements (`process-transfers`, la paie « Lightning », le bonus Légion) ne demande **que** à cette base ; rien ne questionne Stripe. Une restauration à T :
+   - **efface** le gel de tout litige ouvert après T (la commande retrouve son statut d'avant, la ligne disparaît), et Stripe **ne renverra pas** l'événement (il a déjà reçu 200) : les virements d'une charge que la banque a déjà reprise seraient **débloqués** ;
+   - **rouvre** un litige ouvert avant T et clos depuis (gagné, perdu) : la base le montre encore ouvert, l'événement de clôture ne reviendra pas : gel indéfini, ou — pour un litige perdu — inversion des virements jamais appliquée.
+   **Procédure** : (a) pour chaque litige listé au point 1, **rejouer ses événements `charge.dispute.*` dans l'ordre chronologique**, une fois les commandes recréées (point 2) : `stripe events resend <evt_…> --webhook-endpoint=<we_…> --live`. Le gestionnaire (`lib/stripe-dispute.ts`) décide par le **statut** du litige, pas par l'ordre
+   des événements, et converge au rejeu (effets d'abord, ligne terminale en dernier, jamais rouverte). (b) **Contrôler** : `SELECT id, status FROM "ProcessedWebhook" WHERE id LIKE 'dispute:%' ORDER BY "createdAt" DESC LIMIT 50;` doit refléter le statut Stripe de chaque litige
+   (un litige ouvert = `dispute_open` et la commande `disputed`). (c) Un litige **perdu** dont les inversions de virements avaient déjà été faites chez Stripe avant la restauration : le rejeu les redemande (clé `<dp>:<orderId>`, fenêtre d'idempotence de Stripe : 24 h) ; Stripe doit refuser une inversion déjà complète — **échec visible et alerte, pas un double paiement** [HYPOTHÈSE à vérifier en base de test] : contrôler chaque cas à la main.
+   (d) Un événement de litige **plus vieux que 30 jours** n'est plus rejouable : ne **pas** écrire les lignes à la main, suivre la procédure manuelle d'`AGENTS.md` (section « Stripe disputes… »), après avoir alerté.
+5. Les crons de guérison (`/api/cron/reconcile-checkout-orders`, `npm run reconcile:checkout`) ne traitent que les commandes **déjà présentes** en `PENDING` :
+   ils ne recréent pas une commande absente. De même les lignes `failed` de webhooks postérieures à T ont disparu avec le reste (le rejeu automatique D2 ne les retrouvera pas : les événements se rejouent depuis Stripe, point 2).
+6. **Seulement maintenant, réactiver les paiements** : `gh workflow enable "Scheduled crons"` et `gh workflow enable "Process Stripe transfers"`. **C'est le RTO mesuré** (heure de fin − heure de début, §3.5 point 3).
+7. Journaliser la réconciliation (qui, quand, quels `evt_` rejoués, quels litiges), puis la clore avec le fondateur.
 
 ### 3.8 Dernier recours : promouvoir une branche restaurée (nouvel endpoint) — à NE PAS improviser
 
@@ -261,9 +273,18 @@ les vidéos et les fichiers d'essayage virtuel (ces derniers supprimés par le c
 
 Proposition [À VALIDER] :
 
-- **R2** (compatible S3) : copie quotidienne vers un second compartiment **d'un autre compte** :
-  `rclone sync r2-prod:<bucket> backup-remote:<bucket-backup> --immutable` (configuration `rclone` sur votre poste, clés R2 en lecture seule dédiées ; aucune clé dans le dépôt). Restauration :
-  `rclone copy backup-remote:<bucket-backup> r2-prod:<bucket>` **dans le même compartiment** pour que `R2_PUBLIC_URL` + chemin restent valides.
+- **R2** (compatible S3) : copie quotidienne vers un second compartiment **d'un autre compte**, avec une copie qui **n'efface rien** :
+  ```bash
+  # rclone configuré sur votre poste : « r2-prod » avec des clés R2 en LECTURE SEULE dédiées ; « backup-remote » avec une clé qui peut ÉCRIRE mais pas SUPPRIMER (voir ci-dessous). Aucune clé dans le dépôt.
+  rclone copy r2-prod:<bucket> backup-remote:<bucket-backup> --immutable --log-level INFO   # [NON TESTÉ : rclone copy --help]
+  ```
+  **Pourquoi `copy` et non `sync`.** `rclone sync` rend la destination **identique** à la source : tout fichier supprimé à la source est supprimé dans la sauvegarde au passage suivant. `--immutable` n'interdit que la **modification** d'un fichier existant, pas sa suppression. Avec `sync`, la copie ne protège donc pas
+  contre le cas pour lequel elle existe (suppression d'un original : clé R2 compromise — la même clé est dans Vercel —, erreur dans la console, règle de cycle de vie mal écrite) : au plus une journée plus tard l'original disparaît aussi de la sauvegarde, et une source vidée vide la destination.
+  `rclone copy` ne supprime jamais côté destination ; avec `--immutable`, un fichier déjà sauvegardé qui **change** à la source (cas attendu rare : les téléversements fournisseurs écrivent des clés horodatées uniques `<userId>/<dossier>/<date>/<horodatage>-<nom>` [FAIT : `lib/supplier-media-storage-core.ts`], et le code ne supprime aucun objet R2 [FAIT : aucun `DeleteObject` dans `lib/`, `app/`, `scripts/`, `workers/`]) est signalé en erreur au lieu d'écraser la sauvegarde — c'est un signal d'alerte, à lire.
+  **Rendre la suppression impossible côté sauvegarde** (ceinture et bretelles, [À VÉRIFIER selon le fournisseur de la destination]) : (1) **versionnage d'objets** activé sur le compartiment de sauvegarde et une règle d'expiration des *anciennes versions* après 90 jours ; (2) idéalement un **verrouillage d'objet** (*Object Lock*, mode gouvernance ou conformité) pendant la durée de rétention ; (3) la clé d'écriture de la sauvegarde **sans** les permissions `DeleteObject` / `DeleteObjectVersion`. Ainsi même un poste de sauvegarde compromis ne peut pas effacer l'historique.
+  Si, malgré cela, vous voulez un miroir, **jamais** `sync` nu : `rclone sync … --backup-dir backup-remote:<bucket-archive>/<date> --max-delete 50` (les fichiers supprimés ou modifiés partent dans un dossier daté au lieu d'être détruits ; l'opération s'arrête au-delà de 50 suppressions) — à valider par un essai sur un compartiment de test.
+  **Restauration** : `rclone copy backup-remote:<bucket-backup> r2-prod:<bucket>` **dans le même compartiment** pour que `R2_PUBLIC_URL` + chemin restent valides (avec versionnage, restaurer d'abord la dernière version non supprimée de l'objet).
+  **Contrôle de la sauvegarde** : `rclone check r2-prod:<bucket> backup-remote:<bucket-backup> --one-way` doit lister **zéro** objet manquant dans la sauvegarde.
 - **Vercel Blob** : lister puis télécharger régulièrement (le SDK `@vercel/blob` expose `list()` ; la CLI `vercel blob` existe dans les versions récentes [NON TESTÉ : `vercel blob --help`]).
   Les URL Blob ne se recréent à l'identique que si le chemin d'origine (avec son suffixe) est conservé : **essayer** sur un fichier de test avant de compter dessus. Les documents d'inscription sont des données
   personnelles sensibles : la copie doit être chiffrée et soumise à la même politique de rétention que l'original.
@@ -301,6 +322,7 @@ Objectif : **mesurer** le RTO réel et prouver que le RPO tient. À faire sur la
 - [ ] 9. **Redis** : recréer une instance de test, la brancher sur une Preview, vérifier que l'application démarre sans erreur `[redis]` et que `[env-validation]` ne signale rien de critique (§5.2)
 - [ ] 10. **Fichiers** : restaurer **un** fichier de test depuis la copie (§6) à son URL d'origine et le charger dans un navigateur
 - [ ] 11. **Réconciliation** : sur staging avec Stripe en mode **test**, rejouer un `checkout.session.completed` (`stripe events resend …` en mode test) et contrôler l'absence de doublon de virement (§3.7 point 3)
+- [ ] 11 bis. **Litige** : ouvrir un litige de test sur une commande de test, restaurer staging **avant** son ouverture, constater que la commande n'est plus `disputed`, rejouer ses événements `charge.dispute.*` (§3.7 point 4) : la commande redevient `disputed`, la ligne `dispute:<dp>:<orderId>` existe, et `process-transfers` ne la paie pas
 - [ ] 12. Reporter les durées mesurées dans le tableau ci-dessous, comparer aux objectifs de la §2, corriger la §2 **ou** le dispositif
 
 | Date | Exécutant | Création branche (min) | Restauration sur place (min) | `pg_restore` (min) | RTO total mesuré | RPO atteint | Écarts / actions |
