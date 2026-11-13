@@ -39,10 +39,19 @@ export function createFakeProcessedWebhook(initial: FakeProcessedWebhookRow[] = 
   const delegate = {
     count: async ({ where }: { where: Where }) => [...rows.values()].filter((r) => matches(r, where)).length,
     findUnique: async ({ where }: { where: { id: string } }) => rows.get(where.id) ?? null,
-    findMany: async ({ where, take }: { where: Where; take?: number }) => {
+    findMany: async ({
+      where,
+      take,
+      orderBy,
+    }: {
+      where: Where
+      take?: number
+      orderBy?: { createdAt?: "asc" | "desc" }
+    }) => {
+      const direction = orderBy?.createdAt === "desc" ? -1 : 1
       const found = [...rows.values()]
         .filter((r) => matches(r, where))
-        .sort((a, b) => (a.createdAt?.getTime() ?? 0) - (b.createdAt?.getTime() ?? 0))
+        .sort((a, b) => direction * ((a.createdAt?.getTime() ?? 0) - (b.createdAt?.getTime() ?? 0)))
       return take ? found.slice(0, take) : found
     },
     upsert: async ({
