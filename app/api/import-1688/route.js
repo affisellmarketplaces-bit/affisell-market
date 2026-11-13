@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server"
+
+import { guardSupplierAiRoute } from "@/lib/ai-route-guards"
 import { get1688 } from "@/lib/onebound"
 
-/** POST { url } → { ok:true, product } | { ok:false, error } */
+/**
+ * POST { url } → { ok:true, product } | { ok:false, error }
+ *
+ * Supplier/admin only (+ the shared per-user rate limit): every call consumes the paid OneBound quota. It used to be
+ * open to anyone (finalisation master doc, C2).
+ */
 export async function POST(req) {
+  const guard = await guardSupplierAiRoute(req, "import-1688")
+  if (!guard.ok) return guard.response
+
   let body = null
   try {
     body = await req.json()
