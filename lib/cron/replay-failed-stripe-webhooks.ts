@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
 import { logStripeWebhookError, logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
 import { processStripeWebhookEvent } from "@/lib/stripe-webhook-processor"
-import { REPLAYABLE_WEBHOOK_STATUS } from "@/lib/stripe-webhook-replay"
+import { isEventTypeSafeToReplayLate, REPLAYABLE_WEBHOOK_STATUS } from "@/lib/stripe-webhook-replay"
 
 /**
  * Replay of Stripe webhook events whose processing FAILED and that Stripe will no longer retry (finalisation master doc, D2).
@@ -20,6 +20,8 @@ import { REPLAYABLE_WEBHOOK_STATUS } from "@/lib/stripe-webhook-replay"
  *
  *  - Still failing after the replay: one aggregated ops alert per run, and the route answers 500 (a red cron run) — the
  *    job is scheduled every 6 hours, so an unresolved money event is told 4 times a day, never silently.
+ *  - Only event types that are safe to apply days late are replayed (`REPLAY_SAFE_EVENT_TYPES`): the others (subscription
+ *    snapshots, invoice, refund, account…) are closed as `failed_expired` unprocessed, with one ops alert.
  *  - Older than 30 days, or gone at Stripe (`resource_missing`): the event can never be replayed. The row becomes
  *    `failed_expired` (it keeps its error text as evidence, and stops being selected) and ops are told once, with the ids,
  *    to reconcile by hand.
@@ -52,8 +54,14 @@ export type ReplayFailedWebhooksResult = {
   expired: number
   /** Rows left for the next run because the cap or the time budget was reached. */
   deferred: number
+  /**
+   * Events whose type is NOT safe to apply days late (`REPLAY_SAFE_EVENT_TYPES`): closed as `failed_expired` without being
+   * processed, ops told once. A replayed old snapshot of a subscription / refund / invoice event could write stale state.
+   */
+  notReplayed: number
   failures: ReplayFailure[]
   expiredIds: string[]
+  notReplayedEvents: Array<{ eventId: string; type: string }>
 }
 
 function errorMessage(error: unknown): string {
@@ -104,8 +112,10 @@ export async function replayFailedStripeWebhooks(options?: {
     stillFailing: 0,
     expired: 0,
     deferred: 0,
+    notReplayed: 0,
     failures: [],
     expiredIds: [],
+    notReplayedEvents: [],
   }
 
   // 1. Too old to ever be replayed: close them (evidence kept) and tell ops once.
@@ -170,6 +180,19 @@ export async function replayFailedStripeWebhooks(options?: {
       continue
     }
 
+    // `events.retrieve` gives the event as it was EMITTED. Only types whose handler does not write that snapshot over
+    // today's state (and does not depend on event order) are applied this late: the others are closed, with an alert
+    // (review #10; the list and the reasons live in `lib/stripe-webhook-replay.ts`).
+    if (!isEventTypeSafeToReplayLate(event.type)) {
+      await prisma.processedWebhook.updateMany({
+        where: { id: row.id, status: REPLAYABLE_WEBHOOK_STATUS },
+        data: { status: EXPIRED_WEBHOOK_STATUS },
+      })
+      result.notReplayed += 1
+      result.notReplayedEvents.push({ eventId: row.id, type: event.type })
+      continue
+    }
+
     try {
       const outcome = await processStripeWebhookEvent(event)
       if (outcome.duplicate) {
@@ -211,6 +234,18 @@ export async function replayFailedStripeWebhooks(options?: {
     )
   }
 
+  if (result.notReplayed > 0) {
+    const listed = result.notReplayedEvents
+      .slice(0, ALERT_LIST_MAX)
+      .map((e) => `${e.eventId} (${e.type})`)
+      .join(", ")
+    await alertOps(
+      `🚨 ${result.notReplayed} failed Stripe webhook event(s) were NOT replayed: their type applies the event's snapshot over ` +
+        `today's state, which is not safe days later: ${listed}. Reconcile them by hand (subscription, refund or invoice state).`,
+      { notReplayed: result.notReplayed, eventIds: result.notReplayedEvents.map((e) => e.eventId).slice(0, 50) }
+    )
+  }
+
   logStripeWebhookInfo({
     metric: "stripe_webhook_replay_run",
     scanned: result.scanned,
@@ -218,6 +253,7 @@ export async function replayFailedStripeWebhooks(options?: {
     alreadyHandled: result.alreadyHandled,
     stillFailing: result.stillFailing,
     expired: result.expired,
+    notReplayed: result.notReplayed,
     deferred: result.deferred,
     duration_ms: Date.now() - startedAt,
   })
