@@ -28,7 +28,7 @@
 ## 1. Pré-requis communs
 
 - **Vercel CLI** (`npm i -g vercel`, puis `vercel login`, puis `vercel link` à la racine du dépôt, projet Affisell) — **[NON TESTÉ]** ; **Stripe CLI** (`stripe login`) ; **GitHub CLI** (`gh auth login`) ; `curl`, `jq`.
-- Les **trois environnements Vercel** : *Production* (déploiement de `main`), *Preview* (toute autre branche, base `staging` `ep-shy-wind-aly4bmc7`), *Development* (`vercel dev`, rarement utilisé). `VERCEL_ENV` vaut `production` / `preview` / `development` et **c'est lui** — plus `NODE_ENV`,
+- Les **trois environnements Vercel** : *Production* (déploiement de `main`), *Preview* (toute autre branche, base `staging` `<ep-staging>`), *Development* (`vercel dev`, rarement utilisé). `VERCEL_ENV` vaut `production` / `preview` / `development` et **c'est lui** — plus `NODE_ENV`,
   qui vaut `production` partout — qui distingue les environnements dans le code (`lib/runtime-environment.ts`).
 - Une variable d'environnement Vercel ne s'applique **qu'aux nouveaux déploiements** : après chaque changement, redéployer (`vercel redeploy <url-du-déploiement>` ou Tableau de bord → Deployments → ⋯ → Redeploy).
 - **Saisie d'une valeur sans trace** : `read -s VALEUR && printf %s "$VALEUR" | vercel env add NOM production ; unset VALEUR`.

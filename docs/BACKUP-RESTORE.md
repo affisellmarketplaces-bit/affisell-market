@@ -17,7 +17,7 @@
 
 | Donnée | Où elle vit | Source de vérité ? | Perte = | Restauration |
 |---|---|---|---|---|
-| Comptes, commandes, paiements, virements, catalogue, retours, **gel des virements d'un litige** (`Order.status = "disputed"` + lignes de registre `ProcessedWebhook` d'identifiant `dispute:<dp_id>:<orderId>`, D7) | **Neon** Postgres, branche `main` (endpoint `ep-misty-sea-al1ne07p`) — **[FAIT]** schéma `public` + `market_intelli` (Radar, même base) + tables Medusa dans la même base | **Oui** | Irréparable sans sauvegarde | §3 (PITR) + §4 (sauvegarde logique) |
+| Comptes, commandes, paiements, virements, catalogue, retours, **gel des virements d'un litige** (`Order.status = "disputed"` + lignes de registre `ProcessedWebhook` d'identifiant `dispute:<dp_id>:<orderId>`, D7) | **Neon** Postgres, branche `main` (endpoint `<ep-production>`) — **[FAIT]** schéma `public` + `market_intelli` (Radar, même base) + tables Medusa dans la même base | **Oui** | Irréparable sans sauvegarde | §3 (PITR) + §4 (sauvegarde logique) |
 | L'argent réellement déplacé (paiements, remboursements, virements Connect, litiges) | **Stripe** | **Oui, côté argent** — la base n'en est que le reflet | Réconciliation à refaire à la main | §3.7 (réconciliation) — Stripe n'est pas à restaurer, il est à **relire** |
 | Compteurs de limitation de débit, bannissements IP, caches IA, états OAuth (10 min), verrous de cron | **Upstash Redis** (clés `affisell:shield:*`, `rl:*`, `radar:*`…, préfixe d'environnement depuis K1) | Non — reconstructibles | Faible : se reconstitue seul | §5 |
 | Files BullMQ (`bull:<file>:*`) : `auto-order-place-supplier-order(+dlq)`, `auto-order-batch-fulfill`, `auto-buy`, `order-paid` | **Redis** (`REDIS_URL`) | Non — la **base** est la vérité (les tâches se rejouent depuis les commandes) | Tâches en attente perdues → commandes payées non transmises au fournisseur | §5.3 |
@@ -54,7 +54,7 @@ chiffrées, les sauvegardes logiques (compte distinct de celui de Neon, sinon un
   votre gestionnaire de mots de passe, exportez-la dans le terminal pour la durée de l'opération (`read -s NEON_API_KEY && export NEON_API_KEY`),
   ne l'écrivez dans aucun fichier.
 - **Identifiants à noter une fois** (gabarits `<…>` ci-dessous) : `NEON_PROJECT_ID`, l'identifiant `br-…` de la branche de production (`main`) et
-  celui de la branche `staging` (endpoint `ep-shy-wind-aly4bmc7`). Console → projet → *Branches*.
+  celui de la branche `staging` (endpoint `<ep-staging>`). Console → projet → *Branches*.
 - **Protéger la branche de production** contre la suppression (option « protected branch » de Neon selon le plan) [À VÉRIFIER].
 - Les fichiers du dépôt qui reconnaissent la production à son endpoint `ep-misty-sea-…` [FAIT : `grep`] : `lib/db-env.ts`, `lib/env.ts`, `lib/env.pure.mjs`,
   `lib/developer-production-guard.ts` (via `lib/db-env.ts`), `scripts/env-shared.mjs`, `scripts/lib/production-guard.mjs`, `scripts/prisma-explicit-db.mjs`.
@@ -144,7 +144,7 @@ curl -sS -X POST "https://console.neon.tech/api/v2/projects/<NEON_PROJECT_ID>/br
    en lecture seule), puis ouvrir le site et passer un parcours en lecture (catalogue, connexion).
 6. **Si T est antérieur à une migration** appliquée depuis : la base restaurée ne l'a plus, alors que le code déployé l'attend. Réappliquer **avant**
    toute autre chose, avec la procédure de `docs/DEPLOY-SCHEMA-CHANGES.md` §5 :
-   `DATABASE_URL='<URL_PROD>' npm run schema:migrate -- --expect-endpoint ep-misty-sea-al1ne07p --confirm-production`, puis `npm run schema:verify`.
+   `DATABASE_URL='<URL_PROD>' npm run schema:migrate -- --expect-endpoint <ep-production> --confirm-production`, puis `npm run schema:verify`.
 7. **Ne PAS réactiver encore les workflows `Scheduled crons` et `Process Stripe transfers`** : ils paient (`process-order-payouts`, `/api/jobs/process-transfers`…) et le registre de litiges vient d'être effacé pour tout litige
    postérieur à T. Passer d'abord par la §3.7 (commandes, puis **litiges**, puis doublons) ; la réactivation est son **dernier** point. Noter l'heure de fin de la restauration elle-même.
 
@@ -160,7 +160,7 @@ psql "<URL_PROD directe, sans -pooler>" -v ON_ERROR_STOP=1 -f /tmp/restore-<tabl
 ```
 
 Pièges : conflits de clés (utiliser `ON CONFLICT DO NOTHING` après relecture), clés étrangères vers des lignes créées depuis T, séquences. Faire d'abord
-l'opération sur une branche de test (`staging` recopiée) ; le garde-fou développeur du dépôt (`AFFISELL_ALLOW_PRODUCTION_WRITES=ep-misty-sea-al1ne07p`) ne
+l'opération sur une branche de test (`staging` recopiée) ; le garde-fou développeur du dépôt (`AFFISELL_ALLOW_PRODUCTION_WRITES=<ep-production>`) ne
 s'applique qu'aux outils du dépôt, pas à `psql` : **la vigilance est humaine**.
 
 ### 3.7 Après une restauration sur place : réconcilier avec Stripe (l'argent n'est pas revenu en arrière)
