@@ -3,6 +3,7 @@ import { describe, expect, it, beforeEach } from "vitest"
 import { resetMarginAnalysisCacheForTests } from "@/lib/ai/smart-margin-analysis-cache"
 import { resetMarketCacheForTests } from "@/lib/ai/market-intelligence-cache"
 import { runMarginAnalysis } from "@/lib/ai/smart-margin-service"
+import { REVENUE_DISCLAIMER } from "@/lib/legal/disclaimers"
 
 describe("smart-margin-service", () => {
   beforeEach(() => {
@@ -38,6 +39,6 @@ describe("smart-margin-service", () => {
     })
     expect(result.success_probability.score).toBeGreaterThan(0)
     expect(result.warnings.length).toBeGreaterThan(0)
-    expect(result.disclaimers.revenue).toMatch(/\*/)
+    expect(result.disclaimers.revenue).toBe(REVENUE_DISCLAIMER)
   })
 })

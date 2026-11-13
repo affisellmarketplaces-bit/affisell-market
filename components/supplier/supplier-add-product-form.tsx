@@ -74,7 +74,7 @@ import { suggestFromTitle, titleSuggestionAttributes } from "@/lib/title-parser"
 import {
   applyOptimizedSimpleColorNames,
   type OptimizeVariantsResult,
-} from "@/lib/supplier-optimize-variants"
+} from "@/lib/supplier-optimize-variants-shared"
 import type { ListingCategorySuggestion } from "@/lib/supplier-suggest-listing"
 import {
   SupplierCategoryPicker,

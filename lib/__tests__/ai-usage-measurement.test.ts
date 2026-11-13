@@ -15,6 +15,7 @@ import {
   buildPipelineRecord,
   classifyAiError,
   getAiUsageContext,
+  loadAsyncLocalStorage,
   meterModelCall,
   normalizeUsage,
   readAiUsageRecords,
@@ -487,5 +488,30 @@ describe("journal on Redis (mocked client, no network)", () => {
     expect(read.backend).toBe("memory")
     expect(read.degraded).toBe(true)
     expect(read.records.map((r) => r.latencyMs)).toEqual([9])
+  })
+})
+
+describe("loadAsyncLocalStorage — no static import of node:async_hooks (browser bundles must build)", () => {
+  it("returns the real AsyncLocalStorage under Node, and the context follows async calls", async () => {
+    expect(typeof loadAsyncLocalStorage()).toBe("function")
+    const seen = await runWithAiUsageContext({ feature: "f", tier: "t" }, async () => {
+      await Promise.resolve()
+      return getAiUsageContext()
+    })
+    expect(seen).toEqual({ feature: "f", tier: "t" })
+    expect(getAiUsageContext()).toEqual({ feature: "unlabelled", tier: "unlabelled" })
+  })
+
+  it("returns null (never throws) where Node's built-in lookup does not exist, or fails", () => {
+    expect(loadAsyncLocalStorage(null)).toBeNull()
+    expect(loadAsyncLocalStorage({})).toBeNull()
+    expect(loadAsyncLocalStorage({ getBuiltinModule: () => undefined })).toBeNull()
+    expect(
+      loadAsyncLocalStorage({
+        getBuiltinModule: () => {
+          throw new Error("no such builtin")
+        },
+      })
+    ).toBeNull()
   })
 })

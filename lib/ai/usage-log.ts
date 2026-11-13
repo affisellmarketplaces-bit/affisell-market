@@ -1,6 +1,12 @@
 // No `import "server-only"` on purpose: the model clients that call this are also run by offline eval scripts (tsx), where
-// that marker package throws. This module uses node:async_hooks, so a client bundle would fail to build anyway.
-import { AsyncLocalStorage } from "node:async_hooks"
+// that marker package throws.
+//
+// AsyncLocalStorage is NOT imported statically (type-only import below, erased at build time). The model clients that call this
+// module are also pulled into BROWSER bundles by client components that import a helper from a module sharing a file with a model
+// call; a static `import "node:async_hooks"` then fails the production build (Turbopack: "chunking context does not support
+// external modules"). It is obtained at runtime from Node (`process.getBuiltinModule`); where it does not exist (browser, edge)
+// the usage context is simply unavailable and records are labelled "unlabelled" — metering never throws.
+import type { AsyncLocalStorage as AsyncLocalStorageType } from "node:async_hooks"
 
 import { Redis } from "@upstash/redis"
 
@@ -50,14 +56,29 @@ const REDIS_TIMEOUT_MS = 1000
 
 export type AiUsageContext = { feature: string; tier: string }
 
-const contextStore = new AsyncLocalStorage<AiUsageContext>()
+/** The Node built-in, fetched at runtime so no bundler ever sees an import of it. `null` outside Node (browser, edge). */
+export function loadAsyncLocalStorage(
+  proc: { getBuiltinModule?: (id: string) => unknown } | null = typeof process === "undefined" ? null : process
+): (new <T>() => AsyncLocalStorageType<T>) | null {
+  try {
+    const getBuiltin = proc?.getBuiltinModule
+    if (typeof getBuiltin !== "function") return null
+    const mod = getBuiltin.call(proc, "node:async_hooks") as { AsyncLocalStorage?: new <T>() => AsyncLocalStorageType<T> } | undefined
+    return typeof mod?.AsyncLocalStorage === "function" ? mod.AsyncLocalStorage : null
+  } catch {
+    return null
+  }
+}
+
+const AsyncLocalStorageCtor = loadAsyncLocalStorage()
+const contextStore: AsyncLocalStorageType<AiUsageContext> | null = AsyncLocalStorageCtor ? new AsyncLocalStorageCtor<AiUsageContext>() : null
 
 export function runWithAiUsageContext<T>(context: AiUsageContext, fn: () => T): T {
-  return contextStore.run(context, fn)
+  return contextStore ? contextStore.run(context, fn) : fn()
 }
 
 export function getAiUsageContext(): AiUsageContext {
-  return contextStore.getStore() ?? { feature: "unlabelled", tier: "unlabelled" }
+  return contextStore?.getStore() ?? { feature: "unlabelled", tier: "unlabelled" }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

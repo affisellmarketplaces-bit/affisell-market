@@ -42,7 +42,7 @@ import { cn } from "@/lib/utils"
 import {
   applyOptimizedSkuRows,
   type OptimizeVariantsResult,
-} from "@/lib/supplier-optimize-variants"
+} from "@/lib/supplier-optimize-variants-shared"
 
 export type VariantOptimizeContext = {
   title: string
