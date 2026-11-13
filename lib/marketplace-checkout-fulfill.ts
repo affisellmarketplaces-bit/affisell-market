@@ -5,30 +5,42 @@ import { extractMarketplaceCheckoutCustomer } from "@/lib/marketplace-checkout-s
 import { ghostReverifyBeforeFulfill } from "@/lib/ghost/post-pay-reverify"
 import { clearPurchasedCartItems } from "@/lib/marketplace-checkout-cart-clear.server"
 import { runAfterResponse } from "@/lib/after-response"
+import { orderAwaitsCheckoutFulfilment, orderIsFulfilledForCheckout } from "@/lib/orders/payment-state"
 import { prisma } from "@/lib/prisma"
 import { fulfillMarketplaceStripeSession } from "@/lib/stripe-marketplace-fulfill"
 import { findOrderIdsForCheckoutSession } from "@/lib/stripe-marketplace-commission-split"
 import { syncOrderVatFromCheckoutSession } from "@/lib/stripe-sync-order-vat-from-session"
 import { logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
 
-/** True when checkout has no rows yet, or pre-created rows are still unpaid (PENDING). */
+const FULFILMENT_STATE_SELECT = { status: true, paymentSettlementStatus: true, bookingSlotId: true, bookingConfirmedAt: true } as const
+
+/**
+ * True when checkout has no rows yet, or at least one row still awaits the checkout fulfilment: pre-created and unpaid
+ * ("PENDING"), see `orderAwaitsCheckoutFulfilment`. A row that is paid, PAST paid (preparing, fulfilling, shipped, …) or
+ * closed (refunded, cancelled) never does: this gate used to say "any status other than paid", so a replayed or duplicated
+ * `checkout.session.completed` re-entered the fulfilment of a SHIPPED order, where the Ghost stock re-check could refund it
+ * (finalisation review #9).
+ */
 export async function marketplaceCheckoutNeedsFulfillment(sessionId: string): Promise<boolean> {
   const orderIds = await findOrderIdsForCheckoutSession(sessionId)
   if (orderIds.length === 0) return true
-  const unpaid = await prisma.order.count({
-    where: { id: { in: orderIds }, status: { not: "paid" } },
+  const rows = await prisma.order.findMany({
+    where: { id: { in: orderIds } },
+    select: FULFILMENT_STATE_SELECT,
   })
-  return unpaid > 0
+  if (rows.length === 0) return true
+  return rows.some((row) => orderAwaitsCheckoutFulfilment(row))
 }
 
-/** True when every marketplace row for this Stripe session is paid. */
+/** True when every marketplace row for this Stripe session is paid or past paid (and none is closed). */
 export async function isMarketplaceCheckoutFulfilled(sessionId: string): Promise<boolean> {
   const orderIds = await findOrderIdsForCheckoutSession(sessionId)
   if (orderIds.length === 0) return false
-  const unpaid = await prisma.order.count({
-    where: { id: { in: orderIds }, status: { not: "paid" } },
+  const rows = await prisma.order.findMany({
+    where: { id: { in: orderIds } },
+    select: FULFILMENT_STATE_SELECT,
   })
-  return unpaid === 0
+  return rows.length > 0 && rows.every((row) => orderIsFulfilledForCheckout(row))
 }
 
 /** Idempotent: create/update paid orders from session metadata, then sync VAT rows. */
@@ -38,6 +50,14 @@ export async function ensureMarketplaceCheckoutFulfilled(
   if (session.mode !== "payment" || session.payment_status !== "paid") return
   if (session.metadata?.flow === "blind_dropship") return
   if (session.metadata?.flow === SPONSOR_FLOW_METADATA) return
+
+  // Last line against every caller (webhook, replay, success page, settle path): once the orders of the session are paid
+  // or past paid, or closed, nothing is fulfilled again — and above all the Ghost check below, which probes TODAY's
+  // supplier stock and refunds the whole session when it is out, never runs for a shipped order (finalisation review #9).
+  if (!(await marketplaceCheckoutNeedsFulfillment(session.id))) {
+    logStripeWebhookInfo({ metric: "checkout_fulfill_skipped_nothing_awaits", sessionId: session.id })
+    return
+  }
 
   const ghost = await ghostReverifyBeforeFulfill(session)
   if (ghost.refunded) {

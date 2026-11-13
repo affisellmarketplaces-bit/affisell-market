@@ -151,6 +151,74 @@ describe("replayFailedStripeWebhooks — age cap (30 days)", () => {
   })
 })
 
+// Finalisation review #10: `events.retrieve` returns the event as emitted; a snapshot applied 3-30 days late must not
+// overwrite today's state.
+describe("replayFailedStripeWebhooks — only event types that are safe to apply late (review #10)", () => {
+  const SAFE = [
+    "checkout.session.completed",
+    "payment_intent.succeeded",
+    "charge.dispute.created",
+    "charge.dispute.updated",
+    "charge.dispute.closed",
+    "charge.dispute.funds_withdrawn",
+    "charge.dispute.funds_reinstated",
+  ]
+  const UNSAFE = [
+    "customer.subscription.updated",
+    "customer.subscription.deleted",
+    "invoice.payment_failed",
+    "charge.refunded",
+    "account.updated",
+    "checkout.session.expired",
+    "some.future.event",
+  ]
+
+  it.each(SAFE)("%s is replayed", async (type) => {
+    seed("evt_x", 100)
+    eventsRetrieve.mockResolvedValue(stripeEvent("evt_x", type))
+    const result = await replayFailedStripeWebhooks({ now: NOW })
+    expect(processStripeWebhookEvent).toHaveBeenCalledTimes(1)
+    expect(result).toMatchObject({ replayed: 1, notReplayed: 0 })
+  })
+
+  it.each(UNSAFE)("%s is NOT replayed: closed as failed_expired unprocessed, ops told, never a red run", async (type) => {
+    seed("evt_x", 100, { error: "boom" })
+    eventsRetrieve.mockResolvedValue(stripeEvent("evt_x", type))
+
+    const result = await replayFailedStripeWebhooks({ now: NOW })
+
+    expect(processStripeWebhookEvent).not.toHaveBeenCalled()
+    expect(result).toMatchObject({ replayed: 0, notReplayed: 1, stillFailing: 0 })
+    expect(result.notReplayedEvents).toEqual([{ eventId: "evt_x", type }])
+    expect(statusOf("evt_x")).toBe("failed_expired")
+    expect(ledger.rows.get("evt_x")?.error).toBe("boom") // the evidence stays
+    expect(opsWebhookAlert).toHaveBeenCalledTimes(1)
+    expect(String(opsWebhookAlert.mock.calls[0]?.[0])).toContain(type)
+  })
+
+  it("a stale subscription snapshot can not revive a cancelled subscription: the old `updated` is closed, the live state untouched", async () => {
+    seed("evt_old_updated", 24 * 20)
+    eventsRetrieve.mockResolvedValue(stripeEvent("evt_old_updated", "customer.subscription.updated"))
+    await replayFailedStripeWebhooks({ now: NOW })
+    expect(processStripeWebhookEvent).not.toHaveBeenCalled()
+    // and the next run does not look at it again
+    eventsRetrieve.mockClear()
+    await replayFailedStripeWebhooks({ now: NOW })
+    expect(eventsRetrieve).not.toHaveBeenCalled()
+  })
+
+  it("mixed batch: the safe event is replayed, the unsafe one closed, one alert for the closed one", async () => {
+    seed("evt_a", 101)
+    seed("evt_b", 100)
+    eventsRetrieve.mockImplementation(async (id: unknown) =>
+      stripeEvent(String(id), id === "evt_a" ? "invoice.payment_failed" : "checkout.session.completed")
+    )
+    const result = await replayFailedStripeWebhooks({ now: NOW })
+    expect(result).toMatchObject({ replayed: 1, notReplayed: 1 })
+    expect(opsWebhookAlert).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe("replayFailedStripeWebhooks — outcomes and alerts", () => {
   it("a replay that succeeds raises no alert", async () => {
     seed("evt_ok", 100)

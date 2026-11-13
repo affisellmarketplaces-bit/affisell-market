@@ -24,8 +24,24 @@ const CLOSED_ORDER_STATUSES = new Set(["refunded", "cancelled", "canceled"])
 /** Settlement states meaning the charge was refunded (fully, or with a clawback pending) or cancelled. */
 const CLOSED_SETTLEMENT_STATUSES = new Set(["REFUNDED", "REFUND_PENDING_CLAWBACK", "CANCELLED"])
 
-/** Order states that come AFTER payment: a payment confirmation must never move an order back to "paid". */
-const POST_PAYMENT_ORDER_STATUSES = new Set(["preparing", "shipped", "delivered", "completed", "returned", "disputed"])
+/**
+ * Order states that come AFTER payment: a payment confirmation must never move an order back to "paid".
+ * Every status the code base writes after "paid" (survey of the `Order.status` writers, finalisation review #31):
+ * "preparing" (supplier route, orchestrator), "fulfilling" (AliExpress paths: `aliexpress-fulfill-order.ts`, `auto-buy.ts`),
+ * "shipped" (mark-shipped, supplier route, tracking webhooks, AutoDS, instant digital fulfilment, orchestrator), "disputed"
+ * (chargeback, D7); "delivered" / "completed" / "returned" are read by dashboards and kept for data written by other tools.
+ * "fulfilling" used to be missing: every re-run of the transfer scheduler (Stripe retry, second payment event, replay) moved
+ * an order the AliExpress paths had just placed back to "paid", i.e. back into the ship-SLA auto-cancel (which refunds).
+ */
+const POST_PAYMENT_ORDER_STATUSES = new Set([
+  "preparing",
+  "fulfilling",
+  "shipped",
+  "delivered",
+  "completed",
+  "returned",
+  "disputed",
+])
 
 /** Settlement states that come after PAID and must be kept when transfers are (re)scheduled. */
 const POST_PAID_SETTLEMENT_STATUSES = new Set(["SETTLED", "PARTIALLY_REFUNDED", ...CLOSED_SETTLEMENT_STATUSES])
@@ -47,7 +63,39 @@ export function isOrderClosedForPayout(order: OrderPaymentSnapshot): boolean {
  */
 export function statusAfterPaymentConfirmed(current: string | null | undefined): string {
   const value = norm(current)
-  return POST_PAYMENT_ORDER_STATUSES.has(value.toLowerCase()) ? value : "paid"
+  const lower = value.toLowerCase()
+  // A closed status is kept too, never "reopened as paid": the callers reject closed orders first, this is the last line.
+  return POST_PAYMENT_ORDER_STATUSES.has(lower) || CLOSED_ORDER_STATUSES.has(lower) ? value : "paid"
+}
+
+export type CheckoutFulfilmentSnapshot = OrderPaymentSnapshot & {
+  bookingSlotId?: string | null
+  bookingConfirmedAt?: Date | null
+}
+
+/**
+ * Does this order still need the CHECKOUT FULFILMENT (Ghost stock re-check + possible refund, order row creation, buyer
+ * e-mails, `fulfillMarketplaceStripeSession`)? Only an order that is not paid yet ("PENDING", empty, unknown pre-payment
+ * values) does. An order that is "paid" or past it (preparing, fulfilling, shipped, delivered, …) or closed (refunded,
+ * cancelled) must never re-enter it: the stock probe would run against TODAY's supplier stock and could refund a shipped
+ * order, and creating the row again hits the `stripeSessionId` unique constraint (finalisation review #9). The one
+ * exception is a cancelled booking that was never confirmed: a payment that arrives after its hold expired is recovered by
+ * the fulfilment itself.
+ */
+export function orderAwaitsCheckoutFulfilment(order: CheckoutFulfilmentSnapshot): boolean {
+  const status = norm(order.status).toLowerCase()
+  if (status === "cancelled" || status === "canceled") {
+    return Boolean(order.bookingSlotId) && !order.bookingConfirmedAt
+  }
+  if (status === "paid" || POST_PAYMENT_ORDER_STATUSES.has(status) || CLOSED_ORDER_STATUSES.has(status)) return false
+  // An unknown / pre-payment status already closed by its settlement (lines cancelled by the unallocated-line rule).
+  return !CLOSED_SETTLEMENT_STATUSES.has(norm(order.paymentSettlementStatus).toUpperCase())
+}
+
+/** True when the order is "paid" or past it (not closed): the checkout fulfilment is done. */
+export function orderIsFulfilledForCheckout(order: OrderPaymentSnapshot): boolean {
+  const status = norm(order.status).toLowerCase()
+  return status === "paid" || POST_PAYMENT_ORDER_STATUSES.has(status)
 }
 
 /**

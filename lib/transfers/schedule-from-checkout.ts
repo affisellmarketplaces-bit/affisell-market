@@ -284,8 +284,12 @@ export async function scheduleMarketplaceTransferAttempts(
       stripeSessionId: order.stripeSessionId || session.id,
       stripeChargeId: chargeId ?? order.stripeChargeId,
       splitStatus: "PENDING",
-      // Only an order that is not yet past "paid" becomes "paid": never move shipped / preparing back.
-      status: statusAfterPaymentConfirmed(order.status),
+      // Only an order that is not yet past "paid" becomes "paid": never move shipped / preparing / fulfilling back. When the
+      // status does not change it is not written AT ALL: `order` was read before this update, and a concurrent writer (the
+      // AliExpress purchase paths set "fulfilling", suppliers set "shipped") must not be overwritten with a stale value.
+      ...(statusAfterPaymentConfirmed(order.status) !== order.status
+        ? { status: statusAfterPaymentConfirmed(order.status) }
+        : {}),
       paidAt: order.paidAt ?? paidAnchor,
       shipDeadlineAt:
         order.shipDeadlineAt ??

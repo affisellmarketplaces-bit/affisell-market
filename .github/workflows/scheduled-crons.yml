@@ -15,13 +15,15 @@ name: Scheduled crons
 # WHY THE FORMER ORPHANS ARE (NOT) SCHEDULED
 #   scheduled   auctions-tick          every 30 min  DB-only, idempotent: it is exactly what every /auctions visit already runs.
 #   scheduled   merchant-kyc-reminder  daily         one-shot per supplier (timestamp), 40 per run. First run mails the backlog.
-#   scheduled   sync-stock             every 6 h     REST blind-dropship suppliers only (no-op without any): the only stock refresh.
 #   scheduled   sync-shopify           every 6 h     only integrations whose owner enabled auto-sync (no-op without any).
 #   NOT         review-invites         deprecated alias of review-reminder, which is scheduled: both would double the work.
 #   NOT         sync-auto-buy-tracking auto-buy is opt-in/off (AUTO_BUY_ENABLED) and its tracking source returns null (G4).
 #   NOT         update-supplier-scores recomputes what refresh-supplier-trust-scores / refresh-supplier-delivery-stats already
 #                                      do, and inserts an un-deduplicated notification per low-score supplier at every run.
 #   NOT         verify-suppliers       grants AND revokes the "verified supplier" badge of every supplier: owner decision.
+#   NOT         sync-stock             writes Product.active = (stock > 0) for EVERY product matching a partner SKU: it would
+#                                      re-list what a supplier paused or an admin recalled (GPSR). The meaning of `active` is a
+#                                      founder decision (see AGENTS.md); the route stays, it is not run on a schedule.
 #   NOT         notify-failure         called by the failure steps below, never scheduled.
 on:
   schedule:
@@ -182,7 +184,7 @@ jobs:
           FAILED_ROUTES: ${{ steps.crons.outputs.failed_routes }}
         run: bash scripts/ci/notify-cron-failure.sh
 
-  # Catalogue syncs that were never scheduled (see the header). Best-effort: a failure is a warning.
+  # Catalogue sync that was never scheduled (see the header). Best-effort: a failure is a warning.
   catalog-sync:
     if: github.event.schedule == '0 */6 * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
@@ -190,14 +192,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           sparse-checkout: scripts/ci
-      - name: Trigger catalogue sync routes
+      - name: Trigger catalogue sync route
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
-        run: |
-          bash scripts/ci/run-crons.sh lenient \
-            "/api/cron/sync-stock" \
-            "/api/cron/sync-shopify"
+        run: bash scripts/ci/run-crons.sh lenient "/api/cron/sync-shopify"
 
   weekly:
     if: github.event.schedule == '0 9 * * 1' || github.event_name == 'workflow_dispatch'

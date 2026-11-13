@@ -20,7 +20,12 @@ function matches(row: FakeProcessedWebhookRow, where: Where): boolean {
     if (cond.startsWith !== undefined && !row.id.startsWith(cond.startsWith)) return false
     if (cond.in !== undefined && !cond.in.includes(row.id)) return false
   }
-  if (where.orderId !== undefined && row.orderId !== where.orderId) return false
+  const orderId = where.orderId
+  if (typeof orderId === "string" && row.orderId !== orderId) return false
+  if (orderId && typeof orderId === "object") {
+    const cond = orderId as { in?: string[] }
+    if (cond.in !== undefined && !(row.orderId && cond.in.includes(row.orderId))) return false
+  }
   if (where.status !== undefined && row.status !== where.status) return false
   const createdAt = where.createdAt as { gte?: Date; lt?: Date; lte?: Date } | undefined
   if (createdAt) {
@@ -29,8 +34,9 @@ function matches(row: FakeProcessedWebhookRow, where: Where): boolean {
     if (createdAt.lt && !(at < createdAt.lt)) return false
     if (createdAt.lte && !(at <= createdAt.lte)) return false
   }
-  const not = where.NOT as { id?: string } | undefined
-  if (not?.id && row.id === not.id) return false
+  const not = where.NOT as { id?: string | { startsWith?: string } } | undefined
+  if (typeof not?.id === "string" && row.id === not.id) return false
+  if (typeof not?.id === "object" && not.id.startsWith !== undefined && row.id.startsWith(not.id.startsWith)) return false
   return true
 }
 
