@@ -82,7 +82,9 @@ export async function POST(req: Request, ctx: RouteCtx) {
         ? 404
         : result.error === "not_paid" ||
             result.error === "no_supplier_link" ||
-            result.error === "fulfillment_in_progress"
+            result.error === "fulfillment_in_progress" ||
+            result.error === "supplier_outcome_uncertain" ||
+            result.error.startsWith("margin_refused")
           ? 409
           : 502
     return NextResponse.json(result, { status })

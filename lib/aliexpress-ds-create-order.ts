@@ -42,6 +42,12 @@ export type CreateAliExpressDsOrderResult =
       error: string
       methodAttempts: string[]
       debugPayload?: Record<string, unknown>
+      /**
+       * true = a request WAS sent and its outcome is unknown (timeout, network error, unreadable response): AliExpress
+       * may have created the order. The caller must NOT place the order again (nor try another channel) — it has to
+       * leave the purchase "in doubt" for a human to reconcile. Absent / false = the order was definitely not created.
+       */
+      outcomeUncertain?: boolean
     }
 
 /** Official DS place-order methods (ae_sdk / Open Platform). */
@@ -132,6 +138,17 @@ function isRetryableMethodError(message: string): boolean {
     m.includes("permission deny") ||
     m.includes("not authorized")
   )
+}
+
+/**
+ * A thrown error after the request left the building does not tell whether AliExpress created the order.
+ * Gateway / business errors (`AliExpressApiError` carrying AE's own message) are definitive rejections; a timeout, an
+ * unreadable (non-JSON) answer or any non-AE error (network reset, DNS, TLS…) is ambiguous.
+ */
+export function isAmbiguousPlaceOrderError(e: unknown): boolean {
+  if (!(e instanceof AliExpressApiError)) return true
+  const m = e.message.toLowerCase()
+  return m.includes("timed out") || m.includes("non-json")
 }
 
 function isRateLimitError(message: string): boolean {
@@ -354,6 +371,24 @@ export async function createAliExpressDsOrder(
             error: message,
           }
 
+          // The first request may have created the order: sending the same order again on another host/method would
+          // buy twice. Stop here and report the outcome as unknown.
+          if (isAmbiguousPlaceOrderError(e)) {
+            console.log("[aliexpress-ds-create]", {
+              result: "outcome_uncertain",
+              method: label,
+              message,
+              ...addrLog,
+            })
+            return {
+              ok: false,
+              error: message,
+              methodAttempts,
+              debugPayload: lastPayload,
+              outcomeUncertain: true,
+            }
+          }
+
           if (isRateLimitError(message) && attempt < maxAttempts) {
             const delayMs = 800 * 2 ** (attempt - 1)
             console.log("[aliexpress-ds-create]", {
@@ -407,7 +442,9 @@ export async function placeAliExpressDsOrder(input: {
     country?: string
     phone?: string
   }
-}): Promise<{ ok: true; aeOrderId: string } | { ok: false; error: string }> {
+}): Promise<
+  { ok: true; aeOrderId: string } | { ok: false; error: string; outcomeUncertain?: boolean }
+> {
   const result = await createAliExpressDsOrder({
     supplierProductId: input.aeProductId,
     skuId: input.aeSkuId?.trim() || "0",
@@ -424,5 +461,7 @@ export async function placeAliExpressDsOrder(input: {
     },
   })
   if (result.ok) return { ok: true, aeOrderId: result.aliexpressOrderId }
-  return { ok: false, error: result.error }
+  return result.outcomeUncertain
+    ? { ok: false, error: result.error, outcomeUncertain: true }
+    : { ok: false, error: result.error }
 }
