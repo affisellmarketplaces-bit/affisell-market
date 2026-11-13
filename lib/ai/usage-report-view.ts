@@ -9,6 +9,8 @@ import type { AiUsageGroupSummary, AiUsageReport } from "@/lib/ai/usage-stats"
 
 export const NO_MEASURE = "aucune mesure"
 export const UNKNOWN = "inconnu"
+/** A step that was called but never answered (every request failed): there is no latency OF AN ANSWER to show. */
+export const NO_ANSWER = "aucune réponse"
 
 export function formatMs(ms: number | null): string {
   if (ms === null) return NO_MEASURE
@@ -80,18 +82,41 @@ function stageLabel(key: string): string {
   return normalized ? INSTANTSCAN_STAGE_LABELS_FR[normalized] : stage
 }
 
-function tierRow(g: AiUsageGroupSummary): TierRow {
-  const models = Object.entries(g.modelsUsed)
+function countsLine(counts: Record<string, number>): string {
+  return Object.entries(counts)
     .sort(([, a], [, b]) => b - a)
     .map(([m, n]) => `${m} ×${n}`)
     .join(", ")
+}
+
+/** Failures, with WHICH models were asked for and failed, and how long a failure took (a timeout is not a latency). */
+function errorsCell(g: AiUsageGroupSummary): string {
+  const base = `${g.failedCalls} / ${g.calls} (${formatRate(g.errorRate)})`
+  if (g.failedCalls === 0) return base
+  const failed = countsLine(g.modelsFailed)
+  const took = g.failedLatencyMs.p95 === null ? "" : ` ; durée p95 d'un échec : ${formatMs(g.failedLatencyMs.p95)}`
+  return `${base}${failed ? ` — échecs : ${failed}` : ""}${took}`
+}
+
+/** Latency OF ANSWERS; "aucune réponse" when every request failed (never a latency invented from failures). */
+function answerLatency(g: AiUsageGroupSummary, value: number | null): string {
+  if (value !== null) return formatMs(value)
+  return g.calls > 0 && g.okCalls === 0 ? NO_ANSWER : NO_MEASURE
+}
+
+function tierRow(g: AiUsageGroupSummary): TierRow {
+  const models = countsLine(g.modelsUsed)
+  const fallbackParts = [
+    g.fallbackCalls > 0 ? `${g.fallbackCalls} appel(s) répondu(s) par le modèle de repli` : "",
+    g.fallbackFailedCalls > 0 ? `${g.fallbackFailedCalls} tentative(s) de repli en échec` : "",
+  ].filter(Boolean)
   return {
     key: g.key,
     label: tierLabel(g.key),
     calls: g.calls,
-    errors: `${g.failedCalls} / ${g.calls} (${formatRate(g.errorRate)})`,
-    latencyP50: formatMs(g.latencyMs.p50),
-    latencyP95: formatMs(g.latencyMs.p95),
+    errors: errorsCell(g),
+    latencyP50: answerLatency(g, g.latencyMs.p50),
+    latencyP95: answerLatency(g, g.latencyMs.p95),
     tokens:
       g.callsWithTokens === 0
         ? "aucun compteur renvoyé par le fournisseur"
@@ -102,8 +127,8 @@ function tierRow(g: AiUsageGroupSummary): TierRow {
         : `${formatUsd(g.costUsdEstimated)} sur ${g.callsWithCost}/${g.calls} appels` +
           (g.costUnknownCalls > 0 ? ` — ${g.costUnknownCalls} non chiffré(s)` : ""),
     avgCostPerCall: formatUsd(g.avgCostUsdPerCall),
-    models: models || UNKNOWN,
-    fallbacks: g.fallbackCalls === 0 ? "aucun" : `${g.fallbackCalls} appel(s) répondu(s) par le modèle de repli`,
+    models: models || (g.calls > 0 && g.okCalls === 0 ? "aucun (aucune requête n'a abouti)" : UNKNOWN),
+    fallbacks: fallbackParts.length === 0 ? "aucun" : fallbackParts.join(" ; "),
   }
 }
 
@@ -113,9 +138,16 @@ function pipelineRow(g: AiUsageGroupSummary): PipelineRow {
     label: stageLabel(g.key),
     analyses: g.calls,
     errors: `${g.failedCalls} / ${g.calls} (${formatRate(g.errorRate)})`,
-    latencyP50: formatMs(g.latencyMs.p50),
-    latencyP95: formatMs(g.latencyMs.p95),
+    // the "error" stage has only failures: show how long they took, labelled as such, instead of "no measure"
+    latencyP50: pipelineLatency(g, g.latencyMs.p50, g.failedLatencyMs.p50),
+    latencyP95: pipelineLatency(g, g.latencyMs.p95, g.failedLatencyMs.p95),
   }
+}
+
+function pipelineLatency(g: AiUsageGroupSummary, answered: number | null, failed: number | null): string {
+  if (answered !== null) return formatMs(answered)
+  if (g.okCalls === 0 && failed !== null) return `${formatMs(failed)} (durée des échecs)`
+  return NO_MEASURE
 }
 
 export function buildUsagePageModel(

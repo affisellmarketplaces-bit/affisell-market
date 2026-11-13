@@ -27,8 +27,12 @@ export type AiUsageRecord = {
   provider: AiProvider | null
   /** Model asked for. */
   modelRequested: string | null
-  /** Model that really answered (differs from `modelRequested` after a fallback). */
+  /**
+   * Model that really ANSWERED (differs from `modelRequested` after a fallback). `null` when the call failed: a request that
+   * errored got no answer from anyone, so no model is recorded as having answered.
+   */
   modelUsed: string | null
+  /** This request was the fallback attempt (after the first model failed) — whether or not it succeeded (see `ok`). */
   fallbackUsed: boolean
   promptTokens: number | null
   completionTokens: number | null
@@ -63,8 +67,14 @@ export type AiUsageGroupSummary = {
   failedCalls: number
   /** failed / calls, `null` when there are no calls. */
   errorRate: number | null
+  /** Calls that were answered by the fallback model (`ok` AND `fallbackUsed`). */
   fallbackCalls: number
+  /** Fallback ATTEMPTS that failed too (`!ok` AND `fallbackUsed`): nothing answered. */
+  fallbackFailedCalls: number
+  /** Latency of the calls that ANSWERED (a 45 s timeout is a failure, not a latency). `null` percentiles = none answered. */
   latencyMs: Percentiles
+  /** Latency of the calls that FAILED (how long a failure took, e.g. a timeout). */
+  failedLatencyMs: Percentiles
   /** Calls that carried provider token counts. */
   callsWithTokens: number
   promptTokens: number
@@ -76,13 +86,16 @@ export type AiUsageGroupSummary = {
   costUnknownCalls: number
   /** costUsdEstimated / callsWithCost, `null` when no call has a cost. */
   avgCostUsdPerCall: number | null
-  /** Models that really answered, with their call counts (so a silent fallback is visible). */
+  /** Models that really ANSWERED (`ok` calls only), with their call counts — so a silent fallback is visible. */
   modelsUsed: Record<string, number>
+  /** Models that were asked for and FAILED (the requested model of each failed call), with their counts. */
+  modelsFailed: Record<string, number>
 }
 
 export function summarizeGroup(key: string, records: readonly AiUsageRecord[]): AiUsageGroupSummary {
   let okCalls = 0
   let fallbackCalls = 0
+  let fallbackFailedCalls = 0
   let callsWithTokens = 0
   let promptTokens = 0
   let completionTokens = 0
@@ -90,12 +103,20 @@ export function summarizeGroup(key: string, records: readonly AiUsageRecord[]): 
   let cost = 0
   let callsWithCost = 0
   const modelsUsed: Record<string, number> = {}
+  const modelsFailed: Record<string, number> = {}
 
   for (const r of records) {
-    if (r.ok) okCalls += 1
-    if (r.fallbackUsed) fallbackCalls += 1
-    const model = r.modelUsed ?? r.modelRequested
-    if (model) modelsUsed[model] = (modelsUsed[model] ?? 0) + 1
+    if (r.ok) {
+      okCalls += 1
+      if (r.fallbackUsed) fallbackCalls += 1
+      const model = r.modelUsed ?? r.modelRequested
+      if (model) modelsUsed[model] = (modelsUsed[model] ?? 0) + 1
+    } else {
+      // a failed request answered nothing: it is neither "a model that answered" nor "a fallback answer"
+      if (r.fallbackUsed) fallbackFailedCalls += 1
+      const asked = r.modelRequested ?? r.modelUsed
+      if (asked) modelsFailed[asked] = (modelsFailed[asked] ?? 0) + 1
+    }
     if (r.promptTokens != null && r.completionTokens != null) {
       callsWithTokens += 1
       promptTokens += r.promptTokens
@@ -116,7 +137,9 @@ export function summarizeGroup(key: string, records: readonly AiUsageRecord[]): 
     failedCalls: calls - okCalls,
     errorRate: calls === 0 ? null : (calls - okCalls) / calls,
     fallbackCalls,
-    latencyMs: latencyPercentiles(records.map((r) => r.latencyMs)),
+    fallbackFailedCalls,
+    latencyMs: latencyPercentiles(records.filter((r) => r.ok).map((r) => r.latencyMs)),
+    failedLatencyMs: latencyPercentiles(records.filter((r) => !r.ok).map((r) => r.latencyMs)),
     callsWithTokens,
     promptTokens,
     completionTokens,
@@ -126,6 +149,7 @@ export function summarizeGroup(key: string, records: readonly AiUsageRecord[]): 
     costUnknownCalls: calls - callsWithCost,
     avgCostUsdPerCall: callsWithCost === 0 ? null : Math.round((cost / callsWithCost) * 1e8) / 1e8,
     modelsUsed,
+    modelsFailed,
   }
 }
 

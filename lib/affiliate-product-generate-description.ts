@@ -4,6 +4,7 @@ import type {
   ProductDescriptionAiInput,
   ProductDescriptionAiResult,
 } from "@/lib/affiliate-product-description-shared"
+import { meterModelCall, runWithAiUsageContext } from "@/lib/ai/usage-log"
 
 export type { ProductDescriptionAiInput, ProductDescriptionAiResult } from "@/lib/affiliate-product-description-shared"
 export {
@@ -135,16 +136,25 @@ export async function generateProductDescriptionWithGpt4o(
     throw new Error("IA indisponible (OPENAI_API_KEY manquante).")
   }
 
-  const completion = await client.chat.completions.create({
-    model: "gpt-4o",
-    temperature: 0.55,
-    max_tokens: 1800,
-    response_format: { type: "json_object" },
-    messages: [
-      { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: buildProductDescriptionAiUserPrompt(input) },
-    ],
-  })
+  // Measured like every other model call (tokens, estimated cost, latency): this is the most expensive call per request of the app.
+  const completion = await runWithAiUsageContext({ feature: "product_description", tier: "generate_gpt4o" }, () =>
+    meterModelCall({
+      provider: "openai",
+      modelRequested: "gpt-4o",
+      call: () =>
+        client.chat.completions.create({
+          model: "gpt-4o",
+          temperature: 0.55,
+          max_tokens: 1800,
+          response_format: { type: "json_object" },
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: buildProductDescriptionAiUserPrompt(input) },
+          ],
+        }),
+      extract: (c) => ({ modelUsed: c.model, usage: c.usage }),
+    })
+  )
 
   const raw = completion.choices[0]?.message?.content?.trim() ?? ""
   if (!raw) throw new Error("Réponse IA vide")

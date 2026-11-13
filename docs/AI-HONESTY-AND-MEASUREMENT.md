@@ -27,18 +27,28 @@
 
 **Module** : `lib/ai/usage-log.ts` (+ `usage-stats.ts`, `model-pricing.ts`). Aucune migration de schéma.
 
-- Chaque requête vers un fournisseur (OpenAI, Groq, Anthropic, Gemini) passe par `meterModelCall`, qui chronomètre l'appel, lit
-  l'objet `usage` **renvoyé par le fournisseur** (jetons réels), calcule un **coût estimé** et écrit une ligne JSON
-  `[ai-usage] {...}` dans les logs et dans un journal borné. Un appel en échec est journalisé aussi (classe d'erreur seulement,
-  jamais le message, jamais le prompt, jamais l'image, jamais d'identifiant d'utilisateur).
+- Chaque requête des clients LLM de l'application passe par `meterModelCall`, qui chronomètre l'appel, lit l'objet `usage`
+  **renvoyé par le fournisseur** (jetons réels), calcule un **coût estimé** et écrit une ligne JSON `[ai-usage] {...}` dans les
+  logs et dans un journal borné. Un appel en échec est journalisé aussi (classe d'erreur seulement, jamais le message, jamais le
+  prompt, jamais l'image, jamais d'identifiant d'utilisateur) ; il n'est **pas** compté comme « modèle ayant répondu ».
+- **Périmètre exact.** *Couvert* (un test, `ai-usage-coverage.test.ts`, échoue si un nouvel appel direct à un fournisseur n'utilise
+  pas `meterModelCall`) : OpenAI chat et embeddings, **y compris la génération de description GPT-4o**
+  (`affiliate-product-generate-description.ts`), Groq, Anthropic (**les deux clients**, `anthropic-messages.ts` et
+  `anthropic-client.ts`), Gemini. *Non couvert* : l'endpoint de modération OpenAI (`lib/reviews/moderation.ts`, gratuit, sans
+  compteur de jetons), les prestataires qui ne sont pas des appels LLM facturés au jeton (Replicate pour l'essayage, vidéo Veo,
+  outils image), les scripts de développement (`scripts/i18n-translate-*`, `scripts/llm-eval`). **Un coût affiché est donc un
+  minimum, jamais le total des dépenses d'IA.** (La première version de ce document et de `usage-log.ts` affirmait que *toute*
+  requête était mesurée : c'était faux pour la description GPT-4o et le client Anthropic simple, corrigé.)
 - L'étape (« palier ») vient d'un contexte asynchrone posé par l'analyseur : `cues_extraction` (étape catalogue),
   `vision_full`, `vision_legacy`, `category_match`. Sans contexte : `unlabelled`. Chaque analyse complète écrit en plus un
   enregistrement `pipeline` (étape finale `catalog_match | mini | gpt4o | groq | error`, latence de bout en bout).
 - **Journal** : liste Redis plafonnée (2000 enregistrements, 30 jours) si `UPSTASH_REDIS_REST_URL/TOKEN` sont configurés,
   sinon mémoire de **l'instance serveur** (volatile, partielle). La page admin dit lequel des deux elle lit.
-- **Page** : `/admin/instantscan-performance` — par étape : appels, échecs, latence p50/p95, jetons, coût estimé, modèles ayant
-  réellement répondu (un repli y est visible), et « aucune mesure » quand le journal est vide. Elle liste aussi ce qui n'est **pas**
-  mesuré.
+- **Page** : `/admin/instantscan-performance` — par étape : appels, échecs (avec les modèles demandés qui ont échoué et la durée
+  d'un échec), latence p50/p95 **des appels réussis** (un timeout est un échec, pas une latence ; si toutes les requêtes ont
+  échoué la page écrit « aucune réponse »), jetons, coût estimé, **modèles ayant répondu (appels réussis uniquement)** et, pour
+  un repli, « répondu(s) par le modèle de repli » (tentatives réussies) séparé de « tentative(s) de repli en échec ». « Aucune
+  mesure » quand le journal est vide. Elle liste aussi ce qui n'est **pas** mesuré.
 - **Table de prix** : `lib/ai/model-pricing.ts`, version `2026-11-13`. Tarifs publics saisis à la main pour `gpt-4o`,
   `gpt-4o-mini`, `text-embedding-3-small` ; **à vérifier** auprès du fournisseur. Un modèle absent de la table (Groq, Anthropic,
   Gemini aujourd'hui) a un coût **inconnu**, jamais deviné. Ajouter un tarif vérifié sans déploiement :

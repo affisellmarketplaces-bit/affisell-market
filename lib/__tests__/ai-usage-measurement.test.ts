@@ -170,7 +170,9 @@ describe("usage statistics (pure)", () => {
     expect(g.costUnknownCalls).toBe(3)
     expect(g.costUsdEstimated).toBeCloseTo(0.0045, 8)
     expect(g.avgCostUsdPerCall).toBeCloseTo(0.0045, 8)
-    expect(g.latencyMs.p95).toBe(45000)
+    // latency percentiles describe the calls that ANSWERED: the 45 s timeout is counted as a failure, not as a latency
+    expect(g.latencyMs.p95).toBe(1000)
+    expect(g.failedLatencyMs.p95).toBe(45000)
   })
 
   it("makes a silent fallback visible: the models that really answered are listed, fallback calls counted", () => {
@@ -180,6 +182,47 @@ describe("usage statistics (pure)", () => {
     ])
     expect(g.fallbackCalls).toBe(1)
     expect(g.modelsUsed).toEqual({ "gpt-4o-mini": 1, "gpt-4o": 1 })
+  })
+
+  it("a FAILED call is not a model that answered, and a failed fallback attempt is not a fallback answer", () => {
+    // OpenAI outage: gpt-4o 5xx, then the gpt-4o-mini fallback 5xx too — three times. Nothing answered.
+    const failed = (model: string, fallbackUsed: boolean) =>
+      rec({
+        modelRequested: fallbackUsed ? "gpt-4o-mini" : "gpt-4o",
+        modelUsed: null,
+        fallbackUsed,
+        ok: false,
+        error: "http_5xx",
+        latencyMs: 700,
+        promptTokens: null,
+        completionTokens: null,
+        totalTokens: null,
+        costUsdEstimated: null,
+      })
+    const outage = summarizeGroup("g", [
+      failed("gpt-4o", false), failed("gpt-4o-mini", true),
+      failed("gpt-4o", false), failed("gpt-4o-mini", true),
+      failed("gpt-4o", false), failed("gpt-4o-mini", true),
+    ])
+    expect(outage.calls).toBe(6)
+    expect(outage.failedCalls).toBe(6)
+    expect(outage.modelsUsed).toEqual({}) // it used to say { "gpt-4o": 3, "gpt-4o-mini": 3 }
+    expect(outage.fallbackCalls).toBe(0) // it used to say 3 fallback answers
+    expect(outage.fallbackFailedCalls).toBe(3)
+    expect(outage.modelsFailed).toEqual({ "gpt-4o": 3, "gpt-4o-mini": 3 })
+    expect(outage.latencyMs).toEqual({ p50: null, p95: null }) // nothing answered: no latency of an answer
+
+    // primary fails, fallback answers: only the fallback model is listed as having answered
+    const recovered = summarizeGroup("g", [
+      rec({ modelRequested: "gpt-4o", modelUsed: null, ok: false, error: "timeout", latencyMs: 45000, promptTokens: null, completionTokens: null, totalTokens: null, costUsdEstimated: null }),
+      rec({ modelRequested: "gpt-4o-mini", modelUsed: "gpt-4o-mini", fallbackUsed: true, latencyMs: 900 }),
+    ])
+    expect(recovered.modelsUsed).toEqual({ "gpt-4o-mini": 1 })
+    expect(recovered.modelsFailed).toEqual({ "gpt-4o": 1 })
+    expect(recovered.fallbackCalls).toBe(1)
+    expect(recovered.fallbackFailedCalls).toBe(0)
+    expect(recovered.latencyMs.p95).toBe(900)
+    expect(recovered.failedLatencyMs.p95).toBe(45000)
   })
 
   it("groups model calls by feature/tier and whole analyses by final stage", () => {
@@ -312,6 +355,8 @@ describe("meterModelCall + journal (memory backend)", () => {
     ).rejects.toBe(boom)
     const { records } = await readAiUsageRecords()
     expect(records[0]).toMatchObject({ ok: false, error: "rate_limit", promptTokens: null, costUsdEstimated: null })
+    // the model that was ASKED FOR is kept, but no model "answered": modelUsed is null on a failure
+    expect(records[0]).toMatchObject({ modelRequested: "openai/gpt-oss-20b", modelUsed: null })
     expect(JSON.stringify(records[0])).not.toContain("example.com")
   })
 
