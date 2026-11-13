@@ -22,6 +22,7 @@ import {
   resetAiUsageForTests,
   runWithAiUsageContext,
 } from "@/lib/ai/usage-log"
+import { redisKey } from "@/lib/redis-namespace"
 
 function rec(overrides: Partial<AiUsageRecord> = {}): AiUsageRecord {
   return {
@@ -416,9 +417,9 @@ describe("journal on Redis (mocked client, no network)", () => {
     const mod = await import("@/lib/ai/usage-log")
     await mod.recordAiUsage(rec({ latencyMs: 1 }))
     await mod.recordAiUsage(rec({ latencyMs: 2 }))
-    expect(ops).toContainEqual(["lpush", AI_USAGE_REDIS_KEY])
-    expect(ops).toContainEqual(["ltrim", AI_USAGE_REDIS_KEY, 0, AI_USAGE_MAX_RECORDS - 1])
-    expect(ops.some((o) => o[0] === "expire" && o[1] === AI_USAGE_REDIS_KEY)).toBe(true)
+    expect(ops).toContainEqual(["lpush", redisKey(AI_USAGE_REDIS_KEY)])
+    expect(ops).toContainEqual(["ltrim", redisKey(AI_USAGE_REDIS_KEY), 0, AI_USAGE_MAX_RECORDS - 1])
+    expect(ops.some((o) => o[0] === "expire" && o[1] === redisKey(AI_USAGE_REDIS_KEY))).toBe(true)
 
     const read = await mod.readAiUsageRecords()
     expect(read.backend).toBe("redis")

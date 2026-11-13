@@ -6,6 +6,7 @@ import { Redis } from "@upstash/redis"
 
 import { estimateCostUsd, resolvePriceTable, type PriceTable } from "@/lib/ai/model-pricing"
 import type { AiProvider, AiUsageRecord } from "@/lib/ai/usage-stats"
+import { redisKey } from "@/lib/redis-namespace"
 
 /**
  * Central MEASUREMENT of model calls (tokens, estimated cost, latency) — owner mandate: figures are measured, not promised.
@@ -252,9 +253,9 @@ export async function recordAiUsage(record: AiUsageRecord): Promise<void> {
     if (!redis) return
     try {
       const pipeline = redis.pipeline()
-      pipeline.lpush(AI_USAGE_REDIS_KEY, JSON.stringify(record))
-      pipeline.ltrim(AI_USAGE_REDIS_KEY, 0, AI_USAGE_MAX_RECORDS - 1)
-      pipeline.expire(AI_USAGE_REDIS_KEY, AI_USAGE_TTL_SEC)
+      pipeline.lpush(redisKey(AI_USAGE_REDIS_KEY), JSON.stringify(record))
+      pipeline.ltrim(redisKey(AI_USAGE_REDIS_KEY), 0, AI_USAGE_MAX_RECORDS - 1)
+      pipeline.expire(redisKey(AI_USAGE_REDIS_KEY), AI_USAGE_TTL_SEC)
       await withTimeout(pipeline.exec(), REDIS_TIMEOUT_MS)
     } catch (err) {
       console.log("[ai-usage]", { result: "redis_write_failed", error: classifyAiError(err) })
@@ -278,7 +279,7 @@ export async function readAiUsageRecords(limit = AI_USAGE_MAX_RECORDS): Promise<
   const redis = getRedis()
   if (!redis) return { records: fromMemory(), backend: "memory", degraded: false }
   try {
-    const rows = (await withTimeout(redis.lrange(AI_USAGE_REDIS_KEY, 0, limit - 1), REDIS_TIMEOUT_MS)) as unknown[]
+    const rows = (await withTimeout(redis.lrange(redisKey(AI_USAGE_REDIS_KEY), 0, limit - 1), REDIS_TIMEOUT_MS)) as unknown[]
     const records: AiUsageRecord[] = []
     for (const row of rows) {
       let value: unknown = row
