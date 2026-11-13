@@ -4,6 +4,8 @@ import { NextResponse } from "next/server"
 import { deleteSelfieBlob } from "@/lib/try-on/cloth2body-api.server"
 import { getTryOnJobStatus } from "@/lib/try-on/try-on-service.server"
 import { prisma } from "@/lib/prisma"
+import { mustEnforceProductionSecrets } from "@/lib/require-production-secret"
+import { verifyReplicateWebhook } from "@/lib/try-on/replicate-webhook-verify"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -23,9 +25,27 @@ export async function POST(req: Request) {
     scope.setTag("feature", "tryon")
     scope.setTag("model", "idm-vton")
 
+    // Defence in depth on top of "the body is not trusted": when a signing secret is configured, the Replicate
+    // (Standard Webhooks) signature over the RAW body is required. Without a secret the route keeps working (the body is
+    // never trusted anyway) but warns in production: set REPLICATE_WEBHOOK_SECRET (finalisation master doc, O-8).
+    const rawBody = await req.text()
+    const secret = process.env.REPLICATE_WEBHOOK_SECRET?.trim()
+    if (secret) {
+      const valid = verifyReplicateWebhook({
+        secret,
+        id: req.headers.get("webhook-id"),
+        timestamp: req.headers.get("webhook-timestamp"),
+        signature: req.headers.get("webhook-signature"),
+        body: rawBody,
+      })
+      if (!valid) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    } else if (mustEnforceProductionSecrets()) {
+      console.warn("[try-on]", { result: "webhook_unsigned_no_secret_configured" })
+    }
+
     let body: { id?: unknown }
     try {
-      body = (await req.json()) as { id?: unknown }
+      body = JSON.parse(rawBody) as { id?: unknown }
     } catch {
       return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
     }
