@@ -16,7 +16,7 @@ function unauthorizedHint(): NextResponse {
   return NextResponse.json(
     {
       error: "Unauthorized",
-      hint: "Pass Authorization: Bearer $CRON_SECRET, header x-cron-secret, ?secret=, or JSON secret field",
+      hint: "Pass Authorization: Bearer $CRON_SECRET, header x-cron-secret, or JSON secret field",
     },
     { status: 401 }
   )
@@ -27,7 +27,6 @@ function unauthorizedHint(): NextResponse {
  * Accepts (any one):
  * - Authorization: Bearer ${CRON_SECRET}
  * - x-cron-secret: ${CRON_SECRET}
- * - ?secret=${CRON_SECRET}
  * - JSON body `{ "secret": "..." }` (stripped by caller after auth)
  * - x-affisell-signature: HMAC-SHA256(rawBody, CRON_SECRET)
  */
@@ -44,10 +43,8 @@ export function authorizeAliExpressOps(
     return null
   }
 
-  const url = new URL(req.url)
-  const querySecret = url.searchParams.get("secret")?.trim() ?? ""
-  if (querySecret && safeEqual(querySecret, cronSecret)) return null
-
+  // A secret in the query string is deliberately NOT accepted: URLs end up in access logs, proxies, browser history and
+  // Referer headers, so the credential would leak with every request. Header / body / HMAC only (finalisation master doc, C3).
   const headerSecret = req.headers.get("x-cron-secret")?.trim() ?? ""
   if (headerSecret && safeEqual(headerSecret, cronSecret)) return null
 

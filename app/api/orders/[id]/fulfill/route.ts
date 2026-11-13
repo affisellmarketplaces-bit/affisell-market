@@ -18,7 +18,7 @@ type RouteCtx = { params: Promise<{ id: string }> }
 
 /**
  * POST /api/orders/[id]/fulfill
- * Auth: CRON_SECRET (Bearer / x-cron-secret / ?secret= / JSON secret / HMAC) or admin session.
+ * Auth: CRON_SECRET (Bearer / x-cron-secret / JSON secret / HMAC) or admin session.
  */
 export async function POST(req: Request, ctx: RouteCtx) {
   const { id: orderId } = await ctx.params
@@ -43,7 +43,7 @@ export async function POST(req: Request, ctx: RouteCtx) {
       return NextResponse.json(
         {
           error: "Unauthorized",
-          hint: "Pass Authorization: Bearer $CRON_SECRET, x-cron-secret, ?secret=, JSON secret, or admin session",
+          hint: "Pass Authorization: Bearer $CRON_SECRET, x-cron-secret, JSON secret, or admin session",
         },
         { status: 401 }
       )

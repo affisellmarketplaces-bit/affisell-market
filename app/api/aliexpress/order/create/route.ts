@@ -33,7 +33,7 @@ const bodySchema = z.object({
 
 /**
  * POST /api/aliexpress/order/create
- * Auth: Bearer / x-cron-secret / ?secret= / JSON `secret` / HMAC signature.
+ * Auth: Bearer / x-cron-secret / JSON `secret` / HMAC signature.
  */
 export async function POST(req: Request) {
   const rawBody = await req.text()
