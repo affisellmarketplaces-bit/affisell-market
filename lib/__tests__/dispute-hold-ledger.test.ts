@@ -9,6 +9,7 @@ import {
   hasOpenDisputeHold,
   openDisputeHold,
   readDisputeHold,
+  refreshDisputeHoldPreviousStatus,
 } from "@/lib/orders/dispute-hold.server"
 
 /** `processedWebhook` delegate backed by memory: just what the ledger uses. */
@@ -77,6 +78,25 @@ describe("dispute hold ledger", () => {
   it("never mistakes an ordinary webhook row of the same order for a dispute hold", async () => {
     const { db } = fakeDb([{ id: "evt_1", orderId: "ord_1", status: "dispute_open", error: null }])
     expect(await hasOpenDisputeHold("ord_1", db)).toBe(false)
+  })
+
+  it("refreshes the remembered status of an OPEN hold only (review #8); a terminal row and an empty status are untouched", async () => {
+    const { db } = fakeDb()
+    await openDisputeHold(db, { disputeId: "dp_1", orderId: "ord_1", previousStatus: "paid" })
+    await refreshDisputeHoldPreviousStatus(db, { disputeId: "dp_1", orderId: "ord_1", previousStatus: "shipped" })
+    expect((await readDisputeHold(db, "dp_1", "ord_1"))?.previousStatus).toBe("shipped")
+
+    await refreshDisputeHoldPreviousStatus(db, { disputeId: "dp_1", orderId: "ord_1", previousStatus: null })
+    expect((await readDisputeHold(db, "dp_1", "ord_1"))?.previousStatus).toBe("shipped")
+
+    await closeDisputeHold(db, { disputeId: "dp_1", orderId: "ord_1", outcome: "won" })
+    await refreshDisputeHoldPreviousStatus(db, { disputeId: "dp_1", orderId: "ord_1", previousStatus: "delivered" })
+    expect((await readDisputeHold(db, "dp_1", "ord_1"))?.status).toBe("dispute_won")
+    expect((await readDisputeHold(db, "dp_1", "ord_1"))?.previousStatus).toBe("shipped")
+
+    // no row at all: nothing is created
+    await refreshDisputeHoldPreviousStatus(db, { disputeId: "dp_9", orderId: "ord_9", previousStatus: "shipped" })
+    expect(await readDisputeHold(db, "dp_9", "ord_9")).toBeNull()
   })
 
   it("a database error propagates: the caller must not release money on 'could not read the ledger'", async () => {

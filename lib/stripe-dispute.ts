@@ -16,6 +16,7 @@ import {
   hasOpenDisputeHold,
   openDisputeHold,
   readDisputeHold,
+  refreshDisputeHoldPreviousStatus,
 } from "@/lib/orders/dispute-hold.server"
 import {
   isOrderClosedForPayout,
@@ -201,9 +202,14 @@ async function handleDisputeOpen(
     const hold = await openDisputeHold(tx, { disputeId: dispute.id, orderId: order.id, previousStatus })
     if (hold === "already_closed") continue
 
-    // Also re-asserted on an "already_open" hold: another writer may have overwritten "disputed" in the meantime.
+    // Also re-asserted on an "already_open" hold: another writer may have overwritten "disputed" in the meantime. If it did,
+    // that writer's status is the NEW previous status (an unshipped order the tracking webhook then shipped must come back
+    // as "shipped" after a win, not as the "paid" captured when the hold was created): remember it BEFORE overwriting it.
     const nextStatus = statusWhenDisputeOpens(order)
     if (nextStatus) {
+      if (hold === "already_open") {
+        await refreshDisputeHoldPreviousStatus(tx, { disputeId: dispute.id, orderId: order.id, previousStatus })
+      }
       await tx.order.update({ where: { id: order.id }, data: { status: nextStatus } })
     }
     if (hold === "created") newlyHeld.push(order.id)
@@ -249,6 +255,15 @@ async function handleDisputeReleased(
     const restored = stillHeldByAnotherDispute ? null : statusWhenDisputeReleased(order, hold?.previousStatus)
     if (restored) {
       await tx.order.update({ where: { id: order.id }, data: { status: restored } })
+    } else if (!stillHeldByAnotherDispute && order.status.trim().toLowerCase() !== "disputed") {
+      // The order is no longer "disputed" (another writer moved it on, or it was refunded): its current status is left alone.
+      logStripeWebhookInfo({
+        metric: "dispute_release_status_left",
+        disputeId: dispute.id,
+        orderId: order.id,
+        currentStatus: order.status,
+        ledgerPreviousStatus: hold?.previousStatus ?? null,
+      })
     }
     await closeDisputeHold(tx, { disputeId: dispute.id, orderId: order.id, outcome })
     if (hold) released.push(order.id)

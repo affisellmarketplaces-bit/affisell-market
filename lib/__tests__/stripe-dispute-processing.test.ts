@@ -295,6 +295,67 @@ describe("a dispute that is won or closed without a loss releases the hold", () 
     await processStripeDisputeEvent(event("charge.dispute.closed", dispute({ status: "won" })), tx)
     expect(state.orders.get("ord_1")?.status).toBe("shipped")
   })
+
+  // Review #8: an automated tracking writer ships an order while its dispute is open; the next open-type event (evidence
+  // submitted: `updated` / under_review) re-asserts "disputed" over that newer status.
+  describe("an order that progressed while the dispute was open", () => {
+    function shipDuringDispute() {
+      Object.assign(state.orders.get("ord_1")!, { status: "shipped", shippedAt: new Date("2026-06-03"), trackingNumber: "TRK9" })
+    }
+
+    it("comes back as SHIPPED after a win, not as the stale 'paid' captured when the hold was opened", async () => {
+      state.orders.set("ord_1", order("ord_1", { status: "paid", shippedAt: null, trackingNumber: null }))
+      await processStripeDisputeEvent(event("charge.dispute.created", dispute()), tx)
+      expect(JSON.parse(holdOf("dp_1", "ord_1")!.error!)).toEqual({ previousStatus: "paid" })
+
+      shipDuringDispute() // the AutoDS / supplier-order webhook writes "shipped" unconditionally
+      await processStripeDisputeEvent(event("charge.dispute.updated", dispute({ status: "under_review" })), tx)
+      expect(state.orders.get("ord_1")?.status).toBe("disputed") // re-asserted
+      expect(JSON.parse(holdOf("dp_1", "ord_1")!.error!)).toEqual({ previousStatus: "shipped" }) // ... but the newer status is remembered
+
+      await processStripeDisputeEvent(event("charge.dispute.closed", dispute({ status: "won" })), tx)
+      expect(state.orders.get("ord_1")?.status).toBe("shipped")
+      expect(holdOf("dp_1", "ord_1")?.status).toBe("dispute_won")
+    })
+
+    it("a ledger row written BEFORE this fix (stale 'paid', order since shipped) is still restored as shipped, from the order's own facts", async () => {
+      state.orders.set("ord_1", order("ord_1", { status: "disputed" })) // shippedAt + trackingNumber set by order()
+      ledger.rows.set("dispute:dp_1:ord_1", { id: "dispute:dp_1:ord_1", orderId: "ord_1", status: "dispute_open", error: JSON.stringify({ previousStatus: "paid" }) })
+      await processStripeDisputeEvent(event("charge.dispute.closed", dispute({ status: "won" })), tx)
+      expect(state.orders.get("ord_1")?.status).toBe("shipped")
+    })
+
+    it("an order moved on with no later open event is left exactly as it is, and the decision is traced", async () => {
+      state.orders.set("ord_1", order("ord_1", { status: "paid", shippedAt: null, trackingNumber: null }))
+      await processStripeDisputeEvent(event("charge.dispute.created", dispute()), tx)
+      shipDuringDispute()
+      const log = vi.spyOn(console, "log").mockImplementation(() => {})
+      try {
+        await processStripeDisputeEvent(event("charge.dispute.closed", dispute({ status: "won" })), tx)
+        expect(state.orders.get("ord_1")?.status).toBe("shipped")
+        expect(log.mock.calls.some((c) => String(c[0]).includes("dispute_release_status_left"))).toBe(true)
+      } finally {
+        log.mockRestore()
+      }
+    })
+
+    it.each(["disputed", "Disputed", "DISPUTED", " disputed "])(
+      "an order whose status is still %j (any casing) is restored; anything else is left alone",
+      async (status) => {
+        state.orders.set("ord_1", order("ord_1", { status: "paid", shippedAt: null, trackingNumber: null }))
+        await processStripeDisputeEvent(event("charge.dispute.created", dispute()), tx)
+        state.orders.get("ord_1")!.status = status
+        await processStripeDisputeEvent(event("charge.dispute.closed", dispute({ status: "won" })), tx)
+        expect(state.orders.get("ord_1")?.status).toBe("paid")
+      }
+    )
+
+    it("a status still 'disputed' keeps the previous status the ledger remembered (no needless refresh)", async () => {
+      await processStripeDisputeEvent(event("charge.dispute.created", dispute()), tx)
+      await processStripeDisputeEvent(event("charge.dispute.updated", dispute({ status: "under_review" })), tx)
+      expect(JSON.parse(holdOf("dp_1", "ord_1")!.error!)).toEqual({ previousStatus: "shipped" })
+    })
+  })
 })
 
 describe("a lost dispute — the refund mechanisms, never more than was paid", () => {

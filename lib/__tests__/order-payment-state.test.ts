@@ -144,6 +144,24 @@ describe("dispute order state", () => {
       expect(statusWhenDisputeReleased({ status: "disputed" }, "disputed")).toBe("paid")
     })
 
+    it("never restores a status BEHIND the order's own facts (review #8): a stale 'paid' on a tracked order is 'shipped'", () => {
+      expect(statusWhenDisputeReleased({ status: "disputed", shippedAt: new Date() }, "paid")).toBe("shipped")
+      expect(statusWhenDisputeReleased({ status: "disputed", trackingNumber: "TRK1" }, "preparing")).toBe("shipped")
+      expect(statusWhenDisputeReleased({ status: "disputed", supplierPreparingAt: new Date() }, "paid")).toBe("preparing")
+      // but a remembered status AHEAD of the facts wins
+      expect(statusWhenDisputeReleased({ status: "disputed", shippedAt: new Date() }, "delivered")).toBe("delivered")
+      expect(statusWhenDisputeReleased({ status: "disputed", shippedAt: new Date() }, "SHIPPED")).toBe("SHIPPED")
+    })
+
+    it("an unknown remembered status never beats the facts (an order that was disputed was paid, so 'paid' is the floor)", () => {
+      expect(statusWhenDisputeReleased({ status: "disputed", shippedAt: new Date() }, "weird_status")).toBe("shipped")
+      expect(statusWhenDisputeReleased({ status: "disputed" }, "weird_status")).toBe("paid")
+    })
+
+    it.each(["disputed", "Disputed", "DISPUTED", " disputed "])("an order whose status is %j (any casing) is restored", (status) => {
+      expect(statusWhenDisputeReleased({ status }, "preparing")).toBe("preparing")
+    })
+
     it("leaves an order alone when it is no longer disputed (another writer moved it, or it was refunded)", () => {
       expect(statusWhenDisputeReleased({ status: "shipped" }, "paid")).toBeNull()
       expect(statusWhenDisputeReleased({ status: "refunded" }, "shipped")).toBeNull()

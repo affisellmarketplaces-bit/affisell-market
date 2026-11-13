@@ -111,6 +111,22 @@ export async function openDisputeHold(
 }
 
 /**
+ * Replace the status remembered for an OPEN hold. Used when an open-type event finds the order moved on since the hold was
+ * created (an automated tracking writer set "shipped" while the dispute was open): the status written back as "disputed"
+ * is what a win must restore, not the older one captured at creation. A terminal row is never touched.
+ */
+export async function refreshDisputeHoldPreviousStatus(
+  db: HoldDb,
+  args: { disputeId: string; orderId: string; previousStatus: string | null }
+): Promise<void> {
+  if (!args.previousStatus) return
+  await db.processedWebhook.updateMany({
+    where: { id: disputeHoldId(args.disputeId, args.orderId), status: DISPUTE_HOLD_STATUS.open },
+    data: { error: encodeNote(args.previousStatus) },
+  })
+}
+
+/**
  * Close the hold with a terminal outcome. Creates the row when the closing event arrived before any opening one (Stripe
  * does not guarantee the order of events). A terminal hold is never rewritten.
  */

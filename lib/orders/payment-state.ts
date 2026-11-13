@@ -146,18 +146,33 @@ export function statusBeforeDispute(order: OrderStatusFacts): string {
   return "paid"
 }
 
+/** How far an order got, for the statuses written between paid and delivery (higher = later). */
+const PROGRESS_RANK: Record<string, number> = {
+  paid: 0,
+  preparing: 1,
+  fulfilling: 2,
+  shipped: 3,
+  delivered: 4,
+  completed: 5,
+  returned: 6,
+}
+
 /**
- * Status to write when a dispute is won / closed without a loss. Only an order still "disputed" is restored: if another
- * writer already moved it (e.g. shipped), or it was refunded meanwhile, the status is left alone (`null`).
- * `previousStatus` = the exact status the ledger recorded when the hold was opened (ignored when empty, closed or disputed).
+ * Status to write when a dispute is won / closed without a loss. Only an order still "disputed" (any casing) is restored: if
+ * another writer already moved it (e.g. shipped), or it was refunded meanwhile, the status is left alone (`null`).
+ * `previousStatus` = the status the ledger recorded (refreshed when an open event found the order moved on). It is never
+ * allowed to be BEHIND the order's own facts: a stale "paid" on an order that has a tracking number / shipping date comes
+ * back as "shipped" (the stale value would put it back in the supplier's to-ship list and out of the payout flow).
  */
 export function statusWhenDisputeReleased(order: OrderStatusFacts, previousStatus?: string | null): string | null {
   if (!isOrderDisputed(order)) return null
   const previous = norm(previousStatus)
+  const facts = statusBeforeDispute(order)
   if (previous !== "" && !isOrderClosedForPayout({ status: previous }) && previous.toLowerCase() !== DISPUTED_ORDER_STATUS) {
-    return previous
+    const previousRank = PROGRESS_RANK[previous.toLowerCase()] ?? -1
+    return (PROGRESS_RANK[facts] ?? -1) > previousRank ? facts : previous
   }
-  return statusBeforeDispute(order)
+  return facts
 }
 
 /**
