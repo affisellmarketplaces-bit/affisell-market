@@ -103,7 +103,7 @@ describe("redis namespace — inventory of Redis users", () => {
     expect(offenders).toEqual([])
     // and the inventory itself is not empty (the scan would otherwise pass vacuously)
     const constructors = files.reduce((n, f) => n + [...read(f).matchAll(/new (?:Queue|Worker)(?:<[^>]*>)?\(/g)].length, 0)
-    expect(constructors).toBe(9)
+    expect(constructors).toBeGreaterThanOrEqual(9) // 5 queues + 4 workers today; adding one (with its prefix) must not break this
   })
 
   it("every file that builds an Upstash / ioredis client and stores keys goes through redisKey()", () => {
