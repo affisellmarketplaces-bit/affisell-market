@@ -7,11 +7,7 @@ import {
 } from "@/lib/affiliate-listing-display"
 import { auth } from "@/auth"
 import { assertGhostStockForCheckout } from "@/lib/ghost/checkout-gate"
-import {
-  findCheckoutStockShortfall,
-  isCheckoutStockGuardEnabled,
-  type StockCheckLine,
-} from "@/lib/checkout-stock"
+import { evaluateCheckoutStockGate, type StockCheckLine } from "@/lib/checkout-stock"
 import { getSimilarInStockProducts } from "@/lib/ghost/similar-products"
 import { ensureGhostStockSchema } from "@/lib/ghost/ensure-ghost-schema"
 import {
@@ -293,28 +289,22 @@ function guardExplicitSupplierCommission(args: {
  * G1: refuse the checkout BEFORE the payment session exists when the stock can not serve the cart (409, nothing created).
  * Advisory — the authoritative, atomic decrement is done when the payment is processed — but it stops the common case
  * (sold-out product, stale cart) from ever taking a payment. Products whose stock is not managed (digital goods,
- * bookings, a variant that can not be resolved) are never refused. `CHECKOUT_STOCK_GUARD=off` disables it.
+ * bookings, an unresolvable or table-only variant) are never refused. `CHECKOUT_STOCK_MODE` decides: `warn` (default)
+ * only logs "would refuse", `enforce` refuses, `off` (or `CHECKOUT_STOCK_GUARD=off`) does nothing.
+ *
+ * The codes are Affisell's own (`OUT_OF_STOCK`, `INSUFFICIENT_STOCK`): `OUT_OF_STOCK_VERIFIED` is the supplier-probe
+ * refusal of the Ghost gate, whose modal says "we just checked with our supplier" — not true for our own counter.
  */
 async function checkoutStockGate(lines: StockCheckLine[]): Promise<NextResponse | null> {
-  if (!isCheckoutStockGuardEnabled()) return null
-  const shortfall = findCheckoutStockShortfall(lines)
+  const { refuse: shortfall } = evaluateCheckoutStockGate(lines)
   if (!shortfall) return null
-  console.log("[checkout]", {
-    result: "insufficient_stock",
-    productId: shortfall.productId,
-    scope: shortfall.scope,
-    available: shortfall.available,
-    requested: shortfall.requested,
-  })
   const soldOut = shortfall.available <= 0
-  // Same payload shape as the supplier-side gate, so the existing out-of-stock modal handles a sold-out product.
   const alternatives = soldOut
     ? await getSimilarInStockProducts(shortfall.productId, 3).catch(() => [])
     : []
   return NextResponse.json(
     {
-      error: soldOut ? "OUT_OF_STOCK_VERIFIED" : "INSUFFICIENT_STOCK",
-      message: soldOut ? "Product is out of stock" : `Only ${shortfall.available} left in stock`,
+      error: soldOut ? "OUT_OF_STOCK" : "INSUFFICIENT_STOCK",
       productName: shortfall.productName,
       availableQty: shortfall.available,
       requestedQty: shortfall.requested,
@@ -454,6 +444,7 @@ async function checkoutFromItems(
       listingKind: line.listing.product.listingKind,
       stock: line.listing.product.stock,
       variants: line.listing.product.variants,
+      hasVariants: line.listing.product.hasVariants,
       variantSignature: line.variantSignature,
       qty: line.qty,
     }))
@@ -658,6 +649,7 @@ export async function marketplaceCheckoutPOST(
       listingKind: product.listingKind,
       stock: product.stock,
       variants: product.variants,
+      hasVariants: product.hasVariants,
       variantSignature: normalizeCartVariantSignature(body.selectedColor, body.selectedSize),
       qty: checkoutQty,
     },

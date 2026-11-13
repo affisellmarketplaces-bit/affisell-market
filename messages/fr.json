@@ -857,6 +857,10 @@
     }
   },
   "cart": {
+    "stock": {
+      "outOfStock": "Ce produit est en rupture de stock.",
+      "insufficient": "Il n'en reste que {count} en stock."
+    },
     "title": "Panier",
     "loading": "Chargement du panier…",
     "empty": "Votre panier est vide",

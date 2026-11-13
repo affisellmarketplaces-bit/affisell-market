@@ -1,4 +1,5 @@
 import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing-display"
+import { evaluateCheckoutStockGate } from "@/lib/checkout-stock"
 import { ensureGhostStockSchema } from "@/lib/ghost/ensure-ghost-schema"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { isPrismaMissingColumnError } from "@/lib/prisma-missing-column"
@@ -22,6 +23,11 @@ const agentListingSelect = {
       id: true,
       name: true,
       images: true,
+      // Same stock gate as the marketplace checkout: the paid session reaches the stock decrement of the fulfilment.
+      stock: true,
+      variants: true,
+      hasVariants: true,
+      listingKind: true,
     },
   },
 } as const
@@ -62,7 +68,11 @@ async function loadAgentListing(productId: string) {
   }
 }
 
-export async function createCheckoutSession(productId: string, userId?: string) {
+export type AgentCheckoutResult =
+  | { checkoutUrl: string; listingId: string; productId: string; name: string; priceCents: number }
+  | { checkoutUrl: null; reason: "out_of_stock"; name: string }
+
+export async function createCheckoutSession(productId: string, userId?: string): Promise<AgentCheckoutResult | null> {
   const stripe = getStripeClient()
   const id = productId.trim()
   if (!id) return null
@@ -72,6 +82,22 @@ export async function createCheckoutSession(productId: string, userId?: string) 
   if (!listing) return null
 
   const name = listingDisplayTitle(listing.customTitle, listing.product.name)
+
+  // One unit, no variant selection: a product the stock can not serve never gets a payment session (enforce mode).
+  const stockGate = evaluateCheckoutStockGate([
+    {
+      productId: listing.productId,
+      productName: listing.product.name,
+      listingKind: listing.product.listingKind,
+      stock: listing.product.stock,
+      variants: listing.product.variants,
+      hasVariants: listing.product.hasVariants,
+      variantSignature: "",
+      qty: 1,
+    },
+  ])
+  if (stockGate.refuse) return { checkoutUrl: null, reason: "out_of_stock", name }
+
   const images = stripeProductImages(listingGalleryUrls(listing.customImages, listing.product.images)) ?? []
   const unitAmount = listing.sellingPriceCents
   const root = baseUrl()

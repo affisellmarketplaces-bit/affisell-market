@@ -1,6 +1,8 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useCallback, useRef, useState } from "react"
+import { toast } from "sonner"
 
 import {
   CartCheckoutIdentitySheet,
@@ -8,6 +10,7 @@ import {
 } from "@/components/cart/cart-checkout-identity-sheet"
 import { useCheckoutHandoff } from "@/hooks/use-checkout-handoff"
 import { fetchBuyerSessionSnapshot } from "@/lib/buyer-session-client"
+import { checkoutStockMessage } from "@/lib/checkout-stock-client"
 import {
   buyNowWithoutLogin,
   type BuyNowOutcome,
@@ -25,6 +28,7 @@ export function useBuyNowWithIdentity() {
   const [checkoutPayload, setCheckoutPayload] = useState<CheckoutIdentityPayload | null>(null)
   const pendingRef = useRef<PendingBuyNow | null>(null)
   const { overlay: checkoutHandoff, beginHandoff, endHandoff } = useCheckoutHandoff()
+  const tStock = useTranslations("cart.stock")
 
   const runBuyNow = useCallback(
     async (body: FastCheckoutBody, meta: BuyNowWithoutLoginMeta) => {
@@ -33,9 +37,13 @@ export function useBuyNowWithIdentity() {
       if (outcome !== "stripe") {
         endHandoff()
       }
+      // Every caller (PDP, grid cards, discover feed, Pulse) gets the same translated feedback — never a raw code, never silence.
+      if (typeof outcome === "object" && outcome.kind === "no_stock") {
+        toast.error(checkoutStockMessage(outcome.refusal, tStock))
+      }
       return outcome
     },
-    [beginHandoff, endHandoff]
+    [beginHandoff, endHandoff, tStock]
   )
 
   const buyNow = useCallback(

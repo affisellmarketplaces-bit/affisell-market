@@ -857,6 +857,10 @@
     }
   },
   "cart": {
+    "stock": {
+      "outOfStock": "Ten produkt jest niedostępny.",
+      "insufficient": "Zostało tylko {count} sztuk w magazynie."
+    },
     "title": "Koszyk",
     "loading": "Ładowanie koszyka…",
     "empty": "Twój koszyk jest pusty",

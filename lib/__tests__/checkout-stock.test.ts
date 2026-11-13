@@ -1,9 +1,11 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import {
+  evaluateCheckoutStockGate,
   findCheckoutStockShortfall,
   isCheckoutStockGuardEnabled,
   planStockMovement,
+  resolveCheckoutStockMode,
 } from "@/lib/checkout-stock"
 
 const rows = (...r: Array<{ name: string; stock: number } & Record<string, unknown>>) => ({
@@ -184,7 +186,7 @@ describe("findCheckoutStockShortfall (cart, before the payment session exists)",
 
   it("two lines of the same product are served from the SAME stock", () => {
     const shortfall = findCheckoutStockShortfall([line({ qty: 2 }), line({ qty: 2 })])
-    expect(shortfall).toMatchObject({ lineIndex: 1, available: 1, requested: 2 })
+    expect(shortfall).toMatchObject({ lineIndex: 1, available: 3, requested: 4 })
   })
 
   it("two variants of the same product consume their own rows", () => {
@@ -200,10 +202,132 @@ describe("findCheckoutStockShortfall (cart, before the payment session exists)",
         line({ variants, stock: 2, variantSignature: "c:Rouge|s:S" }),
         line({ variants, stock: 2, variantSignature: "c:Rouge|s:S" }),
       ])
-    ).toMatchObject({ lineIndex: 1, scope: "variant", available: 0 })
+    ).toMatchObject({ lineIndex: 1, scope: "variant", available: 1, requested: 2 })
   })
 
   it("never refuses unmanaged products", () => {
     expect(findCheckoutStockShortfall([line({ listingKind: "SOFTWARE", stock: 0, qty: 50 })])).toBeNull()
+  })
+})
+
+describe("CHECKOUT_STOCK_MODE (rollout switch, same pattern as LISTING_READINESS_MODE)", () => {
+  const env = (v: Record<string, string>) => v as Record<string, string | undefined>
+
+  it("defaults to WARN, reads off / warn / enforce case-insensitively, and ignores anything else", () => {
+    expect(resolveCheckoutStockMode(env({}))).toBe("warn")
+    expect(resolveCheckoutStockMode(env({ CHECKOUT_STOCK_MODE: "" }))).toBe("warn")
+    expect(resolveCheckoutStockMode(env({ CHECKOUT_STOCK_MODE: "warn" }))).toBe("warn")
+    expect(resolveCheckoutStockMode(env({ CHECKOUT_STOCK_MODE: " ENFORCE " }))).toBe("enforce")
+    expect(resolveCheckoutStockMode(env({ CHECKOUT_STOCK_MODE: "off" }))).toBe("off")
+    for (const junk of ["on", "true", "1", "strict", "enforced"]) {
+      expect(resolveCheckoutStockMode(env({ CHECKOUT_STOCK_MODE: junk }))).toBe("warn")
+    }
+  })
+
+  it("CHECKOUT_STOCK_GUARD=off stays the emergency valve and wins over every mode", () => {
+    for (const mode of ["warn", "enforce", ""]) {
+      for (const off of ["off", "0", "false", "OFF"]) {
+        expect(resolveCheckoutStockMode(env({ CHECKOUT_STOCK_MODE: mode, CHECKOUT_STOCK_GUARD: off }))).toBe("off")
+      }
+    }
+    expect(isCheckoutStockGuardEnabled(env({ CHECKOUT_STOCK_MODE: "off" }))).toBe(false)
+    expect(isCheckoutStockGuardEnabled(env({ CHECKOUT_STOCK_MODE: "enforce" }))).toBe(true)
+    expect(isCheckoutStockGuardEnabled(env({}))).toBe(true)
+  })
+})
+
+describe("planStockMovement — clamp (warn mode) and table-only variants", () => {
+  const base = { listingKind: "PHYSICAL", variants: null, variantSignature: "" }
+
+  it("clamp: a shortfall empties the stock instead of refusing, never below 0, and reports it", () => {
+    expect(planStockMovement({ ...base, stock: 2, qty: 5, onShortfall: "clamp" })).toEqual({
+      kind: "ok",
+      scope: "product",
+      available: 2,
+      nextStock: 0,
+      nextVariants: null,
+      shortfall: { available: 2, requested: 5 },
+    })
+    expect(planStockMovement({ ...base, stock: 0, qty: 1, onShortfall: "clamp" })).toMatchObject({ kind: "ok", nextStock: 0, shortfall: { available: 0, requested: 1 } })
+    // no shortfall: identical to the default plan
+    expect(planStockMovement({ ...base, stock: 5, qty: 2, onShortfall: "clamp" })).toEqual(planStockMovement({ ...base, stock: 5, qty: 2 }))
+  })
+
+  it("clamp on a variant row empties that row only, keeps the aggregate in step, never below 0", () => {
+    const variants = rows({ name: "Rouge / S", stock: 1 }, { name: "Rouge / M", stock: 4 })
+    const plan = planStockMovement({ listingKind: "PHYSICAL", stock: 5, variants, variantSignature: "c:Rouge|s:S", qty: 3, onShortfall: "clamp" })
+    if (plan.kind !== "ok") throw new Error("expected ok")
+    expect(plan).toMatchObject({ scope: "variant", nextStock: 4, shortfall: { available: 1, requested: 3 } })
+    expect((plan.nextVariants as { variantRows: Array<{ stock: number }> }).variantRows.map((r) => r.stock)).toEqual([0, 4])
+    // an aggregate that already drifted below the row never goes negative
+    const drifted = planStockMovement({ listingKind: "PHYSICAL", stock: 0, variants, variantSignature: "c:Rouge|s:S", qty: 3, onShortfall: "clamp" })
+    expect(drifted).toMatchObject({ kind: "ok", nextStock: 0 })
+  })
+
+  it("a product with variants but NO variantRows json (stock in the ProductVariant table) is unmanaged", () => {
+    expect(planStockMovement({ ...base, hasVariants: true, stock: 0, variantSignature: "c:Rouge|s:M", qty: 1 })).toEqual({
+      kind: "unmanaged",
+      reason: "variants_not_tracked",
+    })
+    // without the flag a plain product is managed as before
+    expect(planStockMovement({ ...base, hasVariants: false, stock: 0, qty: 1 }).kind).toBe("insufficient")
+    // with variantRows the json rows win even when the flag is set
+    expect(
+      planStockMovement({ listingKind: "PHYSICAL", hasVariants: true, stock: 2, variants: rows({ name: "Rouge / M", stock: 2 }), variantSignature: "c:Rouge|s:M", qty: 1 }).kind
+    ).toBe("ok")
+  })
+})
+
+describe("findCheckoutStockShortfall — what the shopper is told", () => {
+  const line = (over: Record<string, unknown> = {}) => ({
+    productId: "p1",
+    productName: "Lamp",
+    listingKind: "PHYSICAL",
+    stock: 5,
+    variants: null,
+    variantSignature: "",
+    qty: 1,
+    ...over,
+  })
+
+  it("reports the stock BEFORE the cart and the cart's total ask, not what earlier lines left over (5 in stock, lines 5 + 1)", () => {
+    expect(findCheckoutStockShortfall([line({ qty: 5 }), line({ qty: 1 })])).toMatchObject({
+      lineIndex: 1,
+      available: 5,
+      requested: 6,
+    })
+  })
+
+  it("a table-only variant product is never refused", () => {
+    expect(findCheckoutStockShortfall([line({ stock: 0, hasVariants: true, variantSignature: "c:Rouge" })])).toBeNull()
+  })
+})
+
+describe("evaluateCheckoutStockGate — the check before the payment session", () => {
+  const sold = [
+    { productId: "p1", productName: "Lamp", listingKind: "PHYSICAL", stock: 0, variants: null, variantSignature: "", qty: 1 },
+  ]
+  const env = (v: Record<string, string>) => v as Record<string, string | undefined>
+
+  it("warn (default): logs would-refuse and lets the buyer through; enforce refuses; off does nothing", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined)
+    const warn = evaluateCheckoutStockGate(sold, env({}))
+    expect(warn).toEqual({ mode: "warn", refuse: null })
+    expect(log.mock.calls.some((c) => (c[1] as { result?: string }).result === "would_refuse_insufficient_stock")).toBe(true)
+
+    const enforce = evaluateCheckoutStockGate(sold, env({ CHECKOUT_STOCK_MODE: "enforce" }))
+    expect(enforce.mode).toBe("enforce")
+    expect(enforce.refuse).toMatchObject({ productId: "p1", available: 0, requested: 1 })
+
+    log.mockClear()
+    expect(evaluateCheckoutStockGate(sold, env({ CHECKOUT_STOCK_MODE: "off" }))).toEqual({ mode: "off", refuse: null })
+    expect(evaluateCheckoutStockGate(sold, env({ CHECKOUT_STOCK_MODE: "enforce", CHECKOUT_STOCK_GUARD: "off" }))).toEqual({ mode: "off", refuse: null })
+    expect(log).not.toHaveBeenCalled()
+    log.mockRestore()
+  })
+
+  it("nothing to report when the cart can be served, whatever the mode", () => {
+    const ok = [{ ...sold[0]!, stock: 3 }]
+    expect(evaluateCheckoutStockGate(ok, env({ CHECKOUT_STOCK_MODE: "enforce" }))).toEqual({ mode: "enforce", refuse: null })
   })
 })

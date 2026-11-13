@@ -39,7 +39,13 @@ import { applyInstantDigitalDeliveryInTransaction } from "@/lib/digital-delivery
 import { sendDigitalAccessPassEmail } from "@/lib/emails/send-digital-access-pass"
 import { runBookingPassAfterPayment } from "@/lib/booking/run-after-payment"
 import { logStripeWebhookError } from "@/lib/stripe-webhook-observability"
-import { reserveStockInTransaction } from "@/lib/checkout-stock.server"
+import { resolveCheckoutStockMode } from "@/lib/checkout-stock"
+import { isOrderClosedForPayout } from "@/lib/orders/payment-state"
+import {
+  lockProductsForStockInTransaction,
+  reserveStockInTransaction,
+} from "@/lib/checkout-stock.server"
+import { parseListingKind } from "@/lib/supplier-commission"
 import {
   unallocatedLineKey,
   type UnallocatedLine,
@@ -196,6 +202,45 @@ function parseLinePaids(raw: string | undefined | null): number[] | null {
   }
 }
 
+/** Structured log of what the stock reservation did (`would_drop` = warn mode: the stock could not serve this paid line). */
+function logStockReservation(
+  productId: string,
+  qty: number,
+  stripeSessionId: string,
+  reservation: Awaited<ReturnType<typeof reserveStockInTransaction>>
+): void {
+  if (reservation.kind !== "reserved") return
+  console.log("[stock]", {
+    productId,
+    stripeSessionId,
+    result: reservation.shortfall ? "would_drop" : "reserved",
+    mode: reservation.shortfall ? "warn" : undefined,
+    scope: reservation.scope,
+    qty,
+    before: reservation.before,
+    after: reservation.after,
+    ...(reservation.shortfall ? { shortfall: reservation.shortfall } : {}),
+  })
+}
+
+/**
+ * Closes the pre-created (PENDING) order of a single-line checkout whose paid line could not be served (finalisation
+ * master doc D6 / G1): `CANCELLED` status AND settlement, which `isOrderClosedForPayout` reads, so that no later step can
+ * reopen it — `scheduleMarketplaceTransferAttempts` (webhook, success page, `payment_intent.succeeded`) refuses it, the
+ * reconcile crons only look at PENDING rows. The money is not lost: it is in the unallocated-line trace. Orders that hold
+ * a booking slot are left alone (the slot hold has its own release).
+ */
+async function closeUnallocatedPendingOrder(
+  db: Pick<Tx, "order">,
+  order: { id: string; bookingSlotId?: string | null } | null | undefined
+): Promise<void> {
+  if (!order || order.bookingSlotId) return
+  await db.order.updateMany({
+    where: { id: order.id, status: "PENDING" },
+    data: { status: "CANCELLED", paymentSettlementStatus: "CANCELLED" },
+  })
+}
+
 /** HT cents the buyer paid for line `index` according to the checkout metadata, `null` when it is not there. */
 function linePaidCentsFromMetadata(linePaids: number[] | null, lineCount: number, index: number): number | null {
   if (!linePaids || linePaids.length !== lineCount) return null
@@ -226,6 +271,8 @@ async function createPaidMarketplaceOrder(
      * (finalisation master doc D6 / G1) — the caller records it durably once the transaction is done.
      */
     onUnallocated?: (u: { reason: UnallocatedLineReason; detail?: Record<string, unknown> }) => void
+    /** When set, the confirmation e-mail is handed over instead of being sent inside the transaction. */
+    deferConfirmation?: (payload: OrderConfirmationEmailPayload) => void
   }
 ): Promise<string | null> {
   const { listing, qty } = args
@@ -407,16 +454,7 @@ async function createPaidMarketplaceOrder(
     })
     return null
   }
-  if (reservation.kind === "reserved") {
-    console.log("[stock]", {
-      productId: listing.productId,
-      result: "reserved",
-      scope: reservation.scope,
-      qty,
-      before: reservation.before,
-      after: reservation.after,
-    })
-  }
+  logStockReservation(listing.productId, qty, args.stripeSessionId, reservation)
 
   try {
     order = await tx.order.create({
@@ -637,25 +675,31 @@ async function createPaidMarketplaceOrder(
       ? ((args.shippingAddress as Record<string, unknown>).name as string).trim()
       : undefined
 
-  try {
-    await sendOrderConfirmationEmail({
-      orderId: order.id,
-      productName: listing.product.name,
-      productImageUrl,
-      quantity: qty,
-      total: (args.paidLineCents / 100).toFixed(2),
-      currency: args.checkoutCurrency,
-      customerEmail: args.customerEmail,
-      customerName: shippingName,
-      locale: args.buyerLocale,
-      affiliateId: listing.affiliateId,
-    })
-  } catch (e) {
-    logStripeWebhookError({
-      metric: "order_confirmation_email_failed",
-      orderId: order.id,
-      error: e instanceof Error ? e.message : String(e),
-    })
+  const confirmationPayload: OrderConfirmationEmailPayload = {
+    orderId: order.id,
+    productName: listing.product.name,
+    productImageUrl,
+    quantity: qty,
+    total: (args.paidLineCents / 100).toFixed(2),
+    currency: args.checkoutCurrency,
+    customerEmail: args.customerEmail,
+    customerName: shippingName,
+    locale: args.buyerLocale,
+    affiliateId: listing.affiliateId,
+  }
+  if (args.deferConfirmation) {
+    // The e-mail provider is network I/O: sent after the commit, never while this transaction holds the product lock.
+    args.deferConfirmation(confirmationPayload)
+  } else {
+    try {
+      await sendOrderConfirmationEmail(confirmationPayload)
+    } catch (e) {
+      logStripeWebhookError({
+        metric: "order_confirmation_email_failed",
+        orderId: order.id,
+        error: e instanceof Error ? e.message : String(e),
+      })
+    }
   }
 
   await runInstantDigitalDeliveryAfterPayment(tx, {
@@ -767,6 +811,7 @@ export async function fulfillMarketplaceStripeSession(
 
     const fulfilledOrderIds: string[] = []
     const unallocated: UnallocatedLine[] = []
+    const confirmations: OrderConfirmationEmailPayload[] = []
     let alreadyFulfilled = false
 
     // A line whose money was already sent back (unallocated-line refund) must never become an order afterwards.
@@ -793,11 +838,21 @@ export async function fulfillMarketplaceStripeSession(
 
       const earnUserId = await resolveBuyerUserIdForEarn(tx, buyerUserId, customerEmail)
 
-      await redeemBuyerRewardOrSkip(tx, {
-        userId: buyerUserId,
-        amountCents: appliedRewardCents,
-        stripeSessionId: sessionId,
-      })
+      // Lock the physical products of a multi-line cart in ascending id order BEFORE any line: two carts holding the same
+      // two products in opposite order would otherwise take the row locks in opposite order and deadlock.
+      if (lines.length > 1 && resolveCheckoutStockMode() !== "off") {
+        const listingIds = [...new Set(lines.map((l) => l.affiliateProductId).filter(Boolean))]
+        const lockRows = await tx.affiliateProduct.findMany({
+          where: { id: { in: listingIds } },
+          select: { productId: true, product: { select: { listingKind: true } } },
+        })
+        await lockProductsForStockInTransaction(
+          tx,
+          lockRows
+            .filter((r) => parseListingKind(r.product?.listingKind) === "PHYSICAL")
+            .map((r) => r.productId)
+        )
+      }
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i]!
@@ -906,6 +961,7 @@ export async function fulfillMarketplaceStripeSession(
               paidLineCents,
               detail: u.detail,
             }),
+          deferConfirmation: (payload) => confirmations.push(payload),
         })
 
         if (earnUserId && orderId) {
@@ -921,7 +977,36 @@ export async function fulfillMarketplaceStripeSession(
 
         if (orderId) fulfilledOrderIds.push(orderId)
       }
+
+      // Store credit is consumed only when at least one line became a sale. A checkout whose every line is unallocated
+      // keeps the buyer's credit (the cash part is the only thing to give back). The ledger key is per session, so a
+      // later replay that allocates a line redeems it then, once. A PARTIAL allocation redeems the whole credit: the
+      // share that belonged to an unallocated line is not given back automatically (it is in the trace, `appliedRewardCents`).
+      if (fulfilledOrderIds.length > 0) {
+        await redeemBuyerRewardOrSkip(tx, {
+          userId: buyerUserId,
+          amountCents: appliedRewardCents,
+          stripeSessionId: sessionId,
+        })
+      }
     }, MARKETPLACE_FULFILL_TX_OPTIONS)
+
+    // Confirmation e-mails of the orders just created: network I/O, sent after the commit and after the response.
+    if (confirmations.length > 0) {
+      await runAfterResponse("order_confirmation_emails_cart", async () => {
+        for (const payload of confirmations) {
+          try {
+            await sendOrderConfirmationEmail(payload)
+          } catch (e) {
+            logStripeWebhookError({
+              metric: "order_confirmation_email_failed",
+              orderId: payload.orderId,
+              error: e instanceof Error ? e.message : String(e),
+            })
+          }
+        }
+      })
+    }
 
     // D6: the lines paid without an order are traced, alerted and (only when enabled) refunded — AFTER the transaction
     // that created the other lines' orders, and after the response like every other side effect of this file.
@@ -996,6 +1081,18 @@ export async function fulfillMarketplaceStripeSession(
     return
   }
 
+  // A closed order (cancelled / refunded — in particular a pre-created order closed because its line was unallocated) is
+  // never fulfilled again: there is nothing to create, and `createPaidMarketplaceOrder` would collide with its session id.
+  // A cancelled BOOKING order is the one exception: it is re-opened when the payment arrives late (see below).
+  if (
+    existing &&
+    isOrderClosedForPayout(existing) &&
+    !(existing.status === "CANCELLED" && existing.bookingSlotId && !existing.bookingConfirmedAt)
+  ) {
+    console.log("[marketplace-fulfill]", { sessionId, orderId: existing.id, result: "skipped_order_closed" })
+    return
+  }
+
   // A line whose money was already sent back (unallocated-line refund) must never become an order afterwards.
   const singleLineKey = unallocatedLineKey(sessionId, 0)
   if ((await loadRefundedUnallocatedLineKeys([singleLineKey])).has(singleLineKey)) {
@@ -1024,6 +1121,7 @@ export async function fulfillMarketplaceStripeSession(
       affiliateProductId,
       result: "skipped_no_listing",
     })
+    await closeUnallocatedPendingOrder(prisma, existing)
     await runAfterResponse("unallocated_lines_single", () =>
       recordUnallocatedLines({
         session,
@@ -1162,27 +1260,26 @@ export async function fulfillMarketplaceStripeSession(
           paidLineCents,
           detail: { scope: reservation.scope, available: reservation.available, requested: reservation.requested },
         })
+        // The pre-created order is not a sale: close it NOW, in the same transaction. Left PENDING, the settlement that
+        // runs right after this fulfilment (`scheduleMarketplaceTransferAttempts`) would promote it to "paid" and schedule
+        // payouts, and the reconcile cron would revisit it forever.
+        await closeUnallocatedPendingOrder(tx, dup)
         return
       }
-      if (reservation.kind === "reserved") {
-        console.log("[stock]", {
-          productId: listing.productId,
-          result: "reserved",
-          scope: reservation.scope,
-          qty,
-          before: reservation.before,
-          after: reservation.after,
-        })
-      }
+      logStockReservation(listing.productId, qty, sessionId, reservation)
     }
 
     const earnUserId = await resolveBuyerUserIdForEarn(tx, buyerUserId, customerEmail)
 
-    await redeemBuyerRewardOrSkip(tx, {
-      userId: buyerUserId,
-      amountCents: appliedRewardCents,
-      stripeSessionId: sessionId,
-    })
+    // Store credit is taken only once the line is a sale: the pre-created order is reserved above; a fresh order
+    // redeems after `createPaidMarketplaceOrder` succeeded (a line without an order must not consume the credit).
+    if (dup && (dup.status === "PENDING" || recoverCancelledBooking)) {
+      await redeemBuyerRewardOrSkip(tx, {
+        userId: buyerUserId,
+        amountCents: appliedRewardCents,
+        stripeSessionId: sessionId,
+      })
+    }
 
     if (dup && (dup.status === "PENDING" || recoverCancelledBooking)) {
       const pendingOrder = dup
@@ -1480,7 +1577,18 @@ export async function fulfillMarketplaceStripeSession(
           paidLineCents,
           detail: u.detail,
         }),
+      deferConfirmation: (payload) => {
+        deferred.confirmation = payload
+      },
     })
+
+    if (orderId) {
+      await redeemBuyerRewardOrSkip(tx, {
+        userId: buyerUserId,
+        amountCents: appliedRewardCents,
+        stripeSessionId: sessionId,
+      })
+    }
 
     if (earnUserId && orderId) {
       const earn = buyerEarnCentsForLinePaid(paidLineCents, listing)
