@@ -29,5 +29,5 @@
 
 ## Si un push « s'interrompt » dans l'éditeur
 
-Ce n'est presque jamais le commit : c'est `git pull --rebase` qui attend le réseau ou une invite. Vérifier l'état réel avec `npm run git:sync` (ou `git status`), relancer `npm run push:safe` seul.
+Ce n'est presque jamais le commit : c'est `git pull --rebase` qui attend le réseau ou une invite. Vérifier l'état réel avec `npm run git:sync` (ou `git status`), relancer `npm run push:safe -- <branche>` seul.
 Le hook facultatif (une fois par clone) : `git config core.hooksPath .githooks` puis `chmod +x .githooks/pre-push`.

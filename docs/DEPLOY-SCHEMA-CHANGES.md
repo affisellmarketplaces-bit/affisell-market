@@ -124,7 +124,7 @@ production (endpoint `ep-misty-sea-al1ne07p`). Mettez-la **dans la commande**, p
    DATABASE_URL='<URL_PROD>' npm run schema:migrate -- --expect-endpoint ep-misty-sea-al1ne07p --confirm-production
    ```
    Attendu : `[schema] ✓ migrated and verified` et `Event-spine schema: PRESENT`.
-4. **Pousser le code** (deux commandes séparées) : `git commit …` puis `npm run push:safe`. Le build Vercel exécutera
+4. **Pousser le code** (deux commandes séparées) : `git commit …` puis `npm run push:safe -- <branche>` (la branche **nommée** : sans argument le script vise `main`, donc la production ; ici c'est bien `main` qui déploie, après décision du fondateur). Le build Vercel exécutera
    `schema-deploy.mjs verify` (lecture seule) : il constatera que le schéma est à jour et que le catalogue est complet, puis
    construira l'application.
 5. **Contrôler** : le journal Vercel (`[schema] ✓ verified`), l'absence de `P2022` / `column … does not exist`, puis
