@@ -128,6 +128,66 @@ describe("redis namespace — inventory of Redis users", () => {
     for (const [file, pattern] of literal) expect(read(join(root, file)), file).not.toMatch(pattern)
   })
 
+  it("each Redis user keeps AT LEAST as many namespaced key constructions as today (a ratchet: dropping one `redisKey(` fails here)", () => {
+    // file → number of `redisKey(` calls in its code (`shieldLogsRedisKey(` for the logs route) (comments excluded). Raise it when you add a key; never lower it.
+    const pinned: Array<[string, number]> = [
+      ["lib/security/humanoid-shield.ts", 3], // ban key, logs key, ban-key glob prefix
+      ["app/api/security/logs/route.ts", 3], // lrange / lpush / ltrim on the shield logs list
+      ["lib/api-rate-limit.ts", 1],
+      ["lib/fulfillment/rate-limit.ts", 1],
+      ["lib/growth/winners-quota.server.ts", 1],
+      ["lib/radar/oauth-state.ts", 1],
+      ["lib/radar/connectors/tiktok-shop.ts", 1],
+      ["lib/radar/scan-rate-limit.ts", 1],
+      ["lib/radar/cron-lock.ts", 2], // acquire, release
+      ["lib/taxonomy-classify.server.ts", 2], // cache key, hourly cap key
+      ["lib/title-translation.server.ts", 3], // title key, cooldown, daily counter
+      ["lib/ai/market-intelligence-cache.ts", 1],
+      ["lib/ai/product-analysis-cache.ts", 1],
+      ["lib/ai/smart-margin-analysis-cache.ts", 1],
+      ["lib/ai/product-embeddings.ts", 1],
+      ["lib/try-on/rate-limit.ts", 2], // per-minute and per-day limiters
+      ["lib/try-on/cloth2body-api.server.ts", 1], // per-IP limiter
+    ]
+    const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "")
+    for (const [file, minimum] of pinned) {
+      // the logs route builds its key through `shieldLogsRedisKey()` (defined in humanoid-shield, itself pinned above); everywhere else it is `redisKey(`
+      const call = file === "app/api/security/logs/route.ts" ? /\bshieldLogsRedisKey\(/g : /\bredisKey\(/g
+      expect([...strip(read(join(root, file))).matchAll(call)].length, file).toBeGreaterThanOrEqual(minimum)
+    }
+  })
+
+  it("the exported cache-key builders really carry the namespace (behaviour, not text)", async () => {
+    const { vi } = await import("vitest")
+    try {
+      vi.stubEnv("VERCEL_ENV", "preview")
+      vi.resetModules()
+      const title = await import("@/lib/title-translation.server")
+      const embed = await import("@/lib/ai/product-embeddings")
+      const market = await import("@/lib/ai/market-intelligence-cache")
+      const analysis = await import("@/lib/ai/product-analysis-cache")
+      const margin = await import("@/lib/ai/smart-margin-analysis-cache")
+      const taxo = await import("@/lib/taxonomy-classify.server")
+      const keys = [
+        title.titleCacheKey("a title", "fr"),
+        embed.productImageEmbedKey("url:x"),
+        market.marketRedisKey("p"),
+        analysis.productAnalysisCacheKey("fp"),
+        margin.marginAnalysisCacheKey("p", "u", 10),
+        taxo.classificationCacheKey("a title", null),
+      ]
+      for (const key of keys) expect(key.startsWith("preview:"), key).toBe(true)
+
+      vi.stubEnv("VERCEL_ENV", "production")
+      vi.resetModules()
+      const prodTitle = await import("@/lib/title-translation.server")
+      expect(prodTitle.titleCacheKey("a title", "fr").startsWith("affisell:title-tr:v1:fr:")).toBe(true) // unchanged in production
+    } finally {
+      vi.unstubAllEnvs()
+      vi.resetModules()
+    }
+  })
+
   it("the production-key-preserving property: the unprefixed production key of each user is what the code builds when VERCEL_ENV=production", () => {
     const env = { VERCEL_ENV: "production", NODE_ENV: "production" }
     // The key shapes below are the ones production Redis holds today; the namespace must not touch them.

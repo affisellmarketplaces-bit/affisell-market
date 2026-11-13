@@ -261,7 +261,7 @@ describe("runStartupEnvValidation", () => {
 describe("wiring", () => {
   it("instrumentation.ts runs the validation at server start, inside a try/catch, before the Prisma warm connect", () => {
     const source = readFileSync(join(process.cwd(), "instrumentation.ts"), "utf8")
-    const validation = source.indexOf("runStartupEnvValidation")
+    const validation = source.indexOf("runStartupEnvValidation()") // the CALL, not the import
     expect(validation).toBeGreaterThan(0)
     expect(validation).toBeLessThan(source.indexOf("connectPrismaWithRetry"))
     expect(source.slice(source.lastIndexOf("try {", validation), validation)).toContain("try {")
