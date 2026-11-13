@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
 
 import { hasOpenDisputeHold } from "@/lib/orders/dispute-hold.server"
-import { isOrderPayoutHeldForDispute } from "@/lib/orders/payment-state"
+import { isOrderClosedForPayout, isOrderPayoutHeldForDispute } from "@/lib/orders/payment-state"
 import { prisma } from "@/lib/prisma"
 import {
   recordStripePayoutSettlement,
@@ -22,6 +22,7 @@ const orderSelect = {
   affiliateId: true,
   productId: true,
   status: true,
+  paymentSettlementStatus: true,
   payoutStatus: true,
   supplierPayoutCents: true,
   affiliatePayoutCents: true,
@@ -96,6 +97,13 @@ export async function triggerLightningPayout(orderId: string): Promise<Lightning
 
     if (order.payoutStatus !== "PENDING") {
       return { success: false, reason: `payout_status_${order.payoutStatus.toLowerCase()}` }
+    }
+
+    // A refunded / cancelled order pays nothing — a lost dispute ends as REFUNDED / REFUND_PENDING_CLAWBACK, and its
+    // `payoutStatus` is still PENDING, so the AfterShip "delivered" webhook would otherwise pay it out of the lost charge
+    // (finalisation review #8). Same rule as `process-transfers`.
+    if (isOrderClosedForPayout(order)) {
+      return { success: false, reason: "order_closed" }
     }
 
     // A dispute (chargeback) is open on the charge: nothing leaves until it is decided (finalisation master doc, D7).
