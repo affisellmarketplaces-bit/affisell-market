@@ -88,3 +88,11 @@ medusa-backend/.medusa-dev.lock
 
 # Mobile-audit sign-in sessions (equivalent to a logged-in browser) — never commit
 .audit-sessions/
+
+# DEC-11 / RSK-90: environment files WITHOUT a leading dot (`prisma/env.local` was tracked for months because every
+# pattern above starts with ".env"), and the audit package that scripts/build-audit-package.mjs regenerates.
+env.local
+env.*.local
+/Affisell_Audit_Package/
+/Affisell_Audit_Package.zip
+/.audit-staging/

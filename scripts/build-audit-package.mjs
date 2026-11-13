@@ -77,13 +77,28 @@ const SKIP_DIR_NAMES = new Set([
   "medusa-backend",
 ])
 
+// DEC-11 / RSK-90: `prisma/env.local` (no leading dot) used to slip through because every rule below only looked at names
+// starting with ".env". The dot-less names are listed explicitly, and `isSensitiveStagedName` re-checks the staging
+// folder before anything is zipped, so a future filter mistake fails the build instead of shipping a secret.
 const SKIP_FILE_NAMES = new Set([
   ".env",
   ".env.local",
   ".env.production",
   ".env.development",
+  "env.local",
+  "env.production",
+  "env.development",
+  "env.test",
   ".DS_Store",
 ])
+
+/** True for a file name that must never be part of the audit package (pure, unit-tested). */
+function isSensitiveStagedName(base) {
+  if (base === "env.local" || base === "env.production" || base === "env.development" || base === "env.test") return true
+  if (base.startsWith(".env") && base !== ".env.example") return true
+  if (base.startsWith(".dev.vars")) return true
+  return /\.(pem|key|db|sqlite3?|csv)$/i.test(base)
+}
 
 function walkFiles(dir, acc = []) {
   if (!existsSync(dir)) return acc
@@ -201,6 +216,13 @@ function copyToStage() {
         const base = parts[parts.length - 1]
         if (SKIP_FILE_NAMES.has(base)) return false
         if (base.startsWith(".env") && base !== ".env.example") return false
+        if (base.startsWith(".dev.vars")) return false
+        if (base.endsWith(".pem")) return false
+        if (base.endsWith(".key")) return false
+        if (base.endsWith(".db")) return false
+        if (base.endsWith(".sqlite")) return false
+        if (base.endsWith(".sqlite3")) return false
+        if (base.endsWith(".csv")) return false
         return true
       },
     })
@@ -1225,6 +1247,19 @@ function createZip() {
   execSync(`unzip -t "${ZIP_OUT}"`, { cwd: ROOT, stdio: "inherit" })
 }
 
+/** Last line of defence: nothing sensitive may be in the staging folder when the zip is created. */
+function assertNoSensitiveFiles() {
+  const hits = walkFiles(STAGE)
+    .map((f) => relative(STAGE, f))
+    .filter((rel) => isSensitiveStagedName(rel.split("/").pop() ?? ""))
+  if (hits.length > 0) {
+    console.error("[audit-package] SENSITIVE FILE NAMES IN STAGING (refusing to zip):")
+    for (const h of hits) console.error(`  ${h}`)
+    process.exit(1)
+  }
+  console.log("[audit-package] sensitive-name guard: OK (0 hits)")
+}
+
 function main() {
   console.log("[audit-package] collecting stats…")
   const pkg = readPkg()
@@ -1268,6 +1303,7 @@ function main() {
     process.exit(1)
   }
   console.log("[audit-package] secret scan: OK (0 hits)")
+  assertNoSensitiveFiles()
 
   console.log("[audit-package] creating zip…")
   createZip()
