@@ -112,4 +112,47 @@ describe("readProxySessionToken", () => {
     expect(console.warn).toHaveBeenCalledTimes(1)
     expect(console.warn).toHaveBeenCalledWith("[proxy]", expect.objectContaining({ result: "session_token_unreadable" }))
   })
+
+  describe("a missing secret is a LOUD error, not a silent anonymous visitor (finalisation master J3)", () => {
+    beforeEach(() => {
+      vi.spyOn(console, "error").mockImplementation(() => undefined)
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date("2026-11-13T10:00:00Z"))
+    })
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it("logs an ERROR naming the variables (never a value) when a request arrives with no secret", async () => {
+      const { readProxySessionToken } = await load()
+
+      await expect(readProxySessionToken(request(), null, false)).resolves.toBeNull()
+
+      expect(console.error).toHaveBeenCalledTimes(1)
+      const [tag, fields] = vi.mocked(console.error).mock.calls[0] as [string, { result: string; variables: string[]; note: string }]
+      expect(tag).toBe("[proxy]")
+      expect(fields.result).toBe("auth_secret_missing_on_request")
+      expect(fields.variables).toEqual(["AUTH_SECRET", "NEXTAUTH_SECRET"])
+    })
+
+    it("repeats it for as long as requests keep coming — at most once a minute per instance", async () => {
+      const { readProxySessionToken } = await load()
+      const call = () => readProxySessionToken(request(), null, false)
+
+      await call()
+      await call()
+      await call()
+      expect(console.error).toHaveBeenCalledTimes(1)
+
+      vi.advanceTimersByTime(61_000)
+      await call()
+      expect(console.error).toHaveBeenCalledTimes(2)
+    })
+
+    it("does not log when a secret is set", async () => {
+      const { readProxySessionToken } = await load()
+      await readProxySessionToken(request(), SECRET, false)
+      expect(console.error).not.toHaveBeenCalled()
+    })
+  })
 })
