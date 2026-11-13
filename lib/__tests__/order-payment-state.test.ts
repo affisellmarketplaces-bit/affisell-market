@@ -4,6 +4,8 @@ import {
   isOrderClosedForPayout,
   isOrderDisputed,
   isOrderPayoutHeldForDispute,
+  orderAwaitsCheckoutFulfilment,
+  orderIsFulfilledForCheckout,
   settlementAfterSchedule,
   settlementAfterTransfersSucceeded,
   statusAfterPaymentConfirmed,
@@ -47,7 +49,7 @@ describe("statusAfterPaymentConfirmed", () => {
     }
   )
 
-  it.each(["preparing", "shipped", "SHIPPED", "delivered", "completed", "returned", "disputed"])(
+  it.each(["preparing", "fulfilling", "shipped", "SHIPPED", "delivered", "completed", "returned", "disputed"])(
     "keeps %s (already past paid)",
     (status) => {
       expect(statusAfterPaymentConfirmed(status)).toBe(status)
@@ -146,5 +148,53 @@ describe("dispute order state", () => {
       expect(statusWhenDisputeReleased({ status: "shipped" }, "paid")).toBeNull()
       expect(statusWhenDisputeReleased({ status: "refunded" }, "shipped")).toBeNull()
     })
+  })
+})
+
+// Finalisation review #31 / #9: every status the code base writes on `Order.status`, against each rule.
+// Writers found by a search over the Order writers: PENDING (checkout pre-create), paid, preparing, fulfilling (AliExpress
+// paths), shipped, refunded, CANCELLED / cancelled, disputed (D7); delivered / completed / returned are only read.
+describe("every Order.status the code base writes, against each rule", () => {
+  const PRE_PAYMENT = ["PENDING", "pending", "", "failed", "expired", "awaiting_manual_payment", "pending_payment"]
+  const AT_OR_PAST_PAID = ["paid", "preparing", "fulfilling", "shipped", "delivered", "completed", "returned", "disputed"]
+  const CLOSED = ["refunded", "cancelled", "CANCELLED", "canceled", "REFUNDED"]
+
+  it.each(PRE_PAYMENT)("pre-payment %s: becomes paid, awaits the checkout fulfilment, is not fulfilled", (status) => {
+    expect(statusAfterPaymentConfirmed(status)).toBe("paid")
+    expect(orderAwaitsCheckoutFulfilment({ status })).toBe(true)
+    expect(orderIsFulfilledForCheckout({ status })).toBe(false)
+  })
+
+  it.each(AT_OR_PAST_PAID)("%s: kept by a payment confirmation, never re-enters the checkout fulfilment", (status) => {
+    expect(statusAfterPaymentConfirmed(status)).toBe(status)
+    // "paid" is the value written, so any casing of it comes out as "paid"; the later statuses keep their own casing
+    expect(statusAfterPaymentConfirmed(status.toUpperCase())).toBe(status === "paid" ? "paid" : status.toUpperCase())
+    expect(orderAwaitsCheckoutFulfilment({ status })).toBe(false)
+    expect(orderAwaitsCheckoutFulfilment({ status: status.toUpperCase() })).toBe(false)
+    expect(orderIsFulfilledForCheckout({ status })).toBe(true)
+  })
+
+  it.each(CLOSED)("closed %s: never reopened as paid, never re-enters the checkout fulfilment, is not 'fulfilled'", (status) => {
+    expect(statusAfterPaymentConfirmed(status)).toBe(status)
+    expect(orderAwaitsCheckoutFulfilment({ status })).toBe(false)
+    expect(orderIsFulfilledForCheckout({ status })).toBe(false)
+    expect(isOrderClosedForPayout({ status })).toBe(true)
+  })
+
+  it("fulfilling is what the AliExpress purchase paths write: a re-run of the scheduler can no longer send it back to paid", () => {
+    expect(statusAfterPaymentConfirmed("fulfilling")).toBe("fulfilling")
+    expect(statusAfterPaymentConfirmed(" fulfilling ")).toBe("fulfilling")
+  })
+
+  it("a pre-payment order already closed by its settlement does not await the fulfilment either", () => {
+    expect(orderAwaitsCheckoutFulfilment({ status: "PENDING", paymentSettlementStatus: "CANCELLED" })).toBe(false)
+    expect(orderAwaitsCheckoutFulfilment({ status: "PENDING", paymentSettlementStatus: "PENDING" })).toBe(true)
+  })
+
+  it("a cancelled booking never confirmed still awaits the fulfilment (a late payment recovers it); a confirmed one does not", () => {
+    expect(orderAwaitsCheckoutFulfilment({ status: "CANCELLED", bookingSlotId: "slot_1", bookingConfirmedAt: null })).toBe(true)
+    expect(orderAwaitsCheckoutFulfilment({ status: "cancelled", bookingSlotId: "slot_1", bookingConfirmedAt: null })).toBe(true)
+    expect(orderAwaitsCheckoutFulfilment({ status: "CANCELLED", bookingSlotId: "slot_1", bookingConfirmedAt: new Date() })).toBe(false)
+    expect(orderAwaitsCheckoutFulfilment({ status: "CANCELLED", bookingSlotId: null, bookingConfirmedAt: null })).toBe(false)
   })
 })

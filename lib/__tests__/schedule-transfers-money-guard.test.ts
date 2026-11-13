@@ -168,12 +168,29 @@ describe("scheduleMarketplaceTransferAttempts — money guard", () => {
     expect(state.order).toEqual(before)
   })
 
-  it.each(["preparing", "shipped", "delivered"])("keeps an order that is already %s (never moves it back to paid)", async (status) => {
-    const { db, state } = fakeDb({ ...healthyOrder, status, paymentSettlementStatus: "PAID" })
-    const res = await scheduleMarketplaceTransferAttempts(session, "ord_1", db as never)
-    expect(res.scheduled).toBe(true)
-    expect(state.order.status).toBe(status)
-    expect(state.order.paymentSettlementStatus).toBe("PAID")
+  // "fulfilling" (finalisation review #31) is what the AliExpress purchase paths write after placing the supplier order.
+  it.each(["preparing", "fulfilling", "shipped", "delivered", "completed", "returned", "disputed"])(
+    "keeps an order that is already %s (never moves it back to paid)",
+    async (status) => {
+      const { db, state } = fakeDb({ ...healthyOrder, status, paymentSettlementStatus: "PAID" })
+      const res = await scheduleMarketplaceTransferAttempts(session, "ord_1", db as never)
+      expect(res.scheduled).toBe(true)
+      expect(state.order.status).toBe(status)
+      expect(state.order.paymentSettlementStatus).toBe("PAID")
+    }
+  )
+
+  it("does not write the status when it does not change: a concurrent writer's value is not overwritten by a stale read", async () => {
+    // The order is read as "paid"; the purchase path then sets "fulfilling" before the scheduler writes its update.
+    const { db, state } = fakeDb({ ...healthyOrder, status: "paid", paymentSettlementStatus: "PAID" })
+    const originalFindUnique = db.order.findUnique
+    db.order.findUnique = async () => {
+      const row = await originalFindUnique()
+      state.order = { ...state.order, status: "fulfilling" }
+      return row
+    }
+    await scheduleMarketplaceTransferAttempts(session, "ord_1", db as never)
+    expect(state.order.status).toBe("fulfilling")
   })
 
   it("moves a pending order to paid and keeps PARTIALLY_REFUNDED / SETTLED untouched", async () => {
