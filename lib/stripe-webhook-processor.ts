@@ -13,6 +13,7 @@ import {
   processMarketplaceCommissionForPaymentIntent,
 } from "@/lib/stripe-marketplace-commission-split"
 import { scheduleMarketplaceTransferAttempts } from "@/lib/transfers/schedule-from-checkout"
+import { isDuplicateWebhookRecord, isReplayableWebhookRecord } from "@/lib/stripe-webhook-replay"
 import { isInsufficientCapabilitiesError } from "@/lib/stripe-connect-transfer"
 import {
   captureStripeWebhookException,
@@ -366,7 +367,7 @@ export async function processStripeWebhookEvent(event: Stripe.Event): Promise<We
   }
 
   const existing = await prisma.processedWebhook.findUnique({ where: { id: event.id } })
-  if (existing) {
+  if (existing && isDuplicateWebhookRecord(existing)) {
     logStripeWebhookInfo({
       level: "info",
       metric: "webhook_duplicate",
@@ -378,8 +379,11 @@ export async function processStripeWebhookEvent(event: Stripe.Event): Promise<We
       orderId: existing.orderId,
       duplicate: true,
       handled: true,
-      status: existing.status,
+      status: existing.status as WebhookStatus,
     }
+  }
+  if (isReplayableWebhookRecord(existing)) {
+    logStripeWebhookInfo({ metric: "webhook_replay_failed_event", eventId: event.id, type: event.type })
   }
 
   let orderId: string | null = null
@@ -390,10 +394,23 @@ export async function processStripeWebhookEvent(event: Stripe.Event): Promise<We
     await prisma.$transaction(
       async (tx) => {
         const race = await tx.processedWebhook.findUnique({ where: { id: event.id } })
-        if (race) {
+        if (race && isDuplicateWebhookRecord(race)) {
           status = race.status as WebhookStatus
           orderId = race.orderId
           return
+        }
+        if (race && isReplayableWebhookRecord(race)) {
+          // Replay of a previously failed event: claim the row (row lock) so two concurrent Stripe retries can not
+          // both process it. The loser sees a non-"failed" status after the winner commits and treats it as a duplicate.
+          const claimed = await tx.processedWebhook.updateMany({
+            where: { id: event.id, status: "failed" },
+            data: { status: "processing", error: null },
+          })
+          if (claimed.count !== 1) {
+            status = "skipped"
+            orderId = race.orderId
+            return
+          }
         }
 
         try {
@@ -406,13 +423,11 @@ export async function processStripeWebhookEvent(event: Stripe.Event): Promise<We
           error = err instanceof Error ? err.message : String(err)
           await handleStripeTransferError(err, orderId, tx)
         } finally {
-          await tx.processedWebhook.create({
-            data: {
-              id: event.id,
-              orderId,
-              status,
-              error,
-            },
+          // upsert: creates the row on first processing, updates the claimed "failed" row on a replay.
+          await tx.processedWebhook.upsert({
+            where: { id: event.id },
+            create: { id: event.id, orderId, status, error },
+            update: { orderId, status, error },
           })
         }
       },
@@ -429,13 +444,15 @@ export async function processStripeWebhookEvent(event: Stripe.Event): Promise<We
     }
     captureStripeWebhookException(err, { eventId: event.id, type: event.type })
     try {
-      await prisma.processedWebhook.create({
-        data: {
+      await prisma.processedWebhook.upsert({
+        where: { id: event.id },
+        create: {
           id: event.id,
           orderId,
           status: "failed",
           error: err instanceof Error ? err.message : String(err),
         },
+        update: { orderId, status: "failed", error: err instanceof Error ? err.message : String(err) },
       })
     } catch {
       // race: already recorded
