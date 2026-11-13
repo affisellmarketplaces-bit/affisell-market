@@ -146,8 +146,9 @@ describe("validateEnvironment — preview, development, test", () => {
     expect(report.ok).toBe(false)
   })
 
-  it("an AFFISELL_REDIS_NAMESPACE pinned to production outside production is flagged (and ignored by the code)", () => {
+  it("an AFFISELL_REDIS_NAMESPACE pinned to production on a Vercel Preview is flagged (and ignored by the code); on a worker host it is legitimate", () => {
     expect(ids(preview({ AFFISELL_REDIS_NAMESPACE: "production" }))).toContain("redis_namespace_production_outside_production")
+    expect(ids({ NODE_ENV: "development", AFFISELL_REDIS_NAMESPACE: "production" })).not.toContain("redis_namespace_production_outside_production")
   })
 
   it("development and test require nothing", () => {

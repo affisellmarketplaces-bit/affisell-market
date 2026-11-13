@@ -18,14 +18,15 @@
  * to consume the queues that Vercel Production produces. A worker that must serve Preview's queues sets
  * `AFFISELL_REDIS_NAMESPACE=preview` (docs/ENVIRONMENTS.md).
  *
- * `AFFISELL_REDIS_NAMESPACE` can only move a runtime AWAY from production: on a Vercel Preview / Development deployment the value
- * "production" is ignored (it would re-create the shared namespace this module exists to prevent). Any other value must be 1–24
+ * `AFFISELL_REDIS_NAMESPACE` is the explicit override: on a Vercel Preview / Development deployment the value "production" is ignored
+ * (it would re-create the shared namespace this module exists to prevent); OFF Vercel it is honoured (a worker host that does not set
+ * NODE_ENV=production would otherwise listen on `dev:bull` while Vercel Production enqueues on `bull`). Any other value must be 1–24
  * characters of `a-z 0-9 -`, otherwise it is ignored and the environment decides.
  *
  * Pure: no `server-only`, no Redis client, no I/O. Redis pattern arguments (`KEYS affisell:shield:ban:*`) are prefixed the same way,
  * which is why the namespace alphabet contains no glob character.
  */
-import { resolveRuntimeEnvironment } from "@/lib/runtime-environment"
+import { readVercelEnvironment, resolveRuntimeEnvironment } from "@/lib/runtime-environment"
 
 type EnvBag = Record<string, string | undefined>
 
@@ -45,8 +46,10 @@ export function redisNamespace(env: EnvBag = process.env): string {
   const explicit = env[REDIS_NAMESPACE_VARIABLE]?.trim().toLowerCase()
   if (!explicit) return derived
   if (PRODUCTION_ALIASES.has(explicit)) {
-    // Only a runtime that is already production (or the self-hosted production worker) may be pinned to the production namespace.
-    return runtime === "production" ? "" : derived
+    // A Vercel Preview / Development deployment is NEVER pulled into the production namespace. Off Vercel the value is a deliberate
+    // decision of whoever starts the process (a worker host that does not set NODE_ENV=production must be able to join production's queues).
+    const vercel = readVercelEnvironment(env)
+    return vercel === "preview" || vercel === "development" ? derived : ""
   }
   return NAMESPACE_RE.test(explicit) ? explicit : derived
 }

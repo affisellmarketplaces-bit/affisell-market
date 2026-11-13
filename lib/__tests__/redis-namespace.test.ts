@@ -44,11 +44,19 @@ describe("redis namespace — Preview and Production never share a key", () => {
       expect(redisKey("k", { VERCEL_ENV: "preview", AFFISELL_REDIS_NAMESPACE: "qa-1" })).toBe("qa-1:k")
     })
 
-    it("can never pull a Preview / Development / test runtime INTO the production namespace", () => {
+    it("can never pull a Vercel Preview / Development deployment INTO the production namespace", () => {
       expect(redisKey("k", { VERCEL_ENV: "preview", AFFISELL_REDIS_NAMESPACE: "production" })).toBe("preview:k")
       expect(redisKey("k", { VERCEL_ENV: "preview", AFFISELL_REDIS_NAMESPACE: "prod" })).toBe("preview:k")
-      expect(redisKey("k", { NODE_ENV: "development", AFFISELL_REDIS_NAMESPACE: "production" })).toBe("dev:k")
+      expect(redisKey("k", { VERCEL_ENV: "development", AFFISELL_REDIS_NAMESPACE: "production" })).toBe("dev:k")
       expect(bullmqPrefix({ VERCEL_ENV: "preview", AFFISELL_REDIS_NAMESPACE: " Production " })).toBe("preview:bull")
+    })
+
+    it("off Vercel it is honoured: a worker host without NODE_ENV=production can still join production's queues (otherwise it listens on dev:bull and jobs starve)", () => {
+      expect(bullmqPrefix({ AFFISELL_REDIS_NAMESPACE: "production" })).toBe("bull")
+      expect(bullmqPrefix({ NODE_ENV: "development", AFFISELL_REDIS_NAMESPACE: "production" })).toBe("bull")
+      expect(redisKey("k", { AFFISELL_REDIS_NAMESPACE: "prod" })).toBe("k")
+      // and without the override such a host would NOT have joined them — the transition trap documented in docs/ENVIRONMENTS.md
+      expect(bullmqPrefix({})).toBe("dev:bull")
     })
 
     it("production may name itself 'production' explicitly (still the empty namespace)", () => {

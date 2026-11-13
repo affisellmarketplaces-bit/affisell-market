@@ -16,7 +16,7 @@
  */
 import { extractHostFromDatabaseUrl, resolveNeonBranchFromHost } from "@/lib/db-env"
 import { classifyStripeKey } from "@/lib/stripe-key-guard"
-import { resolveRuntimeEnvironment, type RuntimeEnvironment } from "@/lib/runtime-environment"
+import { readVercelEnvironment, resolveRuntimeEnvironment, type RuntimeEnvironment } from "@/lib/runtime-environment"
 
 type EnvBag = Record<string, string | undefined>
 
@@ -315,12 +315,14 @@ export function validateEnvironment(env: EnvBag = process.env): EnvReport {
   }
 
   const namespace = value(env, "AFFISELL_REDIS_NAMESPACE").toLowerCase()
-  if ((namespace === "production" || namespace === "prod") && environment !== "production") {
+  const vercelEnvironment = readVercelEnvironment(env)
+  if ((namespace === "production" || namespace === "prod") && (vercelEnvironment === "preview" || vercelEnvironment === "development")) {
     findings.push({
       id: "redis_namespace_production_outside_production",
       severity: "warning",
       variables: ["AFFISELL_REDIS_NAMESPACE"],
-      message: "AFFISELL_REDIS_NAMESPACE names production outside production; it is ignored (the environment's own namespace is used).",
+      message:
+        "AFFISELL_REDIS_NAMESPACE names production on a Vercel Preview / Development deployment; it is ignored (the environment's own namespace is used).",
     })
   }
 
