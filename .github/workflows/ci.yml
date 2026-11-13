@@ -27,3 +27,68 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+  # Finalisation master doc, H1: the money-critical rules (closed orders never paid out, webhook replay, payout conservation,
+  # the build-phase write guard) are proven here against a REAL PostgreSQL, not only against mocks. The database is an
+  # ephemeral service container: it exists for this job only and holds nothing.
+  #
+  # The schema is generated from the Prisma datamodel, NOT replayed from prisma/migrations: that history does not replay on an
+  # empty database (the 160th migration fails — master doc J2). Consequence: the tests that need the CHECK constraints of the
+  # event-spine migration or `_prisma_migrations` (events-db constraint cases, schema-deploy-db) are not run here.
+  money-db-tests:
+    name: Money-path tests on a real PostgreSQL
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: affisell_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d affisell_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGDATABASE: affisell_test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Create the schema from the Prisma datamodel
+        env:
+          # prisma.config.ts insists on a DATABASE_URL even for an offline diff. This one never connects, and it must stay
+          # different from the test database (the DB-test guard refuses a test URL that matches DATABASE_URL).
+          DATABASE_URL: postgresql://ci@placeholder.invalid:5432/placeholder
+        run: |
+          npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script 2>/dev/null \
+            | grep -v '^\[ensure-direct-url\]' > "$RUNNER_TEMP/schema.sql"
+          test "$(grep -c '^CREATE TABLE' "$RUNNER_TEMP/schema.sql")" -gt 100
+          psql -v ON_ERROR_STOP=1 -q -f "$RUNNER_TEMP/schema.sql"
+
+      - name: Point the DB tests at the throwaway database
+        run: printf 'DATABASE_URL_TEST=postgresql://postgres@127.0.0.1:5432/affisell_test\n' > .env.test.local
+
+      - name: Money-path tests (real database, Stripe mocked)
+        env:
+          RUN_DB_TESTS: "1"
+        run: >-
+          npx vitest run
+          lib/__tests__/money-state-db.test.ts
+          lib/__tests__/money-e2e-db.test.ts
+          lib/__tests__/build-write-guard-db.test.ts
