@@ -117,6 +117,26 @@ describe("runProcessTransfersJob — last-line money guard", () => {
     expect(transfersCreate).toHaveBeenCalledTimes(1)
   })
 
+  // Finalisation master doc, D1/D3: a refunded or cancelled order must never release a transfer.
+  it.each([
+    ["status refunded", { status: "refunded" }],
+    ["status cancelled", { status: "CANCELLED" }],
+    ["settlement REFUNDED with a stale paid status", { status: "paid", paymentSettlementStatus: "REFUNDED" }],
+    ["settlement REFUND_PENDING_CLAWBACK", { status: "paid", paymentSettlementStatus: "REFUND_PENDING_CLAWBACK" }],
+  ])("never calls Stripe for a closed order (%s) and supersedes the pending attempt", async (_label, orderOver) => {
+    const { supersedePendingTransferAttempt } = await import("@/lib/payout-settlement")
+    const supersede = supersedePendingTransferAttempt as unknown as ReturnType<typeof vi.fn>
+    supersede.mockClear()
+    await runOnce(attempt({}, orderOver))
+    expect(transfersCreate).not.toHaveBeenCalled()
+    expect(supersede).toHaveBeenCalledWith(expect.anything(), "ord_1", "AFFILIATE", "ORDER_CLOSED")
+  })
+
+  it("keeps paying a normal paid order after the closed-order guard was added", async () => {
+    await runOnce(attempt({}, { status: "paid", paymentSettlementStatus: "PAID" }))
+    expect(transfersCreate).toHaveBeenCalledTimes(1)
+  })
+
   it("only monitors when explicitly opted out", async () => {
     process.env.MONEY_GUARD_MODE = "monitor"
     state.others = [{ amountCents: 9500 }]

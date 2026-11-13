@@ -18,6 +18,11 @@ import {
   PAYOUT_EXCEEDS_LINE_ERROR,
   platformSubsidyCents,
 } from "@/lib/money/split-guard"
+import {
+  isOrderClosedForPayout,
+  settlementAfterSchedule,
+  statusAfterPaymentConfirmed,
+} from "@/lib/orders/payment-state"
 import { computeSplitStatusFromAttempts } from "@/lib/transfers/compute-split-status"
 import { alertSplitTransferFailed } from "@/lib/transfers/split-slack-alert"
 import { logStripeWebhookError, logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
@@ -80,6 +85,19 @@ export async function scheduleMarketplaceTransferAttempts(
     },
   })
   if (!order) return { orderId, scheduled: false, reason: "order_not_found" }
+
+  // A refunded / cancelled order must never get payouts (nor be reopened as "paid"): the money went back to the buyer.
+  // Webhook retries and the reconcile cron can reach this point after a refund (finalisation master doc, D1).
+  if (isOrderClosedForPayout(order)) {
+    logStripeWebhookInfo({
+      metric: "split_skipped_order_closed",
+      orderId,
+      sessionId: session.id,
+      orderStatus: order.status,
+      settlementStatus: order.paymentSettlementStatus,
+    })
+    return { orderId, scheduled: false, reason: "order_closed" }
+  }
 
   const existingSuccess = order.transferAttempts.filter((a) => a.status === "SUCCESS")
   if (existingSuccess.length >= 2) {
@@ -266,7 +284,8 @@ export async function scheduleMarketplaceTransferAttempts(
       stripeSessionId: order.stripeSessionId || session.id,
       stripeChargeId: chargeId ?? order.stripeChargeId,
       splitStatus: "PENDING",
-      status: "paid",
+      // Only an order that is not yet past "paid" becomes "paid": never move shipped / preparing back.
+      status: statusAfterPaymentConfirmed(order.status),
       paidAt: order.paidAt ?? paidAnchor,
       shipDeadlineAt:
         order.shipDeadlineAt ??
@@ -275,7 +294,7 @@ export async function scheduleMarketplaceTransferAttempts(
           order.product?.shippingCountry ?? null,
           extractShippingCountryIso2FromAddress(order.shippingAddress)
         ),
-      paymentSettlementStatus: "PAID",
+      paymentSettlementStatus: settlementAfterSchedule(order.paymentSettlementStatus),
       affiliateStripeAccountId: affiliateDestination,
     },
   })

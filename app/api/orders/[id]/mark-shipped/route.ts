@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { auth } from "@/auth"
+import { isOrderClosedForPayout } from "@/lib/orders/payment-state"
 import { prisma } from "@/lib/prisma"
 import { triggerLightningPayout } from "@/lib/stripe-lightning"
 import {
@@ -24,6 +25,8 @@ const markShippedBodySchema = z.object({
 })
 
 type RouteParams = { params: Promise<{ id: string }> }
+
+const MARK_SHIPPED_ALLOWED_STATUSES = new Set(["paid", "preparing", "shipped"])
 
 /**
  * Supplier marks an order shipped and optionally triggers Lightning Payout.
@@ -58,6 +61,7 @@ export async function POST(req: Request, { params }: RouteParams) {
       id: true,
       supplierId: true,
       status: true,
+      paymentSettlementStatus: true,
       shippingAddress: true,
       trackingNumber: true,
       trackingLockedAt: true,
@@ -71,6 +75,16 @@ export async function POST(req: Request, { params }: RouteParams) {
 
   if (session.user.id !== order.supplier.id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
+  // A refunded / cancelled order can not be shipped (and shipping it would release the supplier payout): same rule as
+  // the supplier PATCH route, which only accepts paid / preparing. `shipped` stays allowed so a tracking number can still
+  // be corrected before the tracking lock (assertSupplierMayRegisterTracking below). Finalisation master doc, D3.
+  if (isOrderClosedForPayout(order) || !MARK_SHIPPED_ALLOWED_STATUSES.has(order.status.trim().toLowerCase())) {
+    return NextResponse.json(
+      { error: "Order is not awaiting shipment", code: "order_not_shippable" },
+      { status: 409 }
+    )
   }
 
   const trackingNumber = parsed.data.trackingNumber.trim()
