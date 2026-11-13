@@ -1,6 +1,28 @@
 name: Scheduled crons
 
 # Vercel Hobby crons are once/day — run ops jobs via GitHub Actions.
+#
+# HOW A CRON FAILS (finalisation master doc, J1)
+#   * Money crons run in "strict" mode (scripts/ci/run-crons.sh): any curl error or non-2xx makes the step EXIT 1, the job
+#     and the run go red, and the `if: failure()` step (scripts/ci/notify-cron-failure.sh) writes an `::error` annotation
+#     and asks the app to post to Slack / Discord (POST /api/cron/notify-failure, authorised with CRON_SECRET; the app owns
+#     SLACK_WEBHOOK_URL / DISCORD_WEBHOOK_URL). If the app is unreachable the annotation and the red run remain.
+#   * Everything else runs in "lenient" mode: a failure is a `::warning` annotation + a line in the step summary (never a
+#     silent `echo WARN`), the other routes still run.
+#   * lib/__tests__/cron-schedule-coverage.test.ts fails when a route under app/api/cron/* is neither scheduled here (or in
+#     vercel.json) nor listed there as deliberately unscheduled WITH the reason, and when a money cron is not strict.
+#
+# WHY THE FORMER ORPHANS ARE (NOT) SCHEDULED
+#   scheduled   auctions-tick          every 30 min  DB-only, idempotent: it is exactly what every /auctions visit already runs.
+#   scheduled   merchant-kyc-reminder  daily         one-shot per supplier (timestamp), 40 per run. First run mails the backlog.
+#   scheduled   sync-stock             every 6 h     REST blind-dropship suppliers only (no-op without any): the only stock refresh.
+#   scheduled   sync-shopify           every 6 h     only integrations whose owner enabled auto-sync (no-op without any).
+#   NOT         review-invites         deprecated alias of review-reminder, which is scheduled: both would double the work.
+#   NOT         sync-auto-buy-tracking auto-buy is opt-in/off (AUTO_BUY_ENABLED) and its tracking source returns null (G4).
+#   NOT         update-supplier-scores recomputes what refresh-supplier-trust-scores / refresh-supplier-delivery-stats already
+#                                      do, and inserts an un-deduplicated notification per low-score supplier at every run.
+#   NOT         verify-suppliers       grants AND revokes the "verified supplier" badge of every supplier: owner decision.
+#   NOT         notify-failure         called by the failure steps below, never scheduled.
 on:
   schedule:
     - cron: "*/30 * * * *"
@@ -9,6 +31,7 @@ on:
     - cron: "0 9 * * 1"
     - cron: "0 */6 * * *"
     - cron: "17 */3 * * *"
+    - cron: "23 */6 * * *"
   workflow_dispatch:
 
 jobs:
@@ -28,58 +51,72 @@ jobs:
           BASE="${VERCEL_APP_URL%/}"
           curl -fsS -H "Authorization: Bearer ${CRON_SECRET}" "${BASE}/api/cron/sync-market-intelligence"
 
+  # Money crons: payouts, clawbacks, checkout reconciliation, ship-SLA auto-cancel (refunds). STRICT: a failure is red + alerted.
+  money-crons:
+    if: github.event.schedule == '*/30 * * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/ci
+      - name: Trigger money cron routes (strict)
+        id: crons
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
+        run: |
+          bash scripts/ci/run-crons.sh strict \
+            "/api/cron/process-order-payouts" \
+            "/api/cron/retry-pending-clawback" \
+            "/api/cron/reconcile-checkout-orders" \
+            "/api/cron/enforce-supplier-ship-sla"
+      - name: Alert on failure
+        if: failure()
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
+          FAILED_ROUTES: ${{ steps.crons.outputs.failed_routes }}
+        run: bash scripts/ci/notify-cron-failure.sh
+
   frequent:
     if: github.event.schedule == '*/30 * * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/ci
       - name: Trigger frequent cron routes
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
         run: |
-          if [ -z "$CRON_SECRET" ] || [ -z "$VERCEL_APP_URL" ]; then
-            echo "Set GitHub secrets CRON_SECRET and VERCEL_APP_URL"
-            exit 1
-          fi
-          BASE="${VERCEL_APP_URL%/}"
-          AUTH="Authorization: Bearer ${CRON_SECRET}"
-          for path in \
+          bash scripts/ci/run-crons.sh lenient \
             "/api/cron/sentinel-scan" \
-            "/api/cron/enforce-supplier-ship-sla" \
             "/api/cron/sync-supplier-orders" \
             "/api/cron/expire-sponsor-campaigns" \
-            "/api/cron/process-order-payouts" \
             "/api/cron/release-booking-holds" \
             "/api/cron/booking-reminders" \
             "/api/cron/booking-waitlist-notify" \
             "/api/cron/agent-mission-reminders" \
             "/api/cron/expansion-ops" \
-            "/api/cron/reconcile-checkout-orders" \
             "/api/cron/sync-autods" \
             "/api/cron/sync-store-vercel-domains" \
-            "/api/cron/retry-pending-clawback" \
-            "/api/cron/abandoned-cart"
-          do
-            echo "→ GET ${path}"
-            curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"
-          done
+            "/api/cron/abandoned-cart" \
+            "/api/cron/auctions-tick"
 
   daily:
     if: github.event.schedule == '0 9 * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/ci
       - name: Trigger daily cron routes
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
         run: |
-          if [ -z "$CRON_SECRET" ] || [ -z "$VERCEL_APP_URL" ]; then
-            echo "Set GitHub secrets CRON_SECRET and VERCEL_APP_URL"
-            exit 1
-          fi
-          BASE="${VERCEL_APP_URL%/}"
-          AUTH="Authorization: Bearer ${CRON_SECRET}"
-          for path in \
+          bash scripts/ci/run-crons.sh lenient \
             "/api/cron/migrate" \
             "/api/cron/review-early-nudge" \
             "/api/cron/review-reminder" \
@@ -87,60 +124,98 @@ jobs:
             "/api/cron/custom-domain-nudge" \
             "/api/cron/wishlist-price-alerts" \
             "/api/cron/adjust-variant-pricing" \
-            "/api/cron/stripe-health" \
             "/api/cron/booking-supplier-digest" \
             "/api/cron/expansion-digest" \
             "/api/cron/refresh-supplier-trust-scores" \
             "/api/cron/refresh-supplier-delivery-stats" \
             "/api/cron/brand-pulse-nudge" \
             "/api/cron/onboarding" \
-            "/api/cron/ing-manual-nudge"
-          do
-            echo "→ GET ${path}"
-            curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"
-          done
+            "/api/cron/ing-manual-nudge" \
+            "/api/cron/merchant-kyc-reminder"
 
+  # Payout reconciliation + the "paid order without a handled webhook" monitor (a monitor that fails silently is blind): STRICT.
   reconcile-payouts:
     if: github.event.schedule == '0 3 * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger payout reconciliation cron
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/ci
+      - name: Trigger payout reconciliation crons (strict)
+        id: crons
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
         run: |
-          if [ -z "$CRON_SECRET" ] || [ -z "$VERCEL_APP_URL" ]; then
-            echo "Set GitHub secrets CRON_SECRET and VERCEL_APP_URL"
-            exit 1
-          fi
-          BASE="${VERCEL_APP_URL%/}"
-          AUTH="Authorization: Bearer ${CRON_SECRET}"
-          echo "→ GET /api/cron/reconcile"
-          curl -fsS -H "$AUTH" "${BASE}/api/cron/reconcile"
+          bash scripts/ci/run-crons.sh strict \
+            "/api/cron/reconcile" \
+            "/api/cron/stripe-health"
+      - name: Alert on failure
+        if: failure()
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
+          FAILED_ROUTES: ${{ steps.crons.outputs.failed_routes }}
+        run: bash scripts/ci/notify-cron-failure.sh
+
+  # Stripe webhook events that FAILED and that Stripe no longer retries (older than its 3-day window): re-read and replayed.
+  # Every 6 h, off-peak minute. Red (and alerted) while an event is still failing after its replay.
+  replay-failed-webhooks:
+    if: github.event.schedule == '23 */6 * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/ci
+      - name: Replay failed Stripe webhook events (strict)
+        id: crons
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
+          CRON_CURL_MAX_TIME: "120"
+        run: bash scripts/ci/run-crons.sh strict "/api/cron/replay-failed-stripe-webhooks"
+      - name: Alert on failure
+        if: failure()
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
+          FAILED_ROUTES: ${{ steps.crons.outputs.failed_routes }}
+        run: bash scripts/ci/notify-cron-failure.sh
+
+  # Catalogue syncs that were never scheduled (see the header). Best-effort: a failure is a warning.
+  catalog-sync:
+    if: github.event.schedule == '0 */6 * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/ci
+      - name: Trigger catalogue sync routes
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
+        run: |
+          bash scripts/ci/run-crons.sh lenient \
+            "/api/cron/sync-stock" \
+            "/api/cron/sync-shopify"
+
   weekly:
     if: github.event.schedule == '0 9 * * 1' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/ci
       - name: Trigger weekly Brand OS cron routes
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
         run: |
-          if [ -z "$CRON_SECRET" ] || [ -z "$VERCEL_APP_URL" ]; then
-            echo "Set GitHub secrets CRON_SECRET and VERCEL_APP_URL"
-            exit 1
-          fi
-          BASE="${VERCEL_APP_URL%/}"
-          AUTH="Authorization: Bearer ${CRON_SECRET}"
-          for path in \
+          bash scripts/ci/run-crons.sh lenient \
             "/api/cron/brand-pulse-weekly-digest" \
             "/api/cron/brand-preset-ab-winner" \
             "/api/cron/brand-pulse-stagnation-ab" \
             "/api/cron/supplier-report"
-          do
-            echo "→ GET ${path}"
-            curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"
-          done
 
   # AliExpress refresh tokens live only 48h and every refresh renews them. This is the PRIMARY trigger
   # (every 3h, off-peak minute); the Vercel cron is a redundant second one. The endpoint is idempotent
