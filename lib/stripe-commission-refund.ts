@@ -17,6 +17,7 @@ import {
   markRefundPendingClawback,
 } from "@/lib/payout-reversal-safety"
 import { reverseConnectTransfersForRefund } from "@/lib/stripe-transfer-reversal"
+import { isUnallocatedLineRefund } from "@/lib/unallocated-line"
 import { getStripeClient } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
 
@@ -57,6 +58,28 @@ export async function handleStripeChargeRefundedWithCommission(
       ? charge
       : await stripe.charges.retrieve(charge.id, { expand: ["refunds.data"] })
 
+  // Refunds of a paid line that never became an order (D6 / G1, `lib/unallocated-line.server.ts`) belong to NO order of
+  // this charge. Counting them against a sibling order would make a lone remaining order look "fully refunded":
+  // payouts clawed back and the buyer told his valid order was cancelled. They are excluded from the attribution
+  // and from the charge's refunded total used for the full-refund test.
+  const allRefunds = fullCharge.refunds?.data ?? []
+  const orderRefunds = allRefunds.filter((refund) => !isUnallocatedLineRefund(refund))
+  const unallocatedRefundedCents = allRefunds
+    .filter((refund) => isUnallocatedLineRefund(refund))
+    .reduce((sum, refund) => sum + (refund.amount ?? 0), 0)
+  if (unallocatedRefundedCents > 0 && orderRefunds.length === 0) {
+    console.log("[commission_refund]", {
+      metric: "unallocated_line_refund_ignored",
+      chargeId: fullCharge.id,
+      amountCents: unallocatedRefundedCents,
+    })
+    return { processedOrderIds: [] }
+  }
+  const chargeAmountRefundedCents =
+    unallocatedRefundedCents > 0
+      ? Math.max(0, (fullCharge.amount_refunded ?? 0) - unallocatedRefundedCents)
+      : fullCharge.amount_refunded
+
   const orderIds = await orderIdsForStripeCharge(fullCharge)
   const processedOrderIds: string[] = []
 
@@ -80,7 +103,7 @@ export async function handleStripeChargeRefundedWithCommission(
     let refundedSum = 0
     let lastStripeRefundId: string | null = null
 
-    for (const refund of fullCharge.refunds?.data ?? []) {
+    for (const refund of orderRefunds) {
       const attribution = attributeRefundToOrder({
         chargeOrderCount: orderIds.length,
         orderId: order.id,
@@ -109,7 +132,7 @@ export async function handleStripeChargeRefundedWithCommission(
       const amountCents = refund.amount ?? 0
       const isFullRefund = isOrderFullyRefunded({
         chargeOrderCount: orderIds.length,
-        chargeAmountRefundedCents: fullCharge.amount_refunded,
+        chargeAmountRefundedCents,
         orderRefundedSumCents: refundedSum + amountCents,
         orderChargedTotalCents: totalCents,
       })
@@ -168,10 +191,10 @@ export async function handleStripeChargeRefundedWithCommission(
     if (orderIds.length > 1 && refundedSum === 0) continue
 
     const chargeRefunded =
-      orderIds.length <= 1 ? (fullCharge.amount_refunded ?? refundedSum) : refundedSum
+      orderIds.length <= 1 ? (chargeAmountRefundedCents ?? refundedSum) : refundedSum
     const isFullRefund = isOrderFullyRefunded({
       chargeOrderCount: orderIds.length,
-      chargeAmountRefundedCents: fullCharge.amount_refunded,
+      chargeAmountRefundedCents,
       orderRefundedSumCents: refundedSum,
       orderChargedTotalCents: totalCents,
     })

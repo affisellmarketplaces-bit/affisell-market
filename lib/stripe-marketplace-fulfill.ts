@@ -39,6 +39,16 @@ import { applyInstantDigitalDeliveryInTransaction } from "@/lib/digital-delivery
 import { sendDigitalAccessPassEmail } from "@/lib/emails/send-digital-access-pass"
 import { runBookingPassAfterPayment } from "@/lib/booking/run-after-payment"
 import { logStripeWebhookError } from "@/lib/stripe-webhook-observability"
+import { reserveStockInTransaction } from "@/lib/checkout-stock.server"
+import {
+  unallocatedLineKey,
+  type UnallocatedLine,
+  type UnallocatedLineReason,
+} from "@/lib/unallocated-line"
+import {
+  loadRefundedUnallocatedLineKeys,
+  recordUnallocatedLines,
+} from "@/lib/unallocated-line.server"
 import {
   resolveOrderConfirmationImageUrl,
   sendOrderConfirmationEmail,
@@ -186,6 +196,13 @@ function parseLinePaids(raw: string | undefined | null): number[] | null {
   }
 }
 
+/** HT cents the buyer paid for line `index` according to the checkout metadata, `null` when it is not there. */
+function linePaidCentsFromMetadata(linePaids: number[] | null, lineCount: number, index: number): number | null {
+  if (!linePaids || linePaids.length !== lineCount) return null
+  const v = linePaids[index]
+  return v == null ? null : Math.max(0, v)
+}
+
 async function createPaidMarketplaceOrder(
   tx: Tx,
   args: {
@@ -204,6 +221,11 @@ async function createPaidMarketplaceOrder(
     checkoutTaxCents: number
     checkoutCurrency: string
     buyerLocale?: string | null
+    /**
+     * Called when the line is paid but NO order is created for a reason that needs a human or a refund
+     * (finalisation master doc D6 / G1) — the caller records it durably once the transaction is done.
+     */
+    onUnallocated?: (u: { reason: UnallocatedLineReason; detail?: Record<string, unknown> }) => void
   }
 ): Promise<string | null> {
   const { listing, qty } = args
@@ -222,6 +244,7 @@ async function createPaidMarketplaceOrder(
       error: AFFILIATE_COMMISSION_REQUIRED_ERROR,
       productId: listing.productId,
     })
+    args.onUnallocated?.({ reason: "commission_not_explicit" })
     return null
   }
   const variantImageUrl =
@@ -359,6 +382,40 @@ async function createPaidMarketplaceOrder(
       result: "idempotent_pending_exists",
     })
     return null
+  }
+
+  // G1: take the units from the stock in THIS transaction, right before the order that pays for them is written. A
+  // shortfall (two buyers paid for the last unit) creates no order and no negative stock: the line is unallocated.
+  const reservation = await reserveStockInTransaction(tx, {
+    productId: listing.productId,
+    variantSignature: args.variantSignature,
+    qty,
+    listingKind: listing.product.listingKind,
+  })
+  if (reservation.kind === "insufficient") {
+    console.log("[marketplace-fulfill]", {
+      stripeSessionId: args.stripeSessionId,
+      productId: listing.productId,
+      result: "unallocated_insufficient_stock",
+      scope: reservation.scope,
+      available: reservation.available,
+      requested: reservation.requested,
+    })
+    args.onUnallocated?.({
+      reason: "insufficient_stock",
+      detail: { scope: reservation.scope, available: reservation.available, requested: reservation.requested },
+    })
+    return null
+  }
+  if (reservation.kind === "reserved") {
+    console.log("[stock]", {
+      productId: listing.productId,
+      result: "reserved",
+      scope: reservation.scope,
+      qty,
+      before: reservation.before,
+      after: reservation.after,
+    })
   }
 
   try {
@@ -709,7 +766,14 @@ export async function fulfillMarketplaceStripeSession(
     }
 
     const fulfilledOrderIds: string[] = []
+    const unallocated: UnallocatedLine[] = []
     let alreadyFulfilled = false
+
+    // A line whose money was already sent back (unallocated-line refund) must never become an order afterwards.
+    // Read before the transaction, never throws (an unreadable trace must not block the payment processing).
+    const refundedLineKeys = await loadRefundedUnallocatedLineKeys(
+      lines.map((_, i) => unallocatedLineKey(sessionId, i))
+    )
 
     await prisma.$transaction(async (tx) => {
       await acquireCheckoutFulfillLock(tx, sessionId)
@@ -743,6 +807,14 @@ export async function fulfillMarketplaceStripeSession(
           fulfilledOrderIds.push(dup.id)
           continue
         }
+        if (refundedLineKeys.has(unallocatedLineKey(sessionId, i))) {
+          console.log("[marketplace-fulfill]", {
+            sessionId,
+            line: i,
+            result: "skipped_unallocated_line_already_refunded",
+          })
+          continue
+        }
 
         const qty = Math.max(1, Math.round(Number(line.qty)) || 1)
         const listing = await tx.affiliateProduct.findUnique({
@@ -758,6 +830,14 @@ export async function fulfillMarketplaceStripeSession(
             affiliateProductId: line.affiliateProductId,
             result: "skipped_no_listing",
           })
+          unallocated.push({
+            lineIndex: i,
+            reason: "listing_not_found",
+            affiliateProductId: line.affiliateProductId ?? null,
+            productId: null,
+            qty,
+            paidLineCents: linePaidCentsFromMetadata(linePaids, lines.length, i),
+          })
           continue
         }
         if (!fulfillingPreCreated && !listing.product.active) {
@@ -766,6 +846,14 @@ export async function fulfillMarketplaceStripeSession(
             line: i,
             affiliateProductId: line.affiliateProductId,
             result: "skipped_inactive_listing",
+          })
+          unallocated.push({
+            lineIndex: i,
+            reason: "listing_inactive",
+            affiliateProductId: listing.id,
+            productId: listing.productId,
+            qty,
+            paidLineCents: linePaidCentsFromMetadata(linePaids, lines.length, i),
           })
           continue
         }
@@ -808,6 +896,16 @@ export async function fulfillMarketplaceStripeSession(
           checkoutTaxCents,
           checkoutCurrency,
           buyerLocale,
+          onUnallocated: (u) =>
+            unallocated.push({
+              lineIndex: i,
+              reason: u.reason,
+              affiliateProductId: listing.id,
+              productId: listing.productId,
+              qty,
+              paidLineCents,
+              detail: u.detail,
+            }),
         })
 
         if (earnUserId && orderId) {
@@ -824,6 +922,14 @@ export async function fulfillMarketplaceStripeSession(
         if (orderId) fulfilledOrderIds.push(orderId)
       }
     }, MARKETPLACE_FULFILL_TX_OPTIONS)
+
+    // D6: the lines paid without an order are traced, alerted and (only when enabled) refunded — AFTER the transaction
+    // that created the other lines' orders, and after the response like every other side effect of this file.
+    if (unallocated.length > 0) {
+      await runAfterResponse("unallocated_lines_cart", () =>
+        recordUnallocatedLines({ session, lines: unallocated, appliedRewardCents })
+      )
+    }
 
     if (alreadyFulfilled) {
       scheduleMerchantOrderAlerts(fulfilledOrderIds)
@@ -890,6 +996,23 @@ export async function fulfillMarketplaceStripeSession(
     return
   }
 
+  // A line whose money was already sent back (unallocated-line refund) must never become an order afterwards.
+  const singleLineKey = unallocatedLineKey(sessionId, 0)
+  if ((await loadRefundedUnallocatedLineKeys([singleLineKey])).has(singleLineKey)) {
+    console.log("[marketplace-fulfill]", {
+      sessionId,
+      result: "skipped_unallocated_line_already_refunded",
+    })
+    return
+  }
+
+  const qty = Math.max(
+    1,
+    Math.round(parseInt(meta.checkoutQty ?? String(existing?.quantity ?? 1), 10) || 1)
+  )
+  /** HT cents the buyer paid for this single line per the checkout metadata (`null` for sessions without it). */
+  const singlePaidFromMetadata = linePaids && linePaids.length >= 1 ? Math.max(0, linePaids[0]!) : null
+
   const listing = await prisma.affiliateProduct.findUnique({
     where: { id: affiliateProductId },
     include: listingWithProductInclude,
@@ -901,6 +1024,22 @@ export async function fulfillMarketplaceStripeSession(
       affiliateProductId,
       result: "skipped_no_listing",
     })
+    await runAfterResponse("unallocated_lines_single", () =>
+      recordUnallocatedLines({
+        session,
+        appliedRewardCents,
+        lines: [
+          {
+            lineIndex: 0,
+            reason: "listing_not_found",
+            affiliateProductId,
+            productId: null,
+            qty,
+            paidLineCents: singlePaidFromMetadata,
+          },
+        ],
+      })
+    )
     return
   }
 
@@ -911,13 +1050,25 @@ export async function fulfillMarketplaceStripeSession(
       affiliateProductId,
       result: "skipped_inactive_listing",
     })
+    await runAfterResponse("unallocated_lines_single", () =>
+      recordUnallocatedLines({
+        session,
+        appliedRewardCents,
+        lines: [
+          {
+            lineIndex: 0,
+            reason: "listing_inactive",
+            affiliateProductId: listing.id,
+            productId: listing.productId,
+            qty,
+            paidLineCents: singlePaidFromMetadata,
+          },
+        ],
+      })
+    )
     return
   }
 
-  const qty = Math.max(
-    1,
-    Math.round(parseInt(meta.checkoutQty ?? String(existing?.quantity ?? 1), 10) || 1)
-  )
   const checkoutVariantLabel =
     meta.checkoutVariantLabel?.trim() || existing?.variantLabel?.trim() || ""
   const checkoutVariantSignature = meta.checkoutVariantSignature?.trim() || ""
@@ -941,6 +1092,7 @@ export async function fulfillMarketplaceStripeSession(
     confirmation: null as OrderConfirmationEmailPayload | null,
   }
   const fulfilledOrderIds: string[] = []
+  const unallocated: UnallocatedLine[] = []
 
   await prisma.$transaction(async (tx) => {
     await acquireCheckoutFulfillLock(tx, sessionId)
@@ -978,6 +1130,52 @@ export async function fulfillMarketplaceStripeSession(
       return
     }
 
+    const recoverCancelledBooking =
+      dup?.status === "CANCELLED" &&
+      Boolean(dup.bookingSlotId) &&
+      !dup.bookingConfirmedAt
+
+    if (dup && (dup.status === "PENDING" || recoverCancelledBooking)) {
+      // G1 (pre-created order): take the units before anything else is written, so a shortfall leaves the order
+      // PENDING and the store credit untouched. A fresh order reserves inside `createPaidMarketplaceOrder`.
+      const reservation = await reserveStockInTransaction(tx, {
+        productId: listing.productId,
+        variantSignature: checkoutVariantSignature,
+        qty,
+        listingKind: listing.product.listingKind,
+      })
+      if (reservation.kind === "insufficient") {
+        console.log("[marketplace-fulfill]", {
+          sessionId,
+          productId: listing.productId,
+          result: "unallocated_insufficient_stock",
+          scope: reservation.scope,
+          available: reservation.available,
+          requested: reservation.requested,
+        })
+        unallocated.push({
+          lineIndex: 0,
+          reason: "insufficient_stock",
+          affiliateProductId: listing.id,
+          productId: listing.productId,
+          qty,
+          paidLineCents,
+          detail: { scope: reservation.scope, available: reservation.available, requested: reservation.requested },
+        })
+        return
+      }
+      if (reservation.kind === "reserved") {
+        console.log("[stock]", {
+          productId: listing.productId,
+          result: "reserved",
+          scope: reservation.scope,
+          qty,
+          before: reservation.before,
+          after: reservation.after,
+        })
+      }
+    }
+
     const earnUserId = await resolveBuyerUserIdForEarn(tx, buyerUserId, customerEmail)
 
     await redeemBuyerRewardOrSkip(tx, {
@@ -985,11 +1183,6 @@ export async function fulfillMarketplaceStripeSession(
       amountCents: appliedRewardCents,
       stripeSessionId: sessionId,
     })
-
-    const recoverCancelledBooking =
-      dup?.status === "CANCELLED" &&
-      Boolean(dup.bookingSlotId) &&
-      !dup.bookingConfirmedAt
 
     if (dup && (dup.status === "PENDING" || recoverCancelledBooking)) {
       const pendingOrder = dup
@@ -1277,6 +1470,16 @@ export async function fulfillMarketplaceStripeSession(
       checkoutTaxCents,
       checkoutCurrency,
       buyerLocale,
+      onUnallocated: (u) =>
+        unallocated.push({
+          lineIndex: 0,
+          reason: u.reason,
+          affiliateProductId: listing.id,
+          productId: listing.productId,
+          qty,
+          paidLineCents,
+          detail: u.detail,
+        }),
     })
 
     if (earnUserId && orderId) {
@@ -1292,6 +1495,13 @@ export async function fulfillMarketplaceStripeSession(
 
     if (orderId) fulfilledOrderIds.push(orderId)
   }, MARKETPLACE_FULFILL_TX_OPTIONS)
+
+  // D6 / G1: a paid line that produced no order is traced, alerted and (only when enabled) refunded.
+  if (unallocated.length > 0) {
+    await runAfterResponse("unallocated_lines_single", () =>
+      recordUnallocatedLines({ session, lines: unallocated, appliedRewardCents })
+    )
+  }
 
   scheduleMerchantOrderAlerts(fulfilledOrderIds)
 
