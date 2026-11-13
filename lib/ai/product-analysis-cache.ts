@@ -5,6 +5,7 @@ import { createHash } from "node:crypto"
 import { Redis } from "@upstash/redis"
 
 import type { ProductAnalysisResult } from "@/lib/ai/product-analyzer"
+import { normalizeLegacyCachedAnalysis } from "@/lib/instantscan/legacy-cache"
 
 const CACHE_TTL_SEC = 24 * 60 * 60
 const MEMORY_MAX = 200
@@ -54,7 +55,7 @@ export async function getCachedProductAnalysis(
     try {
       const raw = await redis.get<string>(key)
       if (!raw) return null
-      return JSON.parse(raw) as ProductAnalysisResult
+      return normalizeLegacyCachedAnalysis(JSON.parse(raw) as ProductAnalysisResult)
     } catch (err) {
       console.log("[product-analysis-cache]", { key, result: "redis_miss", err: String(err) })
     }
@@ -66,7 +67,7 @@ export async function getCachedProductAnalysis(
     memory.delete(key)
     return null
   }
-  return entry.value
+  return normalizeLegacyCachedAnalysis(entry.value)
 }
 
 export async function setCachedProductAnalysis(

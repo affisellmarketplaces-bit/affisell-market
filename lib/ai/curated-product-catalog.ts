@@ -1,18 +1,34 @@
-/** Top marketplace SKUs 2024–2026 for CLIP-proxy cascade matching. */
+/**
+ * Hand-written reference list used by InstantScan's "catalog match" step (lib/ai/product-vision-cascade.ts).
+ *
+ * What this list IS: an editorial selection of consumer-electronics models typed by a developer. It is NOT a measured
+ * ranking (no sales, search or marketplace data stands behind it — it is not a "top 100" of anything), it is NOT
+ * exhaustive, and the prices below are indicative editorial figures, not market data.
+ *
+ * What it must never contain: filler entries. The list used to be padded to 100 with `generic-sku-N` rows so that it
+ * "looked" like a top 100; those are gone. If a placeholder is ever needed again it MUST carry `synthetic: true` — the
+ * matcher ignores synthetic rows and a test fails if a synthetic row is exported in the catalog.
+ */
 
-export type TopProductEntry = {
+export type CuratedProductEntry = {
   id: string
   brand: string
   model: string
   cues: string[]
-  productType: TopProductType
+  productType: CuratedProductType
   category: string
-  suggestedPrice: number
+  /**
+   * Indicative editorial price in EUR, or `null` when no price was ever sourced (a flat per-group figure used to be
+   * copied to every variant — that was invented, it is `null` now).
+   */
+  suggestedPrice: number | null
   titleFr: string
   descriptionFr: string
+  /** True for a placeholder that stands for no real product. Never matched, never shown as a result. */
+  synthetic?: boolean
 }
 
-export type TopProductType =
+export type CuratedProductType =
   | "smartphone"
   | "tablet"
   | "laptop"
@@ -29,10 +45,10 @@ function entry(
   brand: string,
   model: string,
   cues: string[],
-  productType: TopProductType,
+  productType: CuratedProductType,
   category: string,
-  suggestedPrice: number
-): TopProductEntry {
+  suggestedPrice: number | null
+): CuratedProductEntry {
   return {
     id,
     brand,
@@ -46,7 +62,7 @@ function entry(
   }
 }
 
-const FLAGSHIPS: TopProductEntry[] = [
+const FLAGSHIPS: CuratedProductEntry[] = [
   entry("iphone-17-pro", "Apple", "iPhone 17 Pro", ["USB-C", "Action Button", "Titane", "triple caméra"], "smartphone", "Électronique > Smartphones", 1299),
   entry("iphone-17", "Apple", "iPhone 17", ["USB-C", "Dynamic Island", "dual caméra"], "smartphone", "Électronique > Smartphones", 999),
   entry("iphone-16-pro", "Apple", "iPhone 16 Pro", ["USB-C", "Action Button", "Titane"], "smartphone", "Électronique > Smartphones", 1199),
@@ -119,23 +135,23 @@ const AUDIO_VARIANTS: Array<[string, string, string, string[]]> = [
   ["Bose", "Ultra Open Earbuds", "bose-ultra-open", ["open ear", "aware mode"]],
 ]
 
+/** Variants carry NO price: the old flat per-group figure (749 / 1599 / 299) was never sourced. */
 function expandVariants(
   rows: Array<[string, string, string, string[]]>,
-  productType: TopProductType,
-  category: string,
-  basePrice: number
-): TopProductEntry[] {
+  productType: CuratedProductType,
+  category: string
+): CuratedProductEntry[] {
   return rows.map(([brand, model, id, cues]) =>
-    entry(id, brand, model, cues, productType, category, basePrice)
+    entry(id, brand, model, cues, productType, category, null)
   )
 }
 
-/** 100 top SKUs for cascade embedding index. */
-export const TOP_PRODUCTS_2026: TopProductEntry[] = (() => {
+/** Hand-written reference entries (see the header: not a ranking, not padded, not market data). */
+export const CURATED_PRODUCT_CATALOG: CuratedProductEntry[] = (() => {
   const out = [...FLAGSHIPS]
-  out.push(...expandVariants(SMARTPHONE_VARIANTS, "smartphone", "Électronique > Smartphones", 749))
-  out.push(...expandVariants(LAPTOP_VARIANTS, "laptop", "Informatique > Ordinateurs portables", 1599))
-  out.push(...expandVariants(AUDIO_VARIANTS, "audio", "Électronique > Audio", 299))
+  out.push(...expandVariants(SMARTPHONE_VARIANTS, "smartphone", "Électronique > Smartphones"))
+  out.push(...expandVariants(LAPTOP_VARIANTS, "laptop", "Informatique > Ordinateurs portables"))
+  out.push(...expandVariants(AUDIO_VARIANTS, "audio", "Électronique > Audio"))
 
   const wearables = [
     entry("garmin-fenix-8", "Garmin", "Fenix 8", ["solar", "dive", "multisport"], "wearable", "Sport > Montres GPS", 899),
@@ -173,25 +189,11 @@ export const TOP_PRODUCTS_2026: TopProductEntry[] = (() => {
   ]
   out.push(...accessories)
 
-  while (out.length < 100) {
-    const n = out.length + 1
-    out.push(
-      entry(
-        `generic-sku-${n}`,
-        "Affisell",
-        `Catalog SKU ${n}`,
-        ["marketplace", "2026", `ref-${n}`],
-        "other",
-        "Marketplace > Divers",
-        49 + (n % 20) * 10
-      )
-    )
-  }
-
-  return out.slice(0, 100)
+  return out
 })()
 
-export function catalogEmbeddingText(product: TopProductEntry): string {
+/** Text the catalog-match step turns into a hashed lexical vector (lib/ai/openai-embeddings.ts#hashedLexicalVector). */
+export function catalogMatchText(product: CuratedProductEntry): string {
   return [product.brand, product.model, ...product.cues, product.productType, product.category]
     .join(" ")
     .trim()

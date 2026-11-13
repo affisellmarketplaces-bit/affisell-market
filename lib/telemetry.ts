@@ -1,6 +1,14 @@
 import { capturePosthog, capturePosthogClient } from "@/lib/analytics/posthog"
+import { normalizeInstantScanStage, type InstantScanStage } from "@/lib/instantscan/stages"
 
-export type InstantScanStage = "embed" | "mini" | "gpt4o" | "groq"
+export type { InstantScanStage }
+
+/**
+ * NOTE (honesty): the `instant_scan_*` PostHog helpers below are DEFINED BUT NEVER CALLED anywhere in the app (the supplier
+ * InstantScan UI is retired and the API route does not emit them). Do not read their absence in PostHog as "no usage" nor
+ * their presence as a measurement: the source of truth is the usage journal (lib/ai/usage-log.ts), read by
+ * /admin/instantscan-performance.
+ */
 
 export type InstantScanResultProps = {
   model: string | null
@@ -56,10 +64,11 @@ export function trackInstantScanGateTriggeredServer(props: InstantScanGateProps,
 
 export function instantScanStageFromVisionVersion(
   visionVersion?: string | null,
-  instantScanStage?: InstantScanStage | null
+  instantScanStage?: InstantScanStage | "embed" | null
 ): InstantScanStage {
-  if (instantScanStage) return instantScanStage
-  if (visionVersion === "v2.2") return "embed"
+  const explicit = normalizeInstantScanStage(instantScanStage)
+  if (explicit) return explicit
+  if (visionVersion === "v2.2") return "catalog_match"
   if (visionVersion === "v2") return "gpt4o"
   return "groq"
 }

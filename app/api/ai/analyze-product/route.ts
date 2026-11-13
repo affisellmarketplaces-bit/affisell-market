@@ -16,6 +16,11 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
+/**
+ * Soft fallback body when NO model produced an answer (missing key, provider error, empty extraction).
+ * It must not look like an analysis: no `confidence` (it used to claim 0.5), no `instantScanStage` / `visionVersion`
+ * (it used to claim "gpt4o" / "v2" although nothing ran) — `provenance.method === "none"` says so.
+ */
 const MISSING_KEY_FALLBACK = {
   title: "Produit détecté - Complétez manuellement",
   description: "",
@@ -23,11 +28,15 @@ const MISSING_KEY_FALLBACK = {
   categoryId: null as string | null,
   attributes: {} as Record<string, string>,
   suggestedPrice: null as number | null,
-  confidence: 0.5,
   needsReview: true,
   fallback: true as const,
-  visionVersion: "v2" as const,
-  instantScanStage: "gpt4o" as const,
+  provenance: {
+    method: "none" as const,
+    modelUsed: null,
+    fallbackUsed: false,
+    confidenceSource: "none" as const,
+    priceSource: "none" as const,
+  },
 }
 
 export async function POST(req: Request) {
@@ -98,13 +107,17 @@ export async function POST(req: Request) {
     const analyzed = await analyzeProductFromImage({ imageUrl, imageDataUrl })
     const result = { ...analyzed, cached: false }
     await setCachedProductAnalysis(cacheKey, result)
+    // Tokens / estimated cost / latency per model call are MEASURED in lib/ai/usage-log.ts (one `[ai-usage]` line each);
+    // no cost figure is asserted here.
     logInstantScan("API success", {
       model: analyzed.detectedModel ?? analyzed.title?.slice(0, 80),
       latency_ms: analyzed.latencyMs,
       stage: analyzed.instantScanStage ?? analyzed.visionVersion,
-      confidence: analyzed.confidence,
+      model_used: analyzed.provenance?.modelUsed ?? null,
+      fallback_used: analyzed.provenance?.fallbackUsed ?? false,
+      confidence: analyzed.confidence ?? null,
+      confidence_source: analyzed.provenance?.confidenceSource ?? "none",
       needsReview: analyzed.needsReview ?? false,
-      cost_usd: 0.003,
     })
     return NextResponse.json(result)
   } catch (err) {

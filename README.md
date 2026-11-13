@@ -80,17 +80,24 @@ Never edit applied migrations. Change `schema.prisma` then `npx prisma migrate d
 
 ## Affisell InstantScan
 
-Cascade IA temps réel pour le wizard v2 (mode **InstantScan**, ex-Guidé) : **CLIP 200ms → GPT-4o-mini 800ms → GPT-4o 2sec**.
+Analyse d'une photo produit par un modèle de vision (API opt-in `POST /api/ai/analyze-product`, UI supplier retirée). Deux étapes :
 
-| Métrique | Cible |
-|----------|-------|
-| Précision | 98.5% (top 100 SKUs 2024–2026) |
-| Latence p95 | &lt;2 s |
-| Coût | ~0.003 $/analyse |
+1. **Rapprochement catalogue** — un modèle de vision mini (`gpt-4o-mini` par défaut) écrit des indices **texte** (marque, modèle, caractéristiques) ; ceux-ci sont comparés, comme du texte (vecteurs lexicaux par hachage), à une liste de modèles **écrite à la main** (`lib/ai/curated-product-catalog.ts`). **Ce n'est pas du CLIP** : aucune image n'est vectorisée, aucun modèle d'embedding n'intervient, et la liste n'est ni un classement mesuré ni un « top 100 ». Un résultat de cette étape n'a **aucune confiance affichée** (rien n'a été mesuré) et est toujours « à vérifier ».
+2. **Modèle de vision complet** (`gpt-4o` par défaut ; `gpt-4o-mini` si le premier échoue — la réponse l'indique : `provenance.modelUsed`, `provenance.fallbackUsed`, étape `mini`).
+
+**Aucune performance n'est garantie.** Précision, latence et coût sont **mesurés ou non affichés** :
+
+| Sujet | Statut |
+|-------|--------|
+| Précision de reconnaissance | **Non mesurée** (aucun jeu de photos réelles étiquetées). Méthode : `docs/AI-HONESTY-AND-MEASUREMENT.md` |
+| Latence (par étape, p50/p95) | Mesurée à chaque appel — `/admin/instantscan-performance` |
+| Jetons et coût | Jetons réels renvoyés par le fournisseur ; coût = **estimation** (table de prix versionnée `lib/ai/model-pricing.ts`) — `/admin/instantscan-performance` |
+
+Les anciens chiffres « CLIP 200 ms », « 98,5 % », « p95 < 2 s », « 0,003 $/analyse », « top 100 SKUs » étaient des **objectifs**, jamais des résultats ; ils ont été retirés.
 
 **Flags** : `ENABLE_INSTANTSCAN=1` (prod). Retrocompat : `ENABLE_AI_VISION_V2=1` + `ENABLE_AI_VISION_CASCADE=1` si `ENABLE_INSTANTSCAN=0`.
 
-**Telemetry** : PostHog `instant_scan_result`, `instant_scan_gate_triggered` — dashboard stub `/admin/instantscan-performance`.
+**Mesure** : chaque appel de modèle écrit une ligne JSON `[ai-usage]` dans les logs et dans un journal borné (Redis si configuré, sinon mémoire de l'instance) — `lib/ai/usage-log.ts`. Les événements PostHog `instant_scan_*` (`lib/telemetry.ts`) sont définis mais **jamais émis** : ne pas s'y fier.
 
 ## Push
 
