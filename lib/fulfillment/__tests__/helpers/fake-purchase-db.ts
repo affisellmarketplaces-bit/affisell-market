@@ -33,6 +33,20 @@ export type FakeLog = {
 export type FakeJob = { id: string; supplierOrderId: string | null; status: string; orderIds: string[] }
 
 const tick = () => new Promise<void>((resolve) => setImmediate(resolve))
+
+type LogWhere = { id?: string; orderId?: string; status?: string | { in?: string[]; not?: string } }
+
+/** The subset of Prisma's `where` the code under test uses on FulfillmentLog: id / orderId / status (equals, in, not). */
+function logMatches(log: FakeLog, where: LogWhere): boolean {
+  if (where.id !== undefined && log.id !== where.id) return false
+  if (where.orderId !== undefined && log.orderId !== where.orderId) return false
+  const st = where.status
+  if (st === undefined) return true
+  if (typeof st === "string") return log.status === st
+  if (st.in && !st.in.includes(log.status)) return false
+  if (st.not !== undefined && log.status === st.not) return false
+  return true
+}
 const clone = <T,>(v: T): T => (v === undefined ? v : (structuredClone(v) as T))
 
 export function createFakePurchaseDb(seed: { orders: FakeOrder[]; logs?: FakeLog[]; jobs?: FakeJob[]; now?: () => Date }) {
@@ -68,7 +82,12 @@ export function createFakePurchaseDb(seed: { orders: FakeOrder[]; logs?: FakeLog
       supplierFulfillmentLinks: jobs
         .filter((j) => j.orderIds.includes(id))
         .map((j) => ({
-          supplierFulfillmentOrder: { id: j.id, supplierOrderId: j.supplierOrderId, status: j.status },
+          supplierFulfillmentOrder: {
+            id: j.id,
+            supplierOrderId: j.supplierOrderId,
+            status: j.status,
+            lines: j.orderIds.slice(0, 1).map((orderId) => ({ orderId })),
+          },
         })),
     }
   }
@@ -147,12 +166,11 @@ export function createFakePurchaseDb(seed: { orders: FakeOrder[]; logs?: FakeLog
         Object.assign(log, args.data, { updatedAt: now() })
         return clone(log)
       },
-      updateMany: async (args: { where: { orderId: string }; data: Partial<FakeLog> }) => {
+      updateMany: async (args: { where: LogWhere; data: Partial<FakeLog> }) => {
         await tick()
-        const log = logs.get(args.where.orderId)
-        if (!log) return { count: 0 }
-        Object.assign(log, args.data, { updatedAt: now() })
-        return { count: 1 }
+        const matching = [...logs.values()].filter((l) => logMatches(l, args.where))
+        for (const log of matching) Object.assign(log, args.data, { updatedAt: now() })
+        return { count: matching.length }
       },
     },
   }

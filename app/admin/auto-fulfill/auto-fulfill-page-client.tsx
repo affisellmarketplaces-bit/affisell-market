@@ -103,6 +103,8 @@ function RetryAutoBuyButton({
     auto_buy_disabled: "Kill switch actif",
     max_attempts_reached: "3 tentatives max",
     purchase_in_doubt: "Issue incertaine : vérifier la commande AliExpress avant toute relance",
+    margin_refused: "Refusé sur la marge : corriger le prix ou le plancher, puis relancer via la commande",
+    log_state_changed: "Le log a changé entre-temps : actualiser",
   }
 
   return (

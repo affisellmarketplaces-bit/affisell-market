@@ -17,6 +17,7 @@ import { LOSS_MAKING_SALE, makeFakeOrder } from "@/lib/fulfillment/__tests__/hel
 const h = vi.hoisted(() => ({
   db: null as unknown,
   sentry: [] as unknown[][],
+  ops: [] as string[],
   ae: { calls: 0, placed: [] as string[], mode: "ok" as "ok" | "uncertain" | "refused", delayMs: 15 },
 }))
 
@@ -43,6 +44,12 @@ vi.mock("@/lib/prisma", () => ({
       },
     }
   ),
+}))
+vi.mock("@/lib/ops-webhook", () => ({
+  opsWebhookAlert: async (text: string) => {
+    h.ops.push(text)
+    return { slack: true, discord: false }
+  },
 }))
 vi.mock("@sentry/nextjs", () => ({
   captureException: (...args: unknown[]) => {
@@ -179,6 +186,7 @@ beforeEach(() => {
   vi.stubEnv("AUTO_BUY_MIN_MARGIN_CENTS", "")
   clock = new Date("2026-11-13T12:00:00Z")
   h.sentry.length = 0
+  h.ops.length = 0
   h.ae.calls = 0
   h.ae.placed = []
   h.ae.mode = "ok"
@@ -330,6 +338,57 @@ describe("G2 — a lost supplier answer never becomes a second purchase", () => 
   })
 })
 
+describe("G2 — an orphaned claim is reported by the paths that meet it", () => {
+  it("order.paid fast path: a BUYING claim older than 15 minutes is reported to the ops channel (it used to answer silently)", async () => {
+    db = createFakePurchaseDb({
+      orders: [makeFakeOrder("o1")],
+      logs: [{ ...pendingLog(), status: "BUYING", attempts: 1, updatedAt: new Date(Date.now() - 20 * 60_000) }],
+      now: () => new Date(Date.now() - 20 * 60_000),
+    })
+    h.db = db.prisma
+    expect(await orderPaid()).toMatchObject({ ok: false, error: "fulfillment_in_progress" })
+    expect(h.ops).toHaveLength(1)
+    expect(h.ops[0]).toContain("stale_claim")
+    expect(h.ae.calls).toBe(0)
+  })
+
+  it("order.paid fast path: a FRESH claim is silent", async () => {
+    db = createFakePurchaseDb({
+      orders: [makeFakeOrder("o1")],
+      logs: [{ ...pendingLog(), status: "BUYING", attempts: 1, updatedAt: new Date() }],
+    })
+    h.db = db.prisma
+    expect(await orderPaid()).toMatchObject({ ok: false, error: "fulfillment_in_progress" })
+    expect(h.ops).toHaveLength(0)
+  })
+})
+
+describe("G2 — a multi-order engine group (one job, first line bought)", () => {
+  it("the cart's SECOND order is bought by the manual route, once, with its OWN AliExpress id — never stamped with the first order's", async () => {
+    db = createFakePurchaseDb({
+      orders: [makeFakeOrder("o1"), makeFakeOrder("o2")],
+      logs: [pendingLog()],
+      jobs: [],
+      now: () => clock,
+    })
+    h.db = db.prisma
+    // the engine buys the group's FIRST line (o1) and records the job
+    const first = await engine()
+    expect(first.supplierOrderId).toBe("AE-1")
+    db.jobs.push({ id: "job1", supplierOrderId: "AE-1", status: "PROCESSING", orderIds: ["o1", "o2"] })
+
+    const second = await fulfillAffisellOrderWithAliExpress("o2")
+    expect(second).toMatchObject({ ok: true, aliexpressOrderId: "AE-2" })
+    expect(second.ok && second.alreadyFulfilled).toBeFalsy()
+    expect(db.orders.get("o2")?.supplierOrderId).toBe("AE-2")
+    expect(h.ae.calls).toBe(2)
+    // and replays of either order buy nothing more
+    await fulfillAffisellOrderWithAliExpress("o2")
+    await orderPaid()
+    expect(h.ae.calls).toBe(2)
+  })
+})
+
 describe("G2 — the claim follows the real outcome on the engine path", () => {
   it("a DEFINITIVE refusal on the engine path frees the claim: a later attempt buys, once", async () => {
     h.ae.mode = "refused"
@@ -375,6 +434,78 @@ describe("G2 — auto-buy keeps a claim that is in doubt, and still counts its a
     await autoBuy()
     expect(h.ae.calls).toBe(0)
     expect(db.logs.get("o1")).toMatchObject({ status: "BOUGHT", aeOrderId: "AE-JOB" })
+  })
+
+  /** Another path claims the log AFTER auto-buy read it (PENDING) and BEFORE its pre-claim failure write. */
+  function claimedMeanwhile() {
+    const original = (db.prisma.order as { findUnique: (a: unknown) => Promise<unknown> }).findUnique
+    let first = true
+    ;(db.prisma.order as { findUnique: unknown }).findUnique = async (args: unknown) => {
+      if (first) {
+        first = false
+        const log = db.logs.get("o1")!
+        log.status = "BUYING"
+        log.attempts = 1
+      }
+      return original(args)
+    }
+  }
+
+  it("#2 — VARIANT_SKU_UNMATCHED after another path claimed the log: the claim is NOT erased, nothing is retried or refunded", async () => {
+    const { enqueueAutoBuyJob } = await import("@/lib/fulfillment/bullmq/auto-buy.queue")
+    const { initiateMarketplaceRefundPipeline } = await import("@/lib/marketplace-refund-pipeline")
+    vi.mocked(enqueueAutoBuyJob).mockClear()
+    vi.mocked(initiateMarketplaceRefundPipeline).mockClear()
+    db = createFakePurchaseDb({ orders: [unmatchedVariant()], logs: [pendingLog()], now: () => clock })
+    h.db = db.prisma
+    claimedMeanwhile()
+    await autoBuy()
+    expect(db.logs.get("o1")).toMatchObject({ status: "BUYING", attempts: 1 })
+    expect(enqueueAutoBuyJob).not.toHaveBeenCalled()
+    expect(initiateMarketplaceRefundPipeline).not.toHaveBeenCalled()
+    // the claim still blocks the others
+    expect(await orderPaid()).toMatchObject({ ok: false, error: "fulfillment_in_progress" })
+    expect(h.ae.calls).toBe(0)
+  })
+
+  it("#2 — ORDER_VALUE_TOO_HIGH after another path claimed the log: the claim is NOT erased (the job still throws, as before)", async () => {
+    db = createFakePurchaseDb({
+      orders: [makeFakeOrder("o1", undefined, { totalCents: 60_000 })],
+      logs: [pendingLog()],
+      now: () => clock,
+    })
+    h.db = db.prisma
+    claimedMeanwhile()
+    await expect(autoBuy()).rejects.toThrow("ORDER_VALUE_TOO_HIGH")
+    expect(db.logs.get("o1")?.status).toBe("BUYING")
+  })
+
+  it("#2 — the refund bookkeeping (3rd failure) does not overwrite a claim taken while the refund was in flight", async () => {
+    const { initiateMarketplaceRefundPipeline } = await import("@/lib/marketplace-refund-pipeline")
+    db = createFakePurchaseDb({
+      orders: [unmatchedVariant()],
+      logs: [{ ...pendingLog(), attempts: 2 }],
+      now: () => clock,
+    })
+    h.db = db.prisma
+    vi.mocked(initiateMarketplaceRefundPipeline).mockImplementationOnce(async () => {
+      db.logs.get("o1")!.status = "BUYING" // another path claims during the refund call
+      return { ok: true, stripeRefundId: "re_test" } as never
+    })
+    await autoBuy()
+    expect(db.logs.get("o1")?.status).toBe("BUYING")
+  })
+
+  it("#2 — a pre-claim failure on a log nobody claimed is still recorded (unchanged)", async () => {
+    db = createFakePurchaseDb({
+      orders: [makeFakeOrder("o1", undefined, { totalCents: 60_000 })],
+      logs: [pendingLog()],
+      now: () => clock,
+    })
+    h.db = db.prisma
+    await expect(autoBuy()).rejects.toThrow("ORDER_VALUE_TOO_HIGH")
+    expect(db.logs.get("o1")).toMatchObject({ status: "FAILED" })
+    expect(db.logs.get("o1")?.errorMsg).toContain("ORDER_VALUE_TOO_HIGH")
   })
 
   it("an order refunded between the trigger and the run is not bought: log FAILED, no AliExpress call, no refund, no retry", async () => {

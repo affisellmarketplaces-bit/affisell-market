@@ -2,6 +2,7 @@ import { collectCatalogHealthSignals } from "@/lib/sentinel/collectors/catalog-h
 import { collectFulfillmentFailedSignals } from "@/lib/sentinel/collectors/fulfillment-failed"
 import { collectI18nParitySignals } from "@/lib/sentinel/collectors/i18n-parity"
 import { collectProviderErrorSignals } from "@/lib/sentinel/collectors/provider-errors"
+import { collectPurchaseInDoubtSignals } from "@/lib/sentinel/collectors/purchase-in-doubt"
 import { collectSentryIssueSignals } from "@/lib/sentinel/collectors/sentry-issues"
 import { collectStripeStuckSignals } from "@/lib/sentinel/collectors/stripe-stuck"
 import { collectWebhookErrorSignals } from "@/lib/sentinel/collectors/webhook-errors"
@@ -23,6 +24,7 @@ async function collectAllSignals(): Promise<SentinelSignalInput[]> {
   const batches = await Promise.all([
     collectStripeStuckSignals(),
     collectFulfillmentFailedSignals(),
+    collectPurchaseInDoubtSignals(),
     collectWebhookErrorSignals(),
     collectCatalogHealthSignals(),
     collectI18nParitySignals(),

@@ -8,6 +8,7 @@ import {
   authorizeSupplierPurchase,
   releaseSupplierPurchase,
   reportInDoubtPurchase,
+  reportStaleClaimIfOld,
 } from "@/lib/fulfillment/supplier-purchase-guard"
 import { prisma } from "@/lib/prisma"
 
@@ -25,6 +26,20 @@ export type FulfillAffisellOrderResult =
       error: string
       orderId?: string
     }
+
+/**
+ * Results of `fulfillAffisellOrderWithAliExpress` that a worker must NEVER retry: the purchase may exist (outcome unknown /
+ * unrecorded), somebody else is on it, or the sale was refused on margin. A retry would only come back through the gate
+ * (which keeps refusing) — and must never depend on whether the error text happens to contain "timeout" / "rate" / "limit".
+ */
+export function isNeverRetryFulfillError(error: string): boolean {
+  return (
+    error.startsWith("supplier_outcome_uncertain") ||
+    error.startsWith("supplier_order_unrecorded") ||
+    error.startsWith("fulfillment_in_progress") ||
+    error.startsWith("margin_refused")
+  )
+}
 
 function shippingFromOrderJson(raw: unknown): AffisellShippingAddressInput {
   const parsed = parseShipping(raw)
@@ -70,7 +85,7 @@ export async function fulfillAffisellOrderWithAliExpress(
           },
         },
       },
-      autoBuyLog: { select: { id: true, aeOrderId: true, status: true } },
+      autoBuyLog: { select: { id: true, aeOrderId: true, status: true, updatedAt: true } },
     },
   })
 
@@ -93,6 +108,8 @@ export async function fulfillAffisellOrderWithAliExpress(
   }
 
   if (order.autoBuyLog?.status === "BUYING") {
+    // This fast path answers before reaching the gate: it must still report a claim that has been sitting there too long.
+    await reportStaleClaimIfOld(orderId, "order_paid", order.autoBuyLog.updatedAt)
     return { ok: false, error: "fulfillment_in_progress", orderId }
   }
 

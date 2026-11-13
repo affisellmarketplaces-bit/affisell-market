@@ -32,8 +32,17 @@ export type PurchaseSnapshot = {
   supplierOrderId: string | null
   /** `Order.autoBuyLog` (FulfillmentLog, one per order) */
   log: { status: AutoBuyStatus; aeOrderId: string | null; attempts: number; updatedAt: Date } | null
-  /** Engine jobs (`SupplierFulfillmentOrder`) that include this order. */
-  jobs: ReadonlyArray<{ id: string; supplierOrderId: string | null; status: SupplierFulfillmentStatus }>
+  /**
+   * Engine jobs (`SupplierFulfillmentOrder`) that include this order. A job groups EVERY AliExpress order of a checkout
+   * session but the AliExpress adapter buys only its FIRST line, so a job's supplier order id proves a purchase for that
+   * first line only: `firstLineOrderId` says which order that is (null = unknown).
+   */
+  jobs: ReadonlyArray<{
+    id: string
+    supplierOrderId: string | null
+    status: SupplierFulfillmentStatus
+    firstLineOrderId: string | null
+  }>
 }
 
 export type PurchaseDecision =
@@ -66,7 +75,10 @@ export function decideSupplierPurchase(
 
   for (const job of snapshot.jobs) {
     const id = trimmed(job.supplierOrderId)
-    if (id && job.status !== "FAILED" && job.status !== "CANCELLED") {
+    // The job bought ONE order (its first line). For any other order of the group it proves nothing: counting it would make
+    // the second order of a cart "already bought" (never purchasable, stamped with the first order's AliExpress id).
+    const boughtThisOrder = job.firstLineOrderId == null || job.firstLineOrderId === snapshot.orderId
+    if (id && boughtThisOrder && job.status !== "FAILED" && job.status !== "CANCELLED") {
       return { kind: "already_placed", supplierOrderId: id, evidence: "job" }
     }
   }
