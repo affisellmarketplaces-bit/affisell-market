@@ -293,7 +293,7 @@ function guardExplicitSupplierCommission(args: {
  * G1: refuse the checkout BEFORE the payment session exists when the stock can not serve the cart (409, nothing created).
  * Advisory — the authoritative, atomic decrement is done when the payment is processed — but it stops the common case
  * (sold-out product, stale cart) from ever taking a payment. Products whose stock is not managed (digital goods,
- * bookings, a variant that can not be resolved) are never refused.  disables it.
+ * bookings, a variant that can not be resolved) are never refused. `CHECKOUT_STOCK_GUARD=off` disables it.
  */
 async function checkoutStockGate(lines: StockCheckLine[]): Promise<NextResponse | null> {
   if (!isCheckoutStockGuardEnabled()) return null

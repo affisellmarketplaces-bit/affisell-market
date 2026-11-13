@@ -23,6 +23,8 @@ const H = vi.hoisted(() => {
     failRecordSale: false,
     /** How many times a product row was locked (`SELECT … FOR UPDATE`). */
     lockReads: 0,
+    /** Makes the locked read hand the `variants` json back as text. */
+    variantsAsText: false,
   }
 
   const clone = <T,>(v: T): T => (v === undefined ? v : JSON.parse(JSON.stringify(v)))
@@ -56,7 +58,7 @@ const H = vi.hoisted(() => {
       return [
         {
           stock: db.staleStock ?? p.stock,
-          variants: clone(p.variants),
+          variants: db.variantsAsText && p.variants ? JSON.stringify(p.variants) : clone(p.variants),
           listingKind: p.listingKind,
         },
       ]
@@ -288,6 +290,7 @@ beforeEach(() => {
   db.staleStock = null
   db.failRecordSale = false
   db.lockReads = 0
+  db.variantsAsText = false
   delete process.env.UNALLOCATED_LINE_AUTO_REFUND
   delete process.env.CHECKOUT_STOCK_GUARD
   opsAlert.mockResolvedValue({ slack: true, discord: false })
@@ -543,6 +546,21 @@ describe("G1 — stock is taken atomically with the order, never negative, never
     ])
     expect(p.variants.variantRows[1]).toMatchObject({ commission: 77, custom: true, id: "r2" })
     expect(p.variants.model).toBe("X")
+  })
+
+  it("reads the variants json correctly even when the driver hands it back as text", async () => {
+    db.variantsAsText = true
+    db.products.get("p1")!.stock = 6
+    db.products.get("p1")!.variants = {
+      variantRows: [
+        { id: "r1", name: "Rouge / S", sku: "", priceCents: 0, stock: 1, commission: 20, sales: 0 },
+        { id: "r2", name: "Rouge / M", sku: "", priceCents: 0, stock: 5, commission: 20, sales: 0 },
+      ],
+    }
+    await fulfil(cartSession(oneLine(2, "c:Rouge|s:M"), [4000]))
+    expect(paidOrders()).toHaveLength(1)
+    expect(db.products.get("p1")!.variants.variantRows.map((r: { stock: number }) => r.stock)).toEqual([1, 3])
+    expect(db.products.get("p1")!.stock).toBe(4)
   })
 
   it("a sold-out variant is a shortfall even when the product total looks sufficient", async () => {

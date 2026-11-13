@@ -15,6 +15,16 @@ export type StockReservationResult =
 
 type LockedProductRow = { stock: number | null; variants: unknown; listingKind: string | null }
 
+/** A raw query may hand a json column back as text depending on the driver path: accept both. */
+function jsonColumn(value: unknown): unknown {
+  if (typeof value !== "string") return value
+  try {
+    return JSON.parse(value) as unknown
+  } catch {
+    return null
+  }
+}
+
 /**
  * Takes `qty` units from the stock of a product, inside the payment-processing transaction, so that the decrement
  * commits or rolls back WITH the order it pays for (a replayed webhook finds the order already paid and never gets
@@ -51,7 +61,7 @@ export async function reserveStockInTransaction(
   const plan = planStockMovement({
     listingKind: row.listingKind,
     stock: row.stock,
-    variants: row.variants,
+    variants: jsonColumn(row.variants),
     variantSignature: args.variantSignature,
     qty: args.qty,
   })
