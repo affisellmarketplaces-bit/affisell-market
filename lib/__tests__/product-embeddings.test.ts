@@ -14,6 +14,7 @@ import {
   visualCuesEmbeddingText,
 } from "@/lib/ai/product-embeddings"
 import { TOP_PRODUCTS_2026, catalogEmbeddingText } from "@/lib/ai/top-products-2026"
+import { redisKey } from "@/lib/redis-namespace"
 
 describe("product-embeddings", () => {
   it("TOP_PRODUCTS_2026 has 100 entries", () => {
@@ -58,7 +59,8 @@ describe("product-embeddings", () => {
     const a = productImageEmbedKey("url:https://cdn.example/a.jpg")
     const b = productImageEmbedKey("url:https://cdn.example/a.jpg")
     expect(a).toBe(b)
-    expect(a.startsWith("product:embed:")).toBe(true)
+    // the key carries the environment's Redis namespace (lib/redis-namespace.ts): "" in production, "test:" under Vitest
+    expect(a.startsWith(redisKey("product:embed:"))).toBe(true)
   })
 
   it("deterministic embed is stable", () => {

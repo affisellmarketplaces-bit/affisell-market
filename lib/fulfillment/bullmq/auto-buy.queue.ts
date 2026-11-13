@@ -6,6 +6,7 @@ import {
   getBullMqConnection,
   isAutoOrderQueueEnabled,
 } from "@/lib/auto-order/redis"
+import { bullmqPrefix } from "@/lib/redis-namespace"
 
 export const AUTO_BUY_QUEUE = "auto-buy"
 
@@ -32,6 +33,7 @@ export function getAutoBuyQueue(): Queue<AutoBuyJobData> {
   if (!queue) {
     queue = new Queue<AutoBuyJobData>(AUTO_BUY_QUEUE, {
       connection: getBullMqConnection(),
+      prefix: bullmqPrefix(), // "bull" in production (the BullMQ default: existing queue unchanged), "preview:bull" on a Preview
       defaultJobOptions: defaultJobOptions(),
     })
   }
@@ -85,6 +87,7 @@ export function createAutoBuyWorker(): Worker<AutoBuyJobData> {
     },
     {
       connection: createBullMqConnection(),
+      prefix: bullmqPrefix(),
       concurrency,
     }
   )

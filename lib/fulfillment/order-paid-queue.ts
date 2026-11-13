@@ -6,6 +6,7 @@ import {
   getBullMqConnection,
   isAutoOrderQueueEnabled,
 } from "@/lib/auto-order/redis"
+import { bullmqPrefix } from "@/lib/redis-namespace"
 
 /** BullMQ / Inngest event name for paid → AE DS place. */
 export const ORDER_PAID_QUEUE = "order-paid"
@@ -34,6 +35,7 @@ export function getOrderPaidQueue(): Queue<OrderPaidJobData> {
   if (!queue) {
     queue = new Queue<OrderPaidJobData>(ORDER_PAID_QUEUE, {
       connection: getBullMqConnection(),
+      prefix: bullmqPrefix(), // "bull" in production (the BullMQ default: existing queue unchanged), "preview:bull" on a Preview
       defaultJobOptions: defaultJobOptions(),
     })
   }
@@ -116,6 +118,7 @@ export function createOrderPaidWorker(): Worker<OrderPaidJobData> {
     },
     {
       connection: createBullMqConnection(),
+      prefix: bullmqPrefix(),
       concurrency,
     }
   )

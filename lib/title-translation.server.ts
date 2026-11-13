@@ -4,6 +4,7 @@ import { createHash } from "node:crypto"
 
 import { AnthropicError, anthropicChatText, hasAnthropicApiKey } from "@/lib/ai/anthropic-client"
 import type { AppLocale } from "@/lib/i18n-locale"
+import { redisKey } from "@/lib/redis-namespace"
 
 /**
  * Buyer-language product titles. A title written in another language (very common with imported supplier feeds)
@@ -63,7 +64,8 @@ async function getRedis(): Promise<RedisLike | null> {
 
 const norm = (t: string) => t.replace(/\s+/g, " ").trim()
 export function titleCacheKey(title: string, locale: AppLocale): string {
-  return `${KEY_PREFIX}:${locale}:${createHash("sha1").update(norm(title)).digest("hex").slice(0, 20)}`
+  // Namespaced (lib/redis-namespace.ts): "" in production, so existing cache entries stay valid; a Preview keeps its own.
+  return redisKey(`${KEY_PREFIX}:${locale}:${createHash("sha1").update(norm(title)).digest("hex").slice(0, 20)}`)
 }
 
 /** Tokens that carry hard facts (any digit: models, sizes, quantities) must survive translation verbatim. */
@@ -117,10 +119,10 @@ export async function translateAndStoreTitles(titles: string[], locale: AppLocal
   if (!redis || !hasAnthropicApiKey() || titles.length === 0) return 0
   const unique = [...new Set(titles.map(norm).filter(Boolean))].slice(0, MAX_NEW_PER_REQUEST)
 
-  const cooldownKey = `${KEY_PREFIX}:cooldown`
+  const cooldownKey = redisKey(`${KEY_PREFIX}:cooldown`)
   if (await redis.get(cooldownKey).catch(() => null)) return 0
   const day = new Date().toISOString().slice(0, 10)
-  const counterKey = `${KEY_PREFIX}:count:${day}`
+  const counterKey = redisKey(`${KEY_PREFIX}:count:${day}`)
   const used = await redis.incr(counterKey).catch(() => 0)
   if (used === 1) await redis.expire(counterKey, 60 * 60 * 26).catch(() => undefined)
   if (used > DAILY_CAP) return 0
