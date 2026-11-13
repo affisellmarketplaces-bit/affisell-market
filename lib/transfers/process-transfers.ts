@@ -8,6 +8,7 @@ import {
   PAYOUT_EXCEEDS_LINE_ERROR,
 } from "@/lib/money/split-guard"
 import { evaluateTransferReleaseForRole } from "@/lib/order-transfer-gating"
+import { isOrderClosedForPayout, settlementAfterTransfersSucceeded } from "@/lib/orders/payment-state"
 import {
   marketplaceRoleAlreadySettled,
   recordStripePayoutSettlement,
@@ -76,7 +77,8 @@ async function applyOrderSettlement(orderId: string) {
     }
   }
   if (splitStatus === "SUCCESS") {
-    data.paymentSettlementStatus = "SETTLED"
+    // Never overwrite a refund state with SETTLED (a charge refunded after the payouts left is owned by the clawback pipeline).
+    data.paymentSettlementStatus = settlementAfterTransfersSucceeded(order.paymentSettlementStatus)
     if (order.payoutStatus === "PENDING") {
       data.payoutStatus = "PAID"
     }
@@ -148,6 +150,22 @@ async function processOneAttempt(
       orderId: attempt.orderId,
       role: attempt.role,
       reason: "already_paid_via_lightning",
+    })
+    return "skipped"
+  }
+
+  // A refunded / cancelled order must not release a transfer: cancel the pending attempt instead of paying out of a
+  // charge that went back to the buyer (finalisation master doc, D1/D3).
+  if (isOrderClosedForPayout(attempt.order)) {
+    console.log("[transfer-gating]", {
+      orderId: attempt.orderId,
+      role: attempt.role,
+      reason: "order_closed",
+      status: attempt.order.status,
+      settlementStatus: attempt.order.paymentSettlementStatus,
+    })
+    await prisma.$transaction(async (tx) => {
+      await supersedePendingTransferAttempt(tx, attempt.orderId, attempt.role, "ORDER_CLOSED")
     })
     return "skipped"
   }
