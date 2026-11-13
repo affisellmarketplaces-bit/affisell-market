@@ -15,11 +15,14 @@
  * `orderChargedTotalCents`, `orderLineHtCents`): this module re-derives nothing, so the gate and the payouts cannot
  * disagree. What is left of the HT line after the two transfers is Affisell's own take (supplier fee + affiliate fee).
  *
- * FAIL CLOSED. A purchase is refused when the cost is unknown (no/zero AE price, negative values), when the revenue
- * is unknown, or when the margin is below the floor. A negative margin is always refused, whatever the floor says.
+ * FAIL CLOSED. A purchase is refused when the cost is unknown (no / zero / negative AE price, no / zero / negative shipping
+ * — a stored 0 is the column's default, not a quote), when the revenue is unknown, or when the margin is below the floor.
+ * A negative margin is always refused, whatever the floor says.
  *
- * Known modelling limit (documented, not hidden): returns, refunds, currency conversion and a stale AE price are NOT
- * modelled; VAT is assumed passed through (it is not part of the HT line).
+ * Known modelling limits (documented, not hidden): returns, refunds, currency conversion and a stale AE price are NOT
+ * modelled; VAT is assumed passed through (it is not part of the HT line). A variant row whose AE price was filled with
+ * the 100-cent placeholder written by `lib/admin/auto-fulfill/enlist-ae-product.ts` when the real price was unknown cannot be
+ * told apart from a genuine 1.00 EUR price here: that placeholder must be replaced by a real price on the link.
  */
 
 import { computeTransferAmountsFromOrder, estimateStripeFeeCents, orderSplitInputFromOrder } from "@/lib/marketplace-split-amounts"
@@ -75,7 +78,11 @@ export type AutoBuyMarginOrder = Parameters<typeof orderSplitInputFromOrder>[0] 
 export type AutoBuyMarginCost = {
   /** AE unit price of the SKU that will be bought. null / 0 / negative = unknown. */
   aeUnitPriceCents: number | null | undefined
-  /** AE shipping for the order. 0 is a legitimate value (free shipping); null / negative = unknown. */
+  /**
+   * AE shipping for the order. null / 0 / negative = UNKNOWN. Zero is not read as "free shipping": `SupplierLink.aeShippingCents`
+   * is `NOT NULL DEFAULT 0` and every importer writes 0 — nothing ever quotes the AliExpress freight — so a stored 0 almost
+   * always means "never entered". Enter a real (or deliberately conservative) amount on the link to allow purchases.
+   */
   aeShippingCents: number | null | undefined
 }
 
@@ -90,7 +97,7 @@ export function evaluateAutoBuyMargin(
 
   const unit = cost.aeUnitPriceCents
   const shipping = cost.aeShippingCents
-  if (!isCents(unit) || unit <= 0 || !isCents(shipping) || shipping < 0) {
+  if (!isCents(unit) || unit <= 0 || !isCents(shipping) || shipping <= 0) {
     return { allowed: false, reason: "cost_unknown", marginCents: null, floorCents, breakdown: null }
   }
 

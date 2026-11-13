@@ -19,9 +19,14 @@
  *
  * Outcome handling (what keeps a lost answer from becoming a second purchase):
  *   - supplier answered with an order id  → the caller records it, `markSupplierPurchasePlaced` moves the claim to BOUGHT;
- *   - supplier DEFINITIVELY refused       → `releaseSupplierPurchase` moves the claim to FAILED (a retry may buy again);
- *   - outcome UNKNOWN (timeout, crash, unreadable answer) → the claim stays BUYING. Replays then see "in progress" and do
- *     nothing (read-only); `reportInDoubtPurchase` alerts a human. A BUYING claim never expires into a new purchase.
+ *   - supplier DEFINITIVELY refused       → `releaseSupplierPurchase` moves the claim to FAILED (a retry may buy again). Only an
+ *     explicit, RECOGNISED refusal is definitive (`classifyPlaceOrderAnswer`, an allow-list);
+ *   - outcome UNKNOWN (timeout, unreadable / non-2xx answer, unknown gateway error, anything not on that list) → the claim stays
+ *     BUYING and the order is never sent again. Replays see "in progress" and do nothing (read-only); `reportInDoubtPurchase`
+ *     alerts (Sentry AND the ops webhook — the BullMQ worker never initialises Sentry). A BUYING claim never expires into a
+ *     new purchase;
+ *   - the PROCESS DIES between the claim and the answer → nobody is left to alert: the `sentinel-scan` cron
+ *     (`lib/sentinel/collectors/purchase-in-doubt.ts`) raises a P0 for every claim older than `PURCHASE_IN_DOUBT_AFTER_MS`.
  *
  * No schema change: the claim is the existing `FulfillmentLog` row (`orderId @unique`), which `auto-buy.ts` already used.
  */
@@ -36,7 +41,12 @@ import {
 } from "@/lib/fulfillment/auto-buy-margin"
 import { resolveManualSupplierSku } from "@/lib/fulfillment/resolve-manual-supplier-sku"
 import { resolveSupplierSkuForOrder } from "@/lib/fulfillment/resolve-supplier-sku"
-import { decideSupplierPurchase, type PurchaseDecision } from "@/lib/fulfillment/supplier-purchase-decision"
+import {
+  decideSupplierPurchase,
+  PURCHASE_IN_DOUBT_AFTER_MS,
+  type PurchaseDecision,
+} from "@/lib/fulfillment/supplier-purchase-decision"
+import { opsWebhookAlert } from "@/lib/ops-webhook"
 import { prisma } from "@/lib/prisma"
 import type { Prisma } from "@prisma/client"
 
@@ -64,7 +74,16 @@ const CLAIM_SELECT = {
   autoBuyLog: { select: { status: true, aeOrderId: true, attempts: true, updatedAt: true } },
   supplierFulfillmentLinks: {
     select: {
-      supplierFulfillmentOrder: { select: { id: true, supplierOrderId: true, status: true } },
+      supplierFulfillmentOrder: {
+        select: {
+          id: true,
+          supplierOrderId: true,
+          status: true,
+          // The adapter buys the job's FIRST line only (see `placeAliExpressOrderUnderClaim`): that line's order is the one the
+          // job's supplier order id belongs to. Lines are created in order, so the smallest id is the first one.
+          lines: { select: { orderId: true }, orderBy: { id: "asc" }, take: 1 },
+        },
+      },
     },
   },
 } satisfies Prisma.OrderSelect
@@ -194,6 +213,7 @@ export async function authorizeSupplierPurchase(args: {
           id: l.supplierFulfillmentOrder.id,
           supplierOrderId: l.supplierFulfillmentOrder.supplierOrderId,
           status: l.supplierFulfillmentOrder.status,
+          firstLineOrderId: l.supplierFulfillmentOrder.lines[0]?.orderId ?? null,
         })),
       },
       now
@@ -250,8 +270,9 @@ export async function markSupplierPurchasePlaced(orderId: string, supplierOrderI
  */
 export async function releaseSupplierPurchase(orderId: string, errorMsg: string): Promise<void> {
   try {
+    // Conditional: only the claim THIS caller holds (BUYING) is released — never a log another path already settled.
     await prisma.fulfillmentLog.updateMany({
-      where: { orderId },
+      where: { orderId, status: "BUYING" },
       data: { status: "FAILED", errorMsg: errorMsg.slice(0, 2000) },
     })
   } catch (e) {
@@ -260,6 +281,24 @@ export async function releaseSupplierPurchase(orderId: string, errorMsg: string)
       orderId,
       error: e instanceof Error ? e.message : String(e),
     })
+  }
+}
+
+/**
+ * Ops alert (Slack / Discord webhook). Sentry alone is not enough: the BullMQ worker process that runs the purchases
+ * (`workers/auto-order-worker.ts`) never initialises Sentry, so a `captureException` there goes nowhere. Bounded (3 s) and
+ * never throws — alerting must not hold up or break a purchase flow.
+ */
+async function sendOpsAlert(text: string): Promise<void> {
+  try {
+    await Promise.race([
+      opsWebhookAlert(text),
+      new Promise<void>((resolve) => {
+        setTimeout(resolve, 3_000).unref?.()
+      }),
+    ])
+  } catch {
+    /* alerting must never break the flow */
   }
 }
 
@@ -288,6 +327,10 @@ export async function reportMarginRefusal(
   } catch {
     /* alerting must never break the flow */
   }
+  await sendOpsAlert(
+    `Affisell - achat AliExpress REFUSE (marge) : commande ${orderId} (${path}). ${message}. ` +
+      `L'acheteur a paye : decision humaine requise (prix, plancher AUTO_BUY_MIN_MARGIN_CENTS, achat manuel ou remboursement).`
+  )
   await flagOrderForManualHandling(orderId, { margin: message, path, at: new Date().toISOString() })
 }
 
@@ -316,6 +359,12 @@ export async function reportInDoubtPurchase(info: {
   } catch {
     /* alerting must never break the flow */
   }
+  await sendOpsAlert(
+    `Affisell - ACHAT ALIEXPRESS EN DOUTE (${info.reason}) : commande ${info.orderId} (${info.path}). ` +
+      `Une commande peut exister chez AliExpress : verifier la liste des commandes AliExpress AVANT toute relance ou tout remboursement. ` +
+      (info.supplierOrderId ? `Identifiant AliExpress recu : ${info.supplierOrderId} (a reporter sur Order.supplierOrderId). ` : "") +
+      (info.error ? `Detail : ${info.error.slice(0, 300)}` : "")
+  )
   await flagOrderForManualHandling(info.orderId, {
     purchase_in_doubt: info.reason,
     path: info.path,
@@ -324,11 +373,26 @@ export async function reportInDoubtPurchase(info: {
   })
 }
 
+/**
+ * Replay-time detection for the paths that answer "in progress" without going through `authorizeSupplierPurchase`
+ * (the `order.paid` fast path): a claim older than `PURCHASE_IN_DOUBT_AFTER_MS` is reported. Never throws.
+ */
+export async function reportStaleClaimIfOld(orderId: string, path: SupplierPurchasePath, claimUpdatedAt: Date | null): Promise<void> {
+  if (!claimUpdatedAt || Date.now() - claimUpdatedAt.getTime() <= PURCHASE_IN_DOUBT_AFTER_MS) return
+  await reportInDoubtPurchase({ orderId, path, reason: "stale_claim" })
+}
+
 async function flagOrderForManualHandling(orderId: string, trace: Record<string, string>): Promise<void> {
   try {
+    // Append to what is already there (the supplier's own error, an earlier flag): a trace must not erase another one.
+    const existing = await prisma.order.findUnique({ where: { id: orderId }, select: { fulfillmentErrors: true } })
+    const prior = Array.isArray(existing?.fulfillmentErrors) ? existing.fulfillmentErrors : []
     await prisma.order.update({
       where: { id: orderId },
-      data: { fulfillmentStatus: "MANUAL_REQUIRED", fulfillmentErrors: [trace] as Prisma.InputJsonValue },
+      data: {
+        fulfillmentStatus: "MANUAL_REQUIRED",
+        fulfillmentErrors: [...prior.slice(-9), trace] as Prisma.InputJsonValue,
+      },
     })
   } catch (e) {
     console.error("[supplier-purchase]", {

@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/nextjs"
 
 import { cancelAliExpressDsOrder } from "@/lib/aliexpress-ds-cancel-order"
 import { resolveSupplierAdapterForGroup } from "@/lib/suppliers/place-order-bridge"
+import { opsWebhookAlert } from "@/lib/ops-webhook"
 import { prisma } from "@/lib/prisma"
 
 /**
@@ -56,11 +57,38 @@ function alertManualCancelRequired(args: {
       extra: args,
     })
   }
+  // Sentry alone is not enough (the BullMQ worker never initialises it): also tell the ops channel. Fire-and-forget.
+  void opsWebhookAlert(
+    `Affisell - commande fournisseur a ANNULER A LA MAIN apres remboursement : commande ${args.orderId} (${args.channel}` +
+      `${args.externalOrderId ? `, ref ${args.externalOrderId}` : ""}). Raison : ${args.reason}.`
+  ).catch(() => undefined)
 }
 
 async function attemptViaLegacyAutoBuy(orderId: string): Promise<ExternalCancelOutcome | null> {
   const log = await prisma.fulfillmentLog.findUnique({ where: { orderId } })
   if (!log) return null
+
+  // A claim with no recorded outcome is a purchase IN DOUBT (`lib/fulfillment/supplier-purchase-guard.ts`): AliExpress may have
+  // created the order and the answer was lost. Refunding the buyer must not silently forget it — there is nothing to cancel
+  // automatically (no order id), so it is flagged for a human, who checks the AliExpress order list and cancels if it exists.
+  if (log.status === "BUYING") {
+    if (log.externalCancelStatus !== "NOT_ATTEMPTED") {
+      return { outcome: "already_handled", status: log.externalCancelStatus }
+    }
+    const reason = "purchase_in_doubt"
+    await prisma.fulfillmentLog.update({
+      where: { orderId },
+      data: {
+        externalCancelStatus: "MANUAL_REQUIRED",
+        externalCancelAttemptedAt: new Date(),
+        externalCancelNote:
+          "Order refunded while its AliExpress purchase was IN DOUBT (claim without outcome). Check the AliExpress order list: if an order exists, cancel it (after-sales) and record its id; if none exists, nothing to do.",
+      },
+    })
+    alertManualCancelRequired({ orderId, channel: "ALIEXPRESS", externalOrderId: null, reason })
+    return { outcome: "manual_required", reason, channel: "ALIEXPRESS" }
+  }
+
   if (log.status !== "BOUGHT") return { outcome: "not_applicable" }
   if (log.externalCancelStatus !== "NOT_ATTEMPTED") {
     return { outcome: "already_handled", status: log.externalCancelStatus }

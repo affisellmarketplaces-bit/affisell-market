@@ -3,10 +3,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { createFakePurchaseDb, type FakePurchaseDb } from "@/lib/fulfillment/__tests__/helpers/fake-purchase-db"
 import { LOSS_MAKING_SALE, makeFakeOrder } from "@/lib/fulfillment/__tests__/helpers/order-fixtures"
 
-const h = vi.hoisted(() => ({ db: null as unknown, sentry: [] as unknown[][] }))
+const h = vi.hoisted(() => ({ db: null as unknown, sentry: [] as unknown[][], ops: [] as string[] }))
 
 vi.mock("@/lib/prisma", () => ({
   prisma: new Proxy({}, { get: (_t, key) => (h.db as Record<string | symbol, unknown>)[key] }),
+}))
+vi.mock("@/lib/ops-webhook", () => ({
+  opsWebhookAlert: async (text: string) => {
+    h.ops.push(text)
+    return { slack: true, discord: false }
+  },
 }))
 vi.mock("@sentry/nextjs", () => ({
   captureException: (...args: unknown[]) => {
@@ -19,6 +25,7 @@ import {
   markSupplierPurchasePlaced,
   releaseSupplierPurchase,
   reportInDoubtPurchase,
+  reportStaleClaimIfOld,
   SUPPLIER_PURCHASE_LOCK_PREFIX,
 } from "@/lib/fulfillment/supplier-purchase-guard"
 
@@ -34,6 +41,7 @@ function setup(orderOver: Record<string, unknown> = {}, sale?: Parameters<typeof
 beforeEach(() => {
   clock = new Date("2026-11-13T12:00:00Z")
   h.sentry.length = 0
+  h.ops.length = 0
   delete process.env.AUTO_BUY_MIN_MARGIN_CENTS
   setup()
 })
@@ -144,6 +152,24 @@ describe("authorizeSupplierPurchase — the state is re-read INSIDE the lock, fr
     expect(db.logs.has("o1")).toBe(false)
   })
 
+  it("ONE engine job groups the cart's orders but buys only the first: the SECOND order is still purchasable (#1)", async () => {
+    db = createFakePurchaseDb({
+      orders: [makeFakeOrder("o1"), makeFakeOrder("o2")],
+      jobs: [{ id: "job1", supplierOrderId: "AE-A", status: "PROCESSING", orderIds: ["o1", "o2"] }],
+      now: () => clock,
+    })
+    h.db = db.prisma
+    expect(await authorizeSupplierPurchase({ orderId: "o1", path: "engine", now: clock })).toMatchObject({
+      kind: "already_placed",
+      supplierOrderId: "AE-A",
+      evidence: "job",
+    })
+    const second = await authorizeSupplierPurchase({ orderId: "o2", path: "order_paid", now: clock })
+    expect(second).toMatchObject({ kind: "go", attempt: 1 })
+    expect(db.logs.get("o2")?.status).toBe("BUYING")
+    expect(db.logs.has("o1")).toBe(false)
+  })
+
   it("a FAILED engine job does not block", async () => {
     setup()
     db.jobs.push({ id: "job1", supplierOrderId: null, status: "FAILED", orderIds: ["o1"] })
@@ -239,6 +265,68 @@ describe("authorizeSupplierPurchase — margin gate (G3)", () => {
     const [a, b] = await Promise.all([go("auto_buy"), go("engine")])
     expect([a.kind, b.kind]).toEqual(["margin_refused", "margin_refused"])
     expect(db.logs.has("o1")).toBe(false)
+  })
+})
+
+describe("alerts reach the ops channel, not only Sentry (the BullMQ worker never initialises Sentry)", () => {
+  it("a margin refusal posts to the ops webhook, with the order id and the refusal", async () => {
+    setup({}, LOSS_MAKING_SALE)
+    await go("engine")
+    expect(h.ops).toHaveLength(1)
+    expect(h.ops[0]).toContain("o1")
+    expect(h.ops[0]).toMatch(/MARGIN_REFUSED:margin_below_floor/)
+  })
+
+  it("an outcome in doubt posts to the ops webhook and says to check AliExpress BEFORE any retry or refund", async () => {
+    await go()
+    await reportInDoubtPurchase({ orderId: "o1", path: "auto_buy", reason: "supplier_outcome_uncertain", error: "Remote service error" })
+    expect(h.ops).toHaveLength(1)
+    expect(h.ops[0]).toContain("EN DOUTE")
+    expect(h.ops[0]).toContain("AVANT toute relance")
+  })
+
+  it("a purchase placed but not recorded posts the AliExpress id: it is stored nowhere else", async () => {
+    await go()
+    ;(db.prisma.fulfillmentLog as { updateMany: unknown }).updateMany = async () => {
+      throw new Error("db down")
+    }
+    await markSupplierPurchasePlaced("o1", "AE-777")
+    expect(h.ops.some((t) => t.includes("AE-777"))).toBe(true)
+  })
+
+  it("a stale claim seen by the authorize path posts to the ops webhook", async () => {
+    await go()
+    clock = new Date(clock.getTime() + 20 * 60_000)
+    await go("order_paid")
+    expect(h.ops).toHaveLength(1)
+    expect(h.ops[0]).toContain("stale_claim")
+  })
+
+  it("reportStaleClaimIfOld (the order.paid fast path): silent while fresh, alerts once old", async () => {
+    await reportStaleClaimIfOld("o1", "order_paid", new Date(Date.now() - 60_000))
+    expect(h.ops).toHaveLength(0)
+    await reportStaleClaimIfOld("o1", "order_paid", null)
+    expect(h.ops).toHaveLength(0)
+    await reportStaleClaimIfOld("o1", "order_paid", new Date(Date.now() - 16 * 60_000))
+    expect(h.ops).toHaveLength(1)
+  })
+
+  it("the manual-handling flag APPENDS to the order's earlier errors instead of erasing them", async () => {
+    setup({ fulfillmentErrors: [{ supplier: "INVENTORY_SHORTAGE" }] })
+    await reportInDoubtPurchase({ orderId: "o1", path: "engine", reason: "supplier_outcome_uncertain" })
+    const errors = db.orders.get("o1")?.fulfillmentErrors as Array<Record<string, string>>
+    expect(errors).toHaveLength(2)
+    expect(errors[0]).toEqual({ supplier: "INVENTORY_SHORTAGE" })
+    expect(errors[1]).toMatchObject({ purchase_in_doubt: "supplier_outcome_uncertain" })
+  })
+})
+
+describe("releaseSupplierPurchase is conditional (#2)", () => {
+  it("releases only a BUYING claim: a log another path already settled is left alone", async () => {
+    await go()
+    await markSupplierPurchasePlaced("o1", "AE-1")
+    await releaseSupplierPurchase("o1", "late definitive failure of a stale caller")
+    expect(db.logs.get("o1")).toMatchObject({ status: "BOUGHT", aeOrderId: "AE-1" })
   })
 })
 

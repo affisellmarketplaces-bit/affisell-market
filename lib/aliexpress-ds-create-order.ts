@@ -9,6 +9,7 @@ import {
   type AliExpressLogisticsAddress,
 } from "@/lib/aliexpress-mapping"
 import { getValidAccessToken } from "@/lib/aliexpress-oauth"
+import { isAliExpressIllegalAccessTokenError } from "@/lib/aliexpress-token-errors"
 import {
   AliExpressApiError,
   AliExpressClient,
@@ -141,19 +142,79 @@ function isRetryableMethodError(message: string): boolean {
 }
 
 /**
- * A thrown error after the request left the building does not tell whether AliExpress created the order.
- * Gateway / business errors (`AliExpressApiError` carrying AE's own message) are definitive rejections; a timeout, an
- * unreadable (non-JSON) answer or any non-AE error (network reset, DNS, TLS…) is ambiguous.
+ * What an answer to a place-order request tells us about the order — an ALLOW-LIST, never a deny-list.
+ *
+ *   "try_next_method" : the gateway rejected the CALL before AliExpress processed anything (unknown method, no permission,
+ *                       bad signature / timestamp): nothing was created, the same order may go to the next method / host.
+ *   "rate_limited"    : AliExpress throttled the call (explicit flag or wording): nothing was created, back off and retry.
+ *   "definitive"      : an explicit, RECOGNISED business refusal (address, stock, price, SKU, shipping…) or a dead token:
+ *                       nothing was created and re-sending the same order cannot help.
+ *   "uncertain"       : EVERYTHING ELSE — a timeout, a network error, an unreadable or non-2xx answer, a gateway/ISP/ISV error
+ *                       whose text is not on the list ("Remote service error", "remote connection timeout"…), a 2xx without
+ *                       an order id and without a recognised refusal. A request that may have reached AliExpress produced
+ *                       an answer we cannot read: the order MAY exist. It must NEVER be sent again, retried or released.
  */
-export function isAmbiguousPlaceOrderError(e: unknown): boolean {
-  if (!(e instanceof AliExpressApiError)) return true
-  const m = e.message.toLowerCase()
-  return m.includes("timed out") || m.includes("non-json")
+export type PlaceOrderAnswerClass = "try_next_method" | "rate_limited" | "definitive" | "uncertain"
+
+const sep = (text: string): string => text.toUpperCase().replace(/[_\-.:/]+/g, " ")
+
+/**
+ * Words of a TRANSPORT / SERVER fault, not of a business refusal ("remote connection timeout", "Remote service error",
+ * "connect to remote address refused", "HTTP 503"…). When one is present the answer is uncertain, whatever else it says:
+ * a word like ADDRESS or PRICE inside a fault message must not turn it into a "definitive refusal".
+ */
+const FAULT_WORDS =
+  /\b(TIMEOUT|TIMED OUT|CONNECT(ION)?|UNREACHABLE|REFUSED|RESET|REMOTE|UPSTREAM|DOWNSTREAM|GATEWAY|PROXY|HOST|SERVER|IP|SERVICE ERROR|SERVICE UNAVAILABLE|INTERNAL|SYSTEM ERROR|UNKNOWN ERROR|BUSY|HTTP \d{3}|ISP|NON JSON)\b/
+
+/** Business refusals AliExpress makes BEFORE creating an order. Matched on whole words of the upper-cased, de-punctuated text. */
+const KNOWN_BUSINESS_REFUSALS: readonly RegExp[] = [
+  /\bADDRESS\b/,
+  /\bINVENTORY\b/,
+  /\bSTOCK\b/,
+  /\bPRICE\b/,
+  /\b(INVALID|ILLEGAL|NOT EXIST|NOT FOUND) SKU\b/,
+  /\bSKU (INVALID|ILLEGAL|NOT EXIST|NOT FOUND|NOT AVAILABLE)\b/,
+  /\bPRODUCT (NOT EXIST|NOT FOUND|OFFLINE|OFF SHELF|UNAVAILABLE|IS OFFLINE)\b/,
+  /\b(SHIPPING|LOGISTICS|DELIVERY) (NOT|UNAVAILABLE|UNSUPPORTED)\b/,
+  /\bNOT SUPPORT(ED)? (SHIP|DELIVER)/,
+  /\bA00\d*\b/,
+]
+
+/** Gateway rejections of the CALL itself (nothing processed). `isRetryableMethodError` + signature / timestamp. */
+function isGatewayCallRejection(message: string): boolean {
+  if (isRetryableMethodError(message)) return true
+  const m = message.toLowerCase()
+  return (
+    m.includes("invalid signature") ||
+    m.includes("invalid-signature") ||
+    m.includes("signature is invalid") ||
+    m.includes("sign check") ||
+    m.includes("invalid timestamp") ||
+    m.includes("invalid-timestamp") ||
+    m.includes("timestamp is invalid")
+  )
 }
 
-function isRateLimitError(message: string): boolean {
-  const m = message.toLowerCase()
-  return m.includes("rate") || m.includes("limit") || m.includes("too many") || m.includes("throttle")
+function isThrottled(message: string, rateLimited: boolean): boolean {
+  if (rateLimited) return true
+  return /too many requests|throttl|flow control|rate limit|request frequency/i.test(message)
+}
+
+export function classifyPlaceOrderAnswer(answer: { message: string; code?: string | number; rateLimited?: boolean }): PlaceOrderAnswerClass {
+  const text = `${answer.code ?? ""} ${answer.message}`
+  if (isGatewayCallRejection(text)) return "try_next_method"
+  if (isThrottled(answer.message, answer.rateLimited === true)) return "rate_limited"
+  const normalised = sep(text)
+  if (FAULT_WORDS.test(normalised)) return "uncertain"
+  if (isAliExpressIllegalAccessTokenError(answer.message)) return "definitive"
+  if (KNOWN_BUSINESS_REFUSALS.some((re) => re.test(normalised))) return "definitive"
+  return "uncertain"
+}
+
+/** A thrown error: only an `AliExpressApiError` carrying AliExpress's own words can be classified; anything else is uncertain. */
+export function classifyPlaceOrderError(e: unknown): PlaceOrderAnswerClass {
+  if (!(e instanceof AliExpressApiError)) return "uncertain"
+  return classifyPlaceOrderAnswer({ message: e.message, code: e.code, rateLimited: e.rateLimited })
 }
 
 /** AE place-order logistics_address (official DTO fields). */
@@ -299,6 +360,7 @@ export async function createAliExpressDsOrder(
             appSecret: config.appSecret,
             accessToken,
             host,
+            strictHttpStatus: true,
           })
           const { orderId, trackingPreview } = extractOrderId(payload)
           if (orderId) {
@@ -316,16 +378,15 @@ export async function createAliExpressDsOrder(
             }
           }
 
-          // Business failure without order id (address / stock / payment)
+          // A 2xx answer without an order id: only an explicit, recognised refusal means "nothing was created".
           const root = asRecord(payload) ?? {}
           const place =
             asRecord(root.aliexpress_trade_buy_placeorder_response) ??
             asRecord(root.aliexpress_ds_order_create_response) ??
             root
           const result = asRecord(place.result) ?? place
-          const bizMsg =
-            pickString(result, ["error_code", "error_msg", "msg", "message", "sub_msg"]) ||
-            "aliexpress_ds_order_id_missing"
+          const explicit = pickString(result, ["error_code", "error_msg", "msg", "message", "sub_msg"])
+          const bizMsg = explicit || "aliexpress_ds_order_id_missing"
           lastError = bizMsg
           lastPayload = {
             method: label,
@@ -341,20 +402,16 @@ export async function createAliExpressDsOrder(
             bizMsg,
             ...addrLog,
           })
-          // Don't retry other hosts for clear business errors
-          if (
-            bizMsg.includes("ADDRESS") ||
-            bizMsg.includes("INVENTORY") ||
-            bizMsg.includes("PRICE") ||
-            bizMsg.startsWith("A00")
-          ) {
-            return {
-              ok: false,
-              error: bizMsg,
-              methodAttempts,
-              debugPayload: lastPayload,
-            }
+          const verdict = explicit ? classifyPlaceOrderAnswer({ message: explicit }) : "uncertain"
+          if (verdict === "definitive") {
+            return { ok: false, error: bizMsg, methodAttempts, debugPayload: lastPayload }
           }
+          if (verdict === "uncertain") {
+            // Reached AliExpress, no order id, no recognised refusal: the order may exist. Do not send it again.
+            console.log("[aliexpress-ds-create]", { result: "outcome_uncertain", method: label, bizMsg, ...addrLog })
+            return { ok: false, error: bizMsg, methodAttempts, debugPayload: lastPayload, outcomeUncertain: true }
+          }
+          // try_next_method / rate_limited: the call was rejected before anything was processed — go on.
         } catch (e) {
           const message =
             e instanceof AliExpressApiError
@@ -371,9 +428,11 @@ export async function createAliExpressDsOrder(
             error: message,
           }
 
-          // The first request may have created the order: sending the same order again on another host/method would
-          // buy twice. Stop here and report the outcome as unknown.
-          if (isAmbiguousPlaceOrderError(e)) {
+          const verdict = classifyPlaceOrderError(e)
+
+          // The request may have created the order and the answer is unreadable: sending the same order again on another
+          // host / method would buy twice. Stop here and report the outcome as unknown.
+          if (verdict === "uncertain") {
             console.log("[aliexpress-ds-create]", {
               result: "outcome_uncertain",
               method: label,
@@ -389,7 +448,12 @@ export async function createAliExpressDsOrder(
             }
           }
 
-          if (isRateLimitError(message) && attempt < maxAttempts) {
+          // A recognised business refusal / dead token: nothing was created and the same order cannot succeed elsewhere.
+          if (verdict === "definitive") {
+            return { ok: false, error: message, methodAttempts, debugPayload: lastPayload }
+          }
+
+          if (verdict === "rate_limited" && attempt < maxAttempts) {
             const delayMs = 800 * 2 ** (attempt - 1)
             console.log("[aliexpress-ds-create]", {
               result: "rate_limit_backoff",
@@ -402,7 +466,7 @@ export async function createAliExpressDsOrder(
           }
 
           console.log("[aliexpress-ds-create]", {
-            result: isRetryableMethodError(message) ? "method_unavailable" : "method_error",
+            result: verdict === "try_next_method" ? "method_unavailable" : "rate_limited",
             method: label,
             message,
             ...addrLog,

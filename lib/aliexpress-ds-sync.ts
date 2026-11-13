@@ -37,15 +37,21 @@ function pickString(obj: Record<string, unknown> | null, keys: string[]): string
   return ""
 }
 
-function parseGatewayError(json: unknown): string | null {
+function parseGatewayErrorDetail(json: unknown): { message: string; code?: string } | null {
   const root = asRecord(json)
   if (!root) return null
   if (root.type === "ISV" || root.type === "ISP") {
-    return pickString(root, ["message", "msg", "sub_msg", "error"]) || "AliExpress ISV error"
+    return {
+      message: pickString(root, ["message", "msg", "sub_msg", "error"]) || "AliExpress ISV error",
+      code: pickString(root, ["code", "sub_code", "error_code"]) || undefined,
+    }
   }
   const err = asRecord(root.error_response)
   if (err) {
-    return pickString(err, ["sub_msg", "msg", "message", "error"]) || "AliExpress API error"
+    return {
+      message: pickString(err, ["sub_msg", "msg", "message", "error"]) || "AliExpress API error",
+      code: pickString(err, ["sub_code", "code", "error_code"]) || undefined,
+    }
   }
   return null
 }
@@ -114,6 +120,12 @@ export async function callAliExpressSyncMethod(args: {
   accessToken: string
   host: string
   strategy?: DsSyncStrategy
+  /**
+   * Write calls (place order): an HTTP status outside 2xx whose body is not a recognised error envelope is NOT a normal
+   * answer — it is thrown as `AliExpressApiError` with code `HTTP_<status>` instead of being read as a payload. Off by default:
+   * read-only callers keep their historical behaviour.
+   */
+  strictHttpStatus?: boolean
 }): Promise<unknown> {
   const strategy = args.strategy ?? DS_PRODUCT_STRATEGIES[0]!
   const params: Record<string, string> = {
@@ -178,9 +190,9 @@ export async function callAliExpressSyncMethod(args: {
     throw new AliExpressApiError(`AliExpress non-JSON (HTTP ${res.status})`)
   }
 
-  const gatewayError = parseGatewayError(json)
+  const gatewayError = parseGatewayErrorDetail(json)
   if (gatewayError) {
-    throw new AliExpressApiError(gatewayError)
+    throw new AliExpressApiError(gatewayError.message, gatewayError.code ? { code: gatewayError.code } : undefined)
   }
 
   const methodNode = unwrapAliExpressMethodResponse(json, args.method)
@@ -195,6 +207,10 @@ export async function callAliExpressSyncMethod(args: {
         "AliExpress business error"
       throw new AliExpressApiError(msg, { code: rspCode, rateLimited: Number(rspCode) === 40 })
     }
+  }
+
+  if (args.strictHttpStatus && (res.status < 200 || res.status >= 300)) {
+    throw new AliExpressApiError(`AliExpress HTTP ${res.status}`, { code: `HTTP_${res.status}` })
   }
 
   return json

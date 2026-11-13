@@ -50,7 +50,11 @@ describe("evaluateAutoBuyMargin — fail closed", () => {
     ["negative AE price", cost(-500, 100)],
     ["NaN AE price", cost(Number.NaN, 100)],
     ["unknown shipping", cost(500, null)],
+    ["undefined shipping", cost(500, undefined)],
+    // SupplierLink.aeShippingCents is NOT NULL DEFAULT 0 and every importer writes 0: a stored 0 is "never entered", not "free"
+    ["zero shipping (the column default — never quoted)", cost(500, 0)],
     ["negative shipping", cost(500, -1)],
+    ["zero price AND zero shipping", cost(0, 0)],
   ])("refuses when the cost is unknown: %s", (_label, c) => {
     const d = evaluateAutoBuyMargin(orderOf(), c, { minMarginCents: 0 })
     expect(d.allowed).toBe(false)
@@ -67,9 +71,15 @@ describe("evaluateAutoBuyMargin — fail closed", () => {
     if (!d.allowed) expect(d.reason).toBe("revenue_unknown")
   })
 
-  it("a zero shipping cost is legitimate (free shipping), not 'unknown'", () => {
-    const d = evaluateAutoBuyMargin(orderOf(), cost(500, 0))
-    expect(d.allowed).toBe(true)
+  it("the scenario of the review: price 0 + shipping 0 on a sale that would clear the floor is REFUSED, not approved", () => {
+    // Without the fix, margin = (what Affisell keeps) - Stripe - 0 >= floor => a loss-making purchase was authorised
+    // whenever the real AliExpress price and freight were simply never entered.
+    const d = evaluateAutoBuyMargin(orderOf(), cost(0, 0), { minMarginCents: 0 })
+    expect(d).toMatchObject({ allowed: false, reason: "cost_unknown", marginCents: null })
+  })
+
+  it("a known, non-zero shipping amount is accepted", () => {
+    expect(evaluateAutoBuyMargin(orderOf(), cost(500, 1)).allowed).toBe(true)
   })
 })
 

@@ -8,7 +8,9 @@ const {
   resolveAdapterMock,
   cancelOrderMock,
   cancelAliExpressDsOrderMock,
+  opsWebhookAlertMock,
 } = vi.hoisted(() => ({
+  opsWebhookAlertMock: vi.fn(async (_text: string) => ({ slack: false, discord: false })),
   fulfillmentLogFindUniqueMock: vi.fn(),
   fulfillmentLogUpdateMock: vi.fn(),
   lineFindFirstMock: vi.fn(),
@@ -37,6 +39,8 @@ vi.mock("@/lib/suppliers/place-order-bridge", () => ({
   resolveSupplierAdapterForGroup: resolveAdapterMock,
 }))
 
+vi.mock("@/lib/ops-webhook", () => ({ opsWebhookAlert: opsWebhookAlertMock }))
+
 vi.mock("@/lib/aliexpress-ds-cancel-order", () => ({
   cancelAliExpressDsOrder: cancelAliExpressDsOrderMock,
 }))
@@ -64,6 +68,39 @@ describe("attemptExternalOrderCancellation", () => {
     })
     const result = await attemptExternalOrderCancellation("order_2")
     expect(result).toEqual({ outcome: "not_applicable" })
+  })
+
+  it("a refund on a purchase IN DOUBT (log still BUYING) is flagged for a human: no cancel call, manual_required, ops alert (C2)", async () => {
+    fulfillmentLogFindUniqueMock.mockResolvedValue({
+      status: "BUYING",
+      aeOrderId: null,
+      externalCancelStatus: "NOT_ATTEMPTED",
+    })
+    const result = await attemptExternalOrderCancellation("order_doubt")
+    expect(result).toEqual({ outcome: "manual_required", reason: "purchase_in_doubt", channel: "ALIEXPRESS" })
+    expect(cancelAliExpressDsOrderMock).not.toHaveBeenCalled()
+    expect(fulfillmentLogUpdateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { orderId: "order_doubt" },
+        data: expect.objectContaining({ externalCancelStatus: "MANUAL_REQUIRED" }),
+      })
+    )
+    expect(opsWebhookAlertMock).toHaveBeenCalledTimes(1)
+    expect(String(opsWebhookAlertMock.mock.calls[0]![0])).toContain("order_doubt")
+    expect(String(opsWebhookAlertMock.mock.calls[0]![0])).toContain("purchase_in_doubt")
+  })
+
+  it("a second refund on the same in-doubt purchase is already handled (idempotent, no second alert)", async () => {
+    fulfillmentLogFindUniqueMock.mockResolvedValue({
+      status: "BUYING",
+      aeOrderId: null,
+      externalCancelStatus: "MANUAL_REQUIRED",
+    })
+    expect(await attemptExternalOrderCancellation("order_doubt")).toEqual({
+      outcome: "already_handled",
+      status: "MANUAL_REQUIRED",
+    })
+    expect(opsWebhookAlertMock).not.toHaveBeenCalled()
   })
 
   it("marks REQUESTED (not CANCELLED) when AliExpress's afterpay API accepts the cancellation", async () => {

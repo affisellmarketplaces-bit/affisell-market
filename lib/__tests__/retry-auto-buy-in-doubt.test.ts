@@ -9,13 +9,17 @@ const h = vi.hoisted(() => ({
   log: null as Record<string, unknown> | null,
   updates: [] as unknown[],
   enqueued: [] as unknown[],
+  resetCount: 1,
 }))
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     fulfillmentLog: {
       findUnique: async () => h.log,
-      update: async (a: unknown) => void h.updates.push(a),
+      updateMany: async (a: unknown) => {
+        h.updates.push(a)
+        return { count: h.resetCount }
+      },
     },
   },
 }))
@@ -27,11 +31,12 @@ import { canRetryAutoBuyLog, retryAdminAutoBuyFulfillmentLog } from "@/lib/admin
 
 const minutesAgo = (m: number) => new Date(Date.now() - m * 60_000)
 
-function logWith(status: string, ageMinutes: number, attempts = 1) {
+function logWith(status: string, ageMinutes: number, attempts = 1, errorMsg: string | null = null) {
   h.log = {
     id: "log1",
     status,
     attempts,
+    errorMsg,
     updatedAt: minutesAgo(ageMinutes),
     order: {
       id: "o1",
@@ -43,6 +48,7 @@ function logWith(status: string, ageMinutes: number, attempts = 1) {
 beforeEach(() => {
   h.updates.length = 0
   h.enqueued.length = 0
+  h.resetCount = 1
 })
 
 describe("canRetryAutoBuyLog", () => {
@@ -76,8 +82,35 @@ describe("retryAdminAutoBuyFulfillmentLog", () => {
   it("a FAILED log (definitive failure) is still reset to PENDING and re-enqueued (unchanged)", async () => {
     logWith("FAILED", 120, 1)
     expect(await retryAdminAutoBuyFulfillmentLog("log1")).toMatchObject({ ok: true, fulfillmentLogId: "log1" })
-    expect(h.updates).toEqual([{ where: { id: "log1" }, data: { status: "PENDING", errorMsg: null } }])
+    // conditional on the state we read, and the last error is kept (not nulled): the next claim clears it
+    expect(h.updates).toEqual([{ where: { id: "log1", status: "FAILED" }, data: { status: "PENDING" } }])
     expect(h.enqueued).toEqual([{ fulfillmentLogId: "log1" }])
+  })
+
+  it("a FAILED log claimed by another path between the read and the reset is NOT reset and NOT re-enqueued (#2)", async () => {
+    logWith("FAILED", 120, 1)
+    h.resetCount = 0 // the conditional update matched nothing: the log is no longer FAILED
+    expect(await retryAdminAutoBuyFulfillmentLog("log1")).toEqual({ ok: false, error: "log_state_changed", status: 409 })
+    expect(h.enqueued).toHaveLength(0)
+  })
+
+  it("a margin-refused log answers `margin_refused` with the trace, and changes nothing (#6)", async () => {
+    const trace = "MARGIN_REFUSED:margin_below_floor:margin=-636:floor=300"
+    logWith("FAILED", 120, 0, trace)
+    expect(await retryAdminAutoBuyFulfillmentLog("log1")).toEqual({
+      ok: false,
+      error: "margin_refused",
+      status: 409,
+      detail: trace,
+    })
+    expect(h.updates).toHaveLength(0) // the trace is NOT erased, the log is NOT flipped to PENDING
+    expect(h.enqueued).toHaveLength(0) // and no job is "queued" that the queue would silently ignore
+  })
+
+  it("an unknown-cost refusal is explicit too", async () => {
+    logWith("FAILED", 5, 0, "MARGIN_REFUSED:cost_unknown:margin=n/a:floor=300")
+    expect(await retryAdminAutoBuyFulfillmentLog("log1")).toMatchObject({ ok: false, error: "margin_refused" })
+    expect(h.updates).toHaveLength(0)
   })
 
   it("a PENDING log is simply re-enqueued (unchanged)", async () => {

@@ -1,6 +1,6 @@
 import { Job, Queue, Worker, type JobsOptions } from "bullmq"
 
-import { fulfillAffisellOrderWithAliExpress } from "@/lib/aliexpress-fulfill-order"
+import { fulfillAffisellOrderWithAliExpress, isNeverRetryFulfillError } from "@/lib/aliexpress-fulfill-order"
 import {
   createBullMqConnection,
   getBullMqConnection,
@@ -96,10 +96,11 @@ export function createOrderPaidWorker(): Worker<OrderPaidJobData> {
       const result = await fulfillAffisellOrderWithAliExpress(job.data.orderId)
       if (!result.ok) {
         const retryable =
-          result.error.includes("rate") ||
-          result.error.includes("limit") ||
-          result.error.includes("timeout") ||
-          result.error.includes("temporarily")
+          !isNeverRetryFulfillError(result.error) &&
+          (result.error.includes("rate") ||
+            result.error.includes("limit") ||
+            result.error.includes("timeout") ||
+            result.error.includes("temporarily"))
         if (retryable) {
           throw new Error(result.error)
         }

@@ -45,7 +45,10 @@ describe("decideSupplierPurchase — evidence of a purchase wins", () => {
 
   it("an engine job carrying a supplier order id => already placed, unless FAILED / CANCELLED", () => {
     const withJob = (status: string, supplierOrderId: string | null) =>
-      decideSupplierPurchase(snap({ jobs: [{ id: "j1", supplierOrderId, status: status as never }] }), NOW)
+      decideSupplierPurchase(
+        snap({ jobs: [{ id: "j1", supplierOrderId, status: status as never, firstLineOrderId: "o1" }] }),
+        NOW
+      )
     expect(withJob("PROCESSING", "AE77")).toEqual({ kind: "already_placed", supplierOrderId: "AE77", evidence: "job" })
     expect(withJob("CONFIRMED", "AE77").kind).toBe("already_placed")
     expect(withJob("SHIPPED", "AE77").kind).toBe("already_placed")
@@ -53,6 +56,25 @@ describe("decideSupplierPurchase — evidence of a purchase wins", () => {
     expect(withJob("CANCELLED", "AE77").kind).toBe("claim")
     // a job that has no supplier order id yet is NOT evidence (the engine creates it PROCESSING before it buys)
     expect(withJob("PROCESSING", null).kind).toBe("claim")
+  })
+
+  it("a job's supplier order id proves a purchase for its FIRST line only — the group's other orders stay purchasable", () => {
+    // The engine groups every AliExpress order of a cart into ONE job; the adapter buys only the first line.
+    const job = (firstLineOrderId: string | null) => ({
+      id: "j1",
+      supplierOrderId: "AE-A",
+      status: "PROCESSING" as const,
+      firstLineOrderId,
+    })
+    expect(decideSupplierPurchase(snap({ orderId: "o1", jobs: [job("o1")] }), NOW)).toMatchObject({
+      kind: "already_placed",
+      supplierOrderId: "AE-A",
+      evidence: "job",
+    })
+    // order o2 is in the same job but was never bought: NOT "already placed", never stamped with AE-A
+    expect(decideSupplierPurchase(snap({ orderId: "o2", jobs: [job("o1")] }), NOW)).toEqual({ kind: "claim", attempt: 1 })
+    // unknown first line (no line rows readable): fail closed against a double purchase
+    expect(decideSupplierPurchase(snap({ orderId: "o2", jobs: [job(null)] }), NOW).kind).toBe("already_placed")
   })
 })
 
