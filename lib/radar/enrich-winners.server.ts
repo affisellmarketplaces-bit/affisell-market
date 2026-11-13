@@ -5,7 +5,13 @@ import { computeSaturation } from "@/lib/radar/saturation"
 import { matchSuppliersForWinners } from "@/lib/radar/supplier-match.server"
 import type { WorldRadarWinnerDto } from "@/lib/radar/world-radar-types"
 
-/** Enrich winners with Arbitrage™ + Saturation + Supplier Match (graceful). */
+/**
+ * Enrich winners with Arbitrage™ + Saturation + Supplier Match (graceful).
+ *
+ * The two formulas run ONLY on what is known: `arbitrage` needs growth, searches AND competition; `saturation` needs
+ * competition AND searches. A row with unknown metrics (a real Affisell / Serper row) gets no score instead of a score computed
+ * from invented defaults (growth 0, competition 10…). The supplier match is real data and always computed.
+ */
 export async function enrichWorldRadarWinners(
   winners: WorldRadarWinnerDto[]
 ): Promise<WorldRadarWinnerDto[]> {
@@ -22,17 +28,23 @@ export async function enrichWorldRadarWinners(
   }
 
   return winners.map((w) => {
-    const arbitrage = computeArbitrageScore({
-      growthRate: w.growthRate,
-      searches: w.searches,
-      competition: w.competition,
-      countryCode: w.countryCode,
-    })
-    const saturation = computeSaturation({
-      competition: w.competition,
-      searches: w.searches,
-      growthRate: w.growthRate,
-    })
+    const arbitrage =
+      w.growthRate != null && w.searches != null && w.competition != null
+        ? computeArbitrageScore({
+            growthRate: w.growthRate,
+            searches: w.searches,
+            competition: w.competition,
+            countryCode: w.countryCode,
+          })
+        : undefined
+    const saturation =
+      w.competition != null && w.searches != null
+        ? computeSaturation({
+            competition: w.competition,
+            searches: w.searches,
+            growthRate: w.growthRate,
+          })
+        : undefined
     const supplierMatch = matchMap.get(w.title) ?? { count: 0, sampleNames: [] }
 
     return {

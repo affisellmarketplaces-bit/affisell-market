@@ -34,6 +34,8 @@ function clamp(n: number, min: number, max: number): number {
 export function computeSaturation(input: SaturationInput): SaturationResult {
   const competition = Math.max(0, input.competition ?? 0)
   const searches = Math.max(1, input.searches ?? 1)
+  // An unknown growth rate gives NO days-until-saturation prediction (it used to be assumed 1 %/month: "~300 jours").
+  const growthKnown = input.growthRate != null
   const growth = Math.max(1, input.growthRate ?? 1)
 
   const index = (competition / searches) * 100
@@ -61,12 +63,12 @@ export function computeSaturation(input: SaturationInput): SaturationResult {
   // days = (30 - practical) / (growthRate / 30)
   let daysUntilSaturation: number | null = null
   let prediction: string | null = null
-  if (practical < 30) {
+  if (practical < 30 && growthKnown) {
     const dailyPressure = growth / 30
     const remaining = 30 - practical
     daysUntilSaturation = Math.max(1, Math.round(remaining / Math.max(dailyPressure, 0.1)))
     prediction = `📈 Va saturer dans ~${daysUntilSaturation} jours à ce rythme`
-  } else {
+  } else if (practical >= 30) {
     prediction = "⚠️ Marché déjà saturé — marge sous pression"
   }
 

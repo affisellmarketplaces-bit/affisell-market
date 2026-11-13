@@ -12,6 +12,7 @@ import {
 import {
   buildMockTrendingForCountry,
   buildMockWinnersForCountry,
+  isGeneratedTrendingKeyword,
 } from "@/lib/radar/world-mock-catalog"
 import { enrichWorldRadarWinners } from "@/lib/radar/enrich-winners.server"
 import type {
@@ -26,6 +27,7 @@ import {
   isCountryScanLive,
   isRealWinnerSource,
   radarPayloadFlags,
+  trendingForSource,
   type RadarDataSource,
 } from "@/lib/radar/world-radar-types"
 
@@ -109,17 +111,22 @@ function winnerToDto(row: {
   }
 }
 
-function trendingToDto(row: {
-  id?: string
-  keyword: string
-  growthRate: number
-  volume: number | null
-}): WorldRadarTrendingDto {
+/** `synthetic` must be stated by the caller: a keyword is only "real" when a trends source produced it. */
+function trendingToDto(
+  row: {
+    id?: string
+    keyword: string
+    growthRate: number
+    volume: number | null
+  },
+  synthetic: boolean
+): WorldRadarTrendingDto {
   return {
     id: row.id ?? `trend-${row.keyword}`,
     keyword: row.keyword,
     growthRate: row.growthRate,
     volume: row.volume,
+    synthetic,
   }
 }
 
@@ -153,7 +160,8 @@ async function mockPayload(countryCode: string): Promise<WorldRadarPayload> {
   const winners = buildMockWinnersForCountry(code, 20).map((w) =>
     winnerToDto({ ...w, id: `v2-${w.productId}` })
   )
-  const trending = buildMockTrendingForCountry(code).map((t) => trendingToDto(t))
+  // The generator's keywords are the hand-typed list + random jitter: every one is flagged synthetic (this payload is a demo).
+  const trending = buildMockTrendingForCountry(code).map((t) => trendingToDto(t, true))
   return {
     winners: await enrichWorldRadarWinners(winners),
     trendingKeywords: trending,
@@ -304,7 +312,11 @@ export async function readCachedWorldRadar(countryCode: string): Promise<WorldRa
     const scannedAt = countryRow?.lastScanAt ?? winners[0]?.createdAt
     return {
       winners: winners.map(winnerToDto),
-      trendingKeywords: trending.map(trendingToDto),
+      // The old scan stored the generated list next to real winners: recognise it, and never serve it under a live payload.
+      trendingKeywords: trendingForSource(
+        origin,
+        trending.map((t) => trendingToDto(t, isGeneratedTrendingKeyword(t.keyword)))
+      ),
       country: countryDto(code, {
         productCount: countryRow?.productCount ?? winners.length,
         lastScanAt: scannedAt,
@@ -368,7 +380,11 @@ export async function getWorldRadarPayload(
               id: w.productId ? `v2-${w.productId}` : `scan-${code}-${i + 1}`,
             })
           ),
-          trendingKeywords: scan.trending.map(trendingToDto),
+          // the scanner only returns keywords a trends source produced (no generated fallback any more)
+          trendingKeywords: trendingForSource(
+            origin,
+            scan.trending.map((t) => trendingToDto(t, false))
+          ),
           country: countryDto(code, {
             productCount: scan.winners.length,
             lastScanAt: scan.scannedAt,

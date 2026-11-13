@@ -59,7 +59,8 @@ describe("every direct LLM provider call in the application is metered", () => {
   it("each of them calls meterModelCall", () => {
     const offenders = files
       .map((f) => ({ f: relative(ROOT, f), text: readFileSync(f, "utf8") }))
-      .filter(({ f, text }) => DIRECT_PROVIDER_CALL.test(text) && !text.includes("meterModelCall") && !KNOWN_UNMETERED.includes(f))
+      // an actual CALL of the wrapper (`meterModelCall(` / `meterModelCall<T>(`), not merely an import of its name
+      .filter(({ f, text }) => DIRECT_PROVIDER_CALL.test(text) && !/meterModelCall\s*[<(]/.test(text) && !KNOWN_UNMETERED.includes(f))
       .map(({ f }) => f)
     expect(offenders).toEqual([])
   })
