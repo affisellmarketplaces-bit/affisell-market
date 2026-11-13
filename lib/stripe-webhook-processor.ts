@@ -427,8 +427,10 @@ export async function processStripeWebhookEvent(event: Stripe.Event): Promise<We
         if (race && isReplayableWebhookRecord(race)) {
           // Replay of a previously failed event: claim the row (row lock) so two concurrent Stripe retries can not
           // both process it. The loser sees a non-"failed" status after the winner commits and treats it as a duplicate.
+          // Claim the row under the status it was READ with: `failed` (handler threw) or `failed_not_replayed` (the late replay
+          // cron judged it unsafe and an operator resent the event on purpose).
           const claimed = await tx.processedWebhook.updateMany({
-            where: { id: event.id, status: "failed" },
+            where: { id: event.id, status: race.status },
             data: { status: "processing", error: null },
           })
           if (claimed.count !== 1) {

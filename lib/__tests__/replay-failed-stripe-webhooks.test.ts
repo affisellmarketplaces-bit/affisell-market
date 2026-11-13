@@ -42,7 +42,9 @@ function seed(id: string, ageHours: number, over: Partial<{ status: string; erro
   })
 }
 
-const stripeEvent = (id: string, type = "checkout.session.completed") => ({ id, type, data: { object: {} } }) as unknown as Stripe.Event
+// A checkout.session.completed is a marketplace `payment` session unless a test says otherwise (see `replayBlockReason`).
+const stripeEvent = (id: string, type = "checkout.session.completed", object: Record<string, unknown> = { mode: "payment", metadata: { flow: "cart" } }) =>
+  ({ id, type, data: { object } }) as unknown as Stripe.Event
 const statusOf = (id: string) => ledger.rows.get(id)?.status
 
 beforeEach(() => {
@@ -181,7 +183,7 @@ describe("replayFailedStripeWebhooks — only event types that are safe to apply
     expect(result).toMatchObject({ replayed: 1, notReplayed: 0 })
   })
 
-  it.each(UNSAFE)("%s is NOT replayed: closed as failed_expired unprocessed, ops told, never a red run", async (type) => {
+  it.each(UNSAFE)("%s is NOT replayed: closed as failed_not_replayed unprocessed, ops told, never a red run", async (type) => {
     seed("evt_x", 100, { error: "boom" })
     eventsRetrieve.mockResolvedValue(stripeEvent("evt_x", type))
 
@@ -189,8 +191,8 @@ describe("replayFailedStripeWebhooks — only event types that are safe to apply
 
     expect(processStripeWebhookEvent).not.toHaveBeenCalled()
     expect(result).toMatchObject({ replayed: 0, notReplayed: 1, stillFailing: 0 })
-    expect(result.notReplayedEvents).toEqual([{ eventId: "evt_x", type }])
-    expect(statusOf("evt_x")).toBe("failed_expired")
+    expect(result.notReplayedEvents).toEqual([{ eventId: "evt_x", type, reason: expect.any(String) }])
+    expect(statusOf("evt_x")).toBe("failed_not_replayed")
     expect(ledger.rows.get("evt_x")?.error).toBe("boom") // the evidence stays
     expect(opsWebhookAlert).toHaveBeenCalledTimes(1)
     expect(String(opsWebhookAlert.mock.calls[0]?.[0])).toContain(type)

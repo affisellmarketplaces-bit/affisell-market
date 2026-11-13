@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
 import { logStripeWebhookError, logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
 import { processStripeWebhookEvent } from "@/lib/stripe-webhook-processor"
-import { isEventTypeSafeToReplayLate, REPLAYABLE_WEBHOOK_STATUS } from "@/lib/stripe-webhook-replay"
+import { NOT_REPLAYED_WEBHOOK_STATUS, REPLAYABLE_WEBHOOK_STATUS, replayBlockReason } from "@/lib/stripe-webhook-replay"
 
 /**
  * Replay of Stripe webhook events whose processing FAILED and that Stripe will no longer retry (finalisation master doc, D2).
@@ -20,8 +20,12 @@ import { isEventTypeSafeToReplayLate, REPLAYABLE_WEBHOOK_STATUS } from "@/lib/st
  *
  *  - Still failing after the replay: one aggregated ops alert per run, and the route answers 500 (a red cron run) — the
  *    job is scheduled every 6 hours, so an unresolved money event is told 4 times a day, never silently.
- *  - Only event types that are safe to apply days late are replayed (`REPLAY_SAFE_EVENT_TYPES`): the others (subscription
- *    snapshots, invoice, refund, account…) are closed as `failed_expired` unprocessed, with one ops alert.
+ *  - Only events that are safe to apply days late are replayed (`replayBlockReason`: the whitelisted types, and for
+ *    `checkout.session.completed` only marketplace `payment` sessions): the others (subscription snapshots, invoice, refund,
+ *    account, subscription / sponsor checkouts…) are closed as `failed_not_replayed` unprocessed, with one ops alert that
+ *    says how to apply one on purpose: RESEND the event from the Stripe dashboard — the webhook route processes a resend of a
+ *    `failed_not_replayed` row (it answers "duplicate" for `failed_expired`, which can not be resent anyway).
+ *  - The ops alert is sent BEFORE the rows are closed: a function cut between the two can repeat an alert, never lose one.
  *  - Older than 30 days, or gone at Stripe (`resource_missing`): the event can never be replayed. The row becomes
  *    `failed_expired` (it keeps its error text as evidence, and stops being selected) and ops are told once, with the ids,
  *    to reconcile by hand.
@@ -61,7 +65,7 @@ export type ReplayFailedWebhooksResult = {
   notReplayed: number
   failures: ReplayFailure[]
   expiredIds: string[]
-  notReplayedEvents: Array<{ eventId: string; type: string }>
+  notReplayedEvents: Array<{ eventId: string; type: string; reason: string }>
 }
 
 function errorMessage(error: unknown): string {
@@ -118,22 +122,14 @@ export async function replayFailedStripeWebhooks(options?: {
     notReplayedEvents: [],
   }
 
-  // 1. Too old to ever be replayed: close them (evidence kept) and tell ops once.
+  // 1. Too old to ever be replayed: closed (evidence kept) AFTER the alert at the end of the run, ops told once.
   const tooOld = await prisma.processedWebhook.findMany({
     where: { status: REPLAYABLE_WEBHOOK_STATUS, id: stripeEventIds, createdAt: { lt: retentionStart } },
     orderBy: { createdAt: "asc" },
     take: EXPIRED_BATCH,
     select: { id: true },
   })
-  if (tooOld.length > 0) {
-    const ids = tooOld.map((row) => row.id)
-    const closed = await prisma.processedWebhook.updateMany({
-      where: { id: { in: ids }, status: REPLAYABLE_WEBHOOK_STATUS },
-      data: { status: EXPIRED_WEBHOOK_STATUS },
-    })
-    result.expired += closed.count
-    result.expiredIds.push(...ids)
-  }
+  const toExpire: string[] = tooOld.map((row) => row.id)
 
   // 2. Replayable: Stripe gave up (older than its retry window) and still has the event (younger than 30 days).
   const replayableWhere = {
@@ -166,12 +162,7 @@ export async function replayFailedStripeWebhooks(options?: {
       event = await stripe!.events.retrieve(row.id)
     } catch (error) {
       if (isEventGone(error)) {
-        await prisma.processedWebhook.updateMany({
-          where: { id: row.id, status: REPLAYABLE_WEBHOOK_STATUS },
-          data: { status: EXPIRED_WEBHOOK_STATUS },
-        })
-        result.expired += 1
-        result.expiredIds.push(row.id)
+        toExpire.push(row.id)
         continue
       }
       // Network / rate limit / Stripe outage: the row stays `failed`, the next run tries again.
@@ -180,16 +171,13 @@ export async function replayFailedStripeWebhooks(options?: {
       continue
     }
 
-    // `events.retrieve` gives the event as it was EMITTED. Only types whose handler does not write that snapshot over
-    // today's state (and does not depend on event order) are applied this late: the others are closed, with an alert
-    // (review #10; the list and the reasons live in `lib/stripe-webhook-replay.ts`).
-    if (!isEventTypeSafeToReplayLate(event.type)) {
-      await prisma.processedWebhook.updateMany({
-        where: { id: row.id, status: REPLAYABLE_WEBHOOK_STATUS },
-        data: { status: EXPIRED_WEBHOOK_STATUS },
-      })
+    // `events.retrieve` gives the event as it was EMITTED. Only events whose handler does not write that snapshot over
+    // today's state (and does not depend on event order) are applied this late: the others are closed at the end of the run,
+    // with an alert (reviews #10, #6, #9; the rule and its reasons live in `lib/stripe-webhook-replay.ts`).
+    const blocked = replayBlockReason(event)
+    if (blocked) {
       result.notReplayed += 1
-      result.notReplayedEvents.push({ eventId: row.id, type: event.type })
+      result.notReplayedEvents.push({ eventId: row.id, type: event.type, reason: blocked })
       continue
     }
 
@@ -226,24 +214,37 @@ export async function replayFailedStripeWebhooks(options?: {
       { stillFailing: result.stillFailing, eventIds: result.failures.map((f) => f.eventId).slice(0, 50) }
     )
   }
-  if (result.expired > 0) {
+  // Alert FIRST, close AFTER: a function cut between the two (60 s budget) can repeat an alert on the next run, never lose it.
+  if (toExpire.length > 0) {
+    result.expired = toExpire.length
+    result.expiredIds.push(...toExpire)
     await alertOps(
-      `🚨 ${result.expired} Stripe webhook event(s) failed and can never be replayed (older than ${STRIPE_EVENT_RETENTION_DAYS} days or gone at Stripe): ` +
-        `${result.expiredIds.slice(0, ALERT_LIST_MAX).join(", ")}. Reconcile the payments / refunds / disputes of these events by hand.`,
-      { expired: result.expired, eventIds: result.expiredIds.slice(0, 50) }
+      `🚨 ${toExpire.length} Stripe webhook event(s) failed and can never be replayed (older than ${STRIPE_EVENT_RETENTION_DAYS} days or gone at Stripe): ` +
+        `${toExpire.slice(0, ALERT_LIST_MAX).join(", ")}. Reconcile the payments / refunds / disputes of these events by hand.`,
+      { expired: toExpire.length, eventIds: toExpire.slice(0, 50) }
     )
+    await prisma.processedWebhook.updateMany({
+      where: { id: { in: toExpire }, status: REPLAYABLE_WEBHOOK_STATUS },
+      data: { status: EXPIRED_WEBHOOK_STATUS },
+    })
   }
 
   if (result.notReplayed > 0) {
     const listed = result.notReplayedEvents
       .slice(0, ALERT_LIST_MAX)
-      .map((e) => `${e.eventId} (${e.type})`)
-      .join(", ")
+      .map((e) => `${e.eventId} (${e.type}; ${e.reason})`)
+      .join(" | ")
     await alertOps(
-      `🚨 ${result.notReplayed} failed Stripe webhook event(s) were NOT replayed: their type applies the event's snapshot over ` +
-        `today's state, which is not safe days later: ${listed}. Reconcile them by hand (subscription, refund or invoice state).`,
+      `🚨 ${result.notReplayed} failed Stripe webhook event(s) were NOT replayed: applying the event's snapshot over today's ` +
+        `state is not safe days later: ${listed}. Reconcile them by hand. To apply one ON PURPOSE: Stripe dashboard > Developers > ` +
+        `Events > the event > Resend (or \`stripe events resend EVENT_ID\`): the webhook route processes the resend of a ` +
+        `failed_not_replayed event.`,
       { notReplayed: result.notReplayed, eventIds: result.notReplayedEvents.map((e) => e.eventId).slice(0, 50) }
     )
+    await prisma.processedWebhook.updateMany({
+      where: { id: { in: result.notReplayedEvents.map((e) => e.eventId) }, status: REPLAYABLE_WEBHOOK_STATUS },
+      data: { status: NOT_REPLAYED_WEBHOOK_STATUS },
+    })
   }
 
   logStripeWebhookInfo({
