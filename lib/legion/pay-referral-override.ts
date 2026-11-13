@@ -1,5 +1,7 @@
 import "server-only"
 
+import { hasOpenDisputeHold } from "@/lib/orders/dispute-hold.server"
+import { isOrderPayoutHeldForDispute } from "@/lib/orders/payment-state"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
 import { assertTransfersActive } from "@/lib/stripe-marketplace-commission-split"
@@ -28,6 +30,10 @@ export async function payLegionOverrideForOrder(
   }
   if (order.legionPayoutStatus === "paid_24h") {
     return { paid: true, transferId: null, reason: "already_paid" }
+  }
+  // A dispute (chargeback) is open on the charge: the 2% override is part of the same money (finalisation master doc, D7).
+  if (isOrderPayoutHeldForDispute(order, await hasOpenDisputeHold(orderId))) {
+    return { paid: false, transferId: null, reason: "dispute_open" }
   }
 
   const overrideEur = Number(order.legionOverrideAmount ?? 0)
