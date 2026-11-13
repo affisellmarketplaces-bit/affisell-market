@@ -7,6 +7,12 @@ import {
 } from "@/lib/affiliate-listing-display"
 import { auth } from "@/auth"
 import { assertGhostStockForCheckout } from "@/lib/ghost/checkout-gate"
+import {
+  findCheckoutStockShortfall,
+  isCheckoutStockGuardEnabled,
+  type StockCheckLine,
+} from "@/lib/checkout-stock"
+import { getSimilarInStockProducts } from "@/lib/ghost/similar-products"
 import { ensureGhostStockSchema } from "@/lib/ghost/ensure-ghost-schema"
 import {
   applyBattleFlashUnitCents,
@@ -283,6 +289,41 @@ function guardExplicitSupplierCommission(args: {
   return null
 }
 
+/**
+ * G1: refuse the checkout BEFORE the payment session exists when the stock can not serve the cart (409, nothing created).
+ * Advisory — the authoritative, atomic decrement is done when the payment is processed — but it stops the common case
+ * (sold-out product, stale cart) from ever taking a payment. Products whose stock is not managed (digital goods,
+ * bookings, a variant that can not be resolved) are never refused. `CHECKOUT_STOCK_GUARD=off` disables it.
+ */
+async function checkoutStockGate(lines: StockCheckLine[]): Promise<NextResponse | null> {
+  if (!isCheckoutStockGuardEnabled()) return null
+  const shortfall = findCheckoutStockShortfall(lines)
+  if (!shortfall) return null
+  console.log("[checkout]", {
+    result: "insufficient_stock",
+    productId: shortfall.productId,
+    scope: shortfall.scope,
+    available: shortfall.available,
+    requested: shortfall.requested,
+  })
+  const soldOut = shortfall.available <= 0
+  // Same payload shape as the supplier-side gate, so the existing out-of-stock modal handles a sold-out product.
+  const alternatives = soldOut
+    ? await getSimilarInStockProducts(shortfall.productId, 3).catch(() => [])
+    : []
+  return NextResponse.json(
+    {
+      error: soldOut ? "OUT_OF_STOCK_VERIFIED" : "INSUFFICIENT_STOCK",
+      message: soldOut ? "Product is out of stock" : `Only ${shortfall.available} left in stock`,
+      productName: shortfall.productName,
+      availableQty: shortfall.available,
+      requestedQty: shortfall.requested,
+      alternatives,
+    },
+    { status: 409 }
+  )
+}
+
 type LoadedLine = {
   affiliateProductId: string
   qty: number
@@ -405,6 +446,19 @@ async function checkoutFromItems(
       listing,
     })
   }
+
+  const stockGate = await checkoutStockGate(
+    loaded.map((line) => ({
+      productId: line.listing.product.id,
+      productName: line.listing.product.name,
+      listingKind: line.listing.product.listingKind,
+      stock: line.listing.product.stock,
+      variants: line.listing.product.variants,
+      variantSignature: line.variantSignature,
+      qty: line.qty,
+    }))
+  )
+  if (stockGate) return stockGate
 
   const ghostGates = await Promise.all(
     loaded.map((line) => assertGhostStockForCheckout(line.listing.product))
@@ -596,6 +650,19 @@ export async function marketplaceCheckoutPOST(
     }),
   })
   if (commissionGate) return commissionGate
+
+  const stockGate = await checkoutStockGate([
+    {
+      productId: product.id,
+      productName: product.name,
+      listingKind: product.listingKind,
+      stock: product.stock,
+      variants: product.variants,
+      variantSignature: normalizeCartVariantSignature(body.selectedColor, body.selectedSize),
+      qty: checkoutQty,
+    },
+  ])
+  if (stockGate) return stockGate
 
   const affiliateProduct = listing
   const affiliate = listing.affiliate
