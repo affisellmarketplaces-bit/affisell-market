@@ -202,6 +202,8 @@ describe("a closed event can be applied ON PURPOSE by resending it from Stripe (
     h.eventsRetrieve.mockResolvedValue(checkoutCompleted("evt_sub", subscriptionSession))
     await replayFailedStripeWebhooks({ now: NOW })
     const text = String(h.opsWebhookAlert.mock.calls[0]?.[0])
+    expect(text).toContain("ON PURPOSE")
+    expect(text).toContain("Stripe dashboard > Developers > Events")
     expect(text).toContain("Resend")
     expect(text).toContain("stripe events resend")
     expect(text).toContain("failed_not_replayed")
