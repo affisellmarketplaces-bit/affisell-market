@@ -269,6 +269,16 @@ async function dispatchStripeEvent(
       await handleStripeChargeRefunded(event.data.object as Stripe.Charge)
       return { orderId: null, status: "success", error: null }
     }
+    case "charge.dispute.created":
+    case "charge.dispute.updated":
+    case "charge.dispute.closed":
+    case "charge.dispute.funds_withdrawn":
+    case "charge.dispute.funds_reinstated": {
+      // Finalisation master doc, D7. Handled by the dispute's status (see lib/stripe-dispute.ts): an open dispute HOLDS
+      // every payout of the charge, a lost one is applied with the refund mechanisms.
+      const { processStripeDisputeEvent } = await import("@/lib/stripe-dispute")
+      return processStripeDisputeEvent(event, tx)
+    }
     case "checkout.session.expired": {
       const { handleStripeCheckoutSessionExpired } = await import(
         "@/lib/stripe-checkout-session-expired"

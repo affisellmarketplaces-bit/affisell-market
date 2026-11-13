@@ -4,8 +4,10 @@ import {
   isPayoutBlockedByReturn,
   orderPayoutTiming,
 } from "@/lib/order-payout-policy"
+import { isOrderDisputed } from "@/lib/orders/payment-state"
 
 export type TransferReleasePhase =
+  | "blocked_dispute"
   | "blocked_return"
   | "awaiting_upstream"
   | "awaiting_ship"
@@ -68,6 +70,9 @@ export function evaluateSupplierTransferRelease(
   now = new Date()
 ): TransferReleaseEvaluation {
   void now
+  if (isOrderDisputed(order)) {
+    return { eligible: false, phase: "blocked_dispute", reason: "dispute_open" }
+  }
   const returns = order.returns ?? []
   if (isPayoutBlockedByReturn(returns)) {
     return { eligible: false, phase: "blocked_return", reason: "return_open" }
@@ -89,6 +94,9 @@ export function evaluateAffiliateTransferRelease(
   order: OrderTransferGateSnapshot,
   now = new Date()
 ): TransferReleaseEvaluation {
+  if (isOrderDisputed(order)) {
+    return { eligible: false, phase: "blocked_dispute", reason: "dispute_open" }
+  }
   const returns = order.returns ?? []
   if (isPayoutBlockedByReturn(returns)) {
     return { eligible: false, phase: "blocked_return", reason: "return_open" }

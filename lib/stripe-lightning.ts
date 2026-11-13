@@ -1,6 +1,8 @@
 import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
 
+import { hasOpenDisputeHold } from "@/lib/orders/dispute-hold.server"
+import { isOrderPayoutHeldForDispute } from "@/lib/orders/payment-state"
 import { prisma } from "@/lib/prisma"
 import {
   recordStripePayoutSettlement,
@@ -19,6 +21,7 @@ const orderSelect = {
   supplierId: true,
   affiliateId: true,
   productId: true,
+  status: true,
   payoutStatus: true,
   supplierPayoutCents: true,
   affiliatePayoutCents: true,
@@ -93,6 +96,12 @@ export async function triggerLightningPayout(orderId: string): Promise<Lightning
 
     if (order.payoutStatus !== "PENDING") {
       return { success: false, reason: `payout_status_${order.payoutStatus.toLowerCase()}` }
+    }
+
+    // A dispute (chargeback) is open on the charge: nothing leaves until it is decided (finalisation master doc, D7).
+    // A ledger read error ends in the catch below as a refusal, never as a payout.
+    if (isOrderPayoutHeldForDispute(order, await hasOpenDisputeHold(orderId))) {
+      return { success: false, reason: "dispute_open" }
     }
 
     const [supplierProfile, supplierUser, affiliateUser] = await Promise.all([
