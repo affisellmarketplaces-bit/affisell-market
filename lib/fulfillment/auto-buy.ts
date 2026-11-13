@@ -30,11 +30,17 @@ function startOfTodayUtc(): Date {
   return d
 }
 
+/**
+ * Auto-buy spends Affisell's own money (an AliExpress order paid with a single-use Stripe Issuing card), so it is
+ * OPT-IN: it stays off unless `AUTO_BUY_ENABLED=true` is set on the server. The legacy kill switches
+ * (`DISABLE_AUTO_BUY=true`, `AUTO_ORDER_ENABLED=false`) still win over the opt-in.
+ *
+ * Owner decision (2026-11-13): no autonomous purchase may run without a specific business and financial validation.
+ * It used to be opt-out (running unless `DISABLE_AUTO_BUY=true`), which left real purchases one forgotten variable away.
+ */
 export function isAutoBuyDisabled(): boolean {
-  return (
-    process.env.DISABLE_AUTO_BUY === "true" ||
-    process.env.AUTO_ORDER_ENABLED === "false"
-  )
+  if (process.env.DISABLE_AUTO_BUY === "true" || process.env.AUTO_ORDER_ENABLED === "false") return true
+  return process.env.AUTO_BUY_ENABLED !== "true"
 }
 
 function logAutoBuy(metric: string, payload: Record<string, unknown>) {
