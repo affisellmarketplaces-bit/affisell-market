@@ -39,13 +39,12 @@ import { applyInstantDigitalDeliveryInTransaction } from "@/lib/digital-delivery
 import { sendDigitalAccessPassEmail } from "@/lib/emails/send-digital-access-pass"
 import { runBookingPassAfterPayment } from "@/lib/booking/run-after-payment"
 import { logStripeWebhookError } from "@/lib/stripe-webhook-observability"
-import { resolveCheckoutStockMode } from "@/lib/checkout-stock"
+import { isStockManagedForLine, resolveCheckoutStockMode } from "@/lib/checkout-stock"
 import { isOrderClosedForPayout } from "@/lib/orders/payment-state"
 import {
   lockProductsForStockInTransaction,
   reserveStockInTransaction,
 } from "@/lib/checkout-stock.server"
-import { parseListingKind } from "@/lib/supplier-commission"
 import {
   unallocatedLineKey,
   type UnallocatedLine,
@@ -438,6 +437,7 @@ async function createPaidMarketplaceOrder(
     variantSignature: args.variantSignature,
     qty,
     listingKind: listing.product.listingKind,
+    known: { hasVariants: listing.product.hasVariants, variants: listing.product.variants },
   })
   if (reservation.kind === "insufficient") {
     console.log("[marketplace-fulfill]", {
@@ -844,14 +844,28 @@ export async function fulfillMarketplaceStripeSession(
         const listingIds = [...new Set(lines.map((l) => l.affiliateProductId).filter(Boolean))]
         const lockRows = await tx.affiliateProduct.findMany({
           where: { id: { in: listingIds } },
-          select: { productId: true, product: { select: { listingKind: true } } },
+          select: {
+            id: true,
+            productId: true,
+            product: { select: { listingKind: true, hasVariants: true, variants: true } },
+          },
         })
-        await lockProductsForStockInTransaction(
-          tx,
-          lockRows
-            .filter((r) => parseListingKind(r.product?.listingKind) === "PHYSICAL")
-            .map((r) => r.productId)
-        )
+        const lockedProductIds = new Set<string>()
+        for (const line of lines) {
+          const row = lockRows.find((r) => r.id === line.affiliateProductId)
+          if (
+            row?.product &&
+            isStockManagedForLine({
+              listingKind: row.product.listingKind,
+              hasVariants: row.product.hasVariants,
+              variants: row.product.variants,
+              variantSignature: typeof line.variantSignature === "string" ? line.variantSignature : "",
+            })
+          ) {
+            lockedProductIds.add(row.productId)
+          }
+        }
+        await lockProductsForStockInTransaction(tx, [...lockedProductIds])
       }
 
       for (let i = 0; i < lines.length; i++) {
@@ -1241,6 +1255,7 @@ export async function fulfillMarketplaceStripeSession(
         variantSignature: checkoutVariantSignature,
         qty,
         listingKind: listing.product.listingKind,
+        known: { hasVariants: listing.product.hasVariants, variants: listing.product.variants },
       })
       if (reservation.kind === "insufficient") {
         console.log("[marketplace-fulfill]", {

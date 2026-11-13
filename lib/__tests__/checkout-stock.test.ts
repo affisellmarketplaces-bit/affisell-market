@@ -4,6 +4,7 @@ import {
   evaluateCheckoutStockGate,
   findCheckoutStockShortfall,
   isCheckoutStockGuardEnabled,
+  isStockManagedForLine,
   planStockMovement,
   resolveCheckoutStockMode,
 } from "@/lib/checkout-stock"
@@ -329,5 +330,16 @@ describe("evaluateCheckoutStockGate — the check before the payment session", (
   it("nothing to report when the cart can be served, whatever the mode", () => {
     const ok = [{ ...sold[0]!, stock: 3 }]
     expect(evaluateCheckoutStockGate(ok, env({ CHECKOUT_STOCK_MODE: "enforce" }))).toEqual({ mode: "enforce", refuse: null })
+  })
+})
+
+describe("isStockManagedForLine — judged without reading the live stock", () => {
+  const rowsJson = rows({ name: "Rouge / S", stock: 0 }, { name: "Rouge / M", stock: 0 })
+  it("physical, no variants: managed; non-physical, table-only variants, unresolved variant: not", () => {
+    expect(isStockManagedForLine({ listingKind: "PHYSICAL", variants: null, variantSignature: "" })).toBe(true)
+    expect(isStockManagedForLine({ listingKind: "PHYSICAL", variants: rowsJson, variantSignature: "c:Rouge|s:M" })).toBe(true)
+    expect(isStockManagedForLine({ listingKind: "SOFTWARE", variants: null, variantSignature: "" })).toBe(false)
+    expect(isStockManagedForLine({ listingKind: "PHYSICAL", hasVariants: true, variants: null, variantSignature: "c:Rouge" })).toBe(false)
+    expect(isStockManagedForLine({ listingKind: "PHYSICAL", variants: rowsJson, variantSignature: "c:Rouge" })).toBe(false)
   })
 })

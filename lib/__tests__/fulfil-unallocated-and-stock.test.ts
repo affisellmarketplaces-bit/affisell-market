@@ -806,6 +806,29 @@ describe("C2 — a product whose variants live only in the ProductVariant table 
     expect(paidOrders()).toHaveLength(1)
     expect(db.products.get("p1")!.stock).toBe(0)
     expect(db.audit.size).toBe(0)
+    expect(db.locks).toHaveLength(0) // a row that can only come out unmanaged is not locked for nothing
+  })
+
+  it("neither is a variant that can not be resolved to one row, nor the same products inside a multi-line cart", async () => {
+    db.products.get("p1")!.variants = {
+      variantRows: [
+        { id: "r1", name: "Rouge / S", sku: "", priceCents: 0, stock: 1, commission: 20, sales: 0 },
+        { id: "r2", name: "Rouge / M", sku: "", priceCents: 0, stock: 1, commission: 20, sales: 0 },
+      ],
+    }
+    db.products.set("p2", product({ id: "p2", stock: 0, hasVariants: true, variants: null }))
+    db.listings.set("ap2", listing("ap2", "p2"))
+    await fulfil(
+      cartSession(
+        [
+          { affiliateProductId: "ap1", qty: 1, variantSignature: "c:Rouge" },
+          { affiliateProductId: "ap2", qty: 1, variantSignature: "c:Bleu|s:M" },
+        ],
+        [2000, 2000]
+      )
+    )
+    expect(paidOrders()).toHaveLength(2)
+    expect(db.locks).toHaveLength(0)
   })
 })
 

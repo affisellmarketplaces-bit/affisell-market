@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client"
 
 import {
+  isStockManagedForLine,
   planStockMovement,
   resolveCheckoutStockMode,
   type StockScope,
@@ -35,6 +36,11 @@ type LockedProductRow = {
   variants: unknown
   listingKind: string | null
   hasVariants: boolean | null
+}
+
+function hasVariantRows(variants: unknown): boolean {
+  const rows = (variants as { variantRows?: unknown } | null)?.variantRows
+  return Array.isArray(rows) && rows.length > 0
 }
 
 /** A raw query may hand a json column back as text depending on the driver path: accept both. */
@@ -86,12 +92,25 @@ export async function reserveStockInTransaction(
     qty: number
     /** Kind the caller already loaded: a non-physical listing is skipped WITHOUT locking its row. */
     listingKind?: string | null
+    /** Variant structure the caller already loaded: a line that can only be unmanaged is skipped WITHOUT locking the row. */
+    known?: { hasVariants?: boolean | null; variants: unknown }
   }
 ): Promise<StockReservationResult> {
   const mode = resolveCheckoutStockMode()
   if (mode === "off") return { kind: "skipped", reason: "guard_off" }
   if (args.listingKind != null && parseListingKind(args.listingKind) !== "PHYSICAL") {
     return { kind: "skipped", reason: "non_physical" }
+  }
+  if (
+    args.known &&
+    !isStockManagedForLine({
+      listingKind: args.listingKind ?? "PHYSICAL",
+      hasVariants: args.known.hasVariants,
+      variants: args.known.variants,
+      variantSignature: args.variantSignature,
+    })
+  ) {
+    return { kind: "skipped", reason: args.known.hasVariants === true && !hasVariantRows(args.known.variants) ? "variants_not_tracked" : "variant_unresolved" }
   }
 
   const rows = await tx.$queryRaw<LockedProductRow[]>`

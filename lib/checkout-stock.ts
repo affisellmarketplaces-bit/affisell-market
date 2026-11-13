@@ -195,6 +195,30 @@ export function planStockMovement(input: {
   }
 }
 
+/**
+ * Whether a line draws from a managed stock at all, judged on what is known WITHOUT reading the live stock (kind, variant
+ * structure, selection). Lets the fulfilment skip the row lock of a product that can only come out "unmanaged" (digital,
+ * table-only variants, unresolvable variant) instead of locking it for nothing. A snapshot read earlier is enough: none of
+ * these facts changes between the listing load and the lock in any way that matters.
+ */
+export function isStockManagedForLine(input: {
+  listingKind: string | null | undefined
+  hasVariants?: boolean | null
+  variants: unknown
+  variantSignature: string | null | undefined
+}): boolean {
+  return (
+    planStockMovement({
+      listingKind: input.listingKind,
+      stock: Number.MAX_SAFE_INTEGER,
+      variants: input.variants,
+      hasVariants: input.hasVariants,
+      variantSignature: input.variantSignature,
+      qty: 1,
+    }).kind !== "unmanaged"
+  )
+}
+
 export type StockCheckLine = {
   productId: string
   productName?: string | null

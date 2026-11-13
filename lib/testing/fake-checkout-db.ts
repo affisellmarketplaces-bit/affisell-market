@@ -165,10 +165,19 @@ export const fakeCheckoutDb = (() => {
           affiliate: { stripeAccountId: null, affiliatePlatformFeeBps: null, store: { partnerListingCode: null } },
         }
       },
+      // Returned in the order the ids were asked for (the worst case: a database owes no particular order).
       findMany: async ({ where }: any) =>
-        [...db.listings.values()]
-          .filter((l) => matchesId(l.id, where?.id))
-          .map((l) => ({ productId: l.productId, product: db.products.get(l.productId) ? { listingKind: db.products.get(l.productId)!.listingKind } : null })),
+        (where?.id?.in ?? [...db.listings.keys()])
+          .map((id: string) => db.listings.get(id))
+          .filter((l: Row | undefined): l is Row => Boolean(l))
+          .map((l: Row) => {
+            const p = db.products.get(l.productId)
+            return {
+              id: l.id,
+              productId: l.productId,
+              product: p ? { listingKind: p.listingKind, hasVariants: p.hasVariants ?? false, variants: clone(p.variants) } : null,
+            }
+          }),
       update: async () => ({}),
     },
     supplierLink: { findUnique: async () => null },
