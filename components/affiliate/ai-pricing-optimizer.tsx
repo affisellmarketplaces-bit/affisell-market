@@ -179,6 +179,13 @@ export function AiPricingOptimizer({
         <span className="rounded-full bg-violet-600 px-2 py-0.5 text-xs text-white">{t("beta")}</span>
       </div>
 
+      <p
+        data-testid="ai-pricing-rule-note"
+        className="mb-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400"
+      >
+        {t("ruleNote")}
+      </p>
+
       {multiActive ? (
         <p className="mb-3 text-xs leading-relaxed text-violet-800 dark:text-violet-200">
           {t("multiHint", { count: multiVariant!.selectedCount })}

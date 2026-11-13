@@ -1,5 +1,9 @@
 /**
  * Saturation Index + days-until-full prediction (Affisell moat).
+ *
+ * A FORMULA, NOT an AI model: competition relative to demand density, with fixed thresholds. The "prediction" of days until
+ * saturation is `(30 - index) / (growthRate / 30)` — linear arithmetic on the row's growth rate, not a forecast learned from
+ * history. On a simulated radar payload (rows flagged `synthetic`) its inputs are generated.
  */
 
 export type SaturationInput = {

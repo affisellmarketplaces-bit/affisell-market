@@ -15,8 +15,9 @@ describe("smart margin legal (EU)", () => {
   })
 
   it("probability disclaimer is non-contractual", () => {
-    expect(PROBABILITY_DISCLAIMER).toMatch(/Probabilité/i)
-    expect(PROBABILITY_DISCLAIMER).toMatch(/Non contractuelle/i)
+    expect(PROBABILITY_DISCLAIMER).toMatch(/pas une probabilité/i)
+    expect(PROBABILITY_DISCLAIMER).toMatch(/règle/i)
+    expect(PROBABILITY_DISCLAIMER).toMatch(/Non contractuel/i)
   })
 
   it("withRevenueDisclaimer appends legal suffix", () => {
