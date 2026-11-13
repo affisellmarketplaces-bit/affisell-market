@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 type Row = {
   id: string
+  status?: string
   totalCents: number
   subtotalCents: number
   sellingPriceCents: number
@@ -14,8 +15,10 @@ type Row = {
   platformCommissionCents: number
   paymentSettlementStatus: string
 }
-const { orders, recordedRefunds, orderUpdates, reverse, clawbackFull, clawbackPartial, notifyCancelled } = vi.hoisted(() => ({
+const { orders, audit, opsAlert, recordedRefunds, orderUpdates, reverse, clawbackFull, clawbackPartial, notifyCancelled } = vi.hoisted(() => ({
   orders: {} as Record<string, Row>,
+  audit: new Map<string, { id: string; action: string; entityId: string | null; payload: Record<string, unknown> }>(),
+  opsAlert: vi.fn(async (_text: string) => ({ slack: false, discord: false })),
   recordedRefunds: [] as Array<{ orderId: string; stripeRefundId: string; amountCents: number }>,
   orderUpdates: [] as Array<{ id: string; data: Record<string, unknown> }>,
   reverse: vi.fn(async () => ({})),
@@ -37,7 +40,11 @@ vi.mock("@/lib/payout-reversal-safety", () => ({
   markRefundPendingClawback: vi.fn(async () => {}),
 }))
 vi.mock("@/lib/fulfillment/external-order-cancellation", () => ({ attemptExternalOrderCancellation: vi.fn(async () => {}) }))
-vi.mock("@/lib/stripe", () => ({ getStripeClient: () => ({}) }))
+vi.mock("@/lib/stripe", () => ({
+  getStripeClient: () => ({ checkout: { sessions: { list: async () => ({ data: [{ id: "cs_1" }] }) } } }),
+}))
+vi.mock("@/lib/ops-webhook", () => ({ opsWebhookAlert: opsAlert }))
+vi.mock("@sentry/nextjs", () => ({ captureMessage: vi.fn(), captureException: vi.fn() }))
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     order: {
@@ -46,6 +53,20 @@ vi.mock("@/lib/prisma", () => ({
       update: async (args: { where: { id: string }; data: Record<string, unknown> }) => {
         orderUpdates.push({ id: args.where.id, data: args.data })
         return {}
+      },
+    },
+    auditLog: {
+      findMany: async ({ where }: { where: { id?: { in: string[] }; action?: string; payload?: { path: string[]; equals: unknown } } }) =>
+        [...audit.values()].filter((r) => {
+          if (where.id && !where.id.in.includes(r.id)) return false
+          if (where.action && r.action !== where.action) return false
+          if (where.payload && (r.payload as Record<string, unknown>)[where.payload.path[0]!] !== where.payload.equals) return false
+          return true
+        }),
+      create: async ({ data }: { data: { id: string; action: string; entityId: string | null; payload: Record<string, unknown> } }) => {
+        if (audit.has(data.id)) throw Object.assign(new Error("Unique constraint failed"), { code: "P2002" })
+        audit.set(data.id, data)
+        return data
       },
     },
     orderStripeRefund: {
@@ -76,6 +97,8 @@ function charge(refunds: R[], amountRefunded: number, amount = 3000) {
   return {
     id: "ch_1",
     amount,
+    currency: "eur",
+    payment_intent: "pi_1",
     amount_refunded: amountRefunded,
     refunds: {
       data: refunds.map((r) => ({
@@ -162,6 +185,115 @@ describe("refund of an unallocated line on a charge that also carries a valid or
   })
 
   it("charges without any unallocated refund behave exactly as before (a sole order refunded in full is full)", async () => {
+    await handleStripeChargeRefundedWithCommission(charge([{ id: "re_A", amount: 1000 }], 1000, 1000))
+    expect(clawbackFull).toHaveBeenCalledTimes(1)
+    expect(orderUpdates.find((u) => u.id === "A")?.data).toMatchObject({ status: "refunded" })
+  })
+})
+
+describe("MANUAL refund (Stripe dashboard — no marker, no order id) of an unallocated line", () => {
+  const traceLine = (key: string, refundableCents: number, over: Record<string, unknown> = {}) =>
+    audit.set(`unallocated-line:${key}`, {
+      id: `unallocated-line:${key}`,
+      action: "payment.unallocated_line",
+      entityId: key,
+      payload: { paymentIntentId: "pi_1", refundableCents, ...over },
+    })
+
+  beforeEach(() => {
+    for (const k of Object.keys(orders)) delete orders[k]
+    audit.clear()
+    recordedRefunds.length = 0
+    orderUpdates.length = 0
+    reverse.mockClear()
+    clawbackFull.mockClear()
+    clawbackPartial.mockClear()
+    notifyCancelled.mockClear()
+    opsAlert.mockClear()
+    orders.A = row("A", 1000)
+    traceLine("cs_1:line:1", 2000) // the lost line: 20 EUR, paid on the same charge as order A (10 EUR)
+  })
+
+  it("is recognised by its exact amount: the valid sibling order is NOT touched, the line gets its proof, ops are told", async () => {
+    const res = await handleStripeChargeRefundedWithCommission(charge([{ id: "re_manual", amount: 2000 }], 2000))
+
+    expect(res.processedOrderIds).toEqual([])
+    expect(recordedRefunds).toEqual([])
+    expect(reverse).not.toHaveBeenCalled()
+    expect(clawbackFull).not.toHaveBeenCalled()
+    expect(clawbackPartial).not.toHaveBeenCalled()
+    expect(orderUpdates).toEqual([])
+    expect(notifyCancelled).not.toHaveBeenCalled()
+    expect(audit.get("unallocated-line-refunded:cs_1:line:1")).toMatchObject({
+      payload: { stripeRefundId: "re_manual", amountCents: 2000, source: "manual_dashboard" },
+    })
+    expect(opsAlert.mock.calls.some((c) => String(c[0]).includes("recognised by its amount"))).toBe(true)
+  })
+
+  it("a webhook replay does not record it twice nor touch the order", async () => {
+    await handleStripeChargeRefundedWithCommission(charge([{ id: "re_manual", amount: 2000 }], 2000))
+    const auditSize = audit.size
+    await handleStripeChargeRefundedWithCommission(charge([{ id: "re_manual", amount: 2000 }], 2000))
+    expect(audit.size).toBe(auditSize)
+    expect(orderUpdates).toEqual([])
+    expect(clawbackFull).not.toHaveBeenCalled()
+  })
+
+  it("a bare refund of ANOTHER amount is attributed to nothing (it used to partially refund the sibling order): ops are alerted", async () => {
+    const res = await handleStripeChargeRefundedWithCommission(charge([{ id: "re_x", amount: 500 }], 500))
+    expect(res.processedOrderIds).toEqual([])
+    expect(recordedRefunds).toEqual([])
+    expect(orderUpdates).toEqual([])
+    expect(clawbackPartial).not.toHaveBeenCalled()
+    expect(audit.has("unallocated-line-refunded:cs_1:line:1")).toBe(false)
+    expect(opsAlert.mock.calls.some((c) => String(c[0]).includes("NOT applied to any order"))).toBe(true)
+  })
+
+  it("an amount that is ALSO the order's total is ambiguous: neither is touched", async () => {
+    audit.clear()
+    traceLine("cs_1:line:1", 1000)
+    await handleStripeChargeRefundedWithCommission(charge([{ id: "re_x", amount: 1000 }], 1000))
+    expect(orderUpdates).toEqual([])
+    expect(clawbackFull).not.toHaveBeenCalled()
+    expect(audit.has("unallocated-line-refunded:cs_1:line:1")).toBe(false)
+  })
+
+  it("a refund that names the order is still that order's, next to a manual refund of the lost line", async () => {
+    await handleStripeChargeRefundedWithCommission(
+      charge(
+        [
+          { id: "re_manual", amount: 2000 },
+          { id: "re_A", amount: 300, orderId: "A" },
+        ],
+        2300
+      )
+    )
+    expect(recordedRefunds).toEqual([expect.objectContaining({ orderId: "A", stripeRefundId: "re_A", amountCents: 300 })])
+    expect(orderUpdates.find((u) => u.id === "A")?.data).toEqual({ paymentSettlementStatus: "PARTIALLY_REFUNDED" })
+    expect(clawbackFull).not.toHaveBeenCalled()
+  })
+
+  it("a cart whose lines are ALL unallocated has no order: the manual refund still leaves its proof (the line can never become an order)", async () => {
+    delete orders.A
+    const res = await handleStripeChargeRefundedWithCommission(charge([{ id: "re_manual", amount: 2000 }], 2000))
+    expect(res.processedOrderIds).toEqual([])
+    expect(audit.get("unallocated-line-refunded:cs_1:line:1")).toBeDefined()
+  })
+
+  it("the closed skeleton order of a single-line checkout is not a sale: a manual refund of its line is recognised, not ambiguous", async () => {
+    delete orders.A
+    audit.clear()
+    traceLine("cs_1:line:0", 4000)
+    orders.skeleton = { ...row("skeleton", 4000), status: "CANCELLED", paymentSettlementStatus: "CANCELLED" }
+    const res = await handleStripeChargeRefundedWithCommission(charge([{ id: "re_manual", amount: 4000 }], 4000, 4000))
+    expect(res.processedOrderIds).toEqual([])
+    expect(orderUpdates).toEqual([])
+    expect(audit.get("unallocated-line-refunded:cs_1:line:0")).toBeDefined()
+    expect(opsAlert.mock.calls.some((c) => String(c[0]).includes("NOT applied to any order"))).toBe(false)
+  })
+
+  it("a charge with no traced line is untouched by all this: the sole order refunded in full is full", async () => {
+    audit.clear()
     await handleStripeChargeRefundedWithCommission(charge([{ id: "re_A", amount: 1000 }], 1000, 1000))
     expect(clawbackFull).toHaveBeenCalledTimes(1)
     expect(orderUpdates.find((u) => u.id === "A")?.data).toMatchObject({ status: "refunded" })

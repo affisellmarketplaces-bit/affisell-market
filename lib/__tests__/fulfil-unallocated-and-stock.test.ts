@@ -7,143 +7,15 @@
  */
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-/* The in-memory database below mimics Prisma's loosely typed call shapes; typing them would only duplicate the schema. */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const H = vi.hoisted(() => {
-  type Row = Record<string, any>
-  const db = {
-    orders: new Map<string, Row>(),
-    products: new Map<string, Row>(),
-    listings: new Map<string, Row>(),
-    audit: new Map<string, Row>(),
-    seq: 0,
-    /** Lets a test make the locked read return a STALE stock (what a missing lock would allow). */
-    staleStock: null as null | number,
-    /** Makes the next order-sale bookkeeping throw (to prove the whole transaction, stock included, rolls back). */
-    failRecordSale: false,
-    /** How many times a product row was locked (`SELECT … FOR UPDATE`). */
-    lockReads: 0,
-    /** Makes the locked read hand the `variants` json back as text. */
-    variantsAsText: false,
-  }
+import { fakeCheckoutDb } from "@/lib/testing/fake-checkout-db"
 
-  const clone = <T,>(v: T): T => (v === undefined ? v : JSON.parse(JSON.stringify(v)))
-  const snapshot = () => ({
-    orders: new Map([...db.orders].map(([k, v]) => [k, clone(v)] as [string, Row])),
-    products: new Map([...db.products].map(([k, v]) => [k, clone(v)] as [string, Row])),
-    audit: new Map([...db.audit].map(([k, v]) => [k, clone(v)] as [string, Row])),
-  })
-  const restore = (s: ReturnType<typeof snapshot>) => {
-    db.orders = s.orders
-    db.products = s.products
-    db.audit = s.audit
-  }
-
-  const orderApi = {
-    findMany: async ({ where }: any) =>
-      [...db.orders.values()].filter((o) => (where.stripeSessionId?.in ?? []).includes(o.stripeSessionId)),
-    findUnique: async ({ where }: any) => {
-      if (where.stripeSessionId !== undefined)
-        return [...db.orders.values()].find((o) => o.stripeSessionId === where.stripeSessionId) ?? null
-      return db.orders.get(where.id) ?? null
-    },
-  }
-
-  const tx = {
-    $executeRaw: async () => 0,
-    $queryRaw: async (_strings: TemplateStringsArray, id: string) => {
-      db.lockReads++
-      const p = db.products.get(id)
-      if (!p) return []
-      return [
-        {
-          stock: db.staleStock ?? p.stock,
-          variants: db.variantsAsText && p.variants ? JSON.stringify(p.variants) : clone(p.variants),
-          listingKind: p.listingKind,
-        },
-      ]
-    },
-    product: {
-      updateMany: async ({ where, data }: any) => {
-        const p = db.products.get(where.id)
-        if (!p) return { count: 0 }
-        if (where.stock?.gte !== undefined && !(p.stock >= where.stock.gte)) return { count: 0 }
-        if (data.stock?.decrement !== undefined) p.stock -= data.stock.decrement
-        return { count: 1 }
-      },
-      update: async ({ where, data }: any) => {
-        const p = db.products.get(where.id)!
-        if (data.stock !== undefined) p.stock = data.stock
-        if (data.variants !== undefined) p.variants = clone(data.variants)
-        return p
-      },
-    },
-    order: {
-      ...orderApi,
-      create: async ({ data }: any) => {
-        const row = { id: `o_${++db.seq}`, medusaOrderId: null, bookingSlotId: null, ...clone(data) }
-        db.orders.set(row.id, row)
-        return row
-      },
-      update: async ({ where, data }: any) => {
-        const row = db.orders.get(where.id)!
-        Object.assign(row, clone(data))
-        return row
-      },
-    },
-    affiliateProduct: {
-      findUnique: async ({ where }: any) => {
-        const l = db.listings.get(where.id)
-        if (!l) return null
-        const product = db.products.get(l.productId)
-        if (!product) return { ...l, product: null }
-        return {
-          ...clone(l),
-          product: { ...clone(product), supplier: { supplierFeeBps: null, supplierFeeBpsCatalog: null, supplierFeeBpsAutoBuy: null } },
-          affiliate: { stripeAccountId: null, affiliatePlatformFeeBps: null, store: { partnerListingCode: null } },
-        }
-      },
-      update: async () => ({}),
-    },
-    supplierLink: { findUnique: async () => null },
-  }
-
-  const prismaMock = {
-    $transaction: async (fn: (t: typeof tx) => Promise<unknown>) => {
-      const snap = snapshot()
-      try {
-        return await fn(tx)
-      } catch (err) {
-        restore(snap)
-        throw err
-      }
-    },
-    order: orderApi,
-    affiliateProduct: { findUnique: tx.affiliateProduct.findUnique },
-    auditLog: {
-      create: async ({ data }: any) => {
-        if (db.audit.has(data.id)) throw Object.assign(new Error("Unique constraint failed"), { code: "P2002" })
-        db.audit.set(data.id, { ...clone(data), createdAt: new Date() })
-        return data
-      },
-      findUnique: async ({ where }: any) => db.audit.get(where.id) ?? null,
-      findMany: async ({ where }: any) => [...db.audit.values()].filter((r) => (where.id?.in ?? []).includes(r.id)),
-    },
-  }
-
-  return {
-    db,
-    prismaMock,
-    snapshot,
-    restore,
-  }
-})
-
-vi.mock("@/lib/prisma", () => ({ prisma: H.prismaMock }))
+vi.mock("@/lib/prisma", async () => ({ prisma: (await import("@/lib/testing/fake-checkout-db")).fakeCheckoutDb.prisma }))
 vi.mock("@/lib/after-response", () => ({ runAfterResponse: async (_l: string, task: () => Promise<unknown>) => void (await task()) }))
 vi.mock("@sentry/nextjs", () => ({ captureMessage: vi.fn(), captureException: vi.fn() }))
 
-const stripeRefunds = vi.hoisted(() => ({ create: vi.fn() }))
+const stripeRefunds = vi.hoisted(() => ({ create: vi.fn(), list: vi.fn() }))
+const redeemReward = vi.hoisted(() => vi.fn(async (_db: unknown, _args: unknown) => ({ ok: true })))
+const confirmationEmails = vi.hoisted(() => ({ sent: [] as Array<{ orderId: string; insideTransaction: boolean }> }))
 const opsAlert = vi.hoisted(() => vi.fn())
 vi.mock("@/lib/stripe", () => ({ getStripeClient: () => ({ refunds: stripeRefunds }) }))
 vi.mock("@/lib/ops-webhook", () => ({ opsWebhookAlert: opsAlert }))
@@ -152,14 +24,14 @@ vi.mock("@/lib/ops-webhook", () => ({ opsWebhookAlert: opsAlert }))
 const recordSale = vi.hoisted(() => vi.fn())
 vi.mock("@/lib/legal/affiliate-commissionnaire.server", () => ({
   recordAffiliateSaleFromOrder: async (...a: unknown[]) => {
-    if (H.db.failRecordSale) throw new Error("sale bookkeeping failed")
+    if (fakeCheckoutDb.db.failRecordSale) throw new Error("sale bookkeeping failed")
     return recordSale(...a)
   },
 }))
 vi.mock("@/lib/return-terms.server", () => ({ recordOrderReturnTerms: vi.fn(async () => {}) }))
 vi.mock("@/lib/buyer-reward-ledger", () => ({
   earnBuyerRewardIdempotent: vi.fn(async () => ({})),
-  redeemBuyerRewardIdempotent: vi.fn(async () => ({ ok: true })),
+  redeemBuyerRewardIdempotent: redeemReward,
 }))
 vi.mock("@/lib/ensure-buyer-from-stripe-checkout", () => ({ ensureBuyerUserIdFromStripeCheckout: vi.fn(async () => null) }))
 vi.mock("@/lib/buyer-reward-resolve-user", () => ({ resolveBuyerUserIdForEarn: vi.fn(async () => "") }))
@@ -173,7 +45,9 @@ vi.mock("@/lib/emails/send-digital-access-pass", () => ({ sendDigitalAccessPassE
 vi.mock("@/lib/booking/run-after-payment", () => ({ runBookingPassAfterPayment: vi.fn(async () => {}) }))
 vi.mock("@/lib/emails/send-order-confirmation", () => ({
   resolveOrderConfirmationImageUrl: vi.fn(() => null),
-  sendOrderConfirmationEmail: vi.fn(async () => {}),
+  sendOrderConfirmationEmail: vi.fn(async (payload: { orderId: string }) => {
+    confirmationEmails.sent.push({ orderId: payload.orderId, insideTransaction: fakeCheckoutDb.db.inTransaction })
+  }),
 }))
 vi.mock("@/lib/marketplace-order-notifications", () => ({ createMarketplaceOrderNotifications: vi.fn(async () => {}) }))
 vi.mock("@/lib/marketplace-order-notification-heal", () => ({
@@ -191,10 +65,25 @@ vi.mock("@/lib/legion/resolve-active-boost-commission", () => ({
 }))
 vi.mock("@/lib/sponsor/charge-sponsor-on-sale", () => ({ accrueSponsorSuccessFeesForOrder: vi.fn(async () => {}) }))
 vi.mock("@/lib/legion/apply-referral-override", () => ({ applyLegionReferralOverrideOnFulfill: vi.fn(async () => {}) }))
+// the settlement path (real `scheduleMarketplaceTransferAttempts` / `settleMarketplaceOrdersFromCheckoutSession`)
+const runTransfers = vi.hoisted(() => vi.fn(async () => ({ failed: 0 })))
+vi.mock("@/lib/referral", () => ({ applyReferralBonus: vi.fn(async () => {}) }))
+vi.mock("@/lib/transfers/process-transfers", () => ({ runProcessTransfersJob: runTransfers }))
+vi.mock("@/lib/transfers/enqueue-job", () => ({ enqueueProcessTransfersJob: vi.fn(async () => {}) }))
+vi.mock("@/lib/transfers/reset-order-transfers", () => ({ resetOrderTransferAttempts: vi.fn(async () => {}) }))
+vi.mock("@/lib/ghost/post-pay-reverify", () => ({
+  ghostReverifyBeforeFulfill: vi.fn(async () => ({ refunded: false, refundFailed: false })),
+}))
+vi.mock("@/lib/marketplace-checkout-cart-clear.server", () => ({ clearPurchasedCartItems: vi.fn(async () => 0) }))
+vi.mock("@/lib/stripe-sync-order-vat-from-session", () => ({ syncOrderVatFromCheckoutSession: vi.fn(async () => ({ updatedOrderIds: [] })) }))
 
+import { reconcilePendingCheckoutOrders } from "@/lib/cron/reconcile-pending-checkout-orders"
+import { findOrderIdsForCheckoutSession, settleMarketplaceOrdersFromCheckoutSession } from "@/lib/stripe-marketplace-commission-split"
 import { fulfillMarketplaceStripeSession } from "@/lib/stripe-marketplace-fulfill"
+import { scheduleMarketplaceTransferAttempts } from "@/lib/transfers/schedule-from-checkout"
+import { recordManualUnallocatedRefund } from "@/lib/unallocated-line.server"
 
-const { db } = H
+const { db } = fakeCheckoutDb
 
 function product(over: Record<string, unknown> = {}) {
   return {
@@ -282,17 +171,13 @@ const trace = (key: string) => db.audit.get(`unallocated-line:${key}`)
 
 beforeEach(() => {
   vi.clearAllMocks()
-  db.orders.clear()
-  db.products.clear()
-  db.listings.clear()
-  db.audit.clear()
-  db.seq = 0
-  db.staleStock = null
-  db.failRecordSale = false
-  db.lockReads = 0
-  db.variantsAsText = false
+  fakeCheckoutDb.reset()
+  confirmationEmails.sent.length = 0
+  stripeRefunds.list.mockResolvedValue({ data: [] })
   delete process.env.UNALLOCATED_LINE_AUTO_REFUND
   delete process.env.CHECKOUT_STOCK_GUARD
+  // most tests below pin the ENFORCE behaviour; the warn / default behaviour has its own describe
+  process.env.CHECKOUT_STOCK_MODE = "enforce"
   opsAlert.mockResolvedValue({ slack: true, discord: false })
   stripeRefunds.create.mockResolvedValue({ id: "re_1" })
   db.products.set("p1", product())
@@ -405,11 +290,11 @@ describe("D6 — a paid line without an order is never silently dropped", () => 
     expect(paidOrders().map((o) => o.stripeSessionId).sort()).toEqual(["cs_1:line:0", "cs_1:line:1"])
   })
 
-  it("single-line checkout: a missing listing leaves the pre-created order PENDING and a trace", async () => {
+  it("single-line checkout: a missing listing CLOSES the pre-created order and leaves a trace", async () => {
     db.listings.delete("ap1")
     db.orders.set("o_pending", { id: "o_pending", stripeSessionId: "cs_1", status: "PENDING", quantity: 2, affiliateProductId: "ap1" })
     await fulfil(singleSession(2, 4000))
-    expect(db.orders.get("o_pending")!.status).toBe("PENDING")
+    expect(db.orders.get("o_pending")).toMatchObject({ status: "CANCELLED", paymentSettlementStatus: "CANCELLED" })
     expect(trace("cs_1:line:0")!.payload).toMatchObject({ reason: "listing_not_found", paidLineCents: 4000, qty: 2 })
     expect(opsAlert).toHaveBeenCalledTimes(1)
   })
@@ -583,7 +468,7 @@ describe("G1 — stock is taken atomically with the order, never negative, never
     expect(paidOrders()).toHaveLength(1)
     expect(db.products.get("p1")!.stock).toBe(0)
     expect(db.audit.size).toBe(0)
-    expect(db.lockReads).toBe(0) // not even locked: digital sales never queue behind each other
+    expect(db.locks).toHaveLength(0) // not even locked: digital sales never queue behind each other
   })
 
   it("a variant that can not be resolved to ONE row is not guessed: the order goes through, nothing is decremented", async () => {
@@ -617,11 +502,11 @@ describe("G1 — stock is taken atomically with the order, never negative, never
     expect(db.products.get("p1")!.stock).toBe(3)
   })
 
-  it("single-line checkout with a pre-created order and a shortfall: the order stays PENDING, stock untouched, trace left", async () => {
+  it("single-line checkout with a pre-created order and a shortfall: the order is CLOSED, stock untouched, trace left", async () => {
     db.products.get("p1")!.stock = 1
     db.orders.set("o_pending", { id: "o_pending", stripeSessionId: "cs_1", status: "PENDING", quantity: 2, affiliateProductId: "ap1", variantLabel: null })
     await fulfil(singleSession(2, 4000))
-    expect(db.orders.get("o_pending")!.status).toBe("PENDING")
+    expect(db.orders.get("o_pending")).toMatchObject({ status: "CANCELLED", paymentSettlementStatus: "CANCELLED" })
     expect(db.products.get("p1")!.stock).toBe(1)
     expect(trace("cs_1:line:0")!.payload).toMatchObject({ reason: "insufficient_stock", paidLineCents: 4000, qty: 2 })
     // replays do not duplicate the trace or the alert
@@ -634,5 +519,405 @@ describe("G1 — stock is taken atomically with the order, never negative, never
     await fulfil(singleSession(1, 2000, { metadata: { affiliateProductId: "ap1", checkoutQty: "1", linePaids: "[2000]", appliedRewardCents: "0" } }))
     expect(paidOrders()).toHaveLength(1)
     expect(db.products.get("p1")!.stock).toBe(4)
+  })
+})
+
+describe("F1 — a pre-created order whose line is unallocated can never be reopened by the settlement", () => {
+  const pendingOrder = () =>
+    db.orders.set("o_pending", {
+      id: "o_pending",
+      stripeSessionId: "cs_1",
+      status: "PENDING",
+      paymentSettlementStatus: "PENDING",
+      quantity: 2,
+      affiliateProductId: "ap1",
+      variantLabel: null,
+      supplierId: "sup1",
+      affiliateId: "aff1",
+      sellingPriceCents: 4000,
+      subtotalCents: 4000,
+    })
+  const paidSession = () => ({ ...(singleSession(2, 4000) as object), mode: "payment", payment_status: "paid" }) as never
+
+  it("the settlement entry points (what the webhook, the success page and payment_intent.succeeded call) refuse it", async () => {
+    db.products.get("p1")!.stock = 1
+    pendingOrder()
+    const session = paidSession()
+
+    await fulfil(session) // shortfall: the line is unallocated
+
+    // 1. the loop of `processCheckoutSessionCompleted`: every order id of the session → the real scheduler
+    for (const id of await findOrderIdsForCheckoutSession("cs_1")) {
+      const res = await scheduleMarketplaceTransferAttempts(session, id)
+      expect(res).toMatchObject({ scheduled: false, reason: "order_closed" })
+    }
+    // 2. `payment_intent.succeeded` / success page: the real settle function (it even re-runs the fulfilment first)
+    const settled = await settleMarketplaceOrdersFromCheckoutSession(session)
+    expect(settled.errors).toEqual([])
+
+    expect(db.orders.get("o_pending")).toMatchObject({ status: "CANCELLED", paymentSettlementStatus: "CANCELLED" })
+    expect(db.transferUpserts).toBe(0) // no payout was scheduled
+    expect(runTransfers).not.toHaveBeenCalled()
+    expect(paidOrders()).toHaveLength(0)
+    expect(db.products.get("p1")!.stock).toBe(1)
+    expect(opsAlert).toHaveBeenCalledTimes(1) // and the replays inside the settle did not alert again
+  })
+
+  it("the reconcile cron no longer sees a PENDING row to revisit every 30 minutes", async () => {
+    db.products.get("p1")!.stock = 1
+    pendingOrder()
+    await fulfil(paidSession())
+    const res = await reconcilePendingCheckoutOrders()
+    expect(res).toMatchObject({ scanned: 0, healed: 0 })
+  })
+
+  it("a missing listing closes the pre-created order the same way, and the settlement refuses it", async () => {
+    db.listings.delete("ap1")
+    pendingOrder()
+    const session = paidSession()
+    await fulfil(session)
+    expect(db.orders.get("o_pending")).toMatchObject({ status: "CANCELLED", paymentSettlementStatus: "CANCELLED" })
+    expect(await scheduleMarketplaceTransferAttempts(session, "o_pending")).toMatchObject({ reason: "order_closed" })
+  })
+
+  it("a replay of the fulfilment on the closed order is a no-op (it used to collide on the session id)", async () => {
+    db.products.get("p1")!.stock = 1
+    pendingOrder()
+    const session = paidSession()
+    await fulfil(session)
+    db.products.get("p1")!.stock = 50 // restocked afterwards
+    await expect(fulfil(session)).resolves.toBeUndefined()
+    expect(db.orders.get("o_pending")!.status).toBe("CANCELLED")
+    expect(db.products.get("p1")!.stock).toBe(50) // nothing taken for a closed order
+  })
+
+  it("with the automatic refund on, the closed order and the refunded line stay closed", async () => {
+    process.env.UNALLOCATED_LINE_AUTO_REFUND = "true"
+    db.products.get("p1")!.stock = 1
+    pendingOrder()
+    const session = paidSession()
+    await fulfil(session)
+    expect(stripeRefunds.create).toHaveBeenCalledTimes(1)
+    await settleMarketplaceOrdersFromCheckoutSession(session)
+    expect(db.orders.get("o_pending")!.status).toBe("CANCELLED")
+    expect(stripeRefunds.create).toHaveBeenCalledTimes(1)
+  })
+
+  it("a booking order is left alone (its slot hold has its own release)", async () => {
+    db.listings.delete("ap1")
+    pendingOrder()
+    db.orders.get("o_pending")!.bookingSlotId = "slot_1"
+    await fulfil(paidSession())
+    expect(db.orders.get("o_pending")!.status).toBe("PENDING")
+  })
+})
+
+describe("F9 — a line refunded BY HAND never becomes an order afterwards", () => {
+  it("once the manual refund is recognised (charge.refunded), a replay does not allocate the line", async () => {
+    db.products.set("p2", product({ id: "p2", active: false }))
+    db.listings.set("ap2", listing("ap2", "p2"))
+    const session = cartSession(
+      [
+        { affiliateProductId: "ap1", qty: 1 },
+        { affiliateProductId: "ap2", qty: 1 },
+      ],
+      [2000, 3000]
+    )
+    await fulfil(session)
+    expect(trace("cs_1:line:1")).toBeDefined()
+
+    // what the charge.refunded handler does when a hand-made refund of the traced amount arrives
+    await recordManualUnallocatedRefund({ lineKey: "cs_1:line:1", stripeRefundId: "re_manual", amountCents: 3000, currency: "eur" })
+    expect(db.audit.get("unallocated-line-refunded:cs_1:line:1")!.payload).toMatchObject({ source: "manual_dashboard", stripeRefundId: "re_manual" })
+
+    db.products.get("p2")!.active = true
+    await fulfil(session)
+    expect(paidOrders().map((o) => o.stripeSessionId)).toEqual(["cs_1:line:0"])
+  })
+
+  it("the automatic refund looks at what the payment already carries before refunding again (proof row lost, key expired)", async () => {
+    process.env.UNALLOCATED_LINE_AUTO_REFUND = "true"
+    db.listings.delete("ap1")
+    stripeRefunds.list.mockResolvedValue({
+      data: [
+        {
+          id: "re_held",
+          amount: 2000,
+          status: "succeeded",
+          metadata: { affisell_unallocated_line: "1", checkoutSessionId: "cs_1", lineIndex: "0" },
+        },
+      ],
+    })
+    await fulfil(cartSession([{ affiliateProductId: "ap1", qty: 1 }], [2000]))
+    expect(stripeRefunds.create).not.toHaveBeenCalled()
+    expect(db.audit.get("unallocated-line-refunded:cs_1:line:0")!.payload).toMatchObject({ stripeRefundId: "re_held", source: "automatic_recovered" })
+  })
+})
+
+describe("F13 — store credit is not consumed by a checkout where no line became a sale", () => {
+  const withCredit = (lines: CartLine[], paids: number[]) =>
+    cartSession(lines, paids, {
+      metadata: {
+        cartLines: JSON.stringify(lines),
+        linePaids: JSON.stringify(paids),
+        appliedRewardCents: "500",
+        buyerUserId: "u1",
+      },
+    })
+
+  it("every line unallocated: the credit stays with the buyer", async () => {
+    db.products.get("p1")!.stock = 0
+    await fulfil(withCredit([{ affiliateProductId: "ap1", qty: 1 }], [1500]))
+    expect(paidOrders()).toHaveLength(0)
+    expect(redeemReward).not.toHaveBeenCalled()
+  })
+
+  it("at least one line is a sale: the credit is redeemed (once per session, the ledger key is per session)", async () => {
+    db.products.set("p2", product({ id: "p2", stock: 0 }))
+    db.listings.set("ap2", listing("ap2", "p2"))
+    await fulfil(
+      withCredit(
+        [
+          { affiliateProductId: "ap1", qty: 1 },
+          { affiliateProductId: "ap2", qty: 1 },
+        ],
+        [1500, 2000]
+      )
+    )
+    expect(paidOrders()).toHaveLength(1)
+    expect(redeemReward).toHaveBeenCalledTimes(1)
+    expect(redeemReward.mock.calls[0]![1]).toMatchObject({ userId: "u1", amountCents: 500, stripeSessionId: "cs_1" })
+  })
+
+  it("single-line checkout: a shortfall on the pre-created order keeps the credit, a sale redeems it", async () => {
+    const pending = () =>
+      db.orders.set("o_pending", { id: "o_pending", stripeSessionId: "cs_1", status: "PENDING", quantity: 1, affiliateProductId: "ap1", variantLabel: null })
+    const sess = () =>
+      singleSession(1, 1500, {
+        metadata: { affiliateProductId: "ap1", checkoutQty: "1", linePaids: "[1500]", appliedRewardCents: "500", buyerUserId: "u1", orderId: "o_pending" },
+      })
+    db.products.get("p1")!.stock = 0
+    pending()
+    await fulfil(sess())
+    expect(redeemReward).not.toHaveBeenCalled()
+
+    fakeCheckoutDb.reset()
+    db.products.set("p1", product())
+    db.listings.set("ap1", listing("ap1", "p1"))
+    pending()
+    await fulfil(sess())
+    expect(redeemReward).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe("F6 / F7 — row locks: no key conflict, ascending order, no network I/O while they are held", () => {
+  it("locks with FOR NO KEY UPDATE (a plain FOR UPDATE would block the FK check of every order insert)", async () => {
+    await fulfil(cartSession([{ affiliateProductId: "ap1", qty: 1 }], [2000]))
+    expect(db.locks.length).toBeGreaterThan(0)
+    for (const l of db.locks) {
+      expect(l.sql).toContain("FOR NO KEY UPDATE")
+      expect(l.sql).not.toMatch(/FOR UPDATE/)
+    }
+  })
+
+  it("a multi-product cart locks the products in ascending id order whatever the cart order is", async () => {
+    db.products.set("pa", product({ id: "pa" }))
+    db.products.set("pz", product({ id: "pz" }))
+    db.listings.set("apz", listing("apz", "pz"))
+    db.listings.set("apa", listing("apa", "pa"))
+    await fulfil(
+      cartSession(
+        [
+          { affiliateProductId: "apz", qty: 1 },
+          { affiliateProductId: "apa", qty: 1 },
+        ],
+        [2000, 2000]
+      )
+    )
+    // the first two statements are the up-front locks, sorted — before any line is processed
+    expect(db.locks.slice(0, 2).map((l) => l.id)).toEqual(["pa", "pz"])
+    expect(paidOrders()).toHaveLength(2)
+  })
+
+  it("two carts holding the same two products in opposite order take the locks in the SAME order", async () => {
+    db.products.set("pa", product({ id: "pa" }))
+    db.products.set("pz", product({ id: "pz" }))
+    db.listings.set("apz", listing("apz", "pz"))
+    db.listings.set("apa", listing("apa", "pa"))
+    const lines = (a: string, b: string): CartLine[] => [
+      { affiliateProductId: a, qty: 1 },
+      { affiliateProductId: b, qty: 1 },
+    ]
+    await fulfil(cartSession(lines("apz", "apa"), [2000, 2000], { id: "cs_A" }))
+    const first = db.locks.slice(0, 2).map((l) => l.id)
+    db.locks.length = 0
+    await fulfil(cartSession(lines("apa", "apz"), [2000, 2000], { id: "cs_B" }))
+    expect(db.locks.slice(0, 2).map((l) => l.id)).toEqual(first)
+  })
+
+  it("the confirmation e-mails are sent AFTER the transaction (cart and single-line), never while the lock is held", async () => {
+    db.products.set("p2", product({ id: "p2" }))
+    db.listings.set("ap2", listing("ap2", "p2"))
+    await fulfil(
+      cartSession(
+        [
+          { affiliateProductId: "ap1", qty: 1 },
+          { affiliateProductId: "ap2", qty: 1 },
+        ],
+        [2000, 2000]
+      )
+    )
+    expect(confirmationEmails.sent).toHaveLength(2)
+    expect(confirmationEmails.sent.every((e) => e.insideTransaction === false)).toBe(true)
+
+    confirmationEmails.sent.length = 0
+    await fulfil(singleSession(1, 2000, { id: "cs_2", metadata: { affiliateProductId: "ap1", checkoutQty: "1", linePaids: "[2000]", appliedRewardCents: "0" } }))
+    expect(confirmationEmails.sent).toHaveLength(1)
+    expect(confirmationEmails.sent[0]!.insideTransaction).toBe(false)
+  })
+
+  it("a transaction that rolls back sends no e-mail (before: the e-mail was already gone)", async () => {
+    db.failRecordSale = true
+    await expect(fulfil(cartSession([{ affiliateProductId: "ap1", qty: 1 }], [2000]))).rejects.toThrow()
+    expect(confirmationEmails.sent).toHaveLength(0)
+  })
+
+  it("non-physical products are never locked", async () => {
+    db.products.set("p1", product({ listingKind: "SOFTWARE" }))
+    db.products.set("p2", product({ id: "p2", listingKind: "SERVICE" }))
+    db.listings.set("ap2", listing("ap2", "p2"))
+    await fulfil(
+      cartSession(
+        [
+          { affiliateProductId: "ap1", qty: 1 },
+          { affiliateProductId: "ap2", qty: 1 },
+        ],
+        [2000, 2000]
+      )
+    )
+    expect(db.locks).toHaveLength(0)
+  })
+})
+
+describe("C2 — a product whose variants live only in the ProductVariant table is unmanaged", () => {
+  it("is sold as before and its stock is left alone (the aggregate is not what the buyer sees)", async () => {
+    db.products.set("p1", product({ stock: 0, hasVariants: true, variants: null }))
+    await fulfil(cartSession([{ affiliateProductId: "ap1", qty: 2, variantSignature: "c:Rouge|s:M" }], [4000]))
+    expect(paidOrders()).toHaveLength(1)
+    expect(db.products.get("p1")!.stock).toBe(0)
+    expect(db.audit.size).toBe(0)
+    expect(db.locks).toHaveLength(0) // a row that can only come out unmanaged is not locked for nothing
+  })
+
+  it("neither is a variant that can not be resolved to one row, nor the same products inside a multi-line cart", async () => {
+    db.products.get("p1")!.variants = {
+      variantRows: [
+        { id: "r1", name: "Rouge / S", sku: "", priceCents: 0, stock: 1, commission: 20, sales: 0 },
+        { id: "r2", name: "Rouge / M", sku: "", priceCents: 0, stock: 1, commission: 20, sales: 0 },
+      ],
+    }
+    db.products.set("p2", product({ id: "p2", stock: 0, hasVariants: true, variants: null }))
+    db.listings.set("ap2", listing("ap2", "p2"))
+    await fulfil(
+      cartSession(
+        [
+          { affiliateProductId: "ap1", qty: 1, variantSignature: "c:Rouge" },
+          { affiliateProductId: "ap2", qty: 1, variantSignature: "c:Bleu|s:M" },
+        ],
+        [2000, 2000]
+      )
+    )
+    expect(paidOrders()).toHaveLength(2)
+    expect(db.locks).toHaveLength(0)
+  })
+})
+
+describe("F3 — CHECKOUT_STOCK_MODE: warn (the default) never drops a paid line and never goes below 0", () => {
+  const oneLine = (qty = 1, sig = ""): CartLine[] => [{ affiliateProductId: "ap1", qty, variantSignature: sig }]
+  const warnLogs = () => vi.spyOn(console, "log")
+
+  beforeEach(() => {
+    delete process.env.CHECKOUT_STOCK_MODE // the default
+  })
+
+  it("the default mode is warn: a sold-out paid line is still an order, the stock is emptied not negative, 'would_drop' is logged", async () => {
+    const log = warnLogs()
+    db.products.get("p1")!.stock = 1
+    await fulfil(cartSession(oneLine(3), [6000]))
+
+    expect(paidOrders()).toHaveLength(1) // the paid line is NOT removed
+    expect(db.products.get("p1")!.stock).toBe(0) // emptied, never negative
+    expect(db.audit.size).toBe(0) // not an unallocated line: no trace, no alert, no refund
+    expect(opsAlert).not.toHaveBeenCalled()
+    expect(stripeRefunds.create).not.toHaveBeenCalled()
+    const wouldDrop = log.mock.calls.find((c) => c[0] === "[stock]" && (c[1] as { result?: string }).result === "would_drop")
+    expect(wouldDrop?.[1]).toMatchObject({ productId: "p1", qty: 3, before: 1, after: 0, shortfall: { available: 1, requested: 3 } })
+    log.mockRestore()
+  })
+
+  it("an already empty stock stays at 0 and the order still goes through", async () => {
+    db.products.get("p1")!.stock = 0
+    await fulfil(cartSession(oneLine(1), [2000]))
+    expect(paidOrders()).toHaveLength(1)
+    expect(db.products.get("p1")!.stock).toBe(0)
+  })
+
+  it("with enough stock it decrements normally", async () => {
+    await fulfil(cartSession(oneLine(2), [4000]))
+    expect(db.products.get("p1")!.stock).toBe(3)
+  })
+
+  it("a stale read can not push the stock below 0 in warn mode either", async () => {
+    db.products.get("p1")!.stock = 0
+    db.staleStock = 5
+    await fulfil(cartSession(oneLine(2), [4000]))
+    expect(db.products.get("p1")!.stock).toBe(0)
+    expect(paidOrders()).toHaveLength(1)
+  })
+
+  it("variant rows: the row is emptied (never negative) and the paid line kept", async () => {
+    db.products.get("p1")!.stock = 3
+    db.products.get("p1")!.variants = {
+      variantRows: [
+        { id: "r1", name: "Rouge / S", sku: "", priceCents: 0, stock: 1, commission: 20, sales: 0 },
+        { id: "r2", name: "Rouge / M", sku: "", priceCents: 0, stock: 2, commission: 20, sales: 0 },
+      ],
+    }
+    await fulfil(cartSession(oneLine(4, "c:Rouge|s:S"), [8000]))
+    expect(paidOrders()).toHaveLength(1)
+    const p = db.products.get("p1")!
+    expect(p.variants.variantRows.map((r: { stock: number }) => r.stock)).toEqual([0, 2])
+    expect(p.stock).toBe(2) // 3 - the 1 unit the row really had
+  })
+
+  it("single-line pre-created order in warn mode: it is paid, not closed", async () => {
+    db.products.get("p1")!.stock = 1
+    db.orders.set("o_pending", { id: "o_pending", stripeSessionId: "cs_1", status: "PENDING", quantity: 2, affiliateProductId: "ap1", variantLabel: null })
+    await fulfil(singleSession(2, 4000))
+    expect(db.orders.get("o_pending")!.status).toBe("paid")
+    expect(db.products.get("p1")!.stock).toBe(0)
+  })
+
+  it("`warn` can be spelled out, `enforce` switches the refusal on, `off` and the emergency valve switch everything off", async () => {
+    process.env.CHECKOUT_STOCK_MODE = "enforce"
+    db.products.get("p1")!.stock = 0
+    await fulfil(cartSession(oneLine(1), [2000]))
+    expect(paidOrders()).toHaveLength(0)
+
+    fakeCheckoutDb.reset()
+    db.products.set("p1", product({ stock: 0 }))
+    db.listings.set("ap1", listing("ap1", "p1"))
+    process.env.CHECKOUT_STOCK_MODE = "off"
+    await fulfil(cartSession(oneLine(1), [2000]))
+    expect(paidOrders()).toHaveLength(1)
+    expect(db.locks).toHaveLength(0)
+
+    fakeCheckoutDb.reset()
+    db.products.set("p1", product({ stock: 0 }))
+    db.listings.set("ap1", listing("ap1", "p1"))
+    process.env.CHECKOUT_STOCK_MODE = "enforce"
+    process.env.CHECKOUT_STOCK_GUARD = "off" // the valve wins
+    await fulfil(cartSession(oneLine(1), [2000]))
+    expect(paidOrders()).toHaveLength(1)
   })
 })

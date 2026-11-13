@@ -5,6 +5,7 @@ const h = vi.hoisted(() => ({
   auditFindUnique: vi.fn(),
   auditFindMany: vi.fn(),
   refundsCreate: vi.fn(),
+  refundsList: vi.fn(),
   opsAlert: vi.fn(),
   captureMessage: vi.fn(),
 }))
@@ -14,13 +15,14 @@ vi.mock("@/lib/prisma", () => ({
     auditLog: { create: h.auditCreate, findUnique: h.auditFindUnique, findMany: h.auditFindMany },
   },
 }))
-vi.mock("@/lib/stripe", () => ({ getStripeClient: () => ({ refunds: { create: h.refundsCreate } }) }))
+vi.mock("@/lib/stripe", () => ({ getStripeClient: () => ({ refunds: { create: h.refundsCreate, list: h.refundsList } }) }))
 vi.mock("@/lib/ops-webhook", () => ({ opsWebhookAlert: h.opsAlert }))
 vi.mock("@sentry/nextjs", () => ({ captureMessage: h.captureMessage, captureException: vi.fn() }))
 
 import {
   UNALLOCATED_LINE_AUDIT_ACTION,
   UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION,
+  classifyRefundForCharge,
   computeUnallocatedLineRefundCents,
   isUnallocatedLineAutoRefundEnabled,
   isUnallocatedLineRefund,
@@ -29,7 +31,13 @@ import {
   unallocatedLineRefundedAuditId,
   type UnallocatedLine,
 } from "@/lib/unallocated-line"
-import { loadRefundedUnallocatedLineKeys, recordUnallocatedLines } from "@/lib/unallocated-line.server"
+import {
+  alertUnattributedChargeRefund,
+  loadRefundedUnallocatedLineKeys,
+  loadTracedUnallocatedLinesForPaymentIntent,
+  recordManualUnallocatedRefund,
+  recordUnallocatedLines,
+} from "@/lib/unallocated-line.server"
 
 const session = {
   id: "cs_test_1",
@@ -61,6 +69,7 @@ beforeEach(() => {
   h.auditFindMany.mockResolvedValue([])
   h.opsAlert.mockResolvedValue({ slack: true, discord: false })
   h.refundsCreate.mockResolvedValue({ id: "re_1" })
+  h.refundsList.mockResolvedValue({ data: [] })
 })
 
 describe("pure helpers", () => {
@@ -132,6 +141,9 @@ describe("recordUnallocatedLines — trace + alert (refund disabled by default)"
     expect(h.opsAlert.mock.calls[0]![0]).toContain("UNALLOCATED_LINE")
     expect(h.opsAlert.mock.calls[0]![0]).toContain("reason=listing_inactive")
     expect(h.opsAlert.mock.calls[0]![0]).toContain("auto_refund=off")
+    // a refund made by hand is recognised by its exact amount: the alert says which one
+    expect(h.opsAlert.mock.calls[0]![0]).toContain("Refund EXACTLY 60.00 EUR")
+    expect(h.opsAlert.mock.calls[0]![0]).toContain("payment_intent=pi_1")
     // Real money must never move unless the flag is set.
     expect(h.refundsCreate).not.toHaveBeenCalled()
   })
@@ -263,5 +275,151 @@ describe("loadRefundedUnallocatedLineKeys", () => {
     h.auditFindMany.mockRejectedValue(new Error("table missing"))
     await expect(loadRefundedUnallocatedLineKeys(["cs_1:line:0"])).resolves.toEqual(new Set())
     await expect(loadRefundedUnallocatedLineKeys([])).resolves.toEqual(new Set())
+  })
+})
+
+describe("automatic refund — what the payment already carries", () => {
+  beforeEach(() => {
+    process.env.UNALLOCATED_LINE_AUTO_REFUND = "true"
+  })
+
+  it("a refund created earlier for this very line (proof row lost, idempotency key expired) is reused, not repeated", async () => {
+    h.refundsList.mockResolvedValue({
+      data: [
+        { id: "re_other", amount: 100, status: "succeeded", metadata: { orderId: "o1" } },
+        {
+          id: "re_held",
+          amount: 6_000,
+          status: "succeeded",
+          metadata: { affisell_unallocated_line: "1", checkoutSessionId: "cs_test_1", lineIndex: "1" },
+        },
+      ],
+    })
+    const out = await recordUnallocatedLines({ session, lines: [line()] })
+    expect(out[0]).toMatchObject({ refund: "already_refunded", stripeRefundId: "re_held" })
+    expect(h.refundsCreate).not.toHaveBeenCalled()
+    const proof = h.auditCreate.mock.calls.find((c) => c[0].data.action === UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION)
+    expect(proof![0].data.payload).toMatchObject({ stripeRefundId: "re_held", source: "automatic_recovered" })
+  })
+
+  it("a failed or cancelled refund of that line does not count", async () => {
+    h.refundsList.mockResolvedValue({
+      data: [{ id: "re_bad", amount: 6_000, status: "failed", metadata: { affisell_unallocated_line: "1", checkoutSessionId: "cs_test_1", lineIndex: "1" } }],
+    })
+    const out = await recordUnallocatedLines({ session, lines: [line()] })
+    expect(out[0]).toMatchObject({ refund: "refunded" })
+    expect(h.refundsCreate).toHaveBeenCalledTimes(1)
+  })
+
+  it("an unreadable refund list never blocks the refund (the idempotency key still protects it)", async () => {
+    h.refundsList.mockRejectedValue(new Error("stripe down"))
+    const out = await recordUnallocatedLines({ session, lines: [line()] })
+    expect(out[0]).toMatchObject({ refund: "refunded" })
+  })
+})
+
+describe("classifyRefundForCharge — whom a refund of the charge belongs to", () => {
+  const traced = [
+    { key: "cs_1:line:1", refundableCents: 2_000, refundedByRefundId: null },
+  ]
+  const classify = (refund: { id: string; amount: number; metadata?: Record<string, string> | null }, over: Record<string, unknown> = {}) =>
+    classifyRefundForCharge({ refund, tracedLines: traced, orderChargedTotalsCents: [1_000], ...over } as never)
+
+  it("a charge with NO traced line behaves exactly as before: every unmarked refund is an order refund", () => {
+    expect(classifyRefundForCharge({ refund: { id: "re_1", amount: 2_000 }, tracedLines: [], orderChargedTotalsCents: [1_000] })).toEqual({ kind: "order" })
+  })
+
+  it("the marker of the automatic refund wins, with or without trace", () => {
+    const refund = { id: "re_1", amount: 2_000, metadata: { affisell_unallocated_line: "1", checkoutSessionId: "cs_9", lineIndex: "3" } }
+    expect(classifyRefundForCharge({ refund, tracedLines: [], orderChargedTotalsCents: [] })).toEqual({ kind: "unallocated", lineKey: "cs_9:line:3", via: "marker" })
+    expect(classify(refund)).toMatchObject({ kind: "unallocated", via: "marker" })
+  })
+
+  it("a MANUAL refund of exactly the traced amount belongs to the traced line (not to the sibling order)", () => {
+    expect(classify({ id: "re_manual", amount: 2_000, metadata: {} })).toEqual({ kind: "unallocated", lineKey: "cs_1:line:1", via: "amount" })
+  })
+
+  it("a refund id already recorded on a line is that line's, on every replay", () => {
+    const recorded = [{ key: "cs_1:line:1", refundableCents: 2_000, refundedByRefundId: "re_manual" }]
+    expect(classifyRefundForCharge({ refund: { id: "re_manual", amount: 2_000 }, tracedLines: recorded, orderChargedTotalsCents: [1_000] })).toEqual({
+      kind: "unallocated",
+      lineKey: "cs_1:line:1",
+      via: "recorded",
+    })
+    // and a SECOND refund of that amount can no longer claim the already refunded line
+    expect(classifyRefundForCharge({ refund: { id: "re_second", amount: 2_000 }, tracedLines: recorded, orderChargedTotalsCents: [1_000] })).toEqual({ kind: "ambiguous" })
+  })
+
+  it("a refund that NAMES an order is that order's, even when a line is traced", () => {
+    expect(classify({ id: "re_a", amount: 300, metadata: { orderId: "A" } })).toEqual({ kind: "order" })
+  })
+
+  it("an amount that is also an order's charged total is ambiguous: never guessed", () => {
+    expect(classify({ id: "re_x", amount: 2_000, metadata: {} }, { orderChargedTotalsCents: [2_000] })).toEqual({ kind: "ambiguous" })
+  })
+
+  it("any other bare refund on a charge that carries unallocated money is ambiguous (not applied to the sibling order)", () => {
+    expect(classify({ id: "re_x", amount: 500, metadata: {} })).toEqual({ kind: "ambiguous" })
+    expect(classify({ id: "re_x", amount: 1_000, metadata: null })).toEqual({ kind: "ambiguous" })
+  })
+
+  it("two identical lines are claimed one refund each, never twice", () => {
+    const two = [
+      { key: "cs_1:line:1", refundableCents: 2_000, refundedByRefundId: null },
+      { key: "cs_1:line:2", refundableCents: 2_000, refundedByRefundId: null },
+    ]
+    const claimed = new Set<string>()
+    const a = classifyRefundForCharge({ refund: { id: "r1", amount: 2_000 }, tracedLines: two, orderChargedTotalsCents: [], claimed })
+    const b = classifyRefundForCharge({ refund: { id: "r2", amount: 2_000 }, tracedLines: two, orderChargedTotalsCents: [], claimed })
+    const c = classifyRefundForCharge({ refund: { id: "r3", amount: 2_000 }, tracedLines: two, orderChargedTotalsCents: [], claimed })
+    expect([a, b, c].map((x) => (x.kind === "unallocated" ? x.lineKey : x.kind))).toEqual(["cs_1:line:1", "cs_1:line:2", "ambiguous"])
+  })
+})
+
+describe("reading the trace back for a charge", () => {
+  it("finds the traced lines of a payment intent and which of them are already refunded", async () => {
+    h.auditFindMany
+      .mockResolvedValueOnce([
+        { entityId: "cs_1:line:1", payload: { refundableCents: 2_000, paymentIntentId: "pi_1" } },
+        { entityId: "cs_1:line:2", payload: { refundableCents: null } },
+      ])
+      .mockResolvedValueOnce([{ entityId: "cs_1:line:2", payload: { stripeRefundId: "re_9" } }])
+    const lines = await loadTracedUnallocatedLinesForPaymentIntent("pi_1")
+    expect(lines).toEqual([
+      { key: "cs_1:line:1", refundableCents: 2_000, refundedByRefundId: null },
+      { key: "cs_1:line:2", refundableCents: null, refundedByRefundId: "re_9" },
+    ])
+    expect(h.auditFindMany.mock.calls[0]![0].where).toEqual({
+      action: UNALLOCATED_LINE_AUDIT_ACTION,
+      payload: { path: ["paymentIntentId"], equals: "pi_1" },
+    })
+  })
+
+  it("nothing traced: one read, no second one", async () => {
+    h.auditFindMany.mockResolvedValue([])
+    await expect(loadTracedUnallocatedLinesForPaymentIntent("pi_1")).resolves.toEqual([])
+    expect(h.auditFindMany).toHaveBeenCalledTimes(1)
+  })
+
+  it("a database error is NOT swallowed here: the webhook must fail and be replayed rather than guess", async () => {
+    h.auditFindMany.mockRejectedValue(new Error("db down"))
+    await expect(loadTracedUnallocatedLinesForPaymentIntent("pi_1")).rejects.toThrow("db down")
+  })
+
+  it("records a manual refund as the line's proof (source manual) and tells ops it was matched by amount", async () => {
+    await recordManualUnallocatedRefund({ lineKey: "cs_1:line:1", stripeRefundId: "re_m", amountCents: 2_000, currency: "eur" })
+    expect(h.auditCreate.mock.calls[0]![0].data).toMatchObject({
+      id: "unallocated-line-refunded:cs_1:line:1",
+      action: UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION,
+      entityId: "cs_1:line:1",
+      payload: { checkoutSessionId: "cs_1", lineIndex: 1, stripeRefundId: "re_m", source: "manual_dashboard" },
+    })
+    expect(h.opsAlert.mock.calls[0]![0]).toContain("recognised by its amount")
+  })
+
+  it("a refund that can not be attributed raises an alert and touches nothing else", async () => {
+    await alertUnattributedChargeRefund({ chargeId: "ch_1", stripeRefundId: "re_x", amountCents: 500 })
+    expect(h.opsAlert.mock.calls[0]![0]).toContain("NOT applied to any order")
+    expect(h.auditCreate).not.toHaveBeenCalled()
   })
 })

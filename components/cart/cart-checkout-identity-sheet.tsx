@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 
 import { CheckoutPaymentHandoff } from "@/components/checkout/checkout-payment-handoff"
+import { checkoutStockMessage, parseCheckoutStockRefusal } from "@/lib/checkout-stock-client"
 import type { GuestCartItem } from "@/lib/guest-cart"
 
 type Channel = "email" | "phone"
@@ -37,6 +38,7 @@ export function CartCheckoutIdentitySheet({
   guestCartItems,
 }: Props) {
   const t = useTranslations("cart.identity")
+  const tStock = useTranslations("cart.stock")
   const [channel, setChannel] = useState<Channel>("email")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
@@ -78,7 +80,7 @@ export function CartCheckoutIdentitySheet({
             guestCartItems: guestCartItems?.length ? guestCartItems : undefined,
           }),
         })
-        const data = await readJsonSafely<{ url?: string; error?: string }>(res)
+        const data = await readJsonSafely<{ url?: string; error?: string; availableQty?: number }>(res)
         if (data?.url) {
           if (guestCartItems?.length) {
             try {
@@ -93,7 +95,9 @@ export function CartCheckoutIdentitySheet({
           return
         }
         setHandoffOpen(false)
-        setError(data?.error ?? t("identifyFailed"))
+        // A refusal by our stock counter is shown as a translated sentence, never as its machine code.
+        const stockRefusal = res.status === 409 ? parseCheckoutStockRefusal(data) : null
+        setError(stockRefusal ? checkoutStockMessage(stockRefusal, tStock) : (data?.error ?? t("identifyFailed")))
         return
       }
 

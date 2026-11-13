@@ -105,3 +105,69 @@ export type UnallocatedLine = {
   /** Small, non-personal facts about the reason (available stock, …). */
   detail?: Record<string, unknown>
 }
+
+/** What the audit trail knows about a traced unallocated line, as read back when a refund has to be attributed. */
+export type TracedUnallocatedLine = {
+  key: string
+  /** HT + VAT the line collected (`null` when it was unknown): what a refund of this line is expected to be. */
+  refundableCents: number | null
+  /** Set once the line was refunded (by the automatic refund or recognised from a manual one). */
+  refundedByRefundId: string | null
+}
+
+export type RefundClass =
+  /** Belongs to an order of the charge: the regular order refund logic applies. */
+  | { kind: "order" }
+  /** Belongs to a paid line that has no order (`lineKey` = the traced line it was matched to, when known). */
+  | { kind: "unallocated"; lineKey: string | null; via: "marker" | "recorded" | "amount" }
+  /** Can not be told apart from an order refund: attributed to NOTHING, ops are alerted. */
+  | { kind: "ambiguous" }
+
+/**
+ * Decides whom a refund of a charge belongs to, WITHOUT relying on metadata alone — a refund made by hand in the Stripe
+ * dashboard (the default remedy while the automatic refund is off) carries none.
+ *
+ * Only charges that carry traced unallocated lines are affected: with none, every refund without the marker is an order
+ * refund, exactly as before. With traced lines, in this order:
+ *  1. the marker `affisell_unallocated_line=1` (automatic refund) → unallocated;
+ *  2. a refund id already recorded on a line's `refunded` trace → unallocated (replay of the webhook);
+ *  3. `metadata.orderId` set → order (explicit);
+ *  4. the amount equals the refundable amount of a traced line not refunded yet → unallocated, unless it ALSO equals an
+ *     order's charged total → ambiguous (never guess which one it was);
+ *  5. anything else → ambiguous: on a charge that carries unallocated money a bare refund can not safely be applied to
+ *     the sibling order (a single remaining order would be judged "fully refunded" from the charge-level total).
+ * `claimed` holds the lines already matched during this pass, so two refunds do not claim the same line.
+ */
+export function classifyRefundForCharge(args: {
+  refund: { id: string; amount?: number | null; metadata?: Record<string, string | null | undefined> | null }
+  tracedLines: TracedUnallocatedLine[]
+  orderChargedTotalsCents: number[]
+  claimed?: Set<string>
+}): RefundClass {
+  const { refund, tracedLines } = args
+  const claimed = args.claimed ?? new Set<string>()
+  const amount = Math.round(refund.amount ?? 0)
+
+  if (isUnallocatedLineRefund(refund)) {
+    const sid = refund.metadata?.checkoutSessionId?.trim()
+    const idx = refund.metadata?.lineIndex?.trim()
+    return { kind: "unallocated", lineKey: sid && idx ? unallocatedLineKey(sid, Number(idx)) : null, via: "marker" }
+  }
+  if (tracedLines.length === 0) return { kind: "order" }
+
+  const recorded = tracedLines.find((l) => l.refundedByRefundId === refund.id)
+  if (recorded) return { kind: "unallocated", lineKey: recorded.key, via: "recorded" }
+
+  if (refund.metadata?.orderId?.trim()) return { kind: "order" }
+
+  const candidates = tracedLines.filter(
+    (l) => !l.refundedByRefundId && !claimed.has(l.key) && l.refundableCents != null && l.refundableCents === amount
+  )
+  if (candidates.length > 0) {
+    if (args.orderChargedTotalsCents.some((t) => t === amount)) return { kind: "ambiguous" }
+    const line = [...candidates].sort((a, b) => a.key.localeCompare(b.key))[0]!
+    claimed.add(line.key)
+    return { kind: "unallocated", lineKey: line.key, via: "amount" }
+  }
+  return { kind: "ambiguous" }
+}

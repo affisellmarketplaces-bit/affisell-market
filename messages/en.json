@@ -857,6 +857,10 @@
     }
   },
   "cart": {
+    "stock": {
+      "outOfStock": "This product is out of stock.",
+      "insufficient": "Only {count} left in stock."
+    },
     "title": "Cart",
     "loading": "Loading cart…",
     "empty": "Your cart is empty",

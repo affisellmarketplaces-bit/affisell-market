@@ -93,6 +93,8 @@ beforeEach(() => {
   vi.clearAllMocks()
   for (const k of Object.keys(listings)) delete listings[k]
   delete process.env.CHECKOUT_STOCK_GUARD
+  // the refusals below are the ENFORCE behaviour; the default (warn) has its own describe
+  process.env.CHECKOUT_STOCK_MODE = "enforce"
   m.findFirst.mockImplementation(async ({ where }: { where: { id: string } }) => listings[where.id] ?? null)
   m.ghostGate.mockResolvedValue({ stock: { status: "in_stock" } })
   m.similar.mockResolvedValue([])
@@ -109,7 +111,7 @@ describe("cart checkout", () => {
 
     expect(res.status).toBe(409)
     expect(await res.json()).toMatchObject({
-      error: "OUT_OF_STOCK_VERIFIED", // the code the existing out-of-stock modal already handles
+      error: "OUT_OF_STOCK", // Affisell's own code: OUT_OF_STOCK_VERIFIED is the supplier-probe refusal ("we just checked with our supplier")
       productName: "Product a",
       availableQty: 0,
       requestedQty: 1,
@@ -151,7 +153,7 @@ describe("cart checkout", () => {
     })
     const res = await checkout({ items: [{ productId: "a", qty: 1, selectedColor: "Rouge", selectedSize: "S" }] })
     expect(res.status).toBe(409)
-    expect(await res.json()).toMatchObject({ error: "OUT_OF_STOCK_VERIFIED", availableQty: 0 })
+    expect(await res.json()).toMatchObject({ error: "OUT_OF_STOCK", availableQty: 0 })
   })
 
   it("enough stock: the checkout goes on to Stripe as before", async () => {
@@ -168,6 +170,27 @@ describe("cart checkout", () => {
     expect(res.status).toBe(200)
   })
 
+  it("5 in stock, a cart asking 5 + 1: told that 5 are left (not 'out of stock'), 6 requested", async () => {
+    listings.a = listing("a", { stock: 5 })
+    const res = await checkout({
+      items: [
+        { productId: "a", qty: 5 },
+        { productId: "a", qty: 1, selectedColor: "Rouge" },
+      ],
+    })
+    expect(res.status).toBe(409)
+    const body = await res.json()
+    expect(body).toMatchObject({ error: "INSUFFICIENT_STOCK", availableQty: 5, requestedQty: 6 })
+    // no hard-coded (English-only) sentence: the front end translates from the code
+    expect(body.message).toBeUndefined()
+  })
+
+  it("a product with variants only in the ProductVariant table is never refused (its stock is not the aggregate)", async () => {
+    listings.a = listing("a", { stock: 0, hasVariants: true, variants: null })
+    const res = await checkout({ items: [{ productId: "a", qty: 1, selectedColor: "Rouge", selectedSize: "M" }] })
+    expect(res.status).toBe(200)
+  })
+
   it("CHECKOUT_STOCK_GUARD=off disables the check", async () => {
     process.env.CHECKOUT_STOCK_GUARD = "off"
     listings.a = listing("a", { stock: 0 })
@@ -181,7 +204,7 @@ describe("single-line checkout", () => {
     listings.a = listing("a", { stock: 0 })
     const res = await checkout({ affiliateProductId: "a", qty: 1 })
     expect(res.status).toBe(409)
-    expect(await res.json()).toMatchObject({ error: "OUT_OF_STOCK_VERIFIED", productName: "Product a" })
+    expect(await res.json()).toMatchObject({ error: "OUT_OF_STOCK", productName: "Product a" })
     expect(m.orderCreate).not.toHaveBeenCalled()
     expect(m.sessionsCreate).not.toHaveBeenCalled()
   })
@@ -200,5 +223,38 @@ describe("single-line checkout", () => {
     expect(res.status).toBe(200)
     expect(m.orderCreate).toHaveBeenCalledTimes(1)
     expect(m.sessionsCreate).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe("CHECKOUT_STOCK_MODE: warn (the default) logs and lets the buyer through, enforce refuses, off does nothing", () => {
+  const sessionsBefore = () => m.sessionsCreate.mock.calls.length
+
+  it("the DEFAULT is warn: a sold-out product still reaches the payment, 'would refuse' is logged, nothing is refused", async () => {
+    delete process.env.CHECKOUT_STOCK_MODE
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined)
+    listings.a = listing("a", { stock: 0 })
+    const res = await checkout({ items: [{ productId: "a", qty: 1 }] })
+    expect(res.status).toBe(200)
+    expect(sessionsBefore()).toBe(1)
+    expect(log.mock.calls.some((c) => c[0] === "[checkout]" && (c[1] as { result?: string }).result === "would_refuse_insufficient_stock")).toBe(true)
+    log.mockRestore()
+  })
+
+  it("warn also covers the single-line checkout: the pending order and the session are created", async () => {
+    delete process.env.CHECKOUT_STOCK_MODE
+    listings.a = listing("a", { stock: 0 })
+    const res = await checkout({ affiliateProductId: "a", qty: 1 })
+    expect(res.status).toBe(200)
+    expect(m.orderCreate).toHaveBeenCalledTimes(1)
+  })
+
+  it("off: neither refusal nor log", async () => {
+    process.env.CHECKOUT_STOCK_MODE = "off"
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined)
+    listings.a = listing("a", { stock: 0 })
+    const res = await checkout({ items: [{ productId: "a", qty: 1 }] })
+    expect(res.status).toBe(200)
+    expect(log.mock.calls.some((c) => String((c[1] as { result?: string })?.result).includes("refuse"))).toBe(false)
+    log.mockRestore()
   })
 })

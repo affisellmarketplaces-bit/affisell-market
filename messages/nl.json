@@ -857,6 +857,10 @@
     }
   },
   "cart": {
+    "stock": {
+      "outOfStock": "Dit product is uitverkocht.",
+      "insufficient": "Nog maar {count} op voorraad."
+    },
     "title": "Winkelwagen",
     "loading": "Winkelwagen wordt geladen…",
     "empty": "Uw winkelwagen is leeg",

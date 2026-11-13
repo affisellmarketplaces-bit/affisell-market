@@ -16,6 +16,7 @@ import {
   unallocatedLineAuditId,
   unallocatedLineKey,
   unallocatedLineRefundedAuditId,
+  type TracedUnallocatedLine,
   type UnallocatedLine,
 } from "@/lib/unallocated-line"
 
@@ -57,7 +58,7 @@ function money(cents: number | null, currency: string): string {
   return cents == null ? "unknown amount" : `${(cents / 100).toFixed(2)} ${currency.toUpperCase()}`
 }
 
-async function raiseAlert(message: string, context: Record<string, unknown>): Promise<void> {
+export async function raiseOpsAlert(message: string, context: Record<string, unknown>): Promise<void> {
   // Slack / Discord (only when SLACK_WEBHOOK_URL / DISCORD_WEBHOOK_URL are set) — never throws, never blocks.
   try {
     await opsWebhookAlert(message)
@@ -175,8 +176,10 @@ async function recordOneLine(
   if (trace !== "existing") {
     const message =
       `[Affisell] UNALLOCATED_LINE session=${session.id} line=${line.lineIndex} reason=${line.reason} ` +
-      `paid=${money(refundCents, currency)} auto_refund=${autoRefundEnabled ? "on" : "off"} — ` +
-      `the buyer paid for a line that has NO order; refund it or create the order by hand.`
+      `paid=${money(refundCents, currency)} auto_refund=${autoRefundEnabled ? "on" : "off"} payment_intent=${piId ?? "unknown"} — ` +
+      `the buyer paid for a line that has NO order. Refund EXACTLY ${money(refundCents, currency)} on that payment ` +
+      `in the Stripe dashboard (a refund of that exact amount is recognised as this line's and never applied to the ` +
+      `other orders of the checkout), or create the order by hand.`
     logStripeWebhookError({
       metric: "unallocated_line",
       key,
@@ -187,7 +190,7 @@ async function recordOneLine(
       autoRefundEnabled,
       trace,
     })
-    await raiseAlert(message, { key, reason: line.reason, refundableCents: refundCents, appliedRewardCents })
+    await raiseOpsAlert(message, { key, reason: line.reason, refundableCents: refundCents, appliedRewardCents })
   } else {
     logStripeWebhookInfo({ metric: "unallocated_line_known", key, reason: line.reason })
   }
@@ -200,6 +203,14 @@ async function recordOneLine(
   const refundedAuditId = unallocatedLineRefundedAuditId(key)
   const already = await prisma.auditLog.findUnique({ where: { id: refundedAuditId }, select: { id: true } })
   if (already) return { key, trace, refund: "already_refunded" }
+
+  // The proof row may be missing (its write failed after Stripe accepted the refund) and Stripe forgets an idempotency
+  // key after 24 h: look at what the payment already carries before creating another refund.
+  const held = await findHeldLineRefund(piId, session.id, line.lineIndex)
+  if (held) {
+    await writeRefundedProof(refundedAuditId, session.id, line.lineIndex, held.id, held.amount, currency, "automatic_recovered")
+    return { key, trace, refund: "already_refunded", stripeRefundId: held.id }
+  }
 
   let refundId: string
   try {
@@ -223,31 +234,152 @@ async function recordOneLine(
     refundId = refund.id
   } catch (error) {
     logStripeWebhookError({ metric: "unallocated_line_refund_failed", key, error: errorMessage(error) })
-    await raiseAlert(
+    await raiseOpsAlert(
       `[Affisell] UNALLOCATED_LINE automatic refund FAILED session=${session.id} line=${line.lineIndex}: ${errorMessage(error)}`,
       { key }
     )
     return { key, trace, refund: "failed" }
   }
 
-  try {
-    await prisma.auditLog.create({
-      data: {
-        id: refundedAuditId,
-        action: UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION,
-        entityType: UNALLOCATED_LINE_AUDIT_ENTITY_TYPE,
-        entityId: key,
-        payload: { checkoutSessionId: session.id, lineIndex: line.lineIndex, stripeRefundId: refundId, amountCents: refundCents, currency },
-      },
-    })
-  } catch (error) {
-    if (!isUniqueViolation(error)) {
-      logStripeWebhookError({ metric: "unallocated_line_refund_trace_failed", key, refundId, error: errorMessage(error) })
-    }
-  }
-  await raiseAlert(
+  await writeRefundedProof(refundedAuditId, session.id, line.lineIndex, refundId, refundCents, currency, "automatic")
+  await raiseOpsAlert(
     `[Affisell] UNALLOCATED_LINE refunded session=${session.id} line=${line.lineIndex} ${money(refundCents, currency)} (refund ${refundId})`,
     { key, refundId }
   )
   return { key, trace, refund: "refunded", stripeRefundId: refundId }
+}
+
+/** A refund this module already created for the line, still held by the payment (Stripe lists the last 100). */
+async function findHeldLineRefund(
+  piId: string,
+  sessionId: string,
+  lineIndex: number
+): Promise<{ id: string; amount: number } | null> {
+  try {
+    const list = await getStripeClient().refunds.list({ payment_intent: piId, limit: 100 })
+    const hit = (list?.data ?? []).find(
+      (r) =>
+        r.metadata?.[UNALLOCATED_LINE_REFUND_METADATA_KEY] === "1" &&
+        r.metadata?.checkoutSessionId === sessionId &&
+        r.metadata?.lineIndex === String(lineIndex) &&
+        r.status !== "failed" &&
+        r.status !== "canceled"
+    )
+    return hit ? { id: hit.id, amount: hit.amount } : null
+  } catch (error) {
+    // Unreadable: carry on with the idempotency key (same refund within 24 h) rather than block the refund.
+    logStripeWebhookError({ metric: "unallocated_line_refund_lookup_failed", piId, error: errorMessage(error) })
+    return null
+  }
+}
+
+/** The proof that a line went back to the buyer; deterministic id, a second write is a no-op. Never throws. */
+async function writeRefundedProof(
+  auditId: string,
+  sessionId: string,
+  lineIndex: number,
+  stripeRefundId: string,
+  amountCents: number,
+  currency: string,
+  source: "automatic" | "automatic_recovered" | "manual_dashboard"
+): Promise<void> {
+  try {
+    await prisma.auditLog.create({
+      data: {
+        id: auditId,
+        action: UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION,
+        entityType: UNALLOCATED_LINE_AUDIT_ENTITY_TYPE,
+        entityId: unallocatedLineKey(sessionId, lineIndex),
+        payload: { checkoutSessionId: sessionId, lineIndex, stripeRefundId, amountCents, currency, source },
+      },
+    })
+  } catch (error) {
+    if (!isUniqueViolation(error)) {
+      logStripeWebhookError({
+        metric: "unallocated_line_refund_trace_failed",
+        key: unallocatedLineKey(sessionId, lineIndex),
+        refundId: stripeRefundId,
+        error: errorMessage(error),
+      })
+    }
+  }
+}
+
+/**
+ * The traced unallocated lines of a payment (found by the payment intent stored in the trace) and what is known about
+ * their refund. Used by the `charge.refunded` handler to tell a refund of such a line from a refund of an order.
+ * Throws on a database error ON PURPOSE: the webhook then fails and is replayed, instead of guessing.
+ */
+export async function loadTracedUnallocatedLinesForPaymentIntent(piId: string): Promise<TracedUnallocatedLine[]> {
+  const traces = await prisma.auditLog.findMany({
+    where: { action: UNALLOCATED_LINE_AUDIT_ACTION, payload: { path: ["paymentIntentId"], equals: piId } },
+    select: { entityId: true, payload: true },
+  })
+  const lines = traces.filter((t) => t.entityId)
+  if (lines.length === 0) return []
+  const refunded = await prisma.auditLog.findMany({
+    where: { id: { in: lines.map((t) => unallocatedLineRefundedAuditId(t.entityId!)) } },
+    select: { entityId: true, payload: true },
+  })
+  const refundIdByKey = new Map(
+    refunded.map((r) => {
+      const p = r.payload as { stripeRefundId?: unknown } | null
+      return [r.entityId!, typeof p?.stripeRefundId === "string" ? p.stripeRefundId : "unknown"] as const
+    })
+  )
+  return lines.map((t) => {
+    const p = t.payload as { refundableCents?: unknown } | null
+    return {
+      key: t.entityId!,
+      refundableCents: typeof p?.refundableCents === "number" ? p.refundableCents : null,
+      refundedByRefundId: refundIdByKey.get(t.entityId!) ?? null,
+    }
+  })
+}
+
+/** A refund made by hand was matched to a traced line: leave the proof, so the line can never become an order. */
+export async function recordManualUnallocatedRefund(args: {
+  lineKey: string
+  stripeRefundId: string
+  amountCents: number
+  currency: string
+}): Promise<void> {
+  const sep = args.lineKey.lastIndexOf(":line:")
+  if (sep < 0) return
+  const sessionId = args.lineKey.slice(0, sep)
+  const lineIndex = Number(args.lineKey.slice(sep + ":line:".length))
+  await writeRefundedProof(
+    unallocatedLineRefundedAuditId(args.lineKey),
+    sessionId,
+    lineIndex,
+    args.stripeRefundId,
+    args.amountCents,
+    args.currency,
+    "manual_dashboard"
+  )
+  await raiseOpsAlert(
+    `[Affisell] UNALLOCATED_LINE refund recognised by its amount: ${args.stripeRefundId} (${(args.amountCents / 100).toFixed(2)} ${args.currency.toUpperCase()}) ` +
+      `matched to ${args.lineKey}. If it was meant for another order of that checkout, fix it by hand.`,
+    { lineKey: args.lineKey, stripeRefundId: args.stripeRefundId }
+  )
+}
+
+/** A refund on a charge that carries unallocated lines could not be attributed: nothing was changed, ops decide. */
+export async function alertUnattributedChargeRefund(args: {
+  chargeId: string
+  stripeRefundId: string
+  amountCents: number
+}): Promise<void> {
+  logStripeWebhookError({
+    metric: "refund_unattributed_unallocated_charge",
+    chargeId: args.chargeId,
+    stripeRefundId: args.stripeRefundId,
+    amountCents: args.amountCents,
+  })
+  await raiseOpsAlert(
+    `[Affisell] Refund ${args.stripeRefundId} (${(args.amountCents / 100).toFixed(2)}) on charge ${args.chargeId} was NOT applied to any order: ` +
+      `the charge also carries a paid line with no order and the refund matches neither it (by amount) nor a named order. ` +
+      `No payout was touched; reconcile it by hand (refund the order through the app, or re-issue the line refund with the exact traced amount).`,
+    { chargeId: args.chargeId, stripeRefundId: args.stripeRefundId }
+  )
 }
