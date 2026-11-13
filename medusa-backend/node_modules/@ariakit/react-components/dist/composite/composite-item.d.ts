@@ -1,2 +1,0 @@
-import { i as useCompositeItem, n as CompositeItemOptions, r as CompositeItemProps, t as CompositeItem } from "../composite-item-d4UXaZ84.js";
-export { CompositeItem, CompositeItemOptions, CompositeItemProps, useCompositeItem };

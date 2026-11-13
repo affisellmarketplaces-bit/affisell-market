@@ -1,2 +1,0 @@
-import { a as DialogStoreState, i as DialogStoreProps, n as DialogStoreFunctions, o as createDialogStore, r as DialogStoreOptions, t as DialogStore } from "../dialog-store-BOLvw2IX.js";
-export { DialogStore, DialogStoreFunctions, DialogStoreOptions, DialogStoreProps, DialogStoreState, createDialogStore };

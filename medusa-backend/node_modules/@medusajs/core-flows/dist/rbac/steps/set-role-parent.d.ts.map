@@ -1,1 +1,0 @@
-{"version":3,"file":"set-role-parent.d.ts","sourceRoot":"","sources":["../../../src/rbac/steps/set-role-parent.ts"],"names":[],"mappings":"AAIA;;;GAGG;AACH,MAAM,MAAM,sBAAsB,GAAG,KAAK,CAAC;IACzC,OAAO,EAAE,MAAM,CAAA;IACf,UAAU,EAAE,MAAM,EAAE,CAAA;CACrB,CAAC,CAAA;AAEF;;;GAGG;AACH,eAAO,MAAM,mBAAmB,oBAAoB,CAAA;AAEpD;;;GAGG;AACH,eAAO,MAAM,iBAAiB;;;EAwG7B,CAAA"}

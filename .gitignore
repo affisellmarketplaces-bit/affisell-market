@@ -96,3 +96,6 @@ env.*.local
 /Affisell_Audit_Package/
 /Affisell_Audit_Package.zip
 /.audit-staging/
+
+# Medusa backend dependencies are installed by the host (Railway/Nixpacks runs npm ci from package-lock.json); never version them.
+medusa-backend/node_modules/

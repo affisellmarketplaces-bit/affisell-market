@@ -1,1 +1,0 @@
-{"version":3,"file":"delete-rbac-policies.d.ts","sourceRoot":"","sources":["../../../src/rbac/steps/delete-rbac-policies.ts"],"names":[],"mappings":"AAIA;;;GAGG;AACH,MAAM,MAAM,2BAA2B,GAAG,MAAM,EAAE,CAAA;AAElD;;;GAGG;AACH,eAAO,MAAM,wBAAwB,yBAAyB,CAAA;AAE9D;;;GAGG;AACH,eAAO,MAAM,sBAAsB,4FAuBlC,CAAA"}
