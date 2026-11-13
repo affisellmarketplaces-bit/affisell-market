@@ -3335,7 +3335,7 @@
         "beta": "BETA",
         "multiHint": "Aplicar IA establecerá márgenes en {count} variante(s) seleccionada(s), escalados según el precio mayorista.",
         "yourPrice": "Tu precio",
-        "aiSuggests": "IA sugiere",
+        "aiSuggests": "Sugerencia calculada",
         "marketAvg": "Media de mercado",
         "competitors": "Competidores",
         "salesPerMonth": "{count} ventas/mes",
@@ -3354,7 +3354,8 @@
         "noDataBody": "Aún no se encontraron anuncios comparables en esta categoría — se muestra una estimación general de partida. Mejorará con las ventas reales.",
         "salesUnknown": "Sin datos de ventas recientes",
         "comparableListings": "{count, plural, one {# anuncio comparable} other {# anuncios comparables}}",
-        "loadFailed": "No se pudieron cargar los datos de mercado — inténtalo de nuevo."
+        "loadFailed": "No se pudieron cargar los datos de mercado — inténtalo de nuevo.",
+        "ruleNote": "Cálculo estadístico sobre anuncios comparables de Affisell: una regla de cálculo, no un modelo de IA. Sin datos suficientes: precio proveedor × 1,4."
       },
       "variantMargins": {
         "title": "Variantes y márgenes",
@@ -7767,6 +7768,11 @@
     "lastAnalysis": "Último análisis {when}",
     "refreshing": "Actualizando…",
     "tagline": "Señales e-commerce · Arbitrage Score™ · Saturación · Supplier Match de Affisell",
+    "demoBadge": "DEMO",
+    "demoBannerMock": "Datos de demostración: estos winners los produce una regla de cálculo, no un escaneo real del mercado. No los uses como señal de venta.",
+    "demoBannerMixed": "Datos mixtos: parte de las filas está simulada (marcada «Demo»).",
+    "demoBannerDemo": "Datos de ejemplo escritos a mano: sin escaneo real.",
+    "scoresAreRules": "Arbitrage Score™ y Saturación son fórmulas (reglas), no un modelo de IA.",
     "searchLabel": "Buscar",
     "searchPlaceholder": "Buscar un producto, país…",
     "comingSoon": "Próximamente",
@@ -8308,7 +8314,15 @@
     "curve24": "Curva de 24 h",
     "copyWinner": "Copiar este winner → Importación en 10 s",
     "fullPage": "Ver ficha completa",
-    "tickerAgo": "hace {n} min"
+    "tickerAgo": "hace {n} min",
+    "badgeLive": "LIVE",
+    "badgeMixed": "MIXTO",
+    "badgeDemo": "DEMO",
+    "demoNotice": "Datos de demostración: estos eventos se generan para llenar el globo y no corresponden a ninguna venta real.",
+    "mixedNotice": "Datos mixtos: una parte de los eventos se genera para llenar el globo (marcados «demo»).",
+    "demoEvent": "demo",
+    "demoEventNotice": "Evento de demostración: generado para llenar el globo, sin ninguna venta ni importación real detrás.",
+    "estimatedLocation": "Ubicación estimada: la ciudad se elige automáticamente, no es el lugar real del evento."
   },
   "radarPricing": {
     "starterEyebrow": "Prueba de señal",

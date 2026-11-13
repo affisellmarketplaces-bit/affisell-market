@@ -40,7 +40,11 @@ export async function getMarketData(
   const key = normalizeProductKey(productKey) || "unknown-product"
   const cached = await getCachedMarketData(key)
   if (cached) {
-    return { ...cached, source: "cache" }
+    // `source` says "cache"; `origin` keeps saying what the numbers are (an entry cached before `origin` existed, or relabelled
+    // "live" by the old cron, was a fixture or a heuristic — never live data).
+    const legacySource = cached.source as string
+    const origin = cached.origin ?? (legacySource === "heuristic" ? "heuristic" : "fixture")
+    return { ...cached, source: "cache", origin }
   }
 
   const fixtureSlug = resolveFixtureKeyFromHints(hints) ?? (MARKET_FIXTURES_2026[key] ? key : null)
@@ -60,15 +64,23 @@ export async function getMarketData(
   return heuristic
 }
 
-/** Cron batch — refresh fixture snapshots into Redis (simulates 6h scraper sync). */
-export async function syncMarketIntelligenceFixtures(): Promise<{ synced: number; keys: string[] }> {
+/**
+ * Cron batch — re-writes the 3 hand-written demo fixtures into the cache so their TTL does not lapse. NOTHING is fetched from
+ * any market source: the snapshots keep `source: "fixture"` / `origin: "fixture"` (they used to be relabelled "live", and the
+ * comment called this a "6h scraper sync" — there is no scraper).
+ */
+export async function syncMarketIntelligenceFixtures(): Promise<{
+  synced: number
+  keys: string[]
+  origin: "fixture"
+  live: false
+}> {
   const keys: string[] = []
   for (const [fixtureKey, fixture] of Object.entries(MARKET_FIXTURES_2026)) {
     const snapshot = snapshotFromFixture(fixtureKey, fixture)
-    snapshot.source = "live"
     await setCachedMarketData(fixtureKey, snapshot)
     keys.push(fixtureKey)
   }
-  console.log("[market-intelligence]", { result: "cron_sync", synced: keys.length, keys })
-  return { synced: keys.length, keys }
+  console.log("[market-intelligence]", { result: "cron_ttl_refresh_fixtures", synced: keys.length, keys, live: false })
+  return { synced: keys.length, keys, origin: "fixture", live: false }
 }

@@ -3335,7 +3335,7 @@
         "beta": "BETA",
         "multiHint": "AI toepassen stelt marges in voor {count} geselecteerde variant(en), geschaald op groothandelsprijs.",
         "yourPrice": "Jouw prijs",
-        "aiSuggests": "AI stelt voor",
+        "aiSuggests": "Berekende suggestie",
         "marketAvg": "Marktgemiddelde",
         "competitors": "Concurrenten",
         "salesPerMonth": "{count} verkopen/maand",
@@ -3354,7 +3354,8 @@
         "noDataBody": "Nog geen vergelijkbare aanbiedingen gevonden in deze categorie — dit is een algemene startschatting. Ze verbetert naarmate er echte verkopen binnenkomen.",
         "salesUnknown": "Geen recente verkoopgegevens",
         "comparableListings": "{count, plural, one {# vergelijkbare aanbieding} other {# vergelijkbare aanbiedingen}}",
-        "loadFailed": "Kon marktgegevens niet laden — probeer opnieuw."
+        "loadFailed": "Kon marktgegevens niet laden — probeer opnieuw.",
+        "ruleNote": "Statistische berekening over vergelijkbare Affisell-advertenties: een rekenregel, geen AI-model. Zonder voldoende data: leveranciersprijs × 1,4."
       },
       "variantMargins": {
         "title": "Varianten & marges",
@@ -7767,6 +7768,11 @@
     "lastAnalysis": "Laatste analyse {when}",
     "refreshing": "Vernieuwen…",
     "tagline": "E-commercesignalen · Arbitrage Score™ · Verzadiging · Affisell Supplier Match",
+    "demoBadge": "DEMO",
+    "demoBannerMock": "Demogegevens: deze winners komen uit een rekenregel, niet uit een echte marktscan. Gebruik ze niet als verkoopsignaal.",
+    "demoBannerMixed": "Gemengde gegevens: een deel van de rijen is gesimuleerd (gemarkeerd als ‘Demo’).",
+    "demoBannerDemo": "Met de hand geschreven voorbeeldgegevens: geen echte scan.",
+    "scoresAreRules": "Arbitrage Score™ en Verzadiging zijn formules (regels), geen AI-model.",
     "searchLabel": "Zoeken",
     "searchPlaceholder": "Zoek een product, land…",
     "comingSoon": "Binnenkort beschikbaar",
@@ -8308,7 +8314,15 @@
     "curve24": "24u-verloop",
     "copyWinner": "Kopieer deze winner → Import in 10 s",
     "fullPage": "Volledige pagina bekijken",
-    "tickerAgo": "{n} min geleden"
+    "tickerAgo": "{n} min geleden",
+    "badgeLive": "LIVE",
+    "badgeMixed": "GEMENGD",
+    "badgeDemo": "DEMO",
+    "demoNotice": "Demogegevens: deze gebeurtenissen worden gegenereerd om de wereldbol te vullen en komen niet overeen met een echte verkoop.",
+    "mixedNotice": "Gemengde gegevens: een deel van de gebeurtenissen wordt gegenereerd om de wereldbol te vullen (gemarkeerd als ‘demo’).",
+    "demoEvent": "demo",
+    "demoEventNotice": "Demogebeurtenis: gegenereerd om de wereldbol te vullen, zonder echte verkoop of import erachter.",
+    "estimatedLocation": "Geschatte locatie: de stad wordt automatisch gekozen, niet de werkelijke plaats van de gebeurtenis."
   },
   "radarPricing": {
     "starterEyebrow": "Signaalproef",

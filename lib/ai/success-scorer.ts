@@ -1,5 +1,11 @@
 import type { MarketDataSnapshot, SuccessScoreResult } from "@/lib/ai/smart-margin-types"
 
+/**
+ * DETERMINISTIC RULES — NOT an AI model and NOT a probability. A 0-100 score = weighted points (trend 30, competition 25,
+ * margin gap 20, logistics 15, seasonality 10, hashtag bonus <= 5) scaled by the snapshot's `dataQuality`. The weights are
+ * hand-chosen and have never been validated against real sales outcomes (no history of scores exists to validate them).
+ * The API names it `success_probability` for compatibility; the UI labels it a rule-based score.
+ */
 export type SuccessScoreInput = {
   market: MarketDataSnapshot
   currentMargin: number

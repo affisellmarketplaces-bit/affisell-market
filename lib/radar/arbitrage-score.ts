@@ -1,5 +1,9 @@
 /**
  * Arbitrage Score™ — numeric moat (persona copy applied in UI via radar-copy.ts).
+ *
+ * A FORMULA, NOT an AI model: growth x 0.45 + normalised searches x 0.35 - competition x 2, clamped to 0-100, with fixed tier
+ * thresholds. It is only as real as its inputs: on a simulated radar payload (`source` mock/demo, rows flagged `synthetic`)
+ * those inputs are generated, so the score is generated too. "Score™" is a name, not a claim of intelligence.
  */
 
 export type ArbitrageInput = {

@@ -41,7 +41,7 @@ export async function runMarginAnalysis(
   const cached = await getCachedMarginAnalysis(cacheKey)
   if (cached) {
     logSmartMargin("Cache hit", { productKey, userId: input.userId })
-    return { ...cached, cached: true, latency_ms: Date.now() - started }
+    return { ...cached, method: "rule_based", cached: true, latency_ms: Date.now() - started }
   }
 
   const market = await getMarketData(productKey, {
@@ -64,7 +64,14 @@ export async function runMarginAnalysis(
     catalogPriceEur: input.catalogPriceEur,
   })
 
+  const origin = market.origin ?? (market.source === "heuristic" ? "heuristic" : "fixture")
   const warnings: string[] = []
+  // First and always: say what the formulas were fed with. No real market data is behind any of it.
+  warnings.push(
+    origin === "fixture"
+      ? "Données de démonstration (liste fixe de 3 produits) — aucune mesure de marché ; résultat calculé par des règles, pas par un modèle d'IA"
+      : "Aucune donnée de marché mesurée : estimation par règle à partir de la catégorie et du prix, pas par un modèle d'IA"
+  )
   if (market.dataQuality < 0.5) {
     warnings.push("Données marché limitées — estimation heuristique")
   }
@@ -81,6 +88,8 @@ export async function runMarginAnalysis(
       : null
 
   const result: MarginAnalysisResponse = {
+    method: "rule_based",
+    market_data: { origin, source: market.source, measured: false },
     optimal_margin: optimal.suggested_margin,
     current_margin: input.userMargin,
     conversion_impact: optimal.conversion_impact,
