@@ -76,7 +76,13 @@ Legacy paths redirect: `/` → `/en`, `/creators` → `/en/creators`.
 
 ## Prisma / Neon
 
-Never edit applied migrations. Change `schema.prisma` then `npx prisma migrate dev --name xxx`. See `.cursorrules`.
+Never edit applied migrations. A schema change is a **hand-written, additive SQL migration** under `prisma/migrations/` plus the matching `schema.prisma` edit — **never** `prisma migrate dev`, `prisma db push`,
+`npm run db:migrate` or `npm run migrate:deploy` on this database: it also holds Medusa's tables (Prisma would propose to drop them) and `prisma.config.ts` loads `.env.local` with `override: true`, so those commands
+target the *default* database, i.e. production, whatever URL you pass.
+
+Deploy a schema by hand, locally, **before** the push: `DATABASE_URL='<url>' npm run schema:migrate -- --expect-endpoint <ep-id> [--confirm-production]`, then `npm run schema:verify`.
+The Vercel build never migrates: it only verifies, and stops if the schema is missing. Full procedure and failure handling: `docs/DEPLOY-SCHEMA-CHANGES.md`;
+environments and isolation: `docs/ENVIRONMENTS.md`; backups and restores: `docs/BACKUP-RESTORE.md`; settings to make on external services: `docs/EXTERNAL-OPS-RUNBOOK.md`; project rules: `AGENTS.md`.
 
 ## Affisell InstantScan
 
@@ -88,6 +94,8 @@ Cascade IA temps réel pour le wizard v2 (mode **InstantScan**, ex-Guidé) : **C
 | Latence p95 | &lt;2 s |
 | Coût | ~0.003 $/analyse |
 
+> Ce sont des **objectifs de conception, non mesurés** à ce jour : aucune mesure de précision, de latence ni de coût n'existe dans le dépôt (voir `docs/FINALISATION-MASTER.md` §5-I). Ne pas les présenter comme des performances.
+
 **Flags** : `ENABLE_INSTANTSCAN=1` (prod). Retrocompat : `ENABLE_AI_VISION_V2=1` + `ENABLE_AI_VISION_CASCADE=1` si `ENABLE_INSTANTSCAN=0`.
 
 **Telemetry** : PostHog `instant_scan_result`, `instant_scan_gate_triggered` — dashboard stub `/admin/instantscan-performance`.
@@ -95,8 +103,13 @@ Cascade IA temps réel pour le wizard v2 (mode **InstantScan**, ex-Guidé) : **C
 ## Push
 
 ```bash
-npm run push:safe
+git commit -m "…"                          # shell command 1
+npm run push:safe -- <your-branch>         # shell command 2, on its own (secret scan, fetch / pull --rebase / push with timeouts)
 ```
+
+Two separate commands (a `commit && push` can hang on the network). **Name the branch**: `scripts/git-push-safe.mjs` defaults to `main` when given no argument, even from another branch. Never a bare `git push origin main`:
+a push to `main` deploys to production. Work on a branch → Preview → pull request (details: `PUSH_INSTRUCTIONS.md`).
+If the change needs a migration, apply it **before** the push (see « Prisma / Neon » above).
 
 ## AliExpress Auto-Order Flow
 
@@ -185,7 +198,7 @@ Cron every 12h: `GET /api/aliexpress/refresh` (see `vercel.json`).
 
 ## Try-On AI
 
-Virtual try-on for **apparel** listings (Replicate IDM-VTON). Feature flag **OFF** in production by default (`TRY_ON_ENABLED=0`). QA: append `?tryon=true` on the PDP.
+Virtual try-on for **apparel** listings (Replicate IDM-VTON). Feature flag **OFF** in production by default (`TRY_ON_ENABLED=0`). QA: append `?tryon=1` on the PDP of a **Preview or local** run — the query-string override is ignored in production (AGENTS.md, « Virtual try-on »).
 
 ### Production go-live checklist
 
@@ -194,9 +207,10 @@ Virtual try-on for **apparel** listings (Replicate IDM-VTON). Feature flag **OFF
    - `REPLICATE_API_TOKEN`
    - `BLOB_READ_WRITE_TOKEN`
    - `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`
-   - `TRY_ON_ENABLED=1` when ready (else QA with `?tryon=true`)
-   - Optional: `AZURE_CONTENT_SAFETY_*`, `REPLICATE_WEBHOOK_SECRET`
-3. **Migration** (already on Neon if you ran `npm run migrate:deploy`): `20260618200000_try_on_ai`.
+   - `TRY_ON_ENABLED=1` when ready (on a Preview, QA with `?tryon=1`)
+   - Optional: `AZURE_CONTENT_SAFETY_*`; `REPLICATE_WEBHOOK_SECRET` (Replicate signing secret — activates signature verification of `/api/try-on/webhook`; exact steps in `docs/EXTERNAL-OPS-RUNBOOK.md` §6)
+3. **Migration** `20260618200000_try_on_ai`: apply it by hand **before** deploying, on staging then production, with `DATABASE_URL='<url>' npm run schema:migrate -- --expect-endpoint <ep-id> [--confirm-production]`
+   and check with `npm run schema:verify` (never `npm run migrate:deploy`: it targets the default database). The Vercel build only verifies.
 4. **Cron** — `vercel.json` runs `/api/cron/try-on-retention` daily (GDPR blob cleanup).
 5. **Pilot product**:
    ```bash
