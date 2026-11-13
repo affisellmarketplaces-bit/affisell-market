@@ -57,6 +57,14 @@ beforeEach(() => {
   h.pipeline.mockResolvedValue({ ok: true, stripeRefundId: "re_1" })
 })
 
+describe("autoCancelMarketplaceOrderShipSlaBreach — engine jobs (#4)", () => {
+  it("cancels the order's jobs ON BEHALF OF this order (a shared AliExpress job belongs to its first line only)", async () => {
+    h.findUnique.mockResolvedValue({ ...row(), supplierFulfillmentLinks: [{ supplierFulfillmentOrderId: "job_1" }] })
+    await autoCancelMarketplaceOrderShipSlaBreach("o1")
+    expect(h.cancelJob).toHaveBeenCalledWith("job_1", { forOrderId: "o1" })
+  })
+})
+
 describe("autoCancelMarketplaceOrderShipSlaBreach — D5", () => {
   it("success: refund created, supplier/affiliate notified, nothing marked `refunded` from here", async () => {
     const result = await autoCancelMarketplaceOrderShipSlaBreach("o1")

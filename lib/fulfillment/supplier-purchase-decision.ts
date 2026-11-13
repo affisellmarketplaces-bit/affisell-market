@@ -18,6 +18,8 @@
 
 import type { AutoBuyStatus, SupplierFulfillmentStatus } from "@prisma/client"
 
+import { jobSupplierOrderCoversOrder } from "@/lib/fulfillment/engine-job-attribution"
+
 /** An order may be bought while it is in one of these states (same set `fulfillAffisellOrderWithAliExpress` always accepted). */
 export const PURCHASABLE_ORDER_STATUSES: readonly string[] = ["paid", "fulfilling", "preparing"]
 
@@ -33,14 +35,15 @@ export type PurchaseSnapshot = {
   /** `Order.autoBuyLog` (FulfillmentLog, one per order) */
   log: { status: AutoBuyStatus; aeOrderId: string | null; attempts: number; updatedAt: Date } | null
   /**
-   * Engine jobs (`SupplierFulfillmentOrder`) that include this order. A job groups EVERY AliExpress order of a checkout
-   * session but the AliExpress adapter buys only its FIRST line, so a job's supplier order id proves a purchase for that
-   * first line only: `firstLineOrderId` says which order that is (null = unknown).
+   * Engine jobs (`SupplierFulfillmentOrder`) that include this order. A job groups every order of a checkout session that
+   * goes to the same provider; whether its supplier order id covers THIS order depends on the provider
+   * (`jobSupplierOrderCoversOrder`: an AliExpress job bought its first line only, any other provider bought all its lines).
    */
   jobs: ReadonlyArray<{
     id: string
     supplierOrderId: string | null
     status: SupplierFulfillmentStatus
+    channelType: string | null
     firstLineOrderId: string | null
   }>
 }
@@ -75,9 +78,10 @@ export function decideSupplierPurchase(
 
   for (const job of snapshot.jobs) {
     const id = trimmed(job.supplierOrderId)
-    // The job bought ONE order (its first line). For any other order of the group it proves nothing: counting it would make
-    // the second order of a cart "already bought" (never purchasable, stamped with the first order's AliExpress id).
-    const boughtThisOrder = job.firstLineOrderId == null || job.firstLineOrderId === snapshot.orderId
+    // An AliExpress job bought ONE order (its first line). For any other order of the group it proves nothing: counting it
+    // would make the second order of a cart "already bought" (never purchasable, stamped with the first order's AliExpress
+    // id). A job of any other provider (CJ, blind REST…) sent every line in one supplier order: it covers all of them.
+    const boughtThisOrder = jobSupplierOrderCoversOrder(job, snapshot.orderId)
     if (id && boughtThisOrder && job.status !== "FAILED" && job.status !== "CANCELLED") {
       return { kind: "already_placed", supplierOrderId: id, evidence: "job" }
     }

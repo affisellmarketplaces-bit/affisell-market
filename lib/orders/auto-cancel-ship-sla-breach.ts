@@ -93,7 +93,7 @@ export async function autoCancelMarketplaceOrderShipSlaBreach(
     ...new Set(order.supplierFulfillmentLinks.map((l) => l.supplierFulfillmentOrderId)),
   ]
   for (const jobId of jobIds) {
-    const result = await cancelSupplierFulfillmentJob(jobId)
+    const result = await cancelSupplierFulfillmentJob(jobId, { forOrderId: orderId })
     if (!result.ok && result.error !== "not_cancellable" && result.error !== "missing_supplier_order_id") {
       console.error("[ship_pulse] supplier_job_cancel", { orderId, jobId, error: result.error })
     }

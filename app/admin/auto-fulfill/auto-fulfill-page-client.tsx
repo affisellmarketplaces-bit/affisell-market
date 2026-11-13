@@ -75,6 +75,76 @@ function centsToEur(cents: number | null | undefined): string {
   return `${(cents / 100).toFixed(2)} €`
 }
 
+/**
+ * A log stuck in BUYING is a purchase IN DOUBT: AliExpress may have created the order and the answer was lost. Retrying is
+ * refused; the only way out is a person who has LOOKED at the AliExpress order list (POST .../reconcile, admin only, audited).
+ */
+function ReconcileInDoubtButton({
+  fulfillmentLogId,
+  status,
+  onDone,
+}: {
+  fulfillmentLogId: string
+  status: AdminAutoFulfillLogRow["status"]
+  onDone: () => void
+}) {
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+  if (status !== "BUYING") return null
+
+  const run = () => {
+    const exists = window.confirm(
+      "Achat en doute. Vérifiez D'ABORD la liste des commandes AliExpress.\n\nOK = la commande EXISTE chez AliExpress\nAnnuler = elle N'EXISTE PAS"
+    )
+    let supplierOrderId: string | undefined
+    if (exists) {
+      const id = window.prompt("Identifiant de la commande AliExpress (obligatoire) :")?.trim()
+      if (!id) return
+      supplierOrderId = id
+    } else if (
+      !window.confirm(
+        "Confirmer : AUCUNE commande AliExpress n'existe pour cette commande ?\nLa réclamation sera libérée : un nouvel achat deviendra possible."
+      )
+    ) {
+      return
+    }
+    const note = window.prompt("Note (facultatif) :")?.trim() || undefined
+    setBusy(true)
+    setErr(null)
+    void fetch(`/api/admin/auto-fulfill/logs/${fulfillmentLogId}/reconcile`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ outcome: exists ? "exists" : "not_exists", supplierOrderId, note }),
+    })
+      .then(async (res) => {
+        const body = (await res.json()) as { error?: string }
+        if (!res.ok) {
+          setErr(body.error ?? "reconcile_failed")
+          return
+        }
+        onDone()
+      })
+      .catch(() => setErr("network_error"))
+      .finally(() => setBusy(false))
+  }
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        disabled={busy}
+        className="h-7 rounded-full border-amber-400 text-[10px] hover:bg-amber-50 dark:border-amber-700"
+        onClick={run}
+      >
+        {busy ? "…" : "Réconcilier"}
+      </Button>
+      {err ? <span className="max-w-[72px] truncate text-[9px] text-red-600">{err}</span> : null}
+    </div>
+  )
+}
+
 function RetryAutoBuyButton({
   fulfillmentLogId,
   status,
@@ -103,7 +173,7 @@ function RetryAutoBuyButton({
     auto_buy_disabled: "Kill switch actif",
     max_attempts_reached: "3 tentatives max",
     purchase_in_doubt: "Issue incertaine : vérifier la commande AliExpress avant toute relance",
-    margin_refused: "Refusé sur la marge : corriger le prix ou le plancher, puis relancer via la commande",
+    margin_refused: "Refusé (marge ou coût AliExpress inconnu : prix / port à 0) : voir la trace, corriger, puis relancer via la commande",
     log_state_changed: "Le log a changé entre-temps : actualiser",
   }
 
@@ -358,6 +428,11 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
         header: "",
         cell: ({ row }) => (
           <div className="flex flex-col items-end gap-1">
+            <ReconcileInDoubtButton
+              fulfillmentLogId={row.original.id}
+              status={row.original.status}
+              onDone={() => void mutate()}
+            />
             <RetryAutoBuyButton
               fulfillmentLogId={row.original.id}
               status={row.original.status}

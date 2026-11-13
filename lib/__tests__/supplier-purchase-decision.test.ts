@@ -46,7 +46,9 @@ describe("decideSupplierPurchase — evidence of a purchase wins", () => {
   it("an engine job carrying a supplier order id => already placed, unless FAILED / CANCELLED", () => {
     const withJob = (status: string, supplierOrderId: string | null) =>
       decideSupplierPurchase(
-        snap({ jobs: [{ id: "j1", supplierOrderId, status: status as never, firstLineOrderId: "o1" }] }),
+        snap({
+          jobs: [{ id: "j1", supplierOrderId, status: status as never, channelType: "ALIEXPRESS", firstLineOrderId: "o1" }],
+        }),
         NOW
       )
     expect(withJob("PROCESSING", "AE77")).toEqual({ kind: "already_placed", supplierOrderId: "AE77", evidence: "job" })
@@ -60,10 +62,11 @@ describe("decideSupplierPurchase — evidence of a purchase wins", () => {
 
   it("a job's supplier order id proves a purchase for its FIRST line only — the group's other orders stay purchasable", () => {
     // The engine groups every AliExpress order of a cart into ONE job; the adapter buys only the first line.
-    const job = (firstLineOrderId: string | null) => ({
+    const job = (firstLineOrderId: string | null, channelType: string | null = "ALIEXPRESS") => ({
       id: "j1",
       supplierOrderId: "AE-A",
       status: "PROCESSING" as const,
+      channelType,
       firstLineOrderId,
     })
     expect(decideSupplierPurchase(snap({ orderId: "o1", jobs: [job("o1")] }), NOW)).toMatchObject({
@@ -76,6 +79,18 @@ describe("decideSupplierPurchase — evidence of a purchase wins", () => {
     // unknown first line (no line rows readable): fail closed against a double purchase
     expect(decideSupplierPurchase(snap({ orderId: "o2", jobs: [job(null)] }), NOW).kind).toBe("already_placed")
   })
+
+  it.each(["CJ_DROPSHIPPING", "BLIND_REST", "AFFISELL_NATIVE", null])(
+    "a %s job sent ALL its lines in one supplier order: it covers every order of the group, not only the first",
+    (channelType) => {
+      const job = { id: "j1", supplierOrderId: "CJ-9", status: "CONFIRMED" as const, channelType, firstLineOrderId: "o1" }
+      expect(decideSupplierPurchase(snap({ orderId: "o2", jobs: [job] }), NOW)).toMatchObject({
+        kind: "already_placed",
+        supplierOrderId: "CJ-9",
+        evidence: "job",
+      })
+    }
+  )
 })
 
 describe("decideSupplierPurchase — may we still buy for this order?", () => {

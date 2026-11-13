@@ -66,6 +66,8 @@ export type AutoBuyMarginDecision =
       marginCents: number | null
       floorCents: number
       breakdown: AutoBuyMarginBreakdown | null
+      /** With `cost_unknown`: WHICH part of the cost is unknown — "price" (AE unit price) and / or "shipping" (AE freight). */
+      unknownCost?: Array<"price" | "shipping">
     }
 
 /** Order columns the money model needs (a subset of the `Order` row — see `orderSplitInputFromOrder`). */
@@ -97,8 +99,17 @@ export function evaluateAutoBuyMargin(
 
   const unit = cost.aeUnitPriceCents
   const shipping = cost.aeShippingCents
-  if (!isCents(unit) || unit <= 0 || !isCents(shipping) || shipping <= 0) {
-    return { allowed: false, reason: "cost_unknown", marginCents: null, floorCents, breakdown: null }
+  const priceUnknown = !isCents(unit) || unit <= 0
+  const shippingUnknown = !isCents(shipping) || shipping <= 0
+  if (priceUnknown || shippingUnknown) {
+    return {
+      allowed: false,
+      reason: "cost_unknown",
+      marginCents: null,
+      floorCents,
+      breakdown: null,
+      unknownCost: [...(priceUnknown ? (["price"] as const) : []), ...(shippingUnknown ? (["shipping"] as const) : [])],
+    }
   }
 
   const collectedHtCents = orderLineHtCents(order)
@@ -153,5 +164,7 @@ export function formatAutoBuyMarginRefusal(
   decision: Extract<AutoBuyMarginDecision, { allowed: false }>
 ): string {
   const margin = decision.marginCents == null ? "n/a" : String(decision.marginCents)
-  return `MARGIN_REFUSED:${decision.reason}:margin=${margin}:floor=${decision.floorCents}`
+  // For an unknown cost say WHICH part is missing: lowering the floor or the price cannot fix it, entering the cost can.
+  const missing = decision.unknownCost?.length ? `:missing=${decision.unknownCost.join(",")}` : ""
+  return `MARGIN_REFUSED:${decision.reason}:margin=${margin}:floor=${decision.floorCents}${missing}`
 }

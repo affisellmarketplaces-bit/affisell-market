@@ -170,6 +170,41 @@ describe("authorizeSupplierPurchase — the state is re-read INSIDE the lock, fr
     expect(db.logs.has("o1")).toBe(false)
   })
 
+  it("a CJ job bought every line of the group in ONE supplier order: every order of it is already placed (#5)", async () => {
+    db = createFakePurchaseDb({
+      orders: [makeFakeOrder("o1"), makeFakeOrder("o2")],
+      jobs: [{ id: "job1", supplierOrderId: "CJ-1", status: "CONFIRMED", orderIds: ["o1", "o2"], channelType: "CJ_DROPSHIPPING" }],
+      now: () => clock,
+    })
+    h.db = db.prisma
+    for (const orderId of ["o1", "o2"]) {
+      expect(await authorizeSupplierPurchase({ orderId, path: "auto_buy", now: clock })).toMatchObject({
+        kind: "already_placed",
+        supplierOrderId: "CJ-1",
+        evidence: "job",
+      })
+    }
+    expect(db.logs.size).toBe(0)
+  })
+
+  it("the claim query loads what the attribution rule needs: the job's provider channel and its FIRST line (a real database honours `select`, the fake does not)", async () => {
+    const seen: Array<Record<string, unknown>> = []
+    const original = (db.prisma.order as unknown as { findUnique: (a: Record<string, unknown>) => Promise<unknown> }).findUnique
+    ;(db.prisma.order as unknown as { findUnique: unknown }).findUnique = async (args: Record<string, unknown>) => {
+      seen.push(args)
+      return original(args)
+    }
+    await go()
+    const claimSelect = seen
+      .map((a) => a.select as Record<string, unknown>)
+      .find((sel) => "supplierFulfillmentLinks" in sel) as {
+      supplierFulfillmentLinks: { select: { supplierFulfillmentOrder: { select: Record<string, unknown> } } }
+    }
+    const jobSelect = claimSelect.supplierFulfillmentLinks.select.supplierFulfillmentOrder.select
+    expect(jobSelect.provider).toEqual({ select: { channelType: true } })
+    expect(jobSelect.lines).toEqual({ select: { orderId: true }, orderBy: { id: "asc" }, take: 1 })
+  })
+
   it("a FAILED engine job does not block", async () => {
     setup()
     db.jobs.push({ id: "job1", supplierOrderId: null, status: "FAILED", orderIds: ["o1"] })
@@ -275,6 +310,28 @@ describe("alerts reach the ops channel, not only Sentry (the BullMQ worker never
     expect(h.ops).toHaveLength(1)
     expect(h.ops[0]).toContain("o1")
     expect(h.ops[0]).toMatch(/MARGIN_REFUSED:margin_below_floor/)
+  })
+
+  it("#3 — an UNKNOWN cost says so, names the missing part and points at the list of links to fix (not 'lower the floor')", async () => {
+    const v = await authorizeSupplierPurchase({
+      orderId: "o1",
+      path: "order_paid",
+      cost: { aeUnitPriceCents: 500, aeShippingCents: 0 },
+      now: clock,
+    })
+    expect(v).toMatchObject({ kind: "margin_refused", decision: { reason: "cost_unknown", unknownCost: ["shipping"] } })
+    expect(h.ops[0]).toContain("INCONNU")
+    expect(h.ops[0]).toContain("shipping")
+    expect(h.ops[0]).toContain("links-missing-cost")
+    expect(h.ops[0]).toContain("MARGIN_REFUSED:cost_unknown:margin=n/a:floor=300:missing=shipping")
+    expect(h.ops[0]).not.toContain("plancher")
+  })
+
+  it("#3 — a refusal on the margin itself points at the price / the floor", async () => {
+    setup({}, LOSS_MAKING_SALE)
+    await go("engine")
+    expect(h.ops[0]).toContain("AUTO_BUY_MIN_MARGIN_CENTS")
+    expect(h.ops[0]).not.toContain("links-missing-cost")
   })
 
   it("an outcome in doubt posts to the ops webhook and says to check AliExpress BEFORE any retry or refund", async () => {

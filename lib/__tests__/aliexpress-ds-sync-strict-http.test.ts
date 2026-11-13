@@ -51,6 +51,24 @@ describe("callAliExpressSyncMethod — strictHttpStatus", () => {
     expect((err as AliExpressApiError).code).toBe("isp.remote-service-timeout")
   })
 
+  it("keeps the gateway envelope TYPE (ISP = platform fault) and EVERY text field of the answer", async () => {
+    mockFetch(200, { type: "ISP", message: "Remote service error", msg: "upstream said no", sub_msg: "price check failed", code: "15" })
+    const err = (await callAliExpressSyncMethod(base).catch((e: unknown) => e)) as AliExpressApiError
+    expect(err.gatewayType).toBe("ISP")
+    expect(err.detail).toContain("price check failed")
+    expect(err.detail).toContain("upstream said no")
+    expect(err.detail).toContain("Remote service error")
+  })
+
+  it("an error_response whose sub_code starts with isp. / isv. is typed from it", async () => {
+    mockFetch(200, { error_response: { msg: "Remote service error", sub_code: "isp.remote-service-timeout" } })
+    expect(((await callAliExpressSyncMethod(base).catch((e: unknown) => e)) as AliExpressApiError).gatewayType).toBe("ISP")
+    mockFetch(200, { error_response: { msg: "Invalid", sub_code: "isv.invalid-parameter" } })
+    expect(((await callAliExpressSyncMethod(base).catch((e: unknown) => e)) as AliExpressApiError).gatewayType).toBe("ISV")
+    mockFetch(200, { error_response: { msg: "no code at all" } })
+    expect(((await callAliExpressSyncMethod(base).catch((e: unknown) => e)) as AliExpressApiError).gatewayType).toBeUndefined()
+  })
+
   it("an ISP root answer keeps its code too", async () => {
     mockFetch(200, { type: "ISP", message: "Remote service error", code: "15" })
     const err = await callAliExpressSyncMethod(base).catch((e: unknown) => e)

@@ -39,6 +39,7 @@ import {
   type AutoBuyMarginCost,
   type AutoBuyMarginDecision,
 } from "@/lib/fulfillment/auto-buy-margin"
+import { ENGINE_JOB_ATTRIBUTION_SELECT, jobAttributionOf } from "@/lib/fulfillment/engine-job-attribution"
 import { resolveManualSupplierSku } from "@/lib/fulfillment/resolve-manual-supplier-sku"
 import { resolveSupplierSkuForOrder } from "@/lib/fulfillment/resolve-supplier-sku"
 import {
@@ -79,9 +80,8 @@ const CLAIM_SELECT = {
           id: true,
           supplierOrderId: true,
           status: true,
-          // The adapter buys the job's FIRST line only (see `placeAliExpressOrderUnderClaim`): that line's order is the one the
-          // job's supplier order id belongs to. Lines are created in order, so the smallest id is the first one.
-          lines: { select: { orderId: true }, orderBy: { id: "asc" }, take: 1 },
+          // Which order the job's supplier order id belongs to depends on the provider: see `engine-job-attribution.ts`.
+          ...ENGINE_JOB_ATTRIBUTION_SELECT,
         },
       },
     },
@@ -213,7 +213,7 @@ export async function authorizeSupplierPurchase(args: {
           id: l.supplierFulfillmentOrder.id,
           supplierOrderId: l.supplierFulfillmentOrder.supplierOrderId,
           status: l.supplierFulfillmentOrder.status,
-          firstLineOrderId: l.supplierFulfillmentOrder.lines[0]?.orderId ?? null,
+          ...jobAttributionOf(l.supplierFulfillmentOrder),
         })),
       },
       now
@@ -327,9 +327,18 @@ export async function reportMarginRefusal(
   } catch {
     /* alerting must never break the flow */
   }
+  // The remedy depends on the reason: an UNKNOWN cost is fixed by entering it (lowering the floor or the price changes nothing).
+  const remedy =
+    decision.reason === "cost_unknown"
+      ? `Cout AliExpress INCONNU (${decision.unknownCost?.join(" + ") ?? "prix / port"} a 0 ou absent sur le lien produit) : ` +
+        `renseigner le cout reel sur le SupplierLink (liste : GET /api/admin/auto-fulfill/links-missing-cost), puis relancer via ` +
+        `POST /api/orders/${orderId}/fulfill.`
+      : decision.reason === "revenue_unknown"
+        ? "Montant de la vente inconnu sur la commande : a verifier a la main."
+        : "Marge insuffisante : ajuster le prix de vente ou le plancher AUTO_BUY_MIN_MARGIN_CENTS, ou acheter a la main, ou rembourser."
   await sendOpsAlert(
-    `Affisell - achat AliExpress REFUSE (marge) : commande ${orderId} (${path}). ${message}. ` +
-      `L'acheteur a paye : decision humaine requise (prix, plancher AUTO_BUY_MIN_MARGIN_CENTS, achat manuel ou remboursement).`
+    `Affisell - achat AliExpress REFUSE : commande ${orderId} (${path}). ${message}. ` +
+      `L'acheteur a paye : decision humaine requise. ${remedy}`
   )
   await flagOrderForManualHandling(orderId, { margin: message, path, at: new Date().toISOString() })
 }
