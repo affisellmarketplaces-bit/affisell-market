@@ -918,6 +918,7 @@
       "handoffPowered": "Versleutelde overdracht door Affisell",
       "legalNote": "Door door te gaan, stem je in met het maken van een Affisell koperaccount voor cashback-reward.",
       "identifyFailed": "Kan niet doorgaan. Probeer opnieuw.",
+      "accountExists": "Er bestaat al een account met deze gegevens. Log in om verder te gaan.",
       "signInFailed": "Inloggen mislukt na identificatie.",
       "networkError": "Netwerk onbereikbaar. Probeer opnieuw."
     },

@@ -1,17 +1,24 @@
 import { NextResponse } from "next/server"
 
+import { guardSupplierAiRoute } from "@/lib/ai-route-guards"
+import { parseSpecsAiInput } from "@/lib/ai-spec-input"
 import { groqChatText } from "@/lib/ai/groq-client"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
+/** Supplier/admin only (+ the shared per-user AI rate limit): every call is a paid vision-model request. */
 export async function POST(req: Request) {
+  const guard = await guardSupplierAiRoute(req, "ai-fill-specs")
+  if (!guard.ok) return guard.response
+
   try {
-    const { productTitle, imageUrl }: { productTitle?: string; imageUrl?: string } = await req.json()
-    if (!productTitle && !imageUrl) {
-      return NextResponse.json({ error: "Either productTitle or imageUrl is required" }, { status: 400 })
+    const parsedInput = parseSpecsAiInput(await req.json().catch(() => ({})))
+    if (!parsedInput.ok) {
+      return NextResponse.json({ error: parsedInput.error }, { status: 400 })
     }
+    const { productTitle, imageUrl } = parsedInput.input
 
     const categories = await prisma.category.findMany({
       include: { attributes: true },

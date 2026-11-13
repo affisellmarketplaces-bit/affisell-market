@@ -5,6 +5,7 @@ import { Ratelimit } from "@upstash/ratelimit"
 import { Redis } from "@upstash/redis"
 import sharp from "sharp"
 
+import { consumeRateLimit } from "@/lib/api-rate-limit"
 import { clientIpFromRequest } from "@/lib/logger"
 import {
   mirrorExternalImageToTryOnBlob,
@@ -41,12 +42,15 @@ export async function enforceTryOnIpRateLimit(req: Request): Promise<
   | { ok: true }
   | { ok: false; status: 429; retryAfterSec: number }
 > {
+  const ip = clientIpFromRequest(req)
   const limiter = getIpLimiter()
   if (!limiter) {
-    console.warn("[try-on]", { result: "rate_limit_skipped", reason: "upstash_not_configured" })
-    return { ok: true }
+    // Every call starts a paid Replicate prediction: without Upstash this used to let EVERYTHING through. Fall back
+    // to the in-process limiter (per server instance, so looser than Upstash, but never unlimited).
+    console.warn("[try-on]", { result: "rate_limit_in_memory_fallback", reason: "upstash_not_configured" })
+    const local = consumeRateLimit(`ip:${ip}`, { limit: 5, windowMs: 60_000, prefix: "tryon" })
+    return local.ok ? { ok: true } : { ok: false, status: 429, retryAfterSec: local.retrySec }
   }
-  const ip = clientIpFromRequest(req)
   const result = await limiter.limit(`ip:${ip}`)
   if (result.success) return { ok: true }
   return {

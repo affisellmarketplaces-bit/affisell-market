@@ -3,6 +3,8 @@ import "server-only"
 import sharp from "sharp"
 import { put } from "@vercel/blob"
 
+import { fetchPublicImageBytes } from "@/lib/safe-remote-image.server"
+
 const MAX_EDGE = 1024
 
 export async function processTryOnUserImage(bytes: Buffer, _mimeType: string): Promise<{
@@ -56,13 +58,28 @@ export async function uploadTryOnBlob(params: {
   return blob.url
 }
 
+/**
+ * Download an image whose URL is not ours: a garment URL a supplier typed, or the output URL of a prediction. Goes
+ * through the connection-time SSRF guard (private/loopback/metadata addresses, redirects, size, time) instead of a
+ * bare `fetch`. A refused or failed download throws, as before.
+ */
 export async function fetchImageBytes(url: string): Promise<Buffer> {
-  const res = await fetch(url, { signal: AbortSignal.timeout(12_000) })
-  if (!res.ok) {
-    throw new Error(`Failed to fetch image (${res.status})`)
+  return fetchPublicImageBytes(url.trim(), {
+    maxBytes: 10 * 1024 * 1024,
+    timeoutMs: 12_000,
+    maxRedirects: 3,
+    allowHttp: true,
+  })
+}
+
+/** True when the HOSTNAME is a Vercel Blob one — not merely when the URL contains that text somewhere. */
+export function isVercelBlobUrl(raw: string): boolean {
+  try {
+    const url = new URL(raw)
+    return url.protocol === "https:" && url.hostname.toLowerCase().endsWith(".blob.vercel-storage.com")
+  } catch {
+    return false
   }
-  const arr = await res.arrayBuffer()
-  return Buffer.from(arr)
 }
 
 /** Replicate must fetch garment/human URLs — mirror hotlink-protected sources to Blob. */
@@ -72,7 +89,7 @@ export async function mirrorExternalImageToTryOnBlob(params: {
   keySuffix: string
 }): Promise<string> {
   const trimmed = params.sourceUrl.trim()
-  if (trimmed.includes(".blob.vercel-storage.com")) {
+  if (isVercelBlobUrl(trimmed)) {
     return trimmed
   }
 

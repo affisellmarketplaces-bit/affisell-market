@@ -918,6 +918,7 @@
       "handoffPowered": "Szyfrowane przekazanie Affisell",
       "legalNote": "Kontynuując, zgadzasz się na utworzenie konta Affisell kupującego w celu uzyskania odsetek za cashback.",
       "identifyFailed": "Nie można kontynuować. Spróbuj ponownie.",
+      "accountExists": "Konto z tym identyfikatorem już istnieje. Zaloguj się, aby kontynuować.",
       "signInFailed": "Błąd logowania po identyfikacji.",
       "networkError": "Brak połączenia z siecią. Spróbuj ponownie."
     },

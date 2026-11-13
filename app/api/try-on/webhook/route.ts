@@ -1,47 +1,36 @@
 import * as Sentry from "@sentry/nextjs"
 import { NextResponse } from "next/server"
 
-import {
-  deleteSelfieBlob,
-  extractOutputUrl,
-} from "@/lib/try-on/cloth2body-api.server"
-import { finalizeTryOnJobWithOutput } from "@/lib/try-on/try-on-service.server"
+import { deleteSelfieBlob } from "@/lib/try-on/cloth2body-api.server"
+import { getTryOnJobStatus } from "@/lib/try-on/try-on-service.server"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-type ReplicateWebhookBody = {
-  id?: string
-  status?: string
-  output?: unknown
-  error?: string | null
-}
-
+/**
+ * Replicate "a prediction changed" notification.
+ *
+ * THE BODY IS NOT TRUSTED. This route used to check only that some header existed (never its value — and not even
+ * that when `REPLICATE_WEBHOOK_SECRET` was empty), then finalised the job with the `status` and `output` URL taken
+ * from the body, and the server downloaded that URL and published it on the public blob store: a forged webhook was a
+ * full-read SSRF. Now the only thing taken from the body is the prediction id, which finds our job; the status and
+ * the output URL are read back from Replicate with OUR token (`getTryOnJobStatus` → `fetchPrediction`), so a forged
+ * call can at worst make us ask Replicate a question whose answer we would have asked anyway.
+ */
 export async function POST(req: Request) {
   return Sentry.withScope(async (scope) => {
     scope.setTag("feature", "tryon")
     scope.setTag("model", "idm-vton")
 
-    const secret = process.env.REPLICATE_WEBHOOK_SECRET?.trim()
-    if (secret) {
-      const provided =
-        req.headers.get("webhook-id") ??
-        req.headers.get("x-replicate-signature") ??
-        req.headers.get("authorization")
-      if (!provided) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-      }
-    }
-
-    let body: ReplicateWebhookBody
+    let body: { id?: unknown }
     try {
-      body = (await req.json()) as ReplicateWebhookBody
+      body = (await req.json()) as { id?: unknown }
     } catch {
       return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
     }
 
-    const predictionId = body.id?.trim()
+    const predictionId = typeof body.id === "string" ? body.id.trim() : ""
     if (!predictionId) {
       return NextResponse.json({ error: "Missing prediction id" }, { status: 400 })
     }
@@ -59,49 +48,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, idempotent: true })
     }
 
-    const latencyMs =
-      job.createdAt != null ? Date.now() - job.createdAt.getTime() : null
+    const status = await getTryOnJobStatus(job.id)
 
-    if (body.status === "succeeded") {
-      const outputUrl = extractOutputUrl(body.output)
-      if (!outputUrl) {
-        await finalizeTryOnJobWithOutput({
-          jobId: job.id,
-          outputUrl: "",
-          latencyMs,
-          failed: true,
-          errorMessage: "Webhook succeeded without output URL",
-        })
-      } else {
-        await finalizeTryOnJobWithOutput({
-          jobId: job.id,
-          outputUrl,
-          latencyMs,
-        })
-      }
-
-      await deleteSelfieBlob(job.inputUrl)
-      console.log("[try-on]", { result: "webhook_done", jobId: job.id, predictionId, latencyMs })
-      return NextResponse.json({ ok: true })
+    if (status && (status.status === "done" || status.status === "failed")) {
+      await deleteSelfieBlob(job.inputUrl).catch(() => undefined)
     }
 
-    if (body.status === "failed" || body.status === "canceled") {
-      const errMsg =
-        typeof body.error === "string" ? body.error : "Replicate prediction failed"
-
-      await finalizeTryOnJobWithOutput({
-        jobId: job.id,
-        outputUrl: "",
-        latencyMs,
-        failed: true,
-        errorMessage: errMsg,
-      })
-
-      await deleteSelfieBlob(job.inputUrl)
-      console.log("[try-on]", { result: "webhook_failed", jobId: job.id, predictionId, errMsg })
-      return NextResponse.json({ ok: true })
-    }
-
-    return NextResponse.json({ ok: true, status: body.status ?? "processing" })
+    console.log("[try-on]", {
+      result: "webhook_refetched",
+      jobId: job.id,
+      predictionId,
+      status: status?.status ?? "unknown",
+    })
+    return NextResponse.json({ ok: true, status: status?.status ?? "processing" })
   })
 }
