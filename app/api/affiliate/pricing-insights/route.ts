@@ -7,7 +7,11 @@ import { prisma } from "@/lib/prisma"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-/** Real market pricing signal (comparable listing prices + actual 30-day sales) for one product's category. */
+/**
+ * Pricing signal computed from comparable Affisell listings (prices + actual 30-day sales) of the product's category: a
+ * statistical rule (`computeInsightFromComparables`), not an AI model. With no comparable listing it falls back to
+ * supplier price x 1.4 (`dataQuality: "none"`). The response says so (`method: "statistical_rule"`).
+ */
 export async function POST(req: Request) {
   const session = await auth()
   if (!session?.user?.id) {
@@ -48,5 +52,5 @@ export async function POST(req: Request) {
     excludeAffiliateProductId,
   })
 
-  return NextResponse.json(insight)
+  return NextResponse.json({ ...insight, method: "statistical_rule" as const })
 }

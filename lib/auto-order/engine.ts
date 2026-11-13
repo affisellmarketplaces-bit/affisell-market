@@ -260,8 +260,10 @@ export async function runAutoFulfillmentBatch(stripeSessionId: string): Promise<
         paymentReference: payment.reference ?? null,
       })
 
-      if (!outcome.success && placed.errorMessage) {
-        recordCircuitFailure(circuitKey)
+      // A CANCELLED job is a refused duplicate / non-purchasable order (per-order gate): not a provider failure.
+      if (!outcome.success && placed.errorMessage && placed.status !== "CANCELLED") {
+        // A margin refusal is a decision about the sale, not a sign that the provider is down.
+        if (!placed.errorMessage.startsWith("margin_refused")) recordCircuitFailure(circuitKey)
         errors.push({ providerId: group.providerId, message: placed.errorMessage })
       }
 

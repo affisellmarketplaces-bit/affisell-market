@@ -34,7 +34,8 @@ function arg(name: string): string | undefined {
 
 function requireStripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY?.trim()
-  if (!key?.startsWith("sk_")) throw new Error("STRIPE_SECRET_KEY manquante (sk_test_…)")
+  // TEST key only (finalisation master K1): this script moves test money between connected accounts; it must never run on a live key.
+  if (!key?.startsWith("sk_test_")) throw new Error("STRIPE_SECRET_KEY invalide ou manquante (sk_test_… requis, une clé live est refusée)")
   return new Stripe(key)
 }
 

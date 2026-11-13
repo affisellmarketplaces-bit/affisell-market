@@ -35,6 +35,7 @@ import { StripeCheckoutWarmup } from "@/components/checkout/stripe-checkout-warm
 import { useStorefrontHost } from "@/components/storefront/storefront-host-context"
 import { useCheckoutHandoff } from "@/hooks/use-checkout-handoff"
 import { dispatchCartUpdated } from "@/lib/buyer-cart-count-client"
+import { checkoutStockMessage, parseCheckoutStockRefusal } from "@/lib/checkout-stock-client"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { buyerExploreHref, buyerListingHref } from "@/lib/storefront-buyer-links"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/stripe-minimum"
@@ -155,6 +156,7 @@ async function fetchSession(signal?: AbortSignal): Promise<AuthSession> {
 
 export default function CartPage() {
   const t = useTranslations("cart")
+  const tStock = useTranslations("cart.stock")
   const router = useRouter()
   const { isStoreHost } = useStorefrontHost()
   const { country: visitorCountry, checkoutAvailable, loading: visitorRegionLoading } =
@@ -432,6 +434,11 @@ export default function CartPage() {
         return
       }
       endHandoff()
+      const stockRefusal = res.status === 409 ? parseCheckoutStockRefusal(data) : null
+      if (stockRefusal) {
+        setCheckoutError(checkoutStockMessage(stockRefusal, tStock))
+        return
+      }
       if (res.status === 409 && data.error === "OUT_OF_STOCK_VERIFIED") {
         setGhostOos({
           productName: data.productName,

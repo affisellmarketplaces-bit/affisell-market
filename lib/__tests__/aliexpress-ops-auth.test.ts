@@ -13,14 +13,14 @@ describe("aliexpress-ops-auth", () => {
     expect(stripBodySecret(body)).toEqual({ supplierProductId: "1" })
   })
 
-  it("accepts ?secret= when CRON_SECRET matches", () => {
+  it("refuses ?secret= even when CRON_SECRET matches (a URL leaks into logs and Referer headers)", () => {
     vi.stubEnv("CRON_SECRET", "test-secret-value-32chars-xxxxxx")
     vi.stubEnv("VERCEL_ENV", "production")
     const req = new Request(
       "https://example.com/api/aliexpress/order/create?secret=test-secret-value-32chars-xxxxxx",
       { method: "POST" }
     )
-    expect(authorizeAliExpressOps(req)).toBeNull()
+    expect(authorizeAliExpressOps(req)?.status).toBe(401)
   })
 
   it("rejects missing auth in production", () => {

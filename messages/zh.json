@@ -857,6 +857,10 @@
     }
   },
   "cart": {
+    "stock": {
+      "outOfStock": "该商品已售罄。",
+      "insufficient": "库存仅剩 {count} 件。"
+    },
     "title": "购物车",
     "loading": "正在加载购物车…",
     "empty": "您的购物车是空的",
@@ -918,6 +922,7 @@
       "handoffPowered": "Affisell 加密跳转",
       "legalNote": "继续后，您同意为现金返利创建Affisell买家账户。",
       "identifyFailed": "无法继续。请再试一次。",
+      "accountExists": "该标识已存在账户。请登录后继续。",
       "signInFailed": "身份识别后登录失败。",
       "networkError": "网络不可用。请再试一次。"
     },
@@ -3334,7 +3339,7 @@
         "beta": "测试版",
         "multiHint": "应用 AI 定价将为已选的 {count} 个款式设置利润，并按批发价进行缩放。",
         "yourPrice": "你的价格",
-        "aiSuggests": "AI 建议",
+        "aiSuggests": "计算建议",
         "marketAvg": "市场均价",
         "competitors": "竞品",
         "salesPerMonth": "{count} 笔/月",
@@ -3353,7 +3358,8 @@
         "noDataBody": "该类目下暂无可比商品——显示为通用初始估算值,将随着真实销售数据增多而改善。",
         "salesUnknown": "暂无近期销售数据",
         "comparableListings": "{count} 个可比商品",
-        "loadFailed": "无法加载市场数据——请重试。"
+        "loadFailed": "无法加载市场数据——请重试。",
+        "ruleNote": "基于 Affisell 可比商品的统计计算——是计算规则，而不是 AI 模型。数据不足时：供应商价格 × 1.4。"
       },
       "variantMargins": {
         "title": "款式与利润",
@@ -7766,6 +7772,14 @@
     "lastAnalysis": "上次分析 {when}",
     "refreshing": "刷新中…",
     "tagline": "电商信号 · Arbitrage Score™ · 饱和度 · Affisell 供应商匹配",
+    "demoBadge": "演示",
+    "demoBannerMock": "演示数据：这些爆款由计算规则生成，并非来自真实的市场扫描。请勿将其作为销售信号。",
+    "demoBannerMixed": "混合数据：部分行为模拟数据（标记为“演示”）。",
+    "demoBannerDemo": "手写示例数据：没有真实扫描。",
+    "scoresAreRules": "套利评分™和饱和度是公式（规则），不是 AI 模型。",
+    "trendingDemo": "演示关键词：手写列表加随机波动，没有市场测量。",
+    "trendingNone": "该市场没有真实的趋势关键词：没有趋势数据源返回数据（不会编造任何内容）。",
+    "countriesMockNotice": "Radar 数据库无法访问：市场列表在没有扫描数据的情况下显示。每个市场都以演示模式打开。",
     "searchLabel": "搜索",
     "searchPlaceholder": "搜索商品、国家…",
     "comingSoon": "即将开放",
@@ -8307,7 +8321,15 @@
     "curve24": "24 小时曲线",
     "copyWinner": "复制此爆款 → 10 秒导入",
     "fullPage": "查看完整页面",
-    "tickerAgo": "{n} 分钟前"
+    "tickerAgo": "{n} 分钟前",
+    "badgeLive": "实时",
+    "badgeMixed": "混合",
+    "badgeDemo": "演示",
+    "demoNotice": "演示数据：这些事件是为填充地球仪而生成的，并不对应任何真实销售。",
+    "mixedNotice": "混合数据：部分事件是为填充地球仪而生成的（标记为“演示”）。",
+    "demoEvent": "演示",
+    "demoEventNotice": "演示事件：为填充地球仪而生成，背后没有真实的销售或导入。",
+    "estimatedLocation": "估算位置：城市为自动选取，并非事件实际发生的地点。"
   },
   "radarPricing": {
     "starterEyebrow": "信号体验",

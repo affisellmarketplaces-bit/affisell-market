@@ -1,5 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
+import { meterModelCall } from "@/lib/ai/usage-log"
+
 export const GEMINI_MODEL = process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash"
 
 export function getGeminiApiKey(): string | null {
@@ -39,7 +41,12 @@ export async function geminiChatText(prompt: string, system?: string): Promise<s
     { timeout: geminiTimeoutMs() }
   )
 
-  const result = await model.generateContent(prompt)
+  const result = await meterModelCall({
+    provider: "gemini",
+    modelRequested: GEMINI_MODEL,
+    call: () => model.generateContent(prompt),
+    extract: (r) => ({ usage: r.response.usageMetadata }),
+  })
   const text = result.response.text().trim()
   console.log("[gemini-client]", { event: "Gemini", model: GEMINI_MODEL })
   return text

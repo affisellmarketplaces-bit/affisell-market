@@ -63,6 +63,7 @@ export class AliExpressSupplierAdapter extends BaseSupplierAdapter {
           errorMessage: placed.error,
           rawRequest: { aeProductId, aeSkuId, quantity: line.quantity },
           rawResponse: { error: placed.error },
+          ...(placed.outcomeUncertain ? { outcomeUncertain: true } : {}),
         }
       }
 

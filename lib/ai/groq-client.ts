@@ -8,6 +8,7 @@ import {
 } from "@/lib/ai/groq-vision"
 import { routeLlmText } from "@/lib/ai/llm-router"
 import { hasOpenAiFallback, openaiChatText } from "@/lib/ai/openai-chat-fallback"
+import { meterModelCall } from "@/lib/ai/usage-log"
 
 export const GROQ_TEXT_MODEL =
   process.env.GROQ_TEXT_MODEL?.trim() || "openai/gpt-oss-20b"
@@ -100,20 +101,26 @@ async function groqChatTextDirect(
   )
   const messages = prepareMessages({ ...options, model, vision })
   const reasoning = isGroqReasoningModel(model)
-  const completion = await groq.chat.completions.create(
-    {
-      model,
-      messages,
-      temperature: options.temperature ?? 0.2,
-      max_tokens:
-        reasoning && options.max_tokens != null
-          ? options.max_tokens + GROQ_REASONING_HEADROOM_TOKENS
-          : options.max_tokens,
-      response_format: options.response_format,
-      ...(reasoning && options.reasoning_effort ? { reasoning_effort: options.reasoning_effort } : {}),
-    },
-    options.direct ? { maxRetries: 0 } : undefined
-  )
+  const completion = await meterModelCall({
+    provider: "groq",
+    modelRequested: model,
+    call: () =>
+      groq.chat.completions.create(
+        {
+          model,
+          messages,
+          temperature: options.temperature ?? 0.2,
+          max_tokens:
+            reasoning && options.max_tokens != null
+              ? options.max_tokens + GROQ_REASONING_HEADROOM_TOKENS
+              : options.max_tokens,
+          response_format: options.response_format,
+          ...(reasoning && options.reasoning_effort ? { reasoning_effort: options.reasoning_effort } : {}),
+        },
+        options.direct ? { maxRetries: 0 } : undefined
+      ),
+    extract: (c) => ({ modelUsed: c.model, usage: c.usage }),
+  })
   const choice = completion.choices[0]
   const content = choice?.message?.content?.trim() ?? null
   if (!content && choice?.finish_reason === "length") {

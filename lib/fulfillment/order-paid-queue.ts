@@ -1,11 +1,12 @@
 import { Job, Queue, Worker, type JobsOptions } from "bullmq"
 
-import { fulfillAffisellOrderWithAliExpress } from "@/lib/aliexpress-fulfill-order"
+import { fulfillAffisellOrderWithAliExpress, isNeverRetryFulfillError } from "@/lib/aliexpress-fulfill-order"
 import {
   createBullMqConnection,
   getBullMqConnection,
   isAutoOrderQueueEnabled,
 } from "@/lib/auto-order/redis"
+import { bullmqPrefix } from "@/lib/redis-namespace"
 
 /** BullMQ / Inngest event name for paid → AE DS place. */
 export const ORDER_PAID_QUEUE = "order-paid"
@@ -34,6 +35,7 @@ export function getOrderPaidQueue(): Queue<OrderPaidJobData> {
   if (!queue) {
     queue = new Queue<OrderPaidJobData>(ORDER_PAID_QUEUE, {
       connection: getBullMqConnection(),
+      prefix: bullmqPrefix(), // "bull" in production (the BullMQ default: existing queue unchanged), "preview:bull" on a Preview
       defaultJobOptions: defaultJobOptions(),
     })
   }
@@ -94,10 +96,11 @@ export function createOrderPaidWorker(): Worker<OrderPaidJobData> {
       const result = await fulfillAffisellOrderWithAliExpress(job.data.orderId)
       if (!result.ok) {
         const retryable =
-          result.error.includes("rate") ||
-          result.error.includes("limit") ||
-          result.error.includes("timeout") ||
-          result.error.includes("temporarily")
+          !isNeverRetryFulfillError(result.error) &&
+          (result.error.includes("rate") ||
+            result.error.includes("limit") ||
+            result.error.includes("timeout") ||
+            result.error.includes("temporarily"))
         if (retryable) {
           throw new Error(result.error)
         }
@@ -116,6 +119,7 @@ export function createOrderPaidWorker(): Worker<OrderPaidJobData> {
     },
     {
       connection: createBullMqConnection(),
+      prefix: bullmqPrefix(),
       concurrency,
     }
   )

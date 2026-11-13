@@ -857,6 +857,10 @@
     }
   },
   "cart": {
+    "stock": {
+      "outOfStock": "Ce produit est en rupture de stock.",
+      "insufficient": "Il n'en reste que {count} en stock."
+    },
     "title": "Panier",
     "loading": "Chargement du panier…",
     "empty": "Votre panier est vide",
@@ -918,6 +922,7 @@
       "handoffPowered": "Passerelle chiffrée Affisell",
       "legalNote": "En validant, vous acceptez la création d'un compte acheteur Affisell pour vos bonus cashback.",
       "identifyFailed": "Impossible de continuer. Réessayez.",
+      "accountExists": "Un compte existe déjà avec cet identifiant. Connectez-vous pour continuer.",
       "signInFailed": "Connexion impossible après identification.",
       "networkError": "Réseau indisponible. Réessayez."
     },
@@ -3334,7 +3339,7 @@
         "beta": "BETA",
         "multiHint": "Appliquer l'IA fixe les marges sur {count} variante(s) sélectionnée(s), adaptées au prix fournisseur.",
         "yourPrice": "Votre prix",
-        "aiSuggests": "IA suggère",
+        "aiSuggests": "Suggestion calculée",
         "marketAvg": "Moy. marché",
         "competitors": "Concurrents",
         "salesPerMonth": "{count} ventes/mois",
@@ -3353,7 +3358,8 @@
         "noDataBody": "Aucune annonce comparable trouvée dans cette catégorie pour l'instant — estimation de départ générale. Elle s'affinera avec les ventes réelles.",
         "salesUnknown": "Pas de données de vente récentes",
         "comparableListings": "{count, plural, one {# annonce comparable} other {# annonces comparables}}",
-        "loadFailed": "Impossible de charger les données de marché — réessayez."
+        "loadFailed": "Impossible de charger les données de marché — réessayez.",
+        "ruleNote": "Calcul statistique sur les annonces comparables d'Affisell — règle de calcul, pas un modèle d'IA. Sans assez de données : prix fournisseur × 1,4."
       },
       "variantMargins": {
         "title": "Variantes & marges",
@@ -7766,6 +7772,14 @@
     "lastAnalysis": "Dernière analyse {when}",
     "refreshing": "Actualisation…",
     "tagline": "Signaux e-commerce · Arbitrage Score™ · Saturation · Supplier Match Affisell",
+    "demoBadge": "DÉMO",
+    "demoBannerMock": "Données de démonstration : ces winners sont générés par une règle de calcul, pas issus d'un scan réel du marché. Ne les utilisez pas comme signal de vente.",
+    "demoBannerMixed": "Données mixtes : une partie des lignes est simulée (marquée « Démo »).",
+    "demoBannerDemo": "Données d'exemple écrites à la main : aucun scan réel.",
+    "scoresAreRules": "Arbitrage Score™ et Saturation sont des formules (règles), pas un modèle d'IA.",
+    "trendingDemo": "Mots-clés de démonstration : liste écrite à la main avec variations aléatoires, aucune mesure de marché.",
+    "trendingNone": "Aucun mot-clé tendance réel pour ce marché : aucune source de tendances n'a renvoyé de donnée (rien n'est inventé).",
+    "countriesMockNotice": "Base du Radar injoignable : la liste des marchés est affichée sans aucune donnée de scan. Chaque marché s'ouvre en mode démonstration.",
     "searchLabel": "Rechercher",
     "searchPlaceholder": "Rechercher un produit, pays…",
     "comingSoon": "Bientôt disponible",
@@ -8307,7 +8321,15 @@
     "curve24": "Courbe 24 h",
     "copyWinner": "Copier ce winner → Import 10 s",
     "fullPage": "Voir la fiche complète",
-    "tickerAgo": "il y a {n} min"
+    "tickerAgo": "il y a {n} min",
+    "badgeLive": "LIVE",
+    "badgeMixed": "MIXTE",
+    "badgeDemo": "DÉMO",
+    "demoNotice": "Données de démonstration : ces événements sont générés pour remplir le globe, ils ne correspondent à aucune vente réelle.",
+    "mixedNotice": "Données mixtes : une partie des événements est générée pour remplir le globe (marqués « démo »).",
+    "demoEvent": "démo",
+    "demoEventNotice": "Événement de démonstration : généré pour remplir le globe, aucune vente ni import réel derrière.",
+    "estimatedLocation": "Localisation estimée : la ville est choisie automatiquement, pas l'endroit réel de l'événement."
   },
   "radarPricing": {
     "starterEyebrow": "Essai signal",

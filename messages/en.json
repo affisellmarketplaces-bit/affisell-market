@@ -857,6 +857,10 @@
     }
   },
   "cart": {
+    "stock": {
+      "outOfStock": "This product is out of stock.",
+      "insufficient": "Only {count} left in stock."
+    },
     "title": "Cart",
     "loading": "Loading cart…",
     "empty": "Your cart is empty",
@@ -918,6 +922,7 @@
       "handoffPowered": "Affisell encrypted handoff",
       "legalNote": "By continuing, you agree to create an Affisell buyer account for cashback rewards.",
       "identifyFailed": "Could not continue. Try again.",
+      "accountExists": "An account already exists with this identifier. Sign in to continue.",
       "signInFailed": "Sign-in failed after identification.",
       "networkError": "Network unavailable. Try again."
     },
@@ -3334,7 +3339,7 @@
         "beta": "BETA",
         "multiHint": "Apply AI will set margins on {count} selected variant(s), scaled by wholesale.",
         "yourPrice": "Your price",
-        "aiSuggests": "AI Suggests",
+        "aiSuggests": "Calculated suggestion",
         "marketAvg": "Market avg",
         "competitors": "Competitors",
         "salesPerMonth": "{count} sales/mo",
@@ -3353,7 +3358,8 @@
         "noDataBody": "No comparable listings found in this category yet — showing a general starting estimate. It will improve as real sales come in.",
         "salesUnknown": "No recent sales data",
         "comparableListings": "{count, plural, one {# comparable listing} other {# comparable listings}}",
-        "loadFailed": "Could not load market data — try again."
+        "loadFailed": "Could not load market data — try again.",
+        "ruleNote": "Statistical calculation over comparable Affisell listings — a calculation rule, not an AI model. Without enough data: supplier price × 1.4."
       },
       "variantMargins": {
         "title": "Variants & margins",
@@ -7766,6 +7772,14 @@
     "lastAnalysis": "Last analysis {when}",
     "refreshing": "Refreshing…",
     "tagline": "E-commerce signals · Arbitrage Score™ · Saturation · Affisell Supplier Match",
+    "demoBadge": "DEMO",
+    "demoBannerMock": "Demo data: these winners are produced by a calculation rule, not by a real market scan. Do not use them as a sales signal.",
+    "demoBannerMixed": "Mixed data: some rows are simulated (marked “Demo”).",
+    "demoBannerDemo": "Hand-written sample data: no real scan.",
+    "scoresAreRules": "Arbitrage Score™ and Saturation are formulas (rules), not an AI model.",
+    "trendingDemo": "Demo keywords: a hand-written list with random variations, no market measurement.",
+    "trendingNone": "No real trending keywords for this market: no trends source returned any data (nothing is made up).",
+    "countriesMockNotice": "Radar database unreachable: the market list is shown without any scan data. Every market opens in demo mode.",
     "searchLabel": "Search",
     "searchPlaceholder": "Search a product, country…",
     "comingSoon": "Coming soon",
@@ -8307,7 +8321,15 @@
     "curve24": "24h curve",
     "copyWinner": "Copy this winner → 10s import",
     "fullPage": "View full page",
-    "tickerAgo": "{n} min ago"
+    "tickerAgo": "{n} min ago",
+    "badgeLive": "LIVE",
+    "badgeMixed": "MIXED",
+    "badgeDemo": "DEMO",
+    "demoNotice": "Demo data: these events are generated to fill the globe and do not correspond to any real sale.",
+    "mixedNotice": "Mixed data: some events are generated to fill the globe (marked “demo”).",
+    "demoEvent": "demo",
+    "demoEventNotice": "Demo event: generated to fill the globe, no real sale or import behind it.",
+    "estimatedLocation": "Estimated location: the city is picked automatically, not where the event really happened."
   },
   "radarPricing": {
     "starterEyebrow": "Signal trial",

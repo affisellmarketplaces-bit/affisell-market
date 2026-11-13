@@ -13,6 +13,8 @@ const NON_RETRYABLE_PREFIXES = [
   "blind_rest_missing_credentials",
   "Margin below minimum",
   "MARGIN_TOO_LOW",
+  // Refused by the auto-buy margin gate (`lib/fulfillment/auto-buy-margin.ts`): retrying cannot change the sale's economics.
+  "margin_refused",
 ] as const
 
 export function isNonRetryablePlaceOrderError(err: unknown): boolean {

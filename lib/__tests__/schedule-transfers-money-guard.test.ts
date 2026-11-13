@@ -151,4 +151,58 @@ describe("scheduleMarketplaceTransferAttempts — money guard", () => {
     expect(sup.status).toBe("SUCCESS")
     expect(sup.stripeTransferId).toBe("tr_1")
   })
+
+  // Finalisation master doc, D1: a payment confirmation (webhook retry, reconcile cron, success page) must never reopen a
+  // refunded / cancelled order, nor move an order that is already past "paid" back to "paid".
+  it.each([
+    ["status refunded", { status: "refunded", paymentSettlementStatus: "REFUNDED" }],
+    ["status cancelled", { status: "CANCELLED" }],
+    ["settlement REFUNDED, stale paid status", { status: "paid", paymentSettlementStatus: "REFUNDED" }],
+    ["settlement REFUND_PENDING_CLAWBACK", { status: "paid", paymentSettlementStatus: "REFUND_PENDING_CLAWBACK" }],
+  ])("refuses to schedule transfers for a closed order (%s) and writes nothing", async (_label, over) => {
+    const { db, state } = fakeDb({ ...healthyOrder, ...over })
+    const before = { ...state.order }
+    const res = await scheduleMarketplaceTransferAttempts(session, "ord_1", db as never)
+    expect(res).toMatchObject({ scheduled: false, reason: "order_closed" })
+    expect(state.attempts).toHaveLength(0)
+    expect(state.order).toEqual(before)
+  })
+
+  // "fulfilling" (finalisation review #31) is what the AliExpress purchase paths write after placing the supplier order.
+  it.each(["preparing", "fulfilling", "shipped", "delivered", "completed", "returned", "disputed"])(
+    "keeps an order that is already %s (never moves it back to paid)",
+    async (status) => {
+      const { db, state } = fakeDb({ ...healthyOrder, status, paymentSettlementStatus: "PAID" })
+      const res = await scheduleMarketplaceTransferAttempts(session, "ord_1", db as never)
+      expect(res.scheduled).toBe(true)
+      expect(state.order.status).toBe(status)
+      expect(state.order.paymentSettlementStatus).toBe("PAID")
+    }
+  )
+
+  it("does not write the status when it does not change: a concurrent writer's value is not overwritten by a stale read", async () => {
+    // The order is read as "paid"; the purchase path then sets "fulfilling" before the scheduler writes its update.
+    const { db, state } = fakeDb({ ...healthyOrder, status: "paid", paymentSettlementStatus: "PAID" })
+    const originalFindUnique = db.order.findUnique
+    db.order.findUnique = async () => {
+      const row = await originalFindUnique()
+      state.order = { ...state.order, status: "fulfilling" }
+      return row
+    }
+    await scheduleMarketplaceTransferAttempts(session, "ord_1", db as never)
+    expect(state.order.status).toBe("fulfilling")
+  })
+
+  it("moves a pending order to paid and keeps PARTIALLY_REFUNDED / SETTLED untouched", async () => {
+    const pending = fakeDb({ ...healthyOrder, status: "PENDING", paymentSettlementStatus: "PENDING" })
+    await scheduleMarketplaceTransferAttempts(session, "ord_1", pending.db as never)
+    expect(pending.state.order.status).toBe("paid")
+    expect(pending.state.order.paymentSettlementStatus).toBe("PAID")
+
+    for (const settlement of ["PARTIALLY_REFUNDED", "SETTLED"]) {
+      const kept = fakeDb({ ...healthyOrder, status: "paid", paymentSettlementStatus: settlement })
+      await scheduleMarketplaceTransferAttempts(session, "ord_1", kept.db as never)
+      expect(kept.state.order.paymentSettlementStatus).toBe(settlement)
+    }
+  })
 })

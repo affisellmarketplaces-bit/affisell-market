@@ -28,16 +28,13 @@ export async function GET() {
       timestamp: new Date().toISOString(),
     })
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error)
-    console.log("[health/migrations]", { result: "error", error: message })
+    // The raw error message stays in the server log: this route is public and must not leak database details.
+    console.error("[health/migrations]", {
+      result: "error",
+      message: error instanceof Error ? error.message : String(error),
+    })
     return NextResponse.json(
-      {
-        battle: false,
-        ghost: false,
-        shippingProfile: false,
-        timestamp: new Date().toISOString(),
-        error: message,
-      },
+      { battle: false, ghost: false, shippingProfile: false, timestamp: new Date().toISOString() },
       { status: 503 }
     )
   }

@@ -1,2 +1,0 @@
-import { i as useDialogDismiss, n as DialogDismissOptions, r as DialogDismissProps, t as DialogDismiss } from "../dialog-dismiss-DW3XQYvp.js";
-export { DialogDismiss, DialogDismissOptions, DialogDismissProps, useDialogDismiss };

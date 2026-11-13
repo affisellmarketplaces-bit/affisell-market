@@ -28,6 +28,6 @@ if (!ok) process.exit(1)
 
 console.log("[verify:payout-unification] OK — migrations + backfill tooling ready")
 console.log("[verify:payout-unification] prod steps:")
-console.log("  1. npx prisma migrate deploy")
+console.log("  1. DATABASE_URL='<prod url>' npm run schema:migrate -- --expect-endpoint <ep-id> --confirm-production   (never a bare `npx prisma migrate deploy`: it targets the default database)")
 console.log("  2. npm run payout:legacy:scan")
 console.log("  3. npm run payout:legacy:execute -- --limit=50")

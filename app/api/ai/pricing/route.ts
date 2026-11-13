@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server"
 
+/**
+ * NOT AI, despite living under /api/ai: three fixed multipliers of the cost (x1.45 / x1.62 / x1.85). No model, no market data.
+ * The response says so (`method: "rule_based"`).
+ */
+
 type PricingRequest = {
   cost?: number
   compareAt?: number
@@ -41,5 +46,5 @@ export async function POST(req: Request) {
     })
     .filter((s) => s.discountPct <= 70)
 
-  return NextResponse.json({ suggestions })
+  return NextResponse.json({ method: "rule_based" as const, suggestions })
 }

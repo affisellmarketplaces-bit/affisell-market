@@ -142,6 +142,9 @@ export async function POST(req: Request) {
       })
     }
     const checkout = await createCheckoutSession(candidateProductId, userId ?? undefined)
+    if (checkout && checkout.checkoutUrl === null && checkout.reason === "out_of_stock") {
+      return Response.json({ error: `${checkout.name} n'est plus en stock. Voulez-vous voir des alternatives ?` })
+    }
     if (!checkout?.checkoutUrl) {
       return Response.json({ error: "Impossible de préparer le paiement pour ce produit." })
     }

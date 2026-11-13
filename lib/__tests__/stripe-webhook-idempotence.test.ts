@@ -3,6 +3,7 @@ import type Stripe from "stripe"
 
 const findUnique = vi.fn()
 const createWebhook = vi.fn()
+const updateManyInTx = vi.fn()
 const findUniqueInTx = vi.fn()
 const scheduleMarketplaceTransferAttempts = vi.fn()
 const runProcessTransfersJob = vi.fn()
@@ -17,7 +18,9 @@ vi.mock("@/lib/prisma", () => ({
       const tx = {
         processedWebhook: {
           findUnique: findUniqueInTx,
-          create: createWebhook,
+          // The processor now writes with upsert (create on first processing, update on a replay) and claims a failed row.
+          upsert: createWebhook,
+          updateMany: updateManyInTx,
         },
         blindDropshipOrder: { findUnique: vi.fn() },
       }
@@ -70,6 +73,7 @@ describe("processStripeWebhookEvent idempotence", () => {
     findUnique.mockResolvedValue(null)
     findUniqueInTx.mockResolvedValue(null)
     createWebhook.mockResolvedValue({ id: "evt_1" })
+    updateManyInTx.mockResolvedValue({ count: 1 })
     scheduleMarketplaceTransferAttempts.mockResolvedValue({
       orderId: "order_test_1",
       scheduled: true,
@@ -150,4 +154,62 @@ describe("processStripeWebhookEvent idempotence", () => {
     await processStripeWebhookEvent(event)
     expect(ensureMarketplaceCheckoutFulfilled).not.toHaveBeenCalled()
   }, 15_000)
+
+  // Finalisation master doc, D2: a "failed" event must be REPLAYED when Stripe retries it, not swallowed as a duplicate.
+  describe("replay of failed events", () => {
+    const failedEvent = {
+      id: "evt_failed_before",
+      type: "checkout.session.completed",
+      data: {
+        object: { id: "cs_replay", mode: "payment", payment_status: "paid", metadata: { orderId: "order_test_1" } },
+      },
+    } as unknown as Stripe.Event
+
+    it("processes an event whose previous attempt failed (and records the new outcome)", async () => {
+      const { processStripeWebhookEvent } = await import("@/lib/stripe-webhook-processor")
+      const row = { id: failedEvent.id, orderId: "order_test_1", status: "failed", error: "boom" }
+      findUnique.mockResolvedValue(row)
+      findUniqueInTx.mockResolvedValue(row)
+
+      const result = await processStripeWebhookEvent(failedEvent)
+
+      expect(result.duplicate).toBe(false)
+      expect(scheduleMarketplaceTransferAttempts).toHaveBeenCalledTimes(1)
+      // claimed atomically first, then the final status is written by upsert
+      expect(updateManyInTx).toHaveBeenCalledWith({
+        where: { id: failedEvent.id, status: "failed" },
+        data: { status: "processing", error: null },
+      })
+      expect(createWebhook).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: failedEvent.id },
+          update: expect.objectContaining({ status: "success" }),
+        })
+      )
+    }, 15_000)
+
+    it.each(["success", "skipped"])("still treats a %s event as a duplicate", async (status) => {
+      const { processStripeWebhookEvent } = await import("@/lib/stripe-webhook-processor")
+      findUnique.mockResolvedValue({ id: failedEvent.id, orderId: "order_test_1", status, error: null })
+
+      const result = await processStripeWebhookEvent(failedEvent)
+
+      expect(result.duplicate).toBe(true)
+      expect(scheduleMarketplaceTransferAttempts).not.toHaveBeenCalled()
+      expect(updateManyInTx).not.toHaveBeenCalled()
+    }, 15_000)
+
+    it("does not process twice when a concurrent retry already claimed the failed event", async () => {
+      const { processStripeWebhookEvent } = await import("@/lib/stripe-webhook-processor")
+      const row = { id: failedEvent.id, orderId: "order_test_1", status: "failed", error: "boom" }
+      findUnique.mockResolvedValue(row)
+      findUniqueInTx.mockResolvedValue(row)
+      updateManyInTx.mockResolvedValue({ count: 0 }) // the other retry won the row lock
+
+      await processStripeWebhookEvent(failedEvent)
+
+      expect(scheduleMarketplaceTransferAttempts).not.toHaveBeenCalled()
+      expect(createWebhook).not.toHaveBeenCalled()
+    }, 15_000)
+  })
 })

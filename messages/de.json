@@ -857,6 +857,10 @@
     }
   },
   "cart": {
+    "stock": {
+      "outOfStock": "Dieses Produkt ist nicht auf Lager.",
+      "insufficient": "Nur noch {count} auf Lager."
+    },
     "title": "Warenkorb",
     "loading": "Warenkorb wird geladen…",
     "empty": "Ihr Warenkorb ist leer",
@@ -918,6 +922,7 @@
       "handoffPowered": "Verschlüsselte Übergabe von Affisell",
       "legalNote": "Durch Fortfahren stimmen Sie der Erstellung eines Affisell-Käuferkontos für Bargeld-Rückvergütungen zu.",
       "identifyFailed": "Konnte nicht fortfahren. Versuchen Sie es erneut.",
+      "accountExists": "Mit dieser Angabe besteht bereits ein Konto. Melden Sie sich an, um fortzufahren.",
       "signInFailed": "Anmeldung nach Identifizierung fehlgeschlagen.",
       "networkError": "Netzwerk nicht verfügbar. Versuchen Sie es erneut."
     },
@@ -3334,7 +3339,7 @@
         "beta": "BETA",
         "multiHint": "„KI anwenden“ setzt Margen auf {count} ausgewählte(n) Variante(n), skaliert nach Großhandelspreis.",
         "yourPrice": "Dein Preis",
-        "aiSuggests": "KI schlägt vor",
+        "aiSuggests": "Berechneter Vorschlag",
         "marketAvg": "Marktdurchschnitt",
         "competitors": "Wettbewerber",
         "salesPerMonth": "{count} Verkäufe/Monat",
@@ -3353,7 +3358,8 @@
         "noDataBody": "In dieser Kategorie wurden noch keine vergleichbaren Angebote gefunden — dies ist eine allgemeine erste Schätzung. Sie verbessert sich mit echten Verkäufen.",
         "salesUnknown": "Keine aktuellen Verkaufsdaten",
         "comparableListings": "{count, plural, one {# vergleichbares Angebot} other {# vergleichbare Angebote}}",
-        "loadFailed": "Marktdaten konnten nicht geladen werden — bitte erneut versuchen."
+        "loadFailed": "Marktdaten konnten nicht geladen werden — bitte erneut versuchen.",
+        "ruleNote": "Statistische Berechnung über vergleichbare Affisell-Angebote – eine Berechnungsregel, kein KI-Modell. Ohne ausreichende Daten: Lieferantenpreis × 1,4."
       },
       "variantMargins": {
         "title": "Varianten & Margen",
@@ -7766,6 +7772,14 @@
     "lastAnalysis": "Letzte Analyse {when}",
     "refreshing": "Aktualisierung…",
     "tagline": "E-Commerce-Signale · Arbitrage Score™ · Sättigung · Affisell Supplier Match",
+    "demoBadge": "DEMO",
+    "demoBannerMock": "Demodaten: Diese Winner stammen aus einer Berechnungsregel, nicht aus einem echten Marktscan. Nicht als Verkaufssignal verwenden.",
+    "demoBannerMixed": "Gemischte Daten: Ein Teil der Zeilen ist simuliert (als „Demo“ markiert).",
+    "demoBannerDemo": "Handgeschriebene Beispieldaten: kein echter Scan.",
+    "scoresAreRules": "Arbitrage Score™ und Sättigung sind Formeln (Regeln), kein KI-Modell.",
+    "trendingDemo": "Demo-Stichwörter: handgeschriebene Liste mit Zufallsabweichungen, keine Marktmessung.",
+    "trendingNone": "Keine echten Trend-Stichwörter für diesen Markt: Keine Trendquelle hat Daten geliefert (nichts wird erfunden).",
+    "countriesMockNotice": "Radar-Datenbank nicht erreichbar: Die Marktliste wird ohne Scandaten angezeigt. Jeder Markt öffnet sich im Demomodus.",
     "searchLabel": "Suchen",
     "searchPlaceholder": "Produkt oder Land suchen…",
     "comingSoon": "Demnächst verfügbar",
@@ -8307,7 +8321,15 @@
     "curve24": "24-Std.-Verlauf",
     "copyWinner": "Diesen Winner kopieren → Import in 10 Sek.",
     "fullPage": "Vollständige Seite ansehen",
-    "tickerAgo": "vor {n} Min."
+    "tickerAgo": "vor {n} Min.",
+    "badgeLive": "LIVE",
+    "badgeMixed": "GEMISCHT",
+    "badgeDemo": "DEMO",
+    "demoNotice": "Demodaten: Diese Ereignisse werden erzeugt, um den Globus zu füllen, und entsprechen keinem echten Verkauf.",
+    "mixedNotice": "Gemischte Daten: Ein Teil der Ereignisse wird erzeugt, um den Globus zu füllen (als „Demo“ markiert).",
+    "demoEvent": "Demo",
+    "demoEventNotice": "Demo-Ereignis: erzeugt, um den Globus zu füllen – kein echter Verkauf oder Import dahinter.",
+    "estimatedLocation": "Geschätzter Standort: Die Stadt wird automatisch gewählt, nicht der tatsächliche Ort des Ereignisses."
   },
   "radarPricing": {
     "starterEyebrow": "Signal-Test",

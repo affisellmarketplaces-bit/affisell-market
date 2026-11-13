@@ -17,6 +17,13 @@ import {
   markRefundPendingClawback,
 } from "@/lib/payout-reversal-safety"
 import { reverseConnectTransfersForRefund } from "@/lib/stripe-transfer-reversal"
+import { isOrderClosedForPayout } from "@/lib/orders/payment-state"
+import { classifyRefundForCharge } from "@/lib/unallocated-line"
+import {
+  alertUnattributedChargeRefund,
+  loadTracedUnallocatedLinesForPaymentIntent,
+  recordManualUnallocatedRefund,
+} from "@/lib/unallocated-line.server"
 import { getStripeClient } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
 
@@ -57,7 +64,75 @@ export async function handleStripeChargeRefundedWithCommission(
       ? charge
       : await stripe.charges.retrieve(charge.id, { expand: ["refunds.data"] })
 
+  // Refunds of a paid line that never became an order (D6 / G1, `lib/unallocated-line.server.ts`) belong to NO order of
+  // this charge. Counting them against a sibling order would make a lone remaining order look "fully refunded":
+  // payouts clawed back and the buyer told his valid order was cancelled. They are excluded from the attribution
+  // and from the charge's refunded total used for the full-refund test. They are recognised by the marker the automatic
+  // refund carries, AND — a refund made by hand in the Stripe dashboard carries nothing — by the unallocated lines traced
+  // for this payment (`classifyRefundForCharge`: exact amount of a traced line, else "ambiguous", never the sibling order).
+  const allRefunds = fullCharge.refunds?.data ?? []
   const orderIds = await orderIdsForStripeCharge(fullCharge)
+  const paymentIntentRef = fullCharge.payment_intent
+  const paymentIntentId = typeof paymentIntentRef === "string" ? paymentIntentRef : paymentIntentRef?.id
+  const tracedLines = paymentIntentId ? await loadTracedUnallocatedLinesForPaymentIntent(paymentIntentId) : []
+  const orderChargedTotalsCents: number[] = []
+  if (tracedLines.length > 0) {
+    for (const id of orderIds) {
+      const row = await prisma.order.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          totalCents: true,
+          subtotalCents: true,
+          sellingPriceCents: true,
+          taxCents: true,
+          status: true,
+          paymentSettlementStatus: true,
+        },
+      })
+      // A CLOSED order here is the skeleton of the unallocated line itself (closed when its line could not be served):
+      // its "total" is that line's amount, it is not a sale a refund could be meant for.
+      if (row && !isOrderClosedForPayout(row)) orderChargedTotalsCents.push(orderChargedTotalCents(row))
+    }
+  }
+  const claimedLines = new Set<string>()
+  const orderRefunds: typeof allRefunds = []
+  let excludedRefundedCents = 0
+  for (const refund of allRefunds) {
+    const klass = classifyRefundForCharge({ refund, tracedLines, orderChargedTotalsCents, claimed: claimedLines })
+    if (klass.kind === "order") {
+      orderRefunds.push(refund)
+      continue
+    }
+    excludedRefundedCents += refund.amount ?? 0
+    if (klass.kind === "ambiguous") {
+      await alertUnattributedChargeRefund({
+        chargeId: fullCharge.id,
+        stripeRefundId: refund.id,
+        amountCents: refund.amount ?? 0,
+      })
+    } else if (klass.via === "amount" && klass.lineKey) {
+      await recordManualUnallocatedRefund({
+        lineKey: klass.lineKey,
+        stripeRefundId: refund.id,
+        amountCents: refund.amount ?? 0,
+        currency: fullCharge.currency ?? "eur",
+      })
+    }
+  }
+  if (excludedRefundedCents > 0 && orderRefunds.length === 0) {
+    console.log("[commission_refund]", {
+      metric: "unallocated_line_refund_ignored",
+      chargeId: fullCharge.id,
+      amountCents: excludedRefundedCents,
+    })
+    return { processedOrderIds: [] }
+  }
+  const chargeAmountRefundedCents =
+    excludedRefundedCents > 0
+      ? Math.max(0, (fullCharge.amount_refunded ?? 0) - excludedRefundedCents)
+      : fullCharge.amount_refunded
+
   const processedOrderIds: string[] = []
 
   for (const orderId of orderIds) {
@@ -80,7 +155,7 @@ export async function handleStripeChargeRefundedWithCommission(
     let refundedSum = 0
     let lastStripeRefundId: string | null = null
 
-    for (const refund of fullCharge.refunds?.data ?? []) {
+    for (const refund of orderRefunds) {
       const attribution = attributeRefundToOrder({
         chargeOrderCount: orderIds.length,
         orderId: order.id,
@@ -109,7 +184,7 @@ export async function handleStripeChargeRefundedWithCommission(
       const amountCents = refund.amount ?? 0
       const isFullRefund = isOrderFullyRefunded({
         chargeOrderCount: orderIds.length,
-        chargeAmountRefundedCents: fullCharge.amount_refunded,
+        chargeAmountRefundedCents,
         orderRefundedSumCents: refundedSum + amountCents,
         orderChargedTotalCents: totalCents,
       })
@@ -168,10 +243,10 @@ export async function handleStripeChargeRefundedWithCommission(
     if (orderIds.length > 1 && refundedSum === 0) continue
 
     const chargeRefunded =
-      orderIds.length <= 1 ? (fullCharge.amount_refunded ?? refundedSum) : refundedSum
+      orderIds.length <= 1 ? (chargeAmountRefundedCents ?? refundedSum) : refundedSum
     const isFullRefund = isOrderFullyRefunded({
       chargeOrderCount: orderIds.length,
-      chargeAmountRefundedCents: fullCharge.amount_refunded,
+      chargeAmountRefundedCents,
       orderRefundedSumCents: refundedSum,
       orderChargedTotalCents: totalCents,
     })
@@ -252,7 +327,8 @@ export async function handleStripeChargeRefundedWithCommission(
       await notifyOrderCancelled(orderId, {
         cancelReason: "Remboursement Stripe",
         refundAmountCents: chargeRefunded,
-        markRefunded: true,
+        // Stripe's own refund: the status was just written above; the id keeps a replay writing it too.
+        stripeRefundId: lastStripeRefundId ?? undefined,
       })
     }
 

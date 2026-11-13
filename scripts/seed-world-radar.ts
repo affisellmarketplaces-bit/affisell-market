@@ -1,297 +1,71 @@
 #!/usr/bin/env tsx
 /**
- * Seed World Radar — all enabled countries (31) by default.
- * Idempotent CLI — no Next.js / server-only imports.
+ * Seed World Radar — bootstrap (RSK-90, lot A).
+ *
+ * This file has NO static import, on purpose. In an ES module the static imports of a file are evaluated before its body, so a
+ * snapshot taken in the body would come after whatever those imports did to `process.env` or to the env files. Instead:
+ *   1. import the leaf module that takes the snapshot (it imports nothing),
+ *   2. take the snapshot of the environment, `process.execArgv`, NODE_OPTIONS and the arguments — once, right now,
+ *   3. only then import the program (`./radar-seed-run`), which reads that frozen snapshot and never `process.env`.
+ * The program is imported ONLY here (a structural test enforces it). The previous version of this file loaded three env files with
+ * `override: true` in its body, resolved the target with its own rules and built the client itself: all of that is gone.
  *
  * Usage:
- *   npm run radar:seed:world
- *   npm run radar:seed:world -- --countries=FR,DE,US
+ *   npm run radar:seed:world                          every class of target is DISABLED in this version: expect exit 3
+ *   npm run radar:seed:world -- --countries=FR,DE,US  an invalid or unknown country is REFUSED (no fallback to all countries)
+ *   npm run radar:seed:prod                           = --expect-class production (disabled in this version)
+ *
+ * Exit codes: 0 verified (unreachable in this version) · 1 configuration / unexpected · 2 refused · 3 target not proven or class
+ * disabled · 4 seed failed (see state) · 5 verification failed (later) · 6 executed, NOT verified · 130 interrupted at the prompt.
+ * The last output line is `[seed-world-radar] result=<key> exit=<n> state=<state>`; only `state=refused` proves that nothing was
+ * written. No such line (a signal such as SIGKILL, a crash, an out-of-memory kill) means INDETERMINATE.
+ *
+ * The `exit` listener below is a best-effort backstop, not a guarantee: it runs when the process leaves through JavaScript
+ * (normal end, `process.exit`, an uncaught exception or rejection, SIGINT / SIGTERM under the `tsx` CLI, which exits with 130 / 143),
+ * and it does NOT run on SIGKILL, SIGHUP, an out-of-memory kill, a native crash or `process.abort()`. It is synchronous by necessity
+ * and cannot know the phase, so it never claims `refused`: only `indeterminate`.
  */
-import { existsSync } from "node:fs"
-import { resolve } from "node:path"
-import { config as loadEnv } from "dotenv"
+export {}
 
-import { WORLD_RADAR_COUNTRIES, getWorldCountry } from "../lib/radar/world-countries"
-import {
-  buildMockTrendingForCountry,
-  buildMockWinnersForCountry,
-} from "../lib/radar/world-mock-catalog"
-import { WORLD_RADAR_CACHE_TTL_MS } from "../lib/radar/world-radar-types"
-import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
-
-const root = resolve(import.meta.dirname, "..")
-for (const name of [".env.pre-local-merge.bak", ".env", ".env.local"]) {
-  const path = resolve(root, name)
-  if (existsSync(path)) loadEnv({ path, override: true })
-}
-
-function isDockerLocalRadarUrl(url: string): boolean {
+// First statement, before any import: the listener must exist whatever fails later.
+let reported = false
+process.on("exit", (code) => {
   try {
-    const u = new URL(url)
-    const host = u.hostname === "localhost" || u.hostname === "127.0.0.1"
-    return host && (u.port === "5434" || u.port === "")
+    if (reported) return
+    console.error(`[seed-world-radar] result=exited_without_report exit=${code} state=indeterminate`)
+    // A run that ends with code 0 and no verdict is not a success. The literal is pinned to EXIT.SEED_FAILED by a test.
+    if (code === 0) process.exitCode = 4
   } catch {
-    return /localhost:5434|127\.0\.0\.1:5434/.test(url)
+    // An exit listener must never throw: a throwing listener changes the exit code.
   }
-}
-
-function resolveRadarUrl(): string | undefined {
-  const radar = process.env.RADAR_DATABASE_URL?.trim()
-  if (radar && !isDockerLocalRadarUrl(radar)) return radar
-
-  const mi = process.env.MARKET_INTELLI_DATABASE_URL?.trim()
-  if (mi && !isDockerLocalRadarUrl(mi)) return mi
-
-  return (
-    process.env.DATABASE_URL_UNPOOLED?.trim() ||
-    process.env.DATABASE_URL?.trim() ||
-    undefined
-  )
-}
-
-/** Parse `--countries=FR,DE,US` or `--countries FR,DE` from argv. Default = all enabled. */
-function resolveSeedCountryCodes(): string[] {
-  const args = process.argv.slice(2).filter((a) => a && a !== "--")
-  let raw: string | undefined
-  for (let i = 0; i < args.length; i++) {
-    const a = args[i]
-    if (a.startsWith("--countries=")) {
-      raw = a.slice("--countries=".length)
-      break
-    }
-    if (a === "--countries" && args[i + 1]) {
-      raw = args[i + 1]
-      break
-    }
-  }
-
-  if (!raw?.trim()) {
-    return WORLD_RADAR_COUNTRIES.filter((c) => c.enabled).map((c) => c.code)
-  }
-
-  const codes = raw
-    .split(",")
-    .map((c) => c.trim().toUpperCase())
-    .filter(Boolean)
-  const known = new Set(WORLD_RADAR_COUNTRIES.map((c) => c.code))
-  const valid = codes.filter((c) => known.has(c))
-  if (valid.length === 0) {
-    console.warn(
-      "[seed-world-radar] --countries empty/invalid — falling back to all enabled countries"
-    )
-    return WORLD_RADAR_COUNTRIES.filter((c) => c.enabled).map((c) => c.code)
-  }
-  return valid
-}
-
-type RadarDb = {
-  radarCountry: {
-    count: () => Promise<number>
-    upsert: (args: {
-      where: { code: string }
-      create: Record<string, unknown>
-      update: Record<string, unknown>
-    }) => Promise<unknown>
-  }
-  radarWinner: {
-    deleteMany: (args: { where: { countryCode: string } }) => Promise<unknown>
-    createMany: (args: { data: Array<Record<string, unknown>> }) => Promise<unknown>
-  }
-  radarTrendingKeyword: {
-    deleteMany: (args: { where: { countryCode: string } }) => Promise<unknown>
-    createMany: (args: { data: Array<Record<string, unknown>> }) => Promise<unknown>
-  }
-  $disconnect: () => Promise<void>
-}
-
-function createRadarDb(url: string): RadarDb {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { PrismaClient } = require(".prisma/client-mi") as {
-    PrismaClient: new (args?: {
-      datasources?: { db?: { url?: string } }
-      log?: Array<"error" | "warn">
-    }) => RadarDb
-  }
-  assertNotProductionByAccident("scripts/seed-world-radar.ts")
-  return new PrismaClient({
-    datasources: { db: { url } },
-    log: ["error", "warn"],
-  })
-}
-
-function isMissingTableError(err: unknown): boolean {
-  const msg = err instanceof Error ? err.message : String(err)
-  return /does not exist|P2021|RadarCountry|RadarWinner|relation/i.test(msg)
-}
-
-async function seedCountries(db: RadarDb): Promise<number> {
-  let upserted = 0
-  for (const c of WORLD_RADAR_COUNTRIES) {
-    await db.radarCountry.upsert({
-      where: { code: c.code },
-      create: {
-        code: c.code,
-        name: c.name,
-        flag: c.flag,
-        region: c.region,
-        currency: c.currency,
-        enabled: c.enabled,
-      },
-      update: {
-        name: c.name,
-        flag: c.flag,
-        region: c.region,
-        currency: c.currency,
-        enabled: c.enabled,
-      },
-    })
-    upserted += 1
-  }
-  return upserted
-}
-
-async function seedCountryWinners(
-  db: RadarDb,
-  countryCode: string
-): Promise<{ country: string; winners: number; trending: number; ok: boolean }> {
-  const code = countryCode.toUpperCase()
-  const scannedAt = new Date()
-  const expiresAt = new Date(scannedAt.getTime() + WORLD_RADAR_CACHE_TTL_MS)
-  const winners = buildMockWinnersForCountry(code, 20)
-  const trending = buildMockTrendingForCountry(code)
-  const def = getWorldCountry(code)
-
-  try {
-    await db.radarWinner.deleteMany({ where: { countryCode: code } })
-    await db.radarTrendingKeyword.deleteMany({ where: { countryCode: code } })
-
-    if (winners.length > 0) {
-      await db.radarWinner.createMany({
-        data: winners.map((w) => ({
-          countryCode: w.countryCode,
-          rank: w.rank,
-          title: w.title,
-          image: w.image,
-          source: w.source,
-          price: w.price,
-          currency: w.currency,
-          growthRate: w.growthRate,
-          searches: w.searches,
-          competition: w.competition,
-          trendingScore: w.trendingScore,
-          category: w.category,
-          expiresAt,
-        })),
-      })
-    }
-
-    if (trending.length > 0) {
-      await db.radarTrendingKeyword.createMany({
-        data: trending.map((t) => ({
-          countryCode: t.countryCode,
-          keyword: t.keyword,
-          growthRate: t.growthRate,
-          volume: t.volume,
-          expiresAt,
-        })),
-      })
-    }
-
-    await db.radarCountry.upsert({
-      where: { code },
-      create: {
-        code,
-        name: def?.name ?? code,
-        flag: def?.flag ?? "🌍",
-        region: def?.region ?? "Europe",
-        currency: def?.currency ?? "EUR",
-        lastScanAt: scannedAt,
-        productCount: winners.length,
-      },
-      update: {
-        lastScanAt: scannedAt,
-        productCount: winners.length,
-      },
-    })
-
-    console.log(`[WORLD] Seeded ${code}: ${winners.length} winners`)
-    return { country: code, winners: winners.length, trending: trending.length, ok: true }
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "unknown"
-    if (/market_intelli|schema not found|does not exist|P2021/i.test(message)) {
-      console.error(
-        "[seed-world-radar] market_intelli schema not found — Run npm run radar:db:push first"
-      )
-    }
-    console.error("[seed-world-radar]", {
-      result: "country_failed",
-      country: code,
-      message,
-    })
-    return { country: code, winners: 0, trending: 0, ok: false }
-  }
-}
-
-async function main() {
-  const url = resolveRadarUrl()
-  if (!url) {
-    console.error(
-      "[seed-world-radar] No DATABASE_URL / RADAR_DATABASE_URL — set Neon URL in .env.local"
-    )
-    process.exit(1)
-  }
-
-  const countryCodes = resolveSeedCountryCodes()
-  console.log("[seed-world-radar]", {
-    result: "start",
-    countries: countryCodes.length,
-    list: countryCodes.join(","),
-  })
-
-  const db = createRadarDb(url)
-
-  try {
-    await db.radarCountry.count()
-  } catch (err) {
-    if (isMissingTableError(err)) {
-      console.log(
-        "[seed-world-radar] market_intelli schema not found — Run npm run radar:db:push first"
-      )
-      await db.$disconnect().catch(() => undefined)
-      process.exit(0)
-    }
-    console.error("[seed-world-radar]", {
-      result: "probe_failed",
-      message: err instanceof Error ? err.message : "unknown",
-    })
-    await db.$disconnect().catch(() => undefined)
-    process.exit(1)
-  }
-
-  const seeded = await seedCountries(db)
-  console.log("[seed-world-radar]", { result: "countries_registry", count: seeded })
-
-  const results = []
-  for (const code of countryCodes) {
-    results.push(await seedCountryWinners(db, code))
-  }
-
-  const ok = results.filter((r) => r.ok).length
-  console.log("[seed-world-radar]", {
-    result: "winners_seeded",
-    ok,
-    total: results.length,
-    results,
-  })
-
-  await db.$disconnect()
-  process.exit(ok === results.length ? 0 : 1)
-}
-
-main().catch(async (err) => {
-  console.error("[seed-world-radar]", {
-    result: "error",
-    message: err instanceof Error ? err.message : "unknown",
-  })
-  process.exit(1)
 })
+
+let started = false
+
+async function bootstrap(): Promise<number> {
+  const { captureEntrySnapshot } = await import("./lib/radar-entry-snapshot.mjs")
+  captureEntrySnapshot()
+  const { runRadarSeedCli } = await import("./radar-seed-run")
+  started = true
+  return runRadarSeedCli()
+}
+
+bootstrap().then(
+  (code) => {
+    // The exit code is set, not forced: pending output is flushed. A handle that would keep the process alive is cut after 2 s.
+    reported = true
+    process.exitCode = code
+    setTimeout(() => process.exit(code), 2000).unref()
+  },
+  (err: unknown) => {
+    reported = true
+    console.error(`[seed-world-radar] bootstrap failed (${err instanceof Error ? err.name : "unknown"})`)
+    if (started) {
+      console.error("[seed-world-radar] result=bootstrap_failed exit=4 state=indeterminate")
+      process.exitCode = 4
+    } else {
+      console.error("[seed-world-radar] result=bootstrap_failed exit=1 state=refused")
+      process.exitCode = 1
+    }
+  }
+)

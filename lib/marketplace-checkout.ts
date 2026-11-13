@@ -7,6 +7,8 @@ import {
 } from "@/lib/affiliate-listing-display"
 import { auth } from "@/auth"
 import { assertGhostStockForCheckout } from "@/lib/ghost/checkout-gate"
+import { evaluateCheckoutStockGate, type StockCheckLine } from "@/lib/checkout-stock"
+import { getSimilarInStockProducts } from "@/lib/ghost/similar-products"
 import { ensureGhostStockSchema } from "@/lib/ghost/ensure-ghost-schema"
 import {
   applyBattleFlashUnitCents,
@@ -283,6 +285,35 @@ function guardExplicitSupplierCommission(args: {
   return null
 }
 
+/**
+ * G1: refuse the checkout BEFORE the payment session exists when the stock can not serve the cart (409, nothing created).
+ * Advisory — the authoritative, atomic decrement is done when the payment is processed — but it stops the common case
+ * (sold-out product, stale cart) from ever taking a payment. Products whose stock is not managed (digital goods,
+ * bookings, an unresolvable or table-only variant) are never refused. `CHECKOUT_STOCK_MODE` decides: `warn` (default)
+ * only logs "would refuse", `enforce` refuses, `off` (or `CHECKOUT_STOCK_GUARD=off`) does nothing.
+ *
+ * The codes are Affisell's own (`OUT_OF_STOCK`, `INSUFFICIENT_STOCK`): `OUT_OF_STOCK_VERIFIED` is the supplier-probe
+ * refusal of the Ghost gate, whose modal says "we just checked with our supplier" — not true for our own counter.
+ */
+async function checkoutStockGate(lines: StockCheckLine[]): Promise<NextResponse | null> {
+  const { refuse: shortfall } = evaluateCheckoutStockGate(lines)
+  if (!shortfall) return null
+  const soldOut = shortfall.available <= 0
+  const alternatives = soldOut
+    ? await getSimilarInStockProducts(shortfall.productId, 3).catch(() => [])
+    : []
+  return NextResponse.json(
+    {
+      error: soldOut ? "OUT_OF_STOCK" : "INSUFFICIENT_STOCK",
+      productName: shortfall.productName,
+      availableQty: shortfall.available,
+      requestedQty: shortfall.requested,
+      alternatives,
+    },
+    { status: 409 }
+  )
+}
+
 type LoadedLine = {
   affiliateProductId: string
   qty: number
@@ -405,6 +436,20 @@ async function checkoutFromItems(
       listing,
     })
   }
+
+  const stockGate = await checkoutStockGate(
+    loaded.map((line) => ({
+      productId: line.listing.product.id,
+      productName: line.listing.product.name,
+      listingKind: line.listing.product.listingKind,
+      stock: line.listing.product.stock,
+      variants: line.listing.product.variants,
+      hasVariants: line.listing.product.hasVariants,
+      variantSignature: line.variantSignature,
+      qty: line.qty,
+    }))
+  )
+  if (stockGate) return stockGate
 
   const ghostGates = await Promise.all(
     loaded.map((line) => assertGhostStockForCheckout(line.listing.product))
@@ -596,6 +641,20 @@ export async function marketplaceCheckoutPOST(
     }),
   })
   if (commissionGate) return commissionGate
+
+  const stockGate = await checkoutStockGate([
+    {
+      productId: product.id,
+      productName: product.name,
+      listingKind: product.listingKind,
+      stock: product.stock,
+      variants: product.variants,
+      hasVariants: product.hasVariants,
+      variantSignature: normalizeCartVariantSignature(body.selectedColor, body.selectedSize),
+      qty: checkoutQty,
+    },
+  ])
+  if (stockGate) return stockGate
 
   const affiliateProduct = listing
   const affiliate = listing.affiliate

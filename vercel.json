@@ -18,6 +18,12 @@
     "app/api/jobs/process-transfers/route.ts": {
       "maxDuration": 300
     },
+    "app/api/cron/replay-failed-stripe-webhooks/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/cron/sync-shopify/route.ts": {
+      "maxDuration": 60
+    },
     "app/api/marketplace/products/route.ts": {
       "maxDuration": 30
     },

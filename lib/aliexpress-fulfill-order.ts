@@ -4,6 +4,12 @@ import { createAliExpressDsOrder } from "@/lib/aliexpress-ds-create-order"
 import { summarizeAddressForLog, type AffisellShippingAddressInput } from "@/lib/aliexpress-mapping"
 import { parseShipping } from "@/lib/fulfillment/shipping-address"
 import { resolveSupplierSkuForOrder } from "@/lib/fulfillment/resolve-supplier-sku"
+import {
+  authorizeSupplierPurchase,
+  releaseSupplierPurchase,
+  reportInDoubtPurchase,
+  reportStaleClaimIfOld,
+} from "@/lib/fulfillment/supplier-purchase-guard"
 import { prisma } from "@/lib/prisma"
 
 export type FulfillAffisellOrderResult =
@@ -20,6 +26,20 @@ export type FulfillAffisellOrderResult =
       error: string
       orderId?: string
     }
+
+/**
+ * Results of `fulfillAffisellOrderWithAliExpress` that a worker must NEVER retry: the purchase may exist (outcome unknown /
+ * unrecorded), somebody else is on it, or the sale was refused on margin. A retry would only come back through the gate
+ * (which keeps refusing) — and must never depend on whether the error text happens to contain "timeout" / "rate" / "limit".
+ */
+export function isNeverRetryFulfillError(error: string): boolean {
+  return (
+    error.startsWith("supplier_outcome_uncertain") ||
+    error.startsWith("supplier_order_unrecorded") ||
+    error.startsWith("fulfillment_in_progress") ||
+    error.startsWith("margin_refused")
+  )
+}
 
 function shippingFromOrderJson(raw: unknown): AffisellShippingAddressInput {
   const parsed = parseShipping(raw)
@@ -65,7 +85,7 @@ export async function fulfillAffisellOrderWithAliExpress(
           },
         },
       },
-      autoBuyLog: { select: { id: true, aeOrderId: true, status: true } },
+      autoBuyLog: { select: { id: true, aeOrderId: true, status: true, updatedAt: true } },
     },
   })
 
@@ -88,6 +108,8 @@ export async function fulfillAffisellOrderWithAliExpress(
   }
 
   if (order.autoBuyLog?.status === "BUYING") {
+    // This fast path answers before reaching the gate: it must still report a claim that has been sitting there too long.
+    await reportStaleClaimIfOld(orderId, "order_paid", order.autoBuyLog.updatedAt)
     return { ok: false, error: "fulfillment_in_progress", orderId }
   }
 
@@ -136,6 +158,41 @@ export async function fulfillAffisellOrderWithAliExpress(
     return { ok: false, error: "sku_unresolved", orderId }
   }
 
+  // THE gate (G2 + G3): per-order advisory lock, state re-read INSIDE the lock, durable claim, margin floor. The unlocked
+  // reads above are only a fast path — two workers can both pass them; only one gets "go" here.
+  const verdict = await authorizeSupplierPurchase({
+    orderId,
+    path: "order_paid",
+    cost: { aeUnitPriceCents: resolved.aePriceCents, aeShippingCents: resolved.aeShippingCents },
+  })
+  switch (verdict.kind) {
+    case "go":
+      break
+    case "already_placed":
+      if (!order.supplierOrderId && verdict.supplierOrderId !== "unknown") {
+        await prisma.order.updateMany({
+          where: { id: orderId, supplierOrderId: null },
+          data: { supplierOrderId: verdict.supplierOrderId },
+        })
+      }
+      return {
+        ok: true,
+        orderId,
+        aliexpressOrderId: verdict.supplierOrderId,
+        trackingPreview: null,
+        status: "fulfilling",
+        alreadyFulfilled: true,
+      }
+    case "in_progress":
+      return { ok: false, error: "fulfillment_in_progress", orderId }
+    case "not_purchasable":
+      return { ok: false, error: "not_paid", orderId }
+    case "order_not_found":
+      return { ok: false, error: "order_not_found", orderId }
+    case "margin_refused":
+      return { ok: false, error: `margin_refused:${verdict.decision.reason}`, orderId }
+  }
+
   const shippingAddress = shippingFromOrderJson(order.shippingAddress)
   console.log("[aliexpress-fulfill]", {
     result: "placing",
@@ -153,6 +210,20 @@ export async function fulfillAffisellOrderWithAliExpress(
   })
 
   if (!placed.ok) {
+    if (placed.outcomeUncertain) {
+      // A request left and its outcome is unknown: AliExpress may have created the order. Keep the claim (it blocks every
+      // replay), alert, and let a human check the AliExpress order list. NEVER place it again.
+      console.log("[aliexpress-fulfill]", { result: "outcome_uncertain", orderId, error: placed.error })
+      await reportInDoubtPurchase({
+        orderId,
+        path: "order_paid",
+        reason: "supplier_outcome_uncertain",
+        error: placed.error,
+      })
+      return { ok: false, error: "supplier_outcome_uncertain", orderId }
+    }
+    // Definitive refusal: nothing was bought, free the claim so a retry may try again.
+    await releaseSupplierPurchase(orderId, `AE_ORDER_REFUSED:${placed.error}`)
     console.log("[aliexpress-fulfill]", { result: "failed", orderId, error: placed.error })
     await prisma.order.update({
       where: { id: orderId },
@@ -167,36 +238,49 @@ export async function fulfillAffisellOrderWithAliExpress(
     return { ok: false, error: placed.error, orderId }
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.order.update({
-      where: { id: orderId },
-      data: {
-        supplierOrderId: placed.aliexpressOrderId,
-        status: "fulfilling",
-        fulfillmentStatus: "ORDERED",
-        supplierPreparingAt: new Date(),
-        fulfilledAt: new Date(),
-      },
-    })
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.order.update({
+        where: { id: orderId },
+        data: {
+          supplierOrderId: placed.aliexpressOrderId,
+          status: "fulfilling",
+          fulfillmentStatus: "ORDERED",
+          supplierPreparingAt: new Date(),
+          fulfilledAt: new Date(),
+        },
+      })
 
-    await tx.fulfillmentLog.upsert({
-      where: { orderId },
-      create: {
-        orderId,
-        orderItemId: orderId,
-        status: "BOUGHT",
-        aeOrderId: placed.aliexpressOrderId,
-        aeTracking: placed.trackingPreview,
-        attempts: 1,
-      },
-      update: {
-        status: "BOUGHT",
-        aeOrderId: placed.aliexpressOrderId,
-        aeTracking: placed.trackingPreview,
-        errorMsg: null,
-      },
+      await tx.fulfillmentLog.upsert({
+        where: { orderId },
+        create: {
+          orderId,
+          orderItemId: orderId,
+          status: "BOUGHT",
+          aeOrderId: placed.aliexpressOrderId,
+          aeTracking: placed.trackingPreview,
+          attempts: 1,
+        },
+        update: {
+          status: "BOUGHT",
+          aeOrderId: placed.aliexpressOrderId,
+          aeTracking: placed.trackingPreview,
+          errorMsg: null,
+        },
+      })
     })
-  })
+  } catch (e) {
+    // The order EXISTS at AliExpress but we could not write it down. The claim stays BUYING (replays are refused, so no
+    // second purchase); the AliExpress id is handed to the alert — it is stored nowhere else.
+    await reportInDoubtPurchase({
+      orderId,
+      path: "order_paid",
+      reason: "placed_but_unrecorded",
+      supplierOrderId: placed.aliexpressOrderId,
+      error: e instanceof Error ? e.message : String(e),
+    })
+    return { ok: false, error: "supplier_order_unrecorded", orderId }
+  }
 
   console.log("[aliexpress-fulfill]", {
     result: "ok",

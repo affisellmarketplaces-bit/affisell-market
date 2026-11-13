@@ -857,6 +857,10 @@
     }
   },
   "cart": {
+    "stock": {
+      "outOfStock": "Ten produkt jest niedostępny.",
+      "insufficient": "Zostało tylko {count} sztuk w magazynie."
+    },
     "title": "Koszyk",
     "loading": "Ładowanie koszyka…",
     "empty": "Twój koszyk jest pusty",
@@ -918,6 +922,7 @@
       "handoffPowered": "Szyfrowane przekazanie Affisell",
       "legalNote": "Kontynuując, zgadzasz się na utworzenie konta Affisell kupującego w celu uzyskania odsetek za cashback.",
       "identifyFailed": "Nie można kontynuować. Spróbuj ponownie.",
+      "accountExists": "Konto z tym identyfikatorem już istnieje. Zaloguj się, aby kontynuować.",
       "signInFailed": "Błąd logowania po identyfikacji.",
       "networkError": "Brak połączenia z siecią. Spróbuj ponownie."
     },
@@ -3334,7 +3339,7 @@
         "beta": "BETA",
         "multiHint": "Zastosowanie AI ustawi marże dla {count} wybranego/ych wariantu/ów, skalowane według ceny hurtowej.",
         "yourPrice": "Twoja cena",
-        "aiSuggests": "AI sugeruje",
+        "aiSuggests": "Wyliczona sugestia",
         "marketAvg": "Średnia rynkowa",
         "competitors": "Konkurenci",
         "salesPerMonth": "{count} sprzedaży/mies.",
@@ -3353,7 +3358,8 @@
         "noDataBody": "Nie znaleziono jeszcze podobnych ofert w tej kategorii — pokazujemy ogólne oszacowanie wstępne. Poprawi się wraz z rzeczywistą sprzedażą.",
         "salesUnknown": "Brak ostatnich danych sprzedaży",
         "comparableListings": "{count, plural, one {# podobna oferta} other {# podobnych ofert}}",
-        "loadFailed": "Nie udało się wczytać danych rynkowych — spróbuj ponownie."
+        "loadFailed": "Nie udało się wczytać danych rynkowych — spróbuj ponownie.",
+        "ruleNote": "Obliczenie statystyczne na podstawie porównywalnych ofert Affisell – reguła obliczeniowa, a nie model AI. Bez wystarczających danych: cena dostawcy × 1,4."
       },
       "variantMargins": {
         "title": "Warianty i marże",
@@ -7766,6 +7772,14 @@
     "lastAnalysis": "Ostatnia analiza {when}",
     "refreshing": "Odświeżanie…",
     "tagline": "Sygnały e-commerce · Arbitrage Score™ · Nasycenie · Affisell Supplier Match",
+    "demoBadge": "DEMO",
+    "demoBannerMock": "Dane demonstracyjne: te winnery pochodzą z reguły obliczeniowej, a nie z prawdziwego skanu rynku. Nie używaj ich jako sygnału sprzedaży.",
+    "demoBannerMixed": "Dane mieszane: część wierszy jest symulowana (oznaczona „Demo”).",
+    "demoBannerDemo": "Ręcznie napisane dane przykładowe: brak prawdziwego skanu.",
+    "scoresAreRules": "Arbitrage Score™ i Nasycenie to wzory (reguły), a nie model AI.",
+    "trendingDemo": "Słowa kluczowe demonstracyjne: ręcznie napisana lista z losowymi wahaniami, bez pomiaru rynku.",
+    "trendingNone": "Brak prawdziwych słów kluczowych trendów dla tego rynku: żadne źródło trendów nie zwróciło danych (nic nie jest zmyślane).",
+    "countriesMockNotice": "Baza danych Radaru jest niedostępna: lista rynków jest pokazana bez danych ze skanowania. Każdy rynek otwiera się w trybie demo.",
     "searchLabel": "Szukaj",
     "searchPlaceholder": "Szukaj produktu, kraju…",
     "comingSoon": "Wkrótce dostępne",
@@ -8307,7 +8321,15 @@
     "curve24": "Wykres 24 godz.",
     "copyWinner": "Skopiuj tego winnera → Import w 10 s",
     "fullPage": "Zobacz pełną stronę",
-    "tickerAgo": "{n} min temu"
+    "tickerAgo": "{n} min temu",
+    "badgeLive": "LIVE",
+    "badgeMixed": "MIESZANE",
+    "badgeDemo": "DEMO",
+    "demoNotice": "Dane demonstracyjne: te zdarzenia są generowane, aby wypełnić globus, i nie odpowiadają żadnej prawdziwej sprzedaży.",
+    "mixedNotice": "Dane mieszane: część zdarzeń jest generowana, aby wypełnić globus (oznaczone „demo”).",
+    "demoEvent": "demo",
+    "demoEventNotice": "Zdarzenie demonstracyjne: wygenerowane, aby wypełnić globus, bez prawdziwej sprzedaży ani importu.",
+    "estimatedLocation": "Szacowana lokalizacja: miasto jest wybierane automatycznie, to nie jest rzeczywiste miejsce zdarzenia."
   },
   "radarPricing": {
     "starterEyebrow": "Próba sygnału",

@@ -13,6 +13,12 @@ import { ISOLATED_ENV_KEYS } from "../../scripts/build-isolated.mjs"
  */
 
 const DB_TESTS = process.env.RUN_DB_TESTS === "1"
+
+/**
+ * Compare to "empty" WITHOUT giving the value to `expect`: a failing `expect(value).toBe("")` prints the received value, and these
+ * variables are the production database URL and the encryption key. Only the NAME and a boolean may reach the output.
+ */
+const isEmpty = (key: string) => (process.env[key] ?? "") === ""
 const envFile = resolve(process.cwd(), ".env")
 const secretsOnThisMachine = existsSync(envFile) ? Object.keys(parse(readFileSync(envFile))) : []
 
@@ -33,20 +39,18 @@ describe("the test process carries no secret from the repository's .env", () => 
   })
 
   it.skipIf(DB_TESTS)("no database or cache credential is visible, wherever it would have come from", () => {
-    for (const key of ISOLATED_ENV_KEYS) expect(process.env[key] ?? "", key).toBe("")
-    expect(process.env.ENCRYPTION_KEY ?? "").toBe("")
+    for (const key of ISOLATED_ENV_KEYS) expect(isEmpty(key), `${key} must be empty`).toBe(true)
+    expect(isEmpty("ENCRYPTION_KEY"), "ENCRYPTION_KEY must be empty").toBe(true)
   })
 
   it.skipIf(DB_TESTS)("importing @prisma/client — which used to load .env — fills nothing back in", async () => {
     await import("@prisma/client")
-    for (const key of [...ISOLATED_ENV_KEYS, "ENCRYPTION_KEY"]) expect(process.env[key] ?? "", key).toBe("")
-    for (const key of secretsOnThisMachine) expect(process.env[key] ?? "", key).toBe("")
+    for (const key of [...ISOLATED_ENV_KEYS, "ENCRYPTION_KEY"]) expect(isEmpty(key), `${key} must be empty`).toBe(true)
+    for (const key of secretsOnThisMachine) expect(isEmpty(key), `${key} must be empty`).toBe(true)
   })
 
   it.skipIf(DB_TESTS)("a client created inside a test has no URL to connect to, so it cannot reach the production database", () => {
-    expect(process.env.DATABASE_URL ?? "").toBe("")
-    expect(process.env.DATABASE_URL_UNPOOLED ?? "").toBe("")
-    expect(process.env.DIRECT_URL ?? "").toBe("")
+    for (const key of ["DATABASE_URL", "DATABASE_URL_UNPOOLED", "DIRECT_URL"]) expect(isEmpty(key), `${key} must be empty`).toBe(true)
   })
 })
 

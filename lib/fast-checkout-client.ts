@@ -1,3 +1,5 @@
+import { parseCheckoutStockRefusal, type CheckoutStockRefusalCode } from "@/lib/checkout-stock-client"
+
 export type FastCheckoutBody = {
   productId?: string
   affiliateProductId?: string
@@ -29,6 +31,13 @@ export type FastCheckoutOutOfStock = {
   coupon?: string
   message?: string
 }
+/** Refused because of Affisell's own stock counter (not the supplier probe): the caller shows a translated message. */
+export type FastCheckoutNoStock = {
+  ok: false
+  status: "no_stock"
+  code: CheckoutStockRefusalCode
+  availableQty: number | null
+}
 export type FastCheckoutFailure = {
   ok: false
   status: "auth" | "error"
@@ -38,6 +47,7 @@ export type FastCheckoutResult =
   | FastCheckoutSuccess
   | FastCheckoutFailure
   | FastCheckoutOutOfStock
+  | FastCheckoutNoStock
 
 export function fastCheckoutRedirected(
   result: FastCheckoutResult
@@ -98,6 +108,11 @@ export async function startFastCheckout(
         coupon: data.coupon,
         message: data.message,
       }
+    }
+
+    const stockRefusal = res.status === 409 ? parseCheckoutStockRefusal(data) : null
+    if (stockRefusal) {
+      return { ok: false, status: "no_stock", code: stockRefusal.code, availableQty: stockRefusal.availableQty }
     }
 
     if (res.status === 409 && data.error === "FLASH_EXPIRED") {

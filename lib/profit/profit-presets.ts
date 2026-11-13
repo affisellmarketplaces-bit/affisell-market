@@ -1,4 +1,9 @@
-/** Live profit presets — client-safe (no Prisma). */
+/**
+ * Live profit presets — client-safe (no Prisma).
+ *
+ * NOT AI: the ad-cost presets (5 / 8 / 12 % of the price) and the platform fee rates are fixed, hand-typed assumptions, and the
+ * net profit is plain arithmetic. They are not measured ad performance. Do not label this calculator "AI" in the UI.
+ */
 
 export type ProfitPresetId = "low" | "medium" | "high"
 

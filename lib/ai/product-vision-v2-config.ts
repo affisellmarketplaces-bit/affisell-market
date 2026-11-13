@@ -1,7 +1,11 @@
 import type { EnvBag } from "@/lib/env-bag"
 import { isInstantScanServerEnabled } from "@/lib/instantscan/flags"
 
-/** Affisell InstantScan — primary flag (cascade CLIP → mini → GPT-4o). */
+/**
+ * Affisell InstantScan — primary flag. Steps: catalog match (vision LLM cues + hashed lexical comparison with a hand-written
+ * list — no CLIP) → full vision model (gpt-4o by default; gpt-4o-mini when it falls back). No accuracy / latency / cost
+ * figure is guaranteed: they are MEASURED (lib/ai/usage-log.ts, /admin/instantscan-performance) or not claimed at all.
+ */
 export function isInstantScanEnabled(env: EnvBag = process.env): boolean {
   const raw = env.ENABLE_INSTANTSCAN?.trim().toLowerCase()
   return raw === "1" || raw === "true"
@@ -17,7 +21,7 @@ export function isAiVisionV2Enabled(env: EnvBag = process.env): boolean {
   return vision === "1" || vision === "true"
 }
 
-/** InstantScan cascade — embed fast-path before full GPT vision. */
+/** InstantScan cascade — catalog-match fast path (text cues vs hand-written list) before the full vision model. */
 export function isAiVisionCascadeEnabled(env: EnvBag = process.env): boolean {
   if (!isAiVisionV2Enabled(env)) return false
   if (isInstantScanEnabled(env)) return true
@@ -72,7 +76,7 @@ Règles:
 1. Décris le PRODUIT PRINCIPAL visible — pas un accessoire imaginaire.
 2. Même si l'image est floue ou partielle, DEVINE un titre utile (ex. pompe à eau → "Pompe à eau électrique rechargeable").
 3. Ne retourne JAMAIS title vide — toujours un titre, même à confidence 0.5.
-4. suggestedPrice: si le prix n'est pas visible, estime un prix EU TTC plausible (pompe/distributeur eau ~25-35€).
+4. suggestedPrice: si le prix n'est pas visible, estime un prix EU TTC plausible pour ce type de produit (c'est une estimation du modèle, pas une donnée de marché).
 5. Smartphones/tablettes: marque + modèle exact si identifiable; sinon productType + titre générique, confidence ≤ 0.65. Ne confonds pas appareil et coque/étui.
 6. Accessoire visible → productType="accessory" et titre qui nomme l'accessoire.
-7. Si image = distributeur/pompe d'eau type KEAJOR → title="Distributeur d'eau électrique automatique KEAJOR", productType="home", suggestedPrice ~29.99.`
+(Aucune règle ne doit viser un produit ou une marque en particulier: une consigne propre à une seule image fausserait toute mesure de précision.)`

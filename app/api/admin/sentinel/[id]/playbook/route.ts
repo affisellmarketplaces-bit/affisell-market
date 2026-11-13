@@ -35,7 +35,7 @@ export async function POST(_req: Request, { params }: Params) {
         result: result.error,
         actorId: auth.session.user.id,
       })
-      return NextResponse.json({ error: result.error }, { status: result.status })
+      return NextResponse.json({ error: result.error, detail: result.detail }, { status: result.status })
     }
 
     console.log("[sentinel]", {

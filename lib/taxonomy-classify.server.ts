@@ -13,6 +13,7 @@ import {
   type TaxonomyPick,
 } from "@/lib/ai/taxonomy-classifier"
 import type { LeafPath } from "@/lib/category-browse-shared"
+import { redisKey } from "@/lib/redis-namespace"
 
 /**
  * Circuit breaker: when the provider says "no credit" or rejects the key, stop calling it for a while instead of
@@ -65,7 +66,8 @@ async function getRedis(): Promise<RedisLike | null> {
 
 function cacheKeyFor(prefix: string, title: string, imageUrl: string | null | undefined): string {
   const norm = title.toLowerCase().replace(/\s+/g, " ").trim()
-  return `${prefix}:${createHash("sha1").update(`${norm}|${imageUrl?.trim() ?? ""}`).digest("hex").slice(0, 24)}`
+  // Namespaced (lib/redis-namespace.ts): "" in production, so existing cache entries stay valid; a Preview keeps its own.
+  return redisKey(`${prefix}:${createHash("sha1").update(`${norm}|${imageUrl?.trim() ?? ""}`).digest("hex").slice(0, 24)}`)
 }
 
 export function classificationCacheKey(title: string, imageUrl: string | null | undefined): string {
@@ -114,7 +116,7 @@ async function withinHourlyCap(
 ): Promise<boolean> {
   if (!redis || !supplierId) return true
   try {
-    const limitKey = `${prefix}:rate:${supplierId}:${new Date().toISOString().slice(0, 13)}`
+    const limitKey = redisKey(`${prefix}:rate:${supplierId}:${new Date().toISOString().slice(0, 13)}`)
     const used = await redis.incr(limitKey)
     if (used === 1) await redis.expire(limitKey, 3700).catch(() => undefined)
     return used <= limit

@@ -39,7 +39,8 @@ type LivePayload = {
   ok?: boolean
   events?: LiveEvent[]
   countries?: number
-  source?: string
+  /** Truthful provenance of the events: live (all real) | mixed (real + generated) | demo (all generated). */
+  source?: "live" | "mixed" | "demo"
 }
 
 /**
@@ -49,6 +50,8 @@ export function GlobePageClient() {
   const t = useTranslations("radarGlobe")
   const [events, setEvents] = useState<LiveEvent[]>([])
   const [countries, setCountries] = useState(0)
+  // Unknown until the first answer: nothing is called LIVE before the server has said the data is real.
+  const [source, setSource] = useState<"live" | "mixed" | "demo" | null>(null)
   const [selected, setSelected] = useState<LiveEvent | null>(null)
   const [webgl, setWebgl] = useState<boolean | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -67,6 +70,7 @@ export function GlobePageClient() {
       if (Array.isArray(data.events)) {
         setEvents(data.events)
         setCountries(data.countries ?? 0)
+        setSource(data.source === "live" || data.source === "mixed" || data.source === "demo" ? data.source : "demo")
         setError(null)
       }
     } catch {
@@ -108,17 +112,31 @@ export function GlobePageClient() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-black tracking-tight text-white sm:text-2xl">
-                AFFISELL RADAR · LIVE
+                AFFISELL RADAR ·{" "}
+                <span data-testid="radar-globe-badge">
+                  {source === "live" ? t("badgeLive") : source === "mixed" ? t("badgeMixed") : t("badgeDemo")}
+                </span>
               </h1>
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
-              </span>
+              {source === "live" ? (
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+                </span>
+              ) : null}
             </div>
             <p className="mt-1 text-xs text-white/50">
               {t("status", { n: events.length, countries: countries || "—" })}
               {error ? t("degraded") : ""}
             </p>
+            {source === "demo" || source === "mixed" ? (
+              <p
+                role="status"
+                data-testid="radar-globe-demo-notice"
+                className="mt-1 max-w-xl text-xs font-medium text-amber-300"
+              >
+                {source === "demo" ? t("demoNotice") : t("mixedNotice")}
+              </p>
+            ) : null}
           </div>
           <div className="flex flex-wrap gap-2">
             <Link

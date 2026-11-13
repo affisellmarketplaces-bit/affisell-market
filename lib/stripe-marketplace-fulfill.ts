@@ -39,6 +39,23 @@ import { applyInstantDigitalDeliveryInTransaction } from "@/lib/digital-delivery
 import { sendDigitalAccessPassEmail } from "@/lib/emails/send-digital-access-pass"
 import { runBookingPassAfterPayment } from "@/lib/booking/run-after-payment"
 import { logStripeWebhookError } from "@/lib/stripe-webhook-observability"
+import { isStockManagedForLine, resolveCheckoutStockMode } from "@/lib/checkout-stock"
+import { isOrderClosedForPayout } from "@/lib/orders/payment-state"
+import {
+  lockProductsForStockInTransaction,
+  reserveStockInTransaction,
+} from "@/lib/checkout-stock.server"
+import {
+  unallocatedLineKey,
+  type UnallocatedLine,
+  type UnallocatedLineReason,
+} from "@/lib/unallocated-line"
+import {
+  loadRefundedUnallocatedLineKeys,
+  recordUnallocatedLines,
+  reportPaidSessionOnClosedOrders,
+  writeUnallocatedTracesInTransaction,
+} from "@/lib/unallocated-line.server"
 import {
   resolveOrderConfirmationImageUrl,
   sendOrderConfirmationEmail,
@@ -186,6 +203,67 @@ function parseLinePaids(raw: string | undefined | null): number[] | null {
   }
 }
 
+/**
+ * Structured log of what the stock reservation did. `reserved` = `enforce` took the units. `would_decrement` / `would_drop`
+ * = `warn` mode, a DRY RUN: nothing was written to the stock, this is what `enforce` would have done (`would_drop` = the
+ * stock could not have served this paid line; the line is kept).
+ */
+function logStockReservation(
+  productId: string,
+  qty: number,
+  stripeSessionId: string,
+  reservation: Awaited<ReturnType<typeof reserveStockInTransaction>>
+): void {
+  if (reservation.kind === "reserved") {
+    console.log("[stock]", {
+      productId,
+      stripeSessionId,
+      result: "reserved",
+      scope: reservation.scope,
+      qty,
+      before: reservation.before,
+      after: reservation.after,
+    })
+  } else if (reservation.kind === "dry_run") {
+    console.log("[stock]", {
+      productId,
+      stripeSessionId,
+      result: reservation.outcome,
+      mode: "warn",
+      scope: reservation.scope,
+      qty,
+      ...(reservation.outcome === "would_decrement"
+        ? { before: reservation.before, after: reservation.after }
+        : { available: reservation.available, requested: reservation.requested }),
+    })
+  }
+}
+
+/**
+ * Closes the pre-created (PENDING) order of a single-line checkout whose paid line could not be served (finalisation
+ * master doc D6 / G1): `CANCELLED` status AND settlement, which `isOrderClosedForPayout` reads, so that no later step can
+ * reopen it — `scheduleMarketplaceTransferAttempts` (webhook, success page, `payment_intent.succeeded`) refuses it, the
+ * reconcile crons only look at PENDING rows. The money is not lost: it is in the unallocated-line trace. Orders that hold
+ * a booking slot are left alone (the slot hold has its own release).
+ */
+async function closeUnallocatedPendingOrder(
+  db: Pick<Tx, "order">,
+  order: { id: string; bookingSlotId?: string | null } | null | undefined
+): Promise<void> {
+  if (!order || order.bookingSlotId) return
+  await db.order.updateMany({
+    where: { id: order.id, status: "PENDING" },
+    data: { status: "CANCELLED", paymentSettlementStatus: "CANCELLED" },
+  })
+}
+
+/** HT cents the buyer paid for line `index` according to the checkout metadata, `null` when it is not there. */
+function linePaidCentsFromMetadata(linePaids: number[] | null, lineCount: number, index: number): number | null {
+  if (!linePaids || linePaids.length !== lineCount) return null
+  const v = linePaids[index]
+  return v == null ? null : Math.max(0, v)
+}
+
 async function createPaidMarketplaceOrder(
   tx: Tx,
   args: {
@@ -204,6 +282,13 @@ async function createPaidMarketplaceOrder(
     checkoutTaxCents: number
     checkoutCurrency: string
     buyerLocale?: string | null
+    /**
+     * Called when the line is paid but NO order is created for a reason that needs a human or a refund
+     * (finalisation master doc D6 / G1) — the caller records it durably once the transaction is done.
+     */
+    onUnallocated?: (u: { reason: UnallocatedLineReason; detail?: Record<string, unknown> }) => void
+    /** When set, the confirmation e-mail is handed over instead of being sent inside the transaction. */
+    deferConfirmation?: (payload: OrderConfirmationEmailPayload) => void
   }
 ): Promise<string | null> {
   const { listing, qty } = args
@@ -222,6 +307,7 @@ async function createPaidMarketplaceOrder(
       error: AFFILIATE_COMMISSION_REQUIRED_ERROR,
       productId: listing.productId,
     })
+    args.onUnallocated?.({ reason: "commission_not_explicit" })
     return null
   }
   const variantImageUrl =
@@ -360,6 +446,32 @@ async function createPaidMarketplaceOrder(
     })
     return null
   }
+
+  // G1: take the units from the stock in THIS transaction, right before the order that pays for them is written. A
+  // shortfall (two buyers paid for the last unit) creates no order and no negative stock: the line is unallocated.
+  const reservation = await reserveStockInTransaction(tx, {
+    productId: listing.productId,
+    variantSignature: args.variantSignature,
+    qty,
+    listingKind: listing.product.listingKind,
+    known: { hasVariants: listing.product.hasVariants, variants: listing.product.variants, stock: listing.product.stock },
+  })
+  if (reservation.kind === "insufficient") {
+    console.log("[marketplace-fulfill]", {
+      stripeSessionId: args.stripeSessionId,
+      productId: listing.productId,
+      result: "unallocated_insufficient_stock",
+      scope: reservation.scope,
+      available: reservation.available,
+      requested: reservation.requested,
+    })
+    args.onUnallocated?.({
+      reason: "insufficient_stock",
+      detail: { scope: reservation.scope, available: reservation.available, requested: reservation.requested },
+    })
+    return null
+  }
+  logStockReservation(listing.productId, qty, args.stripeSessionId, reservation)
 
   try {
     order = await tx.order.create({
@@ -580,25 +692,31 @@ async function createPaidMarketplaceOrder(
       ? ((args.shippingAddress as Record<string, unknown>).name as string).trim()
       : undefined
 
-  try {
-    await sendOrderConfirmationEmail({
-      orderId: order.id,
-      productName: listing.product.name,
-      productImageUrl,
-      quantity: qty,
-      total: (args.paidLineCents / 100).toFixed(2),
-      currency: args.checkoutCurrency,
-      customerEmail: args.customerEmail,
-      customerName: shippingName,
-      locale: args.buyerLocale,
-      affiliateId: listing.affiliateId,
-    })
-  } catch (e) {
-    logStripeWebhookError({
-      metric: "order_confirmation_email_failed",
-      orderId: order.id,
-      error: e instanceof Error ? e.message : String(e),
-    })
+  const confirmationPayload: OrderConfirmationEmailPayload = {
+    orderId: order.id,
+    productName: listing.product.name,
+    productImageUrl,
+    quantity: qty,
+    total: (args.paidLineCents / 100).toFixed(2),
+    currency: args.checkoutCurrency,
+    customerEmail: args.customerEmail,
+    customerName: shippingName,
+    locale: args.buyerLocale,
+    affiliateId: listing.affiliateId,
+  }
+  if (args.deferConfirmation) {
+    // The e-mail provider is network I/O: sent after the commit, never while this transaction holds the product lock.
+    args.deferConfirmation(confirmationPayload)
+  } else {
+    try {
+      await sendOrderConfirmationEmail(confirmationPayload)
+    } catch (e) {
+      logStripeWebhookError({
+        metric: "order_confirmation_email_failed",
+        orderId: order.id,
+        error: e instanceof Error ? e.message : String(e),
+      })
+    }
   }
 
   await runInstantDigitalDeliveryAfterPayment(tx, {
@@ -709,7 +827,15 @@ export async function fulfillMarketplaceStripeSession(
     }
 
     const fulfilledOrderIds: string[] = []
+    const unallocated: UnallocatedLine[] = []
+    const confirmations: OrderConfirmationEmailPayload[] = []
     let alreadyFulfilled = false
+
+    // A line whose money was already sent back (unallocated-line refund) must never become an order afterwards.
+    // Read before the transaction, never throws (an unreadable trace must not block the payment processing).
+    const refundedLineKeys = await loadRefundedUnallocatedLineKeys(
+      lines.map((_, i) => unallocatedLineKey(sessionId, i))
+    )
 
     await prisma.$transaction(async (tx) => {
       await acquireCheckoutFulfillLock(tx, sessionId)
@@ -729,11 +855,35 @@ export async function fulfillMarketplaceStripeSession(
 
       const earnUserId = await resolveBuyerUserIdForEarn(tx, buyerUserId, customerEmail)
 
-      await redeemBuyerRewardOrSkip(tx, {
-        userId: buyerUserId,
-        amountCents: appliedRewardCents,
-        stripeSessionId: sessionId,
-      })
+      // Lock the physical products of a multi-line cart in ascending id order BEFORE any line: two carts holding the same
+      // two products in opposite order would otherwise take the row locks in opposite order and deadlock.
+      if (lines.length > 1 && resolveCheckoutStockMode() === "enforce") {
+        const listingIds = [...new Set(lines.map((l) => l.affiliateProductId).filter(Boolean))]
+        const lockRows = await tx.affiliateProduct.findMany({
+          where: { id: { in: listingIds } },
+          select: {
+            id: true,
+            productId: true,
+            product: { select: { listingKind: true, hasVariants: true, variants: true } },
+          },
+        })
+        const lockedProductIds = new Set<string>()
+        for (const line of lines) {
+          const row = lockRows.find((r) => r.id === line.affiliateProductId)
+          if (
+            row?.product &&
+            isStockManagedForLine({
+              listingKind: row.product.listingKind,
+              hasVariants: row.product.hasVariants,
+              variants: row.product.variants,
+              variantSignature: typeof line.variantSignature === "string" ? line.variantSignature : "",
+            })
+          ) {
+            lockedProductIds.add(row.productId)
+          }
+        }
+        await lockProductsForStockInTransaction(tx, [...lockedProductIds])
+      }
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i]!
@@ -741,6 +891,14 @@ export async function fulfillMarketplaceStripeSession(
         const dup = await tx.order.findUnique({ where: { stripeSessionId } })
         if (dup?.status === "paid") {
           fulfilledOrderIds.push(dup.id)
+          continue
+        }
+        if (refundedLineKeys.has(unallocatedLineKey(sessionId, i))) {
+          console.log("[marketplace-fulfill]", {
+            sessionId,
+            line: i,
+            result: "skipped_unallocated_line_already_refunded",
+          })
           continue
         }
 
@@ -758,6 +916,14 @@ export async function fulfillMarketplaceStripeSession(
             affiliateProductId: line.affiliateProductId,
             result: "skipped_no_listing",
           })
+          unallocated.push({
+            lineIndex: i,
+            reason: "listing_not_found",
+            affiliateProductId: line.affiliateProductId ?? null,
+            productId: null,
+            qty,
+            paidLineCents: linePaidCentsFromMetadata(linePaids, lines.length, i),
+          })
           continue
         }
         if (!fulfillingPreCreated && !listing.product.active) {
@@ -766,6 +932,14 @@ export async function fulfillMarketplaceStripeSession(
             line: i,
             affiliateProductId: line.affiliateProductId,
             result: "skipped_inactive_listing",
+          })
+          unallocated.push({
+            lineIndex: i,
+            reason: "listing_inactive",
+            affiliateProductId: listing.id,
+            productId: listing.productId,
+            qty,
+            paidLineCents: linePaidCentsFromMetadata(linePaids, lines.length, i),
           })
           continue
         }
@@ -808,6 +982,17 @@ export async function fulfillMarketplaceStripeSession(
           checkoutTaxCents,
           checkoutCurrency,
           buyerLocale,
+          onUnallocated: (u) =>
+            unallocated.push({
+              lineIndex: i,
+              reason: u.reason,
+              affiliateProductId: listing.id,
+              productId: listing.productId,
+              qty,
+              paidLineCents,
+              detail: u.detail,
+            }),
+          deferConfirmation: (payload) => confirmations.push(payload),
         })
 
         if (earnUserId && orderId) {
@@ -823,7 +1008,49 @@ export async function fulfillMarketplaceStripeSession(
 
         if (orderId) fulfilledOrderIds.push(orderId)
       }
+
+      // The traces of the lines that became no order are written HERE, in the transaction that creates the other lines'
+      // orders: after the commit a crash / a database blip / a function cut would lose them for good (a partly fulfilled
+      // cart is not fulfilled again). The alert and the refund stay after the response.
+      await writeUnallocatedTracesInTransaction(tx, { session, lines: unallocated, appliedRewardCents })
+
+      // Store credit is consumed only when at least one line became a sale. A checkout whose every line is unallocated
+      // keeps the buyer's credit (the cash part is the only thing to give back). The ledger key is per session, so a
+      // later replay that allocates a line redeems it then, once. A PARTIAL allocation redeems the whole credit: the
+      // share that belonged to an unallocated line is not given back automatically (it is in the trace, `appliedRewardCents`).
+      if (fulfilledOrderIds.length > 0) {
+        await redeemBuyerRewardOrSkip(tx, {
+          userId: buyerUserId,
+          amountCents: appliedRewardCents,
+          stripeSessionId: sessionId,
+        })
+      }
     }, MARKETPLACE_FULFILL_TX_OPTIONS)
+
+    // Confirmation e-mails of the orders just created: network I/O, sent after the commit and after the response.
+    if (confirmations.length > 0) {
+      await runAfterResponse("order_confirmation_emails_cart", async () => {
+        for (const payload of confirmations) {
+          try {
+            await sendOrderConfirmationEmail(payload)
+          } catch (e) {
+            logStripeWebhookError({
+              metric: "order_confirmation_email_failed",
+              orderId: payload.orderId,
+              error: e instanceof Error ? e.message : String(e),
+            })
+          }
+        }
+      })
+    }
+
+    // D6: the lines paid without an order are traced, alerted and (only when enabled) refunded — AFTER the transaction
+    // that created the other lines' orders, and after the response like every other side effect of this file.
+    if (unallocated.length > 0) {
+      await runAfterResponse("unallocated_lines_cart", () =>
+        recordUnallocatedLines({ session, lines: unallocated, appliedRewardCents })
+      )
+    }
 
     if (alreadyFulfilled) {
       scheduleMerchantOrderAlerts(fulfilledOrderIds)
@@ -890,6 +1117,40 @@ export async function fulfillMarketplaceStripeSession(
     return
   }
 
+  // A closed order (cancelled / refunded — in particular a pre-created order closed because its line was unallocated) is
+  // never fulfilled again: there is nothing to create, and `createPaidMarketplaceOrder` would collide with its session id.
+  // A cancelled BOOKING order is the one exception: it is re-opened when the payment arrives late (see below).
+  if (
+    existing &&
+    isOrderClosedForPayout(existing) &&
+    !(existing.status === "CANCELLED" && existing.bookingSlotId && !existing.bookingConfirmedAt)
+  ) {
+    console.log("[marketplace-fulfill]", { sessionId, orderId: existing.id, result: "skipped_order_closed" })
+    // A paid session on a closed order nobody accounts for (an admin-cancelled, never-paid order whose Stripe session stayed
+    // payable) used to vanish here: trace + ONE alert (+ the refund, only with the flag). Silent when accounted for.
+    await runAfterResponse("closed_order_paid_session", () =>
+      reportPaidSessionOnClosedOrders({ sessionId, session, orders: [existing] })
+    )
+    return
+  }
+
+  // A line whose money was already sent back (unallocated-line refund) must never become an order afterwards.
+  const singleLineKey = unallocatedLineKey(sessionId, 0)
+  if ((await loadRefundedUnallocatedLineKeys([singleLineKey])).has(singleLineKey)) {
+    console.log("[marketplace-fulfill]", {
+      sessionId,
+      result: "skipped_unallocated_line_already_refunded",
+    })
+    return
+  }
+
+  const qty = Math.max(
+    1,
+    Math.round(parseInt(meta.checkoutQty ?? String(existing?.quantity ?? 1), 10) || 1)
+  )
+  /** HT cents the buyer paid for this single line per the checkout metadata (`null` for sessions without it). */
+  const singlePaidFromMetadata = linePaids && linePaids.length >= 1 ? Math.max(0, linePaids[0]!) : null
+
   const listing = await prisma.affiliateProduct.findUnique({
     where: { id: affiliateProductId },
     include: listingWithProductInclude,
@@ -901,6 +1162,22 @@ export async function fulfillMarketplaceStripeSession(
       affiliateProductId,
       result: "skipped_no_listing",
     })
+    const lostLine: UnallocatedLine = {
+      lineIndex: 0,
+      reason: "listing_not_found",
+      affiliateProductId,
+      productId: null,
+      qty,
+      paidLineCents: singlePaidFromMetadata,
+    }
+    // Close the pre-created order and write its trace as ONE atomic fact.
+    await prisma.$transaction(async (tx) => {
+      await closeUnallocatedPendingOrder(tx, existing)
+      await writeUnallocatedTracesInTransaction(tx, { session, lines: [lostLine], appliedRewardCents })
+    })
+    await runAfterResponse("unallocated_lines_single", () =>
+      recordUnallocatedLines({ session, appliedRewardCents, lines: [lostLine] })
+    )
     return
   }
 
@@ -911,13 +1188,21 @@ export async function fulfillMarketplaceStripeSession(
       affiliateProductId,
       result: "skipped_inactive_listing",
     })
+    const inactiveLine: UnallocatedLine = {
+      lineIndex: 0,
+      reason: "listing_inactive",
+      affiliateProductId: listing.id,
+      productId: listing.productId,
+      qty,
+      paidLineCents: singlePaidFromMetadata,
+    }
+    await writeUnallocatedTracesInTransaction(prisma, { session, lines: [inactiveLine], appliedRewardCents })
+    await runAfterResponse("unallocated_lines_single", () =>
+      recordUnallocatedLines({ session, appliedRewardCents, lines: [inactiveLine] })
+    )
     return
   }
 
-  const qty = Math.max(
-    1,
-    Math.round(parseInt(meta.checkoutQty ?? String(existing?.quantity ?? 1), 10) || 1)
-  )
   const checkoutVariantLabel =
     meta.checkoutVariantLabel?.trim() || existing?.variantLabel?.trim() || ""
   const checkoutVariantSignature = meta.checkoutVariantSignature?.trim() || ""
@@ -941,6 +1226,7 @@ export async function fulfillMarketplaceStripeSession(
     confirmation: null as OrderConfirmationEmailPayload | null,
   }
   const fulfilledOrderIds: string[] = []
+  const unallocated: UnallocatedLine[] = []
 
   await prisma.$transaction(async (tx) => {
     await acquireCheckoutFulfillLock(tx, sessionId)
@@ -978,18 +1264,60 @@ export async function fulfillMarketplaceStripeSession(
       return
     }
 
-    const earnUserId = await resolveBuyerUserIdForEarn(tx, buyerUserId, customerEmail)
-
-    await redeemBuyerRewardOrSkip(tx, {
-      userId: buyerUserId,
-      amountCents: appliedRewardCents,
-      stripeSessionId: sessionId,
-    })
-
     const recoverCancelledBooking =
       dup?.status === "CANCELLED" &&
       Boolean(dup.bookingSlotId) &&
       !dup.bookingConfirmedAt
+
+    if (dup && (dup.status === "PENDING" || recoverCancelledBooking)) {
+      // G1 (pre-created order): take the units before anything else is written, so a shortfall leaves the order
+      // PENDING and the store credit untouched. A fresh order reserves inside `createPaidMarketplaceOrder`.
+      const reservation = await reserveStockInTransaction(tx, {
+        productId: listing.productId,
+        variantSignature: checkoutVariantSignature,
+        qty,
+        listingKind: listing.product.listingKind,
+        known: { hasVariants: listing.product.hasVariants, variants: listing.product.variants, stock: listing.product.stock },
+      })
+      if (reservation.kind === "insufficient") {
+        console.log("[marketplace-fulfill]", {
+          sessionId,
+          productId: listing.productId,
+          result: "unallocated_insufficient_stock",
+          scope: reservation.scope,
+          available: reservation.available,
+          requested: reservation.requested,
+        })
+        unallocated.push({
+          lineIndex: 0,
+          reason: "insufficient_stock",
+          affiliateProductId: listing.id,
+          productId: listing.productId,
+          qty,
+          paidLineCents,
+          detail: { scope: reservation.scope, available: reservation.available, requested: reservation.requested },
+        })
+        // The pre-created order is not a sale: close it NOW, in the same transaction. Left PENDING, the settlement that
+        // runs right after this fulfilment (`scheduleMarketplaceTransferAttempts`) would promote it to "paid" and schedule
+        // payouts, and the reconcile cron would revisit it forever.
+        await closeUnallocatedPendingOrder(tx, dup)
+        await writeUnallocatedTracesInTransaction(tx, { session, lines: unallocated, appliedRewardCents })
+        return
+      }
+      logStockReservation(listing.productId, qty, sessionId, reservation)
+    }
+
+    const earnUserId = await resolveBuyerUserIdForEarn(tx, buyerUserId, customerEmail)
+
+    // Store credit is taken only once the line is a sale: the pre-created order is reserved above; a fresh order
+    // redeems after `createPaidMarketplaceOrder` succeeded (a line without an order must not consume the credit).
+    if (dup && (dup.status === "PENDING" || recoverCancelledBooking)) {
+      await redeemBuyerRewardOrSkip(tx, {
+        userId: buyerUserId,
+        amountCents: appliedRewardCents,
+        stripeSessionId: sessionId,
+      })
+    }
 
     if (dup && (dup.status === "PENDING" || recoverCancelledBooking)) {
       const pendingOrder = dup
@@ -1277,7 +1605,30 @@ export async function fulfillMarketplaceStripeSession(
       checkoutTaxCents,
       checkoutCurrency,
       buyerLocale,
+      onUnallocated: (u) =>
+        unallocated.push({
+          lineIndex: 0,
+          reason: u.reason,
+          affiliateProductId: listing.id,
+          productId: listing.productId,
+          qty,
+          paidLineCents,
+          detail: u.detail,
+        }),
+      deferConfirmation: (payload) => {
+        deferred.confirmation = payload
+      },
     })
+
+    if (orderId) {
+      await redeemBuyerRewardOrSkip(tx, {
+        userId: buyerUserId,
+        amountCents: appliedRewardCents,
+        stripeSessionId: sessionId,
+      })
+    } else {
+      await writeUnallocatedTracesInTransaction(tx, { session, lines: unallocated, appliedRewardCents })
+    }
 
     if (earnUserId && orderId) {
       const earn = buyerEarnCentsForLinePaid(paidLineCents, listing)
@@ -1292,6 +1643,13 @@ export async function fulfillMarketplaceStripeSession(
 
     if (orderId) fulfilledOrderIds.push(orderId)
   }, MARKETPLACE_FULFILL_TX_OPTIONS)
+
+  // D6 / G1: a paid line that produced no order is traced, alerted and (only when enabled) refunded.
+  if (unallocated.length > 0) {
+    await runAfterResponse("unallocated_lines_single", () =>
+      recordUnallocatedLines({ session, lines: unallocated, appliedRewardCents })
+    )
+  }
 
   scheduleMerchantOrderAlerts(fulfilledOrderIds)
 

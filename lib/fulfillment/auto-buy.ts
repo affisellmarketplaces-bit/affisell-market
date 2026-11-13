@@ -1,3 +1,4 @@
+import type { AutoBuyStatus } from "@prisma/client"
 import type Stripe from "stripe"
 import { captureException } from "@sentry/nextjs"
 
@@ -16,6 +17,13 @@ import { parseShipping } from "@/lib/fulfillment/shipping-address"
 import { mergeAeVariantMappingForOrder } from "@/lib/fulfillment/merge-ae-variant-mapping"
 import { resolveManualSupplierSku } from "@/lib/fulfillment/resolve-manual-supplier-sku"
 import { resolveSupplierSkuForOrder } from "@/lib/fulfillment/resolve-supplier-sku"
+import { formatAutoBuyMarginRefusal } from "@/lib/fulfillment/auto-buy-margin"
+import {
+  authorizeSupplierPurchase,
+  reportInDoubtPurchase,
+  type SupplierPurchaseVerdict,
+} from "@/lib/fulfillment/supplier-purchase-guard"
+import { PURCHASE_IN_DOUBT_AFTER_MS } from "@/lib/fulfillment/supplier-purchase-decision"
 import { initiateMarketplaceRefundPipeline } from "@/lib/marketplace-refund-pipeline"
 import { notifyOrderCancelled } from "@/lib/emails/notify-order-cancelled"
 import { prisma } from "@/lib/prisma"
@@ -30,11 +38,17 @@ function startOfTodayUtc(): Date {
   return d
 }
 
+/**
+ * Auto-buy spends Affisell's own money (an AliExpress order paid with a single-use Stripe Issuing card), so it is
+ * OPT-IN: it stays off unless `AUTO_BUY_ENABLED=true` is set on the server. The legacy kill switches
+ * (`DISABLE_AUTO_BUY=true`, `AUTO_ORDER_ENABLED=false`) still win over the opt-in.
+ *
+ * Owner decision (2026-11-13): no autonomous purchase may run without a specific business and financial validation.
+ * It used to be opt-out (running unless `DISABLE_AUTO_BUY=true`), which left real purchases one forgotten variable away.
+ */
 export function isAutoBuyDisabled(): boolean {
-  return (
-    process.env.DISABLE_AUTO_BUY === "true" ||
-    process.env.AUTO_ORDER_ENABLED === "false"
-  )
+  if (process.env.DISABLE_AUTO_BUY === "true" || process.env.AUTO_ORDER_ENABLED === "false") return true
+  return process.env.AUTO_BUY_ENABLED !== "true"
 }
 
 function logAutoBuy(metric: string, payload: Record<string, unknown>) {
@@ -202,6 +216,16 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
   if (!log) return
   if (log.status === "BOUGHT" || log.status === "REFUNDED") return
 
+  // A claim is in flight (or its outcome was never recorded): replay in READ mode. Never fall through to the checks below —
+  // a late failure there would overwrite the BUYING claim with FAILED and let a retry buy a second time.
+  if (log.status === "BUYING") {
+    logAutoBuy("in_progress_replay", { orderId: log.orderId, fulfillmentLogId: log.id })
+    if (Date.now() - log.updatedAt.getTime() > PURCHASE_IN_DOUBT_AFTER_MS) {
+      await reportInDoubtPurchase({ orderId: log.orderId, path: "auto_buy", reason: "stale_claim" })
+    }
+    return
+  }
+
   // Already placed via /api/orders/[id]/fulfill or order.paid worker
   const existingSupplierOrderId = await prisma.order.findUnique({
     where: { id: log.orderId },
@@ -232,13 +256,7 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
   })
 
   if (todayOrders >= MAX_DAILY_ORDERS) {
-    await prisma.fulfillmentLog.update({
-      where: { id: fulfillmentLogId },
-      data: {
-        status: "FAILED",
-        errorMsg: `DAILY_ORDER_LIMIT_REACHED: ${MAX_DAILY_ORDERS} commandes max`,
-      },
-    })
+    await failLogIfUnclaimed(fulfillmentLogId, `DAILY_ORDER_LIMIT_REACHED: ${MAX_DAILY_ORDERS} commandes max`)
     logAutoBuy("daily_limit_reached", { fulfillmentLogId, todayOrders })
     throw new Error("DAILY_ORDER_LIMIT_REACHED")
   }
@@ -247,18 +265,13 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
   const productAutoBuy =
     log.order.product.autoBuyEnabled || log.order.product.autoFulfill
   if (!link?.isActive || (!link.autoBuyEnabled && !productAutoBuy)) {
-    await prisma.fulfillmentLog.update({
-      where: { id: log.id },
-      data: { status: "FAILED", errorMsg: "NO_SUPPLIER_LINK" },
-    })
+    await failLogIfUnclaimed(log.id, "NO_SUPPLIER_LINK")
     return
   }
 
+  // The BUYING claim is taken later, by `authorizeSupplierPurchase` (lock + re-read + margin). `failAutoBuy` persists
+  // `attempts`, so a failure before the claim still counts.
   const nextAttempt = log.attempts + 1
-  await prisma.fulfillmentLog.update({
-    where: { id: log.id },
-    data: { status: "BUYING", attempts: nextAttempt },
-  })
 
   const shippingAddress = parseShipping(log.order.shippingAddress)
   let resolvedSku = resolveSupplierSkuForOrder(
@@ -301,12 +314,9 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
     (resolvedSku.source === "unmatched" || !resolvedSku.aeSkuId) &&
     !manualSku?.aeSkuId
   ) {
-    await failAutoBuy(
-      log.id,
-      log.orderId,
-      `VARIANT_SKU_UNMATCHED:${log.order.variantLabel ?? ""}`,
-      nextAttempt
-    )
+    await failAutoBuy(log.id, log.orderId, `VARIANT_SKU_UNMATCHED:${log.order.variantLabel ?? ""}`, nextAttempt, {
+      claimed: false,
+    })
     logAutoBuy("variant_sku_unmatched", {
       orderId: log.orderId,
       variantLabel: log.order.variantLabel,
@@ -338,16 +348,25 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
   })
 
   if (clientTotalCents > MAX_ORDER_VALUE_EUR * 100) {
-    await prisma.fulfillmentLog.update({
-      where: { id: fulfillmentLogId },
-      data: {
-        status: "FAILED",
-        errorMsg: `ORDER_VALUE_TOO_HIGH: ${(clientTotalCents / 100).toFixed(2)}€ > ${MAX_ORDER_VALUE_EUR}€`,
-      },
-    })
+    await failLogIfUnclaimed(
+      fulfillmentLogId,
+      `ORDER_VALUE_TOO_HIGH: ${(clientTotalCents / 100).toFixed(2)}€ > ${MAX_ORDER_VALUE_EUR}€`
+    )
     logAutoBuy("order_value_too_high", { fulfillmentLogId, clientTotalCents })
     throw new Error("ORDER_VALUE_TOO_HIGH")
   }
+
+  // THE gate (G2 + G3). From here on, anything that spends money happens only for the ONE caller that gets "go".
+  const verdict = await authorizeSupplierPurchase({
+    orderId: log.orderId,
+    path: "auto_buy",
+    cost: { aeUnitPriceCents: resolvedSku.aePriceCents, aeShippingCents: resolvedSku.aeShippingCents },
+  })
+  if (verdict.kind !== "go") {
+    await settleRefusedAutoBuy(log.id, log.orderId, verdict)
+    return
+  }
+  const attemptNo = verdict.attempt
 
   if (isAeDryRun()) {
     await completeAutoBuyDryRun({
@@ -380,7 +399,7 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
   if (!virtualCardId || !cardNumber) {
     const card = await createAutoBuyVirtualCard(amountCents)
     if (!card.ok) {
-      await failAutoBuy(log.id, log.orderId, card.error, nextAttempt)
+      await failAutoBuy(log.id, log.orderId, card.error, attemptNo, { claimed: true })
       return
     }
     virtualCardId = card.cardId
@@ -388,10 +407,22 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
     cardExpMonth = card.expMonth
     cardExpYear = card.expYear
     cardCvc = card.cvc
-    await prisma.fulfillmentLog.update({
-      where: { id: log.id },
-      data: { virtualCardId },
-    })
+    try {
+      await prisma.fulfillmentLog.update({
+        where: { id: log.id },
+        data: { virtualCardId },
+      })
+    } catch (e) {
+      // Nothing was sent to AliExpress yet: a definitive failure (the claim is released), not an "in doubt" purchase.
+      await failAutoBuy(
+        log.id,
+        log.orderId,
+        `CARD_LOG_WRITE_FAILED:${e instanceof Error ? e.message : String(e)}`,
+        attemptNo,
+        { claimed: true, virtualCardId }
+      )
+      return
+    }
   }
 
   const ds = await placeAliExpressDsOrder({
@@ -406,6 +437,11 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
 
   if (ds.ok) {
     aeOrderId = ds.aeOrderId
+  } else if (ds.outcomeUncertain) {
+    // The request left and its outcome is unknown: AliExpress may have created the order. Trying the browser checkout, or
+    // retrying, could buy twice. Keep the BUYING claim, alert, and let a human check the AliExpress order list.
+    await holdAutoBuyInDoubt(log.id, log.orderId, ds.error, virtualCardId)
+    return
   } else if (virtualCardId && cardNumber) {
     const { runAliExpressBrowserCheckout } = await import("@/lib/fulfillment/ae-browser-checkout")
     const browser = await runAliExpressBrowserCheckout({
@@ -421,39 +457,52 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
       cardCvc,
     })
     if (!browser.ok) {
-      await failAutoBuy(log.id, log.orderId, `${ds.error}; ${browser.error}`, nextAttempt, virtualCardId)
+      await failAutoBuy(log.id, log.orderId, `${ds.error}; ${browser.error}`, attemptNo, { claimed: true, virtualCardId })
       return
     }
     aeOrderId = browser.aeOrderId
     aeTracking = browser.aeTracking
   } else {
-    await failAutoBuy(log.id, log.orderId, ds.error, nextAttempt, virtualCardId)
+    await failAutoBuy(log.id, log.orderId, ds.error, attemptNo, { claimed: true, virtualCardId })
     return
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.fulfillmentLog.update({
-      where: { id: log.id },
-      data: {
-        status: "BOUGHT",
-        aeOrderId,
-        aeTracking,
-        errorMsg: null,
-      },
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.fulfillmentLog.update({
+        where: { id: log.id },
+        data: {
+          status: "BOUGHT",
+          aeOrderId,
+          aeTracking,
+          errorMsg: null,
+        },
+      })
+      const aeWholesaleSnapshot = Math.max(0, resolvedSku.aePriceCents * log.order.quantity)
+      await tx.order.update({
+        where: { id: log.orderId },
+        data: {
+          supplierOrderId: aeOrderId,
+          status: "fulfilling",
+          fulfilledAt: new Date(),
+          fulfillmentStatus: "ORDERED",
+          supplierPreparingAt: new Date(),
+          aeWholesaleCents: log.order.aeWholesaleCents ?? aeWholesaleSnapshot,
+        },
+      })
     })
-    const aeWholesaleSnapshot = Math.max(0, resolvedSku.aePriceCents * log.order.quantity)
-    await tx.order.update({
-      where: { id: log.orderId },
-      data: {
-        supplierOrderId: aeOrderId,
-        status: "fulfilling",
-        fulfilledAt: new Date(),
-        fulfillmentStatus: "ORDERED",
-        supplierPreparingAt: new Date(),
-        aeWholesaleCents: log.order.aeWholesaleCents ?? aeWholesaleSnapshot,
-      },
+  } catch (e) {
+    // The order EXISTS at AliExpress but could not be written down: the claim stays BUYING (every replay is refused, so no
+    // second purchase) and the AliExpress id goes to the alert — it is stored nowhere else.
+    await reportInDoubtPurchase({
+      orderId: log.orderId,
+      path: "auto_buy",
+      reason: "placed_but_unrecorded",
+      supplierOrderId: aeOrderId ?? undefined,
+      error: e instanceof Error ? e.message : String(e),
     })
-  })
+    return
+  }
 
   if (virtualCardId) await freezeAutoBuyVirtualCard(virtualCardId)
 
@@ -515,13 +564,102 @@ async function completeAutoBuyDryRun(input: AutoBuyDryRunInput): Promise<{ succe
   return { success: true, dryRun: true }
 }
 
+/** The guard said "no": settle the FulfillmentLog without touching the supplier, and without retry nor refund. */
+async function settleRefusedAutoBuy(
+  fulfillmentLogId: string,
+  orderId: string,
+  verdict: Exclude<SupplierPurchaseVerdict, { kind: "go" }>
+): Promise<void> {
+  switch (verdict.kind) {
+    case "already_placed":
+      // Another path (generic engine, order.paid, manual fulfil) already bought it: mirror it, as the unlocked check did.
+      if (verdict.supplierOrderId !== "unknown") {
+        await prisma.fulfillmentLog.update({
+          where: { id: fulfillmentLogId },
+          data: { status: "BOUGHT", aeOrderId: verdict.supplierOrderId, errorMsg: null },
+        })
+      }
+      logAutoBuy("already_supplier_ordered", {
+        orderId,
+        evidence: verdict.evidence,
+        supplierOrderIdTail: verdict.supplierOrderId.slice(-6),
+      })
+      return
+    case "in_progress":
+      logAutoBuy("claim_in_progress", { orderId, stale: verdict.stale })
+      return
+    case "not_purchasable":
+      await failLogIfUnclaimed(fulfillmentLogId, `ORDER_NOT_PURCHASABLE:${verdict.reason}:${verdict.orderStatus}`)
+      logAutoBuy("not_purchasable", { orderId, orderStatus: verdict.orderStatus, reason: verdict.reason })
+      return
+    case "order_not_found":
+      logAutoBuy("order_not_found", { orderId })
+      return
+    case "margin_refused":
+      // This gate neither retries nor refunds: the buyer paid, the owner decides (price, floor, manual purchase or refund). The
+      // guard already alerted and flagged the order for manual handling; this is the log's own trace. It does NOT suspend the
+      // buyer protections: the ship-SLA cron still auto-cancels and refunds a paid order with no tracking past its deadline.
+      await failLogIfUnclaimed(fulfillmentLogId, formatAutoBuyMarginRefusal(verdict.decision))
+      logAutoBuy("margin_refused", { orderId, reason: verdict.decision.reason })
+      return
+  }
+}
+
+/** Outcome unknown: the BUYING claim is kept (it blocks every retry); only the card is frozen and a human is alerted. */
+async function holdAutoBuyInDoubt(
+  fulfillmentLogId: string,
+  orderId: string,
+  error: string,
+  virtualCardId?: string | null
+): Promise<void> {
+  logAutoBuy("outcome_uncertain", { orderId, fulfillmentLogId, error })
+  if (virtualCardId) {
+    try {
+      await freezeAutoBuyVirtualCard(virtualCardId)
+    } catch (e) {
+      console.error("[auto-buy] freeze_failed_in_doubt", { orderId, error: e instanceof Error ? e.message : String(e) })
+    }
+  }
+  try {
+    await prisma.fulfillmentLog.updateMany({
+      where: { id: fulfillmentLogId, status: "BUYING" },
+      data: { errorMsg: `OUTCOME_UNCERTAIN:${error}`.slice(0, 2000) },
+    })
+  } catch {
+    /* the claim itself is what protects; the message is a convenience */
+  }
+  await reportInDoubtPurchase({ orderId, path: "auto_buy", reason: "supplier_outcome_uncertain", error })
+}
+
+/** Log statuses while NOBODY holds a purchase claim on it (a definitive failure leaves FAILED; a fresh log is PENDING). */
+const UNCLAIMED_LOG_STATUSES: AutoBuyStatus[] = ["PENDING", "FAILED"]
+
+/**
+ * Record a failure on a log whose claim THIS run does not hold (a check that failed before `authorizeSupplierPurchase`).
+ * The write is conditional: the log was read a few round trips ago and another path may have claimed it (BUYING) or even
+ * bought (BOUGHT) since — a stale, unconditional write would erase that claim and let a second purchase through.
+ * Returns false when the log is no longer ours to write.
+ */
+async function failLogIfUnclaimed(fulfillmentLogId: string, errorMsg: string, attempts?: number): Promise<boolean> {
+  const res = await prisma.fulfillmentLog.updateMany({
+    where: { id: fulfillmentLogId, status: { in: UNCLAIMED_LOG_STATUSES } },
+    data: { status: "FAILED", errorMsg: errorMsg.slice(0, 2000), ...(attempts != null ? { attempts } : {}) },
+  })
+  if (res.count !== 1) {
+    logAutoBuy("pre_claim_write_skipped_log_claimed", { fulfillmentLogId, errorMsg: errorMsg.slice(0, 80) })
+    return false
+  }
+  return true
+}
+
 async function failAutoBuy(
   fulfillmentLogId: string,
   orderId: string,
   errorMsg: string,
   attempts: number,
-  virtualCardId?: string | null
+  opts: { claimed: boolean; virtualCardId?: string | null }
 ): Promise<void> {
+  const { claimed, virtualCardId } = opts
   logAutoBuy("failed", { orderId, fulfillmentLogId, errorMsg, attempts })
   captureException(new Error(errorMsg), {
     tags: { module: "auto-buy" },
@@ -530,10 +668,17 @@ async function failAutoBuy(
 
   if (virtualCardId) await freezeAutoBuyVirtualCard(virtualCardId)
 
-  await prisma.fulfillmentLog.update({
-    where: { id: fulfillmentLogId },
-    data: { status: "FAILED", errorMsg: errorMsg.slice(0, 2000) },
-  })
+  // After the gate said "go" the log is OURS and is BUYING (a definitive failure releases it); before it, the write must not
+  // touch a claim someone else took meanwhile — and then no retry and no refund are ours to trigger either.
+  const written = claimed
+    ? (
+        await prisma.fulfillmentLog.updateMany({
+          where: { id: fulfillmentLogId, status: "BUYING" },
+          data: { status: "FAILED", errorMsg: errorMsg.slice(0, 2000), attempts },
+        })
+      ).count === 1
+    : await failLogIfUnclaimed(fulfillmentLogId, errorMsg, attempts)
+  if (!written) return
 
   if (attempts < MAX_ATTEMPTS) {
     await enqueueAutoBuyJob({ fulfillmentLogId }, { delayMs: RETRY_DELAY_MS })
@@ -547,8 +692,8 @@ async function failAutoBuy(
     metadata: { auto_buy: "stockout_after_retries" },
   })
 
-  await prisma.fulfillmentLog.update({
-    where: { id: fulfillmentLogId },
+  await prisma.fulfillmentLog.updateMany({
+    where: { id: fulfillmentLogId, status: "FAILED" },
     data: {
       status: refund.ok ? "REFUNDED" : "FAILED",
       errorMsg: refund.ok ? "STOCKOUT_REFUNDED" : `REFUND_FAILED:${refund.error ?? refund.skipped}`,
@@ -558,7 +703,8 @@ async function failAutoBuy(
   if (refund.ok) {
     await notifyOrderCancelled(orderId, {
       cancelReason: "Rupture stock fournisseur — remboursement en cours.",
-      markRefunded: true,
+      // `refund.ok` means Stripe accepted the refund, so its id is always there: "refunded" is only written then.
+      stripeRefundId: refund.stripeRefundId,
     })
   }
 }

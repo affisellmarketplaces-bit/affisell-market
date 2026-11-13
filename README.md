@@ -76,27 +76,47 @@ Legacy paths redirect: `/` → `/en`, `/creators` → `/en/creators`.
 
 ## Prisma / Neon
 
-Never edit applied migrations. Change `schema.prisma` then `npx prisma migrate dev --name xxx`. See `.cursorrules`.
+Never edit applied migrations. A schema change is a **hand-written, additive SQL migration** under `prisma/migrations/` plus the matching `schema.prisma` edit — **never** `prisma migrate dev`, `prisma db push`,
+`npm run db:migrate` or `npm run migrate:deploy` on this database: it also holds Medusa's tables (Prisma would propose to drop them) and `prisma.config.ts` loads `.env.local` with `override: true`, so those commands
+target the *default* database, i.e. production, whatever URL you pass.
+
+Deploy a schema by hand, locally, **before** the push: `DATABASE_URL='<url>' npm run schema:migrate -- --expect-endpoint <ep-id> [--confirm-production]`, then `npm run schema:verify`.
+The Vercel build never migrates: it only verifies, and stops if the schema is missing. Full procedure and failure handling: `docs/DEPLOY-SCHEMA-CHANGES.md`;
+environments and isolation: `docs/ENVIRONMENTS.md`; backups and restores: `docs/BACKUP-RESTORE.md`; settings to make on external services: `docs/EXTERNAL-OPS-RUNBOOK.md`; project rules: `AGENTS.md`.
 
 ## Affisell InstantScan
 
-Cascade IA temps réel pour le wizard v2 (mode **InstantScan**, ex-Guidé) : **CLIP 200ms → GPT-4o-mini 800ms → GPT-4o 2sec**.
+Analyse d'une photo produit par un modèle de vision (API opt-in `POST /api/ai/analyze-product`, UI supplier retirée). Deux étapes :
 
-| Métrique | Cible |
-|----------|-------|
-| Précision | 98.5% (top 100 SKUs 2024–2026) |
-| Latence p95 | &lt;2 s |
-| Coût | ~0.003 $/analyse |
+1. **Rapprochement catalogue** — un modèle de vision mini (`gpt-4o-mini` par défaut) écrit des indices **texte** (marque, modèle, caractéristiques) ; ceux-ci sont comparés, comme du texte (vecteurs lexicaux par hachage), à une liste de modèles **écrite à la main** (`lib/ai/curated-product-catalog.ts`). **Ce n'est pas du CLIP** : aucune image n'est vectorisée, aucun modèle d'embedding n'intervient, et la liste n'est ni un classement mesuré ni un « top 100 ». Un résultat de cette étape n'a **aucune confiance affichée** (rien n'a été mesuré) et est toujours « à vérifier ».
+2. **Modèle de vision complet** (`gpt-4o` par défaut ; `gpt-4o-mini` si le premier échoue — la réponse l'indique : `provenance.modelUsed`, `provenance.fallbackUsed`, étape `mini`).
+
+**Aucune performance n'est garantie.** Précision, latence et coût sont **mesurés ou non affichés** :
+
+| Sujet | Statut |
+|-------|--------|
+| Précision de reconnaissance | **Non mesurée** (aucun jeu de photos réelles étiquetées). Méthode : `docs/AI-HONESTY-AND-MEASUREMENT.md` |
+| Latence (par étape, p50/p95) | Mesurée à chaque appel — `/admin/instantscan-performance` |
+| Jetons et coût | Jetons réels renvoyés par le fournisseur ; coût = **estimation** (table de prix versionnée `lib/ai/model-pricing.ts`) — `/admin/instantscan-performance` |
+
+Les anciens chiffres « CLIP 200 ms », « 98,5 % », « p95 < 2 s », « 0,003 $/analyse », « top 100 SKUs » étaient des **objectifs**, jamais des résultats ; ils ont été retirés.
+
+> Ce sont des **objectifs de conception, non mesurés** à ce jour : aucune mesure de précision, de latence ni de coût n'existe dans le dépôt (voir `docs/FINALISATION-MASTER.md` §5-I). Ne pas les présenter comme des performances.
 
 **Flags** : `ENABLE_INSTANTSCAN=1` (prod). Retrocompat : `ENABLE_AI_VISION_V2=1` + `ENABLE_AI_VISION_CASCADE=1` si `ENABLE_INSTANTSCAN=0`.
 
-**Telemetry** : PostHog `instant_scan_result`, `instant_scan_gate_triggered` — dashboard stub `/admin/instantscan-performance`.
+**Mesure** : chaque appel des clients LLM de l'application (OpenAI, Groq, Anthropic, Gemini, génération de description GPT-4o) écrit une ligne JSON `[ai-usage]` dans les logs et dans un journal borné (Redis si configuré, sinon mémoire de l'instance) — `lib/ai/usage-log.ts`. Périmètre exact et appels non couverts (modération, Replicate, Veo, scripts) : `docs/AI-HONESTY-AND-MEASUREMENT.md` ; un coût affiché est un minimum. Les événements PostHog `instant_scan_*` (`lib/telemetry.ts`) sont définis mais **jamais émis** : ne pas s'y fier.
 
 ## Push
 
 ```bash
-npm run push:safe
+git commit -m "…"                          # shell command 1
+npm run push:safe -- <your-branch>         # shell command 2, on its own (secret scan, fetch / pull --rebase / push with timeouts)
 ```
+
+Two separate commands (a `commit && push` can hang on the network). **Name the branch**: `scripts/git-push-safe.mjs` defaults to `main` when given no argument, even from another branch. Never a bare `git push origin main`:
+a push to `main` deploys to production. Work on a branch → Preview → pull request (details: `PUSH_INSTRUCTIONS.md`).
+If the change needs a migration, apply it **before** the push (see « Prisma / Neon » above).
 
 ## AliExpress Auto-Order Flow
 
@@ -185,7 +205,7 @@ Cron every 12h: `GET /api/aliexpress/refresh` (see `vercel.json`).
 
 ## Try-On AI
 
-Virtual try-on for **apparel** listings (Replicate IDM-VTON). Feature flag **OFF** in production by default (`TRY_ON_ENABLED=0`). QA: append `?tryon=true` on the PDP.
+Virtual try-on for **apparel** listings (Replicate IDM-VTON). Feature flag **OFF** in production by default (`TRY_ON_ENABLED=0`). QA: append `?tryon=1` on the PDP of a **Preview or local** run — the query-string override is ignored in production (AGENTS.md, « Virtual try-on »).
 
 ### Production go-live checklist
 
@@ -194,9 +214,10 @@ Virtual try-on for **apparel** listings (Replicate IDM-VTON). Feature flag **OFF
    - `REPLICATE_API_TOKEN`
    - `BLOB_READ_WRITE_TOKEN`
    - `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`
-   - `TRY_ON_ENABLED=1` when ready (else QA with `?tryon=true`)
-   - Optional: `AZURE_CONTENT_SAFETY_*`, `REPLICATE_WEBHOOK_SECRET`
-3. **Migration** (already on Neon if you ran `npm run migrate:deploy`): `20260618200000_try_on_ai`.
+   - `TRY_ON_ENABLED=1` when ready (on a Preview, QA with `?tryon=1`)
+   - Optional: `AZURE_CONTENT_SAFETY_*`; `REPLICATE_WEBHOOK_SECRET` (Replicate signing secret — activates signature verification of `/api/try-on/webhook`; exact steps in `docs/EXTERNAL-OPS-RUNBOOK.md` §6)
+3. **Migration** `20260618200000_try_on_ai`: apply it by hand **before** deploying, on staging then production, with `DATABASE_URL='<url>' npm run schema:migrate -- --expect-endpoint <ep-id> [--confirm-production]`
+   and check with `npm run schema:verify` (never `npm run migrate:deploy`: it targets the default database). The Vercel build only verifies.
 4. **Cron** — `vercel.json` runs `/api/cron/try-on-retention` daily (GDPR blob cleanup).
 5. **Pilot product**:
    ```bash

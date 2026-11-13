@@ -8,6 +8,12 @@ import {
   PAYOUT_EXCEEDS_LINE_ERROR,
 } from "@/lib/money/split-guard"
 import { evaluateTransferReleaseForRole } from "@/lib/order-transfer-gating"
+import { hasOpenDisputeHold } from "@/lib/orders/dispute-hold.server"
+import {
+  isOrderClosedForPayout,
+  isOrderPayoutHeldForDispute,
+  settlementAfterTransfersSucceeded,
+} from "@/lib/orders/payment-state"
 import {
   marketplaceRoleAlreadySettled,
   recordStripePayoutSettlement,
@@ -16,6 +22,11 @@ import {
 import { computeSplitStatusFromAttempts } from "@/lib/transfers/compute-split-status"
 import { alertSplitTransferFailed } from "@/lib/transfers/split-slack-alert"
 import { logStripeWebhookError, logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
+import {
+  ENGINE_JOB_ATTRIBUTION_SELECT,
+  jobAttributionOf,
+  jobSupplierOrderCoversOrder,
+} from "@/lib/fulfillment/engine-job-attribution"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
 import * as Sentry from "@sentry/nextjs"
@@ -76,7 +87,8 @@ async function applyOrderSettlement(orderId: string) {
     }
   }
   if (splitStatus === "SUCCESS") {
-    data.paymentSettlementStatus = "SETTLED"
+    // Never overwrite a refund state with SETTLED (a charge refunded after the payouts left is owned by the clawback pipeline).
+    data.paymentSettlementStatus = settlementAfterTransfersSucceeded(order.paymentSettlementStatus)
     if (order.payoutStatus === "PENDING") {
       data.payoutStatus = "PAID"
     }
@@ -132,7 +144,7 @@ async function processOneAttempt(
           autoBuyLog: { select: { status: true } },
           supplierFulfillmentLinks: {
             select: {
-              supplierFulfillmentOrder: { select: { status: true } },
+              supplierFulfillmentOrder: { select: { status: true, ...ENGINE_JOB_ATTRIBUTION_SELECT } },
             },
           },
         },
@@ -150,6 +162,36 @@ async function processOneAttempt(
       reason: "already_paid_via_lightning",
     })
     return "skipped"
+  }
+
+  // A refunded / cancelled order must not release a transfer: cancel the pending attempt instead of paying out of a
+  // charge that went back to the buyer (finalisation master doc, D1/D3).
+  if (isOrderClosedForPayout(attempt.order)) {
+    console.log("[transfer-gating]", {
+      orderId: attempt.orderId,
+      role: attempt.role,
+      reason: "order_closed",
+      status: attempt.order.status,
+      settlementStatus: attempt.order.paymentSettlementStatus,
+    })
+    await prisma.$transaction(async (tx) => {
+      await supersedePendingTransferAttempt(tx, attempt.orderId, attempt.role, "ORDER_CLOSED")
+    })
+    return "skipped"
+  }
+
+  // A dispute (chargeback) is open on the charge: the buyer's bank already pulled the money from the platform balance, so
+  // nothing may be released until it is decided. The attempt stays PENDING (not cancelled, attempts not consumed): it is
+  // released after a won dispute and superseded as ORDER_CLOSED after a lost one (finalisation master doc, D7). The ledger
+  // is asked, not only `Order.status`: another writer can overwrite "disputed" with "shipped" while the dispute is open.
+  if (isOrderPayoutHeldForDispute(attempt.order, await hasOpenDisputeHold(attempt.orderId))) {
+    console.log("[transfer-gating]", {
+      orderId: attempt.orderId,
+      role: attempt.role,
+      reason: "dispute_open",
+      status: attempt.order.status,
+    })
+    return "held"
   }
 
   const beneficiaryRole = attempt.role as "SUPPLIER" | "AFFILIATE"
@@ -172,9 +214,13 @@ async function processOneAttempt(
     payoutEligibleAt: attempt.order.payoutEligibleAt,
     fulfillmentStatus: attempt.order.fulfillmentStatus,
     autoBuyLogStatus: attempt.order.autoBuyLog?.status ?? null,
-    supplierJobStatuses: attempt.order.supplierFulfillmentLinks.map(
-      (l) => l.supplierFulfillmentOrder.status
-    ),
+    // Only the jobs whose supplier order really covers THIS order count as "upstream funded" (an AliExpress job buys its first
+    // line only: the second order of a cart must not be released on the strength of the first one's purchase).
+    supplierJobStatuses: attempt.order.supplierFulfillmentLinks
+      .filter((l) =>
+        jobSupplierOrderCoversOrder(jobAttributionOf(l.supplierFulfillmentOrder), attempt.orderId)
+      )
+      .map((l) => l.supplierFulfillmentOrder.status),
     returns: attempt.order.returns,
   })
 
