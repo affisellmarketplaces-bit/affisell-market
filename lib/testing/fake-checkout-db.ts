@@ -47,6 +47,8 @@ export const fakeCheckoutDb = (() => {
     variantsAsText: false,
     /** True while a `$transaction` callback is running (lets a test assert "never inside the transaction"). */
     inTransaction: false,
+    /** Set when a unique violation happened INSIDE a transaction: Postgres aborts it, the commit fails and everything rolls back. */
+    txPoisoned: false,
   }
 
   const snapshot = () => ({
@@ -110,7 +112,44 @@ export const fakeCheckoutDb = (() => {
     },
   }
 
+  const auditApi = {
+    create: async ({ data }: any) => {
+      if (db.audit.has(data.id)) {
+        // Real Postgres: catching this error INSIDE a transaction does not save it — the transaction is aborted.
+        if (db.inTransaction) db.txPoisoned = true
+        throw Object.assign(new Error("Unique constraint failed"), { code: "P2002" })
+      }
+      db.audit.set(data.id, { ...clone(data), createdAt: new Date() })
+      return data
+    },
+    /** `skipDuplicates: true` is `INSERT … ON CONFLICT DO NOTHING`: an existing id is skipped, never an error. */
+    createMany: async ({ data, skipDuplicates }: any) => {
+      let count = 0
+      for (const row of data) {
+        if (db.audit.has(row.id)) {
+          if (skipDuplicates) continue
+          if (db.inTransaction) db.txPoisoned = true
+          throw Object.assign(new Error("Unique constraint failed"), { code: "P2002" })
+        }
+        db.audit.set(row.id, { ...clone(row), createdAt: new Date() })
+        count++
+      }
+      return { count }
+    },
+    findUnique: async ({ where }: any) => db.audit.get(where.id) ?? null,
+    findMany: async ({ where }: any = {}) =>
+      [...db.audit.values()].filter((r) => {
+        if (where?.id !== undefined && !matchesId(r.id, where.id)) return false
+        if (where?.action !== undefined && r.action !== where.action) return false
+        if (where?.entityId !== undefined && !matchesId(r.entityId ?? "", where.entityId)) return false
+        const pj = where?.payload
+        if (pj?.path && pathValue(r.payload, pj.path) !== pj.equals) return false
+        return true
+      }),
+  }
+
   const tx = {
+    auditLog: auditApi,
     $executeRaw: async () => 0,
     $queryRaw: async (strings: TemplateStringsArray, id: string) => {
       const sql = strings.join("?")
@@ -194,8 +233,11 @@ export const fakeCheckoutDb = (() => {
     $transaction: async (fn: (t: typeof tx) => Promise<unknown>) => {
       const snap = snapshot()
       db.inTransaction = true
+      db.txPoisoned = false
       try {
-        return await fn(tx)
+        const result = await fn(tx)
+        if (db.txPoisoned) throw new Error("current transaction is aborted, commands ignored until end of transaction block")
+        return result
       } catch (err) {
         restore(snap)
         throw err
@@ -206,23 +248,7 @@ export const fakeCheckoutDb = (() => {
     order: { ...orderApi },
     affiliateProduct: { findUnique: tx.affiliateProduct.findUnique },
     transferAttempt: tx.transferAttempt,
-    auditLog: {
-      create: async ({ data }: any) => {
-        if (db.audit.has(data.id)) throw Object.assign(new Error("Unique constraint failed"), { code: "P2002" })
-        db.audit.set(data.id, { ...clone(data), createdAt: new Date() })
-        return data
-      },
-      findUnique: async ({ where }: any) => db.audit.get(where.id) ?? null,
-      findMany: async ({ where }: any = {}) =>
-        [...db.audit.values()].filter((r) => {
-          if (where?.id !== undefined && !matchesId(r.id, where.id)) return false
-          if (where?.action !== undefined && r.action !== where.action) return false
-          if (where?.entityId !== undefined && !matchesId(r.entityId ?? "", where.entityId)) return false
-          const pj = where?.payload
-          if (pj?.path && pathValue(r.payload, pj.path) !== pj.equals) return false
-          return true
-        }),
-    },
+    auditLog: auditApi,
   }
 
   function reset() {
@@ -238,6 +264,7 @@ export const fakeCheckoutDb = (() => {
     db.locks.length = 0
     db.variantsAsText = false
     db.inTransaction = false
+    db.txPoisoned = false
   }
 
   return { db, prisma, tx, snapshot, restore, reset }

@@ -22,6 +22,7 @@ vi.mock("@sentry/nextjs", () => ({ captureMessage: h.captureMessage, captureExce
 import {
   UNALLOCATED_LINE_AUDIT_ACTION,
   UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION,
+  buildUnallocatedLineTraceRow,
   classifyRefundForCharge,
   computeUnallocatedLineRefundCents,
   isUnallocatedLineAutoRefundEnabled,
@@ -37,6 +38,7 @@ import {
   loadTracedUnallocatedLinesForPaymentIntent,
   recordManualUnallocatedRefund,
   recordUnallocatedLines,
+  writeUnallocatedTracesInTransaction,
 } from "@/lib/unallocated-line.server"
 
 const session = {
@@ -57,6 +59,9 @@ const line = (over: Partial<UnallocatedLine> = {}): UnallocatedLine => ({
   paidLineCents: 5_000,
   ...over,
 })
+
+const rowsOf = (action: string) => h.auditCreate.mock.calls.filter((c) => c[0].data.action === action)
+const traceRows = () => rowsOf(UNALLOCATED_LINE_AUDIT_ACTION)
 
 const uniqueViolation = () => Object.assign(new Error("Unique constraint failed"), { code: "P2002" })
 
@@ -119,8 +124,11 @@ describe("recordUnallocatedLines — trace + alert (refund disabled by default)"
     const out = await recordUnallocatedLines({ session, lines: [line()], appliedRewardCents: 300 })
 
     expect(out).toEqual([{ key: "cs_test_1:line:1", trace: "created", refund: "disabled" }])
-    expect(h.auditCreate).toHaveBeenCalledTimes(1)
-    const data = h.auditCreate.mock.calls[0]![0].data
+    expect(traceRows()).toHaveLength(1)
+    // …and the alert is marked sent by its own deterministic row (the trace is written before the response, the alert after)
+    expect(rowsOf("payment.unallocated_line.alerted")).toHaveLength(1)
+    expect(rowsOf("payment.unallocated_line.alerted")[0]![0].data.id).toBe("unallocated-line-alerted:cs_test_1:line:1")
+    const data = traceRows()[0]![0].data
     expect(data).toMatchObject({
       id: "unallocated-line:cs_test_1:line:1",
       action: UNALLOCATED_LINE_AUDIT_ACTION,
@@ -155,12 +163,23 @@ describe("recordUnallocatedLines — trace + alert (refund disabled by default)"
     expect(h.captureMessage.mock.calls[0]![0]).toContain("UNALLOCATED_LINE")
   })
 
-  it("is idempotent: a replay finds the trace (unique id), alerts nobody again", async () => {
+  it("is idempotent: a replay finds the trace (unique id) and the 'alerted' mark, alerts nobody again", async () => {
     h.auditCreate.mockRejectedValueOnce(uniqueViolation())
+    h.auditFindUnique.mockImplementation(async ({ where }: { where: { id: string } }) =>
+      where.id.startsWith("unallocated-line-alerted:") ? { id: where.id } : null
+    )
     const out = await recordUnallocatedLines({ session, lines: [line()] })
     expect(out[0]).toMatchObject({ trace: "existing", refund: "disabled" })
     expect(h.opsAlert).not.toHaveBeenCalled()
     expect(h.refundsCreate).not.toHaveBeenCalled()
+  })
+
+  it("a trace written INSIDE the fulfilment transaction (the row already exists) but never alerted: the next pass alerts, once", async () => {
+    h.auditCreate.mockRejectedValueOnce(uniqueViolation()) // the in-transaction write got there first
+    const out = await recordUnallocatedLines({ session, lines: [line()] })
+    expect(out[0]).toMatchObject({ trace: "existing" })
+    expect(h.opsAlert).toHaveBeenCalledTimes(1)
+    expect(rowsOf("payment.unallocated_line.alerted")).toHaveLength(1)
   })
 
   it("still alerts when the trace itself can not be written, and never throws", async () => {
@@ -184,8 +203,8 @@ describe("recordUnallocatedLines — trace + alert (refund disabled by default)"
       lines: [line({ lineIndex: 0 }), line({ lineIndex: 2, reason: "insufficient_stock", detail: { available: 0, requested: 2 } })],
     })
     expect(out.map((o) => o.key)).toEqual(["cs_test_1:line:0", "cs_test_1:line:2"])
-    expect(h.auditCreate).toHaveBeenCalledTimes(2)
-    expect(h.auditCreate.mock.calls[1]![0].data.payload).toMatchObject({
+    expect(traceRows()).toHaveLength(2)
+    expect(traceRows()[1]![0].data.payload).toMatchObject({
       reason: "insufficient_stock",
       detail: { available: 0, requested: 2 },
     })
@@ -215,9 +234,9 @@ describe("recordUnallocatedLines — automatic refund, only with UNALLOCATED_LIN
       }),
     })
     expect(opts).toEqual({ idempotencyKey: "unallocated-line-refund:cs_test_1:line:1" })
-    // the second audit row is the proof that this line went back to the buyer
-    expect(h.auditCreate).toHaveBeenCalledTimes(2)
-    expect(h.auditCreate.mock.calls[1]![0].data).toMatchObject({
+    // the refunded row is the proof that this line went back to the buyer
+    expect(rowsOf(UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION)).toHaveLength(1)
+    expect(rowsOf(UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION)[0]![0].data).toMatchObject({
       id: "unallocated-line-refunded:cs_test_1:line:1",
       action: UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION,
       payload: expect.objectContaining({ stripeRefundId: "re_1", amountCents: 6_000 }),
@@ -346,8 +365,8 @@ describe("classifyRefundForCharge — whom a refund of the charge belongs to", (
       lineKey: "cs_1:line:1",
       via: "recorded",
     })
-    // and a SECOND refund of that amount can no longer claim the already refunded line
-    expect(classifyRefundForCharge({ refund: { id: "re_second", amount: 2_000 }, tracedLines: recorded, orderChargedTotalsCents: [1_000] })).toEqual({ kind: "ambiguous" })
+    // a SECOND bare refund can no longer claim the already refunded line: with every line refunded it can only be an order's
+    expect(classifyRefundForCharge({ refund: { id: "re_second", amount: 2_000 }, tracedLines: recorded, orderChargedTotalsCents: [1_000] })).toEqual({ kind: "order" })
   })
 
   it("a refund that NAMES an order is that order's, even when a line is traced", () => {
@@ -358,9 +377,10 @@ describe("classifyRefundForCharge — whom a refund of the charge belongs to", (
     expect(classify({ id: "re_x", amount: 2_000, metadata: {} }, { orderChargedTotalsCents: [2_000] })).toEqual({ kind: "ambiguous" })
   })
 
-  it("any other bare refund on a charge that carries unallocated money is ambiguous (not applied to the sibling order)", () => {
+  it("while a line is still owed, a bare PARTIAL refund could be either: ambiguous (not applied to the sibling order)", () => {
     expect(classify({ id: "re_x", amount: 500, metadata: {} })).toEqual({ kind: "ambiguous" })
-    expect(classify({ id: "re_x", amount: 1_000, metadata: null })).toEqual({ kind: "ambiguous" })
+    // the dashboard's default amount: the whole charge (order 1 000 + owed line 2 000)
+    expect(classify({ id: "re_x", amount: 3_000, metadata: null })).toEqual({ kind: "ambiguous" })
   })
 
   it("two identical lines are claimed one refund each, never twice", () => {
@@ -372,7 +392,8 @@ describe("classifyRefundForCharge — whom a refund of the charge belongs to", (
     const a = classifyRefundForCharge({ refund: { id: "r1", amount: 2_000 }, tracedLines: two, orderChargedTotalsCents: [], claimed })
     const b = classifyRefundForCharge({ refund: { id: "r2", amount: 2_000 }, tracedLines: two, orderChargedTotalsCents: [], claimed })
     const c = classifyRefundForCharge({ refund: { id: "r3", amount: 2_000 }, tracedLines: two, orderChargedTotalsCents: [], claimed })
-    expect([a, b, c].map((x) => (x.kind === "unallocated" ? x.lineKey : x.kind))).toEqual(["cs_1:line:1", "cs_1:line:2", "ambiguous"])
+    // once both lines are claimed nothing is left to be ambiguous about: the third refund can only concern an order
+    expect([a, b, c].map((x) => (x.kind === "unallocated" ? x.lineKey : x.kind))).toEqual(["cs_1:line:1", "cs_1:line:2", "order"])
   })
 })
 
@@ -421,5 +442,75 @@ describe("reading the trace back for a charge", () => {
     await alertUnattributedChargeRefund({ chargeId: "ch_1", stripeRefundId: "re_x", amountCents: 500 })
     expect(h.opsAlert.mock.calls[0]![0]).toContain("NOT applied to any order")
     expect(h.auditCreate).not.toHaveBeenCalled()
+  })
+})
+
+describe("classifyRefundForCharge — bare (dashboard) refunds, table (#1: a refund that can only concern the remaining order is NOT dropped)", () => {
+  type Line = { key: string; refundableCents: number | null; refundedByRefundId: string | null }
+  const owed = (key: string, cents: number | null): Line => ({ key, refundableCents: cents, refundedByRefundId: null })
+  const done = (key: string, cents: number, by: string): Line => ({ key, refundableCents: cents, refundedByRefundId: by })
+  const bare = (amount: number) => ({ id: `re_${amount}`, amount, metadata: {} })
+
+  const table: Array<{ name: string; lines: Line[]; orders: number[]; amount: number; expected: "order" | "ambiguous" | "unallocated" }> = [
+    // the common follow-up: the lost line was refunded, support then refunds the remaining order by hand
+    { name: "S1: line refunded, the whole order refunded", lines: [done("c:line:1", 5_000, "re_C")], orders: [10_000], amount: 10_000, expected: "order" },
+    { name: "S1b: line refunded, a partial refund of the order", lines: [done("c:line:1", 5_000, "re_C")], orders: [10_000], amount: 3_000, expected: "order" },
+    { name: "line refunded, an amount that equals the line's own", lines: [done("c:line:1", 5_000, "re_C")], orders: [10_000], amount: 5_000, expected: "order" },
+    { name: "every line refunded, several of them", lines: [done("c:line:1", 5_000, "re_C"), done("c:line:2", 2_000, "re_D")], orders: [10_000], amount: 7_777, expected: "order" },
+    // a line is still owed
+    { name: "owed line, a refund of exactly its amount", lines: [owed("c:line:1", 5_000)], orders: [10_000], amount: 5_000, expected: "unallocated" },
+    { name: "owed line, a refund of exactly the order's total (and no line's)", lines: [owed("c:line:1", 5_000)], orders: [10_000], amount: 10_000, expected: "order" },
+    { name: "S2: owed line, the dashboard's whole-charge default", lines: [owed("c:line:1", 5_000)], orders: [10_000], amount: 15_000, expected: "ambiguous" },
+    { name: "owed line, a partial refund of the order", lines: [owed("c:line:1", 5_000)], orders: [10_000], amount: 3_000, expected: "ambiguous" },
+    { name: "owed line, an amount bigger than the order and smaller than the charge", lines: [owed("c:line:1", 5_000)], orders: [10_000], amount: 12_000, expected: "ambiguous" },
+    { name: "the amount is both an owed line's and an order's total", lines: [owed("c:line:1", 10_000)], orders: [10_000], amount: 10_000, expected: "ambiguous" },
+    { name: "an owed line of unknown amount: only an exact order total could be told apart, and it can not", lines: [owed("c:line:1", null)], orders: [10_000], amount: 10_000, expected: "ambiguous" },
+    { name: "two owed lines refunded together equal an order's total: lines, not the order", lines: [owed("c:line:1", 4_000), owed("c:line:2", 6_000)], orders: [10_000], amount: 10_000, expected: "ambiguous" },
+    { name: "one owed, one refunded line: an order-sized refund is the order's", lines: [owed("c:line:1", 4_000), done("c:line:2", 6_000, "re_D")], orders: [10_000], amount: 10_000, expected: "order" },
+    { name: "no open order at all (every order closed) and a line still owed", lines: [owed("c:line:1", 5_000)], orders: [], amount: 3_000, expected: "ambiguous" },
+  ]
+  for (const row of table) {
+    it(row.name, () => {
+      const res = classifyRefundForCharge({ refund: bare(row.amount), tracedLines: row.lines, orderChargedTotalsCents: row.orders })
+      expect(res.kind).toBe(row.expected)
+    })
+  }
+
+  it("never attributes a refund to the sibling order while something could still be a line refund (no refund of the table above both applies and is ambiguous)", () => {
+    for (const row of table.filter((r) => r.expected === "ambiguous")) {
+      const res = classifyRefundForCharge({ refund: bare(row.amount), tracedLines: row.lines, orderChargedTotalsCents: row.orders })
+      expect(res.kind, row.name).not.toBe("order")
+    }
+  })
+})
+
+describe("the trace row (one builder for the in-transaction and the after-response write)", () => {
+  it("is deterministic and carries what the refund handler and ops need", () => {
+    const row = buildUnallocatedLineTraceRow({ session: session as never, line: line(), appliedRewardCents: 300, autoRefundEnabled: false })
+    expect(row).toMatchObject({
+      id: "unallocated-line:cs_test_1:line:1",
+      action: UNALLOCATED_LINE_AUDIT_ACTION,
+      entityType: "StripeCheckoutLine",
+      entityId: "cs_test_1:line:1",
+      payload: { reason: "listing_inactive", refundableCents: 6_000, paymentIntentId: "pi_1", appliedRewardCents: 300, currency: "eur" },
+    })
+    expect(buildUnallocatedLineTraceRow({ session: session as never, line: line(), appliedRewardCents: 300, autoRefundEnabled: false })).toEqual(row)
+  })
+
+  it("is written inside a transaction with createMany + skipDuplicates (never by catching a unique violation)", async () => {
+    const createMany = vi.fn(async () => ({ count: 1 }))
+    await writeUnallocatedTracesInTransaction({ auditLog: { createMany } } as never, {
+      session: session as never,
+      lines: [line({ lineIndex: 0 }), line({ lineIndex: 2 })],
+      appliedRewardCents: 100,
+    })
+    expect(createMany).toHaveBeenCalledTimes(1)
+    const arg = (createMany.mock.calls[0] as unknown as [{ data: Array<{ id: string }>; skipDuplicates: boolean }])[0]
+    expect(arg.skipDuplicates).toBe(true)
+    expect(arg.data.map((d) => d.id)).toEqual(["unallocated-line:cs_test_1:line:0", "unallocated-line:cs_test_1:line:2"])
+    // nothing to write: no statement at all
+    createMany.mockClear()
+    await writeUnallocatedTracesInTransaction({ auditLog: { createMany } } as never, { session: session as never, lines: [] })
+    expect(createMany).not.toHaveBeenCalled()
   })
 })

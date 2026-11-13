@@ -299,3 +299,103 @@ describe("MANUAL refund (Stripe dashboard — no marker, no order id) of an unal
     expect(orderUpdates.find((u) => u.id === "A")?.data).toMatchObject({ status: "refunded" })
   })
 })
+
+describe("#1 — a bare (dashboard) refund of the REMAINING order on a charge that has a traced line is applied to that order, not dropped", () => {
+  // order A 10 EUR; lost line C 5 EUR, ALREADY refunded (marker refund + proof row): what production always has
+  const seed = (opts: { cRefunded: boolean }) => {
+    audit.set("unallocated-line:cs_1:line:1", {
+      id: "unallocated-line:cs_1:line:1",
+      action: "payment.unallocated_line",
+      entityId: "cs_1:line:1",
+      payload: { paymentIntentId: "pi_1", refundableCents: 500 },
+    })
+    if (opts.cRefunded) {
+      audit.set("unallocated-line-refunded:cs_1:line:1", {
+        id: "unallocated-line-refunded:cs_1:line:1",
+        action: "payment.unallocated_line.refunded",
+        entityId: "cs_1:line:1",
+        payload: { stripeRefundId: "re_C", amountCents: 500 },
+      })
+    }
+  }
+
+  beforeEach(() => {
+    for (const k of Object.keys(orders)) delete orders[k]
+    audit.clear()
+    recordedRefunds.length = 0
+    orderUpdates.length = 0
+    reverse.mockClear()
+    clawbackFull.mockClear()
+    clawbackPartial.mockClear()
+    notifyCancelled.mockClear()
+    opsAlert.mockClear()
+    orders.A = row("A", 1000)
+  })
+
+  it("S1: the lost line was refunded (marker refund), then support refunds the whole order from the dashboard: A is refunded, payouts clawed back", async () => {
+    seed({ cRefunded: true })
+    const res = await handleStripeChargeRefundedWithCommission(
+      charge(
+        [
+          { id: "re_C", amount: 500, unallocated: true },
+          { id: "re_A", amount: 1000 },
+        ],
+        1500,
+        1500
+      )
+    )
+    expect(res.processedOrderIds).toEqual(["A"])
+    expect(recordedRefunds).toEqual([expect.objectContaining({ orderId: "A", stripeRefundId: "re_A", amountCents: 1000 })])
+    expect(clawbackFull).toHaveBeenCalledTimes(1)
+    expect(orderUpdates.find((u) => u.id === "A")?.data).toMatchObject({ status: "refunded", paymentSettlementStatus: "REFUNDED" })
+    expect(opsAlert.mock.calls.some((c) => String(c[0]).includes("NOT applied to any order"))).toBe(false)
+  })
+
+  it("S1b: the lost line was refunded BY HAND (proof recorded, bare refund), then a partial bare refund of the order: PARTIALLY_REFUNDED", async () => {
+    seed({ cRefunded: true })
+    audit.set("unallocated-line-refunded:cs_1:line:1", {
+      id: "unallocated-line-refunded:cs_1:line:1",
+      action: "payment.unallocated_line.refunded",
+      entityId: "cs_1:line:1",
+      payload: { stripeRefundId: "re_Cbare", amountCents: 500, source: "manual_dashboard" },
+    })
+    await handleStripeChargeRefundedWithCommission(charge([{ id: "re_Cbare", amount: 500 }, { id: "re_A", amount: 300 }], 800, 1500))
+    expect(recordedRefunds).toEqual([expect.objectContaining({ orderId: "A", stripeRefundId: "re_A", amountCents: 300 })])
+    expect(clawbackFull).not.toHaveBeenCalled()
+    expect(orderUpdates.find((u) => u.id === "A")?.data).toEqual({ paymentSettlementStatus: "PARTIALLY_REFUNDED" })
+  })
+
+  it("the line still owed + a bare refund of exactly the order's total: the order's (applied)", async () => {
+    seed({ cRefunded: false })
+    await handleStripeChargeRefundedWithCommission(charge([{ id: "re_A", amount: 1000 }], 1000, 1500))
+    expect(recordedRefunds).toEqual([expect.objectContaining({ orderId: "A", stripeRefundId: "re_A" })])
+    expect(clawbackFull).toHaveBeenCalledTimes(1)
+  })
+
+  it("S2: the line still owed + the dashboard's whole-charge default amount: ambiguous, applied to NOTHING, ops alerted (no clawback, order unchanged)", async () => {
+    seed({ cRefunded: false })
+    const res = await handleStripeChargeRefundedWithCommission(charge([{ id: "re_all", amount: 1500 }], 1500, 1500))
+    expect(res.processedOrderIds).toEqual([])
+    expect(recordedRefunds).toEqual([])
+    expect(orderUpdates).toEqual([])
+    expect(clawbackFull).not.toHaveBeenCalled()
+    expect(opsAlert.mock.calls.some((c) => String(c[0]).includes("NOT applied to any order"))).toBe(true)
+  })
+
+  it("the line still owed + a partial bare refund: still ambiguous (it could be the line's), never the sibling order's", async () => {
+    seed({ cRefunded: false })
+    await handleStripeChargeRefundedWithCommission(charge([{ id: "re_x", amount: 300 }], 300, 1500))
+    expect(recordedRefunds).toEqual([])
+    expect(orderUpdates).toEqual([])
+    expect(clawbackPartial).not.toHaveBeenCalled()
+  })
+
+  it("a replay of the same event after the order refund changes nothing more (the refund is already recorded)", async () => {
+    seed({ cRefunded: true })
+    const ev = () => charge([{ id: "re_C", amount: 500, unallocated: true }, { id: "re_A", amount: 1000 }], 1500, 1500)
+    await handleStripeChargeRefundedWithCommission(ev())
+    const n = recordedRefunds.length
+    await handleStripeChargeRefundedWithCommission(ev())
+    expect(recordedRefunds).toHaveLength(n)
+  })
+})

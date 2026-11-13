@@ -10,14 +10,26 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { fakeCheckoutDb } from "@/lib/testing/fake-checkout-db"
 
 vi.mock("@/lib/prisma", async () => ({ prisma: (await import("@/lib/testing/fake-checkout-db")).fakeCheckoutDb.prisma }))
-vi.mock("@/lib/after-response", () => ({ runAfterResponse: async (_l: string, task: () => Promise<unknown>) => void (await task()) }))
+const afterResponse = vi.hoisted(() => ({ drop: false }))
+vi.mock("@/lib/after-response", () => ({
+  runAfterResponse: async (_l: string, task: () => Promise<unknown>) => {
+    if (afterResponse.drop) return // the instance was cut / the task never ran
+    await task()
+  },
+}))
 vi.mock("@sentry/nextjs", () => ({ captureMessage: vi.fn(), captureException: vi.fn() }))
 
 const stripeRefunds = vi.hoisted(() => ({ create: vi.fn(), list: vi.fn() }))
 const redeemReward = vi.hoisted(() => vi.fn(async (_db: unknown, _args: unknown) => ({ ok: true })))
 const confirmationEmails = vi.hoisted(() => ({ sent: [] as Array<{ orderId: string; insideTransaction: boolean }> }))
 const opsAlert = vi.hoisted(() => vi.fn())
-vi.mock("@/lib/stripe", () => ({ getStripeClient: () => ({ refunds: stripeRefunds }) }))
+vi.mock("@/lib/stripe", () => ({
+  getStripeClient: () => ({
+    refunds: stripeRefunds,
+    // read by the real settlement scheduler (charge id of the payment)
+    paymentIntents: { retrieve: async () => ({ latest_charge: "ch_1" }) },
+  }),
+}))
 vi.mock("@/lib/ops-webhook", () => ({ opsWebhookAlert: opsAlert }))
 
 // Collaborators unrelated to D6 / G1
@@ -168,10 +180,12 @@ function fulfil(session: never) {
 
 const paidOrders = () => [...db.orders.values()].filter((o) => o.status === "paid")
 const trace = (key: string) => db.audit.get(`unallocated-line:${key}`)
+const traceIds = () => [...db.audit.keys()].filter((k) => k.startsWith("unallocated-line:"))
 
 beforeEach(() => {
   vi.clearAllMocks()
   fakeCheckoutDb.reset()
+  afterResponse.drop = false
   confirmationEmails.sent.length = 0
   stripeRefunds.list.mockResolvedValue({ data: [] })
   delete process.env.UNALLOCATED_LINE_AUTO_REFUND
@@ -239,7 +253,7 @@ describe("D6 — a paid line without an order is never silently dropped", () => 
     await fulfil(session)
     await fulfil(session)
     expect(paidOrders()).toHaveLength(1)
-    expect([...db.audit.keys()]).toEqual(["unallocated-line:cs_1:line:1"])
+    expect(traceIds()).toEqual(["unallocated-line:cs_1:line:1"])
     expect(opsAlert).toHaveBeenCalledTimes(1)
     expect(stripeRefunds.create).not.toHaveBeenCalled()
   })
@@ -512,7 +526,7 @@ describe("G1 — stock is taken atomically with the order, never negative, never
     // replays do not duplicate the trace or the alert
     await fulfil(singleSession(2, 4000))
     expect(opsAlert).toHaveBeenCalledTimes(1)
-    expect([...db.audit.keys()]).toEqual(["unallocated-line:cs_1:line:0"])
+    expect(traceIds()).toEqual(["unallocated-line:cs_1:line:0"])
   })
 
   it("single-line checkout without a pre-created order: stock is taken with the new order", async () => {
@@ -832,73 +846,95 @@ describe("C2 — a product whose variants live only in the ProductVariant table 
   })
 })
 
-describe("F3 — CHECKOUT_STOCK_MODE: warn (the default) never drops a paid line and never goes below 0", () => {
+describe("F3 — CHECKOUT_STOCK_MODE: warn (the default) is a DRY RUN: it writes nothing to the stock and never drops a paid line", () => {
   const oneLine = (qty = 1, sig = ""): CartLine[] => [{ affiliateProductId: "ap1", qty, variantSignature: sig }]
-  const warnLogs = () => vi.spyOn(console, "log")
+  const stockLogs = (log: ReturnType<typeof vi.spyOn>) =>
+    log.mock.calls.filter((c) => c[0] === "[stock]").map((c) => c[1] as Record<string, unknown>)
 
   beforeEach(() => {
     delete process.env.CHECKOUT_STOCK_MODE // the default
   })
 
-  it("the default mode is warn: a sold-out paid line is still an order, the stock is emptied not negative, 'would_drop' is logged", async () => {
-    const log = warnLogs()
+  it("the default mode is warn: a sold-out paid line is still an order, the stock is NOT touched, 'would_drop' is logged", async () => {
+    const log = vi.spyOn(console, "log")
     db.products.get("p1")!.stock = 1
     await fulfil(cartSession(oneLine(3), [6000]))
 
     expect(paidOrders()).toHaveLength(1) // the paid line is NOT removed
-    expect(db.products.get("p1")!.stock).toBe(0) // emptied, never negative
+    expect(db.products.get("p1")!.stock).toBe(1) // nothing written
+    expect(db.locks).toHaveLength(0) // not even a lock
     expect(db.audit.size).toBe(0) // not an unallocated line: no trace, no alert, no refund
     expect(opsAlert).not.toHaveBeenCalled()
     expect(stripeRefunds.create).not.toHaveBeenCalled()
-    const wouldDrop = log.mock.calls.find((c) => c[0] === "[stock]" && (c[1] as { result?: string }).result === "would_drop")
-    expect(wouldDrop?.[1]).toMatchObject({ productId: "p1", qty: 3, before: 1, after: 0, shortfall: { available: 1, requested: 3 } })
+    expect(stockLogs(log).find((l) => l.result === "would_drop")).toMatchObject({
+      productId: "p1",
+      mode: "warn",
+      qty: 3,
+      available: 1,
+      requested: 3,
+    })
     log.mockRestore()
   })
 
-  it("an already empty stock stays at 0 and the order still goes through", async () => {
-    db.products.get("p1")!.stock = 0
-    await fulfil(cartSession(oneLine(1), [2000]))
-    expect(paidOrders()).toHaveLength(1)
-    expect(db.products.get("p1")!.stock).toBe(0)
-  })
-
-  it("with enough stock it decrements normally", async () => {
+  it("with enough stock it logs 'would_decrement' (before / after) and still writes nothing", async () => {
+    const log = vi.spyOn(console, "log")
     await fulfil(cartSession(oneLine(2), [4000]))
-    expect(db.products.get("p1")!.stock).toBe(3)
-  })
-
-  it("a stale read can not push the stock below 0 in warn mode either", async () => {
-    db.products.get("p1")!.stock = 0
-    db.staleStock = 5
-    await fulfil(cartSession(oneLine(2), [4000]))
-    expect(db.products.get("p1")!.stock).toBe(0)
     expect(paidOrders()).toHaveLength(1)
+    expect(db.products.get("p1")!.stock).toBe(5) // enforce would have left 3
+    expect(db.locks).toHaveLength(0)
+    expect(stockLogs(log).find((l) => l.result === "would_decrement")).toMatchObject({ mode: "warn", before: 5, after: 3, qty: 2 })
+    expect(stockLogs(log).some((l) => l.result === "reserved")).toBe(false)
+    log.mockRestore()
   })
 
-  it("variant rows: the row is emptied (never negative) and the paid line kept", async () => {
-    db.products.get("p1")!.stock = 3
-    db.products.get("p1")!.variants = {
+  it("a nominal-stock product (AliExpress `stock > 0 ? stock : 1`) is NOT sold out by its first sale: the PDP keeps selling", async () => {
+    db.products.get("p1")!.stock = 1
+    await fulfil(cartSession(oneLine(1), [2000], { id: "cs_A" }))
+    await fulfil(cartSession(oneLine(1), [2000], { id: "cs_B" }))
+    expect(paidOrders()).toHaveLength(2)
+    expect(db.products.get("p1")!.stock).toBe(1) // enforce would have taken it to 0 after the first sale
+  })
+
+  it("variant rows are left as they are too", async () => {
+    const variants = {
       variantRows: [
         { id: "r1", name: "Rouge / S", sku: "", priceCents: 0, stock: 1, commission: 20, sales: 0 },
         { id: "r2", name: "Rouge / M", sku: "", priceCents: 0, stock: 2, commission: 20, sales: 0 },
       ],
     }
+    db.products.get("p1")!.stock = 3
+    db.products.get("p1")!.variants = JSON.parse(JSON.stringify(variants))
     await fulfil(cartSession(oneLine(4, "c:Rouge|s:S"), [8000]))
     expect(paidOrders()).toHaveLength(1)
-    const p = db.products.get("p1")!
-    expect(p.variants.variantRows.map((r: { stock: number }) => r.stock)).toEqual([0, 2])
-    expect(p.stock).toBe(2) // 3 - the 1 unit the row really had
+    expect(db.products.get("p1")!.variants).toEqual(variants)
+    expect(db.products.get("p1")!.stock).toBe(3)
   })
 
-  it("single-line pre-created order in warn mode: it is paid, not closed", async () => {
+  it("a multi-line cart takes no lock in warn mode", async () => {
+    db.products.set("p2", product({ id: "p2" }))
+    db.listings.set("ap2", listing("ap2", "p2"))
+    await fulfil(
+      cartSession(
+        [
+          { affiliateProductId: "ap1", qty: 1 },
+          { affiliateProductId: "ap2", qty: 1 },
+        ],
+        [2000, 2000]
+      )
+    )
+    expect(paidOrders()).toHaveLength(2)
+    expect(db.locks).toHaveLength(0)
+  })
+
+  it("single-line pre-created order in warn mode: it is paid (not closed), the stock untouched", async () => {
     db.products.get("p1")!.stock = 1
     db.orders.set("o_pending", { id: "o_pending", stripeSessionId: "cs_1", status: "PENDING", quantity: 2, affiliateProductId: "ap1", variantLabel: null })
     await fulfil(singleSession(2, 4000))
     expect(db.orders.get("o_pending")!.status).toBe("paid")
-    expect(db.products.get("p1")!.stock).toBe(0)
+    expect(db.products.get("p1")!.stock).toBe(1)
   })
 
-  it("`warn` can be spelled out, `enforce` switches the refusal on, `off` and the emergency valve switch everything off", async () => {
+  it("`enforce` is the only mode that writes: it decrements and refuses; `off` and the emergency valve do nothing at all", async () => {
     process.env.CHECKOUT_STOCK_MODE = "enforce"
     db.products.get("p1")!.stock = 0
     await fulfil(cartSession(oneLine(1), [2000]))
@@ -919,5 +955,249 @@ describe("F3 — CHECKOUT_STOCK_MODE: warn (the default) never drops a paid line
     process.env.CHECKOUT_STOCK_GUARD = "off" // the valve wins
     await fulfil(cartSession(oneLine(1), [2000]))
     expect(paidOrders()).toHaveLength(1)
+  })
+})
+
+describe("#4 / #0 — the trace and the closure are ONE atomic fact (written in the fulfilment transaction)", () => {
+  const pending = () =>
+    db.orders.set("o_pending", {
+      id: "o_pending",
+      stripeSessionId: "cs_1",
+      status: "PENDING",
+      paymentSettlementStatus: "PENDING",
+      quantity: 2,
+      affiliateProductId: "ap1",
+      variantLabel: null,
+    })
+
+  it("single line: the after-response task NEVER runs — the order is closed AND the trace exists (no alert yet)", async () => {
+    afterResponse.drop = true
+    db.products.get("p1")!.stock = 1
+    pending()
+    await fulfil(singleSession(2, 4000))
+
+    expect(db.orders.get("o_pending")).toMatchObject({ status: "CANCELLED", paymentSettlementStatus: "CANCELLED" })
+    expect(traceIds()).toEqual(["unallocated-line:cs_1:line:0"])
+    expect(trace("cs_1:line:0")!.payload).toMatchObject({ reason: "insufficient_stock", paidLineCents: 4000, qty: 2, paymentIntentId: "pi_1" })
+    expect(opsAlert).not.toHaveBeenCalled()
+  })
+
+  it("…and a REPLAY leaves exactly one trace row and now sends the alert that was lost (once)", async () => {
+    afterResponse.drop = true
+    db.products.get("p1")!.stock = 1
+    pending()
+    const session = { ...(singleSession(2, 4000) as object), mode: "payment", payment_status: "paid" } as never
+    await fulfil(session)
+    expect(opsAlert).not.toHaveBeenCalled()
+
+    afterResponse.drop = false
+    await fulfil(session)
+    await fulfil(session)
+    await fulfil(session)
+    expect(traceIds()).toEqual(["unallocated-line:cs_1:line:0"])
+    expect(opsAlert).toHaveBeenCalledTimes(1)
+    expect(db.audit.has("unallocated-line-alerted:cs_1:line:0")).toBe(true)
+  })
+
+  it("single line, listing gone: close + trace in one transaction, whatever happens after the response", async () => {
+    afterResponse.drop = true
+    db.listings.delete("ap1")
+    pending()
+    await fulfil(singleSession(2, 4000))
+    expect(db.orders.get("o_pending")).toMatchObject({ status: "CANCELLED", paymentSettlementStatus: "CANCELLED" })
+    expect(trace("cs_1:line:0")!.payload).toMatchObject({ reason: "listing_not_found" })
+  })
+
+  it("single line, inactive listing (no order to close): the trace is durable before the response too", async () => {
+    afterResponse.drop = true
+    db.products.get("p1")!.active = false
+    await fulfil(singleSession(1, 2000, { metadata: { affiliateProductId: "ap1", checkoutQty: "1", linePaids: "[2000]", appliedRewardCents: "0" } }))
+    expect(trace("cs_1:line:0")!.payload).toMatchObject({ reason: "listing_inactive" })
+  })
+
+  it("cart: the lost line's trace is committed WITH the other lines' orders (a partly fulfilled cart is never fulfilled again)", async () => {
+    afterResponse.drop = true
+    db.products.set("p2", product({ id: "p2", active: false }))
+    db.listings.set("ap2", listing("ap2", "p2"))
+    await fulfil(
+      cartSession(
+        [
+          { affiliateProductId: "ap1", qty: 1 },
+          { affiliateProductId: "ap2", qty: 1 },
+        ],
+        [2000, 3000]
+      )
+    )
+    expect(paidOrders()).toHaveLength(1)
+    expect(traceIds()).toEqual(["unallocated-line:cs_1:line:1"])
+    expect(opsAlert).not.toHaveBeenCalled()
+  })
+
+  it("it is one fact: when the trace write fails the closure rolls back with it (the order is still PENDING, the webhook is retried)", async () => {
+    db.products.get("p1")!.stock = 1
+    pending()
+    const real = fakeCheckoutDb.tx.auditLog.createMany
+    fakeCheckoutDb.tx.auditLog.createMany = async () => {
+      throw new Error("database blip")
+    }
+    await expect(fulfil(singleSession(2, 4000))).rejects.toThrow("database blip")
+    fakeCheckoutDb.tx.auditLog.createMany = real
+    expect(db.orders.get("o_pending")!.status).toBe("PENDING")
+    expect(db.audit.size).toBe(0)
+
+    // the retry then does both
+    await fulfil(singleSession(2, 4000))
+    expect(db.orders.get("o_pending")!.status).toBe("CANCELLED")
+    expect(traceIds()).toHaveLength(1)
+  })
+
+  it("the in-transaction write never relies on catching a unique violation (that would abort a real transaction)", async () => {
+    // the trace already exists (a previous pass): the shortfall branch writes it again inside a transaction
+    db.products.get("p1")!.stock = 1
+    pending()
+    db.audit.set("unallocated-line:cs_1:line:0", { id: "unallocated-line:cs_1:line:0", action: "payment.unallocated_line", entityId: "cs_1:line:0", payload: {} })
+    await expect(fulfil(singleSession(2, 4000))).resolves.toBeUndefined()
+    expect(db.orders.get("o_pending")!.status).toBe("CANCELLED")
+  })
+})
+
+describe("C0 — a paid session on a closed order nobody accounts for is reported, never swallowed", () => {
+  const cancelledNeverPaid = () =>
+    db.orders.set("o_pending", {
+      id: "o_pending",
+      stripeSessionId: "cs_1",
+      status: "cancelled", // POST /api/admin/orders/[id]/cancel on an unpaid order
+      paymentSettlementStatus: "PENDING",
+      paidAt: null,
+      quantity: 1,
+      affiliateProductId: "ap1",
+      productId: "p1",
+      sellingPriceCents: 2000,
+      currency: "eur",
+    })
+  const paidSession = () => ({ ...(singleSession(1, 2000) as object), mode: "payment", payment_status: "paid" }) as never
+
+  it("fulfilment: trace `order_closed_before_payment` + ONE alert; replays are quiet; the order is untouched", async () => {
+    cancelledNeverPaid()
+    await fulfil(paidSession())
+    await fulfil(paidSession())
+    await fulfil(paidSession())
+    expect(trace("cs_1:line:0")!.payload).toMatchObject({ reason: "order_closed_before_payment", paidLineCents: 2000, detail: { orderId: "o_pending", orderStatus: "cancelled" } })
+    expect(opsAlert).toHaveBeenCalledTimes(1)
+    expect(opsAlert.mock.calls[0]![0]).toContain("order_closed_before_payment")
+    expect(db.orders.get("o_pending")!.status).toBe("cancelled")
+    expect(paidOrders()).toHaveLength(0)
+  })
+
+  it("the gate every caller asks first (marketplaceCheckoutNeedsFulfillment) reports it too — the fulfilment is never reached for a closed order", async () => {
+    cancelledNeverPaid()
+    const { marketplaceCheckoutNeedsFulfillment } = await import("@/lib/marketplace-checkout-fulfill")
+    expect(await marketplaceCheckoutNeedsFulfillment("cs_1")).toBe(false)
+    expect(await marketplaceCheckoutNeedsFulfillment("cs_1")).toBe(false)
+    expect(traceIds()).toEqual(["unallocated-line:cs_1:line:0"])
+    expect(opsAlert).toHaveBeenCalledTimes(1)
+  })
+
+  it("with the automatic refund on and a payment intent, the buyer is refunded exactly that line once", async () => {
+    process.env.UNALLOCATED_LINE_AUTO_REFUND = "true"
+    cancelledNeverPaid()
+    await fulfil(paidSession())
+    await fulfil(paidSession())
+    expect(stripeRefunds.create).toHaveBeenCalledTimes(1)
+    expect(stripeRefunds.create.mock.calls[0]![0]).toMatchObject({ payment_intent: "pi_1", amount: 2000 })
+  })
+
+  it("closures that are ACCOUNTED FOR stay silent: refunded, ever paid, refund settlement, booking, unallocated skeleton", async () => {
+    const base = { id: "o_pending", stripeSessionId: "cs_1", quantity: 1, affiliateProductId: "ap1", productId: "p1", sellingPriceCents: 2000 }
+    const cases: Array<Record<string, unknown>> = [
+      { status: "refunded", paymentSettlementStatus: "REFUNDED", paidAt: new Date() },
+      { status: "cancelled", paymentSettlementStatus: "PAID", paidAt: new Date() }, // it was paid, then cancelled
+      { status: "cancelled", paymentSettlementStatus: "REFUNDED", paidAt: null },
+      { status: "cancelled", paymentSettlementStatus: "PENDING", paidAt: null, bookingSlotId: "slot_1", bookingConfirmedAt: new Date() },
+    ]
+    for (const c of cases) {
+      fakeCheckoutDb.reset()
+      db.products.set("p1", product())
+      db.listings.set("ap1", listing("ap1", "p1"))
+      db.orders.set("o_pending", { ...base, ...c })
+      await fulfil(paidSession())
+      expect(db.audit.size, JSON.stringify(c)).toBe(0)
+    }
+    expect(opsAlert).not.toHaveBeenCalled()
+
+    // the unallocated skeleton: closed by the rule, its trace exists
+    fakeCheckoutDb.reset()
+    db.products.set("p1", product({ stock: 0 }))
+    db.listings.set("ap1", listing("ap1", "p1"))
+    process.env.CHECKOUT_STOCK_MODE = "enforce"
+    db.orders.set("o_pending", { ...base, status: "PENDING", paymentSettlementStatus: "PENDING", paidAt: null })
+    await fulfil(paidSession())
+    opsAlert.mockClear()
+    const { marketplaceCheckoutNeedsFulfillment } = await import("@/lib/marketplace-checkout-fulfill")
+    await marketplaceCheckoutNeedsFulfillment("cs_1")
+    await fulfil(paidSession())
+    expect(opsAlert).not.toHaveBeenCalled()
+    expect(traceIds()).toEqual(["unallocated-line:cs_1:line:0"])
+  })
+
+  it("a session that has a paid order is never reported", async () => {
+    db.orders.set("o_paid", { id: "o_paid", stripeSessionId: "cs_1", status: "paid", paymentSettlementStatus: "PAID", paidAt: new Date() })
+    const { marketplaceCheckoutNeedsFulfillment } = await import("@/lib/marketplace-checkout-fulfill")
+    expect(await marketplaceCheckoutNeedsFulfillment("cs_1")).toBe(false)
+    expect(db.audit.size).toBe(0)
+  })
+})
+
+describe("C1 — a swallowed fulfilment failure no longer lets the settlement promote the pre-created order", () => {
+  const skeleton = () =>
+    db.orders.set("o_pending", {
+      id: "o_pending",
+      stripeSessionId: "cs_1",
+      status: "PENDING",
+      paymentSettlementStatus: "PENDING",
+      quantity: 1,
+      affiliateProductId: "ap1",
+      variantLabel: null,
+      supplierId: "sup1",
+      affiliateId: "aff1",
+      sellingPriceCents: 2000,
+      subtotalCents: 2000,
+      supplierPriceCents: 1000,
+      basePriceCents: 1000,
+    })
+  const paidSession = () =>
+    ({
+      ...(singleSession(1, 2000, { metadata: { affiliateProductId: "ap1", checkoutQty: "1", linePaids: "[2000]", appliedRewardCents: "0", orderId: "o_pending" } }) as object),
+      mode: "payment",
+      payment_status: "paid",
+    }) as never
+
+  it("fulfil throws (deadlock / timeout) → the settle path leaves the PENDING order PENDING: no payout, no 'paid'", async () => {
+    skeleton()
+    db.failRecordSale = true // the fulfilment transaction throws
+    const res = await settleMarketplaceOrdersFromCheckoutSession(paidSession())
+
+    expect(res.processedOrderIds).toEqual([])
+    expect(res.errors).toEqual(["o_pending:fulfilment_failed_not_settled"])
+    expect(db.orders.get("o_pending")).toMatchObject({ status: "PENDING", paymentSettlementStatus: "PENDING" })
+    expect(db.transferUpserts).toBe(0)
+    expect(runTransfers).not.toHaveBeenCalled()
+  })
+
+  it("the retry (fulfilment works) then fulfils and settles normally: the order becomes paid", async () => {
+    skeleton()
+    db.failRecordSale = true
+    await settleMarketplaceOrdersFromCheckoutSession(paidSession())
+    db.failRecordSale = false
+    const res = await settleMarketplaceOrdersFromCheckoutSession(paidSession())
+    expect(res.errors).toEqual([])
+    expect(db.orders.get("o_pending")!.status).toBe("paid")
+    expect(db.transferUpserts).toBeGreaterThan(0)
+  })
+
+  it("an order that is already paid is still settled when the fulfilment step fails (only awaiting orders are held back)", async () => {
+    db.orders.set("o_pending", { ...db.orders.get("o_pending"), id: "o_pending", stripeSessionId: "cs_1", status: "paid", paymentSettlementStatus: "PENDING", supplierId: "sup1", affiliateId: "aff1", sellingPriceCents: 2000, subtotalCents: 2000, supplierPriceCents: 1000, basePriceCents: 1000, quantity: 1 })
+    const res = await settleMarketplaceOrdersFromCheckoutSession(paidSession())
+    expect(res.errors).not.toContain("o_pending:fulfilment_failed_not_settled")
   })
 })
