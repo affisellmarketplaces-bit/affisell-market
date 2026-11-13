@@ -58,7 +58,9 @@ describe("the UI that presents them does not claim AI", () => {
     expect(src).not.toContain("Smart Margin AI")
     expect(src).not.toContain("Probabilité de succès")
     expect(src).toContain("pas un modèle d")
-    expect(src).toContain("non mesur")
+    // the "unmeasured" wording comes from the tested pure helper, for every origin including an unknown one
+    expect(src).toContain("marketDataNote(analysis?.market_data?.origin)")
+    expect(read("lib/ai/smart-margin-labels.ts")).toContain("non mesur")
   })
 
   it("Pricing optimizer shows the rule note", () => {

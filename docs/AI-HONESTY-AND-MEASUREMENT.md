@@ -14,9 +14,11 @@
 | **InstantScan — vision complète** | Un appel à un modèle de vision (`gpt-4o` par défaut). La `confidence` renvoyée est ce que **le modèle écrit sur lui-même**, plafonnée par quelques règles (`auditProductVisionConfidence`) : ce n'est pas une probabilité calibrée. Absente si le modèle n'en donne pas. | stage `gpt4o` ou `mini` (si repli), `provenance.modelUsed`, `provenance.fallbackUsed`, `provenance.confidenceSource` |
 | **Liste « Top 100 »** | Une liste éditoriale de 81 modèles d'électronique, tapée à la main. **Pas un classement mesuré.** Elle était complétée jusqu'à 100 par des lignes factices `generic-sku-N` (supprimées) et les variantes recevaient un prix forfaitaire inventé (749 / 1599 / 299 : supprimé, `null`). | `CURATED_PRODUCT_CATALOG` ; une ligne `synthetic: true` n'est jamais indexée ni retournée |
 | **World Radar — lignes générées** | Le générateur déterministe (`lib/radar/scoring-engine.ts`) : un pool d'archétypes écrits à la main, une pondération culturelle et un bruit issu d'un hachage. **Aucun signal social / e-commerce / recherche n'est lu.** | `source: "mock"`, ligne `synthetic: true`, libellé « Démo · signaux simulés », badge DÉMO, bandeau |
-| **World Radar — lignes réelles** | Annonces du catalogue Affisell FR (prix, titre, image réels ; `growthRate`, `searches` et `competition` y sont **dérivés**, pas mesurés) et mots-clés Serper/Google (volumes et croissance de l'API ; `competition` constant). | `source: "live"` seulement si **toutes** les lignes viennent d'un de ces deux fournisseurs ; `isLive` exige en plus un scan de moins d'une heure |
-| **Arbitrage Score™ / Saturation** | Formules à poids fixes (`lib/radar/arbitrage-score.ts`, `saturation.ts`). La « prédiction » de saturation est une division linéaire, pas une prévision apprise. | note « formules (règles), pas un modèle d'IA » dans le terminal |
-| **Globe Radar** | Commandes, imports et pics de vente réels **complétés** par des événements générés quand il y en a moins de 12 ; la ville des imports et des pics est choisie par hachage. | `source: live \| mixed \| demo`, `synthetic` par événement, `locationSource: estimated`, badge LIVE seulement si `live` |
+| **World Radar — lignes réelles** | Annonces du catalogue Affisell FR : **seuls** le titre, l'image, le prix et le rang (par conversions réelles) sont réels ; `growthRate`, `searches` et `competition` sont **`null` (inconnus)** — ils valaient une formule ou les constantes 55 / 8000 / 3, retirées. Mots-clés Serper/Google : volume et croissance viennent de l'API ; `competition` est `null` (c'était la constante 8). | `source: "live"` seulement si **toutes** les lignes viennent d'un de ces deux fournisseurs ; `isLive` exige en plus un scan de moins d'une heure |
+| **World Radar — « Trending Keywords »** | **Mots-clés réels uniquement** (source de tendances). Sans source configurée, ou sans résultat au-dessus du seuil, la liste est **vide** : le scan retombait sur une liste écrite à la main perturbée par `Math.random`, stockée puis servie comme « live ». Un payload **démo** génère ses propres mots-clés, chacun `synthetic: true` ; un payload live ne peut **jamais** en contenir (le cache écrit par l'ancien scan est filtré). | tag « mots-clés de démonstration » ou « aucun mot-clé tendance réel » dans 8 langues |
+| **Arbitrage Score™ / Saturation** | Formules à poids fixes (`lib/radar/arbitrage-score.ts`, `saturation.ts`). La « prédiction » de saturation est une division linéaire, pas une prévision apprise. Elles ne tournent **que sur des entrées connues** : sans croissance, recherches ET concurrence, pas de score d'arbitrage ; sans concurrence et recherches, pas de saturation ; sans croissance, pas de « jours avant saturation ». Les lignes réelles Affisell/Serper n'ont donc aujourd'hui **ni score d'arbitrage ni saturation** (affichés « — »). | note « formules (règles), pas un modèle d'IA » dans le terminal |
+| **Globe Radar** | Commandes, imports et pics de vente réels **complétés** par des événements générés quand il y en a moins de 12 ; la ville des imports et des pics est choisie par hachage. Un événement **réel** ne porte que des champs mesurés : prix, type, pays d'expédition (commande) et, pour un pic, le nombre réel de commandes de la dernière heure. Sa croissance en % et sa « courbe 24 h » (qui étaient des fonctions de l'identifiant de commande) sont `null` et **ne s'affichent plus** ; la couleur d'un pic suit ce nombre mesuré. | `source: live \| mixed \| demo`, `synthetic` par événement, `locationSource: estimated`, badge LIVE seulement si `live` |
+| **Sélecteur de pays du Radar** | Un marché jamais scanné reste verrouillé (« Bientôt disponible »), **sauf** quand la base du Radar est injoignable : la liste (`source: mock`) n'a alors aucune donnée de scan, aucun marché n'est « en cours d'analyse » ; tous s'ouvrent en mode démonstration, avec un bandeau. | bandeau `countriesMockNotice`, 8 langues |
 | **Market Intelligence** | **Aucune source de marché.** 3 fiches écrites à la main (iPhone 17 Pro, JBL Tune Flex, AirPods Pro 3) et une heuristique (catégorie + prix). Le cron toutes les 6 h rafraîchit seulement le TTL de ces 3 fiches (il les étiquetait « live » : corrigé). | `origin: fixture \| heuristic`, `market_data.measured = false` |
 | **Smart Margin / marge optimale / score de succès** | Arithmétique à seuils fixes sur une fiche marché non mesurée (`margin-optimizer.ts`, `success-scorer.ts`). Les élasticités et les poids sont des constantes tapées à la main, jamais validées sur des ventes réelles. Le « score de succès » n'est pas une probabilité. | `method: "rule_based"`, titre « Smart Margin » (plus « AI »), « Score de succès (règle de calcul, pas une probabilité) » |
 | **Optimiseur de prix affilié** | Règle statistique sur les annonces comparables d'Affisell ; sans données : prix fournisseur × 1,4. | `method: "statistical_rule"`, note de règle dans les 8 langues |
@@ -27,18 +29,28 @@
 
 **Module** : `lib/ai/usage-log.ts` (+ `usage-stats.ts`, `model-pricing.ts`). Aucune migration de schéma.
 
-- Chaque requête vers un fournisseur (OpenAI, Groq, Anthropic, Gemini) passe par `meterModelCall`, qui chronomètre l'appel, lit
-  l'objet `usage` **renvoyé par le fournisseur** (jetons réels), calcule un **coût estimé** et écrit une ligne JSON
-  `[ai-usage] {...}` dans les logs et dans un journal borné. Un appel en échec est journalisé aussi (classe d'erreur seulement,
-  jamais le message, jamais le prompt, jamais l'image, jamais d'identifiant d'utilisateur).
+- Chaque requête des clients LLM de l'application passe par `meterModelCall`, qui chronomètre l'appel, lit l'objet `usage`
+  **renvoyé par le fournisseur** (jetons réels), calcule un **coût estimé** et écrit une ligne JSON `[ai-usage] {...}` dans les
+  logs et dans un journal borné. Un appel en échec est journalisé aussi (classe d'erreur seulement, jamais le message, jamais le
+  prompt, jamais l'image, jamais d'identifiant d'utilisateur) ; il n'est **pas** compté comme « modèle ayant répondu ».
+- **Périmètre exact.** *Couvert* (un test, `ai-usage-coverage.test.ts`, échoue si un nouvel appel direct à un fournisseur n'utilise
+  pas `meterModelCall`) : OpenAI chat et embeddings, **y compris la génération de description GPT-4o**
+  (`affiliate-product-generate-description.ts`), Groq, Anthropic (**les deux clients**, `anthropic-messages.ts` et
+  `anthropic-client.ts`), Gemini. *Non couvert* : l'endpoint de modération OpenAI (`lib/reviews/moderation.ts`, gratuit, sans
+  compteur de jetons), les prestataires qui ne sont pas des appels LLM facturés au jeton (Replicate pour l'essayage, vidéo Veo,
+  outils image), les scripts de développement (`scripts/i18n-translate-*`, `scripts/llm-eval`). **Un coût affiché est donc un
+  minimum, jamais le total des dépenses d'IA.** (La première version de ce document et de `usage-log.ts` affirmait que *toute*
+  requête était mesurée : c'était faux pour la description GPT-4o et le client Anthropic simple, corrigé.)
 - L'étape (« palier ») vient d'un contexte asynchrone posé par l'analyseur : `cues_extraction` (étape catalogue),
   `vision_full`, `vision_legacy`, `category_match`. Sans contexte : `unlabelled`. Chaque analyse complète écrit en plus un
   enregistrement `pipeline` (étape finale `catalog_match | mini | gpt4o | groq | error`, latence de bout en bout).
 - **Journal** : liste Redis plafonnée (2000 enregistrements, 30 jours) si `UPSTASH_REDIS_REST_URL/TOKEN` sont configurés,
   sinon mémoire de **l'instance serveur** (volatile, partielle). La page admin dit lequel des deux elle lit.
-- **Page** : `/admin/instantscan-performance` — par étape : appels, échecs, latence p50/p95, jetons, coût estimé, modèles ayant
-  réellement répondu (un repli y est visible), et « aucune mesure » quand le journal est vide. Elle liste aussi ce qui n'est **pas**
-  mesuré.
+- **Page** : `/admin/instantscan-performance` — par étape : appels, échecs (avec les modèles demandés qui ont échoué et la durée
+  d'un échec), latence p50/p95 **des appels réussis** (un timeout est un échec, pas une latence ; si toutes les requêtes ont
+  échoué la page écrit « aucune réponse »), jetons, coût estimé, **modèles ayant répondu (appels réussis uniquement)** et, pour
+  un repli, « répondu(s) par le modèle de repli » (tentatives réussies) séparé de « tentative(s) de repli en échec ». « Aucune
+  mesure » quand le journal est vide. Elle liste aussi ce qui n'est **pas** mesuré.
 - **Table de prix** : `lib/ai/model-pricing.ts`, version `2026-11-13`. Tarifs publics saisis à la main pour `gpt-4o`,
   `gpt-4o-mini`, `text-embedding-3-small` ; **à vérifier** auprès du fournisseur. Un modèle absent de la table (Groq, Anthropic,
   Gemini aujourd'hui) a un coût **inconnu**, jamais deviné. Ajouter un tarif vérifié sans déploiement :
@@ -105,5 +117,10 @@ photo ; le coût réel s'affiche dans les lignes `[ai-usage]`).
   plus servies comme « cache » : la requête relance un scan, puis retombe sur le générateur étiqueté « démo ».
 - L'import de « winners » du Radar (`radar-import-bridge.server.ts`) lit le même payload : un winner `synthetic` peut encore être
   importé comme produit. À traiter séparément (décision du propriétaire).
-- Le texte légal `PROBABILITY_DISCLAIMER` a été corrigé (« score calculé par une règle … pas une probabilité statistique ») :
-  à faire valider.
+- **Textes juridiques (`lib/legal/disclaimers.ts`)** : `PROBABILITY_DISCLAIMER` est tel qu'il est dans `integration/finalisation`
+  (cette branche n'y touche pas). `REVENUE_DISCLAIMER` et `SMART_MARGIN_FOOTER` y sont **des propositions en attente de
+  validation du fondateur** (ils disaient « basée(s) sur données marché (agrégées) » à côté d'une note « non mesurées ») ; ne
+  plus les retoucher sans cette validation. Le texte juridique n'est plus servi depuis le cache d'analyse (1 h).
+- Les lignes réelles du Radar n'ont plus de score d'arbitrage ni de saturation (entrées inconnues) ; les mots-clés tendance d'un
+  payload live sont vides tant qu'aucune source de tendances ne répond.
+- Le journal d'usage est un **minimum** des dépenses d'IA (voir le périmètre exact en section 2).

@@ -17,6 +17,15 @@ import {
 import type { MarginAnalysisResponse } from "@/lib/ai/smart-margin-types"
 import { logSmartMargin } from "@/lib/ai/smart-margin-log"
 
+function currentDisclaimers(): MarginAnalysisResponse["disclaimers"] {
+  return {
+    revenue: REVENUE_DISCLAIMER,
+    probability: PROBABILITY_DISCLAIMER,
+    conversion: CONVERSION_DISCLAIMER,
+    footer: SMART_MARGIN_FOOTER,
+  }
+}
+
 export type RunMarginAnalysisInput = {
   userId: string
   userMargin: number
@@ -41,7 +50,14 @@ export async function runMarginAnalysis(
   const cached = await getCachedMarginAnalysis(cacheKey)
   if (cached) {
     logSmartMargin("Cache hit", { productKey, userId: input.userId })
-    return { ...cached, method: "rule_based", cached: true, latency_ms: Date.now() - started }
+    // The legal text is never served from the cache: an analysis cached under an older wording would keep showing it.
+    return {
+      ...cached,
+      method: "rule_based",
+      disclaimers: currentDisclaimers(),
+      cached: true,
+      latency_ms: Date.now() - started,
+    }
   }
 
   const market = await getMarketData(productKey, {
@@ -97,12 +113,7 @@ export async function runMarginAnalysis(
     success_probability,
     revenue_estimate_eur: revenueEstimate,
     warnings,
-    disclaimers: {
-      revenue: REVENUE_DISCLAIMER,
-      probability: PROBABILITY_DISCLAIMER,
-      conversion: CONVERSION_DISCLAIMER,
-      footer: SMART_MARGIN_FOOTER,
-    },
+    disclaimers: currentDisclaimers(),
     cached: false,
     latency_ms: Date.now() - started,
   }

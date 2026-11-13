@@ -12,10 +12,20 @@ import { redisKey } from "@/lib/redis-namespace"
  * Central MEASUREMENT of model calls (tokens, estimated cost, latency) — owner mandate: figures are measured, not promised.
  *
  * What it does
- *  - Every request to a model provider (OpenAI, Groq, Anthropic, Gemini) goes through `meterModelCall`, which times it,
- *    reads the provider's own `usage` object (real token counts), prices it from the versioned table
- *    (lib/ai/model-pricing.ts — unknown model => cost `null`, never a guess) and records ONE structured line:
- *    `console.log("[ai-usage]", record)` (Vercel logs) + a bounded journal read by /admin/instantscan-performance.
+ *  - Each request made by the application's LLM clients goes through `meterModelCall`, which times it, reads the provider's
+ *    own `usage` object (real token counts), prices it from the versioned table (lib/ai/model-pricing.ts — unknown model =>
+ *    cost `null`, never a guess) and records ONE structured line: `console.log("[ai-usage]", <json>)` (Vercel logs) + a bounded
+ *    journal read by /admin/instantscan-performance.
+ *
+ * WHAT IS COVERED (enforced by lib/__tests__/ai-usage-coverage.test.ts, which fails on any new direct provider call that does
+ * not use `meterModelCall`): OpenAI chat (`openai-chat-fallback.ts`, the GPT-4o description generator
+ * `affiliate-product-generate-description.ts`) and embeddings, Groq (`groq-client.ts`), Anthropic (`anthropic-messages.ts` AND
+ * `anthropic-client.ts`), Gemini (`gemini-client.ts`).
+ *
+ * WHAT IS NOT COVERED (listed on the admin page and in docs/AI-HONESTY-AND-MEASUREMENT.md): the OpenAI moderation endpoint
+ * (`lib/reviews/moderation.ts` — a free endpoint that returns no token usage); providers that are not token-priced LLM calls
+ * (Replicate try-on, Veo video, image tools); developer scripts (`scripts/i18n-translate-*`, `scripts/llm-eval`). A cost shown
+ * by the journal is therefore a LOWER BOUND of the AI spend, never the total.
  *  - The pipeline step ("tier") comes from the async context set by `runWithAiUsageContext`, so a low-level client does
  *    not need to know which product feature called it. Without a context the call is recorded as "unlabelled".
  *
@@ -335,7 +345,8 @@ export async function meterModelCall<T>(args: {
       buildModelCallRecord({
         provider: args.provider,
         modelRequested: args.modelRequested,
-        modelUsed: args.modelRequested,
+        // no model answered: the requested one is kept in `modelRequested` only
+        modelUsed: null,
         fallbackUsed: args.fallbackUsed ?? false,
         usage: null,
         latencyMs: Date.now() - started,

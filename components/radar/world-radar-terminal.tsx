@@ -23,6 +23,7 @@ import { canViewResellerMargin, radarPriceColumnLabel } from "@/lib/radar/radar-
 import type { SupplierKind } from "@/lib/supplier-kind"
 import {
   formatRelativeScan,
+  isCountrySelectable,
   radarBadgeKind,
   type WorldRadarCountriesPayload,
   type WorldRadarPayload,
@@ -552,10 +553,20 @@ export default function WorldRadarTerminal({
           ))}
         </div>
 
+        {countriesData?.source === "mock" ? (
+          <p
+            role="status"
+            data-testid="radar-countries-mock-notice"
+            className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-800"
+          >
+            {t("countriesMockNotice")}
+          </p>
+        ) : null}
+
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
           {filteredCountries.map((c) => {
             const active = c.code === country
-            const ready = (c.productCount ?? 0) > 0
+            const ready = isCountrySelectable(c, countriesData?.source)
             if (!ready) {
               return (
                 <div
@@ -611,9 +622,13 @@ export default function WorldRadarTerminal({
                   {c.flag}
                 </span>
                 <p className="mt-0.5 text-xs font-semibold text-zinc-900">{c.name}</p>
-                <p className="text-[10px] font-medium text-emerald-700">
-                  {t("winnersCount", { n: c.productCount ?? 0 })}
-                </p>
+                {(c.productCount ?? 0) > 0 ? (
+                  <p className="text-[10px] font-medium text-emerald-700">
+                    {t("winnersCount", { n: c.productCount ?? 0 })}
+                  </p>
+                ) : (
+                  <p className="text-[10px] font-semibold text-amber-700">{t("demoBadge")}</p>
+                )}
               </button>
             )
           })}
@@ -804,9 +819,18 @@ export default function WorldRadarTerminal({
         <h2 className="text-base font-semibold text-zinc-900">
           📈 {t("trendingTitle", { country })}
         </h2>
-        <p className="mt-1 text-xs text-zinc-500">
-          {t("trendingSubtitle")}
-        </p>
+        {(data?.trendingKeywords ?? []).some((kw) => kw.synthetic) ? (
+          <p data-testid="radar-trending-demo" className="mt-1 text-xs font-medium text-amber-700">
+            {t("trendingDemo")}
+          </p>
+        ) : (
+          <p className="mt-1 text-xs text-zinc-500">{t("trendingSubtitle")}</p>
+        )}
+        {data && (data.trendingKeywords ?? []).length === 0 ? (
+          <p data-testid="radar-trending-none" className="mt-3 text-xs text-zinc-500">
+            {t("trendingNone")}
+          </p>
+        ) : null}
         <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {(data?.trendingKeywords ?? []).map((kw) => (
             <li

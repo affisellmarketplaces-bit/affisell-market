@@ -62,12 +62,12 @@ export default async function AdminInstantScanPerformancePage() {
                     <th className="py-2 pr-3">Étape</th>
                     <th className="py-2 pr-3">Appels</th>
                     <th className="py-2 pr-3">Échecs</th>
-                    <th className="py-2 pr-3">Latence p50</th>
-                    <th className="py-2 pr-3">Latence p95</th>
+                    <th className="py-2 pr-3">Latence p50 (appels réussis)</th>
+                    <th className="py-2 pr-3">Latence p95 (appels réussis)</th>
                     <th className="py-2 pr-3">Jetons (fournisseur)</th>
                     <th className="py-2 pr-3">Coût estimé</th>
                     <th className="py-2 pr-3">Coût moyen / appel</th>
-                    <th className="py-2 pr-3">Modèles ayant répondu</th>
+                    <th className="py-2 pr-3">Modèles ayant répondu (appels réussis)</th>
                     <th className="py-2 pr-3">Repli</th>
                   </tr>
                 </thead>
@@ -148,6 +148,12 @@ export default async function AdminInstantScanPerformancePage() {
           <li>
             <strong>Latence p95 &lt; 2 s et coût ~0,003 $ par analyse</strong> : anciens objectifs, non mesurés. Seules les
             valeurs des tableaux ci-dessus font foi, et seulement quand elles existent.
+          </li>
+          <li>
+            <strong>Périmètre du journal</strong> : appels des clients OpenAI (chat, embeddings, génération de description
+            GPT-4o), Groq, Anthropic et Gemini. <strong>Non journalisés</strong> : l&apos;endpoint de modération OpenAI (gratuit,
+            sans compteur de jetons), Replicate (essayage), la vidéo Veo, les outils image et les scripts de développement. Un coût
+            affiché ici est donc un <strong>minimum</strong>, jamais le total des dépenses d&apos;IA.
           </li>
           <li>
             Les événements PostHog <code>instant_scan_*</code> sont définis dans <code>lib/telemetry.ts</code> mais{" "}

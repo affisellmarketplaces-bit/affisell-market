@@ -105,7 +105,7 @@ Les anciens chiffres « CLIP 200 ms », « 98,5 % », « p95 < 2 s », « 0,003 
 
 **Flags** : `ENABLE_INSTANTSCAN=1` (prod). Retrocompat : `ENABLE_AI_VISION_V2=1` + `ENABLE_AI_VISION_CASCADE=1` si `ENABLE_INSTANTSCAN=0`.
 
-**Mesure** : chaque appel de modèle écrit une ligne JSON `[ai-usage]` dans les logs et dans un journal borné (Redis si configuré, sinon mémoire de l'instance) — `lib/ai/usage-log.ts`. Les événements PostHog `instant_scan_*` (`lib/telemetry.ts`) sont définis mais **jamais émis** : ne pas s'y fier.
+**Mesure** : chaque appel des clients LLM de l'application (OpenAI, Groq, Anthropic, Gemini, génération de description GPT-4o) écrit une ligne JSON `[ai-usage]` dans les logs et dans un journal borné (Redis si configuré, sinon mémoire de l'instance) — `lib/ai/usage-log.ts`. Périmètre exact et appels non couverts (modération, Replicate, Veo, scripts) : `docs/AI-HONESTY-AND-MEASUREMENT.md` ; un coût affiché est un minimum. Les événements PostHog `instant_scan_*` (`lib/telemetry.ts`) sont définis mais **jamais émis** : ne pas s'y fier.
 
 ## Push
 

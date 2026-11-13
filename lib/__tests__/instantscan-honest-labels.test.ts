@@ -124,7 +124,8 @@ describe("InstantScan honesty (mocked models)", () => {
     const { records } = await usageLog.readAiUsageRecords()
     const modelCalls = records.filter((r) => r.kind === "model_call").reverse()
     expect(modelCalls).toHaveLength(2)
-    expect(modelCalls[0]).toMatchObject({ tier: "vision_full", modelRequested: "gpt-4o", ok: false, error: "http_5xx", fallbackUsed: false })
+    // the failed attempt records the model it ASKED for, and no model as having answered
+    expect(modelCalls[0]).toMatchObject({ tier: "vision_full", modelRequested: "gpt-4o", modelUsed: null, ok: false, error: "http_5xx", fallbackUsed: false })
     expect(modelCalls[1]).toMatchObject({
       tier: "vision_full",
       modelRequested: "gpt-4o-mini",

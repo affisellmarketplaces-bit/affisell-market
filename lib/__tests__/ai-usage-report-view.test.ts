@@ -74,6 +74,55 @@ describe("admin page view-model — measured values or an explicit absence", () 
     expect(row.cost).toContain("2/2 appels")
   })
 
+  it("an outage shows failures, not answers: no model 'answered', no fallback 'answered', no latency of an answer", () => {
+    const failed = (fallbackUsed: boolean): AiUsageRecord =>
+      rec({
+        modelRequested: fallbackUsed ? "gpt-4o-mini" : "gpt-4o",
+        modelUsed: null,
+        fallbackUsed,
+        ok: false,
+        error: "http_5xx",
+        latencyMs: 700,
+        promptTokens: null,
+        completionTokens: null,
+        totalTokens: null,
+        costUsdEstimated: null,
+      })
+    const report = buildUsageReport([failed(false), failed(true), failed(false), failed(true), failed(false), failed(true)])
+    const row = buildUsagePageModel(report, { backend: "redis", degraded: false }).tiers[0]!
+    expect(row.errors).toContain("6 / 6 (100.0 %)")
+    expect(row.errors).toContain("gpt-4o ×3")
+    expect(row.errors).toContain("gpt-4o-mini ×3")
+    // it used to print "gpt-4o ×3, gpt-4o-mini ×3" as the models that answered and "3 appel(s) répondu(s) par le modèle de repli"
+    expect(row.models).toBe("aucun (aucune requête n'a abouti)")
+    expect(row.fallbacks).not.toContain("répondu")
+    expect(row.fallbacks).toBe("3 tentative(s) de repli en échec")
+    expect(row.latencyP50).toBe("aucune réponse")
+    expect(row.latencyP95).toBe("aucune réponse")
+  })
+
+  it("primary fails then the fallback answers: only the fallback model is listed as having answered, the failure is named", () => {
+    const report = buildUsageReport([
+      rec({ modelRequested: "gpt-4o", modelUsed: null, ok: false, error: "timeout", latencyMs: 45000, promptTokens: null, completionTokens: null, totalTokens: null, costUsdEstimated: null }),
+      rec({ modelRequested: "gpt-4o-mini", modelUsed: "gpt-4o-mini", fallbackUsed: true, latencyMs: 900 }),
+    ])
+    const row = buildUsagePageModel(report, { backend: "redis", degraded: false }).tiers[0]!
+    expect(row.models).toBe("gpt-4o-mini ×1")
+    expect(row.fallbacks).toBe("1 appel(s) répondu(s) par le modèle de repli")
+    expect(row.errors).toContain("1 / 2")
+    expect(row.errors).toContain("échecs : gpt-4o ×1")
+    expect(row.errors).toContain("durée p95 d'un échec : 45.00 s")
+    expect(row.latencyP95).toBe("900 ms") // the timeout is not the latency of an answer
+  })
+
+  it("failed whole analyses show how long the failures took, labelled as such", () => {
+    const report = buildUsageReport([
+      rec({ kind: "pipeline", tier: "error", ok: false, error: "ai_unavailable", latencyMs: 400, promptTokens: null, completionTokens: null, totalTokens: null, costUsdEstimated: null }),
+    ])
+    const row = buildUsagePageModel(report, { backend: "redis", degraded: false }).pipelines[0]!
+    expect(row.latencyP50).toBe("400 ms (durée des échecs)")
+  })
+
   it("a tier whose models have no known price shows 'inconnu', never 0 $", () => {
     const report = buildUsageReport([
       rec({ tier: "category_match", provider: "groq", modelRequested: "qwen/qwen3.8-27b", modelUsed: "qwen/qwen3.8-27b", costUsdEstimated: null }),

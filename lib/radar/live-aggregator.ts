@@ -93,8 +93,10 @@ function buildEvent(args: {
   product: LiveEvent["product"]
   countryCode: string | null
   cityOverride?: string | null
-  salesPerHour: number
-  growth: number
+  /** MEASURED sales per hour (spikes) — `null` when unknown. */
+  salesPerHour: number | null
+  /** Generated events only; `null` for every real event (never derive a growth from an id). */
+  growth: number | null
   timestamp: Date
   videoUrl?: string | null
   /** True for an event generated to fill the globe (no real order / import / spike behind it). */
@@ -119,7 +121,8 @@ function buildEvent(args: {
     growth: args.growth,
     timestamp: args.timestamp.toISOString(),
     videoUrl: args.videoUrl ?? null,
-    sparkline: sparklineFromSeed(seed),
+    // a 24 h curve exists only for a generated demo event; a real event has no hourly history here
+    sparkline: args.synthetic === true ? sparklineFromSeed(seed) : null,
     synthetic: args.synthetic === true,
     locationSource: args.locationSource,
   }
@@ -245,7 +248,8 @@ async function loadRecentImports(since: Date): Promise<ProductLiveRow[]> {
  * Aggregate live Globe events from Affisell Orders + Product imports + velocity spikes.
  * Pads with generated demo events when volume is low — same shape, but each one is flagged `synthetic: true` and the payload
  * `source` says `mixed` / `demo`. Imports and spikes have no real location: their pin is flagged `locationSource: "estimated"`.
- * `growth` of every event is derived from a hash of its id, not measured (`salesPerHour` is measured for spikes only).
+ * Real events carry only measured fields: `growth` and `sparkline` are `null` (they used to be hash(id) — fabricated numbers
+ * next to real sales) and `salesPerHour` is set for spikes only. Generated events keep a made-up growth / curve, flagged `synthetic`.
  */
 export async function aggregateRadarLiveEvents(): Promise<{
   events: LiveEvent[]
@@ -318,8 +322,9 @@ export async function aggregateRadarLiveEvents(): Promise<{
           },
           countryCode: cc,
           cityOverride: city,
-          salesPerHour: 1,
-          growth: 80 + (hashSeed(order.id) % 120),
+          // one order is not "1 sale per hour", and a growth % cannot be derived from one order: unknown
+          salesPerHour: null,
+          growth: null,
           timestamp: order.createdAt,
           videoUrl: order.product.videoAdUrl,
           locationSource: cc ? "order" : "estimated",
@@ -343,8 +348,8 @@ export async function aggregateRadarLiveEvents(): Promise<{
             affiliateProductId: listing?.id ?? null,
           },
           countryCode: pickDemoCity(hashSeed(product.id)).countryCode,
-          salesPerHour: 0,
-          growth: 100 + (hashSeed(product.id) % 200),
+          salesPerHour: null,
+          growth: null,
           timestamp: product.createdAt ?? new Date(),
           videoUrl: product.videoAdUrl,
           // imports carry no location: the pin is a hash-picked city, not where anything happened
@@ -394,8 +399,9 @@ export async function aggregateRadarLiveEvents(): Promise<{
               affiliateProductId: listing?.id ?? null,
             },
             countryCode: pickDemoCity(hashSeed(`spike:${product.id}`)).countryCode,
+            // `sph` is the real count of orders of this product in the last hour; no growth % is invented from it
             salesPerHour: sph,
-            growth: 200 + Math.min(250, sph * 40),
+            growth: null,
             timestamp: new Date(),
             videoUrl: product.videoAdUrl,
             locationSource: "estimated",
