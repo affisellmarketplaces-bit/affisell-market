@@ -4,6 +4,11 @@ import * as Sentry from "@sentry/nextjs"
 
 import { cancelAliExpressDsOrder } from "@/lib/aliexpress-ds-cancel-order"
 import { resolveSupplierAdapterForGroup } from "@/lib/suppliers/place-order-bridge"
+import {
+  ENGINE_JOB_ATTRIBUTION_SELECT,
+  jobAttributionOf,
+  jobSupplierOrderCoversOrder,
+} from "@/lib/fulfillment/engine-job-attribution"
 import { opsWebhookAlert } from "@/lib/ops-webhook"
 import { prisma } from "@/lib/prisma"
 
@@ -141,10 +146,18 @@ async function attemptViaLegacyAutoBuy(orderId: string): Promise<ExternalCancelO
 async function attemptViaGenericEngine(orderId: string): Promise<ExternalCancelOutcome> {
   const line = await prisma.supplierFulfillmentOrderLine.findFirst({
     where: { orderId },
-    include: { supplierFulfillmentOrder: { include: { provider: true } } },
+    include: {
+      supplierFulfillmentOrder: { include: { ...ENGINE_JOB_ATTRIBUTION_SELECT, provider: true } },
+    },
   })
   const job = line?.supplierFulfillmentOrder
   if (!job || !job.supplierOrderId) {
+    return { outcome: "not_applicable" }
+  }
+  // An AliExpress job bought ONLY its first line: its supplier order id is another order's purchase, not this one's. Cancelling
+  // it (or telling the operator to) because THIS order was refunded would cancel a valid purchase.
+  if (!jobSupplierOrderCoversOrder(jobAttributionOf(job), orderId)) {
+    console.log("[external-order-cancellation]", { orderId, jobId: job.id, result: "job_bought_another_order" })
     return { outcome: "not_applicable" }
   }
   if (job.externalCancelStatus !== "NOT_ATTEMPTED") {

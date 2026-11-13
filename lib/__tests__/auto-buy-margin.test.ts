@@ -78,6 +78,21 @@ describe("evaluateAutoBuyMargin — fail closed", () => {
     expect(d).toMatchObject({ allowed: false, reason: "cost_unknown", marginCents: null })
   })
 
+  it("the refusal says WHICH part of the cost is unknown (lowering the floor or the price cannot fix it)", () => {
+    const refusal = (c: ReturnType<typeof cost>) => {
+      const d = evaluateAutoBuyMargin(orderOf(), c, { minMarginCents: 300 })
+      if (d.allowed) throw new Error("expected a refusal")
+      return formatAutoBuyMarginRefusal(d)
+    }
+    expect(refusal(cost(500, 0))).toBe("MARGIN_REFUSED:cost_unknown:margin=n/a:floor=300:missing=shipping")
+    expect(refusal(cost(0, 100))).toBe("MARGIN_REFUSED:cost_unknown:margin=n/a:floor=300:missing=price")
+    expect(refusal(cost(0, 0))).toBe("MARGIN_REFUSED:cost_unknown:margin=n/a:floor=300:missing=price,shipping")
+    // a refusal on the margin itself carries no `missing`
+    const loss = evaluateAutoBuyMargin(orderOf(LOSS_MAKING_SALE), cost(2500, 300), { minMarginCents: 300 })
+    if (loss.allowed) throw new Error("expected a refusal")
+    expect(formatAutoBuyMarginRefusal(loss)).not.toContain("missing=")
+  })
+
   it("a known, non-zero shipping amount is accepted", () => {
     expect(evaluateAutoBuyMargin(orderOf(), cost(500, 1)).allowed).toBe(true)
   })
@@ -164,7 +179,7 @@ describe("evaluateAutoBuyMargin — the arithmetic", () => {
     expect(msg).toMatch(/^MARGIN_REFUSED:margin_below_floor:margin=-?\d+:floor=300$/)
     const unknown = evaluateAutoBuyMargin(orderOf(), cost(null, 100), { minMarginCents: 300 })
     if (unknown.allowed) throw new Error("expected a refusal")
-    expect(formatAutoBuyMarginRefusal(unknown)).toBe("MARGIN_REFUSED:cost_unknown:margin=n/a:floor=300")
+    expect(formatAutoBuyMarginRefusal(unknown)).toBe("MARGIN_REFUSED:cost_unknown:margin=n/a:floor=300:missing=price")
   })
 })
 

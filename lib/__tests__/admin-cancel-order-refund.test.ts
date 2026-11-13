@@ -36,6 +36,13 @@ beforeEach(() => {
   h.pipeline.mockResolvedValue({ ok: true, stripeRefundId: "re_1" })
 })
 
+describe("cancelMarketplaceOrderByAdmin — engine jobs are cancelled ON BEHALF OF this order (#4)", () => {
+  it("tells cancelSupplierFulfillmentJob which order is being cancelled (a shared AliExpress job belongs to its first line only)", async () => {
+    await cancelMarketplaceOrderByAdmin("o1", "SAV")
+    expect(h.cancelJob).toHaveBeenCalledWith("job_1", { forOrderId: "o1" })
+  })
+})
+
 describe("cancelMarketplaceOrderByAdmin — D5: `refunded` only after a real refund", () => {
   it("refunds a paid order through the pipeline (admin_refund) and only THEN passes the refund id to the e-mail/status writer", async () => {
     h.pipeline.mockImplementation(async () => {

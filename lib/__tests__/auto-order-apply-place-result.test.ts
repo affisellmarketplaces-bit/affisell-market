@@ -40,6 +40,34 @@ beforeEach(() => {
   h.circuit.failure.length = 0
 })
 
+describe("applySupplierPlaceOrderResult — an AliExpress job buys only its FIRST line (#4)", () => {
+  const aeGroup = { providerId: "prov1", channel: "ALIEXPRESS", lines: [{ orderId: "o1" }, { orderId: "o2" }, { orderId: "o3" }] } as unknown as SupplierGroup
+  const cjGroup = { ...aeGroup, channel: "CJ_DROPSHIPPING" } as unknown as SupplierGroup
+  const applyTo = (group: SupplierGroup, placed: PlaceSupplierOrderResult) =>
+    applySupplierPlaceOrderResult({ supplierFulfillmentOrderId: "job1", batchId: "b1", providerId: "prov1", group, placed })
+  const statusOf = (id: string) =>
+    (h.orderUpdates.find((u) => (u as { where: { id: string } }).where.id === id) as { data: Record<string, unknown> }).data
+
+  it("CONFIRMED: line 1 is ORDERED, the lines that were NOT bought are flagged MANUAL_REQUIRED (never ORDERED)", async () => {
+    await applyTo(aeGroup, { supplierOrderId: "AE-1", status: "CONFIRMED" })
+    expect(statusOf("o1").fulfillmentStatus).toBe("ORDERED")
+    for (const id of ["o2", "o3"]) {
+      expect(statusOf(id)).toMatchObject({ fulfillmentStatus: "MANUAL_REQUIRED" })
+      expect(JSON.stringify(statusOf(id).fulfillmentErrors)).toContain("ae_group_line_not_purchased")
+    }
+  })
+
+  it("a FAILED AliExpress job flags every line, as before", async () => {
+    await applyTo(aeGroup, { supplierOrderId: null, status: "FAILED", errorMessage: "INVENTORY_SHORTAGE" })
+    for (const id of ["o1", "o2", "o3"]) expect(statusOf(id).fulfillmentStatus).toBe("MANUAL_REQUIRED")
+  })
+
+  it("a CJ job bought every line in one supplier order: every line is ORDERED (unchanged)", async () => {
+    await applyTo(cjGroup, { supplierOrderId: "CJ-1", status: "CONFIRMED" })
+    for (const id of ["o1", "o2", "o3"]) expect(statusOf(id).fulfillmentStatus).toBe("ORDERED")
+  })
+})
+
 describe("applySupplierPlaceOrderResult", () => {
   it("CANCELLED (duplicate prevented): the job is recorded, the ORDERS are not touched, the circuit is not fed", async () => {
     const out = await apply({ supplierOrderId: null, status: "CANCELLED", errorMessage: "duplicate_purchase_prevented:already_placed" })

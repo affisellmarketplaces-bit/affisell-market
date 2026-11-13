@@ -50,7 +50,22 @@ export async function applySupplierPlaceOrderResult(args: {
         ? "MANUAL_REQUIRED"
         : "PROCESSING"
 
-  for (const l of group.lines) {
+  // An AliExpress job buys only its FIRST line (`engine-job-attribution.ts`). The other lines of the group were not bought: they
+  // must not be marked ORDERED (that would make their payout gate read "upstream funded"); they are flagged so that someone —
+  // or the `order.paid` / auto-buy path, each under its own claim — buys them. A FAILED job flags every line, as before.
+  const purchasedOnly = group.channel === "ALIEXPRESS" && placed.status !== "FAILED"
+
+  for (const [index, l] of group.lines.entries()) {
+    if (purchasedOnly && index > 0) {
+      await prisma.order.update({
+        where: { id: l.orderId },
+        data: {
+          fulfillmentStatus: "MANUAL_REQUIRED",
+          fulfillmentErrors: [{ supplier: "ae_group_line_not_purchased" }] as Prisma.InputJsonValue,
+        },
+      })
+      continue
+    }
     await prisma.order.update({
       where: { id: l.orderId },
       data: {

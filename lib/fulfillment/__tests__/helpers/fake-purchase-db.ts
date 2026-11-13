@@ -30,7 +30,14 @@ export type FakeLog = {
   updatedAt: Date
 }
 
-export type FakeJob = { id: string; supplierOrderId: string | null; status: string; orderIds: string[] }
+export type FakeJob = {
+  id: string
+  supplierOrderId: string | null
+  status: string
+  orderIds: string[]
+  /** Provider channel of the job (default ALIEXPRESS: the adapter buys the first line only). */
+  channelType?: string
+}
 
 const tick = () => new Promise<void>((resolve) => setImmediate(resolve))
 
@@ -54,6 +61,7 @@ export function createFakePurchaseDb(seed: { orders: FakeOrder[]; logs?: FakeLog
   const orders = new Map<string, FakeOrder>(seed.orders.map((o) => [o.id, o]))
   const logs = new Map<string, FakeLog>((seed.logs ?? []).map((l) => [l.orderId, l]))
   const jobs: FakeJob[] = [...(seed.jobs ?? [])]
+  const audits: Array<Record<string, unknown>> = []
   let logSeq = logs.size
 
   const lockTails = new Map<string, Promise<void>>()
@@ -86,6 +94,7 @@ export function createFakePurchaseDb(seed: { orders: FakeOrder[]; logs?: FakeLog
             id: j.id,
             supplierOrderId: j.supplierOrderId,
             status: j.status,
+            provider: { channelType: j.channelType ?? "ALIEXPRESS" },
             lines: j.orderIds.slice(0, 1).map((orderId) => ({ orderId })),
           },
         })),
@@ -99,6 +108,13 @@ export function createFakePurchaseDb(seed: { orders: FakeOrder[]; logs?: FakeLog
   }
 
   const models = {
+    auditLog: {
+      create: async (args: { data: Record<string, unknown> }) => {
+        await tick()
+        audits.push(clone(args.data))
+        return args.data
+      },
+    },
     order: {
       findUnique: async (args: { where: { id: string } }) => {
         await tick()
@@ -199,6 +215,7 @@ export function createFakePurchaseDb(seed: { orders: FakeOrder[]; logs?: FakeLog
     orders,
     logs,
     jobs,
+    audits,
     stats,
     /** Everything that was recorded as a purchase, for assertions. */
     boughtLogs: () => [...logs.values()].filter((l) => l.status === "BOUGHT"),

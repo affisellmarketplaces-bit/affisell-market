@@ -111,6 +111,53 @@ describe("classifyPlaceOrderError — only a recognised refusal is definitive", 
     ["a throttling message", new AliExpressApiError("Too many requests")],
   ])("%s is RATE_LIMITED", (_l, e) => expect(classifyPlaceOrderError(e)).toBe("rate_limited"))
 
+  // The review's own examples: a platform fault worded with camelCase exception names, "time out", "degraded"… that also
+  // contains a business word must stay UNCERTAIN.
+  it.each([
+    ["ReadTimeoutException: stock check failed", {}],
+    ["SocketTimeoutException while locking inventory", {}],
+    ["Read time out while reserving inventory", {}],
+    ["Service degraded, retry later: price service down", {}],
+    ["Maximum retries exceeded for address lookup", {}],
+    ["inventory", { code: "ServiceUnavailable" }],
+    ["Under maintenance: price list unavailable", {}],
+    ["System overloaded while checking stock", {}],
+    ["NullPointerException in address validator", {}],
+  ])("a platform fault that contains a business word stays UNCERTAIN: %s", (message, extra) => {
+    expect(classifyPlaceOrderAnswer({ message, ...extra })).toBe("uncertain")
+  })
+
+  it("classifies on EVERY field of the answer, never on the first non-empty one", () => {
+    // {error_code: "A001", error_msg: "remote service timeout"}: judged on 'A001' alone it was "definitive"
+    expect(classifyPlaceOrderAnswer({ message: "A001", detail: "A001 | remote service timeout" })).toBe("uncertain")
+    expect(classifyPlaceOrderAnswer({ message: "A001", detail: "A001 | order not allowed" })).toBe("definitive")
+    expect(classifyPlaceOrderAnswer({ message: "failed", detail: "failed | INVENTORY_SHORTAGE" })).toBe("definitive")
+  })
+
+  it("an ISP (platform fault) envelope is UNCERTAIN whatever its text says", () => {
+    expect(classifyPlaceOrderAnswer({ message: "price check failed", gatewayType: "ISP" })).toBe("uncertain")
+    expect(classifyPlaceOrderAnswer({ message: "INVENTORY_SHORTAGE", gatewayType: "ISP" })).toBe("uncertain")
+    // an ISV (caller) envelope is read on its words
+    expect(classifyPlaceOrderAnswer({ message: "INVENTORY_SHORTAGE", gatewayType: "ISV" })).toBe("definitive")
+    expect(classifyPlaceOrderError(new AliExpressApiError("price check failed", { gatewayType: "ISP" }))).toBe("uncertain")
+  })
+
+  it.each([
+    ["HTTP 429 (throttled at the door)", new AliExpressApiError("AliExpress HTTP 429", { code: "HTTP_429" }), "rate_limited"],
+    ["HTTP 403", new AliExpressApiError("AliExpress HTTP 403", { code: "HTTP_403" }), "try_next_method"],
+    ["HTTP 404", new AliExpressApiError("AliExpress HTTP 404", { code: "HTTP_404" }), "try_next_method"],
+    ["HTTP 500 stays uncertain", new AliExpressApiError("AliExpress HTTP 500", { code: "HTTP_500" }), "uncertain"],
+    ["TOP throttle", new AliExpressApiError("This ban will last for 1 more seconds", { code: "accesscontrol.limited-by-api-access-count" }), "rate_limited"],
+    ["'Api call limit exceeded'", new AliExpressApiError("Api call limit exceeded"), "rate_limited"],
+    ["a DNS failure (nothing was sent)", Object.assign(new TypeError("fetch failed"), { cause: { code: "ENOTFOUND" } }), "try_next_method"],
+    ["a refused connection (nothing was sent)", Object.assign(new TypeError("fetch failed"), { cause: { code: "ECONNREFUSED" } }), "try_next_method"],
+    ["a connection RESET (the request may have left)", Object.assign(new TypeError("fetch failed"), { cause: { code: "ECONNRESET" } }), "uncertain"],
+    ["a socket timeout (the request may have left)", Object.assign(new TypeError("fetch failed"), { cause: { code: "ETIMEDOUT" } }), "uncertain"],
+    ["Invalid mobile number", new AliExpressApiError("Invalid mobile number"), "definitive"],
+    ["Invalid postal code", new AliExpressApiError("Invalid postal code"), "definitive"],
+    ["Shipping method not available for this country", new AliExpressApiError("Shipping method not available for this country"), "definitive"],
+  ])("%s => %s", (_l, e, expected) => expect(classifyPlaceOrderError(e)).toBe(expected))
+
   it("a word like 'rate' or 'limit' alone is NOT a throttle (an inventory limit is a stock refusal)", () => {
     expect(classifyPlaceOrderAnswer({ message: "INVENTORY_LIMIT_REACHED" })).toBe("definitive")
     expect(classifyPlaceOrderAnswer({ message: "generate failed" })).toBe("uncertain")
@@ -185,6 +232,37 @@ describe("createAliExpressDsOrder — recognised answers keep their behaviour", 
     expect(r).toMatchObject({ ok: false, error: "INVALID_ADDRESS" })
     if (!r.ok) expect(r.outcomeUncertain).toBeUndefined()
     expect(h.calls).toHaveLength(1)
+  })
+
+  it("2xx body {error_code: 'A001', error_msg: 'remote service timeout'}: judged on BOTH fields => uncertain, ONE request", async () => {
+    h.script.push(() => ({
+      aliexpress_trade_buy_placeorder_response: { result: { error_code: "A001", error_msg: "remote service timeout" } },
+    }))
+    h.script.push(() => OK_PAYLOAD)
+    const r = await createAliExpressDsOrder(input)
+    expect(r).toMatchObject({ ok: false, outcomeUncertain: true })
+    expect(h.calls).toHaveLength(1)
+  })
+
+  it("a DNS failure on the first host (nothing was sent) lets the next host try", async () => {
+    h.script.push(throws(Object.assign(new TypeError("fetch failed"), { cause: { code: "ENOTFOUND" } })))
+    h.script.push(() => OK_PAYLOAD)
+    expect(await createAliExpressDsOrder(input)).toMatchObject({ ok: true, aliexpressOrderId: "9876543210" })
+    expect(h.calls).toHaveLength(2)
+  })
+
+  it("HTTP 429 backs off and tries again (nothing was processed)", async () => {
+    vi.useFakeTimers()
+    try {
+      h.script.push(throws(new AliExpressApiError("AliExpress HTTP 429", { code: "HTTP_429" })))
+      h.script.push(() => OK_PAYLOAD)
+      const pending = createAliExpressDsOrder(input)
+      await vi.advanceTimersByTimeAsync(2_000)
+      expect(await pending).toMatchObject({ ok: true, aliexpressOrderId: "9876543210" })
+      expect(h.calls.length).toBeGreaterThanOrEqual(2)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it("a gateway 'method unavailable' refusal falls through to the next method, and a success is returned", async () => {

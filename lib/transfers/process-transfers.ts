@@ -22,6 +22,11 @@ import {
 import { computeSplitStatusFromAttempts } from "@/lib/transfers/compute-split-status"
 import { alertSplitTransferFailed } from "@/lib/transfers/split-slack-alert"
 import { logStripeWebhookError, logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
+import {
+  ENGINE_JOB_ATTRIBUTION_SELECT,
+  jobAttributionOf,
+  jobSupplierOrderCoversOrder,
+} from "@/lib/fulfillment/engine-job-attribution"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
 import * as Sentry from "@sentry/nextjs"
@@ -139,7 +144,7 @@ async function processOneAttempt(
           autoBuyLog: { select: { status: true } },
           supplierFulfillmentLinks: {
             select: {
-              supplierFulfillmentOrder: { select: { status: true } },
+              supplierFulfillmentOrder: { select: { status: true, ...ENGINE_JOB_ATTRIBUTION_SELECT } },
             },
           },
         },
@@ -209,9 +214,13 @@ async function processOneAttempt(
     payoutEligibleAt: attempt.order.payoutEligibleAt,
     fulfillmentStatus: attempt.order.fulfillmentStatus,
     autoBuyLogStatus: attempt.order.autoBuyLog?.status ?? null,
-    supplierJobStatuses: attempt.order.supplierFulfillmentLinks.map(
-      (l) => l.supplierFulfillmentOrder.status
-    ),
+    // Only the jobs whose supplier order really covers THIS order count as "upstream funded" (an AliExpress job buys its first
+    // line only: the second order of a cart must not be released on the strength of the first one's purchase).
+    supplierJobStatuses: attempt.order.supplierFulfillmentLinks
+      .filter((l) =>
+        jobSupplierOrderCoversOrder(jobAttributionOf(l.supplierFulfillmentOrder), attempt.orderId)
+      )
+      .map((l) => l.supplierFulfillmentOrder.status),
     returns: attempt.order.returns,
   })
 

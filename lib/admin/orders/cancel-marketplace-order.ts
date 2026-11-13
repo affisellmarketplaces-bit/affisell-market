@@ -57,7 +57,7 @@ export async function cancelMarketplaceOrderByAdmin(
   ]
 
   for (const jobId of jobIds) {
-    const result = await cancelSupplierFulfillmentJob(jobId)
+    const result = await cancelSupplierFulfillmentJob(jobId, { forOrderId: orderId })
     if (!result.ok && result.error !== "not_cancellable") {
       return { ok: false, error: result.error }
     }

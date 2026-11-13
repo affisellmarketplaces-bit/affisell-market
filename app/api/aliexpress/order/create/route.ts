@@ -8,6 +8,7 @@ import {
   stripBodySecret,
 } from "@/lib/aliexpress-ops-auth"
 import { summarizeAddressForLog } from "@/lib/aliexpress-mapping"
+import { opsWebhookAlert } from "@/lib/ops-webhook"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -75,6 +76,32 @@ export async function POST(req: Request) {
     shippingAddress: body.shippingAddress,
     customerNote: body.customerNote,
   })
+
+  if (!result.ok && result.outcomeUncertain) {
+    // A request left and its outcome is unknown: AliExpress MAY have created the order. This route has no claim (no order id),
+    // so the caller is the only protection: a 502 would read as "nothing happened, retry" and a retry could order twice.
+    console.error("[aliexpress-order-create]", {
+      result: "outcome_uncertain",
+      supplierProductId: body.supplierProductId,
+      skuTail: body.skuId.slice(-4),
+      error: result.error,
+    })
+    void opsWebhookAlert(
+      `Affisell - POST /api/aliexpress/order/create : ISSUE INCERTAINE (produit ${body.supplierProductId}, sku ...${body.skuId.slice(-4)}). ` +
+        `Une commande peut exister chez AliExpress : verifier la liste des commandes AliExpress AVANT toute nouvelle tentative.`
+    ).catch(() => undefined)
+    return NextResponse.json(
+      {
+        ok: false,
+        error: result.error,
+        outcomeUncertain: true,
+        message:
+          "Issue incertaine : une commande a peut-etre ete creee chez AliExpress. Verifiez la liste des commandes AliExpress AVANT toute nouvelle tentative.",
+        methodAttempts: result.methodAttempts,
+      },
+      { status: 409 }
+    )
+  }
 
   if (!result.ok) {
     return NextResponse.json(

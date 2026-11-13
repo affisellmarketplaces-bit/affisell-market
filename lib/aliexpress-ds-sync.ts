@@ -37,20 +37,38 @@ function pickString(obj: Record<string, unknown> | null, keys: string[]): string
   return ""
 }
 
-function parseGatewayErrorDetail(json: unknown): { message: string; code?: string } | null {
+const GATEWAY_TEXT_FIELDS = ["message", "msg", "sub_msg", "error", "error_msg", "rsp_msg", "rspMsg", "code", "sub_code", "error_code"] as const
+
+/** Every non-empty text field of a gateway answer, joined: classification must see all of them, not just the first. */
+function allGatewayText(node: Record<string, unknown>): string {
+  return GATEWAY_TEXT_FIELDS.map((k) => pickString(node, [k]))
+    .filter(Boolean)
+    .join(" | ")
+}
+
+function parseGatewayErrorDetail(
+  json: unknown
+): { message: string; code?: string; gatewayType?: "ISP" | "ISV"; detail: string } | null {
   const root = asRecord(json)
   if (!root) return null
   if (root.type === "ISV" || root.type === "ISP") {
     return {
       message: pickString(root, ["message", "msg", "sub_msg", "error"]) || "AliExpress ISV error",
       code: pickString(root, ["code", "sub_code", "error_code"]) || undefined,
+      gatewayType: root.type,
+      detail: allGatewayText(root),
     }
   }
   const err = asRecord(root.error_response)
   if (err) {
+    const code = pickString(err, ["sub_code", "code", "error_code"]) || undefined
+    // A TOP error_response carries no `type`, but its sub_code says whose fault it is ("isp.…" / "isv.…").
+    const prefix = code?.toLowerCase().match(/^(isp|isv)[.\-_]/)?.[1]
     return {
       message: pickString(err, ["sub_msg", "msg", "message", "error"]) || "AliExpress API error",
-      code: pickString(err, ["sub_code", "code", "error_code"]) || undefined,
+      code,
+      gatewayType: prefix === "isp" ? "ISP" : prefix === "isv" ? "ISV" : undefined,
+      detail: allGatewayText(err),
     }
   }
   return null
@@ -192,7 +210,11 @@ export async function callAliExpressSyncMethod(args: {
 
   const gatewayError = parseGatewayErrorDetail(json)
   if (gatewayError) {
-    throw new AliExpressApiError(gatewayError.message, gatewayError.code ? { code: gatewayError.code } : undefined)
+    throw new AliExpressApiError(gatewayError.message, {
+      code: gatewayError.code,
+      gatewayType: gatewayError.gatewayType,
+      detail: gatewayError.detail,
+    })
   }
 
   const methodNode = unwrapAliExpressMethodResponse(json, args.method)
@@ -205,7 +227,11 @@ export async function callAliExpressSyncMethod(args: {
         (typeof methodNode.rsp_msg === "string" && methodNode.rsp_msg) ||
         (typeof methodNode.rspMsg === "string" && methodNode.rspMsg) ||
         "AliExpress business error"
-      throw new AliExpressApiError(msg, { code: rspCode, rateLimited: Number(rspCode) === 40 })
+      throw new AliExpressApiError(msg, {
+        code: rspCode,
+        rateLimited: Number(rspCode) === 40,
+        detail: allGatewayText(methodNode),
+      })
     }
   }
 
