@@ -36,6 +36,13 @@ export async function applySupplierPlaceOrderResult(args: {
     },
   })
 
+  // CANCELLED = this job did not start a purchase (the per-order gate found it already bought / in flight / no longer
+  // purchasable): it is recorded on the job only. Writing a line status here could overwrite the ORDERED state that the
+  // path which really bought has just recorded, and a refused duplicate says nothing about the provider's health.
+  if (placed.status === "CANCELLED") {
+    return { success: false, lineStatus: "PROCESSING", errorMessage: placed.errorMessage }
+  }
+
   const lineStatus: FulfillmentStatus =
     placed.status === "CONFIRMED" || placed.status === "SHIPPED"
       ? "ORDERED"
@@ -59,7 +66,7 @@ export async function applySupplierPlaceOrderResult(args: {
   const success = placed.status === "CONFIRMED" || placed.status === "SHIPPED"
   if (success) {
     recordCircuitSuccess(circuitKey)
-  } else if (placed.status === "FAILED") {
+  } else if (placed.status === "FAILED" && !placed.errorMessage?.startsWith("margin_refused")) {
     recordCircuitFailure(circuitKey)
   }
 
