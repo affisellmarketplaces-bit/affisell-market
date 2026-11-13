@@ -47,6 +47,15 @@ export async function ensureMarketplaceCheckoutFulfilled(
     })
     return
   }
+  if (ghost.refundFailed) {
+    // Out-of-stock product, refund NOT done (alert raised by the refund): never fulfil it. The orders stay unpaid
+    // (PENDING) so `reconcile-checkout-orders` comes back here and replays the refund.
+    logStripeWebhookInfo({
+      metric: "ghost_oos_refund_failed",
+      sessionId: session.id,
+    })
+    return
+  }
 
   const { customerEmail, shippingAddress } = extractMarketplaceCheckoutCustomer(session)
 

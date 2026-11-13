@@ -22,7 +22,12 @@ export function CancelOrderDialog({ orderId, supplierOrders }: Props) {
   const cancellable = supplierOrders.filter((s) => s.canCancel)
 
   async function cancelAll() {
-    if (!confirm("Annuler cette commande et notifier le client par email ?")) return
+    if (
+      !confirm(
+        "Annuler cette commande, REMBOURSER le client sur Stripe (commande payée) et le notifier par email ?"
+      )
+    )
+      return
     setBusy(true)
     try {
       const res = await fetch(`/api/admin/orders/${orderId}/cancel`, {

@@ -564,7 +564,8 @@ async function failAutoBuy(
   if (refund.ok) {
     await notifyOrderCancelled(orderId, {
       cancelReason: "Rupture stock fournisseur — remboursement en cours.",
-      markRefunded: true,
+      // `refund.ok` means Stripe accepted the refund, so its id is always there: "refunded" is only written then.
+      stripeRefundId: refund.stripeRefundId,
     })
   }
 }

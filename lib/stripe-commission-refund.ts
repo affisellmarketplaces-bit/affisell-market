@@ -252,7 +252,8 @@ export async function handleStripeChargeRefundedWithCommission(
       await notifyOrderCancelled(orderId, {
         cancelReason: "Remboursement Stripe",
         refundAmountCents: chargeRefunded,
-        markRefunded: true,
+        // Stripe's own refund: the status was just written above; the id keeps a replay writing it too.
+        stripeRefundId: lastStripeRefundId ?? undefined,
       })
     }
 
