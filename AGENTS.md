@@ -114,3 +114,9 @@ Pour **réinitialiser la liste** : démarre une **nouvelle conversation** Agent 
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
+
+## Auto-buy is OPT-IN (owner decision 2026-11-13)
+
+- `isAutoBuyDisabled()` (`lib/fulfillment/auto-buy.ts`) is **true unless `AUTO_BUY_ENABLED=true`** is set on the server. The legacy kill switches (`DISABLE_AUTO_BUY=true`, `AUTO_ORDER_ENABLED=false`) still win over the opt-in. It used to run unless `DISABLE_AUTO_BUY=true`.
+- Auto-buy spends Affisell's own money (an AliExpress order paid with a single-use Stripe Issuing card). Do not set `AUTO_BUY_ENABLED` on any environment without a specific business and financial validation by the owner (margin control before purchase does not exist yet — see `docs/FINALISATION-MASTER.md`).
+- The admin page `/admin/auto-fulfill` shows the "disabled" banner from the same function.

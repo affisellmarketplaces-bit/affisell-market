@@ -477,7 +477,8 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
           </div>
           {killSwitch ? (
             <p className="relative mt-4 rounded-xl border border-amber-300/80 bg-amber-50/90 px-4 py-3 text-xs font-medium text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
-              Kill switch actif : <code>DISABLE_AUTO_BUY=true</code> sur le serveur.
+              Auto-buy désactivé : il faut <code>AUTO_BUY_ENABLED=true</code> sur le serveur (opt-in), et{" "}
+              <code>DISABLE_AUTO_BUY=true</code> le coupe toujours.
             </p>
           ) : null}
         </header>
