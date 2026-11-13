@@ -25,7 +25,9 @@ Active les intégrations ops une par une. Après chaque étape, lance la command
 2. URL : `https://affisell.com/api/webhooks/stripe` (une seule des deux routes ; `/api/stripe/webhook` est l'ancienne URL, qui délègue au même code)
 3. Événements traités par le code (`lib/stripe-webhook-processor.ts`) : `checkout.session.completed`, `checkout.session.expired`, `payment_intent.succeeded`, `charge.refunded`,
    `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`, `account.updated` — **plus** `charge.dispute.created`, `charge.dispute.updated`, `charge.dispute.closed`,
-   `charge.dispute.funds_withdrawn`, `charge.dispute.funds_reinstated` (litiges : reçus et journalisés `skipped`, **pas encore traités** par le code — D7 du master ; l'activation est sans risque).
+   `charge.dispute.funds_withdrawn`, `charge.dispute.funds_reinstated`. **Les cinq événements de litige sont traités par le code (D7, `lib/stripe-dispute.ts`) et déplacent de l'argent** : un litige ouvert **gèle les virements**
+   de la commande, un litige perdu **inverse automatiquement** les virements Connect. **Ne les activer qu'après le déploiement en Production du code D7 et une validation en mode test** (ordre sûr, vérification et retour arrière :
+   `docs/EXTERNAL-OPS-RUNBOOK.md` §5 S1). Ne jamais en retirer un tant qu'une commande est gelée.
    `account.updated` des comptes connectés demande un point d'accès « comptes connectés » avec son propre secret : voir `docs/EXTERNAL-OPS-RUNBOOK.md` §5 S2.
 4. Copier le **Signing secret** → Vercel Production :
    - `STRIPE_WEBHOOK_SECRET=whsec_…`
