@@ -102,6 +102,7 @@ function RetryAutoBuyButton({
     queue_enqueue_failed: "Redis / file KO",
     auto_buy_disabled: "Kill switch actif",
     max_attempts_reached: "3 tentatives max",
+    purchase_in_doubt: "Issue incertaine : vérifier la commande AliExpress avant toute relance",
   }
 
   return (

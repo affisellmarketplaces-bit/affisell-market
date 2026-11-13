@@ -12,7 +12,8 @@ export function canRetryAutoBuyLog(input: {
   attempts: number
 }): boolean {
   if (input.status === "PENDING") return true
-  if (input.status === "BUYING") return true
+  // BUYING is never retryable: a claim without a recorded outcome may be a REAL AliExpress order whose answer was lost.
+  // Re-running it could buy twice (see `lib/fulfillment/supplier-purchase-guard.ts`). It has to be reconciled by a human.
   if (input.status === "FAILED" && input.attempts < MAX_ATTEMPTS) return true
   return false
 }
@@ -61,6 +62,16 @@ export async function retryAdminAutoBuyFulfillmentLog(
     return { ok: false, error: "log_not_retryable", status: 409 }
   }
 
+  if (log.status === "BUYING") {
+    const ageMs = Date.now() - log.updatedAt.getTime()
+    if (ageMs < STUCK_BUYING_MS) {
+      return { ok: false, error: "auto_buy_in_progress", status: 409 }
+    }
+    // Used to reset a "stuck" BUYING log to PENDING and buy again. A claim with no recorded outcome can be a purchase that
+    // exists at AliExpress with its answer lost: refuse, and let a human reconcile it (AGENTS.md, "in doubt").
+    return { ok: false, error: "purchase_in_doubt", status: 409 }
+  }
+
   if (!canRetryAutoBuyLog({ status: log.status, attempts: log.attempts })) {
     return { ok: false, error: "max_attempts_reached", status: 409 }
   }
@@ -72,14 +83,7 @@ export async function retryAdminAutoBuyFulfillmentLog(
     return { ok: false, error: "no_supplier_link_or_auto_buy_off", status: 400 }
   }
 
-  if (log.status === "BUYING") {
-    const ageMs = Date.now() - log.updatedAt.getTime()
-    if (ageMs < STUCK_BUYING_MS) {
-      return { ok: false, error: "auto_buy_in_progress", status: 409 }
-    }
-  }
-
-  if (log.status === "BUYING" || log.status === "FAILED") {
+  if (log.status === "FAILED") {
     await prisma.fulfillmentLog.update({
       where: { id: log.id },
       data: { status: "PENDING", errorMsg: null },
