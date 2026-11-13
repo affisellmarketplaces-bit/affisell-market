@@ -8,7 +8,12 @@ import {
   PAYOUT_EXCEEDS_LINE_ERROR,
 } from "@/lib/money/split-guard"
 import { evaluateTransferReleaseForRole } from "@/lib/order-transfer-gating"
-import { isOrderClosedForPayout, settlementAfterTransfersSucceeded } from "@/lib/orders/payment-state"
+import { hasOpenDisputeHold } from "@/lib/orders/dispute-hold.server"
+import {
+  isOrderClosedForPayout,
+  isOrderPayoutHeldForDispute,
+  settlementAfterTransfersSucceeded,
+} from "@/lib/orders/payment-state"
 import {
   marketplaceRoleAlreadySettled,
   recordStripePayoutSettlement,
@@ -168,6 +173,20 @@ async function processOneAttempt(
       await supersedePendingTransferAttempt(tx, attempt.orderId, attempt.role, "ORDER_CLOSED")
     })
     return "skipped"
+  }
+
+  // A dispute (chargeback) is open on the charge: the buyer's bank already pulled the money from the platform balance, so
+  // nothing may be released until it is decided. The attempt stays PENDING (not cancelled, attempts not consumed): it is
+  // released after a won dispute and superseded as ORDER_CLOSED after a lost one (finalisation master doc, D7). The ledger
+  // is asked, not only `Order.status`: another writer can overwrite "disputed" with "shipped" while the dispute is open.
+  if (isOrderPayoutHeldForDispute(attempt.order, await hasOpenDisputeHold(attempt.orderId))) {
+    console.log("[transfer-gating]", {
+      orderId: attempt.orderId,
+      role: attempt.role,
+      reason: "dispute_open",
+      status: attempt.order.status,
+    })
+    return "held"
   }
 
   const beneficiaryRole = attempt.role as "SUPPLIER" | "AFFILIATE"
