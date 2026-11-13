@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join, relative } from "node:path"
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest"
 
 import { diagnoseRedisNamespace } from "@/lib/redis-namespace"
 import { reportWorkerRedisNamespace, workerNamespaceAlertText } from "@/lib/worker-redis-namespace"
@@ -54,9 +54,9 @@ describe("diagnoseRedisNamespace", () => {
 })
 
 describe("reportWorkerRedisNamespace", () => {
-  let info: ReturnType<typeof vi.spyOn>
-  let error: ReturnType<typeof vi.spyOn>
-  let exit: ReturnType<typeof vi.spyOn>
+  let info: MockInstance
+  let error: MockInstance
+  let exit: MockInstance<typeof process.exit>
 
   beforeEach(() => {
     info = vi.spyOn(console, "info").mockImplementation(() => undefined)
@@ -69,7 +69,7 @@ describe("reportWorkerRedisNamespace", () => {
   })
 
   it("production: ONE info line with the namespace, no error, no alert", async () => {
-    const alert = vi.fn(async () => true)
+    const alert = vi.fn(async (_text: string) => true)
     const report = await reportWorkerRedisNamespace("auto-order-worker", { env: { NODE_ENV: "production" }, alert })
 
     expect(info).toHaveBeenCalledTimes(1)
@@ -85,7 +85,7 @@ describe("reportWorkerRedisNamespace", () => {
   })
 
   it("explicit AFFISELL_REDIS_NAMESPACE=production on a host without NODE_ENV: info only, no alert", async () => {
-    const alert = vi.fn(async () => true)
+    const alert = vi.fn(async (_text: string) => true)
     await reportWorkerRedisNamespace("auto-order-worker", { env: { AFFISELL_REDIS_NAMESPACE: "production" }, alert })
     expect(error).not.toHaveBeenCalled()
     expect(alert).not.toHaveBeenCalled()
@@ -93,14 +93,14 @@ describe("reportWorkerRedisNamespace", () => {
   })
 
   it("explicit AFFISELL_REDIS_NAMESPACE=preview: a choice, info only", async () => {
-    const alert = vi.fn(async () => true)
+    const alert = vi.fn(async (_text: string) => true)
     await reportWorkerRedisNamespace("auto-order-worker", { env: { AFFISELL_REDIS_NAMESPACE: "preview" }, alert })
     expect(error).not.toHaveBeenCalled()
     expect(alert).not.toHaveBeenCalled()
   })
 
   it("THE TRAP: no NODE_ENV, no explicit namespace → info line says dev:bull, an ERROR line, and ONE ops alert — and the process is NOT exited", async () => {
-    const alert = vi.fn(async () => true)
+    const alert = vi.fn(async (_text: string) => true)
     const report = await reportWorkerRedisNamespace("auto-order-worker", { env: {}, alert })
 
     expect(info.mock.calls[0]?.[1]).toMatchObject({ namespace: "dev", bullmqPrefix: "dev:bull", explicit: false })
@@ -119,7 +119,7 @@ describe("reportWorkerRedisNamespace", () => {
 
   it("the default alert path is the ops webhook (Slack / Discord)", async () => {
     vi.resetModules()
-    const opsWebhookAlert = vi.fn(async () => ({ slack: true, discord: false }))
+    const opsWebhookAlert = vi.fn(async (_text: string) => ({ slack: true, discord: false }))
     vi.doMock("@/lib/ops-webhook", () => ({ opsWebhookAlert }))
     try {
       const { reportWorkerRedisNamespace: report } = await import("@/lib/worker-redis-namespace")
@@ -158,7 +158,7 @@ describe("reportWorkerRedisNamespace", () => {
 
   it("NO secret in any log line or in the alert: names, namespaces and static text only", async () => {
     const SECRET = "SENTINEL_SECRET_VALUE_zzzzzzzzzz"
-    const alert = vi.fn(async () => true)
+    const alert = vi.fn(async (_text: string) => true)
     await reportWorkerRedisNamespace("auto-order-worker", {
       env: {
         REDIS_URL: `rediss://default:${SECRET}@redis.example.test:6379`,
