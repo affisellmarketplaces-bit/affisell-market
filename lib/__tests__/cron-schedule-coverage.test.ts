@@ -26,6 +26,8 @@ const UNSCHEDULED_ON_PURPOSE: Record<string, string> = {
     "Recomputes what refresh-supplier-trust-scores and refresh-supplier-delivery-stats (both scheduled) already compute, and inserts a TRUST_SCORE_LOW notification per low-score supplier at every run with no de-duplication: scheduled, it would re-notify the same suppliers daily.",
   "verify-suppliers":
     "Grants AND revokes the 'verified supplier' badge and trust tier of every supplier from computed metrics (a visible product decision that can strip a manually verified supplier) and runs 2-3 queries per supplier, more than the 10 s default function budget: owner decision before it runs.",
+  "sync-stock":
+    "Writes Product.active = (stock > 0) for EVERY product matching a partner SKU (route.ts): it re-lists a product a supplier paused (PATCH active=false) or an admin recalled (GPSR createRecall sets active=false) as soon as the partner reports stock. What `active` means (listed / sellable / recalled) is a founder decision: until it is made the route stays but is not run on a schedule.",
   "notify-failure":
     "Called by the `if: failure()` step of a failed cron job (POST, scripts/ci/notify-cron-failure.sh), never on a schedule.",
 }
@@ -124,7 +126,7 @@ describe("every cron route is scheduled or deliberately not", () => {
   })
 
   it("the former orphans are scheduled where they are relevant", () => {
-    for (const name of ["auctions-tick", "merchant-kyc-reminder", "sync-stock", "sync-shopify", "replay-failed-stripe-webhooks"]) {
+    for (const name of ["auctions-tick", "merchant-kyc-reminder", "sync-shopify", "replay-failed-stripe-webhooks"]) {
       expect(SCHEDULED_PATHS.has(`/api/cron/${name}`), name).toBe(true)
     }
   })
