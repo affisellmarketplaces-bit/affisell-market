@@ -41,6 +41,15 @@ export type UnitInputs = {
   reversedPerUnitCents: number
 }
 
+/**
+ * Rounds to whole cents and never returns negative zero. `Math.round(-0.2)`, `0 * -5` and `-n * 0` are all `-0`: it
+ * compares equal to 0 but prints as "-0", fails `Object.is` / `toMatchObject` and reaches the JSON the UI renders.
+ */
+function wholeCents(v: number): number {
+  const r = Math.round(v)
+  return r === 0 ? 0 : r
+}
+
 function unitInputs(p: PeriodFigures) {
   const u = p.units
   const per = (v: number) => (u > 0 ? v / u : 0)
@@ -64,12 +73,12 @@ function unitInputs(p: PeriodFigures) {
 function asInputs(x: ReturnType<typeof unitInputs>): UnitInputs {
   return {
     units: x.u,
-    sellingPerUnitCents: Math.round(x.S),
-    supplierPerUnitCents: Math.round(x.W),
-    commissionRateBps: Math.round(x.c * 10_000),
-    feeShareBps: Math.round(x.phi * 10_000),
-    transferPerUnitCents: Math.round(x.T),
-    reversedPerUnitCents: Math.round(x.R),
+    sellingPerUnitCents: wholeCents(x.S),
+    supplierPerUnitCents: wholeCents(x.W),
+    commissionRateBps: wholeCents(x.c * 10_000),
+    feeShareBps: wholeCents(x.phi * 10_000),
+    transferPerUnitCents: wholeCents(x.T),
+    reversedPerUnitCents: wholeCents(x.R),
   }
 }
 
@@ -91,7 +100,7 @@ export function attributeProfitChange(previous: PeriodFigures, current: PeriodFi
     refunds: both ? -c.u * (c.R - p.R) : 0,
   }
   const effects = Object.fromEntries(
-    Object.entries(raw).map(([k, v]) => [k, Math.round(v)])
+    Object.entries(raw).map(([k, v]) => [k, wholeCents(v)])
   ) as Record<AttributionDriver, number>
   const explained = Object.values(effects).reduce((s, v) => s + v, 0)
   return {

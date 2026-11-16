@@ -89,4 +89,24 @@ describe("attributeProfitChange", () => {
     expect(residualIsLarge(a)).toBe(true)
     expect(significantNegativeDrivers(a)).toEqual([])
   })
+
+  it("never returns a negative zero (it prints as -0 in the UI and fails Object.is)", () => {
+    const hasNegativeZero = (a: ReturnType<typeof attributeProfitChange>) =>
+      [
+        ...Object.values(a.effects),
+        a.totalChangeCents,
+        a.residualCents,
+        ...Object.values(a.inputs.previous),
+        ...Object.values(a.inputs.current),
+      ].some((v) => Object.is(v, -0))
+    const cases = [
+      attributeProfitChange(period(base), period({ ...base, S: 2700 })), // price cut: fees / refunds / supplier effects are −n × 0
+      attributeProfitChange(period(base), period(base)), // nothing changed
+      attributeProfitChange(period(base), emptyPeriod()),
+      attributeProfitChange(emptyPeriod(), period(base)),
+      attributeProfitChange(emptyPeriod(), emptyPeriod()),
+      attributeProfitChange(period({ ...base, refundBps: 3000 }), period({ ...base, refundBps: 3000, units: 10 })),
+    ]
+    for (const a of cases) expect(hasNegativeZero(a)).toBe(false)
+  })
 })
