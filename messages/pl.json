@@ -2801,16 +2801,17 @@
     },
     "opportunities": {
       "title": "Okazje oparte na rzeczywistej sprzedaży",
-      "intro": "Produkty uszeregowane według tego, ile opłacona sprzedaż na Affisell z ostatnich {days} dni przyniosłaby odsprzedawcy — przy prowizji dostawcy i bez narzutu, po opłatach Affisell oraz zwrotach pieniędzy lub towaru zaobserwowanych w ciągu {qualityDays} dni. To dane historyczne, nie prognoza.",
-      "platformRate": "Wskaźnik zwrotów platformy: {rate} ({orders} opłaconych zamówień w 90 dni).",
+      "intro": "Panel decyzyjny oparty na opłaconych zamówieniach: najpierw Twoje produkty, potem katalog uszeregowany według tego, ile sprzedaż z ostatnich {days} dni przyniosła sprzedawcom, po opłatach Affisell i kwotach zwróconych w ciągu {qualityDays} dni. To dane historyczne, a nie prognoza.",
+      "platformRate": "Wskaźnik zwrotów platformy: {rate} pobranych kwot ({orders} opłaconych zamówień w 90 dni).",
       "emptyRanked": "Brak opłaconych zamówień w ostatnich {days} dniach: nie można jeszcze niczego uszeregować na podstawie rzeczywistej sprzedaży.",
       "col": {
         "product": "Produkt",
         "units": "Sprzedane sztuki ({days} dni)",
         "perUnit": "Zarobek na sprzedaży",
-        "refundRate": "Zwroty",
+        "refundRate": "Zwrócono (wartościowo)",
         "observedNet": "Zaobserwowany zarobek netto ({days} dni)",
-        "checks": "Do sprawdzenia"
+        "checks": "Do sprawdzenia",
+        "disputeRate": "Spory"
       },
       "inStore": "Już w Twoim sklepie",
       "rateOwn": "wskaźnik produktu",
@@ -2820,13 +2821,62 @@
         "disputes_seen": "Odnotowane spory",
         "slow_delivery": "Wolna dostawa (9 na 10 zamówień powyżej 12 dni)",
         "supplier_price_rising": "Cena dostawcy rośnie lub jest niestabilna",
-        "thin_sample": "Mało zamówień: niepewne dane"
+        "thin_sample": "Mało zamówień: niepewne dane",
+        "sales_falling": "Sprzedaż spada (−30% lub więcej)",
+        "payout_per_unit_down": "Zarobek na sprzedaży spadł w 30 dni",
+        "out_of_stock": "Zgłoszony brak w magazynie",
+        "stock_not_maintained": "Stan magazynu prawdopodobnie nieaktualizowany (wartość domyślna importu)"
       },
       "howToRead": "„Zaobserwowany zarobek netto” = sprzedane sztuki × zarobek na sprzedaży po uwzględnieniu zwrotów. Możesz dodać własny narzut do ceny: nie jest tu liczony.",
       "noSalesTitle": "Brak danych o sprzedaży",
       "noSalesIntro": "Te produkty nie mają opłaconych zamówień w tym okresie: nie są szeregowane z braku rzeczywistych danych.",
       "perUnitShort": "{amount} za sprzedaż",
-      "toCatalog": "Otwórz katalog →"
+      "toCatalog": "Otwórz katalog →",
+      "vsPrevious": "{prev} w poprzednich 30 dniach",
+      "perUnitWas": "{amount} 30 dni temu",
+      "truncated": "Bardzo duży wolumen: pokazane liczby są minimum.",
+      "documentedTitle": "Dobrze udokumentowane okazje",
+      "documentedIntro": "Co najmniej {min} opłaconych zamówień w {qualityDays} dni: stosowane są wskaźniki produktu.",
+      "documentedEmpty": "Żaden produkt nie ma jeszcze dość zamówień, by ocenić go na podstawie własnych danych.",
+      "limitedTitle": "Niewystarczające dane",
+      "limitedIntro": "Te produkty mają sprzedaż, ale zbyt małą, by była wiarygodna: stosowany jest wyższy z ich wskaźnika zwrotów i wskaźnika platformy.",
+      "mine": {
+        "title": "Twoje produkty",
+        "intro": "Liczone wyłącznie z Twoich opłaconych zamówień: zysk netto = prowizje zapisane na Twoich zamówieniach minus część odebrana przez zwroty (proporcjonalnie). Okres: {days} dni, porównany z poprzednimi {days} dniami.",
+        "totals": "{net} netto w {days} dni ({orders} zamówień) — {prevNet} w poprzednim okresie ({prevOrders} zamówień).",
+        "empty": "Brak opłaconych zamówień w ostatnich {days} dniach.",
+        "attentionTitle": "Do zrobienia dziś",
+        "attentionEmpty": "Nic do zgłoszenia w Twoich produktach.",
+        "topTitle": "Co przynosi Ci najwięcej ({days} dni)",
+        "decliningTitle": "Co staje się mniej opłacalne",
+        "decliningEmpty": "Żaden produkt nie spada (porównanie od 3 zamówień w poprzednim okresie).",
+        "netChange": "{from} → {to}",
+        "notComparable": "za mało zamówień do porównania",
+        "col": {
+          "product": "Produkt",
+          "orders": "Zamówienia",
+          "net": "Zysk netto",
+          "perUnit": "Netto na sztukę",
+          "refundShare": "Zwrócono",
+          "previous": "Poprzedni okres"
+        },
+        "reasons": {
+          "fewer_units": "mniej sprzedanych sztuk",
+          "lower_net_per_unit": "niższy zysk netto na sztukę",
+          "refund_share_up": "wyższy udział zwrotów",
+          "supplier_price_down": "niższa cena dostawcy (od niej zależy Twoja prowizja)",
+          "disputes_up": "więcej sporów",
+          "unknown": "brak przyczyny możliwej do ustalenia w danych"
+        },
+        "attention": {
+          "open_dispute": "{orders} zamówień z otwartym sporem",
+          "no_longer_for_sale": "nie jest już w sprzedaży na marketplace",
+          "sold_out": "brak w magazynie",
+          "margin_review": "marża do przeglądu: cena dostawcy się zmieniła",
+          "supplier_price_changed": "cena dostawcy zmieniła się w tym tygodniu z {from} na {to}",
+          "return_requested": "{returns} zgłoszonych zwrotów czeka na dostawcę"
+        }
+      }
     }
   },
   "marketplace": {

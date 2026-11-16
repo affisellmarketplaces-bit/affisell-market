@@ -2801,16 +2801,17 @@
     },
     "opportunities": {
       "title": "Opportunità basate sulle vendite reali",
-      "intro": "Prodotti ordinati in base a quanto le vendite pagate su Affisell negli ultimi {days} giorni avrebbero fruttato a un rivenditore, alla commissione del fornitore e senza ricarico, al netto delle commissioni Affisell e dei rimborsi o resi osservati in {qualityDays} giorni. Sono dati passati, non una previsione.",
-      "platformRate": "Tasso di rimborso o reso della piattaforma: {rate} ({orders} ordini pagati in 90 giorni).",
+      "intro": "Pannello decisionale basato sugli ordini pagati: prima i tuoi prodotti, poi il catalogo ordinato in base a quanto le vendite degli ultimi {days} giorni hanno reso ai rivenditori, al netto delle commissioni Affisell e degli importi rimborsati in {qualityDays} giorni. Sono dati passati, non una previsione.",
+      "platformRate": "Tasso di rimborso della piattaforma: {rate} degli importi incassati ({orders} ordini pagati in 90 giorni).",
       "emptyRanked": "Nessun ordine pagato negli ultimi {days} giorni: non è ancora possibile ordinare nulla sulla base di vendite reali.",
       "col": {
         "product": "Prodotto",
         "units": "Unità vendute ({days} gg)",
         "perUnit": "Guadagno per vendita",
-        "refundRate": "Rimborsi / resi",
+        "refundRate": "Rimborsato (in valore)",
         "observedNet": "Guadagno netto osservato ({days} gg)",
-        "checks": "Da verificare"
+        "checks": "Da verificare",
+        "disputeRate": "Contestazioni"
       },
       "inStore": "Già nel tuo negozio",
       "rateOwn": "tasso del prodotto",
@@ -2820,13 +2821,62 @@
         "disputes_seen": "Contestazioni rilevate",
         "slow_delivery": "Consegna lenta (9 ordini su 10 oltre 12 giorni)",
         "supplier_price_rising": "Prezzo del fornitore in aumento o instabile",
-        "thin_sample": "Pochi ordini: dati fragili"
+        "thin_sample": "Pochi ordini: dati fragili",
+        "sales_falling": "Vendite in calo (−30 % o più)",
+        "payout_per_unit_down": "Guadagno per vendita in calo in 30 giorni",
+        "out_of_stock": "Esaurito dichiarato",
+        "stock_not_maintained": "Scorte probabilmente non aggiornate (valore predefinito di importazione)"
       },
       "howToRead": "«Guadagno netto osservato» = unità vendute × guadagno per vendita dopo il tasso di rimborso. Puoi aggiungere il tuo ricarico al prezzo: qui non è conteggiato.",
       "noSalesTitle": "Senza dati di vendita",
       "noSalesIntro": "Questi prodotti non hanno ordini pagati nel periodo: non sono classificati per mancanza di dati reali.",
       "perUnitShort": "{amount} per vendita",
-      "toCatalog": "Apri il catalogo →"
+      "toCatalog": "Apri il catalogo →",
+      "vsPrevious": "{prev} nei 30 giorni precedenti",
+      "perUnitWas": "{amount} 30 giorni fa",
+      "truncated": "Volume molto alto: i dati mostrati sono un minimo.",
+      "documentedTitle": "Opportunità ben documentate",
+      "documentedIntro": "Almeno {min} ordini pagati in {qualityDays} giorni: si usano i tassi del prodotto.",
+      "documentedEmpty": "Nessun prodotto ha ancora abbastanza ordini per essere giudicato sui propri dati.",
+      "limitedTitle": "Dati insufficienti",
+      "limitedIntro": "Questi prodotti hanno vendite, ma troppo poche per essere affidabili: si applica il tasso di rimborso più alto tra il loro e quello della piattaforma.",
+      "mine": {
+        "title": "I tuoi prodotti",
+        "intro": "Calcolato solo dai tuoi ordini pagati: guadagno netto = commissioni registrate sui tuoi ordini, meno la quota ripresa dai rimborsi (pro rata). Periodo: {days} giorni, confrontato con i {days} giorni precedenti.",
+        "totals": "{net} netti in {days} giorni ({orders} ordini) — {prevNet} nel periodo precedente ({prevOrders} ordini).",
+        "empty": "Nessun ordine pagato negli ultimi {days} giorni.",
+        "attentionTitle": "Da gestire oggi",
+        "attentionEmpty": "Niente da segnalare sui tuoi prodotti.",
+        "topTitle": "Cosa ti rende di più ({days} g)",
+        "decliningTitle": "Cosa sta diventando meno redditizio",
+        "decliningEmpty": "Nessun prodotto in calo (confronto da 3 ordini nel periodo precedente).",
+        "netChange": "{from} → {to}",
+        "notComparable": "troppo pochi ordini per confrontare",
+        "col": {
+          "product": "Prodotto",
+          "orders": "Ordini",
+          "net": "Guadagno netto",
+          "perUnit": "Netto per unità",
+          "refundShare": "Rimborsato",
+          "previous": "Periodo precedente"
+        },
+        "reasons": {
+          "fewer_units": "meno unità vendute",
+          "lower_net_per_unit": "guadagno netto per unità in calo",
+          "refund_share_up": "quota rimborsata in aumento",
+          "supplier_price_down": "prezzo del fornitore in calo (la tua commissione ne dipende)",
+          "disputes_up": "più contestazioni",
+          "unknown": "nessuna causa identificabile nei dati"
+        },
+        "attention": {
+          "open_dispute": "{orders} ordine/i con contestazione aperta",
+          "no_longer_for_sale": "non è più in vendita sul marketplace",
+          "sold_out": "esaurito",
+          "margin_review": "margine da rivedere: il prezzo del fornitore è cambiato",
+          "supplier_price_changed": "prezzo del fornitore passato da {from} a {to} questa settimana",
+          "return_requested": "{returns} reso/i richiesto/i, in attesa del fornitore"
+        }
+      }
     }
   },
   "marketplace": {

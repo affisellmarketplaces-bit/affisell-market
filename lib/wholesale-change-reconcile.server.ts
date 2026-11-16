@@ -73,7 +73,8 @@ export async function reconcileWholesaleIncreases(): Promise<WholesaleReconcileR
   let rows: HistoryRow[]
   try {
     rows = await prisma.productPriceHistory.findMany({
-      where: { id: { gt: cursor } },
+      // Base prices only: a variant price (variantKey set) is not a base price and must not be read as one.
+      where: { id: { gt: cursor }, variantKey: null },
       orderBy: { id: "asc" },
       take: BATCH,
       select: { id: true, productId: true, priceCents: true, previousCents: true },
@@ -133,6 +134,8 @@ export async function reconcileWholesaleIncreases(): Promise<WholesaleReconcileR
     }
   }
 
+  // Rows with a variantKey are skipped by the query; the next read starts after the last BASE row read, which is enough:
+  // variant rows are never needed here.
   const lastId = rows.length > 0 ? rows[rows.length - 1]!.id : cursor
   if (lastId > cursor) await writeCursor(lastId)
 

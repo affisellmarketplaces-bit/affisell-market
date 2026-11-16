@@ -1201,3 +1201,30 @@ describe("C1 — a swallowed fulfilment failure no longer lets the settlement pr
     expect(res.errors).not.toContain("o_pending:fulfilment_failed_not_settled")
   })
 })
+
+describe("the supplier price is frozen at checkout (lib/checkout-supplier-snapshot.ts)", () => {
+  it("cart: a supplier price raised between the checkout and the payment does not apply to this order", async () => {
+    db.products.get("p1")!.basePriceCents = 1500 // raised after the checkout, which recorded 1 000
+    const session = cartSession([{ affiliateProductId: "ap1", qty: 2 }], [4000])
+    ;(session as unknown as { metadata: Record<string, string> }).metadata.lineSupplierUnits = "[1000]"
+
+    await fulfil(session)
+
+    expect(paidOrders()).toHaveLength(1)
+    expect(paidOrders()[0]!.supplierPriceCents).toBe(2000) // 2 × the checkout price, not 2 × 1 500
+  })
+
+  it("cart without a snapshot (session created before this change): the current price, as before", async () => {
+    db.products.get("p1")!.basePriceCents = 1500
+    await fulfil(cartSession([{ affiliateProductId: "ap1", qty: 2 }], [4000]))
+    expect(paidOrders()[0]!.supplierPriceCents).toBe(3000)
+  })
+
+  it("a malformed or misaligned snapshot is ignored", async () => {
+    db.products.get("p1")!.basePriceCents = 1500
+    const session = cartSession([{ affiliateProductId: "ap1", qty: 1 }], [2000])
+    ;(session as unknown as { metadata: Record<string, string> }).metadata.lineSupplierUnits = "[1000, 900]"
+    await fulfil(session)
+    expect(paidOrders()[0]!.supplierPriceCents).toBe(1500)
+  })
+})

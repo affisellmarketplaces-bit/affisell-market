@@ -394,18 +394,22 @@ model SupplierComplianceProfile {
  * Isolated table on purpose (no column on Order): if its migration lags behind a deploy, orders are unaffected and
  * buyers simply fall back to the legal window.
  */
-/// Supplier price history (finalisation F1): written ONLY by the database trigger "Product_price_history"
+/// Supplier price history (finalisation F1): written ONLY by the database triggers "Product_price_history" and
+/// "ProductVariant_price_history"
 /// (migration 20261116200000_product_price_history) on every change of Product.basePriceCents. Isolated: no relation,
 /// read defensively (a missing table = "no history yet", see lib/price-history.server.ts).
 model ProductPriceHistory {
   id            BigInt   @id @default(autoincrement())
   productId     String
   supplierId    String?
+  /// NULL = Product.basePriceCents; "row:<name>" = a variants.variantRows line; "pv:<color>/<size>" = a ProductVariant row.
+  variantKey    String?
   priceCents    Int
   previousCents Int?
   recordedAt    DateTime @default(now())
 
   @@index([productId, recordedAt])
+  @@index([productId, variantKey, id])
 }
 
 model OrderReturnTerms {

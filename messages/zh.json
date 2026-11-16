@@ -2801,16 +2801,17 @@
     },
     "opportunities": {
       "title": "基于真实销售的机会",
-      "intro": "按 Affisell 过去 {days} 天的已付款销售可为分销商带来的收益对商品排序：按供应商佣金计算、不加价，扣除 Affisell 费用以及 {qualityDays} 天内实际发生的退款或退货。这些是历史数据，不是预测。",
-      "platformRate": "平台退款或退货率：{rate}（90 天内 {orders} 笔已付款订单）。",
+      "intro": "基于已付款订单的决策面板：先显示您自己的产品，再按最近 {days} 天的销售在扣除 Affisell 费用及 {qualityDays} 天内退款金额后为分销商带来的收益对目录排序。这些是历史数据，不是预测。",
+      "platformRate": "平台退款率：已收金额的 {rate}（90 天内 {orders} 笔已付款订单）。",
       "emptyRanked": "过去 {days} 天没有已付款订单：暂时无法根据真实销售进行排序。",
       "col": {
         "product": "商品",
         "units": "售出件数（{days} 天）",
         "perUnit": "每笔销售收益",
-        "refundRate": "退款 / 退货",
+        "refundRate": "已退款（按金额）",
         "observedNet": "实际净收益（{days} 天）",
-        "checks": "需核查"
+        "checks": "需核查",
+        "disputeRate": "争议"
       },
       "inStore": "已在您的店铺中",
       "rateOwn": "商品自身比率",
@@ -2820,13 +2821,62 @@
         "disputes_seen": "出现争议",
         "slow_delivery": "配送慢（10 笔订单中有 9 笔超过 12 天）",
         "supplier_price_rising": "供应商价格上涨或不稳定",
-        "thin_sample": "订单较少：数据不稳定"
+        "thin_sample": "订单较少：数据不稳定",
+        "sales_falling": "销量下降（−30% 或以上）",
+        "payout_per_unit_down": "30 天内每笔销售收益下降",
+        "out_of_stock": "已申报缺货",
+        "stock_not_maintained": "库存可能未维护（导入默认值）"
       },
       "howToRead": "“实际净收益” = 售出件数 × 扣除退款率后的每笔收益。您可以在售价上加上自己的利润：此处不计入。",
       "noSalesTitle": "无销售数据",
       "noSalesIntro": "这些商品在此期间没有已付款订单：因缺乏真实数据而不参与排序。",
       "perUnitShort": "每笔 {amount}",
-      "toCatalog": "打开商品目录 →"
+      "toCatalog": "打开商品目录 →",
+      "vsPrevious": "前 30 天 {prev}",
+      "perUnitWas": "30 天前 {amount}",
+      "truncated": "数据量极大：显示的数字为最低值。",
+      "documentedTitle": "数据充分的机会",
+      "documentedIntro": "{qualityDays} 天内至少 {min} 笔已付款订单：使用该产品自身的比率。",
+      "documentedEmpty": "目前还没有产品拥有足够订单可按自身数据评估。",
+      "limitedTitle": "数据不足",
+      "limitedIntro": "这些产品有销售，但数量太少不够可靠：采用其自身与平台退款率中较高者。",
+      "mine": {
+        "title": "您的产品",
+        "intro": "仅根据您的已付款订单计算：净收益 = 您订单上记录的佣金，减去退款按比例收回的部分。周期：{days} 天，与之前的 {days} 天比较。",
+        "totals": "{days} 天净收益 {net}（{orders} 笔订单）— 上一周期 {prevNet}（{prevOrders} 笔订单）。",
+        "empty": "最近 {days} 天没有已付款订单。",
+        "attentionTitle": "今日待处理",
+        "attentionEmpty": "您的产品暂无需要处理的事项。",
+        "topTitle": "收益最高的产品（{days} 天）",
+        "decliningTitle": "利润正在下降的产品",
+        "decliningEmpty": "没有下降的产品（上一周期至少 3 笔订单才进行比较）。",
+        "netChange": "{from} → {to}",
+        "notComparable": "订单太少，无法比较",
+        "col": {
+          "product": "产品",
+          "orders": "订单",
+          "net": "净收益",
+          "perUnit": "每件净收益",
+          "refundShare": "已退款",
+          "previous": "上一周期"
+        },
+        "reasons": {
+          "fewer_units": "售出件数减少",
+          "lower_net_per_unit": "每件净收益降低",
+          "refund_share_up": "退款占比上升",
+          "supplier_price_down": "供应商价格下降（您的佣金取决于它）",
+          "disputes_up": "争议增多",
+          "unknown": "数据中无法确定原因"
+        },
+        "attention": {
+          "open_dispute": "{orders} 笔订单存在未结争议",
+          "no_longer_for_sale": "已不在市场上销售",
+          "sold_out": "缺货",
+          "margin_review": "需检查利润：供应商价格已变化",
+          "supplier_price_changed": "本周供应商价格从 {from} 变为 {to}",
+          "return_requested": "{returns} 个退货申请等待供应商处理"
+        }
+      }
     }
   },
   "marketplace": {

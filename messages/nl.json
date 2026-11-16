@@ -2801,16 +2801,17 @@
     },
     "opportunities": {
       "title": "Kansen op basis van echte verkopen",
-      "intro": "Producten gerangschikt naar wat de betaalde verkopen op Affisell van de laatste {days} dagen een wederverkoper zouden hebben opgeleverd, tegen de commissie van de leverancier en zonder opslag, na Affisell-kosten en de terugbetalingen of retouren die over {qualityDays} dagen zijn vastgesteld. Dit zijn cijfers uit het verleden, geen voorspelling.",
-      "platformRate": "Terugbetalings- of retourpercentage van het platform: {rate} ({orders} betaalde bestellingen in 90 dagen).",
+      "intro": "Beslisoverzicht op basis van betaalde bestellingen: eerst je eigen producten, daarna de catalogus gerangschikt naar wat de verkopen van de afgelopen {days} dagen resellers opleverden, na Affisell-kosten en de over {qualityDays} dagen terugbetaalde bedragen. Dit zijn cijfers uit het verleden, geen voorspelling.",
+      "platformRate": "Terugbetalingspercentage van het platform: {rate} van de geïnde bedragen ({orders} betaalde bestellingen in 90 dagen).",
       "emptyRanked": "Geen betaalde bestelling in de laatste {days} dagen: er kan nog niets worden gerangschikt op basis van echte verkopen.",
       "col": {
         "product": "Product",
         "units": "Verkochte eenheden ({days} d)",
         "perUnit": "Opbrengst per verkoop",
-        "refundRate": "Terugbetalingen / retouren",
+        "refundRate": "Terugbetaald (in waarde)",
         "observedNet": "Waargenomen netto-opbrengst ({days} d)",
-        "checks": "Te controleren"
+        "checks": "Te controleren",
+        "disputeRate": "Geschillen"
       },
       "inStore": "Al in je winkel",
       "rateOwn": "percentage van het product",
@@ -2820,13 +2821,62 @@
         "disputes_seen": "Geschillen vastgesteld",
         "slow_delivery": "Trage levering (9 op 10 bestellingen boven 12 dagen)",
         "supplier_price_rising": "Leveranciersprijs stijgend of instabiel",
-        "thin_sample": "Weinig bestellingen: onzekere cijfers"
+        "thin_sample": "Weinig bestellingen: onzekere cijfers",
+        "sales_falling": "Verkoop daalt (−30 % of meer)",
+        "payout_per_unit_down": "Opbrengst per verkoop gedaald in 30 dagen",
+        "out_of_stock": "Uitverkocht gemeld",
+        "stock_not_maintained": "Voorraad waarschijnlijk niet bijgehouden (standaardwaarde van import)"
       },
       "howToRead": "‘Waargenomen netto-opbrengst’ = verkochte eenheden × opbrengst per verkoop na het terugbetalingspercentage. Je kunt je eigen opslag toevoegen: die telt hier niet mee.",
       "noSalesTitle": "Geen verkoopgegevens",
       "noSalesIntro": "Deze producten hebben geen betaalde bestelling in de periode: ze worden niet gerangschikt, bij gebrek aan echte gegevens.",
       "perUnitShort": "{amount} per verkoop",
-      "toCatalog": "Catalogus openen →"
+      "toCatalog": "Catalogus openen →",
+      "vsPrevious": "{prev} in de 30 dagen daarvoor",
+      "perUnitWas": "{amount} 30 dagen geleden",
+      "truncated": "Zeer hoog volume: de getoonde cijfers zijn een minimum.",
+      "documentedTitle": "Goed onderbouwde kansen",
+      "documentedIntro": "Minstens {min} betaalde bestellingen in {qualityDays} dagen: de eigen percentages van het product worden gebruikt.",
+      "documentedEmpty": "Nog geen product heeft genoeg bestellingen om op eigen cijfers te worden beoordeeld.",
+      "limitedTitle": "Onvoldoende gegevens",
+      "limitedIntro": "Deze producten hebben verkopen, maar te weinig om betrouwbaar te zijn: het hoogste van hun eigen en het platformpercentage wordt toegepast.",
+      "mine": {
+        "title": "Jouw producten",
+        "intro": "Alleen berekend uit jouw betaalde bestellingen: netto-opbrengst = commissies op jouw bestellingen, min het deel dat terugbetalingen terugnamen (naar rato). Periode: {days} dagen, vergeleken met de {days} dagen daarvoor.",
+        "totals": "{net} netto in {days} dagen ({orders} bestellingen) — {prevNet} in de vorige periode ({prevOrders} bestellingen).",
+        "empty": "Geen betaalde bestelling in de afgelopen {days} dagen.",
+        "attentionTitle": "Vandaag te doen",
+        "attentionEmpty": "Niets te melden over je producten.",
+        "topTitle": "Wat je het meest oplevert ({days} d)",
+        "decliningTitle": "Wat minder rendabel wordt",
+        "decliningEmpty": "Geen product in daling (vergelijking vanaf 3 bestellingen in de vorige periode).",
+        "netChange": "{from} → {to}",
+        "notComparable": "te weinig bestellingen om te vergelijken",
+        "col": {
+          "product": "Product",
+          "orders": "Bestellingen",
+          "net": "Netto-opbrengst",
+          "perUnit": "Netto per stuk",
+          "refundShare": "Terugbetaald",
+          "previous": "Vorige periode"
+        },
+        "reasons": {
+          "fewer_units": "minder stuks verkocht",
+          "lower_net_per_unit": "lagere netto-opbrengst per stuk",
+          "refund_share_up": "hoger terugbetaald aandeel",
+          "supplier_price_down": "leveranciersprijs gedaald (je commissie hangt ervan af)",
+          "disputes_up": "meer geschillen",
+          "unknown": "geen oorzaak herkenbaar in de gegevens"
+        },
+        "attention": {
+          "open_dispute": "{orders} bestelling(en) met een open geschil",
+          "no_longer_for_sale": "niet meer te koop op de marktplaats",
+          "sold_out": "uitverkocht",
+          "margin_review": "marge herzien: de leveranciersprijs is gewijzigd",
+          "supplier_price_changed": "leveranciersprijs deze week van {from} naar {to}",
+          "return_requested": "{returns} retour(en) aangevraagd, wacht op de leverancier"
+        }
+      }
     }
   },
   "marketplace": {

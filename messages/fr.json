@@ -2801,16 +2801,17 @@
     },
     "opportunities": {
       "title": "Opportunités fondées sur les ventes réelles",
-      "intro": "Produits classés selon ce que les ventes payées sur Affisell des {days} derniers jours auraient rapporté à un revendeur, à la commission du fournisseur et sans marge ajoutée, après les frais Affisell et les remboursements ou retours constatés sur {qualityDays} jours. Ce sont des chiffres passés, pas une prévision.",
-      "platformRate": "Taux de remboursement ou de retour de la plateforme : {rate} ({orders} commandes payées sur 90 jours).",
+      "intro": "Tableau de décision fondé sur les commandes payées : vos propres produits d'abord, puis le catalogue classé selon ce que les ventes des {days} derniers jours ont rapporté aux revendeurs, après les frais Affisell et les montants remboursés sur {qualityDays} jours. Ce sont des chiffres passés, pas une prévision.",
+      "platformRate": "Taux de remboursement de la plateforme : {rate} des montants encaissés ({orders} commandes payées sur 90 jours).",
       "emptyRanked": "Aucune commande payée sur les {days} derniers jours : rien ne peut encore être classé à partir de ventes réelles.",
       "col": {
         "product": "Produit",
         "units": "Unités vendues ({days} j)",
         "perUnit": "Gain par vente",
-        "refundRate": "Remboursements / retours",
+        "refundRate": "Remboursé (en valeur)",
         "observedNet": "Gain net observé ({days} j)",
-        "checks": "À vérifier"
+        "checks": "À vérifier",
+        "disputeRate": "Litiges"
       },
       "inStore": "Déjà dans votre boutique",
       "rateOwn": "taux du produit",
@@ -2820,13 +2821,62 @@
         "disputes_seen": "Litiges constatés",
         "slow_delivery": "Livraison lente (9 commandes sur 10 au-delà de 12 jours)",
         "supplier_price_rising": "Prix fournisseur en hausse ou instable",
-        "thin_sample": "Peu de commandes : chiffres fragiles"
+        "thin_sample": "Peu de commandes : chiffres fragiles",
+        "sales_falling": "Ventes en baisse (−30 % ou plus)",
+        "payout_per_unit_down": "Gain par vente en baisse sur 30 jours",
+        "out_of_stock": "Rupture de stock déclarée",
+        "stock_not_maintained": "Stock probablement non tenu (valeur par défaut d'import)"
       },
       "howToRead": "« Gain net observé » = unités vendues × gain par vente après le taux de remboursement. Vous pouvez ajouter votre propre marge au prix de vente : elle n'est pas comptée ici.",
       "noSalesTitle": "Sans données de vente",
       "noSalesIntro": "Ces produits n'ont aucune commande payée sur la période : ils ne sont pas classés, faute de données réelles.",
       "perUnitShort": "{amount} par vente",
-      "toCatalog": "Ouvrir le catalogue →"
+      "toCatalog": "Ouvrir le catalogue →",
+      "vsPrevious": "{prev} les 30 j précédents",
+      "perUnitWas": "{amount} il y a 30 j",
+      "truncated": "Volume très élevé : les chiffres affichés sont un minimum.",
+      "documentedTitle": "Opportunités bien documentées",
+      "documentedIntro": "Au moins {min} commandes payées sur {qualityDays} jours : les taux sont ceux du produit.",
+      "documentedEmpty": "Aucun produit n'a encore assez de commandes pour être jugé sur ses propres chiffres.",
+      "limitedTitle": "Données insuffisantes",
+      "limitedIntro": "Ces produits ont des ventes, mais trop peu pour être fiables : le taux de remboursement appliqué est le plus élevé entre le leur et celui de la plateforme.",
+      "mine": {
+        "title": "Vos produits",
+        "intro": "Calculé uniquement à partir de vos commandes payées : gain net = commissions enregistrées sur vos commandes, moins la part reprise par les remboursements (au prorata). Période : {days} jours, comparée aux {days} jours précédents.",
+        "totals": "{net} nets sur {days} jours ({orders} commandes) — {prevNet} sur la période précédente ({prevOrders} commandes).",
+        "empty": "Aucune commande payée sur les {days} derniers jours.",
+        "attentionTitle": "À traiter aujourd'hui",
+        "attentionEmpty": "Rien à signaler sur vos produits.",
+        "topTitle": "Ce qui vous rapporte le plus ({days} j)",
+        "decliningTitle": "Ce qui devient moins rentable",
+        "decliningEmpty": "Aucun produit en baisse (comparaison faite à partir de 3 commandes sur la période précédente).",
+        "netChange": "{from} → {to}",
+        "notComparable": "trop peu de commandes pour comparer",
+        "col": {
+          "product": "Produit",
+          "orders": "Commandes",
+          "net": "Gain net",
+          "perUnit": "Net par unité",
+          "refundShare": "Remboursé",
+          "previous": "Période précédente"
+        },
+        "reasons": {
+          "fewer_units": "moins d'unités vendues",
+          "lower_net_per_unit": "gain net par unité en baisse",
+          "refund_share_up": "part remboursée en hausse",
+          "supplier_price_down": "prix fournisseur en baisse (votre commission en dépend)",
+          "disputes_up": "plus de litiges",
+          "unknown": "cause non identifiable dans les données"
+        },
+        "attention": {
+          "open_dispute": "{orders} commande(s) en litige ouvert",
+          "no_longer_for_sale": "n'est plus en vente sur la marketplace",
+          "sold_out": "en rupture de stock",
+          "margin_review": "marge à revoir : le prix fournisseur a changé",
+          "supplier_price_changed": "prix fournisseur passé de {from} à {to} cette semaine",
+          "return_requested": "{returns} retour(s) demandé(s), en attente du fournisseur"
+        }
+      }
     }
   },
   "marketplace": {

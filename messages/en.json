@@ -2801,16 +2801,17 @@
     },
     "opportunities": {
       "title": "Opportunities based on real sales",
-      "intro": "Products ranked by what the paid sales on Affisell over the last {days} days would have earned a reseller, at the supplier's commission and with no markup added, after Affisell fees and the refunds or returns observed over {qualityDays} days. These are past figures, not a forecast.",
-      "platformRate": "Platform refund or return rate: {rate} ({orders} paid orders over 90 days).",
+      "intro": "Decision board built from paid orders: your own products first, then the catalogue ranked by what the last {days} days of sales earned resellers, after Affisell fees and the amounts refunded over {qualityDays} days. These are past figures, not a forecast.",
+      "platformRate": "Platform refund rate: {rate} of the amounts charged ({orders} paid orders over 90 days).",
       "emptyRanked": "No paid order in the last {days} days: nothing can be ranked from real sales yet.",
       "col": {
         "product": "Product",
         "units": "Units sold ({days} d)",
         "perUnit": "Earning per sale",
-        "refundRate": "Refunds / returns",
+        "refundRate": "Refunded (by value)",
         "observedNet": "Observed net earnings ({days} d)",
-        "checks": "To check"
+        "checks": "To check",
+        "disputeRate": "Disputes"
       },
       "inStore": "Already in your store",
       "rateOwn": "product rate",
@@ -2820,13 +2821,62 @@
         "disputes_seen": "Disputes seen",
         "slow_delivery": "Slow delivery (9 orders in 10 over 12 days)",
         "supplier_price_rising": "Supplier price rising or unstable",
-        "thin_sample": "Few orders: fragile figures"
+        "thin_sample": "Few orders: fragile figures",
+        "sales_falling": "Sales falling (−30% or more)",
+        "payout_per_unit_down": "Earnings per sale down over 30 days",
+        "out_of_stock": "Declared out of stock",
+        "stock_not_maintained": "Stock probably not maintained (import default value)"
       },
       "howToRead": "“Observed net earnings” = units sold × earning per sale after the refund rate. You can add your own markup to the selling price: it is not counted here.",
       "noSalesTitle": "No sales data",
       "noSalesIntro": "These products have no paid order in the period: they are not ranked, for lack of real data.",
       "perUnitShort": "{amount} per sale",
-      "toCatalog": "Open the catalogue →"
+      "toCatalog": "Open the catalogue →",
+      "vsPrevious": "{prev} in the previous 30 days",
+      "perUnitWas": "{amount} 30 days ago",
+      "truncated": "Very high volume: the figures shown are a minimum.",
+      "documentedTitle": "Well-documented opportunities",
+      "documentedIntro": "At least {min} paid orders over {qualityDays} days: the product's own rates are used.",
+      "documentedEmpty": "No product has enough orders yet to be judged on its own figures.",
+      "limitedTitle": "Insufficient data",
+      "limitedIntro": "These products have sales, but too few to be reliable: the refund rate applied is the higher of theirs and the platform's.",
+      "mine": {
+        "title": "Your products",
+        "intro": "Computed only from your paid orders: net earnings = commissions recorded on your orders, minus the share taken back by refunds (pro rata). Period: {days} days, compared with the previous {days} days.",
+        "totals": "{net} net over {days} days ({orders} orders) — {prevNet} over the previous period ({prevOrders} orders).",
+        "empty": "No paid order in the last {days} days.",
+        "attentionTitle": "To handle today",
+        "attentionEmpty": "Nothing to report on your products.",
+        "topTitle": "What earns you the most ({days} d)",
+        "decliningTitle": "What is becoming less profitable",
+        "decliningEmpty": "No product declining (compared from 3 orders in the previous period).",
+        "netChange": "{from} → {to}",
+        "notComparable": "too few orders to compare",
+        "col": {
+          "product": "Product",
+          "orders": "Orders",
+          "net": "Net earnings",
+          "perUnit": "Net per unit",
+          "refundShare": "Refunded",
+          "previous": "Previous period"
+        },
+        "reasons": {
+          "fewer_units": "fewer units sold",
+          "lower_net_per_unit": "lower net earnings per unit",
+          "refund_share_up": "higher refunded share",
+          "supplier_price_down": "supplier price down (your commission depends on it)",
+          "disputes_up": "more disputes",
+          "unknown": "no cause identifiable in the data"
+        },
+        "attention": {
+          "open_dispute": "{orders} order(s) with an open dispute",
+          "no_longer_for_sale": "no longer for sale on the marketplace",
+          "sold_out": "out of stock",
+          "margin_review": "margin to review: the supplier price changed",
+          "supplier_price_changed": "supplier price went from {from} to {to} this week",
+          "return_requested": "{returns} return(s) requested, awaiting the supplier"
+        }
+      }
     }
   },
   "marketplace": {

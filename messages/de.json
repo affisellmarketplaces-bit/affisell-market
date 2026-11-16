@@ -2801,16 +2801,17 @@
     },
     "opportunities": {
       "title": "Chancen auf Basis echter Verkäufe",
-      "intro": "Produkte, sortiert danach, was die bezahlten Verkäufe auf Affisell in den letzten {days} Tagen einem Wiederverkäufer eingebracht hätten – zur Provision des Lieferanten, ohne Aufschlag, nach Affisell-Gebühren und den in {qualityDays} Tagen festgestellten Erstattungen oder Rücksendungen. Das sind vergangene Zahlen, keine Prognose.",
-      "platformRate": "Erstattungs- oder Rücksendequote der Plattform: {rate} ({orders} bezahlte Bestellungen in 90 Tagen).",
+      "intro": "Entscheidungsübersicht auf Basis bezahlter Bestellungen: zuerst Ihre eigenen Produkte, dann der Katalog, sortiert nach dem, was die Verkäufe der letzten {days} Tage Wiederverkäufern eingebracht haben, nach Affisell-Gebühren und den über {qualityDays} Tage erstatteten Beträgen. Vergangene Zahlen, keine Prognose.",
+      "platformRate": "Erstattungsquote der Plattform: {rate} der eingezogenen Beträge ({orders} bezahlte Bestellungen in 90 Tagen).",
       "emptyRanked": "Keine bezahlte Bestellung in den letzten {days} Tagen: Noch kann nichts anhand echter Verkäufe sortiert werden.",
       "col": {
         "product": "Produkt",
         "units": "Verkaufte Einheiten ({days} T.)",
         "perUnit": "Ertrag pro Verkauf",
-        "refundRate": "Erstattungen / Rücksendungen",
+        "refundRate": "Erstattet (nach Wert)",
         "observedNet": "Beobachteter Nettoertrag ({days} T.)",
-        "checks": "Zu prüfen"
+        "checks": "Zu prüfen",
+        "disputeRate": "Streitfälle"
       },
       "inStore": "Bereits in Ihrem Shop",
       "rateOwn": "Quote des Produkts",
@@ -2820,13 +2821,62 @@
         "disputes_seen": "Streitfälle festgestellt",
         "slow_delivery": "Langsame Lieferung (9 von 10 Bestellungen über 12 Tage)",
         "supplier_price_rising": "Lieferantenpreis steigend oder instabil",
-        "thin_sample": "Wenige Bestellungen: unsichere Zahlen"
+        "thin_sample": "Wenige Bestellungen: unsichere Zahlen",
+        "sales_falling": "Verkäufe rückläufig (−30 % oder mehr)",
+        "payout_per_unit_down": "Ertrag pro Verkauf in 30 Tagen gesunken",
+        "out_of_stock": "Als ausverkauft gemeldet",
+        "stock_not_maintained": "Bestand vermutlich nicht gepflegt (Importstandardwert)"
       },
       "howToRead": "„Beobachteter Nettoertrag“ = verkaufte Einheiten × Ertrag pro Verkauf nach der Erstattungsquote. Sie können Ihren eigenen Aufschlag hinzufügen: er ist hier nicht enthalten.",
       "noSalesTitle": "Ohne Verkaufsdaten",
       "noSalesIntro": "Diese Produkte haben im Zeitraum keine bezahlte Bestellung: Sie werden mangels echter Daten nicht sortiert.",
       "perUnitShort": "{amount} pro Verkauf",
-      "toCatalog": "Katalog öffnen →"
+      "toCatalog": "Katalog öffnen →",
+      "vsPrevious": "{prev} in den 30 Tagen davor",
+      "perUnitWas": "{amount} vor 30 Tagen",
+      "truncated": "Sehr hohes Volumen: die angezeigten Zahlen sind ein Minimum.",
+      "documentedTitle": "Gut belegte Chancen",
+      "documentedIntro": "Mindestens {min} bezahlte Bestellungen in {qualityDays} Tagen: es gelten die Quoten des Produkts.",
+      "documentedEmpty": "Noch kein Produkt hat genug Bestellungen, um nach eigenen Zahlen beurteilt zu werden.",
+      "limitedTitle": "Unzureichende Daten",
+      "limitedIntro": "Diese Produkte haben Verkäufe, aber zu wenige für verlässliche Aussagen: es gilt die höhere der eigenen und der Plattform-Erstattungsquote.",
+      "mine": {
+        "title": "Ihre Produkte",
+        "intro": "Nur aus Ihren bezahlten Bestellungen berechnet: Nettoertrag = auf Ihren Bestellungen erfasste Provisionen abzüglich des durch Erstattungen zurückgeholten Anteils (anteilig). Zeitraum: {days} Tage, verglichen mit den {days} Tagen davor.",
+        "totals": "{net} netto in {days} Tagen ({orders} Bestellungen) — {prevNet} im Vorzeitraum ({prevOrders} Bestellungen).",
+        "empty": "Keine bezahlte Bestellung in den letzten {days} Tagen.",
+        "attentionTitle": "Heute zu erledigen",
+        "attentionEmpty": "Nichts zu melden zu Ihren Produkten.",
+        "topTitle": "Was Ihnen am meisten einbringt ({days} T.)",
+        "decliningTitle": "Was weniger rentabel wird",
+        "decliningEmpty": "Kein Produkt rückläufig (Vergleich ab 3 Bestellungen im Vorzeitraum).",
+        "netChange": "{from} → {to}",
+        "notComparable": "zu wenige Bestellungen für einen Vergleich",
+        "col": {
+          "product": "Produkt",
+          "orders": "Bestellungen",
+          "net": "Nettoertrag",
+          "perUnit": "Netto pro Stück",
+          "refundShare": "Erstattet",
+          "previous": "Vorzeitraum"
+        },
+        "reasons": {
+          "fewer_units": "weniger verkaufte Stück",
+          "lower_net_per_unit": "niedrigerer Nettoertrag pro Stück",
+          "refund_share_up": "höherer erstatteter Anteil",
+          "supplier_price_down": "Lieferantenpreis gesunken (Ihre Provision hängt davon ab)",
+          "disputes_up": "mehr Streitfälle",
+          "unknown": "keine Ursache in den Daten erkennbar"
+        },
+        "attention": {
+          "open_dispute": "{orders} Bestellung(en) mit offenem Streitfall",
+          "no_longer_for_sale": "nicht mehr auf dem Marktplatz erhältlich",
+          "sold_out": "ausverkauft",
+          "margin_review": "Marge prüfen: der Lieferantenpreis hat sich geändert",
+          "supplier_price_changed": "Lieferantenpreis diese Woche von {from} auf {to} geändert",
+          "return_requested": "{returns} Rücksendung(en) beantragt, wartet auf den Lieferanten"
+        }
+      }
     }
   },
   "marketplace": {

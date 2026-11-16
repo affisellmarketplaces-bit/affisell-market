@@ -66,6 +66,7 @@ import { dispatchMerchantOrderAlerts } from "@/lib/emails/dispatch-merchant-orde
 import { healMarketplaceOrderNotifications } from "@/lib/marketplace-order-notification-heal"
 import { syncMarketplaceOrderToMedusa, syncMarketplaceOrderToMedusaIfNeeded } from "@/lib/medusa/sync-marketplace-order"
 import { writeStockReservationInTransaction } from "@/lib/stock-restitution.server"
+import { lineSupplierUnitFromMetadata, resolveSettlementUnitSupplierCents } from "@/lib/checkout-supplier-snapshot"
 import { prisma } from "@/lib/prisma"
 import {
   parseAffiliateVariantPricingJson,
@@ -284,6 +285,12 @@ async function createPaidMarketplaceOrder(
     checkoutCurrency: string
     buyerLocale?: string | null
     /**
+     * The supplier's unit price AT CHECKOUT (`lineSupplierUnits` session metadata, lib/checkout-supplier-snapshot.ts).
+     * The order is settled at that price: a price raised between the checkout and the payment applies to the NEXT sales,
+     * not to one the buyer already paid at the old price (which would make the payouts exceed the line).
+     */
+    checkoutUnitSupplierCents?: number | null
+    /**
      * Called when the line is paid but NO order is created for a reason that needs a human or a refund
      * (finalisation master doc D6 / G1) — the caller records it durably once the transaction is done.
      */
@@ -313,11 +320,16 @@ async function createPaidMarketplaceOrder(
   }
   const variantImageUrl =
     resolveMarketplaceOrderLineImageUrl(listing, args.variantLabel, args.variantSignature) || null
+  const currentUnitSupplierCents = marketplaceWholesaleCentsForOption({
+    productBasePriceCents: listing.product.basePriceCents,
+    variants,
+    optionName,
+  })
   const basePriceCents =
-    marketplaceWholesaleCentsForOption({
-      productBasePriceCents: listing.product.basePriceCents,
-      variants,
-      optionName,
+    resolveSettlementUnitSupplierCents({
+      checkoutUnitCents: args.checkoutUnitSupplierCents,
+      currentUnitCents: currentUnitSupplierCents,
+      context: { stripeSessionId: args.stripeSessionId, productId: listing.productId },
     }) * qty
   const supplierCommissionRateBpsBase = await resolveSupplierCommissionRateBpsForProductId({
     productId: listing.productId,
@@ -807,6 +819,7 @@ export async function fulfillMarketplaceStripeSession(
   }
   const appliedRewardCents = Math.max(0, Math.round(parseInt(meta.appliedRewardCents ?? "0", 10) || 0))
   const linePaids = parseLinePaids(meta.linePaids)
+  const lineSupplierUnits = parseLinePaids(meta.lineSupplierUnits)
 
   const cartLinesRaw = meta.cartLines?.trim()
   if (cartLinesRaw) {
@@ -985,6 +998,7 @@ export async function fulfillMarketplaceStripeSession(
           listing,
           qty,
           paidLineCents,
+          checkoutUnitSupplierCents: lineSupplierUnitFromMetadata(lineSupplierUnits, lines.length, i),
           buyerUserId: earnUserId || null,
           customerEmail,
           shippingAddress,
@@ -1345,11 +1359,19 @@ export async function fulfillMarketplaceStripeSession(
 
     if (dup && (dup.status === "PENDING" || recoverCancelledBooking)) {
       const pendingOrder = dup
+      // The pre-created order carries the supplier price of the checkout (supplierPriceCents): settle at that price.
       const basePriceCents =
-        marketplaceWholesaleCentsForOption({
-          productBasePriceCents: listing.product.basePriceCents,
-          variants,
-          optionName,
+        resolveSettlementUnitSupplierCents({
+          checkoutUnitCents:
+            pendingOrder.supplierPriceCents && pendingOrder.supplierPriceCents > 0 && qty > 0
+              ? Math.round(pendingOrder.supplierPriceCents / qty)
+              : null,
+          currentUnitCents: marketplaceWholesaleCentsForOption({
+            productBasePriceCents: listing.product.basePriceCents,
+            variants,
+            optionName,
+          }),
+          context: { stripeSessionId: sessionId, productId: listing.productId },
         }) * qty
       const affisellCommissionRateBps = await resolveAffisellCommissionRateBpsForProductId(
         listing.productId

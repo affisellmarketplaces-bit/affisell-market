@@ -43,7 +43,7 @@ describe.skipIf(!RUN_DB)("ProductPriceHistory trigger — real DB", { timeout: 1
     ;({ prisma } = await import("@/lib/prisma"))
     // The file is idempotent (IF NOT EXISTS / OR REPLACE / DROP TRIGGER IF EXISTS): applying it twice must work.
     const parts = statements(readFileSync(MIGRATION, "utf8"))
-    expect(parts.length).toBe(5)
+    expect(parts.length).toBe(10)
     for (let round = 0; round < 2; round++) {
       for (const statement of parts) await prisma.$executeRawUnsafe(statement)
     }
@@ -56,6 +56,7 @@ describe.skipIf(!RUN_DB)("ProductPriceHistory trigger — real DB", { timeout: 1
   afterAll(async () => {
     if (!prisma) return
     await prisma.productPriceHistory.deleteMany({ where: { supplierId } })
+    await prisma.productVariant.deleteMany({ where: { product: { supplierId } } })
     await prisma.product.deleteMany({ where: { supplierId } })
     await prisma.user.deleteMany({ where: { id: supplierId } })
     await prisma.$disconnect()
@@ -72,11 +73,52 @@ describe.skipIf(!RUN_DB)("ProductPriceHistory trigger — real DB", { timeout: 1
     await prisma.product.update({ where: { id: productId }, data: { name: "Renamed" } }) // other column: no row
     await prisma.product.updateMany({ where: { id: productId }, data: { basePriceCents: 900 } }) // any writer
 
-    const rows = await prisma.productPriceHistory.findMany({ where: { productId }, orderBy: { id: "asc" } })
+    const rows = await prisma.productPriceHistory.findMany({ where: { productId, variantKey: null }, orderBy: { id: "asc" } })
     expect(rows.map((r: { priceCents: number; previousCents: number | null; supplierId: string | null }) => [r.priceCents, r.previousCents, r.supplierId])).toEqual([
       [1000, null, supplierId],
       [1200, 1000, supplierId],
       [900, 1200, supplierId],
+    ])
+  })
+
+  it("follows the advanced SKU lines (variants.variantRows[].priceCents) per row name, only on a real change", async () => {
+    const rowsJson = (red: number, blue: number) => ({
+      colors: ["Rouge", "Bleu"],
+      variantRows: [
+        { id: "r1", name: "Rouge / M", priceCents: red, stock: 3 },
+        { id: "r2", name: "Bleu / M", priceCents: blue, stock: 3 },
+      ],
+    })
+    await prisma.product.update({ where: { id: productId }, data: { variants: rowsJson(1500, 1600) } })
+    await prisma.product.update({ where: { id: productId }, data: { variants: rowsJson(1500, 1600) } }) // same prices
+    await prisma.product.update({ where: { id: productId }, data: { variants: rowsJson(1700, 1600) } }) // red only
+    await prisma.product.update({ where: { id: productId }, data: { name: "Renamed again" } })
+
+    const rows = await prisma.productPriceHistory.findMany({
+      where: { productId, variantKey: { not: null } },
+      orderBy: { id: "asc" },
+    })
+    expect(rows.map((r: { variantKey: string | null; priceCents: number; previousCents: number | null }) => [r.variantKey, r.priceCents, r.previousCents])).toEqual([
+      ["row:Rouge / M", 1500, null],
+      ["row:Bleu / M", 1600, null],
+      ["row:Rouge / M", 1700, 1500],
+    ])
+  })
+
+  it("follows the ProductVariant table, and a row deleted and recreated at the same price is not a change", async () => {
+    const create = (price: number) =>
+      prisma.productVariant.create({
+        data: { productId, color: "Noir", size: "L", supplierPrice: price / 100, publicPrice: 99, wholesalePriceCents: price },
+      })
+    const v = await create(2000)
+    await prisma.productVariant.update({ where: { id: v.id }, data: { wholesalePriceCents: 2200, supplierPrice: 22 } })
+    await prisma.productVariant.delete({ where: { id: v.id } })
+    await create(2200) // a sync recreating the same row at the same price
+
+    const rows = await prisma.productPriceHistory.findMany({ where: { productId, variantKey: "pv:Noir/L" }, orderBy: { id: "asc" } })
+    expect(rows.map((r: { priceCents: number; previousCents: number | null }) => [r.priceCents, r.previousCents])).toEqual([
+      [2000, null],
+      [2200, 2000],
     ])
   })
 
@@ -87,5 +129,11 @@ describe.skipIf(!RUN_DB)("ProductPriceHistory trigger — real DB", { timeout: 1
     if (!result.available) return
     expect(result.points.map((p) => p.priceCents)).toEqual([1000, 1200, 900])
     expect(result.summary).toMatchObject({ currentCents: 900, points: 3 })
+    // variant series are separate and never mixed into the base trend
+    expect(result.variants.map((v) => [v.label, v.summary.currentCents])).toEqual([
+      ["Bleu / M", 1600],
+      ["Noir / L", 2200],
+      ["Rouge / M", 1700],
+    ])
   })
 })

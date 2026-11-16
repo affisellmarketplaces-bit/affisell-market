@@ -40,6 +40,7 @@ import {
 import { stripeCheckoutMinimumNotMetResponse } from "@/lib/stripe-minimum.server"
 import { prisma } from "@/lib/prisma"
 import { isPricedBelowSupplierPrice, priceBelowSupplierPriceResponse } from "@/lib/checkout-price-guard"
+import { encodeLineSupplierUnits } from "@/lib/checkout-supplier-snapshot"
 import {
   marketplaceWholesaleCentsForOption,
   variantsFromDb,
@@ -419,6 +420,8 @@ async function checkoutFromItems(
   }
 
   const loaded: LoadedLine[] = []
+  /** Supplier unit price of each line AT CHECKOUT, in `normalized` order (lib/checkout-supplier-snapshot.ts). */
+  const lineSupplierUnits: number[] = []
   const listings = await Promise.all(
     normalized.map((row) => loadListing(row.affiliateProductId))
   )
@@ -444,6 +447,7 @@ async function checkoutFromItems(
       flagListingBelowSupplierPrice(row.affiliateProductId, unit, unitSupplierForLine)
       return priceBelowSupplierPriceResponse()
     }
+    lineSupplierUnits.push(unitSupplierForLine)
     const lineSubtotal = unit * row.qty
     const offerGate = validateOfferCheckoutLine(listing, row.qty, lineSubtotal)
     if (offerGate) return offerGate
@@ -561,6 +565,8 @@ async function checkoutFromItems(
   }
   const paymentMethodTypes =
     marketplaceCheckoutPaymentSessionOptionsForAmount(paidTotalCents).payment_method_types
+  const encodedLineSupplierUnits =
+    lineSupplierUnits.length === normalized.length ? encodeLineSupplierUnits(lineSupplierUnits) : undefined
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: paymentMethodTypes,
@@ -586,6 +592,7 @@ async function checkoutFromItems(
       cartLines: JSON.stringify(normalized),
       appliedRewardCents: String(appliedCents),
       linePaids: JSON.stringify(paidLineCents),
+      ...(encodedLineSupplierUnits ? { lineSupplierUnits: encodedLineSupplierUnits } : {}),
       locale: checkoutLocale,
       cgvConsentRequired: "1",
       ...(primarySupplierId ? { sellerId: primarySupplierId } : {}),
