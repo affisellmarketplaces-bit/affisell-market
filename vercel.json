@@ -24,6 +24,9 @@
     "app/api/cron/sync-shopify/route.ts": {
       "maxDuration": 60
     },
+    "app/api/cron/sync-auto-buy-tracking/route.ts": {
+      "maxDuration": 60
+    },
     "app/api/marketplace/products/route.ts": {
       "maxDuration": 30
     },

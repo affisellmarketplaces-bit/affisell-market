@@ -20,8 +20,6 @@ const CRON_DIR = path.join(ROOT, "app/api/cron")
 const UNSCHEDULED_ON_PURPOSE: Record<string, string> = {
   "review-invites":
     "Deprecated alias of review-reminder (its own docstring), which is scheduled daily: scheduling both would run the same reminders twice.",
-  "sync-auto-buy-tracking":
-    "Auto-buy is opt-in and off by default (AUTO_BUY_ENABLED) and its tracking source (fetchAeTrackingPlaceholder) always returns null (master doc G4): it would poll for nothing. Schedule it when auto-buy is validated.",
   "update-supplier-scores":
     "Recomputes what refresh-supplier-trust-scores and refresh-supplier-delivery-stats (both scheduled) already compute, and inserts a TRUST_SCORE_LOW notification per low-score supplier at every run with no de-duplication: scheduled, it would re-notify the same suppliers daily.",
   "verify-suppliers":

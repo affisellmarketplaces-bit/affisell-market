@@ -17,7 +17,7 @@ name: Scheduled crons
 #   scheduled   merchant-kyc-reminder  daily         one-shot per supplier (timestamp), 40 per run. First run mails the backlog.
 #   scheduled   sync-shopify           every 6 h     only integrations whose owner enabled auto-sync (no-op without any).
 #   NOT         review-invites         deprecated alias of review-reminder, which is scheduled: both would double the work.
-#   NOT         sync-auto-buy-tracking auto-buy is opt-in/off (AUTO_BUY_ENABLED) and its tracking source returns null (G4).
+#   scheduled   sync-auto-buy-tracking every 3 h     read-only AliExpress lookups (G4); writes only orders still awaiting shipment.
 #   NOT         update-supplier-scores recomputes what refresh-supplier-trust-scores / refresh-supplier-delivery-stats already
 #                                      do, and inserts an un-deduplicated notification per low-score supplier at every run.
 #   NOT         verify-suppliers       grants AND revokes the "verified supplier" badge of every supplier: owner decision.
@@ -236,3 +236,18 @@ jobs:
           # Retry through cold starts / brief DB wake-ups before declaring failure.
           curl -fsS --retry 4 --retry-delay 30 --retry-all-errors --max-time 90 \
             -H "Authorization: Bearer ${CRON_SECRET}" "${BASE}/api/cron/aliexpress-refresh"
+
+  # Tracking of AliExpress purchases (finalisation G4): READ-ONLY calls to AliExpress; marks shipped only the orders still
+  # awaiting shipment. Not a money cron (the payout release it triggers has its own gates): a failure is a warning.
+  aliexpress-tracking:
+    if: github.event.schedule == '17 */3 * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/ci
+      - name: Sync AliExpress tracking
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
+        run: bash scripts/ci/run-crons.sh lenient "/api/cron/sync-auto-buy-tracking"

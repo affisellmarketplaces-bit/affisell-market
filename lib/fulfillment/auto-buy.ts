@@ -2,7 +2,6 @@ import type { AutoBuyStatus } from "@prisma/client"
 import type Stripe from "stripe"
 import { captureException } from "@sentry/nextjs"
 
-import { AliExpressClient } from "@/lib/aliexpress-open-api"
 import { isAeDryRun } from "@/lib/fulfillment/ae-dry-run"
 import { placeAliExpressDsOrder } from "@/lib/fulfillment/ae-ds-order"
 import { enqueueAutoBuyJob } from "@/lib/fulfillment/bullmq/auto-buy.queue"
@@ -27,6 +26,11 @@ import { PURCHASE_IN_DOUBT_AFTER_MS } from "@/lib/fulfillment/supplier-purchase-
 import { initiateMarketplaceRefundPipeline } from "@/lib/marketplace-refund-pipeline"
 import { notifyOrderCancelled } from "@/lib/emails/notify-order-cancelled"
 import { prisma } from "@/lib/prisma"
+import { fetchAliExpressOrderTracking } from "@/lib/aliexpress-ds-tracking"
+import { opsWebhookAlert } from "@/lib/ops-webhook"
+import { recordOrderTrackingEvent } from "@/lib/order-tracking-event"
+import { trackingLockWriteFields } from "@/lib/order-tracking-lock.shared"
+import { isOrderClosedForPayout } from "@/lib/orders/payment-state"
 export const MAX_ATTEMPTS = 3
 const RETRY_DELAY_MS = 10 * 60 * 1000
 export const MAX_DAILY_ORDERS = 1000
@@ -709,66 +713,138 @@ async function failAutoBuy(
   }
 }
 
-export async function syncAutoBuyTracking(limit = 100): Promise<
-  Array<{ fulfillmentLogId: string; updated: boolean; error?: string }>
-> {
+/**
+ * Order statuses an AliExpress shipment may move to "shipped" (same set as the supplier mark-shipped route, plus the
+ * engine's intermediate states). A refunded / cancelled / disputed / already shipped order is never touched.
+ */
+const AE_TRACKING_SHIPPABLE_STATUSES = ["paid", "preparing", "fulfilling", "processing", "confirmed"]
+
+export type AutoBuyTrackingSyncResult = {
+  fulfillmentLogId: string
+  updated: boolean
+  outcome:
+    | "shipped"
+    | "no_tracking_yet"
+    | "tracking_stored_order_has_tracking"
+    | "tracking_stored_order_not_shippable"
+    | "lookup_failed"
+    | "error"
+  error?: string
+}
+
+/**
+ * Polls AliExpress for the tracking of every BOUGHT purchase that has none yet (finalisation G4) and, when the order is
+ * still awaiting shipment, marks it shipped exactly like the supplier mark-shipped route: tracking number + carrier,
+ * `shippedAt`, `status = shipped`, `fulfillmentStatus = SHIPPED`, tracking lock (verified by the partner), a tracking
+ * event, then the payout release check. The order update is CONDITIONAL (status still shippable, no tracking yet), so a
+ * supplier who entered a number meanwhile, a refund or a dispute that landed meanwhile wins.
+ *
+ * A tracking number found for an order that is refunded / cancelled / disputed is stored on the purchase log and
+ * ALERTED (goods are travelling for an order the buyer no longer pays for: a human must intercept or claim it), once —
+ * the log then has a tracking number and is not polled again.
+ */
+export async function syncAutoBuyTracking(
+  limit = 100,
+  opts: { budgetMs?: number; fetchTracking?: typeof fetchAliExpressOrderTracking } = {}
+): Promise<AutoBuyTrackingSyncResult[]> {
+  const fetchTracking = opts.fetchTracking ?? fetchAliExpressOrderTracking
+  const deadline = Date.now() + (opts.budgetMs ?? 40_000)
   const logs = await prisma.fulfillmentLog.findMany({
     where: {
       status: "BOUGHT",
       aeOrderId: { not: null },
       OR: [{ aeTracking: null }, { aeTracking: "" }],
     },
+    orderBy: { updatedAt: "asc" },
     take: limit,
-    include: { order: { select: { id: true, customerEmail: true } } },
+    select: { id: true, orderId: true, aeOrderId: true },
   })
 
-  const results: Array<{ fulfillmentLogId: string; updated: boolean; error?: string }> = []
+  const results: AutoBuyTrackingSyncResult[] = []
 
   for (const log of logs) {
     if (!log.aeOrderId) continue
+    if (Date.now() > deadline) break
     try {
-      const tracking = await fetchAeTrackingPlaceholder(log.aeOrderId)
-      if (!tracking) {
-        results.push({ fulfillmentLogId: log.id, updated: false })
+      const lookup = await fetchTracking(log.aeOrderId)
+      if (!lookup.ok) {
+        results.push({ fulfillmentLogId: log.id, updated: false, outcome: "lookup_failed", error: lookup.error })
         continue
       }
+      const tracking = lookup.tracking
+      if (!tracking) {
+        results.push({ fulfillmentLogId: log.id, updated: false, outcome: "no_tracking_yet" })
+        continue
+      }
+      const carrier = (tracking.carrier ?? "AliExpress").slice(0, 80)
 
-      await prisma.$transaction(async (tx) => {
-        await tx.fulfillmentLog.update({
-          where: { id: log.id },
-          data: { aeTracking: tracking.number },
-        })
-        await tx.order.update({
+      const outcome = await prisma.$transaction(async (tx) => {
+        await tx.fulfillmentLog.update({ where: { id: log.id }, data: { aeTracking: tracking.number } })
+        const order = await tx.order.findUnique({
           where: { id: log.orderId },
+          select: { id: true, status: true, paymentSettlementStatus: true, trackingNumber: true },
+        })
+        if (!order) return "tracking_stored_order_not_shippable" as const
+        if (order.trackingNumber?.trim()) return "tracking_stored_order_has_tracking" as const
+        const status = order.status.trim().toLowerCase()
+        if (isOrderClosedForPayout(order) || !AE_TRACKING_SHIPPABLE_STATUSES.includes(status)) {
+          return "tracking_stored_order_not_shippable" as const
+        }
+        const updated = await tx.order.updateMany({
+          where: {
+            id: order.id,
+            status: order.status,
+            OR: [{ trackingNumber: null }, { trackingNumber: "" }],
+          },
           data: {
             trackingNumber: tracking.number,
-            trackingCarrier: tracking.carrier ?? "AliExpress",
+            trackingCarrier: carrier,
             shippedAt: new Date(),
             status: "shipped",
             fulfillmentStatus: "SHIPPED",
+            ...trackingLockWriteFields("partner"),
           },
         })
+        if (updated.count !== 1) return "tracking_stored_order_not_shippable" as const
+        await recordOrderTrackingEvent(
+          {
+            orderId: order.id,
+            eventType: "TRACKING_REGISTERED",
+            source: "aliexpress_ds_tracking",
+            trackingCarrier: carrier,
+            trackingNumber: tracking.number,
+            fulfillmentStatus: "SHIPPED",
+            verificationMethod: "partner",
+            payload: { aeOrderId: log.aeOrderId, source: tracking.source, lastEvent: tracking.lastEvent },
+          },
+          tx
+        )
+        return "shipped" as const
       })
 
-      results.push({ fulfillmentLogId: log.id, updated: true })
-      logAutoBuy("tracking_synced", { orderId: log.orderId, tracking: tracking.number })
-      const { triggerOrderTransferRelease } = await import("@/lib/trigger-order-transfer-release")
-      triggerOrderTransferRelease(log.orderId)
+      results.push({ fulfillmentLogId: log.id, updated: outcome === "shipped", outcome })
+      logAutoBuy("tracking_synced", { orderId: log.orderId, outcome, source: tracking.source })
+
+      if (outcome === "shipped") {
+        const { triggerOrderTransferRelease } = await import("@/lib/trigger-order-transfer-release")
+        triggerOrderTransferRelease(log.orderId)
+      } else if (outcome === "tracking_stored_order_not_shippable") {
+        const text =
+          `AliExpress a expédié la commande fournisseur ${log.aeOrderId} (suivi ${tracking.number}) alors que la commande ` +
+          `Affisell ${log.orderId} n'attend plus d'expédition (remboursée, annulée ou en litige). Vérifier et intercepter / ` +
+          `réclamer le colis chez AliExpress.`
+        console.error("[auto-buy]", { result: "ae_shipped_order_not_shippable", orderId: log.orderId })
+        await opsWebhookAlert(text).catch(() => undefined)
+      }
     } catch (e) {
       results.push({
         fulfillmentLogId: log.id,
         updated: false,
+        outcome: "error",
         error: e instanceof Error ? e.message : String(e),
       })
     }
   }
 
   return results
-}
-
-async function fetchAeTrackingPlaceholder(
-  _aeOrderId: string
-): Promise<{ number: string; carrier?: string } | null> {
-  if (!AliExpressClient.isConfigured()) return null
-  return null
 }
