@@ -2912,6 +2912,60 @@
         "simRestore": "(Marge wiederherstellen)",
         "simEdit": "Meinen Preis ändern →"
       }
+    },
+    "profitAlerts": {
+      "title": "Rentabilität gesunken: {product}",
+      "change": "Ihr Nettoertrag ging von {from} auf {to} zurück (−{drop}): letzte 30 Tage ({currentOrders} Bestellungen) gegenüber den 30 davor ({previousOrders} Bestellungen).",
+      "sincePeriod": "Festgestellt in den letzten 30 Tagen gegenüber den 30 davor.",
+      "since": {
+        "price_cut": "Seit Ihrer Preisänderung am {date}.",
+        "supplier_price_change": "Seit der Erhöhung des Lieferantenpreises am {date}."
+      },
+      "causeWithAmount": "{cause} (−{amount})",
+      "causes": {
+        "supplier_price_up": "der Lieferantenpreis ist gestiegen und hat Ihre Marge verringert",
+        "your_price_down": "Sie haben Ihren Verkaufspreis gesenkt",
+        "collected_price_down": "der eingenommene Preis ist niedriger, ohne erfasste Preissenkung Ihrerseits (Rabatte, verkaufte Varianten)",
+        "commission_down": "die Provision des Lieferanten ist gesunken",
+        "fees_up": "die angewandten Affisell-Gebühren sind höher",
+        "refunds_up": "mehr Verkäufe wurden erstattet",
+        "volume_down": "Sie verkaufen deutlich weniger",
+        "disputes_up": "mehr Streitfälle"
+      },
+      "suggestion": {
+        "restore_markup": "Simulation: Bei {price} würden Sie Ihre Marge wiederherstellen — etwa {net} netto pro Verkauf; {sales} Verkäufe entsprächen Ihren letzten 30 Tagen.",
+        "previous_price": "Simulation: Zu Ihrem früheren Preis von {price} brächte ein Verkauf etwa {net} netto; {sales} Verkäufe entsprächen Ihren letzten 30 Tagen.",
+        "none": {
+          "supplier_price_up": "Prüfen Sie Ihren Preis gegenüber dem neuen Lieferantenpreis.",
+          "your_price_down": "Vergleichen Sie Ihre Verkäufe vor und nach Ihrer Preisänderung in Ihrer Übersicht.",
+          "collected_price_down": "Prüfen Sie Rabatte und verkaufte Varianten: Ihr angezeigter Preis hat sich nicht geändert.",
+          "commission_down": "Der Lieferant hat seine Provision gesenkt: Prüfen Sie, ob Ihre Marge noch ausreicht.",
+          "fees_up": "Ihre Gebühren sind gestiegen: Prüfen Sie Ihre Marge in Ihrer Übersicht.",
+          "refunds_up": "Sehen Sie sich die Erstattungsgründe dieser Bestellungen an.",
+          "volume_down": "Prüfen Sie Sichtbarkeit und Bestand des Produkts; keine Preissimulation sagt Verkäufe voraus.",
+          "disputes_up": "Sehen Sie sich die Streitfälle dieser Bestellungen an."
+        }
+      },
+      "short": "{product}: Nettoertrag um {drop} gesunken — {cause}",
+      "disclaimer": "Zahlen aus Ihren eigenen bezahlten Bestellungen; Simulationen sind Berechnungen, keine Prognosen. Ohne Ihr Zutun wird kein Preis geändert.",
+      "causesTitle": "Belegte Ursachen",
+      "suggestionTitle": "Möglicher nächster Schritt",
+      "ctaEdit": "Meinen Preis ändern →",
+      "ctaBoard": "Meine Rentabilitätsübersicht öffnen →",
+      "emailFooter": "Sie erhalten diese E-Mail, weil Sie Rentabilitätswarnungen per E-Mail aktiviert haben. Zum Abschalten:",
+      "panelTitle": "Rentabilitätswarnungen",
+      "panelIntro": "Eine Warnung wird nur gesendet, wenn das Produkt wirklich Ertrag brachte (mindestens 5 Bestellungen und 20 € netto), der Rückgang erheblich ist (mindestens 10 € und 25 %) und seine Ursache durch die Daten belegt ist. Höchstens eine Warnung pro Produkt alle 14 Tage.",
+      "panelEmpty": "Keine Warnung: keines Ihrer rentablen Produkte ist deutlich zurückgegangen.",
+      "dismiss": "Ausblenden",
+      "prefTitle": "Warnungen erhalten",
+      "prefInApp": "In der App",
+      "prefEmail": "Per E-Mail",
+      "prefStatus": {
+        "idle": "",
+        "saving": "Wird gespeichert…",
+        "saved": "Gespeichert",
+        "error": "Speichern fehlgeschlagen"
+      }
     }
   },
   "marketplace": {
@@ -8864,7 +8918,8 @@
     "browseCatalog": "Katalog durchsuchen",
     "reviewMargins": "Meine Margen prüfen",
     "viewInvitation": "Einladung ansehen",
-    "viewAffiliateInvites": "Wiederverkäufer-Einladungen ansehen"
+    "viewAffiliateInvites": "Wiederverkäufer-Einladungen ansehen",
+    "viewProfitAlert": "Warnung ansehen"
   },
   "aiConnect": {
     "title": "KI verbinden",

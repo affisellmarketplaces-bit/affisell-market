@@ -2912,6 +2912,60 @@
         "simRestore": "(je marge herstellen)",
         "simEdit": "Mijn prijs wijzigen →"
       }
+    },
+    "profitAlerts": {
+      "title": "Rendement gedaald: {product}",
+      "change": "Je netto-opbrengst ging van {from} naar {to} (−{drop}): afgelopen 30 dagen ({currentOrders} bestellingen) vergeleken met de 30 daarvoor ({previousOrders} bestellingen).",
+      "sincePeriod": "Vastgesteld over de afgelopen 30 dagen ten opzichte van de 30 daarvoor.",
+      "since": {
+        "price_cut": "Sinds je prijswijziging op {date}.",
+        "supplier_price_change": "Sinds de verhoging van de leveranciersprijs op {date}."
+      },
+      "causeWithAmount": "{cause} (−{amount})",
+      "causes": {
+        "supplier_price_up": "de leveranciersprijs is gestegen en heeft je marge verkleind",
+        "your_price_down": "je hebt je verkoopprijs verlaagd",
+        "collected_price_down": "de geïnde prijs is lager, zonder geregistreerde prijsverlaging van jou (kortingen, verkochte varianten)",
+        "commission_down": "de commissie van de leverancier is gedaald",
+        "fees_up": "de toegepaste Affisell-kosten zijn hoger",
+        "refunds_up": "meer verkopen zijn terugbetaald",
+        "volume_down": "je verkoopt duidelijk minder",
+        "disputes_up": "meer geschillen"
+      },
+      "suggestion": {
+        "restore_markup": "Simulatie: bij {price} zou je je marge herstellen — ongeveer {net} netto per verkoop; {sales} verkopen zouden je afgelopen 30 dagen evenaren.",
+        "previous_price": "Simulatie: tegen je vorige prijs van {price} zou een verkoop ongeveer {net} netto opleveren; {sales} verkopen zouden je afgelopen 30 dagen evenaren.",
+        "none": {
+          "supplier_price_up": "Controleer je prijs ten opzichte van de nieuwe leveranciersprijs.",
+          "your_price_down": "Vergelijk je verkopen voor en na je prijswijziging in je overzicht.",
+          "collected_price_down": "Controleer kortingen en verkochte varianten: je getoonde prijs is niet veranderd.",
+          "commission_down": "De leverancier heeft zijn commissie verlaagd: controleer of je marge nog volstaat.",
+          "fees_up": "Je kosten zijn gestegen: controleer je marge in je overzicht.",
+          "refunds_up": "Bekijk de terugbetalingsredenen van deze bestellingen.",
+          "volume_down": "Controleer zichtbaarheid en voorraad van het product; geen prijssimulatie voorspelt verkopen.",
+          "disputes_up": "Bekijk de geschillen van deze bestellingen."
+        }
+      },
+      "short": "{product}: netto-opbrengst {drop} lager — {cause}",
+      "disclaimer": "Cijfers berekend uit je eigen betaalde bestellingen; simulaties zijn berekeningen, geen voorspellingen. Geen prijs verandert zonder jouw actie.",
+      "causesTitle": "Vastgestelde oorzaken",
+      "suggestionTitle": "Wat je kunt doen",
+      "ctaEdit": "Mijn prijs wijzigen →",
+      "ctaBoard": "Mijn rendementsoverzicht openen →",
+      "emailFooter": "Je ontvangt deze e-mail omdat je rendementsmeldingen per e-mail hebt ingeschakeld. Uitschakelen:",
+      "panelTitle": "Rendementsmeldingen",
+      "panelIntro": "Een melding wordt alleen verstuurd als het product echt opbracht (minstens 5 bestellingen en € 20 netto), de daling aanzienlijk is (minstens € 10 en 25%) en de oorzaak door de gegevens is vastgesteld. Hoogstens één melding per product per 14 dagen.",
+      "panelEmpty": "Geen melding: geen van je rendabele producten is significant gedaald.",
+      "dismiss": "Verbergen",
+      "prefTitle": "Meldingen ontvangen",
+      "prefInApp": "In de app",
+      "prefEmail": "Per e-mail",
+      "prefStatus": {
+        "idle": "",
+        "saving": "Opslaan…",
+        "saved": "Opgeslagen",
+        "error": "Opslaan mislukt"
+      }
     }
   },
   "marketplace": {
@@ -8864,7 +8918,8 @@
     "browseCatalog": "Catalogus bekijken",
     "reviewMargins": "Mijn marges controleren",
     "viewInvitation": "Uitnodiging bekijken",
-    "viewAffiliateInvites": "Wederverkopersuitnodigingen bekijken"
+    "viewAffiliateInvites": "Wederverkopersuitnodigingen bekijken",
+    "viewProfitAlert": "Melding bekijken"
   },
   "aiConnect": {
     "title": "Een AI koppelen",

@@ -2912,6 +2912,60 @@
         "simRestore": "(ripristina il margine)",
         "simEdit": "Modifica il mio prezzo →"
       }
+    },
+    "profitAlerts": {
+      "title": "Redditività in calo: {product}",
+      "change": "Il tuo guadagno netto è passato da {from} a {to} (−{drop}): ultimi 30 giorni ({currentOrders} ordini) rispetto ai 30 precedenti ({previousOrders} ordini).",
+      "sincePeriod": "Rilevato negli ultimi 30 giorni rispetto ai 30 precedenti.",
+      "since": {
+        "price_cut": "Dal tuo cambio di prezzo del {date}.",
+        "supplier_price_change": "Dall'aumento del prezzo del fornitore del {date}."
+      },
+      "causeWithAmount": "{cause} (−{amount})",
+      "causes": {
+        "supplier_price_up": "il prezzo del fornitore è aumentato e ha ridotto il tuo margine",
+        "your_price_down": "hai abbassato il tuo prezzo di vendita",
+        "collected_price_down": "il prezzo incassato è più basso, senza un tuo ribasso registrato (sconti, varianti vendute)",
+        "commission_down": "la commissione del fornitore è diminuita",
+        "fees_up": "le commissioni Affisell applicate sono più alte",
+        "refunds_up": "più vendite sono state rimborsate",
+        "volume_down": "vendi nettamente meno",
+        "disputes_up": "più contestazioni"
+      },
+      "suggestion": {
+        "restore_markup": "Simulazione: a {price} ritroveresti il tuo margine — circa {net} netti per vendita; {sales} vendite eguaglierebbero gli ultimi 30 giorni.",
+        "previous_price": "Simulazione: al tuo prezzo precedente di {price}, una vendita renderebbe circa {net} netti; {sales} vendite eguaglierebbero gli ultimi 30 giorni.",
+        "none": {
+          "supplier_price_up": "Verifica il tuo prezzo rispetto al nuovo prezzo del fornitore.",
+          "your_price_down": "Confronta le vendite prima e dopo il cambio di prezzo nel tuo pannello.",
+          "collected_price_down": "Verifica sconti e varianti vendute: il prezzo esposto non è cambiato.",
+          "commission_down": "Il fornitore ha ridotto la commissione: verifica che il margine sia ancora sufficiente.",
+          "fees_up": "Le commissioni sono aumentate: verifica il margine nel tuo pannello.",
+          "refunds_up": "Consulta i motivi di rimborso di questi ordini.",
+          "volume_down": "Verifica visibilità e scorte del prodotto; nessuna simulazione di prezzo prevede le vendite.",
+          "disputes_up": "Consulta le contestazioni di questi ordini."
+        }
+      },
+      "short": "{product}: guadagno netto in calo di {drop} — {cause}",
+      "disclaimer": "Dati calcolati sui tuoi ordini pagati; le simulazioni sono calcoli, non previsioni. Nessun prezzo cambia senza una tua azione.",
+      "causesTitle": "Cause accertate",
+      "suggestionTitle": "Cosa puoi fare",
+      "ctaEdit": "Modifica il mio prezzo →",
+      "ctaBoard": "Apri il pannello di redditività →",
+      "emailFooter": "Ricevi questa e-mail perché hai attivato gli avvisi di redditività via e-mail. Per disattivarli:",
+      "panelTitle": "Avvisi di redditività",
+      "panelIntro": "Un avviso viene inviato solo se il prodotto rendeva davvero (almeno 5 ordini e 20 € netti), se il calo è rilevante (almeno 10 € e 25 %) e se la causa è accertata dai dati. Al massimo un avviso per prodotto ogni 14 giorni.",
+      "panelEmpty": "Nessun avviso: nessuno dei tuoi prodotti redditizi è calato in modo significativo.",
+      "dismiss": "Nascondi",
+      "prefTitle": "Ricevi avvisi",
+      "prefInApp": "Nell'app",
+      "prefEmail": "Via e-mail",
+      "prefStatus": {
+        "idle": "",
+        "saving": "Salvataggio…",
+        "saved": "Salvato",
+        "error": "Salvataggio non riuscito"
+      }
     }
   },
   "marketplace": {
@@ -8864,7 +8918,8 @@
     "browseCatalog": "Sfoglia il catalogo",
     "reviewMargins": "Rivedi i miei margini",
     "viewInvitation": "Vedi l'invito",
-    "viewAffiliateInvites": "Vedi gli inviti rivenditore"
+    "viewAffiliateInvites": "Vedi gli inviti rivenditore",
+    "viewProfitAlert": "Vedi l'avviso"
   },
   "aiConnect": {
     "title": "Collega un'IA",

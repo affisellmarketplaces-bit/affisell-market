@@ -2912,6 +2912,60 @@
         "simRestore": "(recuperar tu margen)",
         "simEdit": "Modificar mi precio →"
       }
+    },
+    "profitAlerts": {
+      "title": "Rentabilidad en baja: {product}",
+      "change": "Tu ganancia neta pasó de {from} a {to} (−{drop}): últimos 30 días ({currentOrders} pedidos) frente a los 30 anteriores ({previousOrders} pedidos).",
+      "sincePeriod": "Observado en los últimos 30 días frente a los 30 anteriores.",
+      "since": {
+        "price_cut": "Desde tu cambio de precio del {date}.",
+        "supplier_price_change": "Desde la subida del precio del proveedor del {date}."
+      },
+      "causeWithAmount": "{cause} (−{amount})",
+      "causes": {
+        "supplier_price_up": "el precio del proveedor subió y redujo tu margen",
+        "your_price_down": "bajaste tu precio de venta",
+        "collected_price_down": "el precio cobrado es más bajo, sin bajada de precio registrada por tu parte (descuentos, variantes vendidas)",
+        "commission_down": "la comisión del proveedor bajó",
+        "fees_up": "las comisiones de Affisell aplicadas son más altas",
+        "refunds_up": "se reembolsaron más ventas",
+        "volume_down": "vendes claramente menos",
+        "disputes_up": "más disputas"
+      },
+      "suggestion": {
+        "restore_markup": "Simulación: a {price} recuperarías tu margen — unos {net} netos por venta; {sales} ventas igualarían tus últimos 30 días.",
+        "previous_price": "Simulación: a tu precio anterior de {price}, una venta aportaría unos {net} netos; {sales} ventas igualarían tus últimos 30 días.",
+        "none": {
+          "supplier_price_up": "Revisa tu precio frente al nuevo precio del proveedor.",
+          "your_price_down": "Compara tus ventas antes y después de tu cambio de precio en tu panel.",
+          "collected_price_down": "Revisa los descuentos y las variantes vendidas: tu precio mostrado no ha cambiado.",
+          "commission_down": "El proveedor redujo su comisión: comprueba si tu margen sigue siendo suficiente.",
+          "fees_up": "Tus comisiones subieron: revisa tu margen en tu panel.",
+          "refunds_up": "Consulta los motivos de reembolso de estos pedidos.",
+          "volume_down": "Revisa la visibilidad y el stock del producto; ninguna simulación de precio predice las ventas.",
+          "disputes_up": "Consulta las disputas de estos pedidos."
+        }
+      },
+      "short": "{product}: ganancia neta en baja de {drop} — {cause}",
+      "disclaimer": "Cifras calculadas con tus propios pedidos pagados; las simulaciones son cálculos, no previsiones. Ningún precio cambia sin tu acción.",
+      "causesTitle": "Causas establecidas",
+      "suggestionTitle": "Qué puedes hacer",
+      "ctaEdit": "Modificar mi precio →",
+      "ctaBoard": "Ver mi panel de rentabilidad →",
+      "emailFooter": "Recibes este correo porque activaste las alertas de rentabilidad por correo. Para desactivarlas:",
+      "panelTitle": "Alertas de rentabilidad",
+      "panelIntro": "Solo se envía una alerta si el producto te aportaba de verdad (al menos 5 pedidos y 20 € netos), si la bajada es importante (al menos 10 € y 25 %) y si su causa está establecida por los datos. Como máximo una alerta por producto cada 14 días.",
+      "panelEmpty": "Ninguna alerta: ninguno de tus productos rentables ha bajado de forma significativa.",
+      "dismiss": "Ocultar",
+      "prefTitle": "Recibir alertas",
+      "prefInApp": "En la aplicación",
+      "prefEmail": "Por correo",
+      "prefStatus": {
+        "idle": "",
+        "saving": "Guardando…",
+        "saved": "Guardado",
+        "error": "No se pudo guardar"
+      }
     }
   },
   "marketplace": {
@@ -8864,7 +8918,8 @@
     "browseCatalog": "Explorar el catálogo",
     "reviewMargins": "Revisar mis márgenes",
     "viewInvitation": "Ver la invitación",
-    "viewAffiliateInvites": "Ver invitaciones de revendedores"
+    "viewAffiliateInvites": "Ver invitaciones de revendedores",
+    "viewProfitAlert": "Ver la alerta"
   },
   "aiConnect": {
     "title": "Conectar una IA",

@@ -398,6 +398,55 @@ model SupplierComplianceProfile {
 /// "ProductVariant_price_history"
 /// (migration 20261116200000_product_price_history) on every change of Product.basePriceCents. Isolated: no relation,
 /// read defensively (a missing table = "no history yet", see lib/price-history.server.ts).
+/// Proactive profitability alert for one reseller and product (migration 20261117120000_reseller_profit_alerts).
+/// UNIQUE (affiliateId, dedupeKey) = idempotency: one alert per product per 14-day bucket. No foreign key; read defensively.
+model ResellerProfitAlert {
+  id               String    @id @default(cuid())
+  affiliateId      String
+  productId        String
+  listingId        String?
+  dedupeKey        String
+  primaryCause     String
+  causes           String[]  @default([])
+  previousNetCents Int
+  currentNetCents  Int
+  netChangeCents   Int
+  since            DateTime
+  /// Explanation snapshot (effects per driver, orders, period, suggestion) — rendered in the reader's language.
+  payload          Json
+  dismissedAt      DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@unique([affiliateId, dedupeKey])
+  @@index([affiliateId, createdAt])
+  @@index([affiliateId, productId, createdAt])
+}
+
+/// One delivery of an alert on one channel. UNIQUE (alertId, channel) is the claim: only one run ever delivers.
+model ResellerAlertDelivery {
+  id          String   @id @default(cuid())
+  alertId     String
+  affiliateId String
+  /// "in_app" | "email" (CHECK in the migration).
+  channel     String
+  /// "sending" | "sent" | "failed" | "skipped".
+  status      String
+  detail      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@unique([alertId, channel])
+}
+
+/// A reseller's alert preferences. In-app on, e-mail OFF by default (opt-in).
+model ResellerAlertPreference {
+  affiliateId String   @id
+  inApp       Boolean  @default(true)
+  email       Boolean  @default(false)
+  locale      String   @default("fr")
+  updatedAt   DateTime @default(now()) @updatedAt
+}
+
 /// Reseller selling-price history, written ONLY by the database trigger of migration 20261117090000_listing_price_history
 /// (every writer of AffiliateProduct.sellingPriceCents / variantPricing is covered). Read defensively: a database where the
 /// migration is not applied yet has no such table. No foreign key on purpose (the trigger must never fail the observed write).

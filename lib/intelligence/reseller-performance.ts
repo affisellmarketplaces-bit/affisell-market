@@ -73,6 +73,7 @@ export type PeriodSummary = {
   netCents: number
   netPerUnitCents: number | null
   refundShareBps: number
+  refundedOrders: number
   disputedOrders: number
 }
 
@@ -102,6 +103,9 @@ export type DecliningProduct = ProductPerformance & {
   partlyUnexplained: boolean
   /** Recorded cuts of the listing price in the comparison window (from → to, source). */
   priceCutEvidence: Array<{ fromCents: number; toCents: number; source: string; at: string }>
+  /** Last recorded supplier price change in the comparison window, when the history has one. */
+  supplierPriceChange: { fromCents: number; toCents: number; at: string } | null
+  listingId: string | null
 }
 
 export type AttentionKind =
@@ -136,6 +140,7 @@ function summarize(p: PeriodFigures): PeriodSummary {
     netCents: net,
     netPerUnitCents: p.units > 0 ? Math.round(net / p.units) : null,
     refundShareBps: rateBps(p.refundedCents, p.chargedCents),
+    refundedOrders: p.refundedOrders,
     disputedOrders: p.disputedOrders,
   }
 }
@@ -219,6 +224,8 @@ export function buildResellerPerformance(input: {
       else reasons.push(DRIVER_REASON[driver])
     }
     if (p.current.disputedOrders > p.previous.disputedOrders) reasons.push("disputes_up")
+    const info = input.products.get(p.productId)
+    const sc = info?.lastPriceChange
     declining.push({
       ...p,
       netChangeCents: netChange,
@@ -226,6 +233,11 @@ export function buildResellerPerformance(input: {
       attribution,
       partlyUnexplained: residualIsLarge(attribution),
       priceCutEvidence: cuts,
+      supplierPriceChange:
+        sc && sc.fromCents != null && sc.at.getTime() >= windowStart && sc.at.getTime() <= input.now.getTime()
+          ? { fromCents: sc.fromCents, toCents: sc.toCents, at: sc.at.toISOString() }
+          : null,
+      listingId: info?.listingId ?? null,
     })
   }
   declining.sort((a, b) => a.netChangeCents - b.netChangeCents || a.productId.localeCompare(b.productId))

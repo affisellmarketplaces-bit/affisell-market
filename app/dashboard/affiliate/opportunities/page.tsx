@@ -1,5 +1,7 @@
 import Link from "next/link"
-import { getTranslations } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
+
+import { ProfitAlertsPanel, type ProfitAlertView } from "@/components/affiliate/profit-alerts-panel"
 
 import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { MIN_ORDERS_DOCUMENTED, type OpportunityFlag, type RankedOpportunity } from "@/lib/intelligence/opportunities"
@@ -7,11 +9,13 @@ import { loadOpportunityBoard, type OpportunityBoardResult } from "@/lib/intelli
 import type { AttributionDriver } from "@/lib/intelligence/profit-attribution"
 import type { AttentionItem, DeclineReason, PeriodSummary } from "@/lib/intelligence/reseller-performance"
 import { loadResellerPerformance, type ResellerPerformanceResult } from "@/lib/intelligence/reseller-performance.server"
+import { profitAlertTexts } from "@/lib/intelligence/profit-alert-format"
+import { loadAlertPreference, loadResellerAlerts, type ResellerAlertRow } from "@/lib/intelligence/profit-alerts.server"
 import { loadOrFallback } from "@/lib/safe-server-data"
 
 export const dynamic = "force-dynamic"
 
-const EMPTY_PERIOD: PeriodSummary = { orders: 0, units: 0, netCents: 0, netPerUnitCents: null, refundShareBps: 0, disputedOrders: 0 }
+const EMPTY_PERIOD: PeriodSummary = { orders: 0, units: 0, netCents: 0, netPerUnitCents: null, refundShareBps: 0, refundedOrders: 0, disputedOrders: 0 }
 
 const EMPTY_BOARD: OpportunityBoardResult = {
   documented: [],
@@ -66,6 +70,22 @@ export default async function AffiliateOpportunitiesPage() {
     loadOrFallback("affiliate/opportunities", () => loadOpportunityBoard({ viewerAffiliateId: session.user.id, limit: 50 }), EMPTY_BOARD),
     loadOrFallback("affiliate/performance", () => loadResellerPerformance({ affiliateId: session.user.id, limit: 20 }), EMPTY_MINE),
   ])
+
+  const locale = await getLocale()
+  const tAlerts = await getTranslations("affiliate.profitAlerts")
+  const [alertRows, alertPref] = await Promise.all([
+    loadOrFallback("affiliate/profit-alerts", () => loadResellerAlerts(session.user.id), [] as ResellerAlertRow[]),
+    loadOrFallback("affiliate/alert-preferences", () => loadAlertPreference(session.user.id), {
+      inApp: true,
+      email: false,
+      locale: "fr" as const,
+      saved: false,
+    }),
+  ])
+  const alertViews: ProfitAlertView[] = alertRows.map((a) => {
+    const x = profitAlertTexts(a.payload, (k, v) => tAlerts(k as never, v as never), locale)
+    return { id: a.id, listingId: a.listingId, createdAt: a.createdAt, title: x.title, change: x.change, since: x.since, causes: x.causes, suggestion: x.suggestion }
+  })
 
   const flagLabel = (f: OpportunityFlag) => t(`flags.${f}`)
   const reasonLabel = (r: DeclineReason) => t(`mine.reasons.${r}`)
@@ -174,6 +194,8 @@ export default async function AffiliateOpportunitiesPage() {
           </p>
           {mine.truncated ? <p className="text-xs text-amber-700">{t("truncated")}</p> : null}
         </div>
+
+        <ProfitAlertsPanel alerts={alertViews} preference={{ inApp: alertPref.inApp, email: alertPref.email, locale: alertPref.locale }} />
 
         <div className="space-y-2">
           <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{t("mine.attentionTitle")}</h3>

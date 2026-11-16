@@ -2912,6 +2912,60 @@
         "simRestore": "(retrouver votre marge)",
         "simEdit": "Modifier mon prix →"
       }
+    },
+    "profitAlerts": {
+      "title": "Rentabilité en baisse : {product}",
+      "change": "Votre gain net est passé de {from} à {to} (−{drop}) : 30 derniers jours ({currentOrders} commandes) comparés aux 30 précédents ({previousOrders} commandes).",
+      "sincePeriod": "Constaté sur les 30 derniers jours par rapport aux 30 précédents.",
+      "since": {
+        "price_cut": "Depuis votre changement de prix du {date}.",
+        "supplier_price_change": "Depuis la hausse du prix fournisseur du {date}."
+      },
+      "causeWithAmount": "{cause} (−{amount})",
+      "causes": {
+        "supplier_price_up": "le prix fournisseur a augmenté et réduit votre marge",
+        "your_price_down": "vous avez baissé votre prix de vente",
+        "collected_price_down": "le prix encaissé est plus bas, sans baisse de prix enregistrée de votre part (remises, variantes vendues)",
+        "commission_down": "la commission du fournisseur a baissé",
+        "fees_up": "les frais Affisell appliqués sont plus élevés",
+        "refunds_up": "davantage de ventes ont été remboursées",
+        "volume_down": "vous vendez nettement moins",
+        "disputes_up": "davantage de litiges"
+      },
+      "suggestion": {
+        "restore_markup": "Simulation : à {price}, vous retrouveriez votre marge — environ {net} net par vente ; {sales} ventes égaleraient vos 30 derniers jours.",
+        "previous_price": "Simulation : à votre ancien prix de {price}, une vente rapporterait environ {net} net ; {sales} ventes égaleraient vos 30 derniers jours.",
+        "none": {
+          "supplier_price_up": "Vérifiez votre prix face au nouveau prix fournisseur.",
+          "your_price_down": "Comparez vos ventes avant et après votre changement de prix dans votre tableau.",
+          "collected_price_down": "Vérifiez les remises et les variantes vendues : votre prix affiché n'a pas changé.",
+          "commission_down": "Le fournisseur a réduit sa commission : vérifiez si votre marge reste suffisante.",
+          "fees_up": "Vos frais ont augmenté : vérifiez votre marge dans votre tableau.",
+          "refunds_up": "Consultez les motifs de remboursement de ces commandes.",
+          "volume_down": "Vérifiez la visibilité et le stock du produit ; aucune simulation de prix ne prévoit les ventes.",
+          "disputes_up": "Consultez les litiges de ces commandes."
+        }
+      },
+      "short": "{product} : gain net en baisse de {drop} — {cause}",
+      "disclaimer": "Chiffres calculés sur vos propres commandes payées ; les simulations sont des calculs, pas des prévisions. Aucun prix n'est modifié sans votre action.",
+      "causesTitle": "Causes établies",
+      "suggestionTitle": "Piste d'action",
+      "ctaEdit": "Modifier mon prix →",
+      "ctaBoard": "Voir mon tableau de rentabilité →",
+      "emailFooter": "Vous recevez cet e-mail car vous avez activé les alertes de rentabilité par e-mail. Pour les désactiver :",
+      "panelTitle": "Alertes de rentabilité",
+      "panelIntro": "Une alerte n'est envoyée que si le produit vous rapportait vraiment (au moins 5 commandes et 20 € net), si la baisse est importante (au moins 10 € et 25 %) et si sa cause est établie par les données. Au plus une alerte par produit tous les 14 jours.",
+      "panelEmpty": "Aucune alerte : aucun de vos produits rentables n'a baissé de façon significative.",
+      "dismiss": "Masquer",
+      "prefTitle": "Recevoir les alertes",
+      "prefInApp": "Dans l'application",
+      "prefEmail": "Par e-mail",
+      "prefStatus": {
+        "idle": "",
+        "saving": "Enregistrement…",
+        "saved": "Enregistré",
+        "error": "Échec de l'enregistrement"
+      }
     }
   },
   "marketplace": {
@@ -8864,7 +8918,8 @@
     "browseCatalog": "Parcourir le catalogue",
     "reviewMargins": "Revoir mes marges",
     "viewInvitation": "Voir l'invitation",
-    "viewAffiliateInvites": "Voir les invitations revendeur"
+    "viewAffiliateInvites": "Voir les invitations revendeur",
+    "viewProfitAlert": "Voir l'alerte"
   },
   "aiConnect": {
     "title": "Connecter une IA",

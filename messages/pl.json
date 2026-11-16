@@ -2912,6 +2912,60 @@
         "simRestore": "(odzyskaj marżę)",
         "simEdit": "Zmień moją cenę →"
       }
+    },
+    "profitAlerts": {
+      "title": "Spadek rentowności: {product}",
+      "change": "Twój zysk netto spadł z {from} do {to} (−{drop}): ostatnie 30 dni ({currentOrders} zamówień) w porównaniu z poprzednimi 30 ({previousOrders} zamówień).",
+      "sincePeriod": "Stwierdzono w ostatnich 30 dniach w porównaniu z poprzednimi 30.",
+      "since": {
+        "price_cut": "Od Twojej zmiany ceny z dnia {date}.",
+        "supplier_price_change": "Od podwyżki ceny dostawcy z dnia {date}."
+      },
+      "causeWithAmount": "{cause} (−{amount})",
+      "causes": {
+        "supplier_price_up": "cena dostawcy wzrosła i zmniejszyła Twoją marżę",
+        "your_price_down": "obniżyłeś swoją cenę sprzedaży",
+        "collected_price_down": "pobrana cena jest niższa, bez zapisanej obniżki z Twojej strony (rabaty, sprzedane warianty)",
+        "commission_down": "prowizja dostawcy spadła",
+        "fees_up": "naliczane opłaty Affisell są wyższe",
+        "refunds_up": "więcej sprzedaży zostało zwróconych",
+        "volume_down": "sprzedajesz wyraźnie mniej",
+        "disputes_up": "więcej sporów"
+      },
+      "suggestion": {
+        "restore_markup": "Symulacja: przy cenie {price} odzyskałbyś marżę — około {net} netto na sprzedaży; {sales} sprzedaży wyrównałoby ostatnie 30 dni.",
+        "previous_price": "Symulacja: przy poprzedniej cenie {price} sprzedaż przyniosłaby około {net} netto; {sales} sprzedaży wyrównałoby ostatnie 30 dni.",
+        "none": {
+          "supplier_price_up": "Sprawdź swoją cenę względem nowej ceny dostawcy.",
+          "your_price_down": "Porównaj sprzedaż przed i po zmianie ceny w swoim panelu.",
+          "collected_price_down": "Sprawdź rabaty i sprzedane warianty: wyświetlana cena się nie zmieniła.",
+          "commission_down": "Dostawca obniżył prowizję: sprawdź, czy Twoja marża nadal wystarcza.",
+          "fees_up": "Twoje opłaty wzrosły: sprawdź marżę w swoim panelu.",
+          "refunds_up": "Sprawdź powody zwrotów tych zamówień.",
+          "volume_down": "Sprawdź widoczność i stan magazynu produktu; żadna symulacja ceny nie przewiduje sprzedaży.",
+          "disputes_up": "Sprawdź spory tych zamówień."
+        }
+      },
+      "short": "{product}: zysk netto niższy o {drop} — {cause}",
+      "disclaimer": "Dane liczone z Twoich opłaconych zamówień; symulacje to obliczenia, nie prognozy. Żadna cena nie zmieni się bez Twojego działania.",
+      "causesTitle": "Ustalone przyczyny",
+      "suggestionTitle": "Co możesz zrobić",
+      "ctaEdit": "Zmień moją cenę →",
+      "ctaBoard": "Otwórz panel rentowności →",
+      "emailFooter": "Otrzymujesz tę wiadomość, ponieważ włączyłeś alerty rentowności e-mailem. Aby je wyłączyć:",
+      "panelTitle": "Alerty rentowności",
+      "panelIntro": "Alert jest wysyłany tylko wtedy, gdy produkt naprawdę zarabiał (co najmniej 5 zamówień i 20 € netto), spadek jest istotny (co najmniej 10 € i 25%), a jego przyczyna wynika z danych. Najwyżej jeden alert na produkt co 14 dni.",
+      "panelEmpty": "Brak alertów: żaden z Twoich rentownych produktów nie spadł istotnie.",
+      "dismiss": "Ukryj",
+      "prefTitle": "Otrzymuj alerty",
+      "prefInApp": "W aplikacji",
+      "prefEmail": "E-mailem",
+      "prefStatus": {
+        "idle": "",
+        "saving": "Zapisywanie…",
+        "saved": "Zapisano",
+        "error": "Nie udało się zapisać"
+      }
     }
   },
   "marketplace": {
@@ -8864,7 +8918,8 @@
     "browseCatalog": "Przeglądaj katalog",
     "reviewMargins": "Sprawdź moje marże",
     "viewInvitation": "Zobacz zaproszenie",
-    "viewAffiliateInvites": "Zobacz zaproszenia resellerów"
+    "viewAffiliateInvites": "Zobacz zaproszenia resellerów",
+    "viewProfitAlert": "Zobacz alert"
   },
   "aiConnect": {
     "title": "Połącz AI",

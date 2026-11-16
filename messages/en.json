@@ -2912,6 +2912,60 @@
         "simRestore": "(restore your markup)",
         "simEdit": "Edit my price →"
       }
+    },
+    "profitAlerts": {
+      "title": "Profitability down: {product}",
+      "change": "Your net earnings went from {from} to {to} (−{drop}): last 30 days ({currentOrders} orders) compared with the 30 before ({previousOrders} orders).",
+      "sincePeriod": "Observed over the last 30 days compared with the 30 before.",
+      "since": {
+        "price_cut": "Since your price change on {date}.",
+        "supplier_price_change": "Since the supplier price increase on {date}."
+      },
+      "causeWithAmount": "{cause} (−{amount})",
+      "causes": {
+        "supplier_price_up": "the supplier price went up and cut your markup",
+        "your_price_down": "you lowered your selling price",
+        "collected_price_down": "the price collected is lower, with no price cut recorded from you (discounts, variants sold)",
+        "commission_down": "the supplier's commission went down",
+        "fees_up": "the Affisell fees applied are higher",
+        "refunds_up": "more sales were refunded",
+        "volume_down": "you are selling clearly less",
+        "disputes_up": "more disputes"
+      },
+      "suggestion": {
+        "restore_markup": "Simulation: at {price} you would restore your markup — about {net} net per sale; {sales} sales would match your last 30 days.",
+        "previous_price": "Simulation: at your previous price of {price}, a sale would earn about {net} net; {sales} sales would match your last 30 days.",
+        "none": {
+          "supplier_price_up": "Check your price against the new supplier price.",
+          "your_price_down": "Compare your sales before and after your price change on your board.",
+          "collected_price_down": "Check discounts and the variants sold: your displayed price did not change.",
+          "commission_down": "The supplier reduced their commission: check that your markup is still enough.",
+          "fees_up": "Your fees went up: check your markup on your board.",
+          "refunds_up": "Look at the refund reasons of these orders.",
+          "volume_down": "Check the product's visibility and stock; no price simulation can predict sales.",
+          "disputes_up": "Look at the disputes of these orders."
+        }
+      },
+      "short": "{product}: net earnings down {drop} — {cause}",
+      "disclaimer": "Figures computed from your own paid orders; simulations are calculations, not forecasts. No price changes without your action.",
+      "causesTitle": "Established causes",
+      "suggestionTitle": "What you can do",
+      "ctaEdit": "Edit my price →",
+      "ctaBoard": "Open my profitability board →",
+      "emailFooter": "You receive this e-mail because you switched on profitability alerts by e-mail. To switch them off:",
+      "panelTitle": "Profitability alerts",
+      "panelIntro": "An alert is sent only when the product was really earning (at least 5 orders and €20 net), the drop is material (at least €10 and 25%) and its cause is established by the data. At most one alert per product every 14 days.",
+      "panelEmpty": "No alert: none of your profitable products dropped significantly.",
+      "dismiss": "Dismiss",
+      "prefTitle": "Receive alerts",
+      "prefInApp": "In the app",
+      "prefEmail": "By e-mail",
+      "prefStatus": {
+        "idle": "",
+        "saving": "Saving…",
+        "saved": "Saved",
+        "error": "Could not save"
+      }
     }
   },
   "marketplace": {
@@ -8864,7 +8918,8 @@
     "browseCatalog": "Browse the catalog",
     "reviewMargins": "Review my margins",
     "viewInvitation": "View the invitation",
-    "viewAffiliateInvites": "View reseller invitations"
+    "viewAffiliateInvites": "View reseller invitations",
+    "viewProfitAlert": "View alert"
   },
   "aiConnect": {
     "title": "Connect an AI",

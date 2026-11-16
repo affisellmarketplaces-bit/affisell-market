@@ -2912,6 +2912,60 @@
         "simRestore": "（恢复您的加价）",
         "simEdit": "修改我的价格 →"
       }
+    },
+    "profitAlerts": {
+      "title": "盈利下降：{product}",
+      "change": "您的净收益从 {from} 降至 {to}（−{drop}）：最近 30 天（{currentOrders} 笔订单）与之前 30 天（{previousOrders} 笔订单）相比。",
+      "sincePeriod": "基于最近 30 天与之前 30 天的对比。",
+      "since": {
+        "price_cut": "自您 {date} 调价以来。",
+        "supplier_price_change": "自 {date} 供应商涨价以来。"
+      },
+      "causeWithAmount": "{cause}（−{amount}）",
+      "causes": {
+        "supplier_price_up": "供应商价格上涨，压缩了您的加价",
+        "your_price_down": "您降低了售价",
+        "collected_price_down": "实收价格降低，但没有记录到您的降价（折扣、所售规格）",
+        "commission_down": "供应商佣金下降",
+        "fees_up": "适用的 Affisell 费用更高",
+        "refunds_up": "更多销售被退款",
+        "volume_down": "您的销量明显下降",
+        "disputes_up": "争议增多"
+      },
+      "suggestion": {
+        "restore_markup": "模拟：售价 {price} 可恢复您的加价——每笔约净赚 {net}；{sales} 笔销售可达到最近 30 天的收益。",
+        "previous_price": "模拟：按您之前的价格 {price}，每笔约净赚 {net}；{sales} 笔销售可达到最近 30 天的收益。",
+        "none": {
+          "supplier_price_up": "对照新的供应商价格检查您的售价。",
+          "your_price_down": "在面板中比较调价前后的销售。",
+          "collected_price_down": "检查折扣和所售规格：您的展示价格没有变化。",
+          "commission_down": "供应商降低了佣金：检查您的加价是否仍然足够。",
+          "fees_up": "您的费用上升了：在面板中检查加价。",
+          "refunds_up": "查看这些订单的退款原因。",
+          "volume_down": "检查产品的曝光和库存；任何价格模拟都无法预测销量。",
+          "disputes_up": "查看这些订单的争议。"
+        }
+      },
+      "short": "{product}：净收益下降 {drop} — {cause}",
+      "disclaimer": "数据基于您自己的已付款订单；模拟是计算，不是预测。没有您的操作，价格不会改变。",
+      "causesTitle": "已确定的原因",
+      "suggestionTitle": "可采取的行动",
+      "ctaEdit": "修改我的价格 →",
+      "ctaBoard": "打开我的盈利面板 →",
+      "emailFooter": "您收到此邮件是因为您开启了盈利提醒邮件。如需关闭：",
+      "panelTitle": "盈利提醒",
+      "panelIntro": "只有当产品确实带来收益（至少 5 笔订单且净收益 20 €）、下降幅度显著（至少 10 € 且 25%）并且原因已由数据确认时才会发送提醒。每个产品每 14 天最多一次。",
+      "panelEmpty": "暂无提醒：您的盈利产品没有明显下降。",
+      "dismiss": "隐藏",
+      "prefTitle": "接收提醒",
+      "prefInApp": "应用内",
+      "prefEmail": "邮件",
+      "prefStatus": {
+        "idle": "",
+        "saving": "正在保存…",
+        "saved": "已保存",
+        "error": "保存失败"
+      }
     }
   },
   "marketplace": {
@@ -8864,7 +8918,8 @@
     "browseCatalog": "浏览目录",
     "reviewMargins": "查看我的利润",
     "viewInvitation": "查看邀请",
-    "viewAffiliateInvites": "查看分销商邀请"
+    "viewAffiliateInvites": "查看分销商邀请",
+    "viewProfitAlert": "查看提醒"
   },
   "aiConnect": {
     "title": "连接 AI",

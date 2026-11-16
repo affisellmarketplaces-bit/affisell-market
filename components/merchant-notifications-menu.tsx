@@ -16,6 +16,7 @@ import { isProductRequestNotifType } from "@/lib/product-request-notif-constants
 import { SUPPLIER_INVITE_NOTIF } from "@/lib/supplier-invite-notif-constants"
 import { SUPPLIER_AFFILIATE_INVITE_NOTIF } from "@/lib/supplier-affiliate-invite-notif-constants"
 import { SUPPLIER_PRICE_CHANGE_NOTIF } from "@/lib/affiliate-wholesale-change-notif-constants"
+import { PROFIT_ALERT_NOTIF } from "@/lib/intelligence/profit-alert-types"
 import type { MerchantNotificationOrderSummary } from "@/lib/merchant-notification-order-summary-types"
 import { computeAnchoredPanelPosition, type AnchoredPanelPosition } from "@/lib/anchored-panel-position"
 import { cn } from "@/lib/utils"
@@ -77,6 +78,7 @@ const config: Record<
     showOrdersLink: (n) =>
       n.type === "NEW_SALE" ||
       n.type === SUPPLIER_PRICE_CHANGE_NOTIF ||
+      n.type === PROFIT_ALERT_NOTIF ||
       n.type === SUPPLIER_INVITE_NOTIF.CATALOG_LIVE ||
       n.type === SUPPLIER_INVITE_NOTIF.NEW_SUPPLIER_CATALOG ||
       isProductRequestNotifType(n.type),
@@ -128,6 +130,10 @@ function resolveNotificationLink(
       href: `/dashboard/affiliate?editListing=${encodeURIComponent(n.orderId)}`,
       label: t("reviewMargins"),
     }
+  }
+
+  if (role === "AFFILIATE" && n.type === PROFIT_ALERT_NOTIF) {
+    return { href: "/dashboard/affiliate/opportunities", label: t("viewProfitAlert") }
   }
 
   if (role === "AFFILIATE" && n.type === SUPPLIER_INVITE_NOTIF.REGISTERED) {

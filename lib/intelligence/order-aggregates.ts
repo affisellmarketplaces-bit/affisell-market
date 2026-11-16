@@ -39,6 +39,8 @@ export type PeriodFigures = {
   units: number
   chargedCents: number
   refundedCents: number
+  /** Orders with any refund (partial or full). */
+  refundedOrders: number
   disputedOrders: number
   /** Σ reseller payouts and the share reversed by refunds (pro rata). */
   payoutCents: number
@@ -64,6 +66,7 @@ export function emptyPeriod(): PeriodFigures {
     units: 0,
     chargedCents: 0,
     refundedCents: 0,
+    refundedOrders: 0,
     disputedOrders: 0,
     payoutCents: 0,
     payoutReversedCents: 0,
@@ -95,6 +98,7 @@ function add(p: PeriodFigures, f: PaidOrderFact): void {
   p.units += Math.max(1, int(f.quantity))
   p.chargedCents += charged
   p.refundedCents += refunded
+  if (refunded > 0) p.refundedOrders += 1
   if (f.disputed) p.disputedOrders += 1
   p.payoutCents += int(f.affiliatePayoutCents)
   p.payoutReversedCents += reversedPayoutCents(f.affiliatePayoutCents, refunded, charged)

@@ -94,3 +94,4 @@ jobs:
           lib/__tests__/build-write-guard-db.test.ts
           lib/__tests__/price-history-trigger-db.test.ts
           lib/__tests__/listing-price-history-trigger-db.test.ts
+          lib/__tests__/profit-alerts-db.test.ts

@@ -6,7 +6,6 @@ import { loadBasePriceAt, loadPaidOrderFacts } from "@/lib/intelligence/order-fa
 import type { ListingPriceChange } from "@/lib/intelligence/price-simulation"
 import {
   buildResellerPerformance,
-  PRICE_CHANGE_RECENT_DAYS,
   type ResellerPerformance,
   type ResellerProductInfo,
 } from "@/lib/intelligence/reseller-performance"
@@ -90,7 +89,8 @@ export async function loadResellerPerformance(args: {
   const aggregates = aggregatePaidOrders(facts, { now, periodDays: RESELLER_PERIOD_DAYS, qualityDays: 2 * RESELLER_PERIOD_DAYS })
 
   const productIds = [...new Set([...aggregates.keys(), ...listings.map((l) => l.productId)])]
-  const recentSince = new Date(now.getTime() - PRICE_CHANGE_RECENT_DAYS * DAY_MS)
+  // Supplier price changes of the whole comparison window (the "attention" list keeps only the last 7 days itself).
+  const recentSince = since60
   const [products, priceAtStart, recentChanges, openLedger] = await Promise.all([
     productIds.length
       ? prisma.product.findMany({
