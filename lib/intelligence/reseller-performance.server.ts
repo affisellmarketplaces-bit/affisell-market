@@ -3,6 +3,7 @@ import "server-only"
 import { isProductStockMeaningful } from "@/lib/intelligence/opportunities"
 import { aggregatePaidOrders, DAY_MS } from "@/lib/intelligence/order-aggregates"
 import { loadBasePriceAt, loadPaidOrderFacts } from "@/lib/intelligence/order-facts.server"
+import type { ListingPriceChange } from "@/lib/intelligence/price-simulation"
 import {
   buildResellerPerformance,
   PRICE_CHANGE_RECENT_DAYS,
@@ -12,7 +13,38 @@ import {
 import { prisma } from "@/lib/prisma"
 
 export const RESELLER_PERIOD_DAYS = 30
+/** Orders are read this far back so a price change of the last 90 days has its 30 days "before". */
+const FACTS_DAYS = 120
+const CHANGES_DAYS = 90
 const MAX_LISTED = 500
+const MAX_CHANGES = 1000
+
+/** The reseller's OWN listing-price history (scoped by affiliateId). Missing table = empty. */
+export async function loadListingPriceChanges(affiliateId: string, since: Date): Promise<ListingPriceChange[]> {
+  try {
+    const rows = await prisma.listingPriceHistory.findMany({
+      where: { affiliateId, effectiveAt: { gte: since } },
+      orderBy: { id: "asc" },
+      take: MAX_CHANGES,
+      select: {
+        affiliateProductId: true,
+        productId: true,
+        variantKey: true,
+        priceCents: true,
+        previousCents: true,
+        source: true,
+        effectiveAt: true,
+      },
+    })
+    return rows as ListingPriceChange[]
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    console.warn("[listing-price-history]", {
+      result: /ListingPriceHistory|P2021|does not exist/i.test(message) ? "table_missing" : "read_failed",
+    })
+    return []
+  }
+}
 
 export type ResellerPerformanceResult = ResellerPerformance & {
   generatedAt: string
@@ -35,13 +67,13 @@ export async function loadResellerPerformance(args: {
   const since60 = new Date(now.getTime() - 2 * RESELLER_PERIOD_DAYS * DAY_MS)
   const since30 = new Date(now.getTime() - RESELLER_PERIOD_DAYS * DAY_MS)
 
-  const [{ facts, truncated }, listings, disputedOrders, returns] = await Promise.all([
-    loadPaidOrderFacts({ where: { affiliateId }, since: since60 }),
+  const [{ facts, truncated }, listings, disputedOrders, returns, listingChanges] = await Promise.all([
+    loadPaidOrderFacts({ where: { affiliateId }, since: new Date(now.getTime() - FACTS_DAYS * DAY_MS) }),
     prisma.affiliateProduct.findMany({
       where: { affiliateId },
       orderBy: { updatedAt: "desc" },
       take: MAX_LISTED,
-      select: { productId: true, isListed: true, marginReviewNeeded: true },
+      select: { id: true, productId: true, isListed: true, marginReviewNeeded: true, sellingPriceCents: true },
     }),
     prisma.order.findMany({
       where: { affiliateId, status: { in: ["disputed", "DISPUTED"] } },
@@ -53,6 +85,7 @@ export async function loadResellerPerformance(args: {
       take: 500,
       select: { order: { select: { productId: true } } },
     }),
+    loadListingPriceChanges(affiliateId, new Date(now.getTime() - CHANGES_DAYS * DAY_MS)),
   ])
   const aggregates = aggregatePaidOrders(facts, { now, periodDays: RESELLER_PERIOD_DAYS, qualityDays: 2 * RESELLER_PERIOD_DAYS })
 
@@ -72,6 +105,7 @@ export async function loadResellerPerformance(args: {
             hasVariants: true,
             variants: true,
             basePriceCents: true,
+            commissionRate: true,
           },
         })
       : Promise.resolve([]),
@@ -115,6 +149,9 @@ export async function loadResellerPerformance(args: {
       currentBasePriceCents: p.basePriceCents,
       basePriceAtPeriodStartCents: priceAtStart.get(p.id) ?? null,
       lastPriceChange: change ? { at: change.recordedAt, fromCents: change.previousCents, toCents: change.priceCents } : null,
+      listingPriceCents: listing?.sellingPriceCents ?? null,
+      commissionPercent: Number(p.commissionRate) || 0,
+      listingId: listing?.id ?? null,
     })
   }
 
@@ -138,6 +175,13 @@ export async function loadResellerPerformance(args: {
     if (pid) pendingReturnsByProduct.set(pid, (pendingReturnsByProduct.get(pid) ?? 0) + 1)
   }
 
+  const factsByProduct = new Map<string, typeof facts>()
+  for (const f of facts) {
+    const list = factsByProduct.get(f.productId) ?? []
+    list.push(f)
+    factsByProduct.set(f.productId, list)
+  }
+
   return {
     ...buildResellerPerformance({
       aggregates,
@@ -145,6 +189,10 @@ export async function loadResellerPerformance(args: {
       signals: { openDisputesByProduct, pendingReturnsByProduct },
       now,
       limit: args.limit,
+      listingChanges,
+      factsByProduct,
+      comparisonStart: since60,
+      periodStart: since30,
     }),
     generatedAt: now.toISOString(),
     periodDays: RESELLER_PERIOD_DAYS,

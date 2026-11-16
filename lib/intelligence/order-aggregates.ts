@@ -6,6 +6,8 @@
  *    never counted in two periods;
  *  - "charged" = Order.totalCents (what the buyer paid for that line, VAT included), refunded = Σ OrderStripeRefund.amountCents
  *    of that order, capped at what was charged (a refund can never make a line negative);
+ *  - a reseller's payout = what the order transfers to them (`netAffiliateTransferCents`: commission + markup − Affisell's
+ *    reseller fee — the settlement's own function, NOT `Order.affiliatePayoutCents`, which holds the commission alone);
  *  - a reseller's payout on a refunded order is reversed PRO RATA of the refunded amount — the rule the transfer reversal
  *    applies (`reverseConnectTransfersForRefund`, `computeIncrementalReversalCents` with the order total), so a 30 %
  *    partial refund costs 30 % of the payout, not all of it, and a rejected return (no refund row) costs nothing;
@@ -20,8 +22,14 @@ export type PaidOrderFact = {
   quantity: number
   chargedCents: number
   paidAt: Date
-  /** Reseller payout recorded on the order (Order.affiliatePayoutCents). */
+  /** What the order transfers to the reseller (net of Affisell's reseller fee). */
   affiliatePayoutCents: number
+  /** Line amounts from the order snapshot (cents, whole line): HT price collected, supplier price, the supplier's
+   * commission to the reseller, Affisell's reseller fee. Optional: absent = 0 (pure tests of the volume logic). */
+  sellingCents?: number
+  supplierCents?: number
+  commissionCents?: number
+  feeCents?: number
   refundedCents: number
   disputed: boolean
 }
@@ -35,6 +43,11 @@ export type PeriodFigures = {
   /** Σ reseller payouts and the share reversed by refunds (pro rata). */
   payoutCents: number
   payoutReversedCents: number
+  /** Σ of the line snapshots (see PaidOrderFact). */
+  sellingCents: number
+  supplierCents: number
+  commissionCents: number
+  feeCents: number
 }
 
 export type ProductAggregate = {
@@ -45,8 +58,20 @@ export type ProductAggregate = {
   quality: PeriodFigures
 }
 
-function emptyPeriod(): PeriodFigures {
-  return { orders: 0, units: 0, chargedCents: 0, refundedCents: 0, disputedOrders: 0, payoutCents: 0, payoutReversedCents: 0 }
+export function emptyPeriod(): PeriodFigures {
+  return {
+    orders: 0,
+    units: 0,
+    chargedCents: 0,
+    refundedCents: 0,
+    disputedOrders: 0,
+    payoutCents: 0,
+    payoutReversedCents: 0,
+    sellingCents: 0,
+    supplierCents: 0,
+    commissionCents: 0,
+    feeCents: 0,
+  }
 }
 
 function int(n: unknown): number {
@@ -73,6 +98,19 @@ function add(p: PeriodFigures, f: PaidOrderFact): void {
   if (f.disputed) p.disputedOrders += 1
   p.payoutCents += int(f.affiliatePayoutCents)
   p.payoutReversedCents += reversedPayoutCents(f.affiliatePayoutCents, refunded, charged)
+  p.sellingCents += int(f.sellingCents)
+  p.supplierCents += int(f.supplierCents)
+  p.commissionCents += int(f.commissionCents)
+  p.feeCents += int(f.feeCents)
+}
+
+/** Sum of several periods (e.g. every product of a reseller). */
+export function sumPeriods(list: PeriodFigures[]): PeriodFigures {
+  const out = emptyPeriod()
+  for (const p of list) {
+    for (const k of Object.keys(out) as Array<keyof PeriodFigures>) out[k] += p[k]
+  }
+  return out
 }
 
 export function aggregatePaidOrders(

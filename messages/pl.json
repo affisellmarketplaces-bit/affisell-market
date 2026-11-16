@@ -2861,12 +2861,15 @@
           "previous": "Poprzedni okres"
         },
         "reasons": {
-          "fewer_units": "mniej sprzedanych sztuk",
-          "lower_net_per_unit": "niższy zysk netto na sztukę",
-          "refund_share_up": "wyższy udział zwrotów",
-          "supplier_price_down": "niższa cena dostawcy (od niej zależy Twoja prowizja)",
+          "volume_down": "mniej sprzedaży",
+          "your_price_down": "obniżyłeś swoją cenę sprzedaży",
+          "collected_price_down": "niższa pobrana cena bez zapisanej obniżki z Twojej strony (rabaty, sprzedane warianty)",
+          "supplier_price_up": "wyższa cena dostawcy (Twoja marża maleje)",
+          "commission_down": "niższa prowizja dostawcy",
+          "fees_up": "wyższe opłaty Affisell",
+          "refunds_up": "więcej zwrotów",
           "disputes_up": "więcej sporów",
-          "unknown": "brak przyczyny możliwej do ustalenia w danych"
+          "unknown": "brak istotnej przyczyny możliwej do ustalenia w danych"
         },
         "attention": {
           "open_dispute": "{orders} zamówień z otwartym sporem",
@@ -2875,7 +2878,39 @@
           "margin_review": "marża do przeglądu: cena dostawcy się zmieniła",
           "supplier_price_changed": "cena dostawcy zmieniła się w tym tygodniu z {from} na {to}",
           "return_requested": "{returns} zgłoszonych zwrotów czeka na dostawcę"
-        }
+        },
+        "drivers": {
+          "volume": "Wolumen",
+          "selling_price": "Twoja cena",
+          "supplier_price": "Cena dostawcy",
+          "commission": "Prowizja",
+          "fees": "Opłaty",
+          "refunds": "Zwroty",
+          "residual": "Niewyjaśnione"
+        },
+        "priceCut": "cena obniżona z {from} na {to} dnia {date}",
+        "partlyUnexplained": "Duża część różnicy nie wynika z danych (stała marża, rabaty, zaokrąglenia).",
+        "impactTitle": "Efekt Twoich zmian cen",
+        "impactIntro": "Twoje zamówienia w 30 dniach przed każdą zmianą ceny sprzedaży w porównaniu z dniami po niej. Obserwacja dwóch okresów: nie dowodzi, że cena jest jedyną przyczyną.",
+        "impactEmpty": "Brak zapisanych zmian cen w ostatnich 90 dniach.",
+        "impactChange": "{from} → {to} dnia {date}",
+        "impactFigures": "Przed ({beforeDays} dni, {beforeOrders} zamówień): {beforePerDay}/dzień, {beforePerUnit} na sprzedaż — Po ({afterDays} dni, {afterOrders} zamówień): {afterPerDay}/dzień, {afterPerUnit} na sprzedaż.",
+        "impactStatus": {
+          "too_recent": "Zbyt świeże, by mierzyć (mniej niż 7 dni).",
+          "insufficient_orders": "Za mało zamówień przed lub po (co najmniej 3 z każdej strony)."
+        },
+        "simTitle": "Symulacje cen",
+        "simIntro": "Obliczenie, nie prognoza: zysk netto na sprzedaży przy każdej cenie, przy obecnej cenie dostawcy, prowizji i opłatach, po Twoim wskaźniku zwrotów; oraz liczba sprzedaży potrzebna, by zarobić tyle co w ostatnich 30 dniach. Nic się nie zmienia bez Twojego działania.",
+        "simEmpty": "Za mało sprzedaży w 30 dni, by symulować (co najmniej 5 zamówień).",
+        "simAssumptions": "Założenia: cena dostawcy {supplier}, prowizja {commission}, opłaty {fee}, zwroty {refunds} — zaobserwowano: {orders} zamówień, {net} netto w 30 dni.",
+        "simCol": {
+          "price": "Cena sprzedaży netto",
+          "netPerSale": "Netto na sprzedaży",
+          "salesToMatch": "Sprzedaże do wyrównania 30 dni"
+        },
+        "simCurrent": "(obecna)",
+        "simRestore": "(odzyskaj marżę)",
+        "simEdit": "Zmień moją cenę →"
       }
     }
   },

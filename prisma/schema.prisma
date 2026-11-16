@@ -398,6 +398,29 @@ model SupplierComplianceProfile {
 /// "ProductVariant_price_history"
 /// (migration 20261116200000_product_price_history) on every change of Product.basePriceCents. Isolated: no relation,
 /// read defensively (a missing table = "no history yet", see lib/price-history.server.ts).
+/// Reseller selling-price history, written ONLY by the database trigger of migration 20261117090000_listing_price_history
+/// (every writer of AffiliateProduct.sellingPriceCents / variantPricing is covered). Read defensively: a database where the
+/// migration is not applied yet has no such table. No foreign key on purpose (the trigger must never fail the observed write).
+model ListingPriceHistory {
+  id                 BigInt   @id @default(autoincrement())
+  affiliateProductId String
+  affiliateId        String
+  productId          String
+  /// NULL = AffiliateProduct.sellingPriceCents; "opt:<key>" = a variantPricing override.
+  variantKey         String?
+  /// NULL only for a variant override that was removed (the listing price applies again).
+  priceCents         Int?
+  previousCents      Int?
+  currency           String   @default("EUR")
+  /// Declared by the writer for its transaction (lib/listing-price-history), else "unattributed".
+  source             String   @default("unattributed")
+  actorId            String?
+  effectiveAt        DateTime @default(now())
+
+  @@index([affiliateId, effectiveAt])
+  @@index([affiliateProductId, variantKey, id])
+}
+
 model ProductPriceHistory {
   id            BigInt   @id @default(autoincrement())
   productId     String

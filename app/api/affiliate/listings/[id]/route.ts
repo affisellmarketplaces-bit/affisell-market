@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma"
 import { exclusivityBlockBody } from "@/lib/product-exclusivity-shared"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 import { revalidateListingCardImage } from "@/lib/revalidate-listing-card-image"
+import { updateListingWithPriceSource } from "@/lib/listing-price-history/record.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -72,7 +73,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     if (kycBlocked) return kycBlocked
   }
 
-  const updated = await prisma.affiliateProduct.update({
+  const updated = await updateListingWithPriceSource({
     where: { id },
     data: {
       ...(typeof body.isListed === "boolean" ? { isListed: body.isListed } : {}),
@@ -81,7 +82,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       ...(nextSelling !== undefined ? { sellingPriceCents: nextSelling } : {}),
       ...(!nextListed ? { auctionEligible: false } : {}),
     },
-  })
+  }, { source: "reseller_ui", actorId: session.user.id })
 
   if (!nextListed || !nextAuctionEligible) {
     await cancelAuctionsForListings([id])

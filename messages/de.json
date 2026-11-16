@@ -2861,12 +2861,15 @@
           "previous": "Vorzeitraum"
         },
         "reasons": {
-          "fewer_units": "weniger verkaufte Stück",
-          "lower_net_per_unit": "niedrigerer Nettoertrag pro Stück",
-          "refund_share_up": "höherer erstatteter Anteil",
-          "supplier_price_down": "Lieferantenpreis gesunken (Ihre Provision hängt davon ab)",
+          "volume_down": "weniger Verkäufe",
+          "your_price_down": "Sie haben Ihren Verkaufspreis gesenkt",
+          "collected_price_down": "niedrigerer eingenommener Preis ohne erfasste Preissenkung Ihrerseits (Rabatte, verkaufte Varianten)",
+          "supplier_price_up": "Lieferantenpreis gestiegen (Ihre Marge schrumpft)",
+          "commission_down": "Lieferantenprovision gesunken",
+          "fees_up": "höhere Affisell-Gebühren",
+          "refunds_up": "mehr Erstattungen",
           "disputes_up": "mehr Streitfälle",
-          "unknown": "keine Ursache in den Daten erkennbar"
+          "unknown": "keine signifikante Ursache in den Daten erkennbar"
         },
         "attention": {
           "open_dispute": "{orders} Bestellung(en) mit offenem Streitfall",
@@ -2875,7 +2878,39 @@
           "margin_review": "Marge prüfen: der Lieferantenpreis hat sich geändert",
           "supplier_price_changed": "Lieferantenpreis diese Woche von {from} auf {to} geändert",
           "return_requested": "{returns} Rücksendung(en) beantragt, wartet auf den Lieferanten"
-        }
+        },
+        "drivers": {
+          "volume": "Volumen",
+          "selling_price": "Ihr Preis",
+          "supplier_price": "Lieferantenpreis",
+          "commission": "Provision",
+          "fees": "Gebühren",
+          "refunds": "Erstattungen",
+          "residual": "Nicht erklärt"
+        },
+        "priceCut": "Preis am {date} von {from} auf {to} gesenkt",
+        "partlyUnexplained": "Ein großer Teil der Abweichung ist durch die Daten nicht erklärt (feste Marge, Rabatte, Rundungen).",
+        "impactTitle": "Wirkung Ihrer Preisänderungen",
+        "impactIntro": "Ihre Bestellungen in den 30 Tagen vor jeder Änderung Ihres Verkaufspreises, verglichen mit den Tagen danach. Eine Beobachtung über zwei Zeiträume: sie beweist nicht, dass der Preis die einzige Ursache ist.",
+        "impactEmpty": "Keine Preisänderung in den letzten 90 Tagen erfasst.",
+        "impactChange": "{from} → {to} am {date}",
+        "impactFigures": "Vorher ({beforeDays} T., {beforeOrders} Bestellungen): {beforePerDay}/Tag, {beforePerUnit} pro Verkauf — Nachher ({afterDays} T., {afterOrders} Bestellungen): {afterPerDay}/Tag, {afterPerUnit} pro Verkauf.",
+        "impactStatus": {
+          "too_recent": "Zu neu zum Messen (unter 7 Tagen).",
+          "insufficient_orders": "Nicht genug Bestellungen davor oder danach (mindestens 3 je Seite)."
+        },
+        "simTitle": "Preissimulationen",
+        "simIntro": "Eine Berechnung, keine Prognose: Nettoertrag pro Verkauf je Preis, mit heutigem Lieferantenpreis, Provision und Gebühren, nach Ihrer Erstattungsquote; und die Zahl der Verkäufe, die nötig wäre, um so viel wie in den letzten 30 Tagen zu verdienen. Ohne Ihr Zutun wird nichts geändert.",
+        "simEmpty": "Nicht genug Verkäufe in 30 Tagen für eine Simulation (mindestens 5 Bestellungen).",
+        "simAssumptions": "Annahmen: Lieferantenpreis {supplier}, Provision {commission}, Gebühren {fee}, Erstattungen {refunds} — beobachtet: {orders} Bestellungen, {net} netto in 30 T.",
+        "simCol": {
+          "price": "Verkaufspreis netto",
+          "netPerSale": "Netto pro Verkauf",
+          "salesToMatch": "Verkäufe für 30 T."
+        },
+        "simCurrent": "(aktuell)",
+        "simRestore": "(Marge wiederherstellen)",
+        "simEdit": "Meinen Preis ändern →"
       }
     }
   },

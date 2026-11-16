@@ -2861,12 +2861,15 @@
           "previous": "上一周期"
         },
         "reasons": {
-          "fewer_units": "售出件数减少",
-          "lower_net_per_unit": "每件净收益降低",
-          "refund_share_up": "退款占比上升",
-          "supplier_price_down": "供应商价格下降（您的佣金取决于它）",
+          "volume_down": "销量减少",
+          "your_price_down": "您降低了售价",
+          "collected_price_down": "实收价格降低，但没有记录到您的降价（折扣、所售规格）",
+          "supplier_price_up": "供应商价格上涨（您的加价空间缩小）",
+          "commission_down": "供应商佣金下降",
+          "fees_up": "Affisell 费用上升",
+          "refunds_up": "退款增多",
           "disputes_up": "争议增多",
-          "unknown": "数据中无法确定原因"
+          "unknown": "数据中无法确定显著原因"
         },
         "attention": {
           "open_dispute": "{orders} 笔订单存在未结争议",
@@ -2875,7 +2878,39 @@
           "margin_review": "需检查利润：供应商价格已变化",
           "supplier_price_changed": "本周供应商价格从 {from} 变为 {to}",
           "return_requested": "{returns} 个退货申请等待供应商处理"
-        }
+        },
+        "drivers": {
+          "volume": "销量",
+          "selling_price": "您的价格",
+          "supplier_price": "供应商价格",
+          "commission": "佣金",
+          "fees": "费用",
+          "refunds": "退款",
+          "residual": "无法解释"
+        },
+        "priceCut": "{date} 价格从 {from} 降至 {to}",
+        "partlyUnexplained": "差额中有较大部分无法由数据解释（固定加价、折扣、四舍五入）。",
+        "impactTitle": "您调价的效果",
+        "impactIntro": "每次调整售价前 30 天的订单，与调价后的天数对比。这是两个时段的观察，不能证明价格是唯一原因。",
+        "impactEmpty": "最近 90 天没有记录到调价。",
+        "impactChange": "{date}：{from} → {to}",
+        "impactFigures": "之前（{beforeDays} 天，{beforeOrders} 笔订单）：每天 {beforePerDay}，每笔 {beforePerUnit} — 之后（{afterDays} 天，{afterOrders} 笔订单）：每天 {afterPerDay}，每笔 {afterPerUnit}。",
+        "impactStatus": {
+          "too_recent": "太近，无法衡量（不足 7 天）。",
+          "insufficient_orders": "之前或之后订单不足（每侧至少 3 笔）。"
+        },
+        "simTitle": "价格模拟",
+        "simIntro": "这是计算，不是预测：按当前供应商价格、佣金和费用，扣除您的退款率后，各价格下每笔销售的净收益；以及达到最近 30 天收益所需的销售笔数。没有您的操作，什么都不会改变。",
+        "simEmpty": "30 天内销售不足，无法模拟（至少 5 笔订单）。",
+        "simAssumptions": "假设：供应商价格 {supplier}，佣金 {commission}，费用 {fee}，退款 {refunds} — 实际：{orders} 笔订单，30 天净收益 {net}。",
+        "simCol": {
+          "price": "不含税售价",
+          "netPerSale": "每笔净收益",
+          "salesToMatch": "达到 30 天收益所需笔数"
+        },
+        "simCurrent": "（当前）",
+        "simRestore": "（恢复您的加价）",
+        "simEdit": "修改我的价格 →"
       }
     }
   },

@@ -2861,12 +2861,15 @@
           "previous": "Vorige periode"
         },
         "reasons": {
-          "fewer_units": "minder stuks verkocht",
-          "lower_net_per_unit": "lagere netto-opbrengst per stuk",
-          "refund_share_up": "hoger terugbetaald aandeel",
-          "supplier_price_down": "leveranciersprijs gedaald (je commissie hangt ervan af)",
+          "volume_down": "minder verkopen",
+          "your_price_down": "je hebt je verkoopprijs verlaagd",
+          "collected_price_down": "lagere geïnde prijs zonder geregistreerde prijsverlaging van jou (kortingen, verkochte varianten)",
+          "supplier_price_up": "leveranciersprijs gestegen (je marge krimpt)",
+          "commission_down": "commissie van de leverancier gedaald",
+          "fees_up": "hogere Affisell-kosten",
+          "refunds_up": "meer terugbetalingen",
           "disputes_up": "meer geschillen",
-          "unknown": "geen oorzaak herkenbaar in de gegevens"
+          "unknown": "geen significante oorzaak herkenbaar in de gegevens"
         },
         "attention": {
           "open_dispute": "{orders} bestelling(en) met een open geschil",
@@ -2875,7 +2878,39 @@
           "margin_review": "marge herzien: de leveranciersprijs is gewijzigd",
           "supplier_price_changed": "leveranciersprijs deze week van {from} naar {to}",
           "return_requested": "{returns} retour(en) aangevraagd, wacht op de leverancier"
-        }
+        },
+        "drivers": {
+          "volume": "Volume",
+          "selling_price": "Jouw prijs",
+          "supplier_price": "Leveranciersprijs",
+          "commission": "Commissie",
+          "fees": "Kosten",
+          "refunds": "Terugbetalingen",
+          "residual": "Onverklaard"
+        },
+        "priceCut": "prijs verlaagd van {from} naar {to} op {date}",
+        "partlyUnexplained": "Een groot deel van het verschil wordt niet door de gegevens verklaard (vaste marge, kortingen, afrondingen).",
+        "impactTitle": "Effect van je prijswijzigingen",
+        "impactIntro": "Je bestellingen in de 30 dagen vóór elke wijziging van je verkoopprijs, vergeleken met de dagen erna. Een waarneming over twee periodes: het bewijst niet dat de prijs de enige oorzaak is.",
+        "impactEmpty": "Geen prijswijziging geregistreerd in de afgelopen 90 dagen.",
+        "impactChange": "{from} → {to} op {date}",
+        "impactFigures": "Vóór ({beforeDays} d, {beforeOrders} bestellingen): {beforePerDay}/dag, {beforePerUnit} per verkoop — Na ({afterDays} d, {afterOrders} bestellingen): {afterPerDay}/dag, {afterPerUnit} per verkoop.",
+        "impactStatus": {
+          "too_recent": "Te recent om te meten (minder dan 7 dagen).",
+          "insufficient_orders": "Niet genoeg bestellingen ervoor of erna (minstens 3 aan elke kant)."
+        },
+        "simTitle": "Prijssimulaties",
+        "simIntro": "Een berekening, geen voorspelling: netto-opbrengst per verkoop bij elke prijs, met de huidige leveranciersprijs, commissie en kosten, na je terugbetalingspercentage; en het aantal verkopen dat nodig is om evenveel te verdienen als de afgelopen 30 dagen. Niets verandert zonder jouw actie.",
+        "simEmpty": "Niet genoeg verkopen in 30 dagen om te simuleren (minstens 5 bestellingen).",
+        "simAssumptions": "Aannames: leveranciersprijs {supplier}, commissie {commission}, kosten {fee}, terugbetalingen {refunds} — waargenomen: {orders} bestellingen, {net} netto in 30 d.",
+        "simCol": {
+          "price": "Verkoopprijs excl. btw",
+          "netPerSale": "Netto per verkoop",
+          "salesToMatch": "Verkopen om 30 d te evenaren"
+        },
+        "simCurrent": "(huidig)",
+        "simRestore": "(je marge herstellen)",
+        "simEdit": "Mijn prijs wijzigen →"
       }
     }
   },

@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server"
 import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { MIN_ORDERS_DOCUMENTED, type OpportunityFlag, type RankedOpportunity } from "@/lib/intelligence/opportunities"
 import { loadOpportunityBoard, type OpportunityBoardResult } from "@/lib/intelligence/opportunities.server"
+import type { AttributionDriver } from "@/lib/intelligence/profit-attribution"
 import type { AttentionItem, DeclineReason, PeriodSummary } from "@/lib/intelligence/reseller-performance"
 import { loadResellerPerformance, type ResellerPerformanceResult } from "@/lib/intelligence/reseller-performance.server"
 import { loadOrFallback } from "@/lib/safe-server-data"
@@ -28,6 +29,8 @@ const EMPTY_MINE: ResellerPerformanceResult = {
   topEarners: [],
   declining: [],
   attention: [],
+  priceChangeImpacts: [],
+  simulations: [],
   totals: { current: EMPTY_PERIOD, previous: EMPTY_PERIOD },
   generatedAt: new Date(0).toISOString(),
   periodDays: 30,
@@ -41,6 +44,12 @@ function euros(cents: number): string {
 function pct(bps: number): string {
   return `${(bps / 100).toFixed(1).replace(".", ",")} %`
 }
+
+function signedEuros(cents: number): string {
+  return `${cents > 0 ? "+" : ""}${euros(cents)}`
+}
+
+const DRIVERS: AttributionDriver[] = ["volume", "selling_price", "supplier_price", "commission", "fees", "refunds"]
 
 const TH = "px-3 py-2"
 const TD = "px-3 py-3"
@@ -235,9 +244,131 @@ export default async function AffiliateOpportunitiesPage() {
                   <div className="text-xs text-zinc-600 dark:text-zinc-400">
                     {d.reasons.length === 0 ? t("mine.reasons.unknown") : d.reasons.map(reasonLabel).join(" · ")}
                   </div>
+                  <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-zinc-500">
+                    {DRIVERS.filter((k) => d.attribution.effects[k] !== 0).map((k) => (
+                      <li key={k}>
+                        {t(`mine.drivers.${k}`)} : <span className="tabular-nums">{signedEuros(d.attribution.effects[k])}</span>
+                      </li>
+                    ))}
+                    {d.attribution.residualCents !== 0 ? (
+                      <li>
+                        {t("mine.drivers.residual")} : <span className="tabular-nums">{signedEuros(d.attribution.residualCents)}</span>
+                      </li>
+                    ) : null}
+                  </ul>
+                  {d.priceCutEvidence.length > 0 ? (
+                    <div className="text-[11px] text-zinc-500">
+                      {d.priceCutEvidence
+                        .map((c) => t("mine.priceCut", { from: euros(c.fromCents), to: euros(c.toCents), date: c.at.slice(0, 10) }))
+                        .join(" · ")}
+                    </div>
+                  ) : null}
+                  {d.partlyUnexplained ? <div className="text-[11px] text-amber-700">{t("mine.partlyUnexplained")}</div> : null}
                 </li>
               ))}
             </ul>
+          )}
+        </div>
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{t("mine.impactTitle")}</h3>
+          <p className="text-[11px] text-zinc-500">{t("mine.impactIntro")}</p>
+          {mine.priceChangeImpacts.length === 0 ? (
+            <p className="text-xs text-zinc-500">{t("mine.impactEmpty")}</p>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {mine.priceChangeImpacts.map((i) => (
+                <li
+                  key={`${i.productId}:${i.effectiveAt}`}
+                  className="rounded-lg border border-zinc-200 bg-white px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
+                >
+                  <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                    {i.name} ·{" "}
+                    {t("mine.impactChange", {
+                      from: euros(i.fromCents ?? 0),
+                      to: euros(i.toCents ?? 0),
+                      date: i.effectiveAt.slice(0, 10),
+                    })}
+                  </div>
+                  {i.status === "measured" ? (
+                    <div className="text-xs text-zinc-600 dark:text-zinc-400">
+                      {t("mine.impactFigures", {
+                        beforeDays: i.before.days,
+                        beforeOrders: i.before.orders,
+                        beforePerDay: euros(i.before.netPerDayCents),
+                        beforePerUnit: euros(i.before.netPerUnitCents ?? 0),
+                        afterDays: i.after.days,
+                        afterOrders: i.after.orders,
+                        afterPerDay: euros(i.after.netPerDayCents),
+                        afterPerUnit: euros(i.after.netPerUnitCents ?? 0),
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-zinc-500">{t(`mine.impactStatus.${i.status}`)}</div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{t("mine.simTitle")}</h3>
+          <p className="text-[11px] text-zinc-500">{t("mine.simIntro")}</p>
+          {mine.simulations.length === 0 ? (
+            <p className="text-xs text-zinc-500">{t("mine.simEmpty")}</p>
+          ) : (
+            mine.simulations.slice(0, 8).map((sim) => (
+              <div
+                key={sim.productId}
+                className="space-y-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
+              >
+                <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{sim.name}</div>
+                <div className="text-[11px] text-zinc-500">
+                  {t("mine.simAssumptions", {
+                    supplier: euros(sim.assumptions.supplierPriceCents),
+                    commission: pct(sim.assumptions.commissionBps),
+                    fee: pct(sim.assumptions.feeShareBps),
+                    refunds: pct(sim.assumptions.refundShareBps),
+                    orders: sim.assumptions.orders30,
+                    net: euros(sim.assumptions.observedNet30Cents),
+                  })}
+                </div>
+                <table className="min-w-full text-xs">
+                  <thead className="text-left text-zinc-500">
+                    <tr>
+                      <th className="py-1 pr-3">{t("mine.simCol.price")}</th>
+                      <th className="py-1 pr-3 text-right">{t("mine.simCol.netPerSale")}</th>
+                      <th className="py-1 text-right">{t("mine.simCol.salesToMatch")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...sim.grid, ...(sim.restoreMarkup ? [sim.restoreMarkup] : [])].map((pt, idx) => (
+                      <tr
+                        key={`${pt.priceCents}:${idx}`}
+                        className={pt.changeBps === 0 ? "font-semibold text-zinc-900 dark:text-zinc-100" : "text-zinc-700 dark:text-zinc-300"}
+                      >
+                        <td className="py-0.5 pr-3 tabular-nums">
+                          {euros(pt.priceCents)}{" "}
+                          <span className="text-zinc-500">
+                            {idx === sim.grid.length ? t("mine.simRestore") : pt.changeBps === 0 ? t("mine.simCurrent") : pct(pt.changeBps)}
+                          </span>
+                        </td>
+                        <td className="py-0.5 pr-3 text-right tabular-nums">{euros(pt.netPerSaleCents)}</td>
+                        <td className="py-0.5 text-right tabular-nums">{pt.salesToMatchCents30 ?? "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {sim.listingId ? (
+                  <Link
+                    href={`/dashboard/affiliate/products/${encodeURIComponent(sim.listingId)}/edit`}
+                    className="text-[11px] font-medium text-violet-700 hover:underline"
+                  >
+                    {t("mine.simEdit")}
+                  </Link>
+                ) : null}
+              </div>
+            ))
           )}
         </div>
       </section>

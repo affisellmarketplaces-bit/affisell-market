@@ -24,6 +24,7 @@ import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-
 import { prisma } from "@/lib/prisma"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 import { revalidateListingCardImage } from "@/lib/revalidate-listing-card-image"
+import { updateListingWithPriceSource } from "@/lib/listing-price-history/record.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -359,10 +360,10 @@ export async function PATCH(
   }
 
   try {
-    const updated = await prisma.affiliateProduct.update({
-      where: { id },
-      data,
-    })
+    const updated = await updateListingWithPriceSource(
+      { where: { id }, data },
+      { source: "reseller_ui", actorId: session.user.id }
+    )
     if (!nextListed || !nextAuctionEligible) {
       await cancelAuctionsForListings([id])
     }

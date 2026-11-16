@@ -1,25 +1,41 @@
 import {
   netPayoutCents,
   rateBps,
+  sumPeriods,
+  type PaidOrderFact,
   type PeriodFigures,
   type ProductAggregate,
 } from "@/lib/intelligence/order-aggregates"
+import {
+  measurePriceChanges,
+  simulatePrices,
+  type ListingPriceChange,
+  type PriceChangeImpact,
+  type PriceSimulation,
+} from "@/lib/intelligence/price-simulation"
+import {
+  attributeProfitChange,
+  residualIsLarge,
+  significantNegativeDrivers,
+  type ProfitAttribution,
+} from "@/lib/intelligence/profit-attribution"
 
 /**
- * Per-reseller performance — pure (commercial intelligence A, "my products"). Answers three questions for ONE reseller,
- * from that reseller's own paid orders only (`Order.affiliateId` = the viewer; the loader never reads anyone else's):
+ * Per-reseller performance — pure (commercial intelligence A, "my products"). Answers, for ONE reseller and from that
+ * reseller's own paid orders only (`Order.affiliateId` = the viewer; the loader never reads anyone else's):
  *
- *   1. what really earns me the most — net kept = payouts recorded on my orders − the share refunds took back (pro rata);
- *   2. what is becoming less profitable, and why — current 30 days vs the 30 before, with the causes the data can show;
- *   3. what deserves my attention today — facts that call for an action (open dispute, product no longer for sale, sold
- *      out, margin to review, supplier price just changed, return requested).
+ *   1. what really earns me the most — net kept = what the orders transferred (commission + markup − Affisell's fee)
+ *      minus the share refunds took back (pro rata, like the transfer reversal);
+ *   2. what is becoming less profitable, and why — current 30 days vs the 30 before, the change split between volume,
+ *      my selling price, the supplier price, the commission, the fees and the refunds (lib/intelligence/
+ *      profit-attribution.ts, exact with a residual). A cause is named only when its share of the decline is
+ *      significant; "my price cut" only when the listing-price history shows a cut — otherwise "lower price collected";
+ *   3. what deserves my attention today — facts that call for an action;
+ *   4. what my own price changes did (observed before / after) and what other prices would pay per sale (simulation).
  *
- * Nothing is predicted; a comparison is only made when both periods have enough orders to mean something.
+ * Nothing is predicted; a comparison is only made when the earlier period has enough orders to mean something.
  */
 export const MIN_ORDERS_TO_COMPARE = 3
-/** A refund share this much higher (in basis points of value) than in the previous period is named as a cause. */
-export const REFUND_SHARE_UP_BPS = 500
-export const UNITS_DOWN_BPS = 3000
 export const PRICE_CHANGE_RECENT_DAYS = 7
 
 export type ResellerProductInfo = {
@@ -37,6 +53,11 @@ export type ResellerProductInfo = {
   basePriceAtPeriodStartCents: number | null
   /** Last recorded base-price change, when known. */
   lastPriceChange: { at: Date; fromCents: number | null; toCents: number } | null
+  /** The reseller's listing price today (HT) and the commission the supplier offers today (percent). */
+  listingPriceCents?: number | null
+  commissionPercent?: number
+  /** AffiliateProduct id (link to the reseller's own price editor). */
+  listingId?: string | null
 }
 
 export type ResellerSignals = {
@@ -44,14 +65,6 @@ export type ResellerSignals = {
   openDisputesByProduct: Map<string, number>
   /** Returns REQUESTED (awaiting the supplier) on this reseller's orders. */
   pendingReturnsByProduct: Map<string, number>
-}
-
-export type ProductPerformance = {
-  productId: string
-  name: string
-  current: PeriodSummary
-  previous: PeriodSummary
-  comparable: boolean
 }
 
 export type PeriodSummary = {
@@ -63,16 +76,32 @@ export type PeriodSummary = {
   disputedOrders: number
 }
 
+export type ProductPerformance = {
+  productId: string
+  name: string
+  current: PeriodSummary
+  previous: PeriodSummary
+  comparable: boolean
+}
+
 export type DeclineReason =
-  | "fewer_units"
-  | "lower_net_per_unit"
-  | "refund_share_up"
-  | "supplier_price_down"
+  | "volume_down"
+  | "your_price_down"
+  | "collected_price_down"
+  | "supplier_price_up"
+  | "commission_down"
+  | "fees_up"
+  | "refunds_up"
   | "disputes_up"
 
 export type DecliningProduct = ProductPerformance & {
   netChangeCents: number
   reasons: DeclineReason[]
+  attribution: ProfitAttribution
+  /** The residual is a large share of the change: part of it is not explained by the data. */
+  partlyUnexplained: boolean
+  /** Recorded cuts of the listing price in the comparison window (from → to, source). */
+  priceCutEvidence: Array<{ fromCents: number; toCents: number; source: string; at: string }>
 }
 
 export type AttentionKind =
@@ -87,7 +116,6 @@ export type AttentionItem = {
   kind: AttentionKind
   productId: string
   name: string
-  /** What the item rests on, in numbers (count of orders, prices…). */
   evidence: Record<string, number | string | null>
 }
 
@@ -95,6 +123,8 @@ export type ResellerPerformance = {
   topEarners: ProductPerformance[]
   declining: DecliningProduct[]
   attention: AttentionItem[]
+  priceChangeImpacts: Array<PriceChangeImpact & { name: string }>
+  simulations: Array<PriceSimulation & { name: string; currentPriceCents: number; listingId: string | null }>
   totals: { current: PeriodSummary; previous: PeriodSummary }
 }
 
@@ -110,20 +140,6 @@ function summarize(p: PeriodFigures): PeriodSummary {
   }
 }
 
-function sumPeriods(list: PeriodFigures[]): PeriodFigures {
-  const out: PeriodFigures = { orders: 0, units: 0, chargedCents: 0, refundedCents: 0, disputedOrders: 0, payoutCents: 0, payoutReversedCents: 0 }
-  for (const p of list) {
-    out.orders += p.orders
-    out.units += p.units
-    out.chargedCents += p.chargedCents
-    out.refundedCents += p.refundedCents
-    out.disputedOrders += p.disputedOrders
-    out.payoutCents += p.payoutCents
-    out.payoutReversedCents += p.payoutReversedCents
-  }
-  return out
-}
-
 const ATTENTION_ORDER: AttentionKind[] = [
   "open_dispute",
   "no_longer_for_sale",
@@ -133,14 +149,30 @@ const ATTENTION_ORDER: AttentionKind[] = [
   "return_requested",
 ]
 
+const DRIVER_REASON = {
+  volume: "volume_down",
+  supplier_price: "supplier_price_up",
+  commission: "commission_down",
+  fees: "fees_up",
+  refunds: "refunds_up",
+} as const
+
 export function buildResellerPerformance(input: {
   aggregates: Map<string, ProductAggregate>
   products: Map<string, ResellerProductInfo>
   signals: ResellerSignals
   now: Date
   limit?: number
+  /** This reseller's listing-price history (any product) and orders, for the cut evidence and the before/after. */
+  listingChanges?: ListingPriceChange[]
+  factsByProduct?: Map<string, PaidOrderFact[]>
+  /** Start of the previous period (the comparison window starts there). */
+  comparisonStart?: Date
+  /** Start of the current period. */
+  periodStart?: Date
 }): ResellerPerformance {
   const limit = Math.max(1, Math.min(input.limit ?? 20, 100))
+  const changes = input.listingChanges ?? []
   const perf: ProductPerformance[] = []
   for (const agg of input.aggregates.values()) {
     const info = input.products.get(agg.productId)
@@ -160,37 +192,41 @@ export function buildResellerPerformance(input: {
     .sort((a, b) => b.current.netCents - a.current.netCents || a.productId.localeCompare(b.productId))
     .slice(0, limit)
 
+  const windowStart = input.comparisonStart?.getTime() ?? -Infinity
   const declining: DecliningProduct[] = []
   for (const p of perf) {
     // Judged only on a product that was really selling before (enough earlier orders); the current period may be empty.
     if (p.previous.orders < MIN_ORDERS_TO_COMPARE) continue
     const netChange = p.current.netCents - p.previous.netCents
     if (netChange >= 0) continue
+    const agg = input.aggregates.get(p.productId)!
+    const attribution = attributeProfitChange(agg.previous, agg.current)
+    const cuts = changes
+      .filter(
+        (c) =>
+          c.productId === p.productId &&
+          c.variantKey === null &&
+          c.priceCents !== null &&
+          c.previousCents !== null &&
+          c.priceCents < c.previousCents &&
+          c.effectiveAt.getTime() >= windowStart &&
+          c.effectiveAt.getTime() <= input.now.getTime()
+      )
+      .map((c) => ({ fromCents: c.previousCents!, toCents: c.priceCents!, source: c.source, at: c.effectiveAt.toISOString() }))
     const reasons: DeclineReason[] = []
-    if (p.previous.units > 0 && ((p.previous.units - p.current.units) * 10_000) / p.previous.units >= UNITS_DOWN_BPS) {
-      reasons.push("fewer_units")
-    }
-    if (
-      p.current.orders >= MIN_ORDERS_TO_COMPARE &&
-      p.current.netPerUnitCents !== null &&
-      p.previous.netPerUnitCents !== null &&
-      p.current.netPerUnitCents < p.previous.netPerUnitCents
-    ) {
-      reasons.push("lower_net_per_unit")
-    }
-    if (p.current.orders > 0 && p.current.refundShareBps - p.previous.refundShareBps >= REFUND_SHARE_UP_BPS) {
-      reasons.push("refund_share_up")
-    }
-    const info = input.products.get(p.productId)
-    if (
-      info?.basePriceAtPeriodStartCents != null &&
-      info.currentBasePriceCents < info.basePriceAtPeriodStartCents
-    ) {
-      // The reseller's commission is a percentage of the supplier price: a lower price lowers every payout.
-      reasons.push("supplier_price_down")
+    for (const driver of significantNegativeDrivers(attribution)) {
+      if (driver === "selling_price") reasons.push(cuts.length > 0 ? "your_price_down" : "collected_price_down")
+      else reasons.push(DRIVER_REASON[driver])
     }
     if (p.current.disputedOrders > p.previous.disputedOrders) reasons.push("disputes_up")
-    declining.push({ ...p, netChangeCents: netChange, reasons })
+    declining.push({
+      ...p,
+      netChangeCents: netChange,
+      reasons,
+      attribution,
+      partlyUnexplained: residualIsLarge(attribution),
+      priceCutEvidence: cuts,
+    })
   }
   declining.sort((a, b) => a.netChangeCents - b.netChangeCents || a.productId.localeCompare(b.productId))
 
@@ -233,11 +269,45 @@ export function buildResellerPerformance(input: {
     (a, b) => ATTENTION_ORDER.indexOf(a.kind) - ATTENTION_ORDER.indexOf(b.kind) || a.productId.localeCompare(b.productId)
   )
 
+  const nameOf = (id: string) => input.products.get(id)?.name ?? id
+  const priceChangeImpacts = input.factsByProduct
+    ? measurePriceChanges({ changes, factsByProduct: input.factsByProduct, now: input.now })
+        .slice(0, limit)
+        .map((i) => ({ ...i, name: nameOf(i.productId) }))
+    : []
+
+  const periodStart = input.periodStart?.getTime() ?? -Infinity
+  const simulations: ResellerPerformance["simulations"] = []
+  for (const info of input.products.values()) {
+    const agg = input.aggregates.get(info.productId)
+    if (!info.listed || !agg || info.listingPriceCents == null || info.listingPriceCents <= 0) continue
+    const cur = agg.current
+    const gross = cur.payoutCents + cur.feeCents
+    const sim = simulatePrices({
+      productId: info.productId,
+      currentPriceCents: info.listingPriceCents,
+      supplierPriceCents: info.currentBasePriceCents,
+      commissionPercent: info.commissionPercent ?? 0,
+      feeShareBps: gross > 0 && cur.feeCents > 0 ? rateBps(cur.feeCents, gross) : null,
+      refundShareBps: rateBps(agg.quality.refundedCents, agg.quality.chargedCents),
+      observedNet30Cents: netPayoutCents(cur),
+      orders30: cur.orders,
+      supplierPriceAtPeriodStartCents: info.basePriceAtPeriodStartCents,
+      listingPriceChangedInPeriod: changes.some(
+        (c) => c.productId === info.productId && c.variantKey === null && c.effectiveAt.getTime() >= periodStart
+      ),
+    })
+    if (sim.status === "ok") simulations.push({ ...sim, name: info.name, currentPriceCents: info.listingPriceCents, listingId: info.listingId ?? null })
+  }
+  simulations.sort((a, b) => b.assumptions.observedNet30Cents - a.assumptions.observedNet30Cents || a.productId.localeCompare(b.productId))
+
   const all = [...input.aggregates.values()]
   return {
     topEarners,
     declining: declining.slice(0, limit),
     attention: attention.slice(0, limit * 2),
+    priceChangeImpacts,
+    simulations: simulations.slice(0, limit),
     totals: {
       current: summarize(sumPeriods(all.map((a) => a.current))),
       previous: summarize(sumPeriods(all.map((a) => a.previous))),

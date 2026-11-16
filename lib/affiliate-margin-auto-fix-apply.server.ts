@@ -15,6 +15,7 @@ import {
 } from "@/lib/affiliate-variant-pricing"
 import { prisma } from "@/lib/prisma"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
+import { updateListingWithPriceSource } from "@/lib/listing-price-history/record.server"
 
 export const AFFILIATE_MARGIN_AUTO_FIX_BATCH_MAX = 20
 
@@ -170,7 +171,7 @@ export async function applyMarginAutoFixToListing(args: {
   const serialized = serializeVariantPricingForDb(variantPricingMap)
   const nextMarginCents = Math.max(0, nextSellingCents - listing.product.basePriceCents)
 
-  await prisma.affiliateProduct.update({
+  await updateListingWithPriceSource({
     where: { id: listing.id },
     data: {
       sellingPriceCents: nextSellingCents,
@@ -183,7 +184,7 @@ export async function applyMarginAutoFixToListing(args: {
       marginReviewAt: null,
       marginReviewAlertHash: null,
     },
-  })
+  }, { source: "margin_auto_fix", actorId: args.affiliateId })
 
   console.log("[margin-auto-fix]", {
     listingId: listing.id,

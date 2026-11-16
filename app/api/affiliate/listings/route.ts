@@ -10,6 +10,7 @@ import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-
 import { prisma } from "@/lib/prisma"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 import { revalidateListingCardImage } from "@/lib/revalidate-listing-card-image"
+import { upsertListingWithPriceSource } from "@/lib/listing-price-history/record.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -64,7 +65,7 @@ export async function POST(request: Request) {
   const position = (maxPos._max.position ?? -1) + 1
 
   try {
-    const row = await prisma.affiliateProduct.upsert({
+    const row = await upsertListingWithPriceSource({
       where: {
         affiliateId_productId: { affiliateId: session.user.id, productId },
       },
@@ -82,7 +83,7 @@ export async function POST(request: Request) {
         marginCents,
         isListed: true,
       },
-    })
+    }, { source: "listing_create", actorId: session.user.id })
 
     await recordAffiliateSwipe(session.user.id, productId, "like")
 

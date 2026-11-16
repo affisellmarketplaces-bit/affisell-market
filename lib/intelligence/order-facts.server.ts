@@ -3,6 +3,7 @@ import "server-only"
 import type { Prisma } from "@prisma/client"
 
 import type { PaidOrderFact } from "@/lib/intelligence/order-aggregates"
+import { netAffiliateTransferCents } from "@/lib/marketplace-phase1-fees"
 import { prisma } from "@/lib/prisma"
 
 const CHUNK = 2000
@@ -30,6 +31,11 @@ export async function loadPaidOrderFacts(args: {
       sellingPriceCents: true,
       paidAt: true,
       affiliatePayoutCents: true,
+      affiliateMarginRetainedCents: true,
+      affiliateMarginCents: true,
+      affiliateFeeCents: true,
+      supplierPriceCents: true,
+      basePriceCents: true,
       status: true,
     },
   })
@@ -61,7 +67,17 @@ export async function loadPaidOrderFacts(args: {
       quantity: o.quantity,
       chargedCents: o.totalCents ?? o.sellingPriceCents,
       paidAt: o.paidAt,
-      affiliatePayoutCents: o.affiliatePayoutCents,
+      // What the order really transfers to the reseller — the settlement's own function (computeTransferAmountsFromOrder).
+      affiliatePayoutCents: netAffiliateTransferCents({
+        affiliatePayoutCents: o.affiliatePayoutCents,
+        affiliateMarginRetainedCents: o.affiliateMarginRetainedCents,
+        affiliateFeeCents: o.affiliateFeeCents,
+        affiliateMarginCents: o.affiliateMarginCents,
+      }),
+      sellingCents: o.sellingPriceCents,
+      supplierCents: o.supplierPriceCents > 0 ? o.supplierPriceCents : o.basePriceCents,
+      commissionCents: o.affiliatePayoutCents,
+      feeCents: o.affiliateFeeCents,
       refundedCents: refunded.get(o.id) ?? 0,
       disputed: disputed.has(o.id) || String(o.status ?? "").toLowerCase() === "disputed",
     })

@@ -2861,12 +2861,15 @@
           "previous": "Previous period"
         },
         "reasons": {
-          "fewer_units": "fewer units sold",
-          "lower_net_per_unit": "lower net earnings per unit",
-          "refund_share_up": "higher refunded share",
-          "supplier_price_down": "supplier price down (your commission depends on it)",
+          "volume_down": "fewer sales",
+          "your_price_down": "you lowered your selling price",
+          "collected_price_down": "lower price collected with no price cut recorded from you (discounts, variants sold)",
+          "supplier_price_up": "supplier price up (your markup shrinks)",
+          "commission_down": "supplier commission down",
+          "fees_up": "higher Affisell fees",
+          "refunds_up": "more refunds",
           "disputes_up": "more disputes",
-          "unknown": "no cause identifiable in the data"
+          "unknown": "no significant cause identifiable in the data"
         },
         "attention": {
           "open_dispute": "{orders} order(s) with an open dispute",
@@ -2875,7 +2878,39 @@
           "margin_review": "margin to review: the supplier price changed",
           "supplier_price_changed": "supplier price went from {from} to {to} this week",
           "return_requested": "{returns} return(s) requested, awaiting the supplier"
-        }
+        },
+        "drivers": {
+          "volume": "Volume",
+          "selling_price": "Your price",
+          "supplier_price": "Supplier price",
+          "commission": "Commission",
+          "fees": "Fees",
+          "refunds": "Refunds",
+          "residual": "Unexplained"
+        },
+        "priceCut": "price lowered from {from} to {to} on {date}",
+        "partlyUnexplained": "A large part of the change is not explained by the data (fixed margin, discounts, rounding).",
+        "impactTitle": "Effect of your price changes",
+        "impactIntro": "Your orders in the 30 days before each change of your selling price, compared with the days after. An observation over two periods: it does not prove the price is the only cause.",
+        "impactEmpty": "No price change recorded in the last 90 days.",
+        "impactChange": "{from} → {to} on {date}",
+        "impactFigures": "Before ({beforeDays} d, {beforeOrders} orders): {beforePerDay}/day, {beforePerUnit} per sale — After ({afterDays} d, {afterOrders} orders): {afterPerDay}/day, {afterPerUnit} per sale.",
+        "impactStatus": {
+          "too_recent": "Too recent to measure (under 7 days).",
+          "insufficient_orders": "Not enough orders before or after (at least 3 on each side)."
+        },
+        "simTitle": "Price simulations",
+        "simIntro": "A calculation, not a forecast: net earnings per sale at each price, with today's supplier price, commission and fees, after your refund rate; and the number of sales needed to earn as much as the last 30 days. Nothing changes without your action.",
+        "simEmpty": "Not enough sales over 30 days to simulate (at least 5 orders).",
+        "simAssumptions": "Assumptions: supplier price {supplier}, commission {commission}, fees {fee}, refunds {refunds} — observed: {orders} orders, {net} net over 30 d.",
+        "simCol": {
+          "price": "Selling price excl. VAT",
+          "netPerSale": "Net per sale",
+          "salesToMatch": "Sales to match 30 d"
+        },
+        "simCurrent": "(current)",
+        "simRestore": "(restore your markup)",
+        "simEdit": "Edit my price →"
       }
     }
   },

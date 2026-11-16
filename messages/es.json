@@ -2861,12 +2861,15 @@
           "previous": "Periodo anterior"
         },
         "reasons": {
-          "fewer_units": "menos unidades vendidas",
-          "lower_net_per_unit": "menor ganancia neta por unidad",
-          "refund_share_up": "mayor parte reembolsada",
-          "supplier_price_down": "precio del proveedor en baja (tu comisión depende de él)",
+          "volume_down": "menos ventas",
+          "your_price_down": "has bajado tu precio de venta",
+          "collected_price_down": "precio cobrado más bajo sin bajada de precio registrada por tu parte (descuentos, variantes vendidas)",
+          "supplier_price_up": "precio del proveedor en alza (tu margen se reduce)",
+          "commission_down": "comisión del proveedor en baja",
+          "fees_up": "comisiones de Affisell más altas",
+          "refunds_up": "más reembolsos",
           "disputes_up": "más disputas",
-          "unknown": "ninguna causa identificable en los datos"
+          "unknown": "ninguna causa significativa identificable en los datos"
         },
         "attention": {
           "open_dispute": "{orders} pedido(s) con disputa abierta",
@@ -2875,7 +2878,39 @@
           "margin_review": "margen a revisar: el precio del proveedor cambió",
           "supplier_price_changed": "el precio del proveedor pasó de {from} a {to} esta semana",
           "return_requested": "{returns} devolución(es) solicitada(s), pendiente(s) del proveedor"
-        }
+        },
+        "drivers": {
+          "volume": "Volumen",
+          "selling_price": "Tu precio",
+          "supplier_price": "Precio proveedor",
+          "commission": "Comisión",
+          "fees": "Comisiones Affisell",
+          "refunds": "Reembolsos",
+          "residual": "Sin explicar"
+        },
+        "priceCut": "precio bajado de {from} a {to} el {date}",
+        "partlyUnexplained": "Una parte importante de la diferencia no se explica con los datos (margen fijo, descuentos, redondeos).",
+        "impactTitle": "Efecto de tus cambios de precio",
+        "impactIntro": "Tus pedidos en los 30 días anteriores a cada cambio de tu precio de venta, comparados con los días posteriores. Observación sobre dos periodos: no prueba que el precio sea la única causa.",
+        "impactEmpty": "Ningún cambio de precio registrado en los últimos 90 días.",
+        "impactChange": "{from} → {to} el {date}",
+        "impactFigures": "Antes ({beforeDays} d, {beforeOrders} pedidos): {beforePerDay}/día, {beforePerUnit} por venta — Después ({afterDays} d, {afterOrders} pedidos): {afterPerDay}/día, {afterPerUnit} por venta.",
+        "impactStatus": {
+          "too_recent": "Demasiado reciente para medir (menos de 7 días).",
+          "insufficient_orders": "No hay suficientes pedidos antes o después (mínimo 3 a cada lado)."
+        },
+        "simTitle": "Simulaciones de precio",
+        "simIntro": "Un cálculo, no una previsión: ganancia neta por venta según el precio, con el precio del proveedor, la comisión y las comisiones actuales, tras tu tasa de reembolso; y el número de ventas necesarias para ganar lo mismo que en los últimos 30 días. Nada cambia sin tu acción.",
+        "simEmpty": "No hay suficientes ventas en 30 días para simular (mínimo 5 pedidos).",
+        "simAssumptions": "Supuestos: precio del proveedor {supplier}, comisión {commission}, comisiones {fee}, reembolsos {refunds} — observado: {orders} pedidos, {net} netos en 30 d.",
+        "simCol": {
+          "price": "Precio de venta sin IVA",
+          "netPerSale": "Neto por venta",
+          "salesToMatch": "Ventas para igualar 30 d"
+        },
+        "simCurrent": "(actual)",
+        "simRestore": "(recuperar tu margen)",
+        "simEdit": "Modificar mi precio →"
       }
     }
   },

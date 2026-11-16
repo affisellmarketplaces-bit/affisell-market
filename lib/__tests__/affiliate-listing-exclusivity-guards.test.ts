@@ -35,6 +35,10 @@ vi.mock("@/lib/merchant-legal/require-merchant-verified", () => ({
 }))
 vi.mock("@/lib/revalidate-affiliate-shopfront", () => ({ revalidateAffiliateShopfront: m.revalidate }))
 vi.mock("@/lib/revalidate-listing-card-image", () => ({ revalidateListingCardImage: vi.fn() }))
+vi.mock("@/lib/listing-price-history/record.server", () => ({
+  updateListingWithPriceSource: (args: unknown) => m.listingUpdate(args),
+  upsertListingWithPriceSource: vi.fn(),
+}))
 vi.mock("@/lib/auction-listing-lifecycle", () => ({ cancelAuctionsForListings: m.cancelAuctions }))
 vi.mock("@/lib/affiliate-listing-remove", () => ({ removeAffiliateListingsFromStorefront: vi.fn() }))
 
