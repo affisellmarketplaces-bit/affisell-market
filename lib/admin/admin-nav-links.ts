@@ -16,6 +16,7 @@ export const ADMIN_NAV_GROUPS: { id: AdminNavGroupId; label: string }[] = [
 export const ADMIN_NAV_LINKS: readonly AdminNavLink[] = [
   { href: "/admin/expansion", label: "Expansion", group: "pilotage" },
   { href: "/admin/terminal", label: "Terminal", group: "pilotage" },
+  { href: "/admin/intelligence", label: "Intelligence", group: "pilotage" },
   { href: "/admin/sentinel", label: "Sentinel", group: "pilotage" },
   { href: "/admin/radar", label: "Radar", group: "pilotage" },
   { href: "/admin/kyc", label: "KYC", group: "operations" },
