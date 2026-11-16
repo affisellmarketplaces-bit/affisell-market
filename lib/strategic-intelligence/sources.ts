@@ -17,7 +17,7 @@ export type IntelligenceSource = {
   note: string
 }
 
-type SourceSpec = Omit<IntelligenceSource, "status"> & { env?: string[]; always?: boolean }
+type SourceSpec = Omit<IntelligenceSource, "status"> & { env?: string[]; always?: boolean; runtimeVerified?: boolean }
 
 const SPECS: SourceSpec[] = [
   { id: "affisell.orders", domain: "commercial", label: "Commandes payées, remboursements, litiges (base Affisell)", kind: "internal", always: true, note: "Lecture seule de la base de données." },
@@ -28,6 +28,7 @@ const SPECS: SourceSpec[] = [
   { id: "affisell.profit_alerts", domain: "commercial", label: "Alertes de rentabilité des revendeurs", kind: "internal", always: true, note: "Vide tant que la migration 20261117120000 n'est pas appliquée." },
   { id: "affisell.sentinel", domain: "regulatory_risk", label: "Signaux opérationnels Sentinel (OpsSignal)", kind: "internal", always: true, note: "Repris tels quels, pas dupliqués." },
   { id: "affisell.audit.unallocated", domain: "regulatory_risk", label: "Lignes payées sans commande (AuditLog)", kind: "internal", always: true, note: "Lecture seule." },
+  { id: "ecb.eurofxref", domain: "supplier", label: "Taux de change de référence de la BCE (90 jours)", kind: "official_api", runtimeVerified: true, note: "Officiel, gratuit, sans clé ; publié chaque jour ouvré vers 16 h ; mis en cache 6 h. « Connectée » seulement si la lecture a réussi à cette génération." },
   { id: "serper.google_search", domain: "market_observatory", label: "Recherche Google via Serper (Radar trends-watcher)", kind: "search_api", env: ["SERPER_API_KEY"], note: "Service payant à l'appel ; non interrogé par le poste de pilotage à l'étape 1." },
   { id: "tiktok_shop.oauth", domain: "competitive", label: "TikTok Shop (connecteur Radar, OAuth par compte)", kind: "official_api", env: ["TIKTOK_SHOP_APP_KEY"], note: "Donne les données du compte connecté, pas celles des concurrents." },
   { id: "amazon.sp_api", domain: "competitive", label: "Amazon SP-API (connecteur Radar)", kind: "official_api", env: ["AMAZON_LWA_CLIENT_ID", "AMAZON_SP_API_CLIENT_ID"], note: "Données du vendeur connecté uniquement." },
@@ -36,10 +37,15 @@ const SPECS: SourceSpec[] = [
   { id: "regulatory.none", domain: "regulatory_risk", label: "Veille réglementaire (UE, France)", kind: "official_api", note: "Aucune source connectée (EUR-Lex, Journal officiel : flux publics à brancher)." },
 ]
 
-export function listIntelligenceSources(env: Record<string, string | undefined> = process.env): IntelligenceSource[] {
-  return SPECS.map(({ env: names, always, ...s }) => {
+/** `verified` = ids of external sources the current run actually read successfully. */
+export function listIntelligenceSources(
+  env: Record<string, string | undefined> = process.env,
+  verified: ReadonlySet<string> = new Set()
+): IntelligenceSource[] {
+  return SPECS.map(({ env: names, always, runtimeVerified, ...s }) => {
     let status: SourceStatus = "not_connected"
     if (always) status = "connected"
+    else if (runtimeVerified) status = verified.has(s.id) ? "connected" : "not_connected"
     else if (s.kind !== "fixture" && names?.some((n) => Boolean(env[n]?.trim()))) status = "configured"
     return { ...s, status }
   })

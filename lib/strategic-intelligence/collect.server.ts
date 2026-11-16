@@ -15,6 +15,8 @@ import {
 } from "@/lib/strategic-intelligence/detectors"
 import { domainCoverage, listIntelligenceSources, type IntelligenceSource } from "@/lib/strategic-intelligence/sources"
 import { DOMAIN_LABELS, rankSignals, type StrategicSignal } from "@/lib/strategic-intelligence/types"
+import { fxMoves, fxSignals } from "@/lib/strategic-intelligence/external/ecb-fx"
+import { fetchEcbHist90d } from "@/lib/strategic-intelligence/external/ecb-fx.server"
 import { UNALLOCATED_LINE_AUDIT_ACTION, UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION } from "@/lib/unallocated-line"
 
 /**
@@ -43,7 +45,12 @@ async function guarded(
     return signals
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    report.push({ id, ok: false, signals: 0, error: /does not exist|P2021/i.test(message) ? "table_absente" : "lecture_impossible" })
+    report.push({
+      id,
+      ok: false,
+      signals: 0,
+      error: /does not exist|P2021/i.test(message) ? "table_absente" : /^ecb_|abort|timeout|fetch failed/i.test(message) ? "source_injoignable" : "lecture_impossible",
+    })
     return []
   }
 }
@@ -63,7 +70,19 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
     select: { productId: true, affiliateId: true, supplierId: true, paidAt: true, product: { select: { categoryId: true, name: true } } },
   })
 
+  const verified = new Set<string>()
+
   const results = await Promise.all([
+    guarded("supplier.fx_ecb", async () => {
+      const [days, activeAeLinks, autoBuyLinks] = await Promise.all([
+        fetchEcbHist90d(),
+        prisma.supplierLink.count({ where: { isActive: true } }),
+        prisma.supplierLink.count({ where: { isActive: true, autoBuyEnabled: true } }),
+      ])
+      verified.add("ecb.eurofxref")
+      return fxSignals(fxMoves(days), { observedAt, exposure: { activeAeLinks, autoBuyLinks } })
+    }, report),
+
     guarded("market.category_demand", async () => {
       const orders = await ordersPromise
       const counts = new Map<string, { current: number; previous: number }>()
@@ -227,7 +246,7 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
     }, report),
   ])
 
-  const sources = listIntelligenceSources()
+  const sources = listIntelligenceSources(process.env, verified)
   const coverage = domainCoverage(sources)
   const MIGRATION_OF: Record<string, string> = {
     "supplier.price_increases": "20261116200000_product_price_history",
