@@ -12,7 +12,6 @@ import {
   TrendingUp,
   User,
   X,
-  Zap,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -26,12 +25,10 @@ type CategoryDrawerProps = {
 }
 
 type TrendingItem = { id: string; slug: string; name: string; viewers: number }
-type PersonalizedItem = { id: string; slug: string; name: string; match: number }
 
 export function CategoryDrawer({ open, setOpen }: CategoryDrawerProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [trending, setTrending] = useState<TrendingItem[]>([])
-  const [personalized, setPersonalized] = useState<PersonalizedItem[]>([])
 
   const departments = [
     { name: "Electronics", slug: "electronics", count: "12,432", isNew: false },
@@ -81,39 +78,6 @@ export function CategoryDrawer({ open, setOpen }: CategoryDrawerProps) {
     }
   }, [open])
 
-  // Innovation 2: AI Personalized menu
-  useEffect(() => {
-    if (!open) return
-    const history = localStorage.getItem("browsing_history")
-    if (!history) return
-    let cancelled = false
-    void fetch("/api/ai/personalized-menu", {
-      method: "POST",
-      body: history,
-    })
-      .then((r) => r.json())
-      .then((data: unknown) => {
-        if (cancelled || !Array.isArray(data)) return
-        setPersonalized(
-          data
-            .map((it) => {
-              const row = it as Partial<PersonalizedItem>
-              if (!row?.id || !row?.slug || !row?.name) return null
-              return {
-                id: row.id,
-                slug: row.slug,
-                name: row.name,
-                match: typeof row.match === "number" ? row.match : 0,
-              }
-            })
-            .filter((x): x is PersonalizedItem => x !== null)
-        )
-      })
-      .catch(() => {})
-    return () => {
-      cancelled = true
-    }
-  }, [open])
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -190,28 +154,6 @@ export function CategoryDrawer({ open, setOpen }: CategoryDrawerProps) {
             </div>
           ) : null}
 
-          {personalized.length > 0 ? (
-            <div className="border-b border-gray-200 bg-violet-50/50 py-4">
-              <h3 className="flex items-center gap-2 px-6 pb-2 text-sm font-bold text-gray-900">
-                <Zap className="h-4 w-4 text-violet-600" />
-                Picked For You
-              </h3>
-              {personalized.map((item) => (
-                <Link
-                  key={item.id}
-                  href={`/category/${item.slug}`}
-                  className="group flex items-center justify-between px-6 py-2.5 text-sm text-gray-700 hover:bg-white/80"
-                >
-                  <span className="transition-transform group-hover:translate-x-1">
-                    {item.name}
-                  </span>
-                  <Badge className="bg-violet-100 text-xs text-violet-700 hover:bg-violet-100">
-                    {item.match}% match
-                  </Badge>
-                </Link>
-              ))}
-            </div>
-          ) : null}
 
           <div className="border-b border-gray-200 py-4">
             <h3 className="px-6 pb-2 text-base font-bold text-gray-900">
