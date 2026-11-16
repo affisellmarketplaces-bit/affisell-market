@@ -11,6 +11,7 @@ import { unwrapAliExpressMethodResponse } from "@/lib/aliexpress-open-api"
 import { absolutizeCdnImageUrl } from "@/lib/cdn-image-url"
 import { hydrateAeSkuRowImages } from "@/lib/fulfillment/ae-sku-image-hydrate"
 import { canonicalVariantColorKey } from "@/lib/fulfillment/variant-color-match"
+import { aliexpressSkuPriceEur } from "@/lib/aliexpress-price-eur"
 import type { AeSkuPropValueMeta } from "@/lib/fulfillment/ae-sku-property-lookup"
 
 export type AeProductSkuRow = {
@@ -64,21 +65,7 @@ function parseSkuList(raw: unknown): Record<string, unknown>[] {
 }
 
 function parsePriceEur(sku: Record<string, unknown>, result: Record<string, unknown>): number {
-  const fromSku =
-    pickString(sku, [
-      "offer_sale_price",
-      "sku_price",
-      "target_offer_sale_price",
-      "sale_price",
-      "price",
-    ]) ||
-    String(sku.offer_sale_price ?? sku.sku_price ?? sku.target_offer_sale_price ?? "")
-
-  const fromResult = pickString(result, ["target_sale_price", "sale_price", "product_price"])
-  const raw = fromSku || fromResult
-  const n = Number(String(raw).replace(/[^\d.,]/g, "").replace(",", "."))
-  if (!Number.isFinite(n) || n <= 0) return 0
-  return n
+  return aliexpressSkuPriceEur(sku, result)
 }
 
 function parseSkuPropertyDtos(

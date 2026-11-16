@@ -41,17 +41,34 @@ describe("ECB reference rates — detection", () => {
     expect(cny!.euroChangeBps).toBe(Math.round(((8.25 - 8.31) / 8.31) * 10_000)) // −0.7 %
   })
 
-  it("a ≥ 3 % fall of the euro is an important supplier-cost signal when AliExpress costs are exposed; small moves stay silent", () => {
-    const out = fxSignals(fxMoves(days), { observedAt: "2026-11-17T08:00:00.000Z", exposure: { activeAeLinks: 42, autoBuyLinks: 7 } })
+  it("a ≥ 3 % fall of the euro is an important HYPOTHESIS when stored costs are older than the base date; small moves stay silent", () => {
+    const out = fxSignals(fxMoves(days), {
+      observedAt: "2026-11-17T08:00:00.000Z",
+      exposure: { activeAeLinks: 42, autoBuyLinks: 7, staleSinceBase: 30 },
+    })
     expect(out).toHaveLength(1) // CNY −0.7 % is below the threshold
-    expect(out[0]).toMatchObject({ id: "supplier:fx:USD:weaker:2026-11-16", priority: "important", kind: "fact", confidence: "high" })
+    expect(out[0]).toMatchObject({ id: "supplier:fx:USD:weaker:2026-11-16", priority: "important", kind: "hypothesis", confidence: "high" })
     expect(out[0]!.source).toMatchObject({ id: "ecb.eurofxref" })
-    expect(out[0]!.title).toMatch(/hausse d'environ \+4,5 %/) // 1.17 / 1.12 − 1
-    expect(out[0]!.evidence.find((e) => e.label.startsWith("Liens"))!.value).toBe("42")
+    // The title states only the fact (the rate); the cost effect is shown as a hypothesis, never as "your costs rose".
+    expect(out[0]!.title).toMatch(/L'euro a perdu 4,3 % face au USD/)
+    expect(out[0]!.title).not.toMatch(/coût|hausse/)
+    expect(out[0]!.evidence.find((e) => e.label.startsWith("Hypothèse"))!.value).toBe("+4,5 % en euros") // 1.17 / 1.12 − 1
+    expect(out[0]!.evidence.find((e) => e.label.startsWith("Liens AliExpress"))!.value).toBe("42")
+    expect(out[0]!.evidence.find((e) => e.label.startsWith("Dont coût"))!.value).toBe("30")
+    expect(out[0]!.confidenceReason).toMatch(/hypothèse/)
+    expect(out[0]!.recommendedAction).toMatch(/Revérifier/)
+  })
+
+  it("every stored cost refreshed since the base date = study only, not important", () => {
+    const out = fxSignals(fxMoves(days), {
+      observedAt: "2026-11-17T08:00:00.000Z",
+      exposure: { activeAeLinks: 42, autoBuyLinks: 7, staleSinceBase: 0 },
+    })
+    expect(out[0]).toMatchObject({ priority: "study" })
   })
 
   it("stale data keeps the signal but says so", () => {
-    const out = fxSignals(fxMoves(days), { observedAt: "2026-11-25T08:00:00.000Z", exposure: { activeAeLinks: 1, autoBuyLinks: 0 } })
+    const out = fxSignals(fxMoves(days), { observedAt: "2026-11-25T08:00:00.000Z", exposure: { activeAeLinks: 1, autoBuyLinks: 0, staleSinceBase: 1 } })
     expect(out[0]).toMatchObject({ confidence: "low" })
     expect(out[0]!.confidenceReason).toMatch(/périmée/)
   })

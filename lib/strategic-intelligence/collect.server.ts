@@ -74,13 +74,18 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
 
   const results = await Promise.all([
     guarded("supplier.fx_ecb", async () => {
-      const [days, activeAeLinks, autoBuyLinks] = await Promise.all([
-        fetchEcbHist90d(),
+      const days = await fetchEcbHist90d()
+      verified.add("ecb.eurofxref")
+      const moves = fxMoves(days)
+      const baseDate = moves[0]?.baseDate
+      const [activeAeLinks, autoBuyLinks, staleSinceBase] = await Promise.all([
         prisma.supplierLink.count({ where: { isActive: true } }),
         prisma.supplierLink.count({ where: { isActive: true, autoBuyEnabled: true } }),
+        baseDate
+          ? prisma.supplierLink.count({ where: { isActive: true, updatedAt: { lt: new Date(`${baseDate}T00:00:00Z`) } } })
+          : Promise.resolve(0),
       ])
-      verified.add("ecb.eurofxref")
-      return fxSignals(fxMoves(days), { observedAt, exposure: { activeAeLinks, autoBuyLinks } })
+      return fxSignals(moves, { observedAt, exposure: { activeAeLinks, autoBuyLinks, staleSinceBase } })
     }, report),
 
     guarded("market.category_demand", async () => {
