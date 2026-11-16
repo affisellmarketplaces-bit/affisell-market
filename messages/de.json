@@ -2800,33 +2800,33 @@
       "delete": "Löschen"
     },
     "opportunities": {
-      "title": "Opportunities based on real sales",
-      "intro": "Products ranked by what the paid sales on Affisell over the last {days} days would have earned a reseller, at the supplier's commission and with no markup added, after Affisell fees and the refunds or returns observed over {qualityDays} days. These are past figures, not a forecast.",
-      "platformRate": "Platform refund or return rate: {rate} ({orders} paid orders over 90 days).",
-      "emptyRanked": "No paid order in the last {days} days: nothing can be ranked from real sales yet.",
+      "title": "Chancen auf Basis echter Verkäufe",
+      "intro": "Produkte, sortiert danach, was die bezahlten Verkäufe auf Affisell in den letzten {days} Tagen einem Wiederverkäufer eingebracht hätten – zur Provision des Lieferanten, ohne Aufschlag, nach Affisell-Gebühren und den in {qualityDays} Tagen festgestellten Erstattungen oder Rücksendungen. Das sind vergangene Zahlen, keine Prognose.",
+      "platformRate": "Erstattungs- oder Rücksendequote der Plattform: {rate} ({orders} bezahlte Bestellungen in 90 Tagen).",
+      "emptyRanked": "Keine bezahlte Bestellung in den letzten {days} Tagen: Noch kann nichts anhand echter Verkäufe sortiert werden.",
       "col": {
-        "product": "Product",
-        "units": "Units sold ({days} d)",
-        "perUnit": "Earning per sale",
-        "refundRate": "Refunds / returns",
-        "observedNet": "Observed net earnings ({days} d)",
-        "checks": "To check"
+        "product": "Produkt",
+        "units": "Verkaufte Einheiten ({days} T.)",
+        "perUnit": "Ertrag pro Verkauf",
+        "refundRate": "Erstattungen / Rücksendungen",
+        "observedNet": "Beobachteter Nettoertrag ({days} T.)",
+        "checks": "Zu prüfen"
       },
-      "inStore": "Already in your store",
-      "rateOwn": "product rate",
-      "ratePlatform": "sample too small: platform rate",
+      "inStore": "Bereits in Ihrem Shop",
+      "rateOwn": "Quote des Produkts",
+      "ratePlatform": "Stichprobe zu klein: Quote der Plattform",
       "flags": {
-        "high_refund_rate": "High refund rate",
-        "disputes_seen": "Disputes seen",
-        "slow_delivery": "Slow delivery (9 orders in 10 over 12 days)",
-        "supplier_price_rising": "Supplier price rising or unstable",
-        "thin_sample": "Few orders: fragile figures"
+        "high_refund_rate": "Hohe Erstattungsquote",
+        "disputes_seen": "Streitfälle festgestellt",
+        "slow_delivery": "Langsame Lieferung (9 von 10 Bestellungen über 12 Tage)",
+        "supplier_price_rising": "Lieferantenpreis steigend oder instabil",
+        "thin_sample": "Wenige Bestellungen: unsichere Zahlen"
       },
-      "howToRead": "“Observed net earnings” = units sold × earning per sale after the refund rate. You can add your own markup to the selling price: it is not counted here.",
-      "noSalesTitle": "No sales data",
-      "noSalesIntro": "These products have no paid order in the period: they are not ranked, for lack of real data.",
-      "perUnitShort": "{amount} per sale",
-      "toCatalog": "Open the catalogue →"
+      "howToRead": "„Beobachteter Nettoertrag“ = verkaufte Einheiten × Ertrag pro Verkauf nach der Erstattungsquote. Sie können Ihren eigenen Aufschlag hinzufügen: er ist hier nicht enthalten.",
+      "noSalesTitle": "Ohne Verkaufsdaten",
+      "noSalesIntro": "Diese Produkte haben im Zeitraum keine bezahlte Bestellung: Sie werden mangels echter Daten nicht sortiert.",
+      "perUnitShort": "{amount} pro Verkauf",
+      "toCatalog": "Katalog öffnen →"
     }
   },
   "marketplace": {

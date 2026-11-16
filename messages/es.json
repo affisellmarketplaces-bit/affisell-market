@@ -2800,33 +2800,33 @@
       "delete": "Eliminar"
     },
     "opportunities": {
-      "title": "Opportunities based on real sales",
-      "intro": "Products ranked by what the paid sales on Affisell over the last {days} days would have earned a reseller, at the supplier's commission and with no markup added, after Affisell fees and the refunds or returns observed over {qualityDays} days. These are past figures, not a forecast.",
-      "platformRate": "Platform refund or return rate: {rate} ({orders} paid orders over 90 days).",
-      "emptyRanked": "No paid order in the last {days} days: nothing can be ranked from real sales yet.",
+      "title": "Oportunidades basadas en ventas reales",
+      "intro": "Productos ordenados según lo que las ventas pagadas en Affisell de los últimos {days} días habrían aportado a un revendedor, con la comisión del proveedor y sin margen añadido, tras las comisiones de Affisell y los reembolsos o devoluciones observados en {qualityDays} días. Son cifras pasadas, no una previsión.",
+      "platformRate": "Tasa de reembolso o devolución de la plataforma: {rate} ({orders} pedidos pagados en 90 días).",
+      "emptyRanked": "Ningún pedido pagado en los últimos {days} días: aún no se puede ordenar nada con ventas reales.",
       "col": {
-        "product": "Product",
-        "units": "Units sold ({days} d)",
-        "perUnit": "Earning per sale",
-        "refundRate": "Refunds / returns",
-        "observedNet": "Observed net earnings ({days} d)",
-        "checks": "To check"
+        "product": "Producto",
+        "units": "Unidades vendidas ({days} d)",
+        "perUnit": "Ganancia por venta",
+        "refundRate": "Reembolsos / devoluciones",
+        "observedNet": "Ganancia neta observada ({days} d)",
+        "checks": "A revisar"
       },
-      "inStore": "Already in your store",
-      "rateOwn": "product rate",
-      "ratePlatform": "sample too small: platform rate",
+      "inStore": "Ya en tu tienda",
+      "rateOwn": "tasa del producto",
+      "ratePlatform": "muestra demasiado pequeña: tasa de la plataforma",
       "flags": {
-        "high_refund_rate": "High refund rate",
-        "disputes_seen": "Disputes seen",
-        "slow_delivery": "Slow delivery (9 orders in 10 over 12 days)",
-        "supplier_price_rising": "Supplier price rising or unstable",
-        "thin_sample": "Few orders: fragile figures"
+        "high_refund_rate": "Tasa de reembolso alta",
+        "disputes_seen": "Disputas detectadas",
+        "slow_delivery": "Entrega lenta (9 de cada 10 pedidos tardan más de 12 días)",
+        "supplier_price_rising": "Precio del proveedor al alza o inestable",
+        "thin_sample": "Pocos pedidos: cifras frágiles"
       },
-      "howToRead": "“Observed net earnings” = units sold × earning per sale after the refund rate. You can add your own markup to the selling price: it is not counted here.",
-      "noSalesTitle": "No sales data",
-      "noSalesIntro": "These products have no paid order in the period: they are not ranked, for lack of real data.",
-      "perUnitShort": "{amount} per sale",
-      "toCatalog": "Open the catalogue →"
+      "howToRead": "«Ganancia neta observada» = unidades vendidas × ganancia por venta tras la tasa de reembolso. Puedes añadir tu propio margen al precio: no se cuenta aquí.",
+      "noSalesTitle": "Sin datos de venta",
+      "noSalesIntro": "Estos productos no tienen ningún pedido pagado en el periodo: no se ordenan por falta de datos reales.",
+      "perUnitShort": "{amount} por venta",
+      "toCatalog": "Abrir el catálogo →"
     }
   },
   "marketplace": {
