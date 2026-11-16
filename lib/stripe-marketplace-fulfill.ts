@@ -65,6 +65,7 @@ import { affiliateNotificationSettlementFromOrder } from "@/lib/marketplace-orde
 import { dispatchMerchantOrderAlerts } from "@/lib/emails/dispatch-merchant-order-alerts"
 import { healMarketplaceOrderNotifications } from "@/lib/marketplace-order-notification-heal"
 import { syncMarketplaceOrderToMedusa, syncMarketplaceOrderToMedusaIfNeeded } from "@/lib/medusa/sync-marketplace-order"
+import { writeStockReservationInTransaction } from "@/lib/stock-restitution.server"
 import { prisma } from "@/lib/prisma"
 import {
   parseAffiliateVariantPricingJson,
@@ -548,6 +549,19 @@ async function createPaidMarketplaceOrder(
       }
     }
     throw err
+  }
+
+  // Stock given back if this order is later closed before shipping (lib/stock-restitution.ts). Only when `enforce`
+  // really took the units; same transaction as the decrement and the order.
+  if (reservation.kind === "reserved") {
+    await writeStockReservationInTransaction(tx, {
+      orderId: order.id,
+      productId: listing.productId,
+      qty,
+      scope: reservation.scope,
+      variantRowName: reservation.variantRowName ?? null,
+      stripeSessionId: args.stripeSessionId,
+    })
   }
 
   await recordAffiliateSaleFromOrder(tx, {
@@ -1305,6 +1319,16 @@ export async function fulfillMarketplaceStripeSession(
         return
       }
       logStockReservation(listing.productId, qty, sessionId, reservation)
+      if (reservation.kind === "reserved") {
+        await writeStockReservationInTransaction(tx, {
+          orderId: dup.id,
+          productId: listing.productId,
+          qty,
+          scope: reservation.scope,
+          variantRowName: reservation.variantRowName ?? null,
+          stripeSessionId: sessionId,
+        })
+      }
     }
 
     const earnUserId = await resolveBuyerUserIdForEarn(tx, buyerUserId, customerEmail)

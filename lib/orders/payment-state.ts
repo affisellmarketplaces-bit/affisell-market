@@ -24,6 +24,10 @@ const CLOSED_ORDER_STATUSES = new Set(["refunded", "cancelled", "canceled"])
 /** Settlement states meaning the charge was refunded (fully, or with a clawback pending) or cancelled. */
 const CLOSED_SETTLEMENT_STATUSES = new Set(["REFUNDED", "REFUND_PENDING_CLAWBACK", "CANCELLED"])
 
+/** The same two sets, for SQL filters (`lower(status) = ANY(…)`, `upper(paymentSettlementStatus) = ANY(…)`). */
+export const CLOSED_ORDER_STATUS_VALUES: readonly string[] = [...CLOSED_ORDER_STATUSES]
+export const CLOSED_SETTLEMENT_STATUS_VALUES: readonly string[] = [...CLOSED_SETTLEMENT_STATUSES]
+
 /**
  * Order states that come AFTER payment: a payment confirmation must never move an order back to "paid".
  * Every status the code base writes after "paid" (survey of the `Order.status` writers, finalisation review #31):

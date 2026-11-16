@@ -16,6 +16,7 @@ name: Scheduled crons
 #   scheduled   auctions-tick          every 30 min  DB-only, idempotent: it is exactly what every /auctions visit already runs.
 #   scheduled   merchant-kyc-reminder  daily         one-shot per supplier (timestamp), 40 per run. First run mails the backlog.
 #   scheduled   sync-shopify           every 6 h     only integrations whose owner enabled auto-sync (no-op without any).
+#   scheduled   restore-closed-order-stock every 30 min  gives back units of closed, never-shipped orders (enforce only).
 #   NOT         review-invites         deprecated alias of review-reminder, which is scheduled: both would double the work.
 #   scheduled   sync-auto-buy-tracking every 3 h     read-only AliExpress lookups (G4); writes only orders still awaiting shipment.
 #   NOT         update-supplier-scores recomputes what refresh-supplier-trust-scores / refresh-supplier-delivery-stats already
@@ -104,7 +105,8 @@ jobs:
             "/api/cron/sync-autods" \
             "/api/cron/sync-store-vercel-domains" \
             "/api/cron/abandoned-cart" \
-            "/api/cron/auctions-tick"
+            "/api/cron/auctions-tick" \
+            "/api/cron/restore-closed-order-stock"
 
   daily:
     if: github.event.schedule == '0 9 * * *' || github.event_name == 'workflow_dispatch'

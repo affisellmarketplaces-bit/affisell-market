@@ -177,6 +177,49 @@ export function planStockMovement(input: {
   }
 }
 
+export type StockRestitutionPlan =
+  | { kind: "skip"; reason: "invalid_quantity" | "variant_row_gone" | "variant_row_ambiguous" | "not_variant_rows" }
+  | { kind: "ok"; scope: StockScope; nextStock: number; nextVariants: unknown | null }
+
+/**
+ * Gives back `qty` units a reservation took (`planStockMovement`, applied by `reserveStockInTransaction` in `enforce`).
+ * A variant reservation is given back to the row of the SAME name; if that row no longer exists (or the name is now
+ * ambiguous) nothing is given back — under-selling is safe, crediting the wrong row is not. Pure; the caller applies
+ * the result under the product row lock (`lib/stock-restitution.server.ts`).
+ */
+export function planStockRestitution(input: {
+  stock: number | null | undefined
+  variants: unknown
+  scope: StockScope
+  variantRowName?: string | null
+  qty: number
+}): StockRestitutionPlan {
+  const qty = Math.round(Number(input.qty))
+  if (!Number.isFinite(qty) || qty < 1) return { kind: "skip", reason: "invalid_quantity" }
+  const productStock = Math.max(0, Math.round(Number(input.stock)) || 0)
+
+  if (input.scope === "product") {
+    return { kind: "ok", scope: "product", nextStock: productStock + qty, nextVariants: null }
+  }
+
+  const rows = rawVariantRows(input.variants)
+  if (rows.length === 0) return { kind: "skip", reason: "not_variant_rows" }
+  const want = normLabel(input.variantRowName ?? "")
+  if (!want) return { kind: "skip", reason: "variant_row_gone" }
+  const matches: number[] = []
+  rows.forEach((r, i) => {
+    if (normLabel(rawRowName(r)) === want) matches.push(i)
+  })
+  if (matches.length === 0) return { kind: "skip", reason: "variant_row_gone" }
+  if (matches.length > 1) return { kind: "skip", reason: "variant_row_ambiguous" }
+
+  const next = JSON.parse(JSON.stringify(asRawObject(input.variants))) as Record<string, unknown>
+  const nextRows = rawVariantRows(next)
+  const row = nextRows[matches[0]!]!
+  row.stock = rawRowStock(row) + qty
+  return { kind: "ok", scope: "variant", nextStock: productStock + qty, nextVariants: next }
+}
+
 /**
  * Whether a line draws from a managed stock at all, judged on what is known WITHOUT reading the live stock (kind, variant
  * structure, selection). Lets the fulfilment skip the row lock of a product that can only come out "unmanaged" (digital,

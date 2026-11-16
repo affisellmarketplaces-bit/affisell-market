@@ -12,7 +12,7 @@ type Tx = Prisma.TransactionClient
 
 export type StockReservationResult =
   /** `enforce`: units taken from the stock (the order may be created). */
-  | { kind: "reserved"; scope: StockScope; before: number; after: number }
+  | { kind: "reserved"; scope: StockScope; before: number; after: number; variantRowName?: string }
   /** `enforce`: not enough left — the caller must NOT create the order (nothing was written). */
   | { kind: "insufficient"; scope: StockScope; available: number; requested: number }
   /**
@@ -179,5 +179,11 @@ export async function reserveStockInTransaction(
     })
   }
 
-  return { kind: "reserved", scope: plan.scope, before: plan.available, after: plan.available - requested }
+  return {
+    kind: "reserved",
+    scope: plan.scope,
+    before: plan.available,
+    after: plan.available - requested,
+    ...(plan.variantRowName ? { variantRowName: plan.variantRowName } : {}),
+  }
 }
