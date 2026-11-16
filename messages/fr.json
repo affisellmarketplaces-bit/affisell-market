@@ -47,7 +47,9 @@
       "brandStudio": "Brand Studio",
       "brandStudioShort": "Marque",
       "magicLab": "Magic Systems",
-      "magicLabShort": "Lab"
+      "magicLabShort": "Lab",
+      "opportunities": "Opportunités (ventes réelles)",
+      "opportunitiesShort": "Opportunités"
     },
     "supplier": {
       "badge": "Fournisseur",
@@ -2795,6 +2797,35 @@
       "pendingVerification": "En attente",
       "setDefault": "Définir par défaut",
       "delete": "Supprimer"
+    },
+    "opportunities": {
+      "title": "Opportunités fondées sur les ventes réelles",
+      "intro": "Produits classés selon ce que les ventes payées sur Affisell des {days} derniers jours auraient rapporté à un revendeur, à la commission du fournisseur et sans marge ajoutée, après les frais Affisell et les remboursements ou retours constatés sur {qualityDays} jours. Ce sont des chiffres passés, pas une prévision.",
+      "platformRate": "Taux de remboursement ou de retour de la plateforme : {rate} ({orders} commandes payées sur 90 jours).",
+      "emptyRanked": "Aucune commande payée sur les {days} derniers jours : rien ne peut encore être classé à partir de ventes réelles.",
+      "col": {
+        "product": "Produit",
+        "units": "Unités vendues ({days} j)",
+        "perUnit": "Gain par vente",
+        "refundRate": "Remboursements / retours",
+        "observedNet": "Gain net observé ({days} j)",
+        "checks": "À vérifier"
+      },
+      "inStore": "Déjà dans votre boutique",
+      "rateOwn": "taux du produit",
+      "ratePlatform": "échantillon trop faible : taux de la plateforme",
+      "flags": {
+        "high_refund_rate": "Taux de remboursement élevé",
+        "disputes_seen": "Litiges constatés",
+        "slow_delivery": "Livraison lente (9 commandes sur 10 au-delà de 12 jours)",
+        "supplier_price_rising": "Prix fournisseur en hausse ou instable",
+        "thin_sample": "Peu de commandes : chiffres fragiles"
+      },
+      "howToRead": "« Gain net observé » = unités vendues × gain par vente après le taux de remboursement. Vous pouvez ajouter votre propre marge au prix de vente : elle n'est pas comptée ici.",
+      "noSalesTitle": "Sans données de vente",
+      "noSalesIntro": "Ces produits n'ont aucune commande payée sur la période : ils ne sont pas classés, faute de données réelles.",
+      "perUnitShort": "{amount} par vente",
+      "toCatalog": "Ouvrir le catalogue →"
     }
   },
   "marketplace": {

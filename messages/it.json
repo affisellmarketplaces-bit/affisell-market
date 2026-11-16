@@ -47,7 +47,9 @@
       "brandStudio": "Studio del marchio",
       "brandStudioShort": "Marchio",
       "magicLab": "Sistemi Magici",
-      "magicLabShort": "Lab"
+      "magicLabShort": "Lab",
+      "opportunities": "Opportunità (vendite reali)",
+      "opportunitiesShort": "Opportunità"
     },
     "supplier": {
       "badge": "Fornitore",
@@ -2795,6 +2797,35 @@
       "pendingVerification": "In attesa",
       "setDefault": "Imposta come predefinito",
       "delete": "Elimina"
+    },
+    "opportunities": {
+      "title": "Opportunities based on real sales",
+      "intro": "Products ranked by what the paid sales on Affisell over the last {days} days would have earned a reseller, at the supplier's commission and with no markup added, after Affisell fees and the refunds or returns observed over {qualityDays} days. These are past figures, not a forecast.",
+      "platformRate": "Platform refund or return rate: {rate} ({orders} paid orders over 90 days).",
+      "emptyRanked": "No paid order in the last {days} days: nothing can be ranked from real sales yet.",
+      "col": {
+        "product": "Product",
+        "units": "Units sold ({days} d)",
+        "perUnit": "Earning per sale",
+        "refundRate": "Refunds / returns",
+        "observedNet": "Observed net earnings ({days} d)",
+        "checks": "To check"
+      },
+      "inStore": "Already in your store",
+      "rateOwn": "product rate",
+      "ratePlatform": "sample too small: platform rate",
+      "flags": {
+        "high_refund_rate": "High refund rate",
+        "disputes_seen": "Disputes seen",
+        "slow_delivery": "Slow delivery (9 orders in 10 over 12 days)",
+        "supplier_price_rising": "Supplier price rising or unstable",
+        "thin_sample": "Few orders: fragile figures"
+      },
+      "howToRead": "“Observed net earnings” = units sold × earning per sale after the refund rate. You can add your own markup to the selling price: it is not counted here.",
+      "noSalesTitle": "No sales data",
+      "noSalesIntro": "These products have no paid order in the period: they are not ranked, for lack of real data.",
+      "perUnitShort": "{amount} per sale",
+      "toCatalog": "Open the catalogue →"
     }
   },
   "marketplace": {
