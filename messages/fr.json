@@ -871,7 +871,8 @@
   "cart": {
     "stock": {
       "outOfStock": "Ce produit est en rupture de stock.",
-      "insufficient": "Il n'en reste que {count} en stock."
+      "insufficient": "Il n'en reste que {count} en stock.",
+      "priceUpdating": "Le prix de ce produit est en cours de mise à jour. Réessayez dans quelques minutes."
     },
     "title": "Panier",
     "loading": "Chargement du panier…",

@@ -39,6 +39,7 @@ import {
 } from "@/lib/stripe-minimum"
 import { stripeCheckoutMinimumNotMetResponse } from "@/lib/stripe-minimum.server"
 import { prisma } from "@/lib/prisma"
+import { isPricedBelowSupplierPrice, priceBelowSupplierPriceResponse } from "@/lib/checkout-price-guard"
 import {
   marketplaceWholesaleCentsForOption,
   variantsFromDb,
@@ -147,6 +148,26 @@ function lineSellingPriceCents(
     optionName: checkoutOptionName(row),
     variantPricing,
   })
+}
+
+/** Flags the listing for its reseller after a refused checkout (below the supplier price). Never throws, never awaited. */
+function flagListingBelowSupplierPrice(affiliateProductId: string, unitSellingCents: number, unitSupplierCents: number): void {
+  console.warn("[checkout]", {
+    result: "refused_price_below_supplier_price",
+    affiliateProductId,
+    unitSellingCents,
+    unitSupplierCents,
+  })
+  try {
+    void prisma.affiliateProduct
+      .updateMany({
+        where: { id: affiliateProductId, marginReviewNeeded: false },
+        data: { marginReviewNeeded: true, marginReviewAt: new Date() },
+      })
+      .catch(() => undefined)
+  } catch {
+    // best effort: the refusal itself is what protects the money
+  }
 }
 
 function validateOfferCheckoutLine(
@@ -414,6 +435,15 @@ async function checkoutFromItems(
       selectedColor: parsed.color,
       selectedSize: parsed.size,
     })
+    const unitSupplierForLine = marketplaceWholesaleCentsForOption({
+      productBasePriceCents: listing.product.basePriceCents,
+      variants: variantsFromDb(listing.product.variants),
+      optionName: parsed.color || null,
+    })
+    if (isPricedBelowSupplierPrice({ unitSellingCents: unit, unitSupplierCents: unitSupplierForLine })) {
+      flagListingBelowSupplierPrice(row.affiliateProductId, unit, unitSupplierForLine)
+      return priceBelowSupplierPriceResponse()
+    }
     const lineSubtotal = unit * row.qty
     const offerGate = validateOfferCheckoutLine(listing, row.qty, lineSubtotal)
     if (offerGate) return offerGate
@@ -710,6 +740,17 @@ export async function marketplaceCheckoutPOST(
     selectedColor: body.selectedColor,
     selectedSize: body.selectedSize,
   })
+  {
+    const unitSupplier = marketplaceWholesaleCentsForOption({
+      productBasePriceCents: product.basePriceCents,
+      variants,
+      optionName,
+    })
+    if (isPricedBelowSupplierPrice({ unitSellingCents: unitSelling, unitSupplierCents: unitSupplier })) {
+      flagListingBelowSupplierPrice(affiliateProductId, unitSelling, unitSupplier)
+      return priceBelowSupplierPriceResponse()
+    }
+  }
 
   const battleId =
     typeof body.battleId === "string" && body.battleId.trim() ? body.battleId.trim() : ""

@@ -871,7 +871,8 @@
   "cart": {
     "stock": {
       "outOfStock": "Este producto está agotado.",
-      "insufficient": "Solo quedan {count} en stock."
+      "insufficient": "Solo quedan {count} en stock.",
+      "priceUpdating": "El precio de este producto se está actualizando. Inténtalo de nuevo en unos minutos."
     },
     "title": "Carrito",
     "loading": "Cargando carrito…",

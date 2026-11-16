@@ -5,7 +5,7 @@
  * supplier-probe modal ("we just checked with our supplier", a coupon) is NOT used: that is `OUT_OF_STOCK_VERIFIED`'s copy.
  */
 
-export type CheckoutStockRefusalCode = "OUT_OF_STOCK" | "INSUFFICIENT_STOCK"
+export type CheckoutStockRefusalCode = "OUT_OF_STOCK" | "INSUFFICIENT_STOCK" | "PRICE_BELOW_SUPPLIER_PRICE"
 
 export type CheckoutStockRefusal = {
   code: CheckoutStockRefusalCode
@@ -17,7 +17,8 @@ export type CheckoutStockRefusal = {
 export function parseCheckoutStockRefusal(data: unknown): CheckoutStockRefusal | null {
   if (!data || typeof data !== "object") return null
   const d = data as { error?: unknown; availableQty?: unknown }
-  if (d.error !== "OUT_OF_STOCK" && d.error !== "INSUFFICIENT_STOCK") return null
+  // PRICE_BELOW_SUPPLIER_PRICE (lib/checkout-price-guard.ts) travels the same way: a refusal before any payment.
+  if (d.error !== "OUT_OF_STOCK" && d.error !== "INSUFFICIENT_STOCK" && d.error !== "PRICE_BELOW_SUPPLIER_PRICE") return null
   const q = typeof d.availableQty === "number" && Number.isFinite(d.availableQty) ? Math.max(0, Math.round(d.availableQty)) : null
   return { code: d.error, availableQty: q }
 }
@@ -25,8 +26,9 @@ export function parseCheckoutStockRefusal(data: unknown): CheckoutStockRefusal |
 /** The translated sentence, with the `checkoutStock` messages namespace (`outOfStock`, `insufficient` with `{count}`). */
 export function checkoutStockMessage(
   refusal: CheckoutStockRefusal,
-  t: (key: "outOfStock" | "insufficient", values?: { count: number }) => string
+  t: (key: "outOfStock" | "insufficient" | "priceUpdating", values?: { count: number }) => string
 ): string {
+  if (refusal.code === "PRICE_BELOW_SUPPLIER_PRICE") return t("priceUpdating")
   if (refusal.code === "INSUFFICIENT_STOCK" && refusal.availableQty != null && refusal.availableQty > 0) {
     return t("insufficient", { count: refusal.availableQty })
   }

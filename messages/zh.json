@@ -871,7 +871,8 @@
   "cart": {
     "stock": {
       "outOfStock": "该商品已售罄。",
-      "insufficient": "库存仅剩 {count} 件。"
+      "insufficient": "库存仅剩 {count} 件。",
+      "priceUpdating": "该商品价格正在更新，请几分钟后重试。"
     },
     "title": "购物车",
     "loading": "正在加载购物车…",

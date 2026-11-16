@@ -1,3 +1,4 @@
+import { isPricedBelowSupplierPrice } from "@/lib/checkout-price-guard"
 import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing-display"
 import { evaluateCheckoutStockGate } from "@/lib/checkout-stock"
 import { ensureGhostStockSchema } from "@/lib/ghost/ensure-ghost-schema"
@@ -28,6 +29,7 @@ const agentListingSelect = {
       variants: true,
       hasVariants: true,
       listingKind: true,
+      basePriceCents: true,
     },
   },
 } as const
@@ -70,7 +72,7 @@ async function loadAgentListing(productId: string) {
 
 export type AgentCheckoutResult =
   | { checkoutUrl: string; listingId: string; productId: string; name: string; priceCents: number }
-  | { checkoutUrl: null; reason: "out_of_stock"; name: string }
+  | { checkoutUrl: null; reason: "out_of_stock" | "price_updating"; name: string }
 
 export async function createCheckoutSession(productId: string, userId?: string): Promise<AgentCheckoutResult | null> {
   const stripe = getStripeClient()
@@ -97,6 +99,12 @@ export async function createCheckoutSession(productId: string, userId?: string):
     },
   ])
   if (stockGate.refuse) return { checkoutUrl: null, reason: "out_of_stock", name }
+
+  // Never below the supplier's current price (lib/checkout-price-guard.ts): nobody could be paid for that sale.
+  if (isPricedBelowSupplierPrice({ unitSellingCents: listing.sellingPriceCents, unitSupplierCents: listing.product.basePriceCents })) {
+    console.warn("[agent-checkout]", { result: "refused_price_below_supplier_price", listingId: listing.id })
+    return { checkoutUrl: null, reason: "price_updating", name }
+  }
 
   const images = stripeProductImages(listingGalleryUrls(listing.customImages, listing.product.images)) ?? []
   const unitAmount = listing.sellingPriceCents

@@ -12,8 +12,8 @@ import { checkoutStockMessage, parseCheckoutStockRefusal } from "@/lib/checkout-
 const LOCALES = ["de", "en", "es", "fr", "it", "nl", "pl", "zh"] as const
 
 describe("parseCheckoutStockRefusal / checkoutStockMessage", () => {
-  const t = (key: "outOfStock" | "insufficient", values?: { count: number }) =>
-    key === "insufficient" ? `only ${values!.count}` : "sold out"
+  const t = (key: "outOfStock" | "insufficient" | "priceUpdating", values?: { count: number }) =>
+    key === "insufficient" ? `only ${values!.count}` : key === "priceUpdating" ? "price updating" : "sold out"
 
   it("recognises our two codes and nothing else (the supplier-probe code keeps its own modal)", () => {
     expect(parseCheckoutStockRefusal({ error: "OUT_OF_STOCK", availableQty: 0 })).toEqual({ code: "OUT_OF_STOCK", availableQty: 0 })
@@ -35,6 +35,14 @@ describe("parseCheckoutStockRefusal / checkoutStockMessage", () => {
     expect(checkoutStockMessage({ code: "INSUFFICIENT_STOCK", availableQty: 0 }, t)).toBe("sold out")
     expect(checkoutStockMessage({ code: "INSUFFICIENT_STOCK", availableQty: null }, t)).toBe("sold out")
     expect(checkoutStockMessage({ code: "OUT_OF_STOCK", availableQty: 0 }, t)).toBe("sold out")
+  })
+
+  it("the price guard's refusal (below the supplier's current price) gets its own sentence", () => {
+    expect(parseCheckoutStockRefusal({ error: "PRICE_BELOW_SUPPLIER_PRICE" })).toEqual({
+      code: "PRICE_BELOW_SUPPLIER_PRICE",
+      availableQty: null,
+    })
+    expect(checkoutStockMessage({ code: "PRICE_BELOW_SUPPLIER_PRICE", availableQty: null }, t)).toBe("price updating")
   })
 })
 

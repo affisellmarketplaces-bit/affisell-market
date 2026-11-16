@@ -871,7 +871,8 @@
   "cart": {
     "stock": {
       "outOfStock": "Dit product is uitverkocht.",
-      "insufficient": "Nog maar {count} op voorraad."
+      "insufficient": "Nog maar {count} op voorraad.",
+      "priceUpdating": "De prijs van dit product wordt bijgewerkt. Probeer het over een paar minuten opnieuw."
     },
     "title": "Winkelwagen",
     "loading": "Winkelwagen wordt geladen…",

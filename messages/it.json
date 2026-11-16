@@ -871,7 +871,8 @@
   "cart": {
     "stock": {
       "outOfStock": "Questo prodotto non è disponibile.",
-      "insufficient": "Ne restano solo {count} in magazzino."
+      "insufficient": "Ne restano solo {count} in magazzino.",
+      "priceUpdating": "Il prezzo di questo prodotto è in aggiornamento. Riprova tra qualche minuto."
     },
     "title": "Carrello",
     "loading": "Caricamento del carrello…",
