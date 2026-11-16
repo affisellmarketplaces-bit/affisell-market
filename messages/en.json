@@ -506,6 +506,8 @@
     "invalid_password": "Incorrect password.",
     "account_not_found": "No Affisell account found with this email.",
     "password_login_unavailable": "This account uses social sign-in. Use Google or set a password via “Forgot password”.",
+    "invalid_credentials": "Incorrect email or password. If your account uses social sign-in, use it or set a password via “Forgot password”.",
+    "too_many_attempts": "Too many sign-in attempts for this account. Try again in 15 minutes or reset your password.",
     "passwordReset": {
       "secureBadge": "Affisell secure access",
       "forgotLink": "Forgot password?",
@@ -522,6 +524,9 @@
       "confirmPassword": "Confirm password",
       "savePassword": "Save password",
       "passwordTooShort": "Password must be at least 8 characters.",
+      "passwordTooLong": "The password is too long (72 bytes maximum).",
+      "passwordTooCommon": "This password is too common. Please choose another one.",
+      "passwordMatchesEmail": "The password must not be your email address.",
       "passwordMismatch": "Passwords do not match.",
       "invalidToken": "This link is invalid or expired. Request a new one.",
       "resetFailed": "Could not update your password.",

@@ -506,6 +506,8 @@
     "invalid_password": "密码错误。",
     "account_not_found": "未找到与此邮箱相关的Affisell账户。",
     "password_login_unavailable": "此账户使用社交登录。使用 Google 或通过“忘记密码”设置密码。",
+    "invalid_credentials": "邮箱或密码不正确。如果您的账户使用社交登录，请使用社交登录，或通过“忘记密码”设置密码。",
+    "too_many_attempts": "此账户的登录尝试次数过多。请在 15 分钟后重试或重置密码。",
     "passwordReset": {
       "secureBadge": "Affisell 安全访问",
       "forgotLink": "忘记密码？",
@@ -522,6 +524,9 @@
       "confirmPassword": "确认密码",
       "savePassword": "保存密码",
       "passwordTooShort": "密码至少需要 8 个字符。",
+      "passwordTooLong": "密码过长（最多 72 字节）。",
+      "passwordTooCommon": "此密码过于常见，请换一个。",
+      "passwordMatchesEmail": "密码不能是您的邮箱地址。",
       "passwordMismatch": "密码不匹配。",
       "invalidToken": "该链接无效或已过期。请重新申请。",
       "resetFailed": "无法更新您的密码。",

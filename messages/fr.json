@@ -506,6 +506,8 @@
     "invalid_password": "Mot de passe incorrect.",
     "account_not_found": "Aucun compte Affisell avec cet e-mail.",
     "password_login_unavailable": "Ce compte utilise une connexion sociale. Connectez-vous avec Google ou définissez un mot de passe via « Mot de passe oublié ».",
+    "invalid_credentials": "E-mail ou mot de passe incorrect. Si votre compte utilise une connexion sociale, utilisez-la ou définissez un mot de passe via « Mot de passe oublié ».",
+    "too_many_attempts": "Trop de tentatives de connexion pour ce compte. Réessayez dans 15 minutes ou réinitialisez votre mot de passe.",
     "passwordReset": {
       "secureBadge": "Sécurité Affisell",
       "forgotLink": "Mot de passe oublié ?",
@@ -522,6 +524,9 @@
       "confirmPassword": "Confirmer le mot de passe",
       "savePassword": "Enregistrer",
       "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères.",
+      "passwordTooLong": "Le mot de passe est trop long (72 octets au maximum).",
+      "passwordTooCommon": "Ce mot de passe est trop courant. Choisissez-en un autre.",
+      "passwordMatchesEmail": "Le mot de passe ne doit pas être votre adresse e-mail.",
       "passwordMismatch": "Les mots de passe ne correspondent pas.",
       "invalidToken": "Ce lien est invalide ou expiré. Demandez un nouveau lien.",
       "resetFailed": "Impossible de mettre à jour le mot de passe.",

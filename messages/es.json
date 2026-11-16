@@ -506,6 +506,8 @@
     "invalid_password": "Contraseña incorrecta.",
     "account_not_found": "No se encontró ninguna cuenta de Affisell con este correo electrónico.",
     "password_login_unavailable": "Esta cuenta utiliza la autenticación social. Utiliza Google o establece una contraseña a través de “Olvidé mi contraseña”.",
+    "invalid_credentials": "Correo o contraseña incorrectos. Si tu cuenta usa inicio de sesión social, utilízalo o define una contraseña con «¿Olvidaste tu contraseña?».",
+    "too_many_attempts": "Demasiados intentos de inicio de sesión para esta cuenta. Inténtalo de nuevo en 15 minutos o restablece tu contraseña.",
     "passwordReset": {
       "secureBadge": "Acceso seguro de Affisell",
       "forgotLink": "¿Olvidé mi contraseña?",
@@ -522,6 +524,9 @@
       "confirmPassword": "Confirmar contraseña",
       "savePassword": "Guardar contraseña",
       "passwordTooShort": "La contraseña debe tener al menos 8 caracteres.",
+      "passwordTooLong": "La contraseña es demasiado larga (72 bytes como máximo).",
+      "passwordTooCommon": "Esta contraseña es demasiado común. Elige otra.",
+      "passwordMatchesEmail": "La contraseña no puede ser tu dirección de correo.",
       "passwordMismatch": "Las contraseñas no coinciden.",
       "invalidToken": "Este enlace es inválido o ha expirado. Solicita uno nuevo.",
       "resetFailed": "No se pudo actualizar tu contraseña.",

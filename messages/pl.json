@@ -506,6 +506,8 @@
     "invalid_password": "Błędne hasło.",
     "account_not_found": "Nie znaleziono konta Affisell z tym adresem e-mail.",
     "password_login_unavailable": "Ten konto używa logowania za pomocą mediów społecznościowych. Użyj Google lub ustaw hasło za pomocą “Zapomniałem hasła”.",
+    "invalid_credentials": "Nieprawidłowy e-mail lub hasło. Jeśli Twoje konto korzysta z logowania społecznościowego, użyj go lub ustaw hasło przez „Nie pamiętasz hasła?”.",
+    "too_many_attempts": "Zbyt wiele prób logowania na to konto. Spróbuj ponownie za 15 minut lub zresetuj hasło.",
     "passwordReset": {
       "secureBadge": "Bezpieczny dostęp do Affisell",
       "forgotLink": "Zapomniałem hasła?",
@@ -522,6 +524,9 @@
       "confirmPassword": "Potwierdź hasło",
       "savePassword": "Zapisz hasło",
       "passwordTooShort": "Hasło musi mieć co najmniej 8 znaków.",
+      "passwordTooLong": "Hasło jest za długie (maksymalnie 72 bajty).",
+      "passwordTooCommon": "To hasło jest zbyt popularne. Wybierz inne.",
+      "passwordMatchesEmail": "Hasło nie może być Twoim adresem e-mail.",
       "passwordMismatch": "Hasła nie zgadzają się.",
       "invalidToken": "Ten link jest nieprawidłowy lub wygasł. Zadzwoń do nas.",
       "resetFailed": "Nie udało się zaktualizować hasła.",

@@ -11,6 +11,8 @@ import {
   logger,
 } from "@/lib/logger"
 import { logBusiness } from "@/lib/business-log"
+import { isValidEmailIdentifier } from "@/lib/auth-login-portal"
+import { checkPasswordPolicy, passwordPolicyMessageFr } from "@/lib/password-policy"
 import { prisma } from "@/lib/prisma"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { buildConsentPayload, type MerchantRole } from "@/lib/legal/consent"
@@ -119,6 +121,18 @@ export async function POST(req: Request) {
     if (!roleTermsOk) {
       return NextResponse.json(
         { error: "Vous devez accepter les conditions spécifiques à votre rôle (CGA ou CGS)." },
+        { status: 400 }
+      )
+    }
+
+    if (!isValidEmailIdentifier(emailNormalized)) {
+      return NextResponse.json({ error: "Adresse e-mail invalide." }, { status: 400 })
+    }
+    // Same rule as the password reset (lib/password-policy.ts): the signup used to store any non-empty password.
+    const passwordPolicy = checkPasswordPolicy(password, { email: emailNormalized })
+    if (!passwordPolicy.ok) {
+      return NextResponse.json(
+        { error: passwordPolicyMessageFr(passwordPolicy.error), code: passwordPolicy.error },
         { status: 400 }
       )
     }

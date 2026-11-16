@@ -506,6 +506,8 @@
     "invalid_password": "Fout wachtwoord.",
     "account_not_found": "Geen Affisell-account gevonden met deze e-mail.",
     "password_login_unavailable": "Dit account gebruikt sociale aanmelding. Gebruik Google of stel een wachtwoord in via “Wachtwoord vergeten”.",
+    "invalid_credentials": "Onjuist e-mailadres of wachtwoord. Gebruikt je account sociale aanmelding, gebruik die dan of stel een wachtwoord in via ‘Wachtwoord vergeten’.",
+    "too_many_attempts": "Te veel aanmeldpogingen voor dit account. Probeer het over 15 minuten opnieuw of stel je wachtwoord opnieuw in.",
     "passwordReset": {
       "secureBadge": "Beveiligde Affisell-toegang",
       "forgotLink": "Wachtwoord vergeten?",
@@ -522,6 +524,9 @@
       "confirmPassword": "Bevestig wachtwoord",
       "savePassword": "Wachtwoord opslaan",
       "passwordTooShort": "Wachtwoord moet minstens 8 tekens bevatten.",
+      "passwordTooLong": "Het wachtwoord is te lang (maximaal 72 bytes).",
+      "passwordTooCommon": "Dit wachtwoord komt te vaak voor. Kies een ander.",
+      "passwordMatchesEmail": "Het wachtwoord mag niet je e-mailadres zijn.",
       "passwordMismatch": "Wachtwoorden komen niet overeen.",
       "invalidToken": "Deze link is ongeldig of verlopen. Vraag een nieuwe aan.",
       "resetFailed": "Kan uw wachtwoord niet bijwerken.",
