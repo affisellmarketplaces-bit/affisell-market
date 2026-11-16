@@ -27,21 +27,26 @@ import {
 import { getStripeClient } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
 
+/**
+ * Every order paid by the charge: the one that recorded the charge id AND its siblings of the same Checkout Session.
+ * Only one order of a multi-line cart can carry the charge id (`Order.stripeChargeId` is unique, see
+ * scheduleMarketplaceTransferAttempts), so stopping at the charge-id match used to leave the other orders of the cart
+ * out of a refund — "paid", payouts still scheduled.
+ */
 async function orderIdsForStripeCharge(charge: Stripe.Charge): Promise<string[]> {
   const byCharge = await prisma.order.findMany({
     where: { stripeChargeId: charge.id },
     select: { id: true },
   })
-  if (byCharge.length > 0) return byCharge.map((o) => o.id)
 
   const pi = charge.payment_intent
   const piId = typeof pi === "string" ? pi : pi?.id
-  if (!piId) return []
+  if (!piId) return byCharge.map((o) => o.id)
 
   const stripe = getStripeClient()
   const sessions = await stripe.checkout.sessions.list({ payment_intent: piId, limit: 20 })
   const sessionIds = sessions.data.map((s) => s.id).filter(Boolean)
-  if (sessionIds.length === 0) return []
+  if (sessionIds.length === 0) return byCharge.map((o) => o.id)
 
   const orders = await prisma.order.findMany({
     where: {
@@ -52,7 +57,7 @@ async function orderIdsForStripeCharge(charge: Stripe.Charge): Promise<string[]>
     },
     select: { id: true },
   })
-  return orders.map((o) => o.id)
+  return [...new Set([...byCharge.map((o) => o.id), ...orders.map((o) => o.id)])]
 }
 
 export async function handleStripeChargeRefundedWithCommission(

@@ -95,6 +95,13 @@ export const fakeCheckoutDb = (() => {
       return row ? withIncludes(row, include) : null
     },
     count: async ({ where }: any = {}) => [...db.orders.values()].filter((o) => orderMatches(o, where)).length,
+    // Only the shape the settlement uses: another order that already holds a charge id (`Order.stripeChargeId` is unique).
+    findFirst: async ({ where }: any = {}) =>
+      [...db.orders.values()].find(
+        (o) =>
+          (where?.stripeChargeId === undefined || o.stripeChargeId === where.stripeChargeId) &&
+          (where?.NOT?.id === undefined || o.id !== where.NOT.id)
+      ) ?? null,
     update: async ({ where, data }: any) => {
       const row = db.orders.get(where.id)!
       Object.assign(row, clone(data))

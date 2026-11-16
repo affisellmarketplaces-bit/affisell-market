@@ -38,6 +38,8 @@ function fakeDb(order: Record<string, unknown>, attempts: Attempt[] = []) {
       update: async ({ data }: { data: Record<string, unknown> }) => {
         state.order = { ...state.order, ...data }
       },
+      // no other order holds the charge id (single-order checkout)
+      findFirst: async () => null,
     },
     transferAttempt: {
       upsert: async ({ create, update, where }: { create: Attempt; update: Partial<Attempt>; where: { orderId_role: { role: Attempt["role"] } } }) => {

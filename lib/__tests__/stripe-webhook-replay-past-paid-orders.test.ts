@@ -43,6 +43,11 @@ vi.mock("@/lib/prisma", () => {
     update: async ({ where, data }: { where: { id: string }; data: Record<string, unknown> }) => {
       Object.assign(h.orders.get(where.id)!, data)
     },
+    // the settlement asks whether another order already holds the charge id (Order.stripeChargeId is unique)
+    findFirst: async ({ where }: { where: { stripeChargeId?: string; NOT?: { id?: string } } }) =>
+      [...h.orders.values()].find(
+        (o) => o.stripeChargeId === where.stripeChargeId && o.id !== where.NOT?.id
+      ) ?? null,
   }
   const transferAttempt = {
     upsert: async ({ create, update, where }: { create: Record<string, unknown>; update: Record<string, unknown>; where: { orderId_role: { orderId: string; role: string } } }) => {

@@ -269,6 +269,19 @@ export async function scheduleMarketplaceTransferAttempts(
     }
   }
 
+  // `Order.stripeChargeId` is UNIQUE, but the orders of a multi-line cart are siblings paid by ONE charge: writing the
+  // same id on the second order raised a unique violation and aborted its settlement (no payout for that supplier).
+  // The charge id stays on the first order that recorded it; siblings keep theirs empty and are found through their
+  // Checkout Session (`<session>:line:<n>`, see orderIdsForStripeCharge / chargeIdForOrder).
+  let chargeIdToRecord = order.stripeChargeId
+  if (chargeId && chargeId !== order.stripeChargeId) {
+    const holder = await db.order.findFirst({
+      where: { stripeChargeId: chargeId, NOT: { id: orderId } },
+      select: { id: true },
+    })
+    if (!holder) chargeIdToRecord = chargeId
+  }
+
   const paidAnchor = order.paidAt ?? new Date()
   await db.order.update({
     where: { id: orderId },
@@ -282,7 +295,7 @@ export async function scheduleMarketplaceTransferAttempts(
       affisellFeeCents: amounts.affisellFeeCents,
       stripeFeesCents: amounts.stripeFeeCents,
       stripeSessionId: order.stripeSessionId || session.id,
-      stripeChargeId: chargeId ?? order.stripeChargeId,
+      stripeChargeId: chargeIdToRecord,
       splitStatus: "PENDING",
       // Only an order that is not yet past "paid" becomes "paid": never move shipped / preparing / fulfilling back. When the
       // status does not change it is not written AT ALL: `order` was read before this update, and a concurrent writer (the
