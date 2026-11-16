@@ -7,7 +7,12 @@ import { loadAlertPreference, saveAlertPreference } from "@/lib/intelligence/pro
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-async function reseller() {
+/**
+ * Explicit union: with the inferred type TS normalises the two literals to `{ error; userId?: undefined } | { userId;
+ * error?: undefined }`, so `"error" in r` no longer narrows, `r.error` is `NextResponse | undefined` and the handlers'
+ * return type becomes `Response | undefined` (the production build's type check rejects the route tests on it).
+ */
+async function reseller(): Promise<{ error: NextResponse } | { userId: string }> {
   const session = await auth()
   const userId = session?.user?.id
   if (!userId) return { error: NextResponse.json({ error: "unauthorized" }, { status: 401 }) }
