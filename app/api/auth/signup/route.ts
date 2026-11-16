@@ -13,6 +13,7 @@ import {
 import { logBusiness } from "@/lib/business-log"
 import { isValidEmailIdentifier } from "@/lib/auth-login-portal"
 import { checkPasswordPolicy, passwordPolicyMessageFr } from "@/lib/password-policy"
+import { issueEmailVerification } from "@/lib/email-verification.server"
 import { prisma } from "@/lib/prisma"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { buildConsentPayload, type MerchantRole } from "@/lib/legal/consent"
@@ -357,6 +358,8 @@ export async function POST(req: Request) {
     // the client even got a 201) with zero loading feedback beyond a static button label — the
     // exact cause of signups "freezing" with no success notification.
     after(() => {
+      // E1: prove the address (lib/email-verification.server.ts). Never blocks the signup; a failure is logged there.
+      void issueEmailVerification({ userId: user.id, locale: typeof localeRaw === "string" ? localeRaw : null })
       void runPostSignupCompliance().catch((err: unknown) => {
         console.log("[signup]", {
           userId: user.id,

@@ -370,6 +370,33 @@ export function passwordResetEmailSubject(locale: AppLocale, accountEmail: strin
   return interpolate(t(locale, "emails.passwordReset.subject"), { accountEmail })
 }
 
+/** E-mail address verification (lib/email-verification.server.ts) — same layout as the password reset e-mail. */
+export function loadEmailVerificationEmailCopy(
+  locale: AppLocale,
+  vars: { name?: string | null; accountEmail: string }
+): PasswordResetEmailCopy {
+  const greetingName = vars.name?.trim()
+  return {
+    preview: interpolate(t(locale, "emails.emailVerification.preview"), { accountEmail: vars.accountEmail }),
+    badge: t(locale, "emails.emailVerification.badge"),
+    title: t(locale, "emails.emailVerification.title"),
+    greeting: greetingName
+      ? interpolate(t(locale, "emails.passwordReset.greetingNamed"), { name: greetingName })
+      : t(locale, "emails.passwordReset.greetingGeneric"),
+    body: t(locale, "emails.emailVerification.body"),
+    accountLabel: t(locale, "emails.passwordReset.accountLabel"),
+    spaceLabel: t(locale, "emails.passwordReset.portalDefault"),
+    cta: t(locale, "emails.emailVerification.cta"),
+    fallbackLabel: t(locale, "emails.passwordReset.fallbackLabel"),
+    footerNote: t(locale, "emails.emailVerification.footerNote"),
+    legal: t(locale, "emails.passwordReset.legal"),
+  }
+}
+
+export function emailVerificationEmailSubject(locale: AppLocale, accountEmail: string): string {
+  return interpolate(t(locale, "emails.emailVerification.subject"), { accountEmail })
+}
+
 export function loadContactAcknowledgmentEmailCopy(
   locale: AppLocale,
   vars: { customerName: string; subject: string; ticketRef: string; supportEmail: string }

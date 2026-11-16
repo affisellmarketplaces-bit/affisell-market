@@ -532,6 +532,11 @@
       "resetFailed": "无法更新您的密码。",
       "resetSuccessLogin": "密码更新成功。您可以现在登录。"
     },
+    "emailVerification": {
+      "done": "邮箱地址已确认，您可以登录了。",
+      "invalid": "此确认链接无效或已被使用。",
+      "expired": "此确认链接已过期。请登录以获取新链接。"
+    },
     "signupFail": "注册失败。",
     "signupLoginFail": "账户创建成功但登录失败。请尝试登录。",
     "roleHint": "账户类型",
@@ -6962,6 +6967,15 @@
       "fallbackLabel": "如果按钮无法打开，请复制此链接：",
       "footerNote": "您没有请求此操作？请忽略此邮件——您的密码保持不变。",
       "legal": "© Affisell — 联盟市场 · affisell.com"
+    },
+    "emailVerification": {
+      "preview": "确认您的 Affisell 邮箱地址 — {accountEmail}",
+      "subject": "确认您的邮箱地址 · {accountEmail}",
+      "badge": "Affisell 安全 · 验证",
+      "title": "确认您的邮箱地址",
+      "body": "刚刚有人使用此地址创建了 Affisell 账户。请确认该地址属于您；链接 48 小时内有效。",
+      "cta": "确认我的地址",
+      "footerNote": "不是您创建的账户？请忽略此邮件：该地址不会被确认。"
     },
     "contactAcknowledgment": {
       "preview": "消息已收到 — Affisell #{ticketRef}",

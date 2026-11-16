@@ -532,6 +532,11 @@
       "resetFailed": "Nie udało się zaktualizować hasła.",
       "resetSuccessLogin": "Hasło zaktualizowano. Możesz się teraz zalogować."
     },
+    "emailVerification": {
+      "done": "Adres e-mail potwierdzony. Możesz się zalogować.",
+      "invalid": "Ten link potwierdzający jest nieprawidłowy lub został już użyty.",
+      "expired": "Ten link potwierdzający wygasł. Zaloguj się, aby otrzymać nowy."
+    },
     "signupFail": "Nie udało się zarejestrować.",
     "signupLoginFail": "Konto utworzone, ale logowanie nie powiodło się. Spróbuj zalogować się.",
     "roleHint": "Typ konta",
@@ -6962,6 +6967,15 @@
       "fallbackLabel": "Jeśli przycisk nie otwiera, skopiuj to połączenie:",
       "footerNote": "Nie żądałeś tego? Zignoruj ten email — twoje hasło pozostaje bez zmian.",
       "legal": "© Affisell — rynek afiliacyjny · affisell.com"
+    },
+    "emailVerification": {
+      "preview": "Potwierdź swój adres e-mail w Affisell — {accountEmail}",
+      "subject": "Potwierdź swój adres e-mail · {accountEmail}",
+      "badge": "Bezpieczeństwo Affisell · Weryfikacja",
+      "title": "Potwierdź swój adres e-mail",
+      "body": "Właśnie utworzono konto Affisell z tym adresem. Potwierdź, że należy do Ciebie; link wygasa po 48 godzinach.",
+      "cta": "Potwierdź mój adres",
+      "footerNote": "Nie zakładałeś konta? Zignoruj tę wiadomość: adres nie zostanie potwierdzony."
     },
     "contactAcknowledgment": {
       "preview": "Wiadomość odebrana — Affisell #{ticketRef}",

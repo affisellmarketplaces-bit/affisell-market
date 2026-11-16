@@ -532,6 +532,11 @@
       "resetFailed": "Kan uw wachtwoord niet bijwerken.",
       "resetSuccessLogin": "Wachtwoord bijgewerkt. U kunt nu aanmelden."
     },
+    "emailVerification": {
+      "done": "E-mailadres bevestigd. Je kunt nu inloggen.",
+      "invalid": "Deze bevestigingslink is ongeldig of al gebruikt.",
+      "expired": "Deze bevestigingslink is verlopen. Log in om een nieuwe te ontvangen."
+    },
     "signupFail": "Kan niet registreren.",
     "signupLoginFail": "Account aangemaakt maar aanmelden mislukt. Probeer het opnieuw.",
     "roleHint": "Accounttype",
@@ -6962,6 +6967,15 @@
       "fallbackLabel": "Als de knop niet opent, kopieer deze link:",
       "footerNote": "Heeft u dit niet aangevraagd? Negeer deze e-mail — uw wachtwoord blijft ongewijzigd.",
       "legal": "© Affisell — affiliate-marktplaats · affisell.com"
+    },
+    "emailVerification": {
+      "preview": "Bevestig je Affisell-e-mailadres — {accountEmail}",
+      "subject": "Bevestig je e-mailadres · {accountEmail}",
+      "badge": "Affisell-beveiliging · Verificatie",
+      "title": "Bevestig je e-mailadres",
+      "body": "Er is zojuist een Affisell-account aangemaakt met dit adres. Bevestig dat het van jou is; de link verloopt na 48 uur.",
+      "cta": "Mijn adres bevestigen",
+      "footerNote": "Heb je geen account aangemaakt? Negeer deze e-mail: het adres wordt niet bevestigd."
     },
     "contactAcknowledgment": {
       "preview": "Bericht ontvangen — Affisell #{ticketRef}",

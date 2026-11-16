@@ -532,6 +532,11 @@
       "resetFailed": "Impossible de mettre à jour le mot de passe.",
       "resetSuccessLogin": "Mot de passe mis à jour. Vous pouvez vous connecter."
     },
+    "emailVerification": {
+      "done": "Adresse e-mail confirmée. Vous pouvez vous connecter.",
+      "invalid": "Ce lien de confirmation est invalide ou a déjà été utilisé.",
+      "expired": "Ce lien de confirmation a expiré. Connectez-vous pour en recevoir un nouveau."
+    },
     "signupFail": "Impossible de créer le compte.",
     "signupLoginFail": "Compte créé mais la connexion a échoué. Essayez de vous connecter.",
     "roleHint": "Type de compte",
@@ -6962,6 +6967,15 @@
       "fallbackLabel": "Si le bouton ne s'ouvre pas, copiez ce lien :",
       "footerNote": "Vous n'êtes pas à l'origine de cette demande ? Ignorez cet e-mail — votre mot de passe reste inchangé.",
       "legal": "© Affisell — marketplace d'affiliation · affisell.com"
+    },
+    "emailVerification": {
+      "preview": "Confirmez votre adresse e-mail Affisell — {accountEmail}",
+      "subject": "Confirmez votre adresse e-mail · {accountEmail}",
+      "badge": "Sécurité Affisell · Vérification",
+      "title": "Confirmez votre adresse e-mail",
+      "body": "Un compte Affisell vient d'être créé avec cette adresse. Confirmez qu'elle vous appartient ; le lien expire dans 48 heures.",
+      "cta": "Confirmer mon adresse",
+      "footerNote": "Vous n'avez pas créé de compte ? Ignorez cet e-mail : l'adresse ne sera pas confirmée."
     },
     "contactAcknowledgment": {
       "preview": "Message reçu — Affisell #{ticketRef}",

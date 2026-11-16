@@ -532,6 +532,11 @@
       "resetFailed": "No se pudo actualizar tu contraseña.",
       "resetSuccessLogin": "Contraseña actualizada. Puedes iniciar sesión ahora."
     },
+    "emailVerification": {
+      "done": "Dirección de correo confirmada. Ya puedes iniciar sesión.",
+      "invalid": "Este enlace de confirmación no es válido o ya se ha utilizado.",
+      "expired": "Este enlace de confirmación ha caducado. Inicia sesión para recibir uno nuevo."
+    },
     "signupFail": "No se pudo registrar.",
     "signupLoginFail": "Cuenta creada pero inicio de sesión fallido. Intenta iniciar sesión.",
     "roleHint": "Tipo de cuenta",
@@ -6962,6 +6967,15 @@
       "fallbackLabel": "Si el botón no se abre, copia este enlace:",
       "footerNote": "¿No solicitaste esto? Ignora este correo electrónico — tu contraseña permanece sin cambios.",
       "legal": "© Affisell — mercado de afiliados · affisell.com"
+    },
+    "emailVerification": {
+      "preview": "Confirma tu dirección de correo de Affisell — {accountEmail}",
+      "subject": "Confirma tu dirección de correo · {accountEmail}",
+      "badge": "Seguridad Affisell · Verificación",
+      "title": "Confirma tu dirección de correo",
+      "body": "Se acaba de crear una cuenta de Affisell con esta dirección. Confirma que es tuya; el enlace caduca en 48 horas.",
+      "cta": "Confirmar mi dirección",
+      "footerNote": "¿No has creado una cuenta? Ignora este correo: la dirección no se confirmará."
     },
     "contactAcknowledgment": {
       "preview": "Mensaje recibido — Affisell #{ticketRef}",

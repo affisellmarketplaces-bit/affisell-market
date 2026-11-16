@@ -532,6 +532,11 @@
       "resetFailed": "Could not update your password.",
       "resetSuccessLogin": "Password updated. You can sign in now."
     },
+    "emailVerification": {
+      "done": "Email address confirmed. You can sign in.",
+      "invalid": "This confirmation link is invalid or has already been used.",
+      "expired": "This confirmation link has expired. Sign in to get a new one."
+    },
     "signupFail": "Could not register.",
     "signupLoginFail": "Account created but sign-in failed. Try logging in.",
     "roleHint": "Account type",
@@ -6962,6 +6967,15 @@
       "fallbackLabel": "If the button does not open, copy this link:",
       "footerNote": "Didn't request this? Ignore this email — your password stays unchanged.",
       "legal": "© Affisell — affiliate marketplace · affisell.com"
+    },
+    "emailVerification": {
+      "preview": "Confirm your Affisell email address — {accountEmail}",
+      "subject": "Confirm your email address · {accountEmail}",
+      "badge": "Affisell security · Verification",
+      "title": "Confirm your email address",
+      "body": "An Affisell account was just created with this address. Confirm that it is yours; the link expires in 48 hours.",
+      "cta": "Confirm my address",
+      "footerNote": "Didn't create an account? Ignore this email: the address will not be confirmed."
     },
     "contactAcknowledgment": {
       "preview": "Message received — Affisell #{ticketRef}",

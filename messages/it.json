@@ -532,6 +532,11 @@
       "resetFailed": "Non è stato possibile aggiornare la password.",
       "resetSuccessLogin": "Password aggiornata. Puoi accedere ora."
     },
+    "emailVerification": {
+      "done": "Indirizzo e-mail confermato. Puoi accedere.",
+      "invalid": "Questo link di conferma non è valido o è già stato usato.",
+      "expired": "Questo link di conferma è scaduto. Accedi per riceverne uno nuovo."
+    },
     "signupFail": "Non è stato possibile registrare.",
     "signupLoginFail": "Account creato ma accesso fallito. Prova a accedere.",
     "roleHint": "Tipo di account",
@@ -6962,6 +6967,15 @@
       "fallbackLabel": "Se il pulsante non si apre, copia questo link:",
       "footerNote": "Non hai richiesto questo? Ignora questo email — la tua password rimane invariata.",
       "legal": "© Affisell — marketplace affiliato · affisell.com"
+    },
+    "emailVerification": {
+      "preview": "Conferma il tuo indirizzo e-mail Affisell — {accountEmail}",
+      "subject": "Conferma il tuo indirizzo e-mail · {accountEmail}",
+      "badge": "Sicurezza Affisell · Verifica",
+      "title": "Conferma il tuo indirizzo e-mail",
+      "body": "È appena stato creato un account Affisell con questo indirizzo. Conferma che è tuo; il link scade tra 48 ore.",
+      "cta": "Conferma il mio indirizzo",
+      "footerNote": "Non hai creato un account? Ignora questa e-mail: l'indirizzo non verrà confermato."
     },
     "contactAcknowledgment": {
       "preview": "Messaggio ricevuto — Affisell #{ticketRef}",

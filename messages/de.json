@@ -532,6 +532,11 @@
       "resetFailed": "Konnte Ihr Passwort nicht aktualisieren.",
       "resetSuccessLogin": "Passwort aktualisiert. Sie können sich jetzt anmelden."
     },
+    "emailVerification": {
+      "done": "E-Mail-Adresse bestätigt. Sie können sich anmelden.",
+      "invalid": "Dieser Bestätigungslink ist ungültig oder wurde bereits verwendet.",
+      "expired": "Dieser Bestätigungslink ist abgelaufen. Melden Sie sich an, um einen neuen zu erhalten."
+    },
     "signupFail": "Konnte sich nicht registrieren.",
     "signupLoginFail": "Konto erstellt, aber Anmeldung fehlgeschlagen. Versuchen Sie, sich anzumelden.",
     "roleHint": "Kontotyp",
@@ -6962,6 +6967,15 @@
       "fallbackLabel": "Wenn der Button nicht geöffnet wird, kopiere diesen Link:",
       "footerNote": "Hast du dies nicht angefordert? Ignoriere diese E-Mail — dein Passwort bleibt unverändert.",
       "legal": "© Affisell — Affiliate-Marktplatz · affisell.com"
+    },
+    "emailVerification": {
+      "preview": "Bestätigen Sie Ihre Affisell-E-Mail-Adresse — {accountEmail}",
+      "subject": "Bestätigen Sie Ihre E-Mail-Adresse · {accountEmail}",
+      "badge": "Affisell-Sicherheit · Bestätigung",
+      "title": "Bestätigen Sie Ihre E-Mail-Adresse",
+      "body": "Mit dieser Adresse wurde gerade ein Affisell-Konto erstellt. Bestätigen Sie, dass sie Ihnen gehört; der Link ist 48 Stunden gültig.",
+      "cta": "Adresse bestätigen",
+      "footerNote": "Sie haben kein Konto erstellt? Ignorieren Sie diese E-Mail: Die Adresse wird nicht bestätigt."
     },
     "contactAcknowledgment": {
       "preview": "Nachricht erhalten — Affisell #{ticketRef}",
