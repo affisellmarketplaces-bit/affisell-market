@@ -1,0 +1,43 @@
+name: Dependency lockfiles (proposal)
+
+# When package.json changes on a pull request, recompute BOTH lockfiles from the registry (no install, no scripts, no
+# secret) and the OSV dependency inventory, and publish them as an artifact. Nothing is committed by this job: the
+# developer downloads, reviews and commits them (AGENTS.md « Dependencies »). Exists because the agent environments have
+# no npm registry access.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "package.json"
+      - ".github/workflows/dependency-lockfiles.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  lockfiles:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: npm lockfile (what Vercel installs)
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: pnpm lockfile (local node_modules) — pnpm 11.22.0, as the Corepack shim of the repo resolves
+        run: npx --yes pnpm@11.22.0 install --lockfile-only --ignore-scripts
+      - name: OSV dependency inventory
+        run: node scripts/generate-dependency-inventory.mjs
+      - name: Summary
+        run: |
+          git --no-pager diff --stat
+          node -e "const l=require('./package-lock.json').packages;for(const k of ['node_modules/next','node_modules/eslint-config-next','node_modules/@next/env','node_modules/sharp'])console.log(k,l[k]&&l[k].version)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lockfiles
+          path: |
+            package-lock.json
+            pnpm-lock.yaml
+            lib/strategic-intelligence/external/dependency-inventory.json
+          retention-days: 7
