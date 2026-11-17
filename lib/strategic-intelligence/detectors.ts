@@ -428,3 +428,86 @@ export function evolutionRecommendations(
   }
   return out
 }
+
+/**
+ * EARLY logistics risk — orders the existing SLA cron (`enforce-supplier-ship-sla`) WILL cancel and refund if nothing
+ * happens. The projection uses the cron's own policy (`evaluateShipPulseAutoCancel`, run by the collector at now and at
+ * now + 48 h), so the cockpit can not disagree with what the cron will do. One signal per supplier and ISO week.
+ * `critical` = at least one order is already eligible (refunded at the next cron run); `important` = within 48 h.
+ */
+export type ShipSlaRiskRow = {
+  supplierId: string
+  supplierName: string
+  eligibleNow: number
+  eligibleWithin48h: number
+  amountCents: number
+  unknownAmounts: number
+  earliestDeadline: string
+}
+
+export function isoWeek(d: Date): string {
+  const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()))
+  const dayNum = t.getUTCDay() || 7
+  t.setUTCDate(t.getUTCDate() + 4 - dayNum)
+  const yearStart = new Date(Date.UTC(t.getUTCFullYear(), 0, 1))
+  const week = Math.ceil(((t.getTime() - yearStart.getTime()) / 86_400_000 + 1) / 7)
+  return `${t.getUTCFullYear()}-W${String(week).padStart(2, "0")}`
+}
+
+export function shipSlaRiskSignals(rows: ShipSlaRiskRow[], ctx: { observedAt: string }): StrategicSignal[] {
+  const week = isoWeek(new Date(ctx.observedAt))
+  return rows
+    .filter((r) => r.eligibleNow + r.eligibleWithin48h > 0)
+    .sort((a, b) => b.eligibleNow - a.eligibleNow || b.amountCents - a.amountCents)
+    .map((r) => {
+      const total = r.eligibleNow + r.eligibleWithin48h
+      return {
+        id: `logistics:sla-risk:${r.supplierId}:${week}`,
+        domain: "supplier" as const,
+        priority: r.eligibleNow > 0 ? ("critical" as const) : ("important" as const),
+        kind: "fact" as const,
+        title:
+          r.eligibleNow > 0
+            ? `« ${r.supplierName} » : ${r.eligibleNow} commande(s) sans suivi seront annulées et remboursées au prochain passage du contrôle d'expédition`
+            : `« ${r.supplierName} » : ${r.eligibleWithin48h} commande(s) sans suivi seront annulées et remboursées d'ici 48 h si rien ne bouge`,
+        evidence: [
+          { label: "Annulables dès maintenant", value: String(r.eligibleNow) },
+          { label: "Annulables d'ici 48 h", value: String(r.eligibleWithin48h) },
+          { label: "Montant encaissé concerné", value: eur(r.amountCents) + (r.unknownAmounts ? ` (+ ${r.unknownAmounts} montant(s) inconnu(s))` : "") },
+          { label: "Première échéance", value: r.earliestDeadline.slice(0, 16).replace("T", " ") + " UTC" },
+        ],
+        source: { id: "affisell.orders", query: "Commandes payées sans suivi × règle d'annulation automatique (evaluateShipPulseAutoCancel) à maintenant et +48 h" },
+        observedAt: ctx.observedAt,
+        window: null,
+        confidence: "high" as const,
+        confidenceReason: "Même règle que la tâche d'annulation automatique ; seul un suivi, un message ou une prolongation du fournisseur peut changer l'issue.",
+        recommendedAction: `Contacter le fournisseur maintenant pour obtenir les numéros de suivi (ou une demande de prolongation) des ${total} commande(s) — après, l'acheteur est remboursé et la vente perdue.`,
+        link: "/admin/orders",
+      }
+    })
+}
+
+/** Auto-buy links whose cost the margin floor reads as UNKNOWN: they will be refused (never bought) when auto-buy runs. */
+export function autoBuyCostUnknownSignal(input: { links: number; autoBuyEnabled: boolean }, ctx: { observedAt: string }): StrategicSignal[] {
+  if (input.links === 0) return []
+  return [
+    {
+      id: `supplier:auto-buy-cost-unknown:${input.autoBuyEnabled ? "on" : "off"}`,
+      domain: "supplier",
+      priority: input.autoBuyEnabled ? "important" : "study",
+      kind: "fact",
+      title: `${input.links} lien(s) en achat automatique sans coût AliExpress connu (prix ou livraison à 0)`,
+      evidence: [
+        { label: "Liens concernés", value: String(input.links) },
+        { label: "Achat automatique", value: input.autoBuyEnabled ? "activé" : "désactivé (AUTO_BUY_ENABLED)" },
+      ],
+      source: { id: "affisell.orders", query: "SupplierLink actifs autoBuyEnabled avec aePriceCents ≤ 0, aeShippingCents ≤ 0 ou variante à 0" },
+      observedAt: ctx.observedAt,
+      window: null,
+      confidence: "high",
+      confidenceReason: "Le plancher de marge refuse tout achat dont le coût est inconnu : ces commandes passeront en traitement manuel.",
+      recommendedAction: "Saisir le prix et la livraison réels (ou une estimation prudente) de ces liens — liste : /api/admin/auto-fulfill/links-missing-cost.",
+      link: "/admin/auto-fulfill",
+    },
+  ]
+}

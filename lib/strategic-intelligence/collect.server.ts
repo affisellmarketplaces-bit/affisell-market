@@ -5,7 +5,10 @@ import { prisma } from "@/lib/prisma"
 import {
   categoryDemandSignals,
   evolutionRecommendations,
+  autoBuyCostUnknownSignal,
   countDistinctDisputes,
+  shipSlaRiskSignals,
+  type ShipSlaRiskRow,
   disputeActivitySignal,
   profitAlertPatternSignals,
   sentinelSignal,
@@ -21,6 +24,10 @@ import { fetchEcbHist90d } from "@/lib/strategic-intelligence/external/ecb-fx.se
 import { gtin14, matchSafetyGateAlerts, normalizeBrand, normalizeModel, safetyGateSignals, type CatalogIdentity } from "@/lib/strategic-intelligence/external/safety-gate"
 import { fetchLatestSafetyGateAlerts } from "@/lib/strategic-intelligence/external/safety-gate.server"
 import { IDENTITY_KEYS } from "@/lib/listing-compliance/keys"
+import { listLinksMissingCost } from "@/lib/admin/auto-fulfill/links-missing-cost"
+import { isAutoBuyDisabled } from "@/lib/fulfillment/auto-buy"
+import { evaluateShipPulseAutoCancel } from "@/lib/orders/ship-pulse-policy"
+import { resolveShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
 import { UNALLOCATED_LINE_AUDIT_ACTION, UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION } from "@/lib/unallocated-line"
 
 /**
@@ -31,6 +38,8 @@ import { UNALLOCATED_LINE_AUDIT_ACTION, UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION }
 const MAX_ORDERS = 50_000
 /** Identity attribute rows read for the Safety Gate check (3 keys per product at most). */
 const MAX_IDENTITY_ROWS = 150_000
+/** Unshipped paid orders read for the SLA projection. */
+const MAX_UNSHIPPED_ORDERS = 5_000
 
 export type CockpitResult = {
   generatedAt: string
@@ -138,6 +147,64 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
         },
         { observedAt }
       )
+    }, report),
+
+    guarded("logistics.sla_risk", async () => {
+      // Same filter as the SLA cron (lib/cron/enforce-supplier-ship-sla.ts), without its deadline condition: every
+      // unshipped paid order, so the projection at +48 h sees the ones not due yet.
+      const rows = await prisma.order.findMany({
+        where: {
+          status: { in: ["paid", "preparing"] },
+          autoCancelledAt: null,
+          cancelledEmailSentAt: null,
+          trackingNumber: null,
+          digitalDeliveredAt: null,
+          bookingConfirmedAt: null,
+        },
+        select: {
+          supplierId: true,
+          totalCents: true,
+          shipDeadlineAt: true,
+          paidAt: true,
+          createdAt: true,
+          trackingNumber: true,
+          shipExtensions: { orderBy: { createdAt: "desc" }, select: { status: true, buyerExpiresAt: true, newDeadlineAt: true, createdAt: true } },
+          fulfillmentMessages: { where: { authorRole: "SUPPLIER" }, select: { id: true } },
+        },
+        take: MAX_UNSHIPPED_ORDERS,
+      })
+      if (rows.length >= MAX_UNSHIPPED_ORDERS) throw new Error("echantillon_tronque")
+      const in48h = new Date(now.getTime() + 48 * 3_600_000)
+      const bySupplier = new Map<string, ShipSlaRiskRow>()
+      for (const o of rows) {
+        const deadline = resolveShipDeadlineAt(o)
+        const base = { deadline, trackingNumber: o.trackingNumber, supplierMessageCount: o.fulfillmentMessages.length, extensions: o.shipExtensions }
+        const nowE = evaluateShipPulseAutoCancel({ ...base, now }).eligible
+        const soonE = !nowE && evaluateShipPulseAutoCancel({ ...base, now: in48h }).eligible
+        if (!nowE && !soonE) continue
+        const r = bySupplier.get(o.supplierId) ?? {
+          supplierId: o.supplierId, supplierName: o.supplierId, eligibleNow: 0, eligibleWithin48h: 0, amountCents: 0, unknownAmounts: 0,
+          earliestDeadline: deadline.toISOString(),
+        }
+        if (nowE) r.eligibleNow++
+        else r.eligibleWithin48h++
+        if (o.totalCents == null) r.unknownAmounts++
+        else r.amountCents += o.totalCents
+        if (deadline.toISOString() < r.earliestDeadline) r.earliestDeadline = deadline.toISOString()
+        bySupplier.set(o.supplierId, r)
+      }
+      if (bySupplier.size === 0) return []
+      const users = await prisma.user.findMany({ where: { id: { in: [...bySupplier.keys()] } }, select: { id: true, name: true, email: true } })
+      for (const u of users) {
+        const r = bySupplier.get(u.id)
+        if (r) r.supplierName = u.name?.trim() || "Fournisseur sans nom"
+      }
+      return shipSlaRiskSignals([...bySupplier.values()], { observedAt })
+    }, report),
+
+    guarded("supplier.auto_buy_cost_unknown", async () => {
+      const { total } = await listLinksMissingCost(1)
+      return autoBuyCostUnknownSignal({ links: total, autoBuyEnabled: !isAutoBuyDisabled() }, { observedAt })
     }, report),
 
     guarded("market.category_demand", async () => {

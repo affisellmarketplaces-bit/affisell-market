@@ -1,15 +1,18 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  autoBuyCostUnknownSignal,
   categoryDemandSignals,
   countDistinctDisputes,
   disputeActivitySignal,
   evolutionRecommendations,
+  isoWeek,
   normalQuantile,
   poissonDropIsReliable,
   poissonRiseIsReliable,
   profitAlertPatternSignals,
   sentinelSignal,
+  shipSlaRiskSignals,
   singleResellerDemandSignals,
   slowSupplierSignals,
   supplierPriceIncreaseSignals,
@@ -98,6 +101,28 @@ describe("detectors — changes only beyond randomness, every signal sourced and
     expect(out[0]).toMatchObject({ priority: "important", kind: "fact" })
     expect(out[0]!.id).toMatch(/^market:marketplace:fall:/)
     expect(out[0]!.recommendedAction).toMatch(/cause transverse/)
+  })
+
+  it("early logistics risk: orders the SLA cron WILL refund — critical now, important within 48 h, one id per supplier and week", () => {
+    const rows = [
+      { supplierId: "s1", supplierName: "Lento", eligibleNow: 2, eligibleWithin48h: 1, amountCents: 8990, unknownAmounts: 0, earliestDeadline: "2026-11-05T10:00:00.000Z" },
+      { supplierId: "s2", supplierName: "Presto", eligibleNow: 0, eligibleWithin48h: 3, amountCents: 4500, unknownAmounts: 1, earliestDeadline: "2026-11-07T10:00:00.000Z" },
+      { supplierId: "s3", supplierName: "Ok", eligibleNow: 0, eligibleWithin48h: 0, amountCents: 0, unknownAmounts: 0, earliestDeadline: "2026-11-30T10:00:00.000Z" },
+    ]
+    const out = shipSlaRiskSignals(rows, { observedAt: "2026-11-17T09:00:00.000Z" })
+    expect(out.map((x) => [x.id, x.priority])).toEqual([
+      ["logistics:sla-risk:s1:2026-W47", "critical"],
+      ["logistics:sla-risk:s2:2026-W47", "important"],
+    ])
+    expect(out[1]!.evidence.find((e) => e.label.startsWith("Montant"))!.value).toBe("45,00 € (+ 1 montant(s) inconnu(s))")
+    expect(isoWeek(new Date("2027-01-01T00:00:00Z"))).toBe("2026-W53")
+    expect(isoWeek(new Date("2026-01-01T00:00:00Z"))).toBe("2026-W01")
+  })
+
+  it("auto-buy links with an unknown cost: important only when auto-buy is on", () => {
+    expect(autoBuyCostUnknownSignal({ links: 0, autoBuyEnabled: true }, ctx)).toEqual([])
+    expect(autoBuyCostUnknownSignal({ links: 4, autoBuyEnabled: false }, ctx)[0]!.priority).toBe("study")
+    expect(autoBuyCostUnknownSignal({ links: 4, autoBuyEnabled: true }, ctx)[0]!.priority).toBe("important")
   })
 
   it("under-distributed product: proven demand, one reseller, little supply", () => {
