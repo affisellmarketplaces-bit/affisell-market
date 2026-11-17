@@ -33,6 +33,14 @@ jobs:
         run: |
           git --no-pager diff --stat
           node -e "const l=require('./package-lock.json').packages;for(const k of ['node_modules/next','node_modules/eslint-config-next','node_modules/@next/env','node_modules/sharp'])console.log(k,l[k]&&l[k].version)"
+      # Also in the log (gzip + base64 between markers): artifact downloads go through a storage host some agent
+      # environments can not reach, the GitHub API log endpoint they can.
+      - name: Patch in the log
+        run: |
+          echo "LOCKFILES-PATCH-BEGIN"
+          git --no-pager diff --binary | gzip -9 | base64 -w0
+          echo
+          echo "LOCKFILES-PATCH-END"
       - uses: actions/upload-artifact@v4
         with:
           name: lockfiles
