@@ -32,3 +32,18 @@ jobs:
         env:
           AFFISELL_LIVE_SOURCES: "1"
         run: npx vitest run lib/__tests__/live-source-ecb.test.ts --reporter=verbose
+      # Format discovery for the next source (EU Safety Gate weekly reports, CC0 public XML). Read-only, public, no
+      # secret; prints the shape only. Replaced by a real parser + live test in the Safety Gate lot.
+      - name: Probe — EU Safety Gate weekly report format
+        continue-on-error: true
+        run: |
+          set -u
+          L=$(curl -fsS --max-time 30 "https://ec.europa.eu/safety-gate-alerts/api/download/weeklyReport/list/xml/en")
+          echo "$L" | head -c 2500; echo; echo "----"
+          echo "$L" | grep -oE '<[a-zA-Z]+' | sort | uniq -c | sort -rn | head -20
+          echo "----"
+          ID=$(echo "$L" | grep -oE '<(id|reference|weeklyReportId)>[^<]+' | head -1 | sed 's/.*>//')
+          echo "first id: ${ID:-none}"
+          for U in "https://ec.europa.eu/safety-gate-alerts/api/download/weeklyReport/${ID:-x}/xml/en" "https://ec.europa.eu/safety-gate-alerts/api/download/weeklyReport/xml/${ID:-x}/en"; do
+            echo "== $U"; curl -fsS --max-time 60 "$U" | head -c 6000 || echo "(failed)"; echo
+          done

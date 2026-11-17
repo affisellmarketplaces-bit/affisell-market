@@ -202,7 +202,7 @@ describe("detectors — changes only beyond randomness, every signal sourced and
 
   it("ranking: critical first, duplicates removed, stable", () => {
     const a = sentinelSignal({ p0: 1, p1: 0 }, ctx)[0]!
-    const b = categoryDemandSignals([{ categoryId: "a", name: "L", current: 30, previous: 15 }], ctx)[0]!
+    const b = sentinelSignal({ p0: 0, p1: 2 }, ctx)[0]! // important
     expect(rankSignals([b, a, a]).map((s) => s.id)).toEqual([a.id, b.id])
   })
 })
