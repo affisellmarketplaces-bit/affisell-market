@@ -15,7 +15,7 @@ import {
 } from "@/lib/strategic-intelligence/external/osv"
 
 /** At most this many advisories are read in detail per refresh (GET /v1/vulns/{id}). */
-export const OSV_MAX_DETAILS = 120
+export const OSV_MAX_DETAILS = 160
 const CACHE_MS = 6 * 3_600_000
 let cache: { at: number; value: OsvScan } | null = null
 
