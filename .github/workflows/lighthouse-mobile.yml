@@ -173,4 +173,7 @@ jobs:
           done
           node scripts/perf/stream-timing.mjs http://localhost:3013/ "unreachable db, run 1"
           node scripts/perf/stream-timing.mjs http://localhost:3013/ "unreachable db, run 2"
+          # Real mobile display time (throttled Chrome): when is the hero painted with a slow / unreachable database?
+          node scripts/lcp-candidates.mjs http://localhost:3012/ 15000 || true
+          node scripts/lcp-candidates.mjs http://localhost:3013/ 15000 || true
           for p in 3011 3012 3013; do echo "--- server $p"; grep -E "home-marketplace-shell|home-race|home_shell" "/tmp/srv-$p.log" | cut -c1-240 | sort | uniq -c | head -8; done
