@@ -298,8 +298,8 @@ export default async function AdminIntelligencePage() {
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Potentiel commercial réel des produits</h2>
         <p className="text-sm text-zinc-500">
           Marge nette Affisell par commande, hors TVA : encaissé − remboursé − versé au fournisseur et au revendeur − frais Stripe − coût
-          AliExpress en achat automatique. « Constaté » = virements réellement faits et frais Stripe enregistrés ; sinon estimé avec les règles du
-          règlement. Commandes payées il y a 21 à 120 jours ; « rentable » / « à perte » seulement quand tout l’intervalle (± 2 erreurs-types) est du
+          AliExpress en achat automatique. « Constaté » = virements réellement faits ; sinon estimé avec les règles du règlement. Frais Stripe toujours
+          estimés (2,9 % + 0,25 € du TTC). Commandes payées il y a 21 à 120 jours ; « rentable » / « à perte » seulement quand tout l’intervalle (± 2 erreurs-types) est du
           même côté de zéro. Rien n’est modifié automatiquement.
         </p>
         {!(cockpit.economics ?? null) ? (
@@ -308,8 +308,8 @@ export default async function AdminIntelligencePage() {
           <>
             <p className="text-sm">
               <span className="font-medium">Qualité des données financières :</span> {cockpit.economics!.quality.usable} commande(s) exploitable(s) sur{" "}
-              {cockpit.economics!.quality.orders} ; {Math.round(cockpit.economics!.quality.constatedShare * 100)} % constatées ; frais Stripe estimés sur{" "}
-              {Math.round(cockpit.economics!.quality.feeEstimatedShare * 100)} % ; total corrigé (empreinte de corruption connue) sur{" "}
+              {cockpit.economics!.quality.orders} ; {Math.round(cockpit.economics!.quality.constatedShare * 100)} % aux virements constatés ; frais Stripe estimés sur{" "}
+              {Math.round(cockpit.economics!.quality.feeEstimatedShare * 100)} % (le montant réel prélevé par Stripe n’est enregistré nulle part) ; total corrigé (empreinte de corruption connue) sur{" "}
               {cockpit.economics!.quality.totalCorrected}
               {Object.keys(cockpit.economics!.quality.unusable).length > 0
                 ? ` ; écartées : ${Object.entries(cockpit.economics!.quality.unusable).map(([k, v]) => `${k} ${v}`).join(", ")}`

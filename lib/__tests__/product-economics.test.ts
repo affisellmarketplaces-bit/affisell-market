@@ -57,10 +57,12 @@ describe("one order — what Affisell keeps, VAT excluded", () => {
     expect(e.resellerNetCents).toBe(1200)
   })
 
-  it("constated: the transfers really made and the recorded Stripe fee", () => {
+  it("constated: the transfers really made; the Stripe fee stays an estimate on the TTC charge", () => {
     const e = usable(order({ transfers: paid(1560, 1200), stripeFeesCents: 130 }))
-    expect(e.platformNetCents).toBe(3000 - 2760 - 130)
-    expect(e.transfersConstated && e.feeConstated).toBe(true)
+    expect(e.platformNetCents).toBe(3000 - 2760 - 129)
+    expect(e.transfersConstated).toBe(true)
+    // Order.stripeFeesCents is the scheduler's own estimate on the HT line, not Stripe's fee: never "constated".
+    expect(e.feeConstated).toBe(false)
   })
 
   it("a transfer still pending makes the order estimated, not constated", () => {
@@ -72,27 +74,27 @@ describe("one order — what Affisell keeps, VAT excluded", () => {
     const half = { refundedCents: 1800, taxReturnedCents: 300, stripeFeesCents: 130 }
     const constated = usable(order({ ...half, transfers: paid(1560, 1200, [780, 600]) }))
     const estimated = usable(order({ ...half }))
-    expect(constated.platformNetCents).toBe(1500 - 1380 - 130)
+    expect(constated.platformNetCents).toBe(1500 - 1380 - 129)
     expect(estimated.platformNetCents).toBe(constated.platformNetCents)
     expect(constated.refunded).toBe(true)
   })
 
   it("a full refund still costs the Stripe fee (Stripe keeps it)", () => {
     const e = usable(order({ refundedCents: 3600, taxReturnedCents: 600, stripeFeesCents: 130 }))
-    expect(e.platformNetCents).toBe(-130)
+    expect(e.platformNetCents).toBe(-129)
   })
 
-  it("VAT is never margin: the same HT line with a different VAT keeps the same net (fee aside)", () => {
-    const a = usable(order({ totalCents: 3600, taxCents: 600, stripeFeesCents: 130 }))
-    const b = usable(order({ totalCents: 3165, taxCents: 165, stripeFeesCents: 130 }))
-    expect(a.platformNetCents).toBe(b.platformNetCents)
+  it("VAT is never margin: the same HT line with a different VAT differs only by the Stripe fee on the larger charge", () => {
+    const a = usable(order({ totalCents: 3600, taxCents: 600 }))
+    const b = usable(order({ totalCents: 3165, taxCents: 165 }))
+    expect(b.platformNetCents - a.platformNetCents).toBe(129 - 117)
   })
 
   it("an Affisell auto-buy line carries the AliExpress cost (estimated)", () => {
     // Same transfers really made: the only difference left is the AliExpress purchase Affisell pays.
     const e = usable(order({ split: { ...split, usesAffisellAutoBuy: true, aeWholesaleCents: 900 }, transfers: paid(1000, 1200), stripeFeesCents: 130 }))
     expect(e.aeCostEstimatedCents).toBe(900)
-    expect(e.platformNetCents).toBe(3000 - 2200 - 130 - 900)
+    expect(e.platformNetCents).toBe(3000 - 2200 - 129 - 900)
     const catalogue = usable(order({ transfers: paid(1000, 1200), stripeFeesCents: 130 }))
     expect(catalogue.platformNetCents - e.platformNetCents).toBe(900)
   })
@@ -103,7 +105,7 @@ describe("data quality before any classification", () => {
     expect(orderEconomics(order({ totalCents: null, split: { ...split, subtotalCents: null, sellingPriceCents: 0 } }))).toEqual({ usable: false, issue: "total_absent" })
     const repaired = usable(order({ totalCents: 3000, taxCents: 600, stripeFeesCents: 130 }))
     expect(repaired.totalCorrected).toBe(true)
-    expect(repaired.platformNetCents).toBe(3000 - 2760 - 130)
+    expect(repaired.platformNetCents).toBe(3000 - 2760 - 129)
   })
 
   it("transfers that would exceed the HT line are refused (money guard invariant)", () => {
@@ -114,7 +116,7 @@ describe("data quality before any classification", () => {
     const q = financialDataQuality([order({ transfers: paid(1560, 1200), stripeFeesCents: 130 }), order(), order({ totalCents: 3000 }), order({ split: { ...split, sellingPriceCents: 1000, subtotalCents: 1000 } })])
     expect(q).toMatchObject({ orders: 4, usable: 3, totalCorrected: 1, unusable: { repartition_incoherente: 1 } })
     expect(q.constatedShare).toBeCloseTo(1 / 3, 10)
-    expect(q.feeEstimatedShare).toBeCloseTo(2 / 3, 10)
+    expect(q.feeEstimatedShare).toBe(1)
   })
 })
 
@@ -128,7 +130,7 @@ describe("aggregation and classification", () => {
 
   it("margins are judged with their interval; too few or too dirty = données incomplètes", () => {
     expect(econ.get("good")!.margin).toBe("rentable")
-    expect(econ.get("good")!.meanNetCents).toBe(110)
+    expect(econ.get("good")!.meanNetCents).toBe(111)
     expect(econ.get("good")!.constatedShare).toBe(1)
     expect(econ.get("bad")!.margin).toBe("a_perte")
     expect(econ.get("few")!.margin).toBe("donnees_incompletes")

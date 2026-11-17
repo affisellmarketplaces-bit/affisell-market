@@ -14,8 +14,10 @@ import type { StrategicSignal } from "@/lib/strategic-intelligence/types"
  *                    · CONSTATÉ: Σ (TransferAttempt.amountCents − reversedAmountCents) of SUCCESS attempts, when every leg
  *                      the settlement owes (computeTransferAmountsFromOrder > 0) has a SUCCESS attempt;
  *                    · otherwise ESTIMÉ: the settlement's own legs × (1 − refunded share) — the pro-rata reversal rule;
- *   − Stripe fee   = Order.stripeFeesCents when recorded (constaté), else 2.9 % + 25 c of the charge (estimé). Stripe
- *                    does not give its fee back on a refund, so it is never reduced by refunds;
+ *   − Stripe fee   = ALWAYS ESTIMATED: 2.9 % + 25 c of the TTC charge (what Stripe bills on). `Order.stripeFeesCents` is
+ *                    NOT Stripe's real fee — the transfer scheduler writes its own estimate there, on the HT line
+ *                    (lib/transfers/schedule-from-checkout.ts) — and Stripe's real fee (balance transaction) is recorded
+ *                    nowhere, so no order can claim a constated fee. Stripe keeps its fee on a refund: never reduced;
  *   − AliExpress   = Order.aeWholesaleCents on an Affisell auto-buy line (ESTIMÉ: the purchase is paid by Affisell and
  *                    deducted from no payout — see AGENTS « Finding to decide »).
  *   No double count: a refund is counted ONCE as money going back to the buyer; a transfer reversal ONCE as a smaller
@@ -95,8 +97,9 @@ export function orderEconomics(o: EconOrder): OrderEconomics {
     ? net("SUPPLIER") + net("AFFILIATE")
     : Math.round((legs.supplierPayoutCents + legs.affiliateTransferCents) * keep)
   const resellerNet = transfersConstated ? net("AFFILIATE") : Math.round(legs.affiliateTransferCents * keep)
-  const feeConstated = o.stripeFeesCents > 0
-  const fee = feeConstated ? o.stripeFeesCents : estimateStripeFeeCents(total)
+  // Stripe's real fee is not recorded anywhere (see header): always the estimate, on the TTC charge.
+  const feeConstated = false
+  const fee = estimateStripeFeeCents(total)
   const aeCost = o.split.usesAffisellAutoBuy ? Math.max(0, o.split.aeWholesaleCents ?? 0) : 0
   return {
     usable: true,
@@ -146,7 +149,7 @@ export function aggregateProductEconomics(orders: EconOrder[]): Map<string, Prod
       }
       nets.push(e.platformNetCents)
       reseller += e.resellerNetCents
-      if (e.transfersConstated && e.feeConstated) constated++
+      if (e.transfersConstated) constated++
       if (e.refunded) refundedOrders++
       ae += e.aeCostEstimatedCents
     }
@@ -298,7 +301,7 @@ export function financialDataQuality(orders: EconOrder[]): FinancialDataQuality 
     }
     usable++
     if (e.totalCorrected) corrected++
-    if (e.transfersConstated && e.feeConstated) constated++
+    if (e.transfersConstated) constated++
     if (!e.feeConstated) feeEstimated++
     ae += e.aeCostEstimatedCents
   }
@@ -335,7 +338,7 @@ export function potentialSignals(items: ProductPotential[], ctx: { observedAt: s
           ...(e && e.margin !== "donnees_incompletes"
             ? [
                 { label: "Commandes mûres exploitables", value: `${e.usable} sur ${e.orders}` },
-                { label: "Part constatée (virements faits + frais Stripe enregistrés)", value: `${Math.round(e.constatedShare * 100)} %` },
+                { label: "Part constatée (virements réellement faits ; frais Stripe toujours estimés)", value: `${Math.round(e.constatedShare * 100)} %` },
                 { label: "Marge nette Affisell cumulée (cohorte)", value: eur(e.totalNetCents) },
                 { label: "Taux de commandes remboursées", value: `${Math.round(e.refundRate * 100)} %` },
                 ...(e.disputes > 0 ? [{ label: "Litiges (frais non enregistrés, non comptés)", value: String(e.disputes) }] : []),
@@ -363,8 +366,8 @@ export function potentialSignals(items: ProductPotential[], ctx: { observedAt: s
         window: ctx.window,
         confidence: !e || e.margin === "donnees_incompletes" ? "low" : constated ? "high" : "medium",
         confidenceReason: constated
-          ? "Marge calculée sur des virements réellement effectués et des frais Stripe enregistrés ; intervalle à ± 2 erreurs-types."
-          : "Marge en partie estimée (virements pas encore faits ou frais Stripe non enregistrés : règles du règlement appliquées) ; intervalle à ± 2 erreurs-types.",
+          ? "Marge calculée sur des virements réellement effectués ; frais Stripe estimés (2,9 % + 0,25 € du montant TTC, le montant réel n'est pas enregistré) ; intervalle à ± 2 erreurs-types."
+          : "Marge en partie estimée (virements pas encore faits : règles du règlement appliquées ; frais Stripe estimés) ; intervalle à ± 2 erreurs-types.",
         recommendedAction: ACTIONS[cls],
         link: "/admin/products",
         subjects: [{ type: "product", id: p.productId, label: p.name }],
