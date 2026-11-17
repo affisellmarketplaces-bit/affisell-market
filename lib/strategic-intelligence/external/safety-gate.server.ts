@@ -11,8 +11,8 @@ import {
 
 const MAX_LIST_BYTES = 3_000_000
 const MAX_REPORT_BYTES = 4_000_000
-/** The latest two weekly reports: the current week and the previous one (a report can be read late). */
-export const SAFETY_GATE_REPORTS_READ = 2
+/** The latest eight weekly reports (≈ 2 months): enough alerts per category to say where the EU is finding problems. */
+export const SAFETY_GATE_REPORTS_READ = 8
 
 async function getText(url: string, maxBytes: number, code: string): Promise<string> {
   const res = await fetch(url, {
@@ -31,10 +31,10 @@ async function getText(url: string, maxBytes: number, code: string): Promise<str
  * Reads the official list of weekly reports, then the latest ones (URLs rebuilt from the numeric id, never taken from
  * the file). Throws on any failure so the cockpit reports the source as not verified this run.
  */
-export async function fetchLatestSafetyGateAlerts(): Promise<{ reports: WeeklyReportRef[]; alerts: SafetyGateAlert[] }> {
+export async function fetchLatestSafetyGateAlerts(count = SAFETY_GATE_REPORTS_READ): Promise<{ reports: WeeklyReportRef[]; alerts: SafetyGateAlert[] }> {
   const list = parseWeeklyReportList(await getText(SAFETY_GATE_LIST_URL, MAX_LIST_BYTES, "safety_gate_list"))
   if (list.length === 0) throw new Error("safety_gate_list_unparseable")
-  const reports = list.slice(0, SAFETY_GATE_REPORTS_READ)
+  const reports = list.slice(0, Math.max(1, Math.min(count, 12)))
   const alerts: SafetyGateAlert[] = []
   for (const r of reports) {
     const parsed = parseWeeklyReport(await getText(safetyGateReportUrl(r.id), MAX_REPORT_BYTES, "safety_gate_report"))

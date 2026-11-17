@@ -24,7 +24,8 @@ import { DOMAIN_LABELS, rankSignals, type StrategicSignal } from "@/lib/strategi
 import { fxMoves, fxSignals } from "@/lib/strategic-intelligence/external/ecb-fx"
 import { fetchEcbHist90d } from "@/lib/strategic-intelligence/external/ecb-fx.server"
 import { gtin14, matchSafetyGateAlerts, normalizeBrand, normalizeModel, safetyGateSignals, type CatalogIdentity } from "@/lib/strategic-intelligence/external/safety-gate"
-import { fetchLatestSafetyGateAlerts } from "@/lib/strategic-intelligence/external/safety-gate.server"
+import { fetchLatestSafetyGateAlerts, SAFETY_GATE_REPORTS_READ } from "@/lib/strategic-intelligence/external/safety-gate.server"
+import { aggregateAlertsByCategory, categoryExposureSignals, type RootExposure } from "@/lib/strategic-intelligence/external/safety-gate-exposure"
 import { dependencySignals } from "@/lib/strategic-intelligence/external/osv"
 import { scanDependenciesWithOsv } from "@/lib/strategic-intelligence/external/osv.server"
 import { IDENTITY_KEYS } from "@/lib/listing-compliance/keys"
@@ -138,7 +139,7 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
         const names = new Map(named.map((p) => [p.id, p.name]))
         for (const m of matches) m.productName = names.get(m.productId) ?? m.productId
       }
-      return safetyGateSignals(
+      const matchSignals = safetyGateSignals(
         {
           reports,
           alerts,
@@ -151,6 +152,58 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
         },
         { observedAt }
       )
+
+      // Category exposure: Safety Gate categories × Affisell's active products / valid GTINs / units sold (30 d), by
+      // Google-taxonomy ROOT. Bounded reads; a capped read is not used.
+      const [cats, activeByCategory, orders] = await Promise.all([
+        prisma.category.findMany({ select: { id: true, parentId: true, googleId: true }, take: 50_000 }),
+        prisma.product.groupBy({ by: ["categoryId"], where: { active: true }, _count: { _all: true } }),
+        ordersPromise,
+      ])
+      if (cats.length >= 50_000 || orders.length >= MAX_ORDERS) return matchSignals
+      const parent = new Map(cats.map((c) => [c.id, c.parentId]))
+      const gid = new Map(cats.map((c) => [c.id, c.googleId]))
+      const rootCache = new Map<string, number | null>()
+      const rootOf = (categoryId: string | null | undefined): number | null => {
+        if (!categoryId) return null
+        if (rootCache.has(categoryId)) return rootCache.get(categoryId)!
+        let cur: string | null | undefined = categoryId
+        let guard = 0
+        while (cur && parent.get(cur) && guard++ < 20) cur = parent.get(cur)
+        const root = cur ? (gid.get(cur) ?? null) : null
+        rootCache.set(categoryId, root)
+        return root
+      }
+      const exposure = new Map<number, RootExposure>()
+      const bump = (root: number | null, f: (e: RootExposure) => void) => {
+        if (root == null) return
+        const e = exposure.get(root) ?? { activeProducts: 0, withValidGtin: 0, units30: 0 }
+        f(e)
+        exposure.set(root, e)
+      }
+      for (const g of activeByCategory) bump(rootOf(g.categoryId), (e) => (e.activeProducts += g._count._all))
+      const validGtinProducts = catalog.filter((p) => p.gtin && gtin14(p.gtin)).map((p) => p.productId)
+      if (validGtinProducts.length > 0) {
+        const withCat = await prisma.product.findMany({ where: { id: { in: validGtinProducts }, active: true }, select: { categoryId: true } })
+        for (const p of withCat) bump(rootOf(p.categoryId), (e) => e.withValidGtin++)
+      }
+      for (const o of orders) {
+        if (o.paidAt && o.paidAt >= d(30)) bump(rootOf(o.product?.categoryId), (e) => (e.units30 += o.quantity ?? 1))
+      }
+      const from = reports[reports.length - 1]?.publishedOn
+      const to = reports[0]?.publishedOn
+      return [
+        ...matchSignals,
+        ...categoryExposureSignals(
+          {
+            stats: aggregateAlertsByCategory(alerts),
+            exposure,
+            reportsLabel: reports.map((r) => r.reference).join(", "),
+            weeks: reports.length || SAFETY_GATE_REPORTS_READ,
+          },
+          { observedAt, window: from && to ? { from: `${from}T00:00:00.000Z`, to: `${to}T23:59:59.000Z` } : null }
+        ),
+      ]
     }, report),
 
     guarded("logistics.sla_risk", async () => {
