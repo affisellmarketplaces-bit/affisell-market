@@ -35,6 +35,15 @@ import { isAutoBuyDisabled } from "@/lib/fulfillment/auto-buy"
 import { evaluateShipPulseAutoCancel } from "@/lib/orders/ship-pulse-policy"
 import { resolveShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
 import { UNALLOCATED_LINE_AUDIT_ACTION, UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION } from "@/lib/unallocated-line"
+import {
+  aggregateQuality,
+  detectQualityOutliers,
+  qualityRiskSignals,
+  QUALITY_COHORT_FROM_DAYS,
+  QUALITY_COHORT_TO_DAYS,
+  QUALITY_RETURN_REASONS,
+  type QualityCohortOrder,
+} from "@/lib/strategic-intelligence/quality-risk"
 
 /**
  * AFFISELL INTELLIGENCE — step 1 collector. READ-ONLY: it reads Affisell's own database (bounded queries) and calls no
@@ -451,6 +460,63 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
           ordersShareBps: orders.length > 0 ? Math.round(((bySupplier.get(s.supplierId) ?? 0) / orders.length) * 10_000) : 0,
         })),
         { observedAt }
+      )
+    }, report),
+
+    guarded("risk.product_quality", async () => {
+      // Orders old enough for a problem to have been reported (see quality-risk.ts), read once, bounded.
+      const from = d(QUALITY_COHORT_FROM_DAYS)
+      const to = d(QUALITY_COHORT_TO_DAYS)
+      const [cohort, returns, ledger, recent] = await Promise.all([
+        prisma.order.findMany({
+          where: { paidAt: { gte: from, lt: to } },
+          take: MAX_ORDERS,
+          select: { id: true, productId: true, supplierId: true, stripeSessionId: true },
+        }),
+        prisma.orderReturn.findMany({
+          // A request the buyer withdrew is not counted; a rejected one still is (it is a complaint, not yet verified).
+          where: { order: { paidAt: { gte: from, lt: to } }, reasonCode: { in: [...QUALITY_RETURN_REASONS] }, status: { not: "CANCELLED" } },
+          take: MAX_ORDERS,
+          select: { orderId: true, reasonCode: true },
+        }),
+        prisma.processedWebhook.findMany({ where: { id: { startsWith: "dispute:" }, createdAt: { gte: from } }, take: MAX_ORDERS, select: { id: true } }),
+        ordersPromise,
+      ])
+      if (cohort.length >= MAX_ORDERS || returns.length >= MAX_ORDERS || ledger.length >= MAX_ORDERS) throw new Error("echantillon_tronque")
+      const reasonsBy = new Map<string, string[]>()
+      for (const r of returns) reasonsBy.set(r.orderId, [...(reasonsBy.get(r.orderId) ?? []), r.reasonCode])
+      // Ledger ids are `dispute:<dp_id>:<orderId>` (lib/orders/dispute-hold.server.ts).
+      const disputed = new Set(ledger.map((r) => r.id.split(":")[2]).filter(Boolean))
+      const rows: QualityCohortOrder[] = cohort.map((o) => ({
+        orderId: o.id,
+        productId: o.productId,
+        supplierId: o.supplierId,
+        stripeSessionId: o.stripeSessionId,
+        returnReasons: reasonsBy.get(o.id) ?? [],
+        disputed: disputed.has(o.id),
+      }))
+      const products = detectQualityOutliers(aggregateQuality(rows, (o) => o.productId))
+      const suppliers = detectQualityOutliers(aggregateQuality(rows, (o) => o.supplierId))
+      if (products.length === 0 && suppliers.length === 0) return []
+      const productIds = products.map((f) => f.key)
+      const sold30 = new Set(recent.filter((o) => o.paidAt && o.paidAt >= d(30)).map((o) => o.productId))
+      const [productRows, users] = await Promise.all([
+        prisma.product.findMany({ where: { id: { in: productIds } }, select: { id: true, name: true, active: true, supplierId: true } }),
+        prisma.user.findMany({
+          where: { id: { in: [...new Set([...suppliers.map((f) => f.key), ...cohort.filter((o) => productIds.includes(o.productId)).map((o) => o.supplierId)])] } },
+          select: { id: true, name: true, store: { select: { name: true } } },
+        }),
+      ])
+      const supplierName = new Map(users.map((u) => [u.id, u.store?.name?.trim() || u.name?.trim() || "Fournisseur"]))
+      return qualityRiskSignals(
+        { products, suppliers },
+        {
+          product: new Map(
+            productRows.map((p) => [p.id, { name: p.name, supplierName: supplierName.get(p.supplierId) ?? "Fournisseur", sellingNow: p.active && sold30.has(p.id) }])
+          ),
+          supplier: supplierName,
+        },
+        { observedAt, window: { from: from.toISOString(), to: to.toISOString() } }
       )
     }, report),
 
