@@ -56,8 +56,9 @@ describe("PLAN mode (the default) touches nothing but the database", () => {
     expect(d.aeOrderAmounts).not.toHaveBeenCalled()
     expect(fetchSpy).not.toHaveBeenCalled()
     expect(report.mode).toBe("plan")
-    expect(report.stripe.byStatus.estime).toEqual({ lecture_non_lancee: 1 })
-    expect(report.stripe.byStatus.non_rapproche).toEqual({}) // the payment-intent-only one is "estimé" too: nothing read
+    // both payments (the one with a stored charge id, the payment-intent-only one): nothing read, estimate only
+    expect(report.stripe.byStatus.estime).toEqual({ lecture_non_lancee: 2 })
+    expect(report.stripe.byStatus.non_rapproche).toEqual({})
     expect(report.readScope.join("\n")).toMatch(/non lancé \(mode plan\)/)
   })
 

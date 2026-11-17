@@ -1,7 +1,12 @@
 import { existsSync, readFileSync } from "node:fs"
 import path from "node:path"
 
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
+
+// Hermetic (vitest-env-isolation): this file only NAMES the token store; loading it at all would be a failure.
+vi.mock("@/lib/aliexpress-token-store", () => {
+  throw new Error("report:fee-reconciliation must never load the AliExpress token store")
+})
 
 const ROOT = process.cwd()
 const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "")
