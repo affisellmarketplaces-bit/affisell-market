@@ -36,6 +36,8 @@ import { evaluateShipPulseAutoCancel } from "@/lib/orders/ship-pulse-policy"
 import { resolveShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
 import { UNALLOCATED_LINE_AUDIT_ACTION, UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION } from "@/lib/unallocated-line"
 import { entitySynthesisSignals } from "@/lib/strategic-intelligence/synthesis"
+import { applyLearnedPriorities, type PriorityChange } from "@/lib/strategic-intelligence/learned-priority"
+import { loadJournal } from "@/lib/strategic-intelligence/journal.server"
 import { detectEmerging, emergingSignals, EMERGING_PRIOR_DAYS, EMERGING_RECENT_DAYS, type EmergingCounts } from "@/lib/strategic-intelligence/emerging"
 import { aggregateQuality, detectQualityOutliers, qualityRiskSignals } from "@/lib/strategic-intelligence/quality-risk"
 import { loadOrderCohort } from "@/lib/strategic-intelligence/cohort.server"
@@ -57,6 +59,8 @@ export type CockpitResult = {
   sources: IntelligenceSource[]
   coverage: ReturnType<typeof domainCoverage>
   collectors: Array<{ id: string; ok: boolean; signals: number; error?: string }>
+  /** Priorities moved by measured results (learned-priority.ts); written to the AuditLog by the scheduled run only. */
+  priorityChanges: PriorityChange[]
 }
 
 async function guarded(
@@ -612,9 +616,15 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
     },
     { observedAt }
   )
-  const detected = results.flat()
+  // Measured outcomes per signal family; a journal that can not be read changes nothing (no learning, no crash).
+  const byFamily = await loadJournal()
+    .then((j) => j.byFamily)
+    .catch(() => ({}))
+  const learned = applyLearnedPriorities(results.flat(), byFamily)
+  const detected = learned.signals
   return {
     generatedAt: observedAt,
+    priorityChanges: learned.changes,
     signals: rankSignals([...detected, ...entitySynthesisSignals(detected, { observedAt }), ...evolution]),
     sources,
     coverage,

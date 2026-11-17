@@ -6,6 +6,7 @@ import { DecisionForm, MeasureButton } from "@/components/admin/intelligence/dec
 import { loadIntelligenceCockpit } from "@/lib/strategic-intelligence/collect.server"
 import { GRADE_LABELS, RELIABILITY_MIN_ORDERS, type ComponentVerdict, type RateComponent } from "@/lib/strategic-intelligence/supplier-reliability"
 import { loadSupplierReliability } from "@/lib/strategic-intelligence/supplier-reliability.server"
+import { familyLearning, LEARN_MIN_ACTED, type LearningState } from "@/lib/strategic-intelligence/learned-priority"
 import {
   DECISION_LABELS,
   LEARNING_MIN_MEASURED,
@@ -28,6 +29,13 @@ import {
 } from "@/lib/strategic-intelligence/types"
 
 export const dynamic = "force-dynamic"
+
+const LEARNING_STATE_LABELS: Record<LearningState["state"], string> = {
+  insufficient: "données insuffisantes",
+  keep: "priorité inchangée",
+  promote: "priorité relevée d’un cran",
+  demote: "priorité abaissée d’un cran",
+}
 
 const VERDICT_LABELS: Record<ComponentVerdict, string> = {
   better: "meilleur que le reste",
@@ -282,6 +290,31 @@ export default async function AdminIntelligencePage() {
             </ul>
           </div>
         ) : null}
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Priorités apprises des résultats</h2>
+        <p className="text-sm text-zinc-500">
+          Une priorité ne bouge que d’un cran, jamais pour un signal critique, et seulement quand les décisions mesurées sur ce type de signal le
+          justifient ({LEARN_MIN_ACTED} décisions « agir » mesurées au minimum ; une hausse exige aussi la comparaison avec « sans action »). C’est
+          une association observée, pas une preuve de causalité. Chaque changement est tracé par la tâche quotidienne.
+        </p>
+        {Object.keys(journal.byFamily).length === 0 ? (
+          <p className="text-sm text-zinc-500">Données insuffisantes : aucune décision mesurée pour l’instant.</p>
+        ) : (
+          <ul className="space-y-1 text-sm">
+            {Object.entries(journal.byFamily).map(([family, record]) => {
+              const l = familyLearning(record)
+              const moved = (cockpit.priorityChanges ?? []).filter((c) => c.family === family).length
+              return (
+                <li key={family}>
+                  <span className="font-mono text-xs">{family}</span> — {LEARNING_STATE_LABELS[l.state]}
+                  {moved > 0 ? ` (${moved} signal(aux) ajusté(s) aujourd’hui)` : ""} : <span className="text-zinc-600 dark:text-zinc-400">{l.reason}</span>
+                </li>
+              )
+            })}
+          </ul>
+        )}
       </section>
 
       <section className="space-y-2">

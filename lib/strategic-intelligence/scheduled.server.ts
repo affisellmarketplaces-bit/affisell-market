@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma"
 import { loadIntelligenceCockpit } from "@/lib/strategic-intelligence/collect.server"
 import { signalSnapshot } from "@/lib/strategic-intelligence/journal"
 import { measureDecision } from "@/lib/strategic-intelligence/journal.server"
+import { priorityChangeAuditId, type PriorityChange } from "@/lib/strategic-intelligence/learned-priority"
 import { buildFounderDigest, neutraliseMentions, NOTIFIED_PRIORITIES, type MeasuredOutcome } from "@/lib/strategic-intelligence/scheduled"
 import type { StrategicSignal } from "@/lib/strategic-intelligence/types"
 
@@ -104,14 +105,17 @@ export type IntelligenceDailyResult = {
   journalAvailable: boolean
   notify: "sent" | "no_channel" | "failed" | "nothing_new"
   failedCollectors: string[]
+  /** Learned priority changes newly written to the AuditLog by this run. */
+  priorityChangesRecorded: number
 }
 
-/** The daily scheduled run. Writes only the signal log, outcomes and the decision status — never a price or money. */
+/** The daily scheduled run. Writes only the signal log, outcomes, the decision status and the trace of learned priority changes — never a price or money. */
 export async function runIntelligenceDaily(now = new Date()): Promise<IntelligenceDailyResult> {
   const cockpit = await loadIntelligenceCockpit(now)
   const logAvailable = await recordSignalRun(cockpit.signals, now)
   const announce = logAvailable ? await claimSignalsToAnnounce(cockpit.signals, now) : []
   const measured = await measureDueDecisions(now)
+  const priorityChangesRecorded = await recordPriorityChanges(cockpit.priorityChanges ?? [])
   const failedCollectors = cockpit.collectors.filter((c) => !c.ok)
   const digest = buildFounderDigest({
     newSignals: announce,
@@ -141,6 +145,37 @@ export async function runIntelligenceDaily(now = new Date()): Promise<Intelligen
     journalAvailable: measured.available,
     notify,
     failedCollectors: failedCollectors.map((c) => c.id),
+    priorityChangesRecorded,
+  }
+}
+
+/**
+ * Trace of learned priority changes (learned-priority.ts): one AuditLog row per family, direction and basis —
+ * deterministic id + skipDuplicates, so a daily run re-seeing the same change writes nothing new. Never throws.
+ */
+export async function recordPriorityChanges(changes: PriorityChange[]): Promise<number> {
+  if (changes.length === 0) return 0
+  const rows = new Map<string, PriorityChange & { examples: string[] }>()
+  for (const c of changes) {
+    const id = priorityChangeAuditId(c)
+    const row = rows.get(id) ?? { ...c, examples: [] }
+    if (row.examples.length < 5) row.examples.push(c.signalId)
+    rows.set(id, row)
+  }
+  try {
+    const res = await prisma.auditLog.createMany({
+      data: [...rows.entries()].map(([id, c]) => ({
+        id,
+        action: "intelligence.priority_learned",
+        entityType: "IntelligenceSignalFamily",
+        entityId: c.family,
+        payload: { from: c.from, to: c.to, reason: c.reason, record: c.record, exampleSignals: c.examples } as Prisma.InputJsonValue,
+      })),
+      skipDuplicates: true,
+    })
+    return res.count
+  } catch {
+    return 0
   }
 }
 
