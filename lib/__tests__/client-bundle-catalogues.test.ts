@@ -12,8 +12,9 @@ import { describe, expect, it } from "vitest"
  * (via `lib/i18n-ui-locale.ts` → `lib/i18n-pick-message.ts`), a 2.8 MB chunk on every page.
  *
  * This walks STATIC imports from the root layout, the home pages and the root error boundary; once it enters a
- * `"use client"` module everything below is client code and must not reach a catalogue. `import()` (lazy chunks,
- * e.g. idle widgets) and `import type` are not followed: they do not load at startup.
+ * `"use client"` module everything below is client code and must not reach a catalogue. Lazy `import()` chunks are
+ * followed too: an idle-loaded widget (the Dona chat on every public page) is still downloaded by every visitor a few
+ * seconds in. `import type` is not followed.
  */
 const root = path.resolve(__dirname, "../..")
 const CATALOGUE_LOADERS = new Set(["lib/i18n-load-messages.ts"])
@@ -35,11 +36,12 @@ function staticImports(src: string): string[] {
     if (m[2]) continue // import type / export type
     out.push(m[3] ?? m[4]!)
   }
+  for (const m of src.matchAll(/import\(\s*["']([^"']+)["']\s*\)/g)) out.push(m[1]!)
   return out
 }
 
 describe("startup bundle never contains the whole message catalogues", () => {
-  it("no client module reachable from the root layout / home / error boundary imports them", () => {
+  it("no client module reachable (statically or lazily) from the root layout / home / error boundary imports them", () => {
     const violations: string[] = []
     const seen = new Set<string>()
     const walk = (file: string, chain: string[], client: boolean) => {

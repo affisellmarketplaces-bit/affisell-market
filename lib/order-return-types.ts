@@ -1,17 +1,12 @@
 import type { AppLocale } from "@/lib/i18n-locale"
 import { tMessage, pickBinaryLabel } from "@/lib/i18n-pick-message"
 
-export const ORDER_RETURN_STATUSES = [
-  "REQUESTED",
-  "AWAITING_SHIPMENT",
-  "IN_TRANSIT",
-  "RECEIVED",
-  "REFUNDED",
-  "REJECTED",
-  "CANCELLED",
-] as const
-
-export type OrderReturnStatus = (typeof ORDER_RETURN_STATUSES)[number]
+export {
+  isTerminalReturnStatus,
+  ORDER_RETURN_STATUSES,
+  TERMINAL_RETURN_STATUSES,
+  type OrderReturnStatus,
+} from "@/lib/order-return-status"
 
 export const RETURN_REASON_CODES = [
   "NOT_AS_DESCRIBED",
@@ -49,8 +44,4 @@ export function getAutoBuyStatusLabel(status: string, locale: AppLocale): string
   return tMessage(locale, "orderReturns.autoBuy.DEFAULT", "Supplier")
 }
 
-export const TERMINAL_RETURN_STATUSES: OrderReturnStatus[] = ["REJECTED", "REFUNDED", "CANCELLED"]
 
-export function isTerminalReturnStatus(s: string): boolean {
-  return TERMINAL_RETURN_STATUSES.includes(s as OrderReturnStatus)
-}
