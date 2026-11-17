@@ -51,6 +51,11 @@ for (const item of lcpEl?.details?.items ?? []) {
     console.log(`[lh-diag] LCP element: ${item.node.nodeLabel ?? ""} · ${String(item.node.snippet ?? "").slice(0, 160)}`)
   }
 }
+if (!lcpEl?.details) console.log(`[lh-diag] LCP element audit: ${JSON.stringify(lcpEl ?? null).slice(0, 600)}`)
+// The trace's own LCP candidate (independent of the audit's table shape).
+for (const el of audit(lhr, "trace-elements")?.details?.items ?? []) {
+  if (el.traceEventType === "largest-contentful-paint") console.log(`[lh-diag] trace LCP node: ${el.node?.nodeLabel ?? ""} · ${String(el.node?.snippet ?? "").slice(0, 200)} · ${el.node?.selector ?? ""}`)
+}
 const lcpReq = audit(lhr, "lcp-lazy-loaded")?.score === 0 ? "LCP image is LAZY-loaded" : null
 if (lcpReq) console.log(`[lh-diag] ${lcpReq}`)
 

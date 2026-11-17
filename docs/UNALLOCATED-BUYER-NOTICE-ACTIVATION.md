@@ -89,3 +89,24 @@ Cron `GET /api/cron/unallocated-buyer-notices` (toutes les 30 min, mode souple).
 3. **Phase A, `shadow` pendant 7 jours** : lire les lignes `shadow_would_send` et les compteurs du cron. On vérifie le nombre de sessions concernées, la part de `uncertain_hold` et l'absence d'`error`.
 4. **Phase B, `true`** : surveiller pendant 48 h les journaux Resend (rebonds, plaintes) et les alertes ops. Retour arrière immédiat : supprimer la variable (lue à chaque requête, sans redéploiement de code).
 5. Aucune autre bascule n'est nécessaire. Le remboursement automatique (`UNALLOCATED_LINE_AUTO_REFUND`) est une décision **distincte**, que celle-ci n'entraîne pas.
+
+## 6. Tentative d'exécution du 2026-11-17 (autorisée par le fondateur) — étapes bloquées, motifs exacts
+
+Rien n'a été envoyé, aucune donnée n'a été lue ou modifiée. Chaque blocage relève d'une configuration ou d'une action extérieure au périmètre autorisé ; conformément à la consigne, l'étape concernée a été arrêtée.
+
+| Étape | Blocage constaté | Ce qui le lève |
+|---|---|---|
+| 1–9 (préproduction) | Aucun déploiement de préproduction n'est joignable : l'hébergement Vercel est suspendu (facture impayée), et les outils Vercel de cette session ne gèrent ni les déploiements ni les variables d'environnement. | Réactivation du compte Vercel, puis variables de Preview (base staging, `sk_test_…`, expéditeur sandbox, `TEST_EMAIL_TO`, `CRON_SECRET` de Preview) posées par le fondateur. |
+| Idempotence Resend réelle | `api.resend.com` est **refusé** par le pare-feu sortant des deux environnements de l'agent (conteneur : `connect_rejected` ; machine virtuelle : aucune connexion). Aucune clé Resend de test n'est disponible à l'agent (et il ne lit pas celles des fichiers `.env`). | **Prêt, en un clic** : workflow manuel `Resend — live buyer-notice probe` (`.github/workflows/resend-live-probe.yml`). Il demande deux secrets de dépôt : `RESEND_TEST_API_KEY` et `RESEND_TEST_EMAIL_TO`, une adresse dont l'équipe a le contrôle et qui est celle du titulaire du compte Resend (l'expéditeur sandbox n'écrit qu'à elle). |
+| Fenêtre de conservation de la clé | Elle exige deux exécutions espacées de 24 h. | Relancer le même workflow ≥ 24 h plus tard avec `replay_key` et `replay_id`, imprimés par la première exécution. |
+| Rendu Gmail / Outlook | Il exige une boîte réelle. | Le même workflow envoie les 8 langues et tous les états (16 e-mails préfixés `[TEST Affisell]`) à `RESEND_TEST_EMAIL_TO`. Pour Outlook, faire suivre l'adresse de test vers une boîte Outlook, ou en utiliser une comme `RESEND_TEST_EMAIL_TO`. |
+
+**Ce que prouve le workflow, avec les réponses réelles de Resend** (`lib/__tests__/live-resend-buyer-notice.test.ts`, code de production : rendu, `sendResendEmail`, clé d'idempotence) :
+
+- même clé et même contenu : **même identifiant** d'e-mail (le renvoi est dédupliqué, et la reprise après plantage repose sur ce point) ;
+- même clé et autre contenu : refus `invalid_idempotent_request` ;
+- clé de plus de 24 h : nouvel identifiant.
+
+Le test **échoue** si Resend se comporte autrement. Ce serait alors une découverte bloquante pour l'activation, et non un détail. Il refuse de s'exécuter sans l'expéditeur sandbox et `TEST_EMAIL_TO`, ainsi qu'en production.
+
+Restent hors de ce workflow et attendent la préproduction : les remboursements ambigus et manuels sur Stripe en mode test, ainsi que la cohérence avec la page de succès (étapes 6, 7 et 3).
