@@ -48,6 +48,23 @@ jobs:
           # Optional — enables LHCI GitHub status checks when configured in repo secrets.
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
 
+      - name: Lighthouse diagnostics (LCP element and phases, scripts, requests)
+        if: always() && steps.build.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/lighthouse-diagnostics.mjs
+
+      - name: Home server-time probe (TTFB without the browser, server logs)
+        if: always() && steps.build.outcome == 'success'
+        continue-on-error: true
+        run: |
+          npm run start -- -p 3005 > /tmp/home-probe-server.log 2>&1 &
+          for i in $(seq 1 60); do curl -s -o /dev/null http://localhost:3005/api/health 2>/dev/null && break; sleep 1; done
+          for path in / / /fr /marketplace; do
+            curl -s -o /dev/null -w "[home-probe] ${path} status=%{http_code} ttfb=%{time_starttransfer}s total=%{time_total}s bytes=%{size_download}\n" "http://localhost:3005${path}"
+          done
+          grep -E "home-marketplace-shell|home-race|home-lcp|Error|error" /tmp/home-probe-server.log | sort | uniq -c | sort -rn | head -30 || true
+          kill %1 || true
+
       - name: Publish Lighthouse summary
         if: steps.build.outcome == 'success' && steps.lighthouse.outcome == 'success'
         run: node scripts/lighthouse-ci-summary.mjs
