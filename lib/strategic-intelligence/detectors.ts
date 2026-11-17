@@ -525,7 +525,14 @@ export type CheaperSameGtinRow = {
   units30: number
   alt: { productId: string; productName: string; supplierName: string; priceCents: number }
   gtin: string
+  /** Carrier-attested delivery (SupplierDeliveryStats, 180 days): 9 orders in 10 delivered within p90 days. */
+  delivery?: { current: DeliveryStat; alt: DeliveryStat }
 }
+
+export type DeliveryStat = { p90: number | null; n: number }
+/** Below this many attested deliveries a supplier's delay is not compared. */
+export const DELIVERY_MIN_SAMPLE = 20
+const dayTxt = (d: DeliveryStat) => (d.p90 != null && d.n >= DELIVERY_MIN_SAMPLE ? `${Math.round(d.p90)} j (sur ${d.n} livraisons)` : "non mesuré")
 
 export const SOURCING_MIN_UNITS = 3
 export const SOURCING_MIN_GAP_BPS = 1000
@@ -555,15 +562,81 @@ export function cheaperSameGtinSignals(rows: CheaperSameGtinRow[], ctx: { observ
         { label: `Prix chez « ${r.alt.supplierName} »`, value: eur(r.alt.priceCents) },
         { label: "Unités vendues, 30 jours", value: String(r.units30) },
         { label: "Écart sur ces 30 jours", value: eur(saving) },
+        ...(r.delivery
+          ? [
+              { label: `Délai (9 sur 10) chez « ${r.supplierName} »`, value: dayTxt(r.delivery.current) },
+              { label: `Délai (9 sur 10) chez « ${r.alt.supplierName} »`, value: dayTxt(r.delivery.alt) },
+            ]
+          : []),
       ],
       source: { id: "affisell.listings", query: "Produits actifs au GTIN valide identique (ProductAttribute ean) × commandes payées 30 j" },
       observedAt: ctx.observedAt,
       window: ctx.window,
       confidence: "medium" as const,
       confidenceReason:
-        "Même code-barres GS1 valide : même référence. Délai de livraison, stock et qualité de service des deux fournisseurs ne sont pas comparés ici.",
+        r.delivery && r.delivery.current.n >= DELIVERY_MIN_SAMPLE && r.delivery.alt.n >= DELIVERY_MIN_SAMPLE
+          ? "Même code-barres GS1 valide : même référence ; délais attestés par le transporteur pour les deux fournisseurs. Stock et service ne sont pas comparés."
+          : "Même code-barres GS1 valide : même référence. Délai de livraison (pas assez de livraisons attestées), stock et service ne sont pas comparés ici.",
       recommendedAction:
         "Comparer délais attestés et stock des deux fournisseurs ; si l'alternative tient, la proposer aux revendeurs qui vendent ce produit (aucune annonce n'est modifiée automatiquement).",
       link: `/admin/products`,
     }))
+}
+
+/**
+ * Faster sourcing — the SAME reference (identical valid GTIN) at another supplier whose CARRIER-ATTESTED delay is
+ * clearly shorter (p90 at least FASTER_MIN_DAYS shorter, both measured on ≥ DELIVERY_MIN_SAMPLE deliveries), at a
+ * supplier price no more than FASTER_MAX_PRICE_BPS higher. Late deliveries are what the SLA cron refunds.
+ */
+export const FASTER_MIN_DAYS = 5
+export const FASTER_MAX_PRICE_BPS = 1000
+
+export function fasterSameGtinSignals(
+  rows: Array<{
+    productId: string
+    productName: string
+    supplierName: string
+    priceCents: number
+    units30: number
+    gtin: string
+    current: DeliveryStat
+    alts: Array<{ productId: string; productName: string; supplierName: string; priceCents: number; delivery: DeliveryStat }>
+  }>,
+  ctx: { observedAt: string; window: Window }
+): StrategicSignal[] {
+  const out: StrategicSignal[] = []
+  for (const r of rows) {
+    if (r.units30 < SOURCING_MIN_UNITS || r.current.p90 == null || r.current.n < DELIVERY_MIN_SAMPLE) continue
+    const ok = r.alts.filter(
+      (a) =>
+        a.delivery.p90 != null &&
+        a.delivery.n >= DELIVERY_MIN_SAMPLE &&
+        r.current.p90! - a.delivery.p90 >= FASTER_MIN_DAYS &&
+        (a.priceCents - r.priceCents) * 10_000 <= r.priceCents * FASTER_MAX_PRICE_BPS
+    )
+    if (ok.length === 0) continue
+    const best = ok.reduce((a, b) => (b.delivery.p90! < a.delivery.p90! ? b : a))
+    const gain = Math.round(r.current.p90 - best.delivery.p90!)
+    out.push({
+      id: `supplier:faster-same-gtin:${r.productId}:${best.productId}`,
+      domain: "supplier",
+      priority: r.current.p90 > 12 ? "important" : "study",
+      kind: "fact",
+      title: `Même produit (code-barres ${r.gtin}) livré ${gain} jours plus vite chez « ${best.supplierName} » : « ${r.productName} »`,
+      evidence: [
+        { label: `Délai (9 sur 10) chez « ${r.supplierName} »`, value: dayTxt(r.current) },
+        { label: `Délai (9 sur 10) chez « ${best.supplierName} »`, value: dayTxt(best.delivery) },
+        { label: "Prix fournisseur actuel / alternatif", value: `${eur(r.priceCents)} / ${eur(best.priceCents)}` },
+        { label: "Unités vendues, 30 jours", value: String(r.units30) },
+      ],
+      source: { id: "affisell.delivery_stats", query: "GTIN valide identique (ProductAttribute ean) × SupplierDeliveryStats.p90EndToEndDays (180 j)" },
+      observedAt: ctx.observedAt,
+      window: ctx.window,
+      confidence: "high",
+      confidenceReason: "Même référence GS1 ; délais attestés par le transporteur sur au moins 20 livraisons chacun. Stock et service ne sont pas comparés.",
+      recommendedAction: "Proposer l'alternative aux revendeurs qui vendent ce produit (aucune annonce n'est modifiée automatiquement) ; vérifier son stock.",
+      link: "/admin/suppliers/lightning",
+    })
+  }
+  return out.slice(0, 15)
 }

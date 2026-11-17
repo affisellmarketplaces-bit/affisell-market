@@ -7,6 +7,7 @@ import {
   countDistinctDisputes,
   disputeActivitySignal,
   evolutionRecommendations,
+  fasterSameGtinSignals,
   isoWeek,
   normalQuantile,
   poissonDropIsReliable,
@@ -144,6 +145,22 @@ describe("detectors — changes only beyond randomness, every signal sourced and
     ])
     expect(out[0]!.evidence.find((e) => e.label.startsWith("Écart"))!.value).toBe("600,00 €")
     expect(out[0]!.confidenceReason).toMatch(/ne sont pas comparés/)
+  })
+
+  it("faster sourcing: same GTIN, carrier-attested delay clearly shorter, price not much higher", () => {
+    const base = { productId: "p", productName: "Lampe", supplierName: "Lent", priceCents: 2000, units30: 10, gtin: "5054298241091" }
+    const alt = (id: string, p90: number | null, n: number, priceCents: number) => ({ productId: id, productName: "Lampe", supplierName: id, priceCents, delivery: { p90, n } })
+    const out = fasterSameGtinSignals(
+      [
+        { ...base, current: { p90: 18, n: 40 }, alts: [alt("a", 9, 30, 2100), alt("b", 6, 30, 2500), alt("c", 5, 5, 2000)] },
+        { ...base, productId: "q", current: { p90: 18, n: 10 }, alts: [alt("a", 9, 30, 2000)] }, // current delay not measured enough
+        { ...base, productId: "r", current: { p90: 10, n: 40 }, alts: [alt("a", 7, 30, 2000)] }, // only 3 days faster
+      ],
+      ctx
+    )
+    // "b" is faster but 25 % dearer; "c" is not measured on enough deliveries → "a".
+    expect(out.map((s) => [s.id, s.priority])).toEqual([["supplier:faster-same-gtin:p:a", "important"]])
+    expect(out[0]!.title).toMatch(/9 jours plus vite/)
   })
 
   it("under-distributed product: proven demand, one reseller, little supply", () => {

@@ -7,6 +7,7 @@ import {
   evolutionRecommendations,
   autoBuyCostUnknownSignal,
   cheaperSameGtinSignals,
+  fasterSameGtinSignals,
   type CheaperSameGtinRow,
   countDistinctDisputes,
   shipSlaRiskSignals,
@@ -297,7 +298,13 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
         if (g) byGtin.set(g, [...(byGtin.get(g) ?? []), o])
       }
       const products = await prisma.product.findMany({ where: { id: { in: [...gtinOf.keys()] } }, select: { id: true, name: true, basePriceCents: true, supplierId: true } })
-      const candidates: Array<Omit<CheaperSameGtinRow, "supplierName" | "alt"> & { supplierId: string; alt: CheaperSameGtinRow["alt"] & { supplierId: string } }> = []
+      const candidates: Array<
+        Omit<CheaperSameGtinRow, "supplierName" | "alt" | "delivery"> & {
+          supplierId: string
+          alt: CheaperSameGtinRow["alt"] & { supplierId: string }
+          allAlts: Array<{ productId: string; productName: string; supplierId: string; priceCents: number }>
+        }
+      > = []
       for (const p of products) {
         const g = gtinOf.get(p.id)!
         const alts = (byGtin.get(g) ?? []).filter((o) => o.product.supplierId !== p.supplierId && o.product.basePriceCents > 0)
@@ -307,18 +314,36 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
           productId: p.id, productName: p.name, supplierId: p.supplierId, priceCents: p.basePriceCents, units30: units.get(p.id) ?? 0,
           gtin: g.startsWith("0") ? g.slice(1) : g,
           alt: { productId: best.productId, productName: best.product.name, supplierId: best.product.supplierId, supplierName: "", priceCents: best.product.basePriceCents },
+          allAlts: alts.map((o) => ({ productId: o.productId, productName: o.product.name, supplierId: o.product.supplierId, priceCents: o.product.basePriceCents })),
         })
       }
       if (candidates.length === 0) return []
-      const users = await prisma.user.findMany({
-        where: { id: { in: [...new Set(candidates.flatMap((c) => [c.supplierId, c.alt.supplierId]))] } },
-        select: { id: true, name: true },
-      })
+      const supplierIds = [...new Set(candidates.flatMap((c) => [c.supplierId, ...c.allAlts.map((a) => a.supplierId)]))]
+      const [users, stats] = await Promise.all([
+        prisma.user.findMany({ where: { id: { in: supplierIds } }, select: { id: true, name: true } }),
+        prisma.supplierDeliveryStats.findMany({ where: { supplierId: { in: supplierIds } }, select: { supplierId: true, p90EndToEndDays: true, sampleSize: true } }),
+      ])
       const name = new Map(users.map((u) => [u.id, u.name?.trim() || "Fournisseur sans nom"]))
-      return cheaperSameGtinSignals(
-        candidates.map((c) => ({ ...c, supplierName: name.get(c.supplierId) ?? "Fournisseur", alt: { ...c.alt, supplierName: name.get(c.alt.supplierId) ?? "Fournisseur" } })),
+      const delivery = new Map(stats.map((x) => [x.supplierId, { p90: x.p90EndToEndDays, n: x.sampleSize }]))
+      const del = (id: string) => delivery.get(id) ?? { p90: null, n: 0 }
+      const cheaper = cheaperSameGtinSignals(
+        candidates.map((c) => ({
+          ...c,
+          supplierName: name.get(c.supplierId) ?? "Fournisseur",
+          alt: { ...c.alt, supplierName: name.get(c.alt.supplierId) ?? "Fournisseur" },
+          delivery: { current: del(c.supplierId), alt: del(c.alt.supplierId) },
+        })),
         { observedAt, window: win30 }
       )
+      const faster = fasterSameGtinSignals(
+        candidates.map((c) => ({
+          productId: c.productId, productName: c.productName, supplierName: name.get(c.supplierId) ?? "Fournisseur", priceCents: c.priceCents,
+          units30: c.units30, gtin: c.gtin, current: del(c.supplierId),
+          alts: c.allAlts.map((a) => ({ ...a, supplierName: name.get(a.supplierId) ?? "Fournisseur", delivery: del(a.supplierId) })),
+        })),
+        { observedAt, window: win30 }
+      )
+      return [...cheaper, ...faster]
     }, report),
 
     guarded("market.category_demand", async () => {
