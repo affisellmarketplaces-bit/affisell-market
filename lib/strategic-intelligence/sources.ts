@@ -34,7 +34,8 @@ const SPECS: SourceSpec[] = [
   { id: "amazon.sp_api", domain: "competitive", label: "Amazon SP-API (connecteur Radar)", kind: "official_api", env: ["AMAZON_LWA_CLIENT_ID", "AMAZON_SP_API_CLIENT_ID"], note: "Données du vendeur connecté uniquement." },
   { id: "market_intelligence.fixtures", domain: "market_observatory", label: "« Market intelligence » (cron sync-market-intelligence)", kind: "fixture", note: "Trois fiches écrites à la main — ce ne sont PAS des données de marché ; jamais utilisées comme signal." },
   { id: "innovation.none", domain: "innovation", label: "Veille technologique", kind: "official_api", note: "Aucune source connectée (flux de publications, changelogs, dépôts publics à choisir)." },
-  { id: "regulatory.none", domain: "regulatory_risk", label: "Veille réglementaire (UE, France)", kind: "official_api", note: "Aucune source connectée (EUR-Lex, Journal officiel : flux publics à brancher)." },
+  { id: "eu.safety_gate", domain: "regulatory_risk", label: "EU Safety Gate — produits dangereux notifiés (rapports hebdomadaires)", kind: "official_api", runtimeVerified: true, note: "Commission européenne, public, gratuit, sans clé ; un rapport chaque vendredi ; deux derniers rapports lus, mis en cache 12 h. Rapprochement par GTIN exact ou marque + référence, jamais par le nom. « Connectée » seulement si la lecture a réussi à cette génération." },
+  { id: "regulatory.none", domain: "regulatory_risk", label: "Veille réglementaire (UE, France)", kind: "official_api", note: "Textes de loi : aucune source connectée (EUR-Lex, Journal officiel : flux publics à brancher)." },
 ]
 
 /** `verified` = ids of external sources the current run actually read successfully. */

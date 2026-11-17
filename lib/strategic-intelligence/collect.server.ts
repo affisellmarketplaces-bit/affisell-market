@@ -18,6 +18,9 @@ import { domainCoverage, listIntelligenceSources, type IntelligenceSource } from
 import { DOMAIN_LABELS, rankSignals, type StrategicSignal } from "@/lib/strategic-intelligence/types"
 import { fxMoves, fxSignals } from "@/lib/strategic-intelligence/external/ecb-fx"
 import { fetchEcbHist90d } from "@/lib/strategic-intelligence/external/ecb-fx.server"
+import { gtin14, matchSafetyGateAlerts, normalizeBrand, normalizeModel, safetyGateSignals, type CatalogIdentity } from "@/lib/strategic-intelligence/external/safety-gate"
+import { fetchLatestSafetyGateAlerts } from "@/lib/strategic-intelligence/external/safety-gate.server"
+import { IDENTITY_KEYS } from "@/lib/listing-compliance/keys"
 import { UNALLOCATED_LINE_AUDIT_ACTION, UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION } from "@/lib/unallocated-line"
 
 /**
@@ -26,6 +29,8 @@ import { UNALLOCATED_LINE_AUDIT_ACTION, UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION }
  * and never hides the others.
  */
 const MAX_ORDERS = 50_000
+/** Identity attribute rows read for the Safety Gate check (3 keys per product at most). */
+const MAX_IDENTITY_ROWS = 150_000
 
 export type CockpitResult = {
   generatedAt: string
@@ -50,7 +55,7 @@ async function guarded(
       id,
       ok: false,
       signals: 0,
-      error: message === "echantillon_tronque" ? "echantillon_tronque" : /does not exist|P2021/i.test(message) ? "table_absente" : /^ecb_|abort|timeout|fetch failed/i.test(message) ? "source_injoignable" : "lecture_impossible",
+      error: message === "echantillon_tronque" ? "echantillon_tronque" : /does not exist|P2021/i.test(message) ? "table_absente" : /^(ecb|safety_gate)_|abort|timeout|fetch failed/i.test(message) ? "source_injoignable" : "lecture_impossible",
     })
     return []
   }
@@ -87,6 +92,52 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
           : Promise.resolve(0),
       ])
       return fxSignals(moves, { observedAt, exposure: { activeAeLinks, autoBuyLinks, staleSinceBase } })
+    }, report),
+
+    guarded("risk.safety_gate", async () => {
+      const { reports, alerts } = await fetchLatestSafetyGateAlerts()
+      verified.add("eu.safety_gate")
+      const [rows, activeProducts] = await Promise.all([
+        prisma.productAttribute.findMany({
+          where: { key: { in: [IDENTITY_KEYS.gtin, IDENTITY_KEYS.brand, IDENTITY_KEYS.mpn] }, product: { active: true } },
+          select: { productId: true, key: true, value: true },
+          take: MAX_IDENTITY_ROWS,
+        }),
+        prisma.product.count({ where: { active: true } }),
+      ])
+      // A capped read would silently miss products: no conclusion is drawn from it.
+      if (rows.length >= MAX_IDENTITY_ROWS) throw new Error("echantillon_tronque")
+      const byProduct = new Map<string, CatalogIdentity>()
+      for (const r of rows) {
+        const p = byProduct.get(r.productId) ?? { productId: r.productId, name: r.productId, gtin: null, brand: null, mpn: null }
+        if (r.key === IDENTITY_KEYS.gtin) p.gtin = r.value
+        else if (r.key === IDENTITY_KEYS.brand) p.brand = r.value
+        else if (r.key === IDENTITY_KEYS.mpn) p.mpn = r.value
+        byProduct.set(r.productId, p)
+      }
+      const catalog = [...byProduct.values()]
+      const matches = matchSafetyGateAlerts(alerts, catalog)
+      if (matches.length > 0) {
+        const named = await prisma.product.findMany({
+          where: { id: { in: [...new Set(matches.map((m) => m.productId))] } },
+          select: { id: true, name: true },
+        })
+        const names = new Map(named.map((p) => [p.id, p.name]))
+        for (const m of matches) m.productName = names.get(m.productId) ?? m.productId
+      }
+      return safetyGateSignals(
+        {
+          reports,
+          alerts,
+          matches,
+          coverage: {
+            activeProducts,
+            withValidGtin: catalog.filter((p) => p.gtin && gtin14(p.gtin)).length,
+            withBrandAndModel: catalog.filter((p) => p.brand && p.mpn && normalizeBrand(p.brand) && normalizeModel(p.mpn)).length,
+          },
+        },
+        { observedAt }
+      )
     }, report),
 
     guarded("market.category_demand", async () => {

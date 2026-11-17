@@ -11,7 +11,7 @@ on:
       - "lib/__tests__/live-source-*.test.ts"
       - ".github/workflows/intelligence-live-sources.yml"
   schedule:
-    - cron: "43 16 * * 1" # Mondays, after the ECB's ~16:00 CET publication
+    - cron: "43 16 * * 1" # Mondays, after the ECB's ~16:00 CET publication (and the Friday Safety Gate report)
 
 permissions:
   contents: read
@@ -32,17 +32,7 @@ jobs:
         env:
           AFFISELL_LIVE_SOURCES: "1"
         run: npx vitest run lib/__tests__/live-source-ecb.test.ts --reporter=verbose
-      # Format discovery for the next source (EU Safety Gate weekly reports, CC0 public XML). Read-only, public, no
-      # secret; prints the shape only. Replaced by a real parser + live test in the Safety Gate lot.
-      - name: Probe — EU Safety Gate weekly report format
-        continue-on-error: true
-        run: |
-          curl -fsS --max-time 30 -o list.xml "https://ec.europa.eu/safety-gate-alerts/api/download/weeklyReport/list/xml/en"
-          U=$(grep -oE '<URL>[^<]+' list.xml | head -1 | sed 's/<URL>//; s/&amp;/\&/g')
-          echo "detail: $U"
-          curl -fsS --max-time 90 -o report.xml "$U"
-          wc -c report.xml
-          echo "---- tag counts"
-          grep -oE '<[a-zA-Z_]+' report.xml | sort | uniq -c | sort -rn | head -70
-          echo "---- head"
-          head -c 9000 report.xml
+      - name: Live read — EU Safety Gate weekly reports
+        env:
+          AFFISELL_LIVE_SOURCES: "1"
+        run: npx vitest run lib/__tests__/live-source-safety-gate.test.ts --reporter=verbose
