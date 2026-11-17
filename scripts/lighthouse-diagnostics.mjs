@@ -119,6 +119,28 @@ if (net.length && existsSync(chunkDir)) {
       const k = owner(marks[i][1])
       sizes[k] = (sizes[k] ?? 0) + (end - marks[i].index)
     }
+    if (marks.length === 0) {
+      // Production chunks carry numeric module ids: name the big libraries by strings they keep at runtime instead.
+      const SIGNATURES = {
+        "messages JSON (i18n catalogue)": /"supplierDashboard":\{|"errors":\{"page"/g,
+        "next-intl / ICU": /MISSING_MESSAGE|INSUFFICIENT_PATH/g,
+        "@sentry": /__SENTRY__|sentry_key|sentry\.io/g,
+        "framer-motion": /framerAppearId|MotionValue|motionValue/g,
+        "react-dom": /Minified React error|react-dom/g,
+        "zod": /invalid_type|ZodError/g,
+        "lucide-react": /lucide-/g,
+        "@radix-ui": /radix-/g,
+        "posthog": /posthog/gi,
+        "stripe.js": /js\.stripe\.com/g,
+        "dompurify": /DOMPurify/g,
+        "onnx / ML": /onnxruntime|ort-wasm|tensorflow/g,
+        "recharts / d3": /recharts|d3-/g,
+        "date libs": /date-fns|Invalid time value/g,
+      }
+      const found = Object.entries(SIGNATURES).map(([k, re]) => [k, (src.match(re) ?? []).length]).filter(([, n]) => n > 0)
+      console.log(`[lh-diag] chunk ${short(r.url)} · ${kb(src.length)} raw · signatures: ${found.map(([k, n]) => `${k}×${n}`).join(", ") || "none"}`)
+      continue
+    }
     const top = Object.entries(sizes).sort((a, b) => b[1] - a[1]).slice(0, 8)
     console.log(`[lh-diag] chunk ${short(r.url)} · ${kb(src.length)} raw · ${marks.length} module ids`)
     for (const [k, v] of top) console.log(`[lh-diag]   ${kb(v)} · ${k}`)

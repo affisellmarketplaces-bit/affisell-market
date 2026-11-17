@@ -4,29 +4,21 @@ import * as Sentry from "@sentry/nextjs"
 import Link from "next/link"
 import { useEffect, useMemo } from "react"
 
-import en from "@/messages/en.json"
-import fr from "@/messages/fr.json"
-import { LOCALE_COOKIE } from "@/lib/i18n-locale"
+import { APP_ERROR_COPY, type AppErrorCopy } from "@/lib/app-error-copy"
+import { LOCALE_COOKIE, SUPPORTED_LOCALES, type AppLocale } from "@/lib/i18n-locale"
 
-type ErrorCopy = {
-  label: string
-  title: string
-  body: string
-  retry: string
-  home: string
-}
+const isAppLocale = (v: string | undefined): v is AppLocale => !!v && (SUPPORTED_LOCALES as readonly string[]).includes(v)
 
-function readLocaleFromDocument(): "fr" | "en" {
+function readLocaleFromDocument(): AppLocale {
   if (typeof document === "undefined") return "en"
   const cookie = document.cookie
     .split(";")
     .map((c) => c.trim())
     .find((c) => c.startsWith(`${LOCALE_COOKIE}=`))
   const fromCookie = cookie?.split("=")[1]?.trim()
-  if (fromCookie === "fr" || fromCookie === "en") return fromCookie
-  const lang = document.documentElement.lang?.toLowerCase()
-  if (lang?.startsWith("fr")) return "fr"
-  return "en"
+  if (isAppLocale(fromCookie)) return fromCookie
+  const lang = document.documentElement.lang?.toLowerCase().slice(0, 2)
+  return isAppLocale(lang) ? lang : "en"
 }
 
 export default function AppError({
@@ -38,10 +30,7 @@ export default function AppError({
 }) {
   const locale = useMemo(() => readLocaleFromDocument(), [])
 
-  const t: ErrorCopy = useMemo(() => {
-    const pack = locale === "fr" ? fr : en
-    return pack.errors.page as ErrorCopy
-  }, [locale])
+  const t: AppErrorCopy = APP_ERROR_COPY[locale]
 
   useEffect(() => {
     console.error("[app error]", {
