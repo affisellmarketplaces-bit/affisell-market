@@ -111,3 +111,66 @@ jobs:
         run: |
           echo "Severe Lighthouse regression — see summary / PR comment."
           exit 1
+
+  # Server-side timing of the home with a REAL (throwaway) PostgreSQL: does the first byte wait for the catalogue?
+  # Three databases: fast (local), slow (+150 ms per packet through scripts/perf/tcp-delay-proxy.mjs — a distant or
+  # waking database), unreachable (a non-routable address). Measures only; no secret, nothing outside the runner.
+  home-server-timing:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: affisell_perf
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d affisell_perf"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGDATABASE: affisell_perf
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Create the schema from the Prisma datamodel (throwaway database)
+        env:
+          DATABASE_URL: postgresql://ci@placeholder.invalid:5432/placeholder
+        run: |
+          npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script 2>/dev/null \
+            | grep -v '^\[ensure-direct-url\]' > "$RUNNER_TEMP/schema.sql"
+          psql -v ON_ERROR_STOP=1 -q -f "$RUNNER_TEMP/schema.sql"
+      - name: Production build (no database at build time)
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+          CI: "true"
+      - name: Time the streamed home against a fast, a slow and an unreachable database
+        continue-on-error: true
+        run: |
+          node scripts/perf/tcp-delay-proxy.mjs 6543 127.0.0.1:5432 150 &
+          start() { DATABASE_URL="$2" DIRECT_URL="$2" npm run start -- -p "$1" > "/tmp/srv-$1.log" 2>&1 & }
+          start 3011 "postgresql://postgres@127.0.0.1:5432/affisell_perf"
+          start 3012 "postgresql://postgres@127.0.0.1:6543/affisell_perf"
+          start 3013 "postgresql://postgres@10.255.255.1:5432/affisell_perf?connect_timeout=30"
+          for p in 3011 3012 3013; do for i in $(seq 1 60); do curl -s -o /dev/null "http://localhost:$p/manifest.webmanifest" && break; sleep 1; done; done
+          for run in 1 2 3; do
+            node scripts/perf/stream-timing.mjs http://localhost:3011/ "fast db, run $run"
+            node scripts/perf/stream-timing.mjs http://localhost:3012/ "slow db (+150 ms/packet), run $run"
+          done
+          node scripts/perf/stream-timing.mjs http://localhost:3013/ "unreachable db, run 1"
+          node scripts/perf/stream-timing.mjs http://localhost:3013/ "unreachable db, run 2"
+          for p in 3011 3012 3013; do echo "--- server $p"; grep -E "home-marketplace-shell|home-race|home_shell" "/tmp/srv-$p.log" | cut -c1-240 | sort | uniq -c | head -8; done
