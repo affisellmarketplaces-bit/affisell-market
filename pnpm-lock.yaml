@@ -269,9 +269,6 @@ importers:
       server-only:
         specifier: ^0.0.1
         version: 0.0.1
-      shadcn:
-        specifier: ^4.5.0
-        version: 4.10.0(@types/node@20.19.41)(babel-plugin-macros@3.1.0)(supports-color@8.1.1)(typescript@5.9.3)
       sharp:
         specifier: ^0.35.5
         version: 0.35.5(@types/node@20.19.41)
@@ -387,6 +384,9 @@ importers:
       react-email:
         specifier: ^5.2.11
         version: 5.2.11(supports-color@8.1.1)
+      shadcn:
+        specifier: ^4.5.0
+        version: 4.10.0(@types/node@20.19.41)(babel-plugin-macros@3.1.0)(supports-color@8.1.1)(typescript@5.9.3)
       tailwindcss:
         specifier: ^4
         version: 4.3.0
