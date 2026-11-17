@@ -92,6 +92,11 @@ export function nextFixedVersion(installed: string, fixed: string[]): string | n
   return candidates[0] ?? null
 }
 
+/**
+ * One signal per installed package VERSION (not per advisory: a package can carry five advisories, all closed by one
+ * upgrade). Priority = the worst critical / high advisory; "fix" = the smallest version that closes ALL of them.
+ * Moderate / low advisories are folded into one `study` signal; withdrawn ones are ignored.
+ */
 export function dependencySignals(
   input: { hits: DependencyHit[]; vulns: Map<string, OsvVuln>; detailsMissing: number; packagesChecked: number },
   ctx: { observedAt: string }
@@ -99,6 +104,7 @@ export function dependencySignals(
   const out: StrategicSignal[] = []
   let minor = 0
   const minorPkgs = new Set<string>()
+  const serious = new Map<string, { name: string; version: string; vulns: OsvVuln[] }>()
   for (const h of input.hits) {
     const v = input.vulns.get(h.vulnId)
     if (!v || v.withdrawn) continue
@@ -107,29 +113,41 @@ export function dependencySignals(
       minorPkgs.add(h.name)
       continue
     }
-    const fix = nextFixedVersion(h.version, v.fixedByPackage[h.name] ?? [])
-    const ref = v.aliases.find((a) => a.startsWith("CVE-")) ?? v.id
+    const key = `${h.name}@${h.version}`
+    const g = serious.get(key) ?? { name: h.name, version: h.version, vulns: [] }
+    if (!g.vulns.some((x) => x.id === v.id)) g.vulns.push(v)
+    serious.set(key, g)
+  }
+  const groups = [...serious.values()].sort(
+    (a, b) => Number(b.vulns.some((v) => v.severity === "critical")) - Number(a.vulns.some((v) => v.severity === "critical")) || b.vulns.length - a.vulns.length
+  )
+  for (const g of groups) {
+    const critical = g.vulns.some((v) => v.severity === "critical")
+    const fixes = g.vulns.map((v) => nextFixedVersion(g.version, v.fixedByPackage[g.name] ?? []))
+    const allFixable = fixes.every((f): f is string => Boolean(f))
+    const fixAll = allFixable ? [...fixes].sort(compareVersions).at(-1)! : null
+    const refs = g.vulns.map((v) => v.aliases.find((a) => a.startsWith("CVE-")) ?? v.id)
     out.push({
-      id: `risk:dependency:${h.name}@${h.version}:${v.id}`,
+      id: `risk:dependency:${g.name}@${g.version}`,
       domain: "regulatory_risk",
-      priority: v.severity === "critical" ? "critical" : "important",
+      priority: critical ? "critical" : "important",
       kind: "fact",
-      title: `Faille ${v.severity === "critical" ? "critique" : "élevée"} sur ${h.name} ${h.version} (${ref})`,
+      title: `${g.vulns.length} faille(s) ${critical ? "dont une critique" : "élevée(s)"} sur ${g.name} ${g.version}`,
       evidence: [
-        { label: "Version installée en production", value: `${h.name}@${h.version}` },
-        { label: "Corrigée en", value: fix ?? "aucune version corrective publiée" },
-        { label: "Résumé", value: v.summary || "—" },
-        { label: "Référence", value: [v.id, ...v.aliases.filter((a) => a !== v.id)].join(", ") },
+        { label: "Version installée en production", value: `${g.name}@${g.version}` },
+        { label: "Version qui corrige tout", value: fixAll ?? "au moins un avis sans version corrective" },
+        ...g.vulns.slice(0, 5).map((v, i) => ({ label: `${v.severity === "critical" ? "Critique" : "Élevée"} — ${refs[i]}`, value: v.summary || v.id })),
+        ...(g.vulns.length > 5 ? [{ label: "Autres avis", value: String(g.vulns.length - 5) }] : []),
       ],
-      source: { id: "osv.dev", query: `querybatch npm ${h.name}@${h.version} → ${v.id}` },
+      source: { id: "osv.dev", query: `querybatch npm ${g.name}@${g.version} → ${g.vulns.map((v) => v.id).join(", ")}` },
       observedAt: ctx.observedAt,
       window: null,
       confidence: "high",
       confidenceReason:
         "La version exacte installée (package-lock.json) est listée comme affectée. Qu'Affisell utilise la partie vulnérable n'est pas évalué ici.",
-      recommendedAction: fix
-        ? `Passer ${h.name} en ${fix} (ou plus), vérifier en isolation (procédure « Dependencies » d'AGENTS.md), puis régénérer l'inventaire.`
-        : `Aucun correctif publié : évaluer si Affisell utilise la fonction concernée et s'il existe un contournement.`,
+      recommendedAction: fixAll
+        ? `Passer ${g.name} en ${fixAll} (ou plus) — directement ou via la dépendance qui l'apporte / un « override » —, vérifier en isolation (procédure « Dependencies » d'AGENTS.md), puis régénérer l'inventaire.`
+        : `Au moins un avis n'a pas de correctif publié : évaluer si Affisell utilise la fonction concernée et s'il existe un contournement.`,
       link: null,
     })
   }
