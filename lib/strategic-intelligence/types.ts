@@ -53,6 +53,8 @@ export type StrategicSignal = {
   recommendedAction: string
   /** Where to act in the back-office, when there is a page for it. */
   link: string | null
+  /** Entities this signal is about (lets independent signals on the same supplier / product be read together). */
+  subjects?: Array<{ type: "supplier" | "product"; id: string; label: string }>
 }
 
 const PRIORITY_RANK: Record<SignalPriority, number> = { critical: 0, important: 1, study: 2 }

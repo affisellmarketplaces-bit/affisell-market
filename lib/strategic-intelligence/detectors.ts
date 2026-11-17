@@ -167,6 +167,7 @@ export function singleResellerDemandSignals(
       confidenceReason: "Demande réelle prouvée ; qu'elle se reproduise chez d'autres revendeurs reste une hypothèse.",
       recommendedAction: "Le mettre en avant dans le catalogue et les opportunités revendeurs ; vérifier la capacité du fournisseur.",
       link: `/admin/products`,
+      subjects: [{ type: "product" as const, id: r.productId, label: r.name }],
     }))
 }
 
@@ -193,6 +194,7 @@ export function supplierPriceIncreaseSignals(
       confidenceReason: "Changements enregistrés par la base de données elle-même, quel que soit l'outil qui les a faits.",
       recommendedAction: "Contacter le fournisseur ; chercher un fournisseur alternatif pour les produits les plus vendus ; les revendeurs concernés sont déjà alertés sur leur marge.",
       link: "/admin/suppliers/lightning",
+      subjects: [{ type: "supplier" as const, id: r.supplierId, label: r.supplierName }],
     }))
 }
 
@@ -219,6 +221,7 @@ export function slowSupplierSignals(
       confidenceReason: "Délais attestés par le transporteur, sur au moins 20 livraisons.",
       recommendedAction: "Négocier un délai d'expédition ou ajouter un fournisseur plus proche pour ses produits phares.",
       link: "/admin/suppliers/lightning",
+      subjects: [{ type: "supplier" as const, id: r.supplierId, label: r.supplierName }],
     }))
 }
 
@@ -483,6 +486,7 @@ export function shipSlaRiskSignals(rows: ShipSlaRiskRow[], ctx: { observedAt: st
         confidenceReason: "Même règle que la tâche d'annulation automatique ; seul un suivi, un message ou une prolongation du fournisseur peut changer l'issue.",
         recommendedAction: `Contacter le fournisseur maintenant pour obtenir les numéros de suivi (ou une demande de prolongation) des ${total} commande(s) — après, l'acheteur est remboursé et la vente perdue.`,
         link: "/admin/orders",
+        subjects: [{ type: "supplier" as const, id: r.supplierId, label: r.supplierName }],
       }
     })
 }
@@ -580,6 +584,7 @@ export function cheaperSameGtinSignals(rows: CheaperSameGtinRow[], ctx: { observ
       recommendedAction:
         "Comparer délais attestés et stock des deux fournisseurs ; si l'alternative tient, la proposer aux revendeurs qui vendent ce produit (aucune annonce n'est modifiée automatiquement).",
       link: `/admin/products`,
+      subjects: [{ type: "product" as const, id: r.productId, label: r.productName }],
     }))
 }
 
@@ -636,6 +641,7 @@ export function fasterSameGtinSignals(
       confidenceReason: "Même référence GS1 ; délais attestés par le transporteur sur au moins 20 livraisons chacun. Stock et service ne sont pas comparés.",
       recommendedAction: "Proposer l'alternative aux revendeurs qui vendent ce produit (aucune annonce n'est modifiée automatiquement) ; vérifier son stock.",
       link: "/admin/suppliers/lightning",
+      subjects: [{ type: "product", id: r.productId, label: r.productName }],
     })
   }
   return out.slice(0, 15)

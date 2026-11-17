@@ -255,6 +255,7 @@ export function safetyGateSignals(
         ? "Ouvrir l'alerte officielle, vérifier lot et variante, puis suspendre la fiche et lancer la procédure de rappel si le produit est concerné. Rien n'a été modifié automatiquement."
         : "Comparer l'alerte (photos, description, modèle) avec la fiche ; si c'est le même produit, appliquer la procédure de rappel. Rien n'a été modifié automatiquement.",
       link: `/admin/products`,
+      subjects: [{ type: "product", id: m.productId, label: m.productName }],
     })
   }
 

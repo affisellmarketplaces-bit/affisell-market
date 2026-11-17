@@ -158,8 +158,36 @@ export default async function AdminIntelligencePage() {
         </p>
       </header>
 
+      {(() => {
+        const list = cockpit.signals.filter((s) => s.id.startsWith("synthesis:"))
+        if (list.length === 0) return null
+        return (
+          <section className="space-y-2">
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+              À décider par fournisseur ou produit <span className="text-sm font-normal text-zinc-500">({list.length})</span>
+            </h2>
+            <p className="text-sm text-zinc-500">
+              Plusieurs détecteurs indépendants visent la même entité. Chaque carte reprend leurs titres ; le détail et la preuve de chacun restent dans les listes ci-dessous.
+            </p>
+            <ul className="space-y-2">
+              {list.map((s) => (
+                <SignalCard
+                  key={s.id}
+                  s={s}
+                  decision={journal.latestBySignal[s.id]}
+                  journalAvailable={journal.available}
+                  history={history[s.id]}
+                  generatedAt={cockpit.generatedAt}
+                  track={journal.byFamily[signalFamily(s.id)]}
+                />
+              ))}
+            </ul>
+          </section>
+        )
+      })()}
+
       {groups.map((g) => {
-        const list = cockpit.signals.filter((s) => s.priority === g)
+        const list = cockpit.signals.filter((s) => s.priority === g && !s.id.startsWith("synthesis:"))
         return (
           <section key={g} className="space-y-2">
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">

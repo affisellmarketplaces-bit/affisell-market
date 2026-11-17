@@ -159,7 +159,7 @@ function reasonsTxt(byReason: Record<string, number>): string {
 
 export function qualityRiskSignals(
   findings: { products: QualityFinding[]; suppliers: QualityFinding[] },
-  names: { product: Map<string, { name: string; supplierName: string; sellingNow: boolean }>; supplier: Map<string, string> },
+  names: { product: Map<string, { name: string; supplierId?: string; supplierName: string; sellingNow: boolean }>; supplier: Map<string, string> },
   ctx: { observedAt: string; window: { from: string; to: string } }
 ): StrategicSignal[] {
   const evidenceOf = (f: QualityFinding) => [
@@ -192,6 +192,10 @@ export function qualityRiskSignals(
       recommendedAction:
         "Lire les retours et leurs photos, comparer la fiche produit à ce qui est livré, puis voir avec le fournisseur (description à corriger, lot défectueux, emballage). Aucune annonce n'est suspendue automatiquement.",
       link: "/admin/returns",
+      subjects: [
+        { type: "product", id: f.key, label: p?.name ?? f.key },
+        ...(p?.supplierId ? [{ type: "supplier" as const, id: p.supplierId, label: p.supplierName }] : []),
+      ],
     }
   })
 
@@ -211,6 +215,7 @@ export function qualityRiskSignals(
       recommendedAction:
         "Vérifier si le problème vient d'un produit ou de tout le catalogue de ce fournisseur (contrôle qualité, emballage, préparation) avant de lui confier de nouveaux revendeurs. Aucune sanction automatique.",
       link: "/admin/returns",
+      subjects: [{ type: "supplier", id: f.key, label: names.supplier.get(f.key) ?? "Fournisseur" }],
     })
   )
   return [...products, ...suppliers]

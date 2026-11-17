@@ -35,6 +35,7 @@ import { isAutoBuyDisabled } from "@/lib/fulfillment/auto-buy"
 import { evaluateShipPulseAutoCancel } from "@/lib/orders/ship-pulse-policy"
 import { resolveShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
 import { UNALLOCATED_LINE_AUDIT_ACTION, UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION } from "@/lib/unallocated-line"
+import { entitySynthesisSignals } from "@/lib/strategic-intelligence/synthesis"
 import {
   aggregateQuality,
   detectQualityOutliers,
@@ -499,11 +500,12 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
       const suppliers = detectQualityOutliers(aggregateQuality(rows, (o) => o.supplierId))
       if (products.length === 0 && suppliers.length === 0) return []
       const productIds = products.map((f) => f.key)
+      const productIdSet = new Set(productIds)
       const sold30 = new Set(recent.filter((o) => o.paidAt && o.paidAt >= d(30)).map((o) => o.productId))
       const [productRows, users] = await Promise.all([
         prisma.product.findMany({ where: { id: { in: productIds } }, select: { id: true, name: true, active: true, supplierId: true } }),
         prisma.user.findMany({
-          where: { id: { in: [...new Set([...suppliers.map((f) => f.key), ...cohort.filter((o) => productIds.includes(o.productId)).map((o) => o.supplierId)])] } },
+          where: { id: { in: [...new Set([...suppliers.map((f) => f.key), ...cohort.filter((o) => productIdSet.has(o.productId)).map((o) => o.supplierId)])] } },
           select: { id: true, name: true, store: { select: { name: true } } },
         }),
       ])
@@ -512,7 +514,7 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
         { products, suppliers },
         {
           product: new Map(
-            productRows.map((p) => [p.id, { name: p.name, supplierName: supplierName.get(p.supplierId) ?? "Fournisseur", sellingNow: p.active && sold30.has(p.id) }])
+            productRows.map((p) => [p.id, { name: p.name, supplierId: p.supplierId, supplierName: supplierName.get(p.supplierId) ?? "Fournisseur", sellingNow: p.active && sold30.has(p.id) }])
           ),
           supplier: supplierName,
         },
@@ -605,9 +607,10 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
     },
     { observedAt }
   )
+  const detected = results.flat()
   return {
     generatedAt: observedAt,
-    signals: rankSignals([...results.flat(), ...evolution]),
+    signals: rankSignals([...detected, ...entitySynthesisSignals(detected, { observedAt }), ...evolution]),
     sources,
     coverage,
     collectors: report,
