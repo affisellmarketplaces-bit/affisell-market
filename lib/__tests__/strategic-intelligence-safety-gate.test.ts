@@ -34,7 +34,9 @@ describe("EU Safety Gate — parsing the official XML", () => {
       { reference: "Report-2026-45", publishedOn: "2026-11-13", id: "10000331" },
       { reference: "Report-2026-44", publishedOn: "2026-11-06", id: "10000330" },
     ])
-    expect(safetyGateReportUrl("10000331")).toBe("https://ec.europa.eu/safety-gate-alerts/api/download/weeklyReport/detail/xml/10000331?language=en")
+    expect(safetyGateReportUrl("10000331")).toBe(
+      "https://ec.europa.eu/safety-gate-alerts/api/download/weeklyReport/detail/xml/10000331?language=en&search=WEB_REPORT%7C:%7C10000331,"
+    )
     expect(() => safetyGateReportUrl("../x")).toThrow()
   })
 

@@ -27,10 +27,13 @@ import type { StrategicSignal } from "@/lib/strategic-intelligence/types"
  *  automatically: the action is to verify, then use the recall procedure if confirmed.
  */
 export const SAFETY_GATE_LIST_URL = "https://ec.europa.eu/safety-gate-alerts/api/download/weeklyReport/list/xml/en"
-/** Rebuilt from the numeric id — a URL read from the file is never fetched as is. */
+/**
+ * Rebuilt from the numeric id — a URL read from the file is never fetched as is. The `search` parameter is required by
+ * the portal (without it the answer is HTTP 400 — found by the live check on 2026-11-17); same shape as in the list.
+ */
 export function safetyGateReportUrl(id: string): string {
   if (!/^\d{1,12}$/.test(id)) throw new Error("safety_gate_bad_report_id")
-  return `https://ec.europa.eu/safety-gate-alerts/api/download/weeklyReport/detail/xml/${id}?language=en`
+  return `https://ec.europa.eu/safety-gate-alerts/api/download/weeklyReport/detail/xml/${id}?language=en&search=WEB_REPORT%7C:%7C${id},`
 }
 
 export type WeeklyReportRef = { reference: string; publishedOn: string; id: string }
