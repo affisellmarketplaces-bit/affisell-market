@@ -6,13 +6,17 @@
  * it loads the page, waits, prints, closes. Usage: node scripts/lcp-candidates.mjs <url> [waitMs] [cookie=value]
  * The optional cookie (e.g. affisell_cookie_consent=false) measures a RETURNING visitor next to a first visit.
  */
+import { existsSync } from "node:fs"
+
 import { chromium } from "@playwright/test"
 
 const url = process.argv[2] ?? "http://localhost:3001/"
 const waitMs = Number(process.argv[3] ?? 20_000)
 const cookieArg = process.argv[4]
 
-const browser = await chromium.launch()
+// The runner's preinstalled Chrome (the one Lighthouse uses) — Playwright's own build is not offered on every image.
+const executablePath = process.env.CHROME_PATH || ["/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/bin/chromium"].find((p) => existsSync(p))
+const browser = await chromium.launch(executablePath ? { executablePath } : {})
 try {
   const context = await browser.newContext({ viewport: { width: 375, height: 667 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })
   if (cookieArg?.includes("=")) {

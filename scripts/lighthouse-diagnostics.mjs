@@ -86,6 +86,12 @@ if (net.length) {
   console.log(`[lh-diag] requests: ${net.length} · ${Object.entries(byType).map(([t, v]) => `${t} ${v.n}/${kb(v.bytes)}`).join(" · ")}`)
   const doc = net.find((r) => r.resourceType === "Document")
   if (doc) console.log(`[lh-diag] document: ${ms(doc.networkEndTime - doc.networkRequestTime)} · ${kb(doc.transferSize)} · status ${doc.statusCode}`)
+  const fetches = {}
+  for (const r of net.filter((x) => x.resourceType === "Fetch" || x.resourceType === "XHR")) {
+    const k = short(r.url).split("?")[0]
+    fetches[k] = (fetches[k] ?? 0) + 1
+  }
+  for (const [k, n] of Object.entries(fetches).sort((a, b) => b[1] - a[1]).slice(0, 15)) console.log(`[lh-diag]   fetch ×${n} · ${k}`)
   const late = net.filter((r) => r.resourceType === "Image").sort((a, b) => (a.networkRequestTime ?? 0) - (b.networkRequestTime ?? 0)).slice(0, 4)
   for (const r of late) console.log(`[lh-diag]   image requested at ${ms(r.networkRequestTime)} · done ${ms(r.networkEndTime)} · ${kb(r.transferSize)} · ${short(r.url)}`)
 }

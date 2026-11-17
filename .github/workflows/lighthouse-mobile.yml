@@ -62,7 +62,6 @@ jobs:
           for path in / / /fr /marketplace; do
             curl -s -o /dev/null -w "[home-probe] ${path} status=%{http_code} ttfb=%{time_starttransfer}s total=%{time_total}s bytes=%{size_download}\n" "http://localhost:3005${path}"
           done
-          npx playwright install --with-deps chromium 2>&1 | tail -2
           node scripts/lcp-candidates.mjs http://localhost:3005/ 20000 || true
           node scripts/lcp-candidates.mjs http://localhost:3005/ 20000 affisell_cookie_consent=false || true
           grep -E "home-marketplace-shell|home-race|home-lcp|Error|error" /tmp/home-probe-server.log | sort | uniq -c | sort -rn | head -30 || true
