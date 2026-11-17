@@ -77,10 +77,16 @@ function actionFor(type: SignalSubject["type"], families: Set<string>): string {
   return "Plusieurs signaux indépendants visent la même entité : les traiter ensemble plutôt qu'un par un."
 }
 
+/**
+ * Families DERIVED from other detectors' findings (the product-economics classification reads the emergence, quality
+ * and sourcing signals as its inputs): they would corroborate their own inputs, so they never enter a synthesis.
+ */
+const DERIVED_FAMILIES = new Set(["commercial:economics"])
+
 export function entitySynthesisSignals(signals: StrategicSignal[], ctx: { observedAt: string }): StrategicSignal[] {
   const groups = new Map<string, { subject: SignalSubject; members: StrategicSignal[] }>()
   for (const s of signals) {
-    if (s.id.startsWith("synthesis:")) continue
+    if (s.id.startsWith("synthesis:") || DERIVED_FAMILIES.has(signalFamilyOf(s.id))) continue
     for (const subj of s.subjects ?? []) {
       const key = `${subj.type}:${subj.id}`
       const g = groups.get(key) ?? { subject: subj, members: [] }

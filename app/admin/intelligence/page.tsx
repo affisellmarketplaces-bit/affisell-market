@@ -7,6 +7,7 @@ import { loadIntelligenceCockpit } from "@/lib/strategic-intelligence/collect.se
 import { GRADE_LABELS, RELIABILITY_MIN_ORDERS, type ComponentVerdict, type RateComponent } from "@/lib/strategic-intelligence/supplier-reliability"
 import { loadSupplierReliability } from "@/lib/strategic-intelligence/supplier-reliability.server"
 import { familyLearning, LEARN_MIN_ACTED, type LearningState } from "@/lib/strategic-intelligence/learned-priority"
+import { POTENTIAL_LABELS, type PotentialClass } from "@/lib/strategic-intelligence/product-economics"
 import {
   DECISION_LABELS,
   LEARNING_MIN_MEASURED,
@@ -290,6 +291,58 @@ export default async function AdminIntelligencePage() {
             </ul>
           </div>
         ) : null}
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Potentiel commercial réel des produits</h2>
+        <p className="text-sm text-zinc-500">
+          Marge nette Affisell par commande, hors TVA : encaissé − remboursé − versé au fournisseur et au revendeur − frais Stripe − coût
+          AliExpress en achat automatique. « Constaté » = virements réellement faits et frais Stripe enregistrés ; sinon estimé avec les règles du
+          règlement. Commandes payées il y a 21 à 120 jours ; « rentable » / « à perte » seulement quand tout l’intervalle (± 2 erreurs-types) est du
+          même côté de zéro. Rien n’est modifié automatiquement.
+        </p>
+        {!(cockpit.economics ?? null) ? (
+          <p className="text-sm text-zinc-500">Non calculé pour cette génération (voir l’état des collecteurs).</p>
+        ) : (
+          <>
+            <p className="text-sm">
+              <span className="font-medium">Qualité des données financières :</span> {cockpit.economics!.quality.usable} commande(s) exploitable(s) sur{" "}
+              {cockpit.economics!.quality.orders} ; {Math.round(cockpit.economics!.quality.constatedShare * 100)} % constatées ; frais Stripe estimés sur{" "}
+              {Math.round(cockpit.economics!.quality.feeEstimatedShare * 100)} % ; total corrigé (empreinte de corruption connue) sur{" "}
+              {cockpit.economics!.quality.totalCorrected}
+              {Object.keys(cockpit.economics!.quality.unusable).length > 0
+                ? ` ; écartées : ${Object.entries(cockpit.economics!.quality.unusable).map(([k, v]) => `${k} ${v}`).join(", ")}`
+                : ""}
+              .
+            </p>
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {(Object.keys(POTENTIAL_LABELS) as PotentialClass[])
+                .filter((c) => c !== "a_suivre")
+                .map((c) => {
+                  const list = cockpit.economics!.items.filter((p) => p.cls === c).slice(0, 5)
+                  return (
+                    <li key={c} className="rounded border border-zinc-200 p-2 text-sm dark:border-zinc-800">
+                      <div className="font-medium">
+                        {POTENTIAL_LABELS[c]} <span className="text-zinc-500">({cockpit.economics!.counts[c] ?? 0})</span>
+                      </div>
+                      {list.length === 0 ? (
+                        <div className="text-xs text-zinc-500">Aucun produit.</div>
+                      ) : (
+                        <ul className="mt-1 space-y-1 text-xs">
+                          {list.map((p) => (
+                            <li key={p.productId}>
+                              <span className="font-medium">{p.name}</span> — {p.reasons[0]}
+                              {p.econ && p.econ.margin !== "donnees_incompletes" ? ` (constaté : ${Math.round(p.econ.constatedShare * 100)} %)` : ""}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  )
+                })}
+            </ul>
+          </>
+        )}
       </section>
 
       <section className="space-y-2">

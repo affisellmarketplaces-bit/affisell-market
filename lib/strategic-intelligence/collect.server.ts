@@ -37,6 +37,17 @@ import { resolveShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
 import { UNALLOCATED_LINE_AUDIT_ACTION, UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION } from "@/lib/unallocated-line"
 import { entitySynthesisSignals } from "@/lib/strategic-intelligence/synthesis"
 import { applyLearnedPriorities, type PriorityChange } from "@/lib/strategic-intelligence/learned-priority"
+import {
+  aggregateProductEconomics,
+  classifyProducts,
+  financialDataQuality,
+  potentialSignals,
+  type FinancialDataQuality,
+  type PotentialClass,
+  type ProductContext,
+  type ProductPotential,
+} from "@/lib/strategic-intelligence/product-economics"
+import { loadEconomicsCohort } from "@/lib/strategic-intelligence/product-economics.server"
 import { loadJournal } from "@/lib/strategic-intelligence/journal.server"
 import { detectEmerging, emergingSignals, EMERGING_PRIOR_DAYS, EMERGING_RECENT_DAYS, type EmergingCounts } from "@/lib/strategic-intelligence/emerging"
 import { aggregateQuality, detectQualityOutliers, qualityRiskSignals } from "@/lib/strategic-intelligence/quality-risk"
@@ -61,6 +72,8 @@ export type CockpitResult = {
   collectors: Array<{ id: string; ok: boolean; signals: number; error?: string }>
   /** Priorities moved by measured results (learned-priority.ts); written to the AuditLog by the scheduled run only. */
   priorityChanges: PriorityChange[]
+  /** Real commercial potential per product (product-economics.ts); null when it could not be computed this run. */
+  economics: { quality: FinancialDataQuality; counts: Partial<Record<PotentialClass, number>>; items: ProductPotential[]; error?: string } | null
 }
 
 async function guarded(
@@ -620,11 +633,60 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
   const byFamily = await loadJournal()
     .then((j) => j.byFamily)
     .catch(() => ({}))
-  const learned = applyLearnedPriorities(results.flat(), byFamily)
+  // Real commercial potential: needs the other detectors' findings (emergence, quality, better source) as context, so it
+  // runs after them; isolated like a collector (a failure is reported, never hides the rest).
+  let economics: CockpitResult["economics"] = null
+  const economicsSignals: StrategicSignal[] = []
+  try {
+    const flat = results.flat()
+    const has = (prefix: string) => new Set(flat.filter((s) => s.id.startsWith(prefix)).map((s) => s.id.slice(prefix.length).split(":")[0]!))
+    const emerging = has("discovery:emerging:")
+    const qualityWorse = has("risk:quality:product:")
+    const betterSource = new Set([...has("supplier:cheaper-same-gtin:"), ...has("supplier:faster-same-gtin:")])
+    const [{ from, to, orders: econOrders }, recent] = await Promise.all([loadEconomicsCohort(now), ordersPromise])
+    if (recent.length >= MAX_ORDERS) throw new Error("echantillon_tronque")
+    const orders30 = new Map<string, number>()
+    const names = new Map<string, string>()
+    for (const o of recent) {
+      if (o.product?.name) names.set(o.productId, o.product.name)
+      if (o.paidAt && o.paidAt >= d(30)) orders30.set(o.productId, (orders30.get(o.productId) ?? 0) + 1)
+    }
+    const econ = aggregateProductEconomics(econOrders)
+    const ids = [...new Set([...econ.keys(), ...orders30.keys(), ...emerging])]
+    const missingNames = ids.filter((id) => !names.has(id))
+    const listedBy = new Map<string, number>()
+    for (let i = 0; i < ids.length; i += 2000) {
+      const chunk = ids.slice(i, i + 2000)
+      const [listed, prods] = await Promise.all([
+        prisma.affiliateProduct.groupBy({ by: ["productId"], where: { productId: { in: chunk }, isListed: true }, _count: { _all: true } }),
+        prisma.product.findMany({ where: { id: { in: chunk.filter((id) => missingNames.includes(id)) } }, select: { id: true, name: true } }),
+      ])
+      for (const l of listed) listedBy.set(l.productId, Number((l._count as { _all?: number })._all ?? 0))
+      for (const p of prods) names.set(p.id, p.name)
+    }
+    const context = new Map<string, ProductContext>(
+      ids.map((id) => [
+        id,
+        { name: names.get(id) ?? id, orders30: orders30.get(id) ?? 0, emerging: emerging.has(id), qualityWorse: qualityWorse.has(id), betterSource: betterSource.has(id), listedResellers: listedBy.get(id) ?? 0 },
+      ])
+    )
+    const items = classifyProducts(econ, context)
+    const counts: Partial<Record<PotentialClass, number>> = {}
+    for (const p of items) counts[p.cls] = (counts[p.cls] ?? 0) + 1
+    economics = { quality: financialDataQuality(econOrders), counts, items }
+    economicsSignals.push(...potentialSignals(items, { observedAt, window: { from: from.toISOString(), to: to.toISOString() } }))
+    report.push({ id: "commercial.product_economics", ok: true, signals: economicsSignals.length })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    report.push({ id: "commercial.product_economics", ok: false, signals: 0, error: message === "echantillon_tronque" ? "echantillon_tronque" : /does not exist|P2021/i.test(message) ? "table_absente" : "lecture_impossible" })
+  }
+
+  const learned = applyLearnedPriorities([...results.flat(), ...economicsSignals], byFamily)
   const detected = learned.signals
   return {
     generatedAt: observedAt,
     priorityChanges: learned.changes,
+    economics,
     signals: rankSignals([...detected, ...entitySynthesisSignals(detected, { observedAt }), ...evolution]),
     sources,
     coverage,
