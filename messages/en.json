@@ -5166,9 +5166,14 @@
     },
     "unallocatedBadge": "Payment received",
     "unallocatedTitle": "Item not confirmed",
-    "unallocatedBody": "Your payment was received, but the item could not be confirmed. It will not be shipped and its amount will be refunded to you. There is nothing you need to do.",
-    "unallocatedBodyRefunded": "Your payment was received, but the item could not be confirmed. It will not be shipped: its amount has been refunded to you (how soon it shows depends on your bank).",
-    "unallocatedSome": "{count, plural, one {# item could not be confirmed: it will not be shipped and its amount will be refunded to you.} other {# items could not be confirmed: they will not be shipped and their amount will be refunded to you.}}"
+    "unallocatedBody": "Your payment was received, but the item could not be confirmed. It will not be shipped.",
+    "unallocatedSome": "{count, plural, one {# item could not be confirmed and will not be shipped.} other {# items could not be confirmed and will not be shipped.}}",
+    "unallocatedRefund": {
+      "notTriggered": "No refund has been issued for this amount yet. Our team has been informed.",
+      "requested": "A refund of this amount has been requested.",
+      "inProgress": "The refund of this amount is being processed.",
+      "confirmed": "This amount has been refunded to you. Depending on your bank, it may take a few days to appear on your statement."
+    }
   },
   "cancel": {
     "title": "Checkout cancelled",
@@ -7172,6 +7177,26 @@
       "body": "You started a purchase on Affisell. Your selection is still available — secure Stripe checkout and tracked delivery.",
       "cta": "Resume my purchase",
       "footer": "Questions? Check the FAQ or the support assistant on Affisell."
+    },
+    "unallocatedLine": {
+      "subject": "Your payment: an item could not be confirmed",
+      "subjectConfirmed": "Your refund has been issued",
+      "preview": "Part of your purchase will not be shipped.",
+      "previewConfirmed": "Your refund has been issued.",
+      "heading": "An item could not be confirmed",
+      "headingConfirmed": "Refund issued",
+      "greeting": "Hello,",
+      "intro": "Your payment was received, but part of your purchase could not be confirmed. The items concerned will not be shipped. The rest of your order, if any, is not affected.",
+      "introConfirmed": "Following your recent payment, the items that could not be confirmed have been refunded.",
+      "amountLine": "Amount concerned: {amount}",
+      "refund": {
+        "notTriggered": "No refund has been issued for this amount yet. Our team has been informed and will get back to you.",
+        "requested": "A refund of this amount has been requested. We will write to you once it has been issued.",
+        "inProgress": "The refund of this amount is being processed.",
+        "confirmed": "This amount has been refunded to you. Depending on your bank, it may take a few days to appear on your statement."
+      },
+      "ctaSupport": "Contact support",
+      "footerNote": "You are receiving this e-mail because a payment was made with this address."
     }
   },
   "errors": {

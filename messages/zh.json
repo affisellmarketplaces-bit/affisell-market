@@ -5166,9 +5166,14 @@
     },
     "unallocatedBadge": "已收到付款",
     "unallocatedTitle": "商品未能确认",
-    "unallocatedBody": "我们已收到你的付款，但该商品未能确认。它不会发货，相应金额将退还给你。你无需进行任何操作。",
-    "unallocatedBodyRefunded": "我们已收到你的付款，但该商品未能确认。它不会发货：相应金额已退还给你（到账时间取决于你的银行）。",
-    "unallocatedSome": "{count, plural, other {# 件商品未能确认：不会发货，相应金额将退还给你。}}"
+    "unallocatedBody": "我们已收到你的付款，但该商品未能确认。它不会发货。",
+    "unallocatedSome": "{count, plural, other {# 件商品未能确认，不会发货。}}",
+    "unallocatedRefund": {
+      "notTriggered": "该金额尚未发起退款。我们的团队已收到通知。",
+      "requested": "已申请退还该金额。",
+      "inProgress": "该金额的退款正在处理中。",
+      "confirmed": "该金额已退还给你。根据你的银行，可能需要几天才会显示在账单上。"
+    }
   },
   "cancel": {
     "title": "订单已取消",
@@ -7172,6 +7177,26 @@
       "body": "您在 Affisell 上开始了一笔购买。您的选择仍然可用 — 安全的 Stripe 结账和跟踪的配送。",
       "cta": "恢复我的购买",
       "footer": "有问题？请查看常见问题或 Affisell 上的支持助手。"
+    },
+    "unallocatedLine": {
+      "subject": "你的付款：有商品未能确认",
+      "subjectConfirmed": "你的退款已完成",
+      "preview": "你购买的部分商品将不会发货。",
+      "previewConfirmed": "退款已完成。",
+      "heading": "有商品未能确认",
+      "headingConfirmed": "退款已完成",
+      "greeting": "你好，",
+      "intro": "我们已收到你的付款，但你购买的部分商品未能确认。相关商品将不会发货。订单中的其他商品（如有）不受影响。",
+      "introConfirmed": "关于你最近的付款，未能确认的商品已完成退款。",
+      "amountLine": "涉及金额：{amount}",
+      "refund": {
+        "notTriggered": "该金额尚未发起退款。我们的团队已收到通知，会与你联系。",
+        "requested": "已申请退还该金额。退款完成后我们会通知你。",
+        "inProgress": "该金额的退款正在处理中。",
+        "confirmed": "该金额已退还给你。根据你的银行，可能需要几天才会显示在账单上。"
+      },
+      "ctaSupport": "联系客服",
+      "footerNote": "你收到这封邮件，是因为有人使用此地址完成了付款。"
     }
   },
   "errors": {

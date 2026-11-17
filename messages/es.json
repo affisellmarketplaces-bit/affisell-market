@@ -5166,9 +5166,14 @@
     },
     "unallocatedBadge": "Pago recibido",
     "unallocatedTitle": "Artículo no confirmado",
-    "unallocatedBody": "Hemos recibido tu pago, pero el artículo no se ha podido confirmar. No se enviará y te reembolsaremos su importe. No tienes que hacer nada.",
-    "unallocatedBodyRefunded": "Hemos recibido tu pago, pero el artículo no se ha podido confirmar. No se enviará: su importe ya te ha sido reembolsado (el plazo depende de tu banco).",
-    "unallocatedSome": "{count, plural, one {# artículo no se ha podido confirmar: no se enviará y te reembolsaremos su importe.} other {# artículos no se han podido confirmar: no se enviarán y te reembolsaremos su importe.}}"
+    "unallocatedBody": "Hemos recibido tu pago, pero el artículo no se ha podido confirmar. No se enviará.",
+    "unallocatedSome": "{count, plural, one {# artículo no se ha podido confirmar y no se enviará.} other {# artículos no se han podido confirmar y no se enviarán.}}",
+    "unallocatedRefund": {
+      "notTriggered": "Todavía no se ha emitido ningún reembolso por este importe. Nuestro equipo está informado.",
+      "requested": "Se ha solicitado el reembolso de este importe.",
+      "inProgress": "El reembolso de este importe se está procesando.",
+      "confirmed": "Este importe te ha sido reembolsado. Según tu banco, puede tardar unos días en aparecer en tu extracto."
+    }
   },
   "cancel": {
     "title": "Checkout cancelado",
@@ -7172,6 +7177,26 @@
       "body": "Inició una compra en Affisell. Su selección todavía está disponible — pago seguro con Stripe y entrega rastreada.",
       "cta": "Reanudar mi compra",
       "footer": "¿Preguntas? Consulte la FAQ o el asistente de soporte en Affisell."
+    },
+    "unallocatedLine": {
+      "subject": "Tu pago: un artículo no se ha podido confirmar",
+      "subjectConfirmed": "Tu reembolso se ha realizado",
+      "preview": "Una parte de tu compra no se enviará.",
+      "previewConfirmed": "El reembolso se ha realizado.",
+      "heading": "Un artículo no se ha podido confirmar",
+      "headingConfirmed": "Reembolso realizado",
+      "greeting": "Hola:",
+      "intro": "Hemos recibido tu pago, pero una parte de tu compra no se ha podido confirmar. Los artículos afectados no se enviarán. El resto de tu pedido, si lo hay, no se ve afectado.",
+      "introConfirmed": "Tras tu pago reciente, los artículos que no se pudieron confirmar han sido reembolsados.",
+      "amountLine": "Importe afectado: {amount}",
+      "refund": {
+        "notTriggered": "Todavía no se ha emitido ningún reembolso por este importe. Nuestro equipo está informado y se pondrá en contacto contigo.",
+        "requested": "Se ha solicitado el reembolso de este importe. Te escribiremos cuando se haya realizado.",
+        "inProgress": "El reembolso de este importe se está procesando.",
+        "confirmed": "Este importe te ha sido reembolsado. Según tu banco, puede tardar unos días en aparecer en tu extracto."
+      },
+      "ctaSupport": "Contactar con soporte",
+      "footerNote": "Recibes este correo porque se realizó un pago con esta dirección."
     }
   },
   "errors": {

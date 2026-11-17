@@ -7,6 +7,7 @@ import { isOrderClosedForPayout, orderIsFulfilledForCheckout } from "@/lib/order
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
 import { logStripeWebhookError, logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
+import { isBuyerNoticeEnabled } from "@/lib/unallocated-buyer-notice"
 import {
   UNALLOCATED_LINE_ALERTED_AUDIT_ACTION,
   UNALLOCATED_LINE_AUDIT_ACTION,
@@ -122,7 +123,20 @@ export async function recordUnallocatedLines(args: {
       outcomes.push({ key, trace: "failed", refund: "failed" })
     }
   }
+  // The buyer's notice comes AFTER the trace and the (optional) automatic refund, so it states the real refund state.
+  if (args.lines.length > 0) await notifyBuyerSafely(args.session.id)
   return outcomes
+}
+
+/** Off unless UNALLOCATED_LINE_BUYER_EMAIL=true; never throws, never blocks the payment path. */
+async function notifyBuyerSafely(sessionId: string): Promise<void> {
+  if (!isBuyerNoticeEnabled()) return
+  try {
+    const { notifyUnallocatedBuyer } = await import("@/lib/unallocated-buyer-notice.server")
+    await notifyUnallocatedBuyer(sessionId)
+  } catch (error) {
+    logStripeWebhookError({ metric: "unallocated_buyer_notice_failed", sessionId, error: errorMessage(error) })
+  }
 }
 
 async function recordOneLine(
@@ -371,6 +385,7 @@ export async function recordManualUnallocatedRefund(args: {
     args.currency,
     "manual_dashboard"
   )
+  await notifyBuyerSafely(sessionId)
   await raiseOpsAlert(
     `[Affisell] UNALLOCATED_LINE refund recognised by its amount: ${args.stripeRefundId} (${(args.amountCents / 100).toFixed(2)} ${args.currency.toUpperCase()}) ` +
       `matched to ${args.lineKey}. If it was meant for another order of that checkout, fix it by hand.`,

@@ -1,10 +1,6 @@
 import { listingDisplayTitle } from "@/lib/affiliate-listing-display"
-import {
-  summarizeUnallocatedTraces,
-  UNALLOCATED_REFUNDED_ACTION,
-  UNALLOCATED_TRACE_ACTION,
-  type UnallocatedSummary,
-} from "@/lib/checkout-success-outcome"
+import type { RefundState } from "@/lib/unallocated-buyer-notice"
+import { loadUnallocatedSessionFacts } from "@/lib/unallocated-buyer-notice.server"
 import {
   ensureMarketplaceCheckoutFulfilled,
   isMarketplaceCheckoutFulfilled,
@@ -30,26 +26,9 @@ export type PaidCheckoutSessionResult = {
   currency: string
   productName: string | null
   productImageUrl: string | null
-  /** Paid lines of this checkout that produced no order (traced), and how many of them are already refunded. */
+  /** Paid lines of this checkout that produced no order (traced), and the REAL state of their refund. */
   unallocatedLines: number
-  unallocatedRefunded: number
-}
-
-/** Read-only, never throws: a failed read keeps the page's previous behaviour (no claim either way). */
-async function loadUnallocatedSummary(sessionId: string): Promise<UnallocatedSummary> {
-  try {
-    const rows = await prisma.auditLog.findMany({
-      where: {
-        action: { in: [UNALLOCATED_TRACE_ACTION, UNALLOCATED_REFUNDED_ACTION] },
-        entityId: { startsWith: `${sessionId}:line:` },
-      },
-      select: { action: true, entityId: true },
-      take: 200,
-    })
-    return summarizeUnallocatedTraces(sessionId, rows)
-  } catch {
-    return { lines: 0, refunded: 0 }
-  }
+  unallocatedRefundState: RefundState | null
 }
 
 /** Idempotent: mark orders paid + partner notifications after Stripe Checkout. */
@@ -129,13 +108,16 @@ export async function fulfillPaidCheckoutSession(
     })),
   })
 
-  const unallocated = paid ? await loadUnallocatedSummary(sessionId) : { lines: 0, refunded: 0 }
+  // Read-only, never throws: a failed read keeps the page's previous behaviour (no claim either way).
+  const unallocated = paid
+    ? await loadUnallocatedSessionFacts(sessionId).catch(() => ({ lines: 0, state: null }))
+    : { lines: 0, state: null }
 
   return {
     paid,
     fulfilled,
     unallocatedLines: unallocated.lines,
-    unallocatedRefunded: unallocated.refunded,
+    unallocatedRefundState: unallocated.lines > 0 ? unallocated.state : null,
     orderId: orderIds[0] ?? session.metadata?.orderId ?? null,
     orderIds,
     affiliateProductId: orderRows[0]?.affiliateProductId ?? null,

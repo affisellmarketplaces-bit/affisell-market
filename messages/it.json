@@ -5166,9 +5166,14 @@
     },
     "unallocatedBadge": "Pagamento ricevuto",
     "unallocatedTitle": "Articolo non confermato",
-    "unallocatedBody": "Abbiamo ricevuto il tuo pagamento, ma l'articolo non è stato confermato. Non verrà spedito e il suo importo ti verrà rimborsato. Non devi fare nulla.",
-    "unallocatedBodyRefunded": "Abbiamo ricevuto il tuo pagamento, ma l'articolo non è stato confermato. Non verrà spedito: il suo importo ti è stato rimborsato (i tempi dipendono dalla tua banca).",
-    "unallocatedSome": "{count, plural, one {# articolo non è stato confermato: non verrà spedito e il suo importo ti verrà rimborsato.} other {# articoli non sono stati confermati: non verranno spediti e il loro importo ti verrà rimborsato.}}"
+    "unallocatedBody": "Abbiamo ricevuto il tuo pagamento, ma l'articolo non è stato confermato. Non verrà spedito.",
+    "unallocatedSome": "{count, plural, one {# articolo non è stato confermato e non verrà spedito.} other {# articoli non sono stati confermati e non verranno spediti.}}",
+    "unallocatedRefund": {
+      "notTriggered": "Non è stato ancora emesso alcun rimborso per questo importo. Il nostro team è stato informato.",
+      "requested": "È stato richiesto il rimborso di questo importo.",
+      "inProgress": "Il rimborso di questo importo è in corso di elaborazione.",
+      "confirmed": "Questo importo ti è stato rimborsato. A seconda della tua banca, potrebbero servire alcuni giorni perché compaia sull'estratto conto."
+    }
   },
   "cancel": {
     "title": "Checkout annullato",
@@ -7172,6 +7177,26 @@
       "body": "Hai iniziato un acquisto su Affisell. La tua selezione è ancora disponibile — checkout sicuro con Stripe e consegna tracciata.",
       "cta": "Riprendi il mio acquisto",
       "footer": "Domande? Controlla la FAQ o l'assistente di supporto su Affisell."
+    },
+    "unallocatedLine": {
+      "subject": "Il tuo pagamento: un articolo non è stato confermato",
+      "subjectConfirmed": "Il tuo rimborso è stato effettuato",
+      "preview": "Una parte del tuo acquisto non verrà spedita.",
+      "previewConfirmed": "Il rimborso è stato effettuato.",
+      "heading": "Un articolo non è stato confermato",
+      "headingConfirmed": "Rimborso effettuato",
+      "greeting": "Ciao,",
+      "intro": "Abbiamo ricevuto il tuo pagamento, ma una parte del tuo acquisto non è stata confermata. Gli articoli interessati non verranno spediti. Il resto del tuo ordine, se presente, non è interessato.",
+      "introConfirmed": "In seguito al tuo recente pagamento, gli articoli che non è stato possibile confermare sono stati rimborsati.",
+      "amountLine": "Importo interessato: {amount}",
+      "refund": {
+        "notTriggered": "Non è stato ancora emesso alcun rimborso per questo importo. Il nostro team è stato informato e ti ricontatterà.",
+        "requested": "È stato richiesto il rimborso di questo importo. Ti scriveremo quando sarà effettuato.",
+        "inProgress": "Il rimborso di questo importo è in corso di elaborazione.",
+        "confirmed": "Questo importo ti è stato rimborsato. A seconda della tua banca, potrebbero servire alcuni giorni perché compaia sull'estratto conto."
+      },
+      "ctaSupport": "Contatta l'assistenza",
+      "footerNote": "Ricevi questa e-mail perché è stato effettuato un pagamento con questo indirizzo."
     }
   },
   "errors": {

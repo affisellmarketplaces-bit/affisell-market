@@ -5166,9 +5166,14 @@
     },
     "unallocatedBadge": "Betaling ontvangen",
     "unallocatedTitle": "Artikel niet bevestigd",
-    "unallocatedBody": "Je betaling is ontvangen, maar het artikel kon niet worden bevestigd. Het wordt niet verzonden en het bedrag wordt aan je terugbetaald. Je hoeft niets te doen.",
-    "unallocatedBodyRefunded": "Je betaling is ontvangen, maar het artikel kon niet worden bevestigd. Het wordt niet verzonden: het bedrag is aan je terugbetaald (wanneer je het ziet, hangt af van je bank).",
-    "unallocatedSome": "{count, plural, one {# artikel kon niet worden bevestigd: het wordt niet verzonden en het bedrag wordt aan je terugbetaald.} other {# artikelen konden niet worden bevestigd: ze worden niet verzonden en het bedrag wordt aan je terugbetaald.}}"
+    "unallocatedBody": "Je betaling is ontvangen, maar het artikel kon niet worden bevestigd. Het wordt niet verzonden.",
+    "unallocatedSome": "{count, plural, one {# artikel kon niet worden bevestigd en wordt niet verzonden.} other {# artikelen konden niet worden bevestigd en worden niet verzonden.}}",
+    "unallocatedRefund": {
+      "notTriggered": "Voor dit bedrag is nog geen terugbetaling gedaan. Ons team is op de hoogte.",
+      "requested": "Er is een terugbetaling van dit bedrag aangevraagd.",
+      "inProgress": "De terugbetaling van dit bedrag wordt verwerkt.",
+      "confirmed": "Dit bedrag is aan je terugbetaald. Afhankelijk van je bank kan het enkele dagen duren voordat het op je afschrift verschijnt."
+    }
   },
   "cancel": {
     "title": "Afgekeurd",
@@ -7172,6 +7177,26 @@
       "body": "U bent een aankoop op Affisell gestart. Uw selectie is nog steeds beschikbaar — beveiligde Stripe-betaling en gevolgde levering.",
       "cta": "Mijn aankoop hervatten",
       "footer": "Vragen? Bekijk de FAQ of de ondersteuningsassistent op Affisell."
+    },
+    "unallocatedLine": {
+      "subject": "Je betaling: een artikel kon niet worden bevestigd",
+      "subjectConfirmed": "Je terugbetaling is uitgevoerd",
+      "preview": "Een deel van je aankoop wordt niet verzonden.",
+      "previewConfirmed": "De terugbetaling is uitgevoerd.",
+      "heading": "Een artikel kon niet worden bevestigd",
+      "headingConfirmed": "Terugbetaling uitgevoerd",
+      "greeting": "Hallo,",
+      "intro": "Je betaling is ontvangen, maar een deel van je aankoop kon niet worden bevestigd. De betreffende artikelen worden niet verzonden. De rest van je bestelling, indien aanwezig, wordt niet beïnvloed.",
+      "introConfirmed": "Na je recente betaling zijn de artikelen die niet konden worden bevestigd terugbetaald.",
+      "amountLine": "Betreffend bedrag: {amount}",
+      "refund": {
+        "notTriggered": "Voor dit bedrag is nog geen terugbetaling gedaan. Ons team is op de hoogte en neemt contact met je op.",
+        "requested": "Er is een terugbetaling van dit bedrag aangevraagd. We laten het je weten zodra die is uitgevoerd.",
+        "inProgress": "De terugbetaling van dit bedrag wordt verwerkt.",
+        "confirmed": "Dit bedrag is aan je terugbetaald. Afhankelijk van je bank kan het enkele dagen duren voordat het op je afschrift verschijnt."
+      },
+      "ctaSupport": "Contact opnemen met support",
+      "footerNote": "Je ontvangt deze e-mail omdat er met dit adres een betaling is gedaan."
     }
   },
   "errors": {

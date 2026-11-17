@@ -5166,9 +5166,14 @@
     },
     "unallocatedBadge": "Zahlung erhalten",
     "unallocatedTitle": "Artikel nicht bestätigt",
-    "unallocatedBody": "Deine Zahlung ist eingegangen, aber der Artikel konnte nicht bestätigt werden. Er wird nicht versendet und der Betrag wird dir erstattet. Du musst nichts weiter tun.",
-    "unallocatedBodyRefunded": "Deine Zahlung ist eingegangen, aber der Artikel konnte nicht bestätigt werden. Er wird nicht versendet: Der Betrag wurde dir erstattet (wann er erscheint, hängt von deiner Bank ab).",
-    "unallocatedSome": "{count, plural, one {# Artikel konnte nicht bestätigt werden: Er wird nicht versendet und der Betrag wird dir erstattet.} other {# Artikel konnten nicht bestätigt werden: Sie werden nicht versendet und der Betrag wird dir erstattet.}}"
+    "unallocatedBody": "Deine Zahlung ist eingegangen, aber der Artikel konnte nicht bestätigt werden. Er wird nicht versendet.",
+    "unallocatedSome": "{count, plural, one {# Artikel konnte nicht bestätigt werden und wird nicht versendet.} other {# Artikel konnten nicht bestätigt werden und werden nicht versendet.}}",
+    "unallocatedRefund": {
+      "notTriggered": "Für diesen Betrag wurde noch keine Erstattung ausgelöst. Unser Team ist informiert.",
+      "requested": "Eine Erstattung dieses Betrags wurde beantragt.",
+      "inProgress": "Die Erstattung dieses Betrags wird bearbeitet.",
+      "confirmed": "Dieser Betrag wurde dir erstattet. Je nach Bank kann es einige Tage dauern, bis er auf deinem Kontoauszug erscheint."
+    }
   },
   "cancel": {
     "title": "Zahlung abgebrochen",
@@ -7172,6 +7177,26 @@
       "body": "Sie haben einen Kauf auf Affisell begonnen. Ihre Auswahl ist noch verfügbar — sicherer Stripe-Checkout und nachverfolgte Lieferung.",
       "cta": "Meinen Kauf fortsetzen",
       "footer": "Fragen? Überprüfen Sie die FAQ oder den Support-Assistenten auf Affisell."
+    },
+    "unallocatedLine": {
+      "subject": "Deine Zahlung: Ein Artikel konnte nicht bestätigt werden",
+      "subjectConfirmed": "Deine Erstattung wurde ausgeführt",
+      "preview": "Ein Teil deines Kaufs wird nicht versendet.",
+      "previewConfirmed": "Die Erstattung wurde ausgeführt.",
+      "heading": "Ein Artikel konnte nicht bestätigt werden",
+      "headingConfirmed": "Erstattung ausgeführt",
+      "greeting": "Hallo,",
+      "intro": "Deine Zahlung ist eingegangen, aber ein Teil deines Kaufs konnte nicht bestätigt werden. Die betroffenen Artikel werden nicht versendet. Der Rest deiner Bestellung, falls vorhanden, ist nicht betroffen.",
+      "introConfirmed": "Nach deiner kürzlichen Zahlung wurden die Artikel, die nicht bestätigt werden konnten, erstattet.",
+      "amountLine": "Betroffener Betrag: {amount}",
+      "refund": {
+        "notTriggered": "Für diesen Betrag wurde noch keine Erstattung ausgelöst. Unser Team ist informiert und meldet sich bei dir.",
+        "requested": "Eine Erstattung dieses Betrags wurde beantragt. Wir schreiben dir, sobald sie ausgeführt ist.",
+        "inProgress": "Die Erstattung dieses Betrags wird bearbeitet.",
+        "confirmed": "Dieser Betrag wurde dir erstattet. Je nach Bank kann es einige Tage dauern, bis er auf deinem Kontoauszug erscheint."
+      },
+      "ctaSupport": "Support kontaktieren",
+      "footerNote": "Du erhältst diese E-Mail, weil mit dieser Adresse eine Zahlung getätigt wurde."
     }
   },
   "errors": {

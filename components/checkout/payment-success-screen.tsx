@@ -15,7 +15,8 @@ import {
 
 import { SuccessConversionHub } from "@/components/checkout/success-conversion-hub"
 import { useStorefrontHost } from "@/components/storefront/storefront-host-context"
-import { successOutcome } from "@/lib/checkout-success-outcome"
+import { refundSentenceKey, successOutcome } from "@/lib/checkout-success-outcome"
+import type { RefundState } from "@/lib/unallocated-buyer-notice"
 import { buttonVariants } from "@/components/ui/button"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import {
@@ -51,9 +52,9 @@ export type PaymentSuccessPayload = {
   currency?: string | null
   productName?: string | null
   productImageUrl?: string | null
-  /** Paid lines that produced no order (they will not ship and are owed back), and how many are already refunded. */
+  /** Paid lines that produced no order (they will not ship), and the real state of their refund. */
   unallocatedLines?: number
-  unallocatedRefunded?: number
+  unallocatedRefundState?: RefundState | null
   error?: string
 }
 
@@ -161,7 +162,7 @@ export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props
   // Nothing was confirmed: no celebration, no order reference, a « payment received » badge instead of « confirmed ».
   const nothingConfirmed = outcome === "unallocated"
   const lostLines = payload.unallocatedLines ?? 0
-  const allLostRefunded = lostLines > 0 && (payload.unallocatedRefunded ?? 0) >= lostLines
+  const refundSentence = lostLines > 0 ? t(`unallocatedRefund.${refundSentenceKey(payload.unallocatedRefundState)}`) : null
   const orderCount = payload.orderIds?.length ?? (payload.orderId ? 1 : 0)
   const primaryOrderIdRaw = payload.orderIds?.[0] ?? payload.orderId ?? null
   const primaryOrderRef =
@@ -189,9 +190,7 @@ export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props
   const bodyCopy = isError
     ? t("errorBody")
     : nothingConfirmed
-      ? allLostRefunded
-        ? t("unallocatedBodyRefunded")
-        : t("unallocatedBody")
+      ? `${t("unallocatedBody")} ${refundSentence ?? ""}`.trim()
       : payload.fulfilled
       ? orderCount > 1
         ? t("fulfilledMulti", { count: orderCount })
@@ -265,7 +264,7 @@ export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props
 
             {outcome === "partially_unallocated" ? (
               <p className="mx-auto mt-3 max-w-md rounded-xl border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-sm leading-relaxed text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200" role="status">
-                {t("unallocatedSome", { count: lostLines })}
+                {t("unallocatedSome", { count: lostLines })} {refundSentence}
               </p>
             ) : null}
 

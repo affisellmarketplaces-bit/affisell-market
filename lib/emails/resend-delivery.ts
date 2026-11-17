@@ -54,8 +54,13 @@ export async function sendResendEmail(args: {
   subject: string
   html: string
   replyTo?: string
+  /**
+   * Sent as Resend's `Idempotency-Key` on the first attempt: a replay with the same key within 24 h does not send the
+   * e-mail again. Not used for the sandbox fallback (a different recipient is a different e-mail).
+   */
+  idempotencyKey?: string
 }): Promise<{ ok: true; resendId?: string } | { ok: false; error: string }> {
-  const { context, config, intendedTo, subject, html, replyTo } = args
+  const { context, config, intendedTo, subject, html, replyTo, idempotencyKey } = args
   const resend = new Resend(config.apiKey)
 
   let recipient: ResolveResendRecipientResult
@@ -65,18 +70,19 @@ export async function sendResendEmail(args: {
     return { ok: false, error: "invalid_recipient" }
   }
 
-  const attempt = async (to: string): Promise<ResendSendResult> => {
-    const { data, error } = await resend.emails.send({
+  const attempt = async (to: string, key?: string): Promise<ResendSendResult> => {
+    const payload = {
       from: config.from,
       to,
       subject,
       html,
       ...(replyTo?.trim() ? { reply_to: replyTo.trim() } : {}),
-    })
+    }
+    const { data, error } = key ? await resend.emails.send(payload, { idempotencyKey: key }) : await resend.emails.send(payload)
     return { data: data ?? null, error: error ?? null }
   }
 
-  let result = await attempt(recipient.to)
+  let result = await attempt(recipient.to, idempotencyKey?.trim() || undefined)
   if (!result.error) {
     console.log(`[${context}]`, { result: "email_sent", resendId: result.data?.id })
     return { ok: true, resendId: result.data?.id }

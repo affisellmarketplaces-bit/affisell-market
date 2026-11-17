@@ -5166,9 +5166,14 @@
     },
     "unallocatedBadge": "Płatność otrzymana",
     "unallocatedTitle": "Produkt niepotwierdzony",
-    "unallocatedBody": "Otrzymaliśmy Twoją płatność, ale nie udało się potwierdzić produktu. Nie zostanie wysłany, a jego kwota zostanie Ci zwrócona. Nie musisz nic robić.",
-    "unallocatedBodyRefunded": "Otrzymaliśmy Twoją płatność, ale nie udało się potwierdzić produktu. Nie zostanie wysłany: jego kwota została Ci zwrócona (termin zależy od Twojego banku).",
-    "unallocatedSome": "{count, plural, one {# produktu nie udało się potwierdzić: nie zostanie wysłany, a jego kwota zostanie Ci zwrócona.} few {# produktów nie udało się potwierdzić: nie zostaną wysłane, a ich kwota zostanie Ci zwrócona.} many {# produktów nie udało się potwierdzić: nie zostaną wysłane, a ich kwota zostanie Ci zwrócona.} other {# produktów nie udało się potwierdzić: nie zostaną wysłane, a ich kwota zostanie Ci zwrócona.}}"
+    "unallocatedBody": "Otrzymaliśmy Twoją płatność, ale nie udało się potwierdzić produktu. Nie zostanie wysłany.",
+    "unallocatedSome": "{count, plural, one {# produktu nie udało się potwierdzić i nie zostanie wysłany.} few {# produktów nie udało się potwierdzić i nie zostaną wysłane.} many {# produktów nie udało się potwierdzić i nie zostaną wysłane.} other {# produktów nie udało się potwierdzić i nie zostaną wysłane.}}",
+    "unallocatedRefund": {
+      "notTriggered": "Zwrot tej kwoty nie został jeszcze zlecony. Nasz zespół został poinformowany.",
+      "requested": "Zlecono zwrot tej kwoty.",
+      "inProgress": "Zwrot tej kwoty jest w trakcie realizacji.",
+      "confirmed": "Ta kwota została Ci zwrócona. W zależności od banku może minąć kilka dni, zanim pojawi się na wyciągu."
+    }
   },
   "cancel": {
     "title": "Zamówienie anulowane",
@@ -7172,6 +7177,26 @@
       "body": "Rozpocząłeś zakup na Affisell. Twoja selekcja jest nadal dostępna — bezpieczna płatność za pomocą Stripe i śledzenie dostawy.",
       "cta": "Wznów mój zakup",
       "footer": "Pytania? Sprawdź FAQ lub asystenta wsparcia na Affisell."
+    },
+    "unallocatedLine": {
+      "subject": "Twoja płatność: nie udało się potwierdzić produktu",
+      "subjectConfirmed": "Zwrot został zrealizowany",
+      "preview": "Część Twojego zakupu nie zostanie wysłana.",
+      "previewConfirmed": "Zwrot został zrealizowany.",
+      "heading": "Nie udało się potwierdzić produktu",
+      "headingConfirmed": "Zwrot zrealizowany",
+      "greeting": "Dzień dobry,",
+      "intro": "Otrzymaliśmy Twoją płatność, ale części Twojego zakupu nie udało się potwierdzić. Te produkty nie zostaną wysłane. Pozostała część zamówienia, jeśli jest, nie jest objęta tą zmianą.",
+      "introConfirmed": "W związku z Twoją niedawną płatnością produkty, których nie udało się potwierdzić, zostały zwrócone.",
+      "amountLine": "Kwota: {amount}",
+      "refund": {
+        "notTriggered": "Zwrot tej kwoty nie został jeszcze zlecony. Nasz zespół został poinformowany i skontaktuje się z Tobą.",
+        "requested": "Zlecono zwrot tej kwoty. Napiszemy do Ciebie, gdy zostanie zrealizowany.",
+        "inProgress": "Zwrot tej kwoty jest w trakcie realizacji.",
+        "confirmed": "Ta kwota została Ci zwrócona. W zależności od banku może minąć kilka dni, zanim pojawi się na wyciągu."
+      },
+      "ctaSupport": "Skontaktuj się z pomocą",
+      "footerNote": "Otrzymujesz tę wiadomość, ponieważ z tego adresu dokonano płatności."
     }
   },
   "errors": {

@@ -5166,9 +5166,14 @@
     },
     "unallocatedBadge": "Paiement reçu",
     "unallocatedTitle": "Article non confirmé",
-    "unallocatedBody": "Votre paiement a bien été reçu, mais l'article n'a pas pu être confirmé. Il ne sera pas expédié et son montant vous sera remboursé. Aucune démarche n'est nécessaire de votre part.",
-    "unallocatedBodyRefunded": "Votre paiement a bien été reçu, mais l'article n'a pas pu être confirmé. Il ne sera pas expédié : son montant vous a été remboursé (le délai d'affichage dépend de votre banque).",
-    "unallocatedSome": "{count, plural, one {# article n'a pas pu être confirmé : il ne sera pas expédié et son montant vous sera remboursé.} other {# articles n'ont pas pu être confirmés : ils ne seront pas expédiés et leur montant vous sera remboursé.}}"
+    "unallocatedBody": "Votre paiement a bien été reçu, mais l'article n'a pas pu être confirmé. Il ne sera pas expédié.",
+    "unallocatedSome": "{count, plural, one {# article n'a pas pu être confirmé et ne sera pas expédié.} other {# articles n'ont pas pu être confirmés et ne seront pas expédiés.}}",
+    "unallocatedRefund": {
+      "notTriggered": "Aucun remboursement n'a encore été émis pour ce montant. Notre équipe a été informée.",
+      "requested": "Un remboursement de ce montant a été demandé.",
+      "inProgress": "Le remboursement de ce montant est en cours de traitement.",
+      "confirmed": "Ce montant vous a été remboursé. Selon votre banque, quelques jours peuvent être nécessaires pour qu'il apparaisse sur votre relevé."
+    }
   },
   "cancel": {
     "title": "Paiement annulé",
@@ -7172,6 +7177,26 @@
       "body": "Vous aviez commencé un achat sur Affisell. Votre sélection est toujours disponible — paiement sécurisé Stripe, livraison suivie.",
       "cta": "Reprendre mon achat",
       "footer": "Une question ? Consultez la FAQ ou l'assistant support sur Affisell."
+    },
+    "unallocatedLine": {
+      "subject": "Votre paiement : un article n'a pas pu être confirmé",
+      "subjectConfirmed": "Votre remboursement a été effectué",
+      "preview": "Une partie de votre achat ne sera pas expédiée.",
+      "previewConfirmed": "Le remboursement a été effectué.",
+      "heading": "Un article n'a pas pu être confirmé",
+      "headingConfirmed": "Remboursement effectué",
+      "greeting": "Bonjour,",
+      "intro": "Votre paiement a bien été reçu, mais une partie de votre achat n'a pas pu être confirmée. Les articles concernés ne seront pas expédiés. Le reste de votre commande, s'il y en a, n'est pas concerné.",
+      "introConfirmed": "Suite à votre récent paiement, les articles qui n'avaient pas pu être confirmés ont été remboursés.",
+      "amountLine": "Montant concerné : {amount}",
+      "refund": {
+        "notTriggered": "Aucun remboursement n'a encore été émis pour ce montant. Notre équipe a été informée et reviendra vers vous.",
+        "requested": "Un remboursement de ce montant a été demandé. Nous vous écrirons lorsqu'il sera effectué.",
+        "inProgress": "Le remboursement de ce montant est en cours de traitement.",
+        "confirmed": "Ce montant vous a été remboursé. Selon votre banque, quelques jours peuvent être nécessaires pour qu'il apparaisse sur votre relevé."
+      },
+      "ctaSupport": "Contacter l'assistance",
+      "footerNote": "Vous recevez cet e-mail car un paiement a été effectué avec cette adresse."
     }
   },
   "errors": {

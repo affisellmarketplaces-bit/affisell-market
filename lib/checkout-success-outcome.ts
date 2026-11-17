@@ -4,28 +4,15 @@
  * A checkout line the buyer paid for but that produced no order is « unallocated » (`lib/unallocated-line.ts`): its trace
  * is an `AuditLog` row keyed `<session>:line:<i>`, and a refund of it leaves a second row on the same key. Before this,
  * the page said « Payment confirmed — your order will appear in your account within moments » for such a line: it never
- * would. The page now says the item could not be confirmed, will not be shipped, and that its amount is (or will be)
- * refunded — the refund is owed whatever path issues it (automatic flag or operations, alerted with the exact amount).
+ * would. The page now says the item could not be confirmed and will not be shipped, then states the REAL refund state
+ * (`lib/unallocated-buyer-notice.ts`): « not issued yet », « requested », « being processed » or « refunded ».
  */
 
-import { UNALLOCATED_LINE_AUDIT_ACTION, UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION } from "@/lib/unallocated-line"
+import { noticeCopyKey, type RefundState } from "@/lib/unallocated-buyer-notice"
 
-export const UNALLOCATED_TRACE_ACTION = UNALLOCATED_LINE_AUDIT_ACTION
-export const UNALLOCATED_REFUNDED_ACTION = UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION
-
-export type UnallocatedSummary = { lines: number; refunded: number }
-
-/** Distinct traced lines of ONE checkout session, and how many of them already carry a refund proof. */
-export function summarizeUnallocatedTraces(sessionId: string, rows: Array<{ action: string; entityId: string | null }>): UnallocatedSummary {
-  const prefix = `${sessionId}:line:`
-  const traced = new Set<string>()
-  const refunded = new Set<string>()
-  for (const r of rows) {
-    if (!r.entityId?.startsWith(prefix) || !/^\d+$/.test(r.entityId.slice(prefix.length))) continue
-    if (r.action === UNALLOCATED_TRACE_ACTION) traced.add(r.entityId)
-    else if (r.action === UNALLOCATED_REFUNDED_ACTION) refunded.add(r.entityId)
-  }
-  return { lines: traced.size, refunded: [...refunded].filter((k) => traced.has(k)).length }
+/** The page's refund sentence: the same four states as the buyer e-mail, never a promise the facts do not support. */
+export function refundSentenceKey(state: RefundState | null | undefined): "notTriggered" | "requested" | "inProgress" | "confirmed" {
+  return noticeCopyKey("initial", state ?? "not_triggered")
 }
 
 export type SuccessOutcome = "error" | "fulfilled" | "partially_unallocated" | "unallocated" | "verifying" | "pending"
