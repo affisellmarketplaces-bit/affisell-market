@@ -95,3 +95,32 @@ if (net.length) {
   const late = net.filter((r) => r.resourceType === "Image").sort((a, b) => (a.networkRequestTime ?? 0) - (b.networkRequestTime ?? 0)).slice(0, 4)
   for (const r of late) console.log(`[lh-diag]   image requested at ${ms(r.networkRequestTime)} · done ${ms(r.networkEndTime)} · ${kb(r.transferSize)} · ${short(r.url)}`)
 }
+
+// What the heaviest startup scripts CONTAIN (Turbopack keeps one "[project]/…" id per module in the chunk):
+// bytes between successive module ids, summed per npm package / app folder. Needs the build output (.next/).
+const chunkDir = resolve(process.cwd(), ".next/static/chunks")
+if (net.length && existsSync(chunkDir)) {
+  const scripts = net
+    .filter((r) => r.resourceType === "Script" && /\/_next\/static\/chunks\//.test(r.url))
+    .sort((a, b) => (b.resourceSize ?? b.transferSize ?? 0) - (a.resourceSize ?? a.transferSize ?? 0))
+    .slice(0, 6)
+  const owner = (id) => {
+    const m = /\[project\]\/(node_modules\/(?:@[^/]+\/)?[^/]+|[^/]+\/[^/]+)/.exec(id)
+    return m ? m[1] : "(other)"
+  }
+  for (const r of scripts) {
+    const file = resolve(chunkDir, new URL(r.url).pathname.split("/").pop())
+    if (!existsSync(file)) continue
+    const src = readFileSync(file, "utf8")
+    const marks = [...src.matchAll(/"(\[project\]\/[^"]+)"/g)]
+    const sizes = {}
+    for (let i = 0; i < marks.length; i++) {
+      const end = i + 1 < marks.length ? marks[i + 1].index : src.length
+      const k = owner(marks[i][1])
+      sizes[k] = (sizes[k] ?? 0) + (end - marks[i].index)
+    }
+    const top = Object.entries(sizes).sort((a, b) => b[1] - a[1]).slice(0, 8)
+    console.log(`[lh-diag] chunk ${short(r.url)} · ${kb(src.length)} raw · ${marks.length} module ids`)
+    for (const [k, v] of top) console.log(`[lh-diag]   ${kb(v)} · ${k}`)
+  }
+}
