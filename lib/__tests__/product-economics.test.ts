@@ -175,3 +175,24 @@ describe("aggregation and classification", () => {
     expect(entitySynthesisSignals([sig, quality], { observedAt: "x" })).toEqual([])
   })
 })
+
+describe("a loss that rests only on the Stripe fee estimate is not presented as a decision", () => {
+  // Estimated fee on a 36 € charge: 129 c (2.9 % + 25 c); at Stripe's lowest rate for a French account (1.5 % + 25 c): 79 c.
+  const shallow = (pid: string) => n(12, () => order({ productId: pid, transfers: paid(1560, 1340) })) // net −29 c, +21 c at the low rate
+  const deep = (pid: string) => n(12, () => order({ productId: pid, transfers: paid(1560, 1500) })) // net −189 c, −139 c at the low rate
+
+  it("flags the shallow loss, not the deep one", () => {
+    const econ = aggregateProductEconomics([...shallow("s"), ...deep("d")])
+    expect(econ.get("s")).toMatchObject({ margin: "a_perte", lossDependsOnFeeEstimate: true, meanFeeUncertaintyCents: 50 })
+    expect(econ.get("d")).toMatchObject({ margin: "a_perte", lossDependsOnFeeEstimate: false })
+  })
+
+  it("says so, lowers the priority to « study » and the confidence to low", () => {
+    const econ = aggregateProductEconomics(shallow("s"))
+    const c = classifyPotential(econ.get("s")!, ctx({ orders30: 30 }), 10)
+    expect(c.cls).toBe("populaire_non_rentable")
+    expect(c.reasons.join(" ")).toMatch(/dépend de l'estimation des frais Stripe/)
+    const [sig] = potentialSignals([{ productId: "s", name: "Lampe", econ: econ.get("s")!, ctx: ctx({ orders30: 30 }), cls: c.cls, reasons: c.reasons }], { observedAt: "2026-11-17", window: { from: "a", to: "b" } })
+    expect(sig).toMatchObject({ priority: "study", confidence: "low" })
+  })
+})

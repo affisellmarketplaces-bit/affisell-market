@@ -66,8 +66,21 @@ export type OrderEconomics =
       refunded: boolean
       transfersConstated: boolean
       feeConstated: boolean
+      /** Estimated fee − the lowest-rate fee: how much the loss could be an artefact of the fee estimate. */
+      feeUncertaintyCents: number
       aeCostEstimatedCents: number
     }
+
+/**
+ * The LOWEST public card rate of Stripe for a French account (standard EEA consumer card: 1.5 % + 0.25 €; premium,
+ * UK and non-EEA cards cost more, up to ≈ 3.25 % + 2 % conversion). The cockpit's central estimate stays 2.9 % + 25 c
+ * (shared with the auto-buy margin floor — a money path, not changed here); this bound only tells whether a LOSS still
+ * holds when every card would have been the cheapest kind. Rates read from public pricing summaries on 2026-11-17
+ * (stripe.com itself was not fetched); the reconciliation report measures the real mix.
+ */
+export function estimateStripeFeeLowCents(chargedCents: number): number {
+  return Math.round(chargedCents * 0.015 + 25)
+}
 
 export function orderEconomics(o: EconOrder): OrderEconomics {
   if (!(o.totalCents != null && o.totalCents > 0) && !((o.split.subtotalCents ?? 0) > 0)) return { usable: false, issue: "total_absent" }
@@ -109,6 +122,7 @@ export function orderEconomics(o: EconOrder): OrderEconomics {
     refunded: refunded > 0,
     transfersConstated,
     feeConstated,
+    feeUncertaintyCents: Math.max(0, fee - estimateStripeFeeLowCents(total)),
     aeCostEstimatedCents: aeCost,
   }
 }
@@ -128,6 +142,12 @@ export type ProductEconomics = {
   disputes: number
   aeCostEstimatedCents: number
   margin: "rentable" | "a_perte" | "incertaine" | "donnees_incompletes"
+  /**
+   * « à perte » under the central fee estimate, but NOT once every card is assumed at Stripe's lowest rate: the loss
+   * then rests on the fee estimate, not on demonstrated facts — to confirm with the reconciliation before acting.
+   */
+  lossDependsOnFeeEstimate: boolean
+  meanFeeUncertaintyCents: number
 }
 
 export function aggregateProductEconomics(orders: EconOrder[]): Map<string, ProductEconomics> {
@@ -141,6 +161,7 @@ export function aggregateProductEconomics(orders: EconOrder[]): Map<string, Prod
     let constated = 0
     let refundedOrders = 0
     let ae = 0
+    let feeGap = 0
     for (const o of list) {
       const e = orderEconomics(o)
       if (!e.usable) {
@@ -152,6 +173,7 @@ export function aggregateProductEconomics(orders: EconOrder[]): Map<string, Prod
       if (e.transfersConstated) constated++
       if (e.refunded) refundedOrders++
       ae += e.aeCostEstimatedCents
+      feeGap += e.feeUncertaintyCents
     }
     const n = nets.length
     const mean = n > 0 ? nets.reduce((a, b) => a + b, 0) / n : 0
@@ -161,6 +183,8 @@ export function aggregateProductEconomics(orders: EconOrder[]): Map<string, Prod
     const complete = n >= ECON_MIN_ORDERS && unusableCount / list.length <= ECON_MAX_UNUSABLE_SHARE
     const low = mean - 2 * se
     const high = mean + 2 * se
+    const margin = !complete ? "donnees_incompletes" : low > 0 ? "rentable" : high < 0 ? "a_perte" : "incertaine"
+    const meanFeeGap = n > 0 ? feeGap / n : 0
     out.set(productId, {
       productId,
       orders: list.length,
@@ -175,7 +199,9 @@ export function aggregateProductEconomics(orders: EconOrder[]): Map<string, Prod
       refundRate: n > 0 ? refundedOrders / n : 0,
       disputes: list.filter((o) => o.disputed).length,
       aeCostEstimatedCents: ae,
-      margin: !complete ? "donnees_incompletes" : low > 0 ? "rentable" : high < 0 ? "a_perte" : "incertaine",
+      margin,
+      lossDependsOnFeeEstimate: margin === "a_perte" && high + meanFeeGap >= 0,
+      meanFeeUncertaintyCents: Math.round(meanFeeGap),
     })
   }
   return out
@@ -238,6 +264,16 @@ export function popularityThreshold(orders30: number[]): number {
 
 /** Rules, in order (first match wins); every class states WHY. Nothing is applied. */
 export function classifyPotential(econ: ProductEconomics | null, ctx: ProductContext, popularAt: number): { cls: PotentialClass; reasons: string[] } {
+  const base = classifyPotentialCore(econ, ctx, popularAt)
+  if (econ?.lossDependsOnFeeEstimate && econ.margin === "a_perte") {
+    base.reasons.push(
+      `Perte qui dépend de l'estimation des frais Stripe : au tarif carte européenne standard (1,5 % + 0,25 €, soit ${eur(econ.meanFeeUncertaintyCents)} de moins par commande), elle ne serait plus démontrée. À confirmer par le rapprochement des frais réels avant toute décision.`
+    )
+  }
+  return base
+}
+
+function classifyPotentialCore(econ: ProductEconomics | null, ctx: ProductContext, popularAt: number): { cls: PotentialClass; reasons: string[] } {
   const popular = ctx.orders30 >= popularAt
   const marginTxt = econ && econ.margin !== "donnees_incompletes" ? `marge nette Affisell ${eur(econ.meanNetCents)} par commande [${eur(econ.lowNetCents)} ; ${eur(econ.highNetCents)}]` : ""
   if (!econ || econ.margin === "donnees_incompletes") {
@@ -330,7 +366,8 @@ export function potentialSignals(items: ProductPotential[], ctx: { observedAt: s
       out.push({
         id: `commercial:economics:${cls}:${p.productId}`,
         domain: "commercial",
-        priority: SIGNAL_CLASSES[cls]!,
+        // A loss that rests on the fee estimate is not a decision yet: never above « à étudier ».
+        priority: e?.lossDependsOnFeeEstimate ? "study" : SIGNAL_CLASSES[cls]!,
         kind: cls === "a_tester" || cls === "a_abandonner" ? "recommendation" : constated ? "fact" : "estimate",
         title: `${POTENTIAL_LABELS[cls]} : « ${p.name} »`,
         evidence: [
@@ -364,8 +401,10 @@ export function potentialSignals(items: ProductPotential[], ctx: { observedAt: s
         source: { id: "affisell.orders", query: "Commandes payées il y a 21 à 120 jours × TransferAttempt × OrderStripeRefund × frais Stripe ; demande 30 j ; signaux qualité / sourcing / émergence" },
         observedAt: ctx.observedAt,
         window: ctx.window,
-        confidence: !e || e.margin === "donnees_incompletes" ? "low" : constated ? "high" : "medium",
-        confidenceReason: constated
+        confidence: !e || e.margin === "donnees_incompletes" || e.lossDependsOnFeeEstimate ? "low" : constated ? "high" : "medium",
+        confidenceReason: e?.lossDependsOnFeeEstimate
+          ? "La perte n'est démontrée qu'avec l'estimation centrale des frais Stripe (2,9 % + 0,25 €) ; au tarif le plus bas d'un compte français (1,5 % + 0,25 €) elle ne l'est plus. Frais réels non enregistrés : lancer le rapprochement."
+          : constated
           ? "Marge calculée sur des virements réellement effectués ; frais Stripe estimés (2,9 % + 0,25 € du montant TTC, le montant réel n'est pas enregistré) ; intervalle à ± 2 erreurs-types."
           : "Marge en partie estimée (virements pas encore faits : règles du règlement appliquées ; frais Stripe estimés) ; intervalle à ± 2 erreurs-types.",
         recommendedAction: ACTIONS[cls],
