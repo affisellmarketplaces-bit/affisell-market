@@ -1,0 +1,13 @@
+# Security fixes reachable INSIDE the declared semver ranges (npm update, lockfile only). Reviewed 2026-11-17 —
+# exploitability in Affisell per package in docs/FINALISATION-MASTER.md §21 / AGENTS.md « Dependencies ».
+dompurify
+proxy-addr
+body-parser
+fast-uri
+js-yaml
+tmp
+brace-expansion
+hono
+ip-address
+@grpc/grpc-js
+@modelcontextprotocol/sdk
