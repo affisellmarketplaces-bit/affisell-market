@@ -20,7 +20,7 @@ vi.mock("next/navigation", () => ({ redirect: m.redirect, notFound: vi.fn() }))
 vi.mock("@/lib/strategic-intelligence/collect.server", () => ({ loadIntelligenceCockpit: m.load }))
 vi.mock("@/lib/strategic-intelligence/scheduled.server", () => ({ loadSignalHistory: async () => ({}) }))
 vi.mock("@/lib/strategic-intelligence/journal.server", () => ({
-  loadJournal: async () => ({ available: true, entries: [], learning: [], latestBySignal: {} }),
+  loadJournal: async () => ({ available: true, entries: [], learning: [], latestBySignal: {}, byFamily: {} }),
 }))
 vi.mock("@/components/admin/admin-layout-chrome", () => ({ AdminLayoutChrome: () => null }))
 

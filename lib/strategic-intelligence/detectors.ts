@@ -511,3 +511,59 @@ export function autoBuyCostUnknownSignal(input: { links: number; autoBuyEnabled:
     },
   ]
 }
+
+/**
+ * Sourcing opportunity — the SAME reference (identical valid GTIN) offered cheaper by another Affisell supplier, for a
+ * product that really sells. Identity is proven by the barcode (never by a name); what is NOT proven is delivery time,
+ * stock and service, so the action is to compare them first. Never changes a listing or a price.
+ */
+export type CheaperSameGtinRow = {
+  productId: string
+  productName: string
+  supplierName: string
+  priceCents: number
+  units30: number
+  alt: { productId: string; productName: string; supplierName: string; priceCents: number }
+  gtin: string
+}
+
+export const SOURCING_MIN_UNITS = 3
+export const SOURCING_MIN_GAP_BPS = 1000
+export const SOURCING_MIN_GAP_CENTS = 100
+
+export function cheaperSameGtinSignals(rows: CheaperSameGtinRow[], ctx: { observedAt: string; window: Window }): StrategicSignal[] {
+  return rows
+    .filter((r) => {
+      const gap = r.priceCents - r.alt.priceCents
+      return r.units30 >= SOURCING_MIN_UNITS && gap >= SOURCING_MIN_GAP_CENTS && gap * 10_000 >= r.priceCents * SOURCING_MIN_GAP_BPS
+    })
+    .map((r) => {
+      const gap = r.priceCents - r.alt.priceCents
+      const saving = gap * r.units30
+      return { r, gap, saving }
+    })
+    .sort((a, b) => b.saving - a.saving)
+    .slice(0, 15)
+    .map(({ r, gap, saving }) => ({
+      id: `supplier:cheaper-same-gtin:${r.productId}:${r.alt.productId}`,
+      domain: "supplier" as const,
+      priority: saving >= 5000 ? ("important" as const) : ("study" as const),
+      kind: "fact" as const,
+      title: `Même produit (code-barres ${r.gtin}) ${eur(gap)} moins cher chez « ${r.alt.supplierName} » : « ${r.productName} »`,
+      evidence: [
+        { label: `Prix fournisseur actuel (« ${r.supplierName} »)`, value: eur(r.priceCents) },
+        { label: `Prix chez « ${r.alt.supplierName} »`, value: eur(r.alt.priceCents) },
+        { label: "Unités vendues, 30 jours", value: String(r.units30) },
+        { label: "Écart sur ces 30 jours", value: eur(saving) },
+      ],
+      source: { id: "affisell.listings", query: "Produits actifs au GTIN valide identique (ProductAttribute ean) × commandes payées 30 j" },
+      observedAt: ctx.observedAt,
+      window: ctx.window,
+      confidence: "medium" as const,
+      confidenceReason:
+        "Même code-barres GS1 valide : même référence. Délai de livraison, stock et qualité de service des deux fournisseurs ne sont pas comparés ici.",
+      recommendedAction:
+        "Comparer délais attestés et stock des deux fournisseurs ; si l'alternative tient, la proposer aux revendeurs qui vendent ce produit (aucune annonce n'est modifiée automatiquement).",
+      link: `/admin/products`,
+    }))
+}

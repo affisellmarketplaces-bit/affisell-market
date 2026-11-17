@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  familyTrackRecords,
   metricForSignal,
+  signalFamily,
   summarizeLearning,
   twoProportionZ,
   validateDecisionInput,
@@ -55,5 +57,21 @@ describe("decision journal — what can be measured, and how a result is judged"
       { decisions: "acted", domain: "market_observatory", measured: 2, improved: 1, worsened: 0, inconclusive: 1 },
       { decisions: "not_acted", domain: "market_observatory", measured: 1, improved: 0, worsened: 1, inconclusive: 0 },
     ])
+  })
+
+  it("each signal kind carries the track record of past MEASURED decisions on the same kind", () => {
+    expect(signalFamily("market:category:fall:c1")).toBe("market:category")
+    expect(signalFamily("risk:dispute-activity:2026-11-17")).toBe("risk:dispute-activity")
+    expect(
+      familyTrackRecords([
+        { signalId: "market:category:fall:c1", decision: "act", verdict: "improved" },
+        { signalId: "market:category:rise:c2", decision: "experiment", verdict: "inconclusive" },
+        { signalId: "market:category:fall:c3", decision: "watch", verdict: "improved" },
+        { signalId: "risk:dispute-activity:x", decision: "act", verdict: "worsened" },
+      ])
+    ).toEqual({
+      "market:category": { measured: 3, actedImproved: 1, actedMeasured: 2, notActedImproved: 1, notActedMeasured: 1 },
+      "risk:dispute-activity": { measured: 1, actedImproved: 0, actedMeasured: 1, notActedImproved: 0, notActedMeasured: 0 },
+    })
   })
 })

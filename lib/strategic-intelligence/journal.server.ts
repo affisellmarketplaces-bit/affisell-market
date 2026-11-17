@@ -7,11 +7,13 @@ import { IDENTITY_KEYS } from "@/lib/listing-compliance/keys"
 import { prisma } from "@/lib/prisma"
 import { gtin14 } from "@/lib/strategic-intelligence/external/safety-gate"
 import {
+  familyTrackRecords,
   metricForSignal,
   signalSnapshot,
   summarizeLearning,
   verdictFor,
   type DecisionKind,
+  type FamilyRecord,
   type JournalMetric,
   type LearningCell,
   type Measurement,
@@ -200,7 +202,13 @@ export type JournalEntry = {
   outcome: { verdict: string; observedValue: number; method: string; measuredAt: string } | null
 }
 
-export type JournalView = { available: boolean; entries: JournalEntry[]; learning: LearningCell[]; latestBySignal: Record<string, JournalEntry> }
+export type JournalView = {
+  available: boolean
+  entries: JournalEntry[]
+  learning: LearningCell[]
+  latestBySignal: Record<string, JournalEntry>
+  byFamily: Record<string, FamilyRecord>
+}
 
 /** Defensive: a missing table (migration not applied) = an empty journal, flagged unavailable. */
 export async function loadJournal(limit = 200): Promise<JournalView> {
@@ -236,9 +244,14 @@ export async function loadJournal(limit = 200): Promise<JournalView> {
         .filter((e) => e.outcome)
         .map((e) => ({ decision: e.decision as DecisionKind, domain: e.domain, verdict: e.outcome!.verdict as "improved" | "worsened" | "inconclusive" }))
     )
-    return { available: true, entries, learning, latestBySignal }
+    const byFamily = familyTrackRecords(
+      entries
+        .filter((e) => e.outcome)
+        .map((e) => ({ signalId: e.signalId, decision: e.decision as DecisionKind, verdict: e.outcome!.verdict as "improved" | "worsened" | "inconclusive" }))
+    )
+    return { available: true, entries, learning, latestBySignal, byFamily }
   } catch (error) {
-    if (isMissingTable(error)) return { available: false, entries: [], learning: [], latestBySignal: {} }
+    if (isMissingTable(error)) return { available: false, entries: [], learning: [], latestBySignal: {}, byFamily: {} }
     throw error
   }
 }

@@ -6,6 +6,8 @@ import {
   categoryDemandSignals,
   evolutionRecommendations,
   autoBuyCostUnknownSignal,
+  cheaperSameGtinSignals,
+  type CheaperSameGtinRow,
   countDistinctDisputes,
   shipSlaRiskSignals,
   type ShipSlaRiskRow,
@@ -84,7 +86,7 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
     where: { paidAt: { gte: d(60) } },
     take: MAX_ORDERS,
     orderBy: { paidAt: "desc" },
-    select: { productId: true, affiliateId: true, supplierId: true, paidAt: true, product: { select: { categoryId: true, name: true } } },
+    select: { productId: true, affiliateId: true, supplierId: true, paidAt: true, quantity: true, product: { select: { categoryId: true, name: true } } },
   })
 
   const verified = new Set<string>()
@@ -213,6 +215,57 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
       const scan = await scanDependenciesWithOsv(now.getTime())
       verified.add("osv.dev")
       return dependencySignals(scan, { observedAt })
+    }, report),
+
+    guarded("supplier.cheaper_same_gtin", async () => {
+      const orders = (await ordersPromise).filter((o) => o.paidAt && o.paidAt >= d(30))
+      const units = new Map<string, number>()
+      for (const o of orders) units.set(o.productId, (units.get(o.productId) ?? 0) + (o.quantity ?? 1))
+      const top = [...units.entries()].filter(([, u]) => u >= 3).sort((a, b) => b[1] - a[1]).slice(0, 200).map(([id]) => id)
+      if (top.length === 0) return []
+      const own = await prisma.productAttribute.findMany({ where: { productId: { in: top }, key: IDENTITY_KEYS.gtin }, select: { productId: true, value: true } })
+      const gtinOf = new Map<string, string>()
+      for (const a of own) {
+        const g = gtin14(a.value)
+        if (g) gtinOf.set(a.productId, g)
+      }
+      if (gtinOf.size === 0) return []
+      // Stored values are free text: look up every spelling of each GTIN (14 / 13 / 12 / 8 digits).
+      const spellings = new Set<string>()
+      for (const g of gtinOf.values()) for (const len of [14, 13, 12, 8]) if (/^0*$/.test(g.slice(0, 14 - len))) spellings.add(g.slice(14 - len))
+      const others = await prisma.productAttribute.findMany({
+        where: { key: IDENTITY_KEYS.gtin, value: { in: [...spellings] }, product: { active: true } },
+        select: { productId: true, value: true, product: { select: { name: true, basePriceCents: true, supplierId: true } } },
+        take: 5_000,
+      })
+      const byGtin = new Map<string, typeof others>()
+      for (const o of others) {
+        const g = gtin14(o.value)
+        if (g) byGtin.set(g, [...(byGtin.get(g) ?? []), o])
+      }
+      const products = await prisma.product.findMany({ where: { id: { in: [...gtinOf.keys()] } }, select: { id: true, name: true, basePriceCents: true, supplierId: true } })
+      const candidates: Array<Omit<CheaperSameGtinRow, "supplierName" | "alt"> & { supplierId: string; alt: CheaperSameGtinRow["alt"] & { supplierId: string } }> = []
+      for (const p of products) {
+        const g = gtinOf.get(p.id)!
+        const alts = (byGtin.get(g) ?? []).filter((o) => o.product.supplierId !== p.supplierId && o.product.basePriceCents > 0)
+        if (alts.length === 0) continue
+        const best = alts.reduce((a, b) => (b.product.basePriceCents < a.product.basePriceCents ? b : a))
+        candidates.push({
+          productId: p.id, productName: p.name, supplierId: p.supplierId, priceCents: p.basePriceCents, units30: units.get(p.id) ?? 0,
+          gtin: g.startsWith("0") ? g.slice(1) : g,
+          alt: { productId: best.productId, productName: best.product.name, supplierId: best.product.supplierId, supplierName: "", priceCents: best.product.basePriceCents },
+        })
+      }
+      if (candidates.length === 0) return []
+      const users = await prisma.user.findMany({
+        where: { id: { in: [...new Set(candidates.flatMap((c) => [c.supplierId, c.alt.supplierId]))] } },
+        select: { id: true, name: true },
+      })
+      const name = new Map(users.map((u) => [u.id, u.name?.trim() || "Fournisseur sans nom"]))
+      return cheaperSameGtinSignals(
+        candidates.map((c) => ({ ...c, supplierName: name.get(c.supplierId) ?? "Fournisseur", alt: { ...c.alt, supplierName: name.get(c.alt.supplierId) ?? "Fournisseur" } })),
+        { observedAt, window: win30 }
+      )
     }, report),
 
     guarded("market.category_demand", async () => {

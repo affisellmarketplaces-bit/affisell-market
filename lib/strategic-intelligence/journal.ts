@@ -145,3 +145,32 @@ export function summarizeLearning(rows: LearningRow[]): LearningCell[] {
   }
   return [...cells.values()].sort((a, b) => a.domain.localeCompare(b.domain) || a.decisions.localeCompare(b.decisions))
 }
+
+/** The kind of signal an id belongs to: its first two segments ("market:category", "risk:dispute-activity", …). */
+export function signalFamily(signalId: string): string {
+  return signalId.split(":").slice(0, 2).join(":")
+}
+
+export type FamilyRecord = { measured: number; actedImproved: number; actedMeasured: number; notActedImproved: number; notActedMeasured: number }
+
+/**
+ * What past MEASURED decisions on the same kind of signal showed — shown on each new signal of that kind, so a
+ * recommendation carries its own track record. Built only from outcomes the server measured.
+ */
+export function familyTrackRecords(rows: Array<{ signalId: string; decision: DecisionKind; verdict: Verdict }>): Record<string, FamilyRecord> {
+  const out: Record<string, FamilyRecord> = {}
+  for (const r of rows) {
+    const f = signalFamily(r.signalId)
+    const c = (out[f] ??= { measured: 0, actedImproved: 0, actedMeasured: 0, notActedImproved: 0, notActedMeasured: 0 })
+    c.measured++
+    const acted = r.decision === "act" || r.decision === "experiment"
+    if (acted) {
+      c.actedMeasured++
+      if (r.verdict === "improved") c.actedImproved++
+    } else {
+      c.notActedMeasured++
+      if (r.verdict === "improved") c.notActedImproved++
+    }
+  }
+  return out
+}

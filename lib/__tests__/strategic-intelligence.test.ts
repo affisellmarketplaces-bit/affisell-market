@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   autoBuyCostUnknownSignal,
   categoryDemandSignals,
+  cheaperSameGtinSignals,
   countDistinctDisputes,
   disputeActivitySignal,
   evolutionRecommendations,
@@ -123,6 +124,26 @@ describe("detectors — changes only beyond randomness, every signal sourced and
     expect(autoBuyCostUnknownSignal({ links: 0, autoBuyEnabled: true }, ctx)).toEqual([])
     expect(autoBuyCostUnknownSignal({ links: 4, autoBuyEnabled: false }, ctx)[0]!.priority).toBe("study")
     expect(autoBuyCostUnknownSignal({ links: 4, autoBuyEnabled: true }, ctx)[0]!.priority).toBe("important")
+  })
+
+  it("sourcing: same GTIN cheaper elsewhere — only for products that sell, only for a material gap", () => {
+    const base = { productName: "Lampe", supplierName: "A", gtin: "5054298241091", alt: { productId: "q", productName: "Lampe B", supplierName: "B", priceCents: 1500 } }
+    const out = cheaperSameGtinSignals(
+      [
+        { ...base, productId: "p1", priceCents: 2000, units30: 120 }, // 5 € × 120 = 600 € → important
+        { ...base, productId: "p2", priceCents: 2000, units30: 4 }, // 20 € → study
+        { ...base, productId: "p3", priceCents: 2000, units30: 2 }, // too few sales
+        { ...base, productId: "p4", priceCents: 1550, units30: 50 }, // 0,50 € gap: not material
+        { ...base, productId: "p5", priceCents: 20_000, units30: 50, alt: { ...base.alt, priceCents: 19_000 } }, // 5 %: not material
+      ],
+      ctx
+    )
+    expect(out.map((x) => [x.id, x.priority])).toEqual([
+      ["supplier:cheaper-same-gtin:p1:q", "important"],
+      ["supplier:cheaper-same-gtin:p2:q", "study"],
+    ])
+    expect(out[0]!.evidence.find((e) => e.label.startsWith("Écart"))!.value).toBe("600,00 €")
+    expect(out[0]!.confidenceReason).toMatch(/ne sont pas comparés/)
   })
 
   it("under-distributed product: proven demand, one reseller, little supply", () => {

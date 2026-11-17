@@ -4,7 +4,16 @@ import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import { DecisionForm, MeasureButton } from "@/components/admin/intelligence/decision-controls"
 import { loadIntelligenceCockpit } from "@/lib/strategic-intelligence/collect.server"
-import { DECISION_LABELS, LEARNING_MIN_MEASURED, METRIC_LABELS, metricForSignal, type DecisionKind, type JournalMetric } from "@/lib/strategic-intelligence/journal"
+import {
+  DECISION_LABELS,
+  LEARNING_MIN_MEASURED,
+  METRIC_LABELS,
+  metricForSignal,
+  signalFamily,
+  type DecisionKind,
+  type FamilyRecord,
+  type JournalMetric,
+} from "@/lib/strategic-intelligence/journal"
 import { loadJournal, type JournalEntry } from "@/lib/strategic-intelligence/journal.server"
 import { NEW_SIGNAL_WINDOW_MS } from "@/lib/strategic-intelligence/scheduled"
 import { loadSignalHistory, type SignalHistory } from "@/lib/strategic-intelligence/scheduled.server"
@@ -56,18 +65,31 @@ function HistoryLine({ h, generatedAt }: { h: SignalHistory; generatedAt: string
   )
 }
 
+function TrackRecord({ r }: { r: FamilyRecord }) {
+  return (
+    <p className="mt-1 text-[11px] opacity-80">
+      Historique de ce type de signal :{" "}
+      {r.measured < LEARNING_MIN_MEASURED
+        ? `${r.measured} résultat(s) mesuré(s) — trop peu pour conclure.`
+        : `après action, ${r.actedImproved} amélioration(s) sur ${r.actedMeasured} ; sans action, ${r.notActedImproved} sur ${r.notActedMeasured} (observation, pas une preuve de causalité).`}
+    </p>
+  )
+}
+
 function SignalCard({
   s,
   decision,
   journalAvailable,
   history,
   generatedAt,
+  track,
 }: {
   s: StrategicSignal
   decision?: JournalEntry
   journalAvailable: boolean
   history?: SignalHistory
   generatedAt: string
+  track?: FamilyRecord
 }) {
   const plan = metricForSignal(s.id)
   return (
@@ -101,6 +123,7 @@ function SignalCard({
         Source : {s.source.id} — {s.source.query}. Observé le {s.observedAt.slice(0, 16).replace("T", " ")} UTC
         {s.window ? ` sur ${s.window.from.slice(0, 10)} → ${s.window.to.slice(0, 10)}` : ""}. Confiance {CONF[s.confidence]} : {s.confidenceReason}
       </p>
+      {track ? <TrackRecord r={track} /> : null}
       {decision ? <DecisionBadge e={decision} /> : null}
       {journalAvailable && !(decision && decision.status === "open") ? (
         <DecisionForm signalId={s.id} measurable={Boolean(plan)} defaultDays={plan?.defaultDays ?? null} />
@@ -154,6 +177,7 @@ export default async function AdminIntelligencePage() {
                     journalAvailable={journal.available}
                     history={history[s.id]}
                     generatedAt={cockpit.generatedAt}
+                    track={journal.byFamily[signalFamily(s.id)]}
                   />
                 ))}
               </ul>
