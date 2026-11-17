@@ -41,3 +41,7 @@ jobs:
         env:
           AFFISELL_LIVE_SOURCES: "1"
         run: npx vitest run lib/__tests__/live-source-osv.test.ts --reporter=verbose
+      - name: Live read — Wikimedia page views (connector only; candidate source under evaluation)
+        env:
+          AFFISELL_LIVE_SOURCES: "1"
+        run: npx vitest run lib/__tests__/live-source-wikipedia.test.ts --reporter=verbose

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "note": "Candidate articles to EVALUATE as leading indicators of Affisell orders, per Google-taxonomy ROOT category. Not a source: nothing here is read by the cockpit. Edit freely; run `npm run evaluate:external-demand` (read-only) to test them on real orders.",
+  "candidates": [
+    { "root": 1239, "label": "Jeux et jouets", "articles": [{ "project": "fr.wikipedia", "title": "Jouet" }, { "project": "fr.wikipedia", "title": "Jeu de société" }] },
+    { "root": 469, "label": "Santé et beauté", "articles": [{ "project": "fr.wikipedia", "title": "Cosmétique" }, { "project": "fr.wikipedia", "title": "Soin de la peau" }] },
+    { "root": 166, "label": "Vêtements et accessoires", "articles": [{ "project": "fr.wikipedia", "title": "Vêtement" }, { "project": "fr.wikipedia", "title": "Bijou" }] },
+    { "root": 536, "label": "Maison et jardin", "articles": [{ "project": "fr.wikipedia", "title": "Électroménager" }, { "project": "fr.wikipedia", "title": "Friteuse sans huile" }] },
+    { "root": 222, "label": "Électronique", "articles": [{ "project": "fr.wikipedia", "title": "Téléphone mobile" }, { "project": "fr.wikipedia", "title": "Écouteur" }] }
+  ]
+}

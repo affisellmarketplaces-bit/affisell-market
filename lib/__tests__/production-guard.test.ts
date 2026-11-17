@@ -144,6 +144,7 @@ describe("INVARIANT — every standalone tool that creates its own Prisma client
     "scripts/check-ebay-categories.mjs",
     "scripts/check-test-db.ts",
     "scripts/eval-photo-only.ts",
+    "scripts/evaluate-external-demand.ts",
     "scripts/eval-taxonomy-classifier.ts",
     "scripts/report-checkout-stock.ts",
     "scripts/report-listing-readiness.ts",
