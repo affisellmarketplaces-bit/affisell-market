@@ -48,6 +48,7 @@ import {
   type ProductPotential,
 } from "@/lib/strategic-intelligence/product-economics"
 import { loadEconomicsCohort } from "@/lib/strategic-intelligence/product-economics.server"
+import { representativeInput, simulateLevers } from "@/lib/strategic-intelligence/lever-simulation"
 import { priceGapRequests, unansweredRequests, unmetDemandSignals, unmetSearches, UNMET_WINDOW_DAYS } from "@/lib/strategic-intelligence/unmet-demand"
 import { loadJournal } from "@/lib/strategic-intelligence/journal.server"
 import { detectEmerging, emergingSignals, EMERGING_PRIOR_DAYS, EMERGING_RECENT_DAYS, type EmergingCounts } from "@/lib/strategic-intelligence/emerging"
@@ -97,6 +98,8 @@ async function guarded(
     return []
   }
 }
+
+const SIMULATED_CLASSES = new Set<PotentialClass>(["populaire_non_rentable", "a_abandonner", "marge_ameliorable_sourcing"])
 
 export async function loadIntelligenceCockpit(now = new Date()): Promise<CockpitResult> {
   const observedAt = now.toISOString()
@@ -699,6 +702,31 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
       ])
     )
     const items = classifyProducts(econ, context)
+    // What-if levers for the products whose margin is the problem (pure calculation, nothing changes).
+    const byProduct = new Map<string, typeof econOrders>()
+    for (const o of econOrders) byProduct.set(o.productId, [...(byProduct.get(o.productId) ?? []), o])
+    for (const p of items) {
+      if (!SIMULATED_CLASSES.has(p.cls)) continue
+      const base = representativeInput(byProduct.get(p.productId) ?? [])
+      if (!base) continue
+      const sim = simulateLevers(base)
+      const view = (s: { label: string; outcome: { affisellNetCents: number; resellerNetCents: number; buyerPriceCents: number }; deltaBuyerPct: number }) => ({
+        label: s.label,
+        affisellCents: s.outcome.affisellNetCents,
+        resellerCents: s.outcome.resellerNetCents,
+        buyerCents: s.outcome.buyerPriceCents,
+        deltaBuyerPct: s.deltaBuyerPct,
+      })
+      p.simulation = {
+        baselineAffisellCents: sim.baseline.affisellNetCents,
+        baselineResellerCents: sim.baseline.resellerNetCents,
+        baselineBuyerCents: sim.baseline.buyerPriceCents,
+        modelGapCents: p.econ && p.econ.margin !== "donnees_incompletes" ? Math.abs(sim.baseline.affisellNetCents - p.econ.meanNetCents) : null,
+        defaulted: base.defaulted,
+        scenarios: sim.scenarios.map(view),
+        best: sim.bestCombination ? view(sim.bestCombination) : null,
+      }
+    }
     const counts: Partial<Record<PotentialClass, number>> = {}
     for (const p of items) counts[p.cls] = (counts[p.cls] ?? 0) + 1
     economics = { quality: financialDataQuality(econOrders), counts, items }

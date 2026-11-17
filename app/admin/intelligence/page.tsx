@@ -8,6 +8,7 @@ import { GRADE_LABELS, RELIABILITY_MIN_ORDERS, type ComponentVerdict, type RateC
 import { loadSupplierReliability } from "@/lib/strategic-intelligence/supplier-reliability.server"
 import { familyLearning, LEARN_MIN_ACTED, type LearningState } from "@/lib/strategic-intelligence/learned-priority"
 import { POTENTIAL_LABELS, type PotentialClass } from "@/lib/strategic-intelligence/product-economics"
+import { SIMULATION_CAVEAT } from "@/lib/strategic-intelligence/lever-simulation"
 import {
   DECISION_LABELS,
   LEARNING_MIN_MEASURED,
@@ -341,6 +342,57 @@ export default async function AdminIntelligencePage() {
                   )
                 })}
             </ul>
+            {cockpit.economics!.items.filter((p) => p.simulation).length > 0 ? (
+              <div className="space-y-3">
+                <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Simulation des leviers (calcul, rien n’est modifié)</h3>
+                <p className="text-xs text-zinc-500">{SIMULATION_CAVEAT}</p>
+                {cockpit.economics!.items
+                  .filter((p) => p.simulation)
+                  .slice(0, 8)
+                  .map((p) => {
+                    const s = p.simulation!
+                    const e = (c: number) => `${(c / 100).toFixed(2).replace(".", ",")} €`
+                    return (
+                      <details key={p.productId} className="rounded border border-zinc-200 p-2 text-sm dark:border-zinc-800">
+                        <summary className="cursor-pointer">
+                          <span className="font-medium">{p.name}</span> — {POTENTIAL_LABELS[p.cls]} · aujourd’hui : Affisell {e(s.baselineAffisellCents)}, revendeur{" "}
+                          {e(s.baselineResellerCents)}, acheteur {e(s.baselineBuyerCents)} par commande
+                          {s.best ? ` · meilleure combinaison : ${s.best.label}` : " · aucune combinaison testée ne suffit"}
+                        </summary>
+                        {s.modelGapCents != null && s.modelGapCents > 50 ? (
+                          <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
+                            Le modèle s’écarte de la marge constatée de {e(s.modelGapCents)} par commande : simulation indicative seulement.
+                          </p>
+                        ) : null}
+                        {s.defaulted.length > 0 ? <p className="mt-1 text-xs text-zinc-500">Valeurs par défaut utilisées : {s.defaulted.join(", ")}.</p> : null}
+                        <table className="mt-2 w-full text-left text-xs">
+                          <thead className="text-zinc-500">
+                            <tr>
+                              <th className="py-1 pr-3">Levier</th>
+                              <th className="py-1 pr-3">Affisell / commande</th>
+                              <th className="py-1 pr-3">Revendeur / commande</th>
+                              <th className="py-1">Prix acheteur</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[...s.scenarios, ...(s.best ? [{ ...s.best, label: `Combinaison : ${s.best.label}` }] : [])].map((r) => (
+                              <tr key={r.label} className="border-t border-zinc-200 dark:border-zinc-800">
+                                <td className="py-1 pr-3">{r.label}</td>
+                                <td className={`py-1 pr-3 ${r.affisellCents < 0 ? "text-red-600" : ""}`}>{e(r.affisellCents)}</td>
+                                <td className="py-1 pr-3">{e(r.resellerCents)}</td>
+                                <td className="py-1">
+                                  {e(r.buyerCents)} ({r.deltaBuyerPct >= 0 ? "+" : ""}
+                                  {r.deltaBuyerPct} %)
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </details>
+                    )
+                  })}
+              </div>
+            ) : null}
           </>
         )}
       </section>

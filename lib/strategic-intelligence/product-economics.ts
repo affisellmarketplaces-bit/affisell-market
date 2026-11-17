@@ -210,7 +210,18 @@ export type ProductContext = {
   listedResellers: number
 }
 
-export type ProductPotential = { productId: string; name: string; cls: PotentialClass; reasons: string[]; econ: ProductEconomics | null; ctx: ProductContext }
+export type SimulationSummary = {
+  baselineAffisellCents: number
+  baselineResellerCents: number
+  baselineBuyerCents: number
+  /** |model − constated mean| per order: the simulation is only indicative when the model does not reproduce reality. */
+  modelGapCents: number | null
+  defaulted: string[]
+  scenarios: Array<{ label: string; affisellCents: number; resellerCents: number; buyerCents: number; deltaBuyerPct: number }>
+  best: { label: string; affisellCents: number; resellerCents: number; buyerCents: number; deltaBuyerPct: number } | null
+}
+
+export type ProductPotential = { productId: string; name: string; cls: PotentialClass; reasons: string[]; econ: ProductEconomics | null; ctx: ProductContext; simulation?: SimulationSummary }
 
 const eur = (c: number) => `${(c / 100).toFixed(2).replace(".", ",")} €`
 
@@ -329,6 +340,19 @@ export function potentialSignals(items: ProductPotential[], ctx: { observedAt: s
                 { label: "Taux de commandes remboursées", value: `${Math.round(e.refundRate * 100)} %` },
                 ...(e.disputes > 0 ? [{ label: "Litiges (frais non enregistrés, non comptés)", value: String(e.disputes) }] : []),
                 ...(e.aeCostEstimatedCents > 0 ? [{ label: "Coût AliExpress estimé (achat automatique)", value: eur(e.aeCostEstimatedCents) }] : []),
+              ]
+            : []),
+          ...(p.simulation
+            ? [
+                {
+                  label: "Simulation — meilleure combinaison (marge Affisell ≥ 0, revendeur ≥ 90 % de son gain actuel)",
+                  value: p.simulation.best
+                    ? `${p.simulation.best.label} : Affisell ${eur(p.simulation.best.affisellCents)}, revendeur ${eur(p.simulation.best.resellerCents)}, acheteur ${eur(p.simulation.best.buyerCents)} (${p.simulation.best.deltaBuyerPct >= 0 ? "+" : ""}${p.simulation.best.deltaBuyerPct} %)`
+                    : "aucune combinaison testée ne rétablit la marge sans pénaliser le revendeur",
+                },
+                ...(p.simulation.modelGapCents != null && p.simulation.modelGapCents > 50
+                  ? [{ label: "Écart modèle / constaté (par commande)", value: `${eur(p.simulation.modelGapCents)} — simulation indicative seulement` }]
+                  : []),
               ]
             : []),
           { label: "Commandes payées, 30 jours", value: String(p.ctx.orders30) },
