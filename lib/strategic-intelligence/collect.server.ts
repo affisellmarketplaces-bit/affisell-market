@@ -37,15 +37,8 @@ import { resolveShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
 import { UNALLOCATED_LINE_AUDIT_ACTION, UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION } from "@/lib/unallocated-line"
 import { entitySynthesisSignals } from "@/lib/strategic-intelligence/synthesis"
 import { detectEmerging, emergingSignals, EMERGING_PRIOR_DAYS, EMERGING_RECENT_DAYS, type EmergingCounts } from "@/lib/strategic-intelligence/emerging"
-import {
-  aggregateQuality,
-  detectQualityOutliers,
-  qualityRiskSignals,
-  QUALITY_COHORT_FROM_DAYS,
-  QUALITY_COHORT_TO_DAYS,
-  QUALITY_RETURN_REASONS,
-  type QualityCohortOrder,
-} from "@/lib/strategic-intelligence/quality-risk"
+import { aggregateQuality, detectQualityOutliers, qualityRiskSignals } from "@/lib/strategic-intelligence/quality-risk"
+import { loadOrderCohort } from "@/lib/strategic-intelligence/cohort.server"
 
 /**
  * AFFISELL INTELLIGENCE — step 1 collector. READ-ONLY: it reads Affisell's own database (bounded queries) and calls no
@@ -505,37 +498,9 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
     }, report),
 
     guarded("risk.product_quality", async () => {
-      // Orders old enough for a problem to have been reported (see quality-risk.ts), read once, bounded.
-      const from = d(QUALITY_COHORT_FROM_DAYS)
-      const to = d(QUALITY_COHORT_TO_DAYS)
-      const [cohort, returns, ledger, recent] = await Promise.all([
-        prisma.order.findMany({
-          where: { paidAt: { gte: from, lt: to } },
-          take: MAX_ORDERS,
-          select: { id: true, productId: true, supplierId: true, stripeSessionId: true },
-        }),
-        prisma.orderReturn.findMany({
-          // A request the buyer withdrew is not counted; a rejected one still is (it is a complaint, not yet verified).
-          where: { order: { paidAt: { gte: from, lt: to } }, reasonCode: { in: [...QUALITY_RETURN_REASONS] }, status: { not: "CANCELLED" } },
-          take: MAX_ORDERS,
-          select: { orderId: true, reasonCode: true },
-        }),
-        prisma.processedWebhook.findMany({ where: { id: { startsWith: "dispute:" }, createdAt: { gte: from } }, take: MAX_ORDERS, select: { id: true } }),
-        ordersPromise,
-      ])
-      if (cohort.length >= MAX_ORDERS || returns.length >= MAX_ORDERS || ledger.length >= MAX_ORDERS) throw new Error("echantillon_tronque")
-      const reasonsBy = new Map<string, string[]>()
-      for (const r of returns) reasonsBy.set(r.orderId, [...(reasonsBy.get(r.orderId) ?? []), r.reasonCode])
-      // Ledger ids are `dispute:<dp_id>:<orderId>` (lib/orders/dispute-hold.server.ts).
-      const disputed = new Set(ledger.map((r) => r.id.split(":")[2]).filter(Boolean))
-      const rows: QualityCohortOrder[] = cohort.map((o) => ({
-        orderId: o.id,
-        productId: o.productId,
-        supplierId: o.supplierId,
-        stripeSessionId: o.stripeSessionId,
-        returnReasons: reasonsBy.get(o.id) ?? [],
-        disputed: disputed.has(o.id),
-      }))
+      // Orders old enough for a problem to have been reported (see quality-risk.ts) — the SAME read as the reliability index.
+      const [{ from, to, orders: rows }, recent] = await Promise.all([loadOrderCohort(now), ordersPromise])
+      const cohort = rows
       const products = detectQualityOutliers(aggregateQuality(rows, (o) => o.productId))
       const suppliers = detectQualityOutliers(aggregateQuality(rows, (o) => o.supplierId))
       if (products.length === 0 && suppliers.length === 0) return []

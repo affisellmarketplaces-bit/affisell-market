@@ -4,6 +4,8 @@ import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import { DecisionForm, MeasureButton } from "@/components/admin/intelligence/decision-controls"
 import { loadIntelligenceCockpit } from "@/lib/strategic-intelligence/collect.server"
+import { GRADE_LABELS, RELIABILITY_MIN_ORDERS, type ComponentVerdict, type RateComponent } from "@/lib/strategic-intelligence/supplier-reliability"
+import { loadSupplierReliability } from "@/lib/strategic-intelligence/supplier-reliability.server"
 import {
   DECISION_LABELS,
   LEARNING_MIN_MEASURED,
@@ -26,6 +28,19 @@ import {
 } from "@/lib/strategic-intelligence/types"
 
 export const dynamic = "force-dynamic"
+
+const VERDICT_LABELS: Record<ComponentVerdict, string> = {
+  better: "meilleur que le reste",
+  comparable: "comparable",
+  worse: "moins bon que le reste",
+  insufficient: "données insuffisantes",
+}
+
+function rateCell(c: RateComponent): string {
+  const p = (x: number) => `${(x * 100).toFixed(1).replace(".", ",")} %`
+  if (c.verdict === "insufficient") return `données insuffisantes (${c.orders} commandes)`
+  return `${p(c.rate!)} [${p(c.low!)} – ${p(c.high!)}] sur ${c.orders} — ${VERDICT_LABELS[c.verdict]} (reste : ${p(c.marketplaceRate)})`
+}
 
 const PRIORITY: Record<SignalPriority, { label: string; cls: string }> = {
   critical: { label: "Critique", cls: "border-red-300 bg-red-50 text-red-900 dark:border-red-900 dark:bg-red-950/40 dark:text-red-100" },
@@ -142,7 +157,7 @@ export default async function AdminIntelligencePage() {
   if (!session?.user?.id) redirect("/login/admin?callbackUrl=/admin/intelligence")
   if ((session.user as { role?: string }).role !== "ADMIN") redirect("/")
 
-  const [cockpit, journal] = await Promise.all([loadIntelligenceCockpit(), loadJournal()])
+  const [cockpit, journal, reliability] = await Promise.all([loadIntelligenceCockpit(), loadJournal(), loadSupplierReliability()])
   const history = await loadSignalHistory(cockpit.signals.map((s) => s.id))
   const now = new Date().toISOString()
   const groups: SignalPriority[] = ["critical", "important", "study"]
@@ -267,6 +282,56 @@ export default async function AdminIntelligencePage() {
             </ul>
           </div>
         ) : null}
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Fiabilité des fournisseurs — indice interne</h2>
+        <p className="text-sm text-zinc-500">
+          Interne, jamais montré aux revendeurs ni aux fournisseurs. Trois composantes mesurées sur les données d’Affisell ; un taux n’est jugé
+          qu’à partir de {RELIABILITY_MIN_ORDERS} commandes, et « meilleur » / « moins bon » seulement quand tout l’intervalle de confiance est du même côté
+          que le reste de la marketplace. Le niveau est une règle sur ces verdicts, pas une note pondérée.
+        </p>
+        {!reliability.ok ? (
+          <p className="text-sm text-zinc-500">
+            {reliability.error === "echantillon_tronque" ? "Trop de commandes pour une lecture complète : aucun indice calculé (jamais sur un échantillon tronqué)." : "Lecture impossible pour le moment."}
+          </p>
+        ) : reliability.suppliers.length === 0 ? (
+          <p className="text-sm text-zinc-500">Aucun fournisseur avec des commandes sur la période.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <p className="text-xs text-zinc-500">
+              Commandes payées du {reliability.window.from.slice(0, 10)} au {reliability.window.to.slice(0, 10)} ; délais : 180 jours de livraisons attestées.
+            </p>
+            <table className="mt-2 w-full text-left text-sm">
+              <thead className="text-xs text-zinc-500">
+                <tr>
+                  <th className="py-1 pr-3">Fournisseur</th>
+                  <th className="py-1 pr-3">Niveau</th>
+                  <th className="py-1 pr-3">Annulations (non-expédition)</th>
+                  <th className="py-1 pr-3">Problèmes de qualité</th>
+                  <th className="py-1 pr-3">Délai (9 sur 10)</th>
+                  <th className="py-1">Pourquoi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reliability.suppliers.slice(0, 50).map((r) => (
+                  <tr key={r.supplierId} className="border-t border-zinc-200 align-top dark:border-zinc-800">
+                    <td className="py-1 pr-3">{r.supplierName}</td>
+                    <td className="py-1 pr-3 font-medium">{GRADE_LABELS[r.grade]}</td>
+                    <td className="py-1 pr-3">{rateCell(r.shipSla)}</td>
+                    <td className="py-1 pr-3">{rateCell(r.quality)}</td>
+                    <td className="py-1 pr-3">
+                      {r.delivery.verdict === "insufficient"
+                        ? `données insuffisantes (${r.delivery.deliveries} livraisons)`
+                        : `${Math.round(r.delivery.p90Days!)} j sur ${r.delivery.deliveries} livraisons — ${VERDICT_LABELS[r.delivery.verdict]}`}
+                    </td>
+                    <td className="py-1 text-xs text-zinc-600 dark:text-zinc-400">{r.reasons.join(" · ") || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       <section className="space-y-2">

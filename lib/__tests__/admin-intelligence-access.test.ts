@@ -19,6 +19,7 @@ vi.mock("@/auth", () => ({ auth: m.auth }))
 vi.mock("next/navigation", () => ({ redirect: m.redirect, notFound: vi.fn() }))
 vi.mock("@/lib/strategic-intelligence/collect.server", () => ({ loadIntelligenceCockpit: m.load }))
 vi.mock("@/lib/strategic-intelligence/scheduled.server", () => ({ loadSignalHistory: async () => ({}) }))
+vi.mock("@/lib/strategic-intelligence/supplier-reliability.server", () => ({ loadSupplierReliability: async () => ({ ok: false, error: "lecture_impossible" }) }))
 vi.mock("@/lib/strategic-intelligence/journal.server", () => ({
   loadJournal: async () => ({ available: true, entries: [], learning: [], latestBySignal: {}, byFamily: {} }),
 }))
@@ -83,5 +84,20 @@ describe("/admin/intelligence — reserved to ADMIN", () => {
       "app/api/admin/intelligence/decisions/route.ts", // ADMIN-gated, returns only the new decision's id
       "lib/strategic-intelligence/scheduled.server.ts", // the cron run (CRON_SECRET), sends a digest to the ops channel
     ])
+  })
+
+  it("the internal supplier reliability index is read by the ADMIN page only (never published, no API route)", () => {
+    const hits: string[] = []
+    const walk = (dir: string) => {
+      for (const name of readdirSync(dir)) {
+        if (name === "node_modules" || name.startsWith(".")) continue
+        const p = join(dir, name)
+        if (statSync(p).isDirectory()) walk(p)
+        else if (/\.(ts|tsx)$/.test(name) && /strategic-intelligence\/supplier-reliability/.test(readFileSync(p, "utf8"))) hits.push(p)
+      }
+    }
+    walk(join(process.cwd(), "app"))
+    walk(join(process.cwd(), "components"))
+    expect(hits.map((h) => h.replace(process.cwd() + "/", "")).sort()).toEqual(["app/admin/intelligence/page.tsx"])
   })
 })
