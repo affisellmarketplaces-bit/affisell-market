@@ -1,0 +1,34 @@
+name: Intelligence — live external sources
+
+# Proves that each external source the founder cockpit claims to read is really reachable and still parses, with the
+# production code path. NOT a required check: an outage of the source must not block a pull request. Free, keyless
+# public sources only; no secret is used. A red run = the cockpit shows that source as "not verified".
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "lib/strategic-intelligence/**"
+      - "lib/__tests__/live-source-*.test.ts"
+      - ".github/workflows/intelligence-live-sources.yml"
+  schedule:
+    - cron: "43 16 * * 1" # Mondays, after the ECB's ~16:00 CET publication
+
+permissions:
+  contents: read
+
+jobs:
+  live-sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Install
+        run: npm ci --ignore-scripts
+      - name: Live read — ECB euro reference rates
+        env:
+          AFFISELL_LIVE_SOURCES: "1"
+        run: npx vitest run lib/__tests__/live-source-ecb.test.ts --reporter=verbose

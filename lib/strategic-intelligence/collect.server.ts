@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import {
   categoryDemandSignals,
   evolutionRecommendations,
+  countDistinctDisputes,
   disputeActivitySignal,
   profitAlertPatternSignals,
   sentinelSignal,
@@ -49,7 +50,7 @@ async function guarded(
       id,
       ok: false,
       signals: 0,
-      error: /does not exist|P2021/i.test(message) ? "table_absente" : /^ecb_|abort|timeout|fetch failed/i.test(message) ? "source_injoignable" : "lecture_impossible",
+      error: message === "echantillon_tronque" ? "echantillon_tronque" : /does not exist|P2021/i.test(message) ? "table_absente" : /^ecb_|abort|timeout|fetch failed/i.test(message) ? "source_injoignable" : "lecture_impossible",
     })
     return []
   }
@@ -90,6 +91,9 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
 
     guarded("market.category_demand", async () => {
       const orders = await ordersPromise
+      // The read is capped (newest first): a capped read would hold fewer "previous period" orders than reality and
+      // turn every category into a false rise. No comparison is made on a truncated read.
+      if (orders.length >= MAX_ORDERS) throw new Error("echantillon_tronque")
       const counts = new Map<string, { current: number; previous: number }>()
       for (const o of orders) {
         const cat = o.product?.categoryId
@@ -194,12 +198,18 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
     }, report),
 
     guarded("risk.dispute_activity", async () => {
-      const [ledger, payments] = await Promise.all([
+      // One PAYMENT per checkout: a cart's orders are `<session>:line:<i>` (lib/stripe-marketplace-fulfill.ts), so counting
+      // orders would overstate payments and UNDERSTATE the dispute activity.
+      const [ledger, paymentRows] = await Promise.all([
         prisma.processedWebhook.findMany({ where: { id: { startsWith: "dispute:" }, createdAt: { gte: d(30) } }, select: { id: true } }),
-        prisma.order.count({ where: { paidAt: { gte: d(30) } } }),
+        prisma.$queryRaw<Array<{ n: number }>>`
+          SELECT COUNT(DISTINCT split_part("stripeSessionId", ':line:', 1))::int AS n
+          FROM "Order" WHERE "paidAt" >= ${d(30)}`,
       ])
-      const disputes = new Set(ledger.map((r) => r.id.split(":")[1] ?? r.id))
-      return disputeActivitySignal({ disputes30: disputes.size, payments30: payments }, { observedAt, window: win30 })
+      return disputeActivitySignal(
+        { disputes30: countDistinctDisputes(ledger.map((r) => r.id)), payments30: Number(paymentRows[0]?.n ?? 0) },
+        { observedAt, window: win30 }
+      )
     }, report),
 
     guarded("risk.unallocated_lines", async () => {

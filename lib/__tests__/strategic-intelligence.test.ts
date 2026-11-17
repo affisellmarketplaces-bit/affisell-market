@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest"
 
 import {
   categoryDemandSignals,
+  countDistinctDisputes,
   disputeActivitySignal,
   evolutionRecommendations,
+  normalQuantile,
   poissonDropIsReliable,
   poissonRiseIsReliable,
   profitAlertPatternSignals,
@@ -11,7 +13,9 @@ import {
   singleResellerDemandSignals,
   slowSupplierSignals,
   supplierPriceIncreaseSignals,
+  twoPeriodZ,
   unallocatedLinesSignal,
+  zThresholdForTests,
 } from "@/lib/strategic-intelligence/detectors"
 import { domainCoverage, listIntelligenceSources } from "@/lib/strategic-intelligence/sources"
 import { INTELLIGENCE_DOMAINS, rankSignals } from "@/lib/strategic-intelligence/types"
@@ -75,6 +79,27 @@ describe("detectors — changes only beyond randomness, every signal sourced and
     }
   })
 
+  it("multiple testing: the threshold grows with the number of comparisons", () => {
+    expect(zThresholdForTests(1)).toBe(2) // 1.96 → floor 2
+    expect(zThresholdForTests(100)).toBeCloseTo(3.48, 1)
+    expect(normalQuantile(0.975)).toBeCloseTo(1.96, 3)
+    expect(twoPeriodZ(25, 40)).toBeCloseTo(15 / Math.sqrt(65), 6)
+  })
+
+  it("100 categories moving by ≈ 2σ each in both directions = noise, not 100 signals", () => {
+    const rows = Array.from({ length: 100 }, (_, i) => ({ categoryId: `c${i}`, name: `C${i}`, previous: 25, current: i % 2 ? 40 : 10 }))
+    expect(categoryDemandSignals(rows, ctx)).toEqual([])
+  })
+
+  it("a marketplace-wide fall is ONE signal, not one per category", () => {
+    const rows = Array.from({ length: 10 }, (_, i) => ({ categoryId: `c${i}`, name: `C${i}`, previous: 40, current: 20 }))
+    const out = categoryDemandSignals(rows, ctx)
+    expect(out).toHaveLength(1)
+    expect(out[0]).toMatchObject({ priority: "important", kind: "fact" })
+    expect(out[0]!.id).toMatch(/^market:marketplace:fall:/)
+    expect(out[0]!.recommendedAction).toMatch(/cause transverse/)
+  })
+
   it("under-distributed product: proven demand, one reseller, little supply", () => {
     const out = singleResellerDemandSignals(
       [
@@ -118,10 +143,20 @@ describe("detectors — changes only beyond randomness, every signal sourced and
   })
 
   it("dispute activity against Stripe's 0.75 % reference; tiny samples ignored", () => {
-    expect(disputeActivitySignal({ disputes30: 2, payments30: 200 }, ctx)[0]!.priority).toBe("critical") // 1 %
+    expect(disputeActivitySignal({ disputes30: 3, payments30: 300 }, ctx)[0]!).toMatchObject({ priority: "critical", confidence: "high" }) // 1 %
+    // Above 0.75 % but only 2 disputes: a small-number effect → important, low confidence, never critical.
+    const two = disputeActivitySignal({ disputes30: 2, payments30: 200 }, ctx)[0]!
+    expect(two).toMatchObject({ priority: "important", confidence: "low" })
+    expect(two.confidenceReason).toMatch(/petit volume/)
     expect(disputeActivitySignal({ disputes30: 1, payments30: 160 }, ctx)[0]!.priority).toBe("important") // 0.63 %
     expect(disputeActivitySignal({ disputes30: 1, payments30: 400 }, ctx)).toEqual([]) // 0.25 %
     expect(disputeActivitySignal({ disputes30: 3, payments30: 20 }, ctx)).toEqual([]) // too few payments
+  })
+
+  it("counts each dispute once, whatever the number of orders on the disputed charge", () => {
+    expect(
+      countDistinctDisputes(["dispute:dp_1:o1", "dispute:dp_1:o2", "dispute:dp_2:o3", "stripe:evt_x", "dispute:dp_2:o4"])
+    ).toBe(2)
   })
 
   it("unpaid-back lines, sentinel incidents, profit-alert pattern", () => {

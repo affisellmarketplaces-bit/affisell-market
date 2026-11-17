@@ -4,8 +4,8 @@ import type { StrategicSignal } from "@/lib/strategic-intelligence/types"
  * AFFISELL INTELLIGENCE — step 1 detectors (pure). Each turns figures READ from Affisell's own database into at most a
  * few signals, with explicit thresholds:
  *
- *  - counts are compared with ordinary randomness (≈ 2σ of a Poisson count) before a rise or fall is called a change —
- *    a category going from 3 to 6 orders is not a trend;
+ *  - counts are compared with ordinary randomness before a rise or fall is called a change — a category going from 3
+ *    to 6 orders is not a trend — and the threshold is corrected for the NUMBER of comparisons made in one run;
  *  - dispute activity uses Stripe's own reference: "dispute activity above 0.75 %" is treated as excessive by Stripe
  *    (docs.stripe.com/disputes/measuring), measured like Stripe measures activity (disputes by dispute date / payments);
  *  - every signal says whether it is a fact, an estimate, a hypothesis or a recommendation.
@@ -13,6 +13,46 @@ import type { StrategicSignal } from "@/lib/strategic-intelligence/types"
 const pct = (bps: number) => `${(bps / 100).toFixed(1).replace(".", ",")} %`
 const eur = (cents: number) => `${(cents / 100).toFixed(2).replace(".", ",")} €`
 
+type Window = { from: string; to: string }
+
+/**
+ * Standard normal quantile (Acklam's rational approximation, |error| < 1.2e-9) — used to set a significance threshold.
+ */
+export function normalQuantile(p: number): number {
+  if (!(p > 0 && p < 1)) throw new Error("normalQuantile: p must be in (0, 1)")
+  const a = [-39.69683028665376, 220.9460984245205, -275.9285104469687, 138.357751867269, -30.66479806614716, 2.506628277459239]
+  const b = [-54.47609879822406, 161.5858368580409, -155.6989798598866, 66.80131188771972, -13.28068155288572]
+  const c = [-0.007784894002430293, -0.3223964580411365, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783]
+  const d = [0.007784695709041462, 0.3224671290700398, 2.445134137142996, 3.754408661907416]
+  const lo = 0.02425
+  if (p < lo) {
+    const q = Math.sqrt(-2 * Math.log(p))
+    return (((((c[0]! * q + c[1]!) * q + c[2]!) * q + c[3]!) * q + c[4]!) * q + c[5]!) / ((((d[0]! * q + d[1]!) * q + d[2]!) * q + d[3]!) * q + 1)
+  }
+  if (p > 1 - lo) return -normalQuantile(1 - p)
+  const q = p - 0.5
+  const r = q * q
+  return ((((((a[0]! * r + a[1]!) * r + a[2]!) * r + a[3]!) * r + a[4]!) * r + a[5]!) * q) /
+    (((((b[0]! * r + b[1]!) * r + b[2]!) * r + b[3]!) * r + b[4]!) * r + 1)
+}
+
+/**
+ * The |z| a change must reach when `tests` comparisons are made at once (two-sided, 5 % family-wise, Bonferroni).
+ * Testing 100 categories at 2σ each would raise ≈ 5 "changes" per run out of pure randomness; this keeps the chance of
+ * even ONE false alarm per run at about 5 %. Never below 2.
+ */
+export function zThresholdForTests(tests: number): number {
+  const n = Math.max(1, Math.floor(tests))
+  return Math.max(2, normalQuantile(1 - 0.05 / (2 * n)))
+}
+
+/** z of the difference between two Poisson counts of equal-length periods (variance ≈ current + previous). */
+export function twoPeriodZ(previous: number, current: number): number {
+  const v = previous + current
+  return v > 0 ? (current - previous) / Math.sqrt(v) : 0
+}
+
+/** One-sample checks kept for the simple "is this count really different" questions (2σ, minimum counts). */
 export function poissonRiseIsReliable(previous: number, current: number): boolean {
   return previous >= 5 && current >= previous + 2 * Math.sqrt(previous)
 }
@@ -20,35 +60,78 @@ export function poissonDropIsReliable(previous: number, current: number): boolea
   return previous >= 10 && current <= previous - 2 * Math.sqrt(previous)
 }
 
-type Window = { from: string; to: string }
+/**
+ * Demand per category, without the two classic false alarms:
+ *  1. MULTIPLE TESTING — the threshold grows with the number of categories compared (zThresholdForTests);
+ *  2. A MARKETPLACE-WIDE MOVE read as N category moves — each category is compared with what the marketplace's own
+ *     change predicts (previous × total current / total previous), and the marketplace move itself is ONE signal.
+ * A category needs ≥ 10 orders in one of the periods to be judged at all.
+ */
+export const CATEGORY_MIN_ORDERS = 10
 
 export function categoryDemandSignals(
   rows: Array<{ categoryId: string; name: string; current: number; previous: number }>,
   ctx: { observedAt: string; window: Window }
 ): StrategicSignal[] {
   const out: StrategicSignal[] = []
-  for (const r of rows) {
-    const rising = poissonRiseIsReliable(r.previous, r.current)
-    const falling = poissonDropIsReliable(r.previous, r.current)
-    if (!rising && !falling) continue
-    const change = r.previous > 0 ? Math.round(((r.current - r.previous) / r.previous) * 10_000) : 0
+  const totalCurrent = rows.reduce((s, r) => s + r.current, 0)
+  const totalPrevious = rows.reduce((s, r) => s + r.previous, 0)
+  const judged = rows.filter((r) => Math.max(r.current, r.previous) >= CATEGORY_MIN_ORDERS)
+  const zCrit = zThresholdForTests(judged.length + 1) // + the marketplace-wide test
+  const bpsChange = (from: number, to: number) => (from > 0 ? Math.round(((to - from) / from) * 10_000) : 0)
+  const signed = (bps: number) => `${bps > 0 ? "+" : ""}${pct(bps)}`
+
+  const globalZ = twoPeriodZ(totalPrevious, totalCurrent)
+  if (totalPrevious >= 20 && Math.abs(globalZ) >= zCrit) {
+    const rising = globalZ > 0
+    out.push({
+      id: `market:marketplace:${rising ? "rise" : "fall"}:${ctx.window.to.slice(0, 10)}`,
+      domain: "market_observatory",
+      priority: rising ? "study" : "important",
+      kind: "fact",
+      title: `Commandes payées ${rising ? "en hausse" : "en baisse"} sur l'ensemble d'Affisell (${signed(bpsChange(totalPrevious, totalCurrent))})`,
+      evidence: [
+        { label: "Commandes payées, 30 derniers jours", value: String(totalCurrent) },
+        { label: "Commandes payées, 30 jours précédents", value: String(totalPrevious) },
+      ],
+      source: { id: "affisell.orders.categories", query: "Order.paidAt par période (toutes catégories)" },
+      observedAt: ctx.observedAt,
+      window: ctx.window,
+      confidence: "high",
+      confidenceReason: `Écart de ${Math.abs(globalZ).toFixed(1).replace(".", ",")} écarts-types (seuil ${zCrit.toFixed(1).replace(".", ",")}, corrigé du nombre de comparaisons).`,
+      recommendedAction: rising
+        ? "Vérifier que les fournisseurs et le stock suivent la hausse."
+        : "Chercher une cause transverse (paiement, trafic, saisonnalité, panne) avant d'agir catégorie par catégorie.",
+      link: "/admin/orders",
+    })
+  }
+
+  const ratio = totalPrevious > 0 ? totalCurrent / totalPrevious : 1
+  for (const r of judged) {
+    const expected = r.previous * ratio
+    const variance = expected + ratio * ratio * r.previous
+    if (variance <= 0) continue
+    const z = (r.current - expected) / Math.sqrt(variance)
+    if (Math.abs(z) < zCrit) continue
+    const rising = z > 0
     out.push({
       id: `market:category:${rising ? "rise" : "fall"}:${r.categoryId}`,
       domain: "market_observatory",
       priority: rising ? "study" : "important",
       kind: "fact",
       title: rising
-        ? `Demande en hausse sur Affisell : « ${r.name} » (${change > 0 ? "+" : ""}${pct(change)})`
-        : `Demande en baisse sur Affisell : « ${r.name} » (${pct(change)})`,
+        ? `Demande en hausse sur Affisell : « ${r.name} » (${signed(bpsChange(r.previous, r.current))})`
+        : `Demande en baisse sur Affisell : « ${r.name} » (${signed(bpsChange(r.previous, r.current))})`,
       evidence: [
         { label: "Commandes payées, 30 derniers jours", value: String(r.current) },
         { label: "Commandes payées, 30 jours précédents", value: String(r.previous) },
+        { label: "Attendu si la catégorie suivait la tendance d'Affisell", value: String(Math.round(expected)) },
       ],
       source: { id: "affisell.orders.categories", query: "Order.paidAt par période, groupé par Product.categoryId" },
       observedAt: ctx.observedAt,
       window: ctx.window,
       confidence: Math.min(r.current, r.previous) >= 20 ? "high" : "medium",
-      confidenceReason: "Écart supérieur à deux écarts-types d'un comptage aléatoire ; demande interne à Affisell, pas le marché mondial.",
+      confidenceReason: `Écart de ${Math.abs(z).toFixed(1).replace(".", ",")} écarts-types par rapport à la tendance d'Affisell (seuil ${zCrit.toFixed(1).replace(".", ",")} pour ${judged.length} catégories comparées) ; demande interne à Affisell, pas le marché mondial.`,
       recommendedAction: rising
         ? "Recruter des fournisseurs et pousser cette catégorie auprès des revendeurs ; vérifier que le stock suit."
         : "Vérifier les prix, le stock et la visibilité des produits de cette catégorie avant de conclure à une baisse du marché.",
@@ -139,30 +222,66 @@ export function slowSupplierSignals(
     }))
 }
 
+/**
+ * Dispute activity, as Stripe defines it (docs.stripe.com/disputes/measuring, read 2026-11-17): disputes counted on the
+ * date they were OPENED, over successful payments of the same period — not the "dispute rate" (by charge date).
+ *
+ * What the 0.75 % means, precisely: Stripe calls dispute activity above 0.75 % "excessive" by industry standard, and a
+ * sudden spike can draw attention before that. It is NOT a card-network fine threshold: Visa (VAMP) and Mastercard
+ * (ECM) work per CALENDAR month, with their own ratios and minimum COUNTS (Mastercard ECM: ≥ 100 chargebacks; VAMP
+ * also counts early fraud warnings, which Affisell does not record). At Affisell's volume the network programs can
+ * not trigger; the real exposure is Stripe's own review of the platform account, which carries the charges.
+ *
+ * Computed here: distinct disputes whose ledger row (ProcessedWebhook `dispute:<dp>:<order>`, written at the first
+ * dispute event) is ≤ 30 days old, over distinct PAID CHECKOUT PAYMENTS of the same 30 days (a cart's orders share one
+ * payment). Rolling 30 days, so it can differ from the Stripe dashboard's calendar view: the dashboard is the reference.
+ *
+ * Small numbers: with few payments, one dispute is already "above 0.75 %". `critical` needs at least
+ * DISPUTE_CRITICAL_MIN_COUNT disputes; below that the signal is `important` with low confidence.
+ */
+export const DISPUTE_MIN_PAYMENTS = 50
+export const DISPUTE_CRITICAL_MIN_COUNT = 3
+export const DISPUTE_EXCESSIVE_BPS = 75
+export const DISPUTE_WATCH_BPS = 50
+
+/** Ledger ids are `dispute:<dp_id>:<orderId>` (one row per order of the disputed charge) → distinct dp ids. */
+export function countDistinctDisputes(ledgerIds: string[]): number {
+  return new Set(ledgerIds.filter((id) => id.startsWith("dispute:")).map((id) => id.split(":")[1] || id)).size
+}
+
 export function disputeActivitySignal(
   input: { disputes30: number; payments30: number },
   ctx: { observedAt: string; window: Window }
 ): StrategicSignal[] {
-  if (input.payments30 < 50 || input.disputes30 === 0) return []
+  if (input.payments30 < DISPUTE_MIN_PAYMENTS || input.disputes30 === 0) return []
   const bps = Math.round((input.disputes30 / input.payments30) * 10_000)
-  if (bps < 50) return []
+  if (bps < DISPUTE_WATCH_BPS) return []
+  const enoughDisputes = input.disputes30 >= DISPUTE_CRITICAL_MIN_COUNT
+  const excessive = bps >= DISPUTE_EXCESSIVE_BPS
   return [
     {
-      id: `risk:dispute-activity:${ctx.window.to.slice(0, 7)}`,
+      id: `risk:dispute-activity:${ctx.window.to.slice(0, 10)}`,
       domain: "regulatory_risk",
-      priority: bps >= 75 ? "critical" : "important",
+      priority: excessive && enoughDisputes ? "critical" : "important",
       kind: "fact",
-      title: `Activité de litiges à ${pct(bps)} (Stripe juge excessif au-delà de 0,75 %)`,
+      title: `Activité de litiges à ${pct(bps)} sur 30 jours (référence Stripe : excessif au-delà de 0,75 %)`,
       evidence: [
         { label: "Litiges ouverts sur 30 jours", value: String(input.disputes30) },
-        { label: "Paiements sur 30 jours", value: String(input.payments30) },
+        { label: "Paiements réussis sur 30 jours", value: String(input.payments30) },
+        { label: "Seuil des réseaux de cartes", value: "non applicable à ce volume (minimums par mois civil)" },
       ],
-      source: { id: "affisell.orders", query: "Registre des litiges (ProcessedWebhook dispute:*) par date d'ouverture / commandes payées" },
+      source: {
+        id: "affisell.orders",
+        query: "Litiges distincts (ProcessedWebhook dispute:*) par date d'ouverture / paiements de commande distincts, 30 j glissants",
+      },
       observedAt: ctx.observedAt,
       window: ctx.window,
-      confidence: input.payments30 >= 200 ? "high" : "medium",
-      confidenceReason: "Calcul proche de l'« activité de litiges » de Stripe ; le chiffre officiel est celui du tableau de bord Stripe.",
-      recommendedAction: "Identifier les produits et fournisseurs à l'origine des litiges ; renforcer les descriptions et le suivi de livraison.",
+      confidence: !enoughDisputes ? "low" : input.payments30 >= 200 ? "high" : "medium",
+      confidenceReason: !enoughDisputes
+        ? `Seulement ${input.disputes30} litige(s) : sur un petit volume, un seul litige dépasse déjà le seuil. Le chiffre officiel est celui du tableau de bord Stripe (Analytics).`
+        : "Même définition que l'« activité de litiges » de Stripe, sur 30 jours glissants ; le tableau de bord Stripe (Analytics) fait foi.",
+      recommendedAction:
+        "Identifier les produits et fournisseurs à l'origine des litiges ; renforcer les descriptions et le suivi de livraison ; comparer avec le tableau de bord Stripe.",
       link: "/admin/orders",
     },
   ]
