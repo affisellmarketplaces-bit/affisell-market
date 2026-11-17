@@ -47,13 +47,13 @@ import {
   type ProductContext,
   type ProductPotential,
 } from "@/lib/strategic-intelligence/product-economics"
-import { loadEconomicsCohort } from "@/lib/strategic-intelligence/product-economics.server"
+import { loadOrderFacts, matureCohortWindow, type MatureOrder } from "@/lib/strategic-intelligence/mature-orders.server"
+import { buildSupplierReliability, type SupplierReliabilityResult } from "@/lib/strategic-intelligence/supplier-reliability.server"
 import { representativeInput, simulateLevers } from "@/lib/strategic-intelligence/lever-simulation"
 import { priceGapRequests, unansweredRequests, unmetDemandSignals, unmetSearches, UNMET_WINDOW_DAYS } from "@/lib/strategic-intelligence/unmet-demand"
 import { loadJournal } from "@/lib/strategic-intelligence/journal.server"
 import { detectEmerging, emergingSignals, EMERGING_PRIOR_DAYS, EMERGING_RECENT_DAYS, type EmergingCounts } from "@/lib/strategic-intelligence/emerging"
 import { aggregateQuality, detectQualityOutliers, qualityRiskSignals } from "@/lib/strategic-intelligence/quality-risk"
-import { loadOrderCohort } from "@/lib/strategic-intelligence/cohort.server"
 
 /**
  * AFFISELL INTELLIGENCE — step 1 collector. READ-ONLY: it reads Affisell's own database (bounded queries) and calls no
@@ -74,6 +74,8 @@ export type CockpitResult = {
   collectors: Array<{ id: string; ok: boolean; signals: number; error?: string }>
   /** Priorities moved by measured results (learned-priority.ts); written to the AuditLog by the scheduled run only. */
   priorityChanges: PriorityChange[]
+  /** Internal supplier reliability index, from the same mature orders (never published). */
+  reliability: SupplierReliabilityResult
   /** Real commercial potential per product (product-economics.ts); null when it could not be computed this run. */
   economics: { quality: FinancialDataQuality; counts: Partial<Record<PotentialClass, number>>; items: ProductPotential[]; error?: string } | null
 }
@@ -115,6 +117,13 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
     orderBy: { paidAt: "desc" },
     select: { productId: true, affiliateId: true, supplierId: true, paidAt: true, quantity: true, product: { select: { categoryId: true, name: true } } },
   })
+
+  // The cockpit's ONE read of mature orders (mature-orders.server.ts): quality, supplier reliability and economics all
+  // judge exactly these rows, with the same definitions. Shared within this computation only — never a cache.
+  const matureWindow = matureCohortWindow(now)
+  const maturePromise: Promise<MatureOrder[]> = loadOrderFacts(matureWindow)
+  maturePromise.catch(() => undefined) // each consumer handles the error itself
+  const matureWindowIso = { from: matureWindow.from.toISOString(), to: matureWindow.to.toISOString() }
 
   const verified = new Set<string>()
 
@@ -520,7 +529,7 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
 
     guarded("risk.product_quality", async () => {
       // Orders old enough for a problem to have been reported (see quality-risk.ts) — the SAME read as the reliability index.
-      const [{ from, to, orders: rows }, recent] = await Promise.all([loadOrderCohort(now), ordersPromise])
+      const [rows, recent] = await Promise.all([maturePromise, ordersPromise])
       const cohort = rows
       const products = detectQualityOutliers(aggregateQuality(rows, (o) => o.productId))
       const suppliers = detectQualityOutliers(aggregateQuality(rows, (o) => o.supplierId))
@@ -544,7 +553,7 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
           ),
           supplier: supplierName,
         },
-        { observedAt, window: { from: from.toISOString(), to: to.toISOString() } }
+        { observedAt, window: matureWindowIso }
       )
     }, report),
 
@@ -660,6 +669,10 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
     },
     { observedAt }
   )
+  const reliability: SupplierReliabilityResult = await maturePromise
+    .then((orders) => buildSupplierReliability(orders, matureWindow))
+    .catch((error: unknown) => ({ ok: false as const, error: error instanceof Error && error.message === "echantillon_tronque" ? ("echantillon_tronque" as const) : ("lecture_impossible" as const) }))
+
   // Measured outcomes per signal family; a journal that can not be read changes nothing (no learning, no crash).
   const byFamily = await loadJournal()
     .then((j) => j.byFamily)
@@ -674,7 +687,7 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
     const emerging = has("discovery:emerging:")
     const qualityWorse = has("risk:quality:product:")
     const betterSource = new Set([...has("supplier:cheaper-same-gtin:"), ...has("supplier:faster-same-gtin:")])
-    const [{ from, to, orders: econOrders }, recent] = await Promise.all([loadEconomicsCohort(now), ordersPromise])
+    const [econOrders, recent] = await Promise.all([maturePromise, ordersPromise])
     if (recent.length >= MAX_ORDERS) throw new Error("echantillon_tronque")
     const orders30 = new Map<string, number>()
     const names = new Map<string, string>()
@@ -730,7 +743,7 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
     const counts: Partial<Record<PotentialClass, number>> = {}
     for (const p of items) counts[p.cls] = (counts[p.cls] ?? 0) + 1
     economics = { quality: financialDataQuality(econOrders), counts, items }
-    economicsSignals.push(...potentialSignals(items, { observedAt, window: { from: from.toISOString(), to: to.toISOString() } }))
+    economicsSignals.push(...potentialSignals(items, { observedAt, window: matureWindowIso }))
     report.push({ id: "commercial.product_economics", ok: true, signals: economicsSignals.length })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
@@ -743,6 +756,7 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
     generatedAt: observedAt,
     priorityChanges: learned.changes,
     economics,
+    reliability,
     signals: rankSignals([...detected, ...entitySynthesisSignals(detected, { observedAt }), ...evolution]),
     sources,
     coverage,

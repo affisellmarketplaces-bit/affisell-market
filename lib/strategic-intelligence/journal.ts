@@ -22,15 +22,31 @@ export const DECISION_LABELS: Record<DecisionKind, string> = {
   dismiss: "Écarter",
 }
 
-export const METRICS = ["paid_orders", "dispute_activity_bps", "valid_gtin_share_bps"] as const
+export const METRICS = ["paid_orders", "dispute_activity_bps", "valid_gtin_share_bps", "affisell_net_cents_per_order"] as const
 export type JournalMetric = (typeof METRICS)[number]
 export const METRIC_LABELS: Record<JournalMetric, string> = {
   paid_orders: "Commandes payées sur la période",
   dispute_activity_bps: "Activité de litiges (‱ des paiements)",
   valid_gtin_share_bps: "Part des produits actifs avec un GTIN valide (‱)",
+  affisell_net_cents_per_order: "Marge nette Affisell par commande (centimes, commandes mûres)",
 }
 
-export type MetricPlan = { metric: JournalMetric; scope: string; direction: "up" | "down"; defaultDays: number }
+export type MetricPlan = {
+  metric: JournalMetric
+  scope: string
+  direction: "up" | "down"
+  defaultDays: number
+  /**
+   * Days an order needs before it can be judged (refunds and returns arrive late). The baseline window then ends
+   * `maturityDays` BEFORE the decision, and the measurement is due `maturityDays` AFTER the observed window ends — so
+   * both windows are judged at the same minimum age.
+   */
+  maturityDays?: number
+}
+
+/** Mean-type metrics: the value is a mean per order, judged by a difference of means (Welch). */
+export const MEAN_METRICS: ReadonlySet<JournalMetric> = new Set(["affisell_net_cents_per_order"])
+export const MARGIN_MATURITY_DAYS = 21
 
 /** Which measurable quantity a signal is about — from its deterministic id. `null` = not measurable automatically. */
 export function metricForSignal(signalId: string): MetricPlan | null {
@@ -39,13 +55,27 @@ export function metricForSignal(signalId: string): MetricPlan | null {
   if (/^market:marketplace:(?:rise|fall):/.test(signalId)) return { metric: "paid_orders", scope: "all", direction: "up", defaultDays: 30 }
   m = signalId.match(/^(?:discovery:(?:under-distributed|emerging)|commercial:economics:(?:a_distribuer|fort_potentiel)):(.+)$/)
   if (m) return { metric: "paid_orders", scope: `product:${m[1]}`, direction: "up", defaultDays: 30 }
+  m = signalId.match(/^commercial:economics:(?:populaire_non_rentable|a_abandonner|marge_ameliorable_sourcing):(.+)$/)
+  if (m) return { metric: "affisell_net_cents_per_order", scope: `product:${m[1]}`, direction: "up", defaultDays: 30, maturityDays: MARGIN_MATURITY_DAYS }
   if (/^risk:dispute-activity:/.test(signalId)) return { metric: "dispute_activity_bps", scope: "all", direction: "down", defaultDays: 30 }
   if (/^risk:safety-gate:coverage:/.test(signalId)) return { metric: "valid_gtin_share_bps", scope: "all", direction: "up", defaultDays: 30 }
   return null
 }
 
-/** A measured value: `count` events, out of `base` trials for a proportion (null for a plain count). */
-export type Measurement = { value: number; count: number; base: number | null }
+/**
+ * A measured value: `count` events, out of `base` trials for a proportion (null for a plain count). For a MEAN metric
+ * `count` is the number of orders, `value` their mean, and `sd` their standard deviation — stored in the existing
+ * integer `baselineBase` / `observedBase` columns (no schema change), rounded to the cent.
+ */
+export type Measurement = { value: number; count: number; base: number | null; sd?: number }
+
+export const MIN_MEAN_SAMPLE = 10
+
+/** Welch z of a difference of two means (observed − baseline). */
+export function welchZ(m1: number, s1: number, n1: number, m2: number, s2: number, n2: number): number {
+  const v = (s1 * s1) / n1 + (s2 * s2) / n2
+  return v > 0 ? (m2 - m1) / Math.sqrt(v) : 0
+}
 
 export const VERDICT_Z = 2
 export const MIN_COUNT_EVENTS = 10
@@ -68,6 +98,20 @@ export function verdictFor(
   observed: Measurement
 ): { verdict: Verdict; z: number | null; reason: string } {
   let z: number | null = null
+  if (MEAN_METRICS.has(metric)) {
+    if (baseline.count < MIN_MEAN_SAMPLE || observed.count < MIN_MEAN_SAMPLE) {
+      return { verdict: "inconclusive", z: null, reason: `Moins de ${MIN_MEAN_SAMPLE} commandes mûres sur une des périodes : trop peu pour conclure.` }
+    }
+    z = welchZ(baseline.value, baseline.sd ?? baseline.base ?? 0, baseline.count, observed.value, observed.sd ?? observed.base ?? 0, observed.count)
+    const signed = direction === "up" ? z : -z
+    const zTxt = Math.abs(z).toFixed(1).replace(".", ",")
+    const eur = (c: number) => `${(c / 100).toFixed(2).replace(".", ",")} €`
+    const change = `marge par commande ${eur(baseline.value)} → ${eur(observed.value)} (${baseline.count} puis ${observed.count} commandes)`
+    const caveat = "Évolution observée après la décision, pas la preuve que l'action en est la cause (prix, volumes, saison, source ont pu changer)."
+    if (signed >= VERDICT_Z) return { verdict: "improved", z, reason: `Amélioration nette, ${zTxt} écarts-types : ${change}. ${caveat}` }
+    if (signed <= -VERDICT_Z) return { verdict: "worsened", z, reason: `Dégradation nette, ${zTxt} écarts-types : ${change}. ${caveat}` }
+    return { verdict: "inconclusive", z, reason: `Écart de ${zTxt} écart-type(s), dans la marge du hasard : ${change}.` }
+  }
   if (metric === "paid_orders") {
     if (baseline.count + observed.count < MIN_COUNT_EVENTS) {
       return { verdict: "inconclusive", z: null, reason: `Moins de ${MIN_COUNT_EVENTS} commandes sur les deux périodes : trop peu pour conclure.` }

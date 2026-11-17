@@ -168,7 +168,9 @@ describe("aggregation and classification", () => {
     expect(sig.priority).toBe("important")
     expect(sig.recommendedAction).toMatch(/Effet mesuré/)
     expect(metricForSignal(sig.id)).toMatchObject({ metric: "paid_orders", scope: "product:good" })
-    expect(metricForSignal("commercial:economics:a_abandonner:good")).toBeNull()
+    // Loss-making products are measured on Affisell's margin per mature order; a test has nothing to measure yet.
+    expect(metricForSignal("commercial:economics:a_abandonner:good")).toMatchObject({ metric: "affisell_net_cents_per_order", maturityDays: 21 })
+    expect(metricForSignal("commercial:economics:a_tester:good")).toBeNull()
     const quality = { ...sig, id: "risk:quality:product:good" }
     expect(entitySynthesisSignals([sig, quality], { observedAt: "x" })).toEqual([])
   })

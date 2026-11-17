@@ -5,7 +5,6 @@ import { auth } from "@/auth"
 import { DecisionForm, MeasureButton } from "@/components/admin/intelligence/decision-controls"
 import { loadIntelligenceCockpit } from "@/lib/strategic-intelligence/collect.server"
 import { GRADE_LABELS, RELIABILITY_MIN_ORDERS, type ComponentVerdict, type RateComponent } from "@/lib/strategic-intelligence/supplier-reliability"
-import { loadSupplierReliability } from "@/lib/strategic-intelligence/supplier-reliability.server"
 import { familyLearning, LEARN_MIN_ACTED, type LearningState } from "@/lib/strategic-intelligence/learned-priority"
 import { POTENTIAL_LABELS, type PotentialClass } from "@/lib/strategic-intelligence/product-economics"
 import { SIMULATION_CAVEAT } from "@/lib/strategic-intelligence/lever-simulation"
@@ -167,7 +166,8 @@ export default async function AdminIntelligencePage() {
   if (!session?.user?.id) redirect("/login/admin?callbackUrl=/admin/intelligence")
   if ((session.user as { role?: string }).role !== "ADMIN") redirect("/")
 
-  const [cockpit, journal, reliability] = await Promise.all([loadIntelligenceCockpit(), loadJournal(), loadSupplierReliability()])
+  const [cockpit, journal] = await Promise.all([loadIntelligenceCockpit(), loadJournal()])
+  const reliability = cockpit.reliability ?? { ok: false as const, error: "lecture_impossible" as const }
   const history = await loadSignalHistory(cockpit.signals.map((s) => s.id))
   const now = new Date().toISOString()
   const groups: SignalPriority[] = ["critical", "important", "study"]

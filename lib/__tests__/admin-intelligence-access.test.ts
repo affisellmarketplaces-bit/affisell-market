@@ -19,7 +19,6 @@ vi.mock("@/auth", () => ({ auth: m.auth }))
 vi.mock("next/navigation", () => ({ redirect: m.redirect, notFound: vi.fn() }))
 vi.mock("@/lib/strategic-intelligence/collect.server", () => ({ loadIntelligenceCockpit: m.load }))
 vi.mock("@/lib/strategic-intelligence/scheduled.server", () => ({ loadSignalHistory: async () => ({}) }))
-vi.mock("@/lib/strategic-intelligence/supplier-reliability.server", () => ({ loadSupplierReliability: async () => ({ ok: false, error: "lecture_impossible" }) }))
 vi.mock("@/lib/strategic-intelligence/journal.server", () => ({
   loadJournal: async () => ({ available: true, entries: [], learning: [], latestBySignal: {}, byFamily: {} }),
 }))

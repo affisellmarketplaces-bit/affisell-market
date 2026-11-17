@@ -6,6 +6,8 @@ import { DAY_MS } from "@/lib/intelligence/order-aggregates"
 import { IDENTITY_KEYS } from "@/lib/listing-compliance/keys"
 import { prisma } from "@/lib/prisma"
 import { gtin14 } from "@/lib/strategic-intelligence/external/safety-gate"
+import { loadOrderFacts } from "@/lib/strategic-intelligence/mature-orders.server"
+import { orderEconomics } from "@/lib/strategic-intelligence/product-economics"
 import {
   familyTrackRecords,
   metricForSignal,
@@ -30,6 +32,20 @@ function isMissingTable(error: unknown): boolean {
 
 /** Measures a journal metric from Affisell's own database (read-only, bounded). */
 export async function measureMetric(metric: JournalMetric, scope: string, from: Date, to: Date): Promise<Measurement> {
+  if (metric === "affisell_net_cents_per_order") {
+    // Same read and same per-order rule as the cockpit's economics (mature-orders.server.ts + orderEconomics).
+    if (!scope.startsWith("product:")) throw new Error("journal_bad_scope")
+    const orders = await loadOrderFacts({ from, to, productId: scope.slice("product:".length) })
+    const nets: number[] = []
+    for (const o of orders) {
+      const e = orderEconomics(o)
+      if (e.usable) nets.push(e.platformNetCents)
+    }
+    const n = nets.length
+    const mean = n > 0 ? nets.reduce((a, b) => a + b, 0) / n : 0
+    const sd = n > 1 ? Math.sqrt(nets.reduce((a, b) => a + (b - mean) ** 2, 0) / (n - 1)) : 0
+    return { value: Math.round(mean), count: n, base: Math.round(sd), sd }
+  }
   if (metric === "paid_orders") {
     const where: Prisma.OrderWhereInput = { paidAt: { gte: from, lt: to } }
     if (scope.startsWith("category:")) where.product = { categoryId: scope.slice("category:".length) }
@@ -82,8 +98,11 @@ export async function recordDecision(args: {
   let measured: Partial<Prisma.IntelligenceDecisionUncheckedCreateInput> = {}
   if (plan) {
     const days = args.measureAfterDays ?? plan.defaultDays
-    const from = new Date(now.getTime() - days * DAY_MS)
-    const baseline = await measure(plan.metric, plan.scope, from, now)
+    const maturity = plan.maturityDays ?? 0
+    // A metric that needs mature orders: the baseline window ends `maturity` days before the decision.
+    const to = new Date(now.getTime() - maturity * DAY_MS)
+    const from = new Date(to.getTime() - days * DAY_MS)
+    const baseline = await measure(plan.metric, plan.scope, from, to)
     measured = {
       metric: plan.metric,
       metricScope: plan.scope,
@@ -92,9 +111,10 @@ export async function recordDecision(args: {
       baselineCount: baseline.count,
       baselineBase: baseline.base,
       baselineFrom: from,
-      baselineTo: now,
+      baselineTo: to,
       measureAfterDays: days,
-      dueAt: new Date(now.getTime() + days * DAY_MS),
+      // …and the observed window is measured once its last orders are `maturity` days old too.
+      dueAt: new Date(now.getTime() + (days + maturity) * DAY_MS),
     }
   }
   try {
