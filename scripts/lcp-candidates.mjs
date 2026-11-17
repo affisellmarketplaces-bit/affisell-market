@@ -3,16 +3,22 @@
  * Lists every Largest-Contentful-Paint candidate of a page in a REAL Chromium (Playwright), with the element that
  * produced it — what Lighthouse's own LCP-element audit fails to report on some traces. Mobile viewport, CPU slowed
  * ×4 and a slow network through the DevTools protocol (same order of magnitude as the Lighthouse CI run). Read-only:
- * it loads the page, waits, prints, closes. Usage: node scripts/lcp-candidates.mjs <url> [waitMs]
+ * it loads the page, waits, prints, closes. Usage: node scripts/lcp-candidates.mjs <url> [waitMs] [cookie=value]
+ * The optional cookie (e.g. affisell_cookie_consent=false) measures a RETURNING visitor next to a first visit.
  */
 import { chromium } from "@playwright/test"
 
 const url = process.argv[2] ?? "http://localhost:3001/"
 const waitMs = Number(process.argv[3] ?? 20_000)
+const cookieArg = process.argv[4]
 
 const browser = await chromium.launch()
 try {
   const context = await browser.newContext({ viewport: { width: 375, height: 667 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })
+  if (cookieArg?.includes("=")) {
+    const [name, ...rest] = cookieArg.split("=")
+    await context.addCookies([{ name, value: rest.join("="), url }])
+  }
   const page = await context.newPage()
   const cdp = await context.newCDPSession(page)
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 })
@@ -46,7 +52,7 @@ try {
     return { ttfb: Math.round(n?.responseStart ?? 0), dcl: Math.round(n?.domContentLoadedEventEnd ?? 0), load: Math.round(n?.loadEventEnd ?? 0), fcp: Math.round(fcp?.startTime ?? 0) }
   })
   const lcp = await page.evaluate(() => window.__lcp)
-  console.log(`[lcp] ${url} · ttfb ${nav.ttfb} ms · fcp ${nav.fcp} ms · dcl ${nav.dcl} ms · load ${nav.load} ms · observed ${Date.now() - t0} ms`)
+  console.log(`[lcp] ${url}${cookieArg ? ` (cookie ${cookieArg})` : " (first visit)"} · ttfb ${nav.ttfb} ms · fcp ${nav.fcp} ms · dcl ${nav.dcl} ms · load ${nav.load} ms · observed ${Date.now() - t0} ms`)
   for (const c of lcp) console.log(`[lcp]   candidate at ${c.t} ms · ${c.size}px² · <${c.tag}${c.id ? `#${c.id}` : ""}> testid=${c.testid ?? "-"} · "${c.text ?? ""}"${c.url ? ` · ${c.url}` : ""} · .${c.cls ?? ""}`)
 } finally {
   await browser.close()
