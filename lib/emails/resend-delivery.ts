@@ -40,7 +40,8 @@ export function resolveResendDeliveryRecipient(
 
 type ResendSendResult = {
   data: { id: string } | null
-  error: { message: string } | null
+  /** `name` is Resend's error code (e.g. `invalid_idempotent_request`, `concurrent_idempotent_requests`). */
+  error: { message: string; name?: string } | null
 }
 
 /**
@@ -59,7 +60,7 @@ export async function sendResendEmail(args: {
    * e-mail again. Not used for the sandbox fallback (a different recipient is a different e-mail).
    */
   idempotencyKey?: string
-}): Promise<{ ok: true; resendId?: string } | { ok: false; error: string }> {
+}): Promise<{ ok: true; resendId?: string } | { ok: false; error: string; errorName?: string }> {
   const { context, config, intendedTo, subject, html, replyTo, idempotencyKey } = args
   const resend = new Resend(config.apiKey)
 
@@ -115,7 +116,8 @@ export async function sendResendEmail(args: {
     sandbox: isResendSandboxFrom(config.from),
     production: isProductionEmailDelivery(),
   })
-  return { ok: false, error: result.error?.message ?? errMsg }
+  const errorName = typeof result.error?.name === "string" ? result.error.name : undefined
+  return { ok: false, error: result.error?.message ?? errMsg, ...(errorName ? { errorName } : {}) }
 }
 
 /** Renders a React Email component and sends it. */

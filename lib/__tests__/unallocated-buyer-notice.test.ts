@@ -6,13 +6,16 @@ import {
   BUYER_NOTICE_CLAIM_ACTION,
   BUYER_NOTICE_FAILED_ACTION,
   BUYER_NOTICE_SENT_ACTION,
+  buyerNoticeMode,
   claimId,
   isBuyerNoticeEnabled,
+  isNoticeComplete,
   lineRefundState,
   mayMentionRefund,
   noticeCopyKey,
   planBuyerNotice,
   sessionRefundState,
+  unexplainedRefunds,
   verifiedRecipient,
   type NoticeRow,
 } from "@/lib/unallocated-buyer-notice"
@@ -50,9 +53,14 @@ describe("one notice per kind, no duplicate, failures retried, doubt left to a h
   it("first time: initial attempt 1", () => {
     expect(planBuyerNotice("cs", "not_triggered", [], now)).toEqual({ action: "send", kind: "initial", attempt: 1 })
   })
-  it("a send in flight is not doubled; an old claim without outcome is in doubt, never re-sent", () => {
+  it("a send in flight is not doubled; a claim without outcome is RECOVERED (same attempt, same key) for 20 h, then left to a human", () => {
     expect(planBuyerNotice("cs", "not_triggered", [claim("initial", 1, "not_triggered", ago(1))], now)).toEqual({ action: "none", reason: "in_flight" })
-    expect(planBuyerNotice("cs", "not_triggered", [claim("initial", 1, "not_triggered", ago(30))], now)).toEqual({ action: "none", reason: "in_doubt" })
+    expect(planBuyerNotice("cs", "not_triggered", [claim("initial", 1, "not_triggered", ago(30))], now)).toMatchObject({ action: "recover", kind: "initial", attempt: 1, claimed: { state: "not_triggered" } })
+    expect(planBuyerNotice("cs", "not_triggered", [claim("initial", 1, "not_triggered", ago(21 * 60))], now)).toEqual({ action: "none", reason: "in_doubt", attempt: 1, kind: "initial" })
+  })
+  it("an unexplained refund on the payment holds a FRESH notice, but never a recovery of what was already claimed", () => {
+    expect(planBuyerNotice("cs", "uncertain", [], now)).toEqual({ action: "none", reason: "uncertain_hold" })
+    expect(planBuyerNotice("cs", "uncertain", [claim("initial", 1, "not_triggered", ago(30))], now)).toMatchObject({ action: "recover" })
   })
   it("a recorded failure is retried with the next attempt, up to the cap", () => {
     expect(planBuyerNotice("cs", "not_triggered", [claim("initial", 1, "x"), failed("initial", 1)], now)).toEqual({ action: "send", kind: "initial", attempt: 2 })
@@ -75,6 +83,20 @@ describe("one notice per kind, no duplicate, failures retried, doubt left to a h
   })
 })
 
+describe("ambiguous refunds and finished sessions", () => {
+  it("a refund is explained by a line proof or an app order refund; failed / canceled ones do not count", () => {
+    const known = new Set(["re_line"])
+    expect(unexplainedRefunds([{ id: "re_line", status: "succeeded" }, { id: "re_order", status: "succeeded", metadata: { orderId: "o1" } }], known)).toBe(0)
+    expect(unexplainedRefunds([{ id: "re_dash", status: "succeeded", metadata: {} }], known)).toBe(1)
+    expect(unexplainedRefunds([{ id: "re_x", status: "failed" }, { id: "re_y", status: "canceled" }], known)).toBe(0)
+  })
+  it("a session is finished once the confirmation went out, or the initial notice already said « confirmed »", () => {
+    expect(isNoticeComplete("cs", [claim("initial", 1, "confirmed"), sent("initial", 1)])).toBe(true)
+    expect(isNoticeComplete("cs", [claim("initial", 1, "not_triggered"), sent("initial", 1)])).toBe(false)
+    expect(isNoticeComplete("cs", [claim("initial", 1, "not_triggered"), sent("initial", 1), claim("refund_confirmed", 1, "confirmed"), sent("refund_confirmed", 1)])).toBe(true)
+  })
+})
+
 describe("recipient and switch", () => {
   it("only the address the payer gave Stripe for a PAID session", () => {
     expect(verifiedRecipient({ payment_status: "paid", customer_details: { email: " buyer@example.com " } })).toBe("buyer@example.com")
@@ -82,6 +104,12 @@ describe("recipient and switch", () => {
     expect(verifiedRecipient({ payment_status: "paid", customer_details: { email: "not-an-email" } })).toBeNull()
     expect(verifiedRecipient({ payment_status: "paid", customer_details: null })).toBeNull()
     expect(verifiedRecipient(null)).toBeNull()
+  })
+  it("rollout: off by default, `shadow` computes and logs only, `true` sends", () => {
+    expect(buyerNoticeMode({})).toBe("off")
+    expect(buyerNoticeMode({ UNALLOCATED_LINE_BUYER_EMAIL: "shadow" })).toBe("shadow")
+    expect(buyerNoticeMode({ UNALLOCATED_LINE_BUYER_EMAIL: "true" })).toBe("on")
+    expect(isBuyerNoticeEnabled({ UNALLOCATED_LINE_BUYER_EMAIL: "shadow" })).toBe(false)
   })
   it("off unless exactly `true`", () => {
     expect(isBuyerNoticeEnabled({})).toBe(false)

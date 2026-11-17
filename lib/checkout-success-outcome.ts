@@ -11,7 +11,9 @@
 import { noticeCopyKey, type RefundState } from "@/lib/unallocated-buyer-notice"
 
 /** The page's refund sentence: the same four states as the buyer e-mail, never a promise the facts do not support. */
-export function refundSentenceKey(state: RefundState | null | undefined): "notTriggered" | "requested" | "inProgress" | "confirmed" {
+export function refundSentenceKey(state: RefundState | null | undefined): "notTriggered" | "requested" | "inProgress" | "confirmed" | null {
+  // An unexplained refund on the payment: say nothing about money rather than « no refund issued ».
+  if (state === "uncertain") return null
   return noticeCopyKey("initial", state ?? "not_triggered")
 }
 

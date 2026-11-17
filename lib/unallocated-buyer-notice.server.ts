@@ -8,23 +8,29 @@ import { resolveEmailBrandForAffiliate } from "@/lib/emails/email-brand.server"
 import { interpolate } from "@/lib/emails/email-copy-utils"
 import { readResendDeliveryConfig, sendResendEmail } from "@/lib/emails/resend-delivery"
 import { resolveEmailLocale } from "@/lib/emails/resolve-email-locale"
+import { isProductionEmailDelivery, isResendSandboxFrom } from "@/lib/emails/resolve-resend-recipient"
 import { tMessage } from "@/lib/i18n-pick-message"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { intlLocaleTag } from "@/lib/i18n-ui-locale"
+import { opsWebhookAlert } from "@/lib/ops-webhook"
 import { prisma } from "@/lib/prisma"
 import { resolvePublicAppUrl } from "@/lib/public-app-url"
 import { getStripeClient } from "@/lib/stripe"
 import {
+  awaitsInitialNotice,
   BUYER_NOTICE_CLAIM_ACTION,
+  BUYER_NOTICE_DOUBT_ALERT_ACTION,
   BUYER_NOTICE_ENTITY_TYPE,
   BUYER_NOTICE_FAILED_ACTION,
   BUYER_NOTICE_SENT_ACTION,
+  buyerNoticeMode,
   claimId,
-  isBuyerNoticeEnabled,
+  isNoticeComplete,
   lineRefundState,
   noticeCopyKey,
   planBuyerNotice,
   sessionRefundState,
+  unexplainedRefunds,
   verifiedRecipient,
   type NoticeKind,
   type NoticeRow,
@@ -41,6 +47,7 @@ export type UnallocatedSessionFacts = {
 }
 
 type RefundStatusReader = (refundId: string) => Promise<string | null>
+type PaymentRefundLister = (paymentIntentId: string) => Promise<Array<{ id: string; status?: string | null; metadata?: Record<string, string> | null }> | null>
 
 /** Stripe's status of a refund, `null` when it can not be read (the line then counts as `requested`, never more). */
 export const readStripeRefundStatus: RefundStatusReader = async (refundId) => {
@@ -52,8 +59,26 @@ export const readStripeRefundStatus: RefundStatusReader = async (refundId) => {
   }
 }
 
-/** The lost lines of one checkout session and the REAL state of their refund. Reads only. */
-export async function loadUnallocatedSessionFacts(sessionId: string, readStatus: RefundStatusReader = readStripeRefundStatus): Promise<UnallocatedSessionFacts> {
+/** The refunds Stripe holds for the payment, `null` when they can not be read. */
+export const listStripePaymentRefunds: PaymentRefundLister = async (paymentIntentId) => {
+  try {
+    const page = await getStripeClient().refunds.list({ payment_intent: paymentIntentId, limit: 100 })
+    return page.data.map((r) => ({ id: r.id, status: r.status ?? null, metadata: (r.metadata ?? null) as Record<string, string> | null }))
+  } catch {
+    return null
+  }
+}
+
+/**
+ * The lost lines of one checkout session and the REAL state of their refund. Reads only. A « not issued » state is
+ * double-checked against the payment's refunds: one that no fact explains (or refunds that can not be read) makes the
+ * session `uncertain` — the buyer may already have been paid back by hand.
+ */
+export async function loadUnallocatedSessionFacts(
+  sessionId: string,
+  readStatus: RefundStatusReader = readStripeRefundStatus,
+  listRefunds: PaymentRefundLister = listStripePaymentRefunds
+): Promise<UnallocatedSessionFacts> {
   const rows = await prisma.auditLog.findMany({
     where: { action: { in: [UNALLOCATED_LINE_AUDIT_ACTION, UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION] }, entityId: { startsWith: `${sessionId}:line:` } },
     select: { action: true, entityId: true, payload: true },
@@ -72,14 +97,21 @@ export async function loadUnallocatedSessionFacts(sessionId: string, readStatus:
   let amountCents = 0
   let currency = "eur"
   let affiliateProductId: string | null = null
+  let paymentIntentId: string | null = null
   for (const [key, p] of traces) {
     const refundId = refundIds.get(key) ?? null
     states.push(lineRefundState(refundId, refundId ? await readStatus(refundId) : null))
     if (typeof p.refundableCents === "number" && Number.isInteger(p.refundableCents) && p.refundableCents > 0) amountCents += p.refundableCents
     if (typeof p.currency === "string" && p.currency) currency = p.currency
     if (!affiliateProductId && typeof p.affiliateProductId === "string") affiliateProductId = p.affiliateProductId
+    if (!paymentIntentId && typeof p.paymentIntentId === "string" && p.paymentIntentId) paymentIntentId = p.paymentIntentId
   }
-  return { lines: traces.size, state: sessionRefundState(states), amountCents, currency, affiliateProductId }
+  let state = sessionRefundState(states)
+  if (traces.size > 0 && state === "not_triggered") {
+    const refunds = paymentIntentId ? await listRefunds(paymentIntentId) : null
+    if (!refunds || unexplainedRefunds(refunds, new Set(refundIds.values())) > 0) state = "uncertain"
+  }
+  return { lines: traces.size, state, amountCents, currency, affiliateProductId }
 }
 
 function formatAmount(cents: number, currency: string, locale: AppLocale): string {
@@ -109,41 +141,86 @@ export function buildNoticeCopy(locale: AppLocale, kind: NoticeKind, state: Refu
   }
 }
 
-export type NoticeResult =
-  | { status: "disabled" | "no_lines" | "not_configured" | "no_verified_recipient" | "session_unreadable" | "claimed_elsewhere" }
-  | { status: "already_sent" | "nothing_new" | "in_flight" | "in_doubt" | "too_many_failures" }
-  | { status: "sent" | "failed"; kind: NoticeKind; attempt: number; state: RefundState }
+/** Everything that decides the e-mail's bytes, stored in the claim so a recovery re-sends the SAME payload. */
+type ClaimSnapshot = { kind: NoticeKind; attempt: number; state: RefundState; locale: AppLocale; amountCents: number; currency: string; affiliateId: string | null }
 
-type Deps = {
-  now?: Date
-  readStatus?: RefundStatusReader
-  retrieveSession?: (sessionId: string) => Promise<{ payment_status?: string | null; customer_details?: { email?: string | null } | null; metadata?: Record<string, string> | null } | null>
+function readSnapshot(payload: unknown): ClaimSnapshot | null {
+  const p = (payload ?? {}) as Record<string, unknown>
+  if ((p.kind !== "initial" && p.kind !== "refund_confirmed") || typeof p.attempt !== "number" || typeof p.state !== "string" || typeof p.locale !== "string") return null
+  if (typeof p.amountCents !== "number" || typeof p.currency !== "string") return null
+  return { kind: p.kind, attempt: p.attempt, state: p.state as RefundState, locale: resolveEmailLocale(p.locale), amountCents: p.amountCents, currency: p.currency, affiliateId: typeof p.affiliateId === "string" ? p.affiliateId : null }
+}
+
+async function renderNotice(snap: ClaimSnapshot): Promise<{ subject: string; html: string; from: (base: string) => string }> {
+  const brand = await resolveEmailBrandForAffiliate(snap.affiliateId)
+  const supportUrl = buyerEmailLinks(brand, resolvePublicAppUrl()).support("").replace(/\?order=$/, "")
+  const { subject, copy } = buildNoticeCopy(snap.locale, snap.kind, snap.state, formatAmount(snap.amountCents, snap.currency, snap.locale))
+  const branded = Object.fromEntries(Object.entries(copy).map(([k, v]) => [k, applyBrandToText(v, brand)])) as UnallocatedLineNoticeCopy
+  const html = await render(UnallocatedLineNoticeEmail({ copy: branded, supportUrl, brand: toEmailBrandProps(brand) }))
+  return { subject: applyBrandToText(subject, brand), html, from: (base) => buildBrandedFrom(base, brand) }
+}
+
+export type NoticeResult =
+  | { status: "disabled" | "no_lines" | "not_configured" | "preview_recipient_not_redirected" | "no_verified_recipient" | "session_unreadable" | "claimed_elsewhere" | "error" }
+  | { status: "already_sent" | "nothing_new" | "in_flight" | "in_doubt" | "too_many_failures" | "uncertain_hold" }
+  | { status: "shadow"; would: "send" | "recover"; kind: NoticeKind; attempt: number; state: RefundState }
+  | { status: "sent" | "failed" | "recovered" | "recovery_conflict"; kind: NoticeKind; attempt: number; state: RefundState }
+
+type SessionReader = (sessionId: string) => Promise<{ payment_status?: string | null; customer_details?: { email?: string | null } | null; metadata?: Record<string, string> | null } | null>
+
+type Deps = { now?: Date; readStatus?: RefundStatusReader; listRefunds?: PaymentRefundLister; retrieveSession?: SessionReader }
+
+async function writeOutcome(id: string, action: string, sessionId: string, payload: Record<string, unknown>): Promise<boolean> {
+  try {
+    await prisma.auditLog.create({ data: { id, action, entityType: BUYER_NOTICE_ENTITY_TYPE, entityId: sessionId, payload: payload as never } })
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** One alert per claim in doubt, then silence (the alert row is the claim). */
+async function alertDoubtOnce(sessionId: string, kind: NoticeKind, attempt: number, why: string): Promise<void> {
+  const claim = claimId(sessionId, kind, attempt)
+  if (!(await writeOutcome(`${claim}:alerted`, BUYER_NOTICE_DOUBT_ALERT_ACTION, sessionId, { kind, attempt, why }))) return
+  await opsWebhookAlert(
+    `[Affisell] Buyer notice IN DOUBT session=${sessionId} kind=${kind} attempt=${attempt} (${why}). It may or may not have been sent: ` +
+      `check Resend's logs for the idempotency key « ${claim} », then record the outcome with ` +
+      `POST /api/admin/unallocated-buyer-notices/resolve { sessionId, kind, attempt, outcome: "sent" | "failed" }. Nothing is re-sent automatically.`
+  ).catch(() => undefined)
 }
 
 /**
- * Sends the next due notice of one checkout session to its buyer, at most once per kind. OFF unless
- * `UNALLOCATED_LINE_BUYER_EMAIL=true`. Never throws.
+ * Sends (or recovers) the next due notice of one checkout session, at most once per kind. `UNALLOCATED_LINE_BUYER_EMAIL`:
+ * off = nothing at all, `shadow` = computed and logged only, `true` = sent. Never throws.
  */
 export async function notifyUnallocatedBuyer(sessionId: string, deps: Deps = {}): Promise<NoticeResult> {
-  if (!isBuyerNoticeEnabled()) return { status: "disabled" }
+  const mode = buyerNoticeMode()
+  if (mode === "off") return { status: "disabled" }
   const now = deps.now ?? new Date()
   try {
-    const facts = await loadUnallocatedSessionFacts(sessionId, deps.readStatus)
-    if (facts.lines === 0) return { status: "no_lines" }
     const rows: NoticeRow[] = await prisma.auditLog.findMany({
       where: { id: { startsWith: `unallocated-buyer-notice:${sessionId}:` } },
       select: { id: true, action: true, createdAt: true, payload: true },
       take: 50,
     })
+    if (isNoticeComplete(sessionId, rows)) return { status: "already_sent" } // no Stripe read for finished sessions
+    const facts = await loadUnallocatedSessionFacts(sessionId, deps.readStatus, deps.listRefunds)
+    if (facts.lines === 0) return { status: "no_lines" }
     const plan = planBuyerNotice(sessionId, facts.state, rows, now)
     if (plan.action === "none") {
-      if (plan.reason === "in_doubt") console.error("[unallocated-buyer-notice]", { metric: "in_doubt_not_retried", sessionId })
+      if (plan.reason === "in_doubt" && plan.kind && plan.attempt && mode === "on") await alertDoubtOnce(sessionId, plan.kind, plan.attempt, "older_than_recovery_window")
       return { status: plan.reason }
     }
     const config = readResendDeliveryConfig()
-    if (!config) return { status: "not_configured" }
+    if (!config && mode === "on") return { status: "not_configured" }
+    // Outside production a VERIFIED sender delivers to the real buyer: only the sandbox sender + TEST_EMAIL_TO (every
+    // mail redirected to the team) may send there. Checked before any claim, so nothing is consumed.
+    if (mode === "on" && !isProductionEmailDelivery() && !(isResendSandboxFrom(config!.from) && config!.testEmailTo.trim())) {
+      return { status: "preview_recipient_not_redirected" }
+    }
 
-    let session: Awaited<ReturnType<NonNullable<Deps["retrieveSession"]>>>
+    let session: Awaited<ReturnType<SessionReader>>
     try {
       session = deps.retrieveSession ? await deps.retrieveSession(sessionId) : await getStripeClient().checkout.sessions.retrieve(sessionId)
     } catch {
@@ -151,67 +228,103 @@ export async function notifyUnallocatedBuyer(sessionId: string, deps: Deps = {})
     }
     const to = verifiedRecipient(session)
     if (!to) return { status: "no_verified_recipient" }
-    const locale = resolveEmailLocale(session?.metadata?.locale)
 
-    // Claim BEFORE sending: one deterministic row per attempt; a concurrent run hits the primary key and stops.
-    const id = claimId(sessionId, plan.kind, plan.attempt)
-    try {
-      await prisma.auditLog.create({
-        data: { id, action: BUYER_NOTICE_CLAIM_ACTION, entityType: BUYER_NOTICE_ENTITY_TYPE, entityId: sessionId, payload: { kind: plan.kind, attempt: plan.attempt, state: facts.state, locale } },
-      })
-    } catch {
-      return { status: "claimed_elsewhere" }
+    let snap: ClaimSnapshot
+    if (plan.action === "recover") {
+      const stored = readSnapshot(plan.claimed.payload)
+      if (!stored) {
+        if (mode === "on") await alertDoubtOnce(sessionId, plan.kind, plan.attempt, "claim_without_snapshot")
+        return { status: "in_doubt" }
+      }
+      snap = stored
+    } else {
+      let affiliateId: string | null = null
+      if (facts.affiliateProductId) {
+        affiliateId = (await prisma.affiliateProduct.findUnique({ where: { id: facts.affiliateProductId }, select: { affiliateId: true } }).catch(() => null))?.affiliateId ?? null
+      }
+      snap = { kind: plan.kind, attempt: plan.attempt, state: facts.state, locale: resolveEmailLocale(session?.metadata?.locale), amountCents: facts.amountCents, currency: facts.currency, affiliateId }
     }
 
-    let affiliateId: string | null = null
-    if (facts.affiliateProductId) {
-      affiliateId = (await prisma.affiliateProduct.findUnique({ where: { id: facts.affiliateProductId }, select: { affiliateId: true } }).catch(() => null))?.affiliateId ?? null
+    if (mode === "shadow") {
+      console.log("[unallocated-buyer-notice]", { metric: "shadow_would_send", sessionId, would: plan.action, kind: snap.kind, attempt: snap.attempt, state: snap.state, locale: snap.locale })
+      return { status: "shadow", would: plan.action, kind: snap.kind, attempt: snap.attempt, state: snap.state }
     }
-    const brand = await resolveEmailBrandForAffiliate(affiliateId)
-    const supportUrl = buyerEmailLinks(brand, resolvePublicAppUrl()).support("").replace(/\?order=$/, "")
-    const { subject, copy } = buildNoticeCopy(locale, plan.kind, facts.state, formatAmount(facts.amountCents, facts.currency, locale))
-    const branded = Object.fromEntries(Object.entries(copy).map(([k, v]) => [k, applyBrandToText(v, brand)])) as UnallocatedLineNoticeCopy
-    const html = await render(UnallocatedLineNoticeEmail({ copy: branded, supportUrl, brand: toEmailBrandProps(brand) }))
 
+    // Claim BEFORE sending (fresh notice only): one deterministic row per attempt; a concurrent run hits the key and stops.
+    const id = claimId(sessionId, snap.kind, snap.attempt)
+    if (plan.action === "send" && !(await writeOutcome(id, BUYER_NOTICE_CLAIM_ACTION, sessionId, { ...snap }))) return { status: "claimed_elsewhere" }
+
+    const rendered = await renderNotice(snap)
     const result = await sendResendEmail({
       context: "unallocated-buyer-notice",
-      config: { ...config, from: buildBrandedFrom(config.from, brand) },
+      config: { ...config!, from: rendered.from(config!.from) },
       intendedTo: to,
-      subject: applyBrandToText(subject, brand),
-      html,
+      subject: rendered.subject,
+      html: rendered.html,
       idempotencyKey: id,
     })
-    const outcome = result.ok
-      ? { id: `${id}:sent`, action: BUYER_NOTICE_SENT_ACTION, payload: { resendId: result.resendId ?? null } }
-      : { id: `${id}:failed`, action: BUYER_NOTICE_FAILED_ACTION, payload: { error: result.error === "invalid_recipient" ? "invalid_recipient" : "provider_error" } }
-    try {
-      await prisma.auditLog.create({ data: { ...outcome, entityType: BUYER_NOTICE_ENTITY_TYPE, entityId: sessionId } })
-    } catch {
-      // The claim stays without outcome: « in doubt », never retried automatically (the idempotency key covers 24 h).
-      console.error("[unallocated-buyer-notice]", { metric: "outcome_not_recorded", sessionId, sent: result.ok })
+    const base = { kind: snap.kind, attempt: snap.attempt, state: snap.state }
+    if (result.ok) {
+      if (!(await writeOutcome(`${id}:sent`, BUYER_NOTICE_SENT_ACTION, sessionId, { resendId: result.resendId ?? null, recovered: plan.action === "recover" }))) {
+        console.error("[unallocated-buyer-notice]", { metric: "outcome_not_recorded", sessionId, sent: true })
+      }
+      return { status: plan.action === "recover" ? "recovered" : "sent", ...base }
     }
-    return { status: result.ok ? "sent" : "failed", kind: plan.kind, attempt: plan.attempt, state: facts.state }
+    if (result.errorName === "invalid_idempotent_request" || result.errorName === "concurrent_idempotent_requests") {
+      // Same key, other payload (or still in progress at Resend): never a second e-mail — a human decides.
+      await alertDoubtOnce(sessionId, snap.kind, snap.attempt, result.errorName)
+      return { status: "recovery_conflict", ...base }
+    }
+    await writeOutcome(`${id}:failed`, BUYER_NOTICE_FAILED_ACTION, sessionId, { error: result.error === "invalid_recipient" ? "invalid_recipient" : "provider_error" })
+    return { status: "failed", ...base }
   } catch {
     console.error("[unallocated-buyer-notice]", { metric: "notice_error", sessionId })
-    return { status: "session_unreadable" }
+    return { status: "error" }
   }
 }
 
-/** Retry pass (cron): every session with a lost line in the last 30 days gets its due notice, failures included. */
-export async function retryUnallocatedBuyerNotices(args: { now?: Date; limit?: number } = {}): Promise<{ disabled: boolean; examined: number; byStatus: Record<string, number> }> {
-  if (!isBuyerNoticeEnabled()) return { disabled: true, examined: 0, byStatus: {} }
+/** Retry pass (cron): sessions with a lost line in the last 30 days, unfinished ones only, those still owed a first notice first. */
+export async function retryUnallocatedBuyerNotices(args: { now?: Date; limit?: number } = {}): Promise<{ mode: string; examined: number; byStatus: Record<string, number> }> {
+  const mode = buyerNoticeMode()
+  if (mode === "off") return { mode, examined: 0, byStatus: {} }
   const now = args.now ?? new Date()
+  const since = new Date(now.getTime() - 30 * 86_400_000)
   const traces = await prisma.auditLog.findMany({
-    where: { action: UNALLOCATED_LINE_AUDIT_ACTION, createdAt: { gte: new Date(now.getTime() - 30 * 86_400_000) } },
+    where: { action: UNALLOCATED_LINE_AUDIT_ACTION, createdAt: { gte: since } },
     select: { entityId: true },
-    orderBy: { createdAt: "desc" },
-    take: 1000,
+    orderBy: { createdAt: "asc" },
+    take: 2000,
   })
-  const sessions = [...new Set(traces.map((t) => t.entityId?.split(":line:")[0]).filter((s): s is string => Boolean(s)))].slice(0, args.limit ?? 50)
+  const notices: NoticeRow[] = await prisma.auditLog.findMany({
+    where: { id: { startsWith: "unallocated-buyer-notice:" }, createdAt: { gte: since } },
+    select: { id: true, action: true, createdAt: true, payload: true },
+    take: 10_000,
+  })
+  const sessions = [...new Set(traces.map((t) => t.entityId?.split(":line:")[0]).filter((s): s is string => Boolean(s)))]
+  const open = sessions.filter((s) => !isNoticeComplete(s, notices))
+  const ordered = [...open.filter((s) => awaitsInitialNotice(s, notices)), ...open.filter((s) => !awaitsInitialNotice(s, notices))].slice(0, args.limit ?? 50)
   const byStatus: Record<string, number> = {}
-  for (const s of sessions) {
+  for (const s of ordered) {
     const r = await notifyUnallocatedBuyer(s, { now })
     byStatus[r.status] = (byStatus[r.status] ?? 0) + 1
   }
-  return { disabled: false, examined: sessions.length, byStatus }
+  return { mode, examined: ordered.length, byStatus }
+}
+
+/**
+ * The human way out of a notice IN DOUBT, after looking at Resend's logs for its idempotency key: records `sent` or
+ * `failed` for that attempt (a `failed` lets the next run send attempt n+1). Sends nothing. Audited.
+ */
+export async function resolveBuyerNoticeInDoubt(args: { sessionId: string; kind: NoticeKind; attempt: number; outcome: "sent" | "failed"; actorId: string; note?: string }): Promise<{ ok: true } | { ok: false; error: "claim_not_found" | "already_resolved" }> {
+  const id = claimId(args.sessionId, args.kind, args.attempt)
+  const claim = await prisma.auditLog.findUnique({ where: { id }, select: { id: true } })
+  if (!claim) return { ok: false, error: "claim_not_found" }
+  const done = await prisma.auditLog.findMany({ where: { id: { in: [`${id}:sent`, `${id}:failed`] } }, select: { id: true } })
+  if (done.length > 0) return { ok: false, error: "already_resolved" }
+  const ok = await writeOutcome(`${id}:${args.outcome}`, args.outcome === "sent" ? BUYER_NOTICE_SENT_ACTION : BUYER_NOTICE_FAILED_ACTION, args.sessionId, {
+    resolvedBy: args.actorId,
+    note: args.note?.slice(0, 500) ?? null,
+    manual: true,
+  })
+  return ok ? { ok: true } : { ok: false, error: "already_resolved" }
 }

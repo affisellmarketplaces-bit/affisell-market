@@ -162,7 +162,8 @@ export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props
   // Nothing was confirmed: no celebration, no order reference, a « payment received » badge instead of « confirmed ».
   const nothingConfirmed = outcome === "unallocated"
   const lostLines = payload.unallocatedLines ?? 0
-  const refundSentence = lostLines > 0 ? t(`unallocatedRefund.${refundSentenceKey(payload.unallocatedRefundState)}`) : null
+  const refundKey = lostLines > 0 ? refundSentenceKey(payload.unallocatedRefundState) : null
+  const refundSentence = refundKey ? t(`unallocatedRefund.${refundKey}`) : null
   const orderCount = payload.orderIds?.length ?? (payload.orderId ? 1 : 0)
   const primaryOrderIdRaw = payload.orderIds?.[0] ?? payload.orderId ?? null
   const primaryOrderRef =

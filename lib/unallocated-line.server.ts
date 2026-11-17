@@ -7,7 +7,7 @@ import { isOrderClosedForPayout, orderIsFulfilledForCheckout } from "@/lib/order
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
 import { logStripeWebhookError, logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
-import { isBuyerNoticeEnabled } from "@/lib/unallocated-buyer-notice"
+import { buyerNoticeMode } from "@/lib/unallocated-buyer-notice"
 import {
   UNALLOCATED_LINE_ALERTED_AUDIT_ACTION,
   UNALLOCATED_LINE_AUDIT_ACTION,
@@ -128,9 +128,9 @@ export async function recordUnallocatedLines(args: {
   return outcomes
 }
 
-/** Off unless UNALLOCATED_LINE_BUYER_EMAIL=true; never throws, never blocks the payment path. */
+/** Off unless UNALLOCATED_LINE_BUYER_EMAIL is `true` (send) or `shadow` (log only); never throws, never blocks the payment path. */
 async function notifyBuyerSafely(sessionId: string): Promise<void> {
-  if (!isBuyerNoticeEnabled()) return
+  if (buyerNoticeMode() === "off") return
   try {
     const { notifyUnallocatedBuyer } = await import("@/lib/unallocated-buyer-notice.server")
     await notifyUnallocatedBuyer(sessionId)

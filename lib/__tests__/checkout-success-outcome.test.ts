@@ -20,6 +20,7 @@ describe("what the success page may say", () => {
     expect(refundSentenceKey("requested")).toBe("requested")
     expect(refundSentenceKey("in_progress")).toBe("inProgress")
     expect(refundSentenceKey("confirmed")).toBe("confirmed")
+    expect(refundSentenceKey("uncertain")).toBeNull() // an unexplained refund: say nothing about money
   })
 
   it("stops waiting for an order that can not come", () => {
