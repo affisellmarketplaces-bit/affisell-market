@@ -439,6 +439,58 @@ model ResellerAlertDelivery {
 }
 
 /// A reseller's alert preferences. In-app on, e-mail OFF by default (opt-in).
+/// AFFISELL INTELLIGENCE — decision journal (migration 20261117150000_intelligence_decision_journal, applied by hand).
+/// One OPEN decision per signal is enforced by a partial unique index in the migration (not expressible here).
+model IntelligenceDecision {
+  id               String    @id @default(cuid())
+  signalId         String
+  domain           String
+  signalKind       String
+  title            String
+  /// act | experiment | watch | dismiss
+  decision         String
+  rationale        String
+  metric           String?
+  metricScope      String?
+  /// up | down
+  desiredDirection String?
+  /// Measured by the server at decision time, never typed by a person.
+  baselineValue    Float?
+  baselineCount    Int?
+  baselineBase     Int?
+  baselineFrom     DateTime?
+  baselineTo       DateTime?
+  measureAfterDays Int?
+  dueAt            DateTime?
+  /// open | measured | closed
+  status           String    @default("open")
+  decidedById      String
+  signalSnapshot   Json
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now()) @updatedAt
+
+  @@index([signalId, createdAt])
+  @@index([status, dueAt])
+}
+
+/// The measurement of a decision, written once by the server (UNIQUE decisionId).
+model IntelligenceOutcome {
+  id            String   @id @default(cuid())
+  decisionId    String   @unique
+  metric        String
+  observedValue Float
+  observedCount Int?
+  observedBase  Int?
+  windowFrom    DateTime
+  windowTo      DateTime
+  zScore        Float?
+  /// improved | worsened | inconclusive
+  verdict       String
+  method        String
+  measuredById  String?
+  measuredAt    DateTime @default(now())
+}
+
 model ResellerAlertPreference {
   affiliateId String   @id
   inApp       Boolean  @default(true)

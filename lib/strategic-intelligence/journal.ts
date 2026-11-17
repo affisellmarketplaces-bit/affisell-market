@@ -1,0 +1,147 @@
+import { twoPeriodZ } from "@/lib/strategic-intelligence/detectors"
+import type { StrategicSignal } from "@/lib/strategic-intelligence/types"
+
+/**
+ * AFFISELL INTELLIGENCE — decision & experiment journal (pure part). Client-safe (no Prisma).
+ *
+ * The learning loop rests on three rules, so that it can never "learn" something that did not happen:
+ *  1. the baseline and the result are MEASURED by the server from Affisell's own database, with the same metric and a
+ *     window of the same length before and after the decision — nobody types a number;
+ *  2. a result is "improved" or "worsened" only when the change exceeds ordinary randomness (|z| ≥ 2); otherwise it is
+ *     "inconclusive" — never "no effect", which the data can not show either;
+ *  3. what is measured is the change AFTER the decision, not its cause: there is no control group. Decisions to only
+ *     WATCH a measurable signal are measured too, so acted and not-acted signals can be compared — still an
+ *     observation, labelled as such.
+ */
+export const DECISIONS = ["act", "experiment", "watch", "dismiss"] as const
+export type DecisionKind = (typeof DECISIONS)[number]
+export const DECISION_LABELS: Record<DecisionKind, string> = {
+  act: "Agir",
+  experiment: "Expérimenter",
+  watch: "Surveiller",
+  dismiss: "Écarter",
+}
+
+export const METRICS = ["paid_orders", "dispute_activity_bps", "valid_gtin_share_bps"] as const
+export type JournalMetric = (typeof METRICS)[number]
+export const METRIC_LABELS: Record<JournalMetric, string> = {
+  paid_orders: "Commandes payées sur la période",
+  dispute_activity_bps: "Activité de litiges (‱ des paiements)",
+  valid_gtin_share_bps: "Part des produits actifs avec un GTIN valide (‱)",
+}
+
+export type MetricPlan = { metric: JournalMetric; scope: string; direction: "up" | "down"; defaultDays: number }
+
+/** Which measurable quantity a signal is about — from its deterministic id. `null` = not measurable automatically. */
+export function metricForSignal(signalId: string): MetricPlan | null {
+  let m = signalId.match(/^market:category:(?:rise|fall):(.+)$/)
+  if (m) return { metric: "paid_orders", scope: `category:${m[1]}`, direction: "up", defaultDays: 30 }
+  if (/^market:marketplace:(?:rise|fall):/.test(signalId)) return { metric: "paid_orders", scope: "all", direction: "up", defaultDays: 30 }
+  m = signalId.match(/^discovery:under-distributed:(.+)$/)
+  if (m) return { metric: "paid_orders", scope: `product:${m[1]}`, direction: "up", defaultDays: 30 }
+  if (/^risk:dispute-activity:/.test(signalId)) return { metric: "dispute_activity_bps", scope: "all", direction: "down", defaultDays: 30 }
+  if (/^risk:safety-gate:coverage:/.test(signalId)) return { metric: "valid_gtin_share_bps", scope: "all", direction: "up", defaultDays: 30 }
+  return null
+}
+
+/** A measured value: `count` events, out of `base` trials for a proportion (null for a plain count). */
+export type Measurement = { value: number; count: number; base: number | null }
+
+export const VERDICT_Z = 2
+export const MIN_COUNT_EVENTS = 10
+export const MIN_PROPORTION_BASE = 50
+
+export type Verdict = "improved" | "worsened" | "inconclusive"
+
+/** z of the difference of two proportions (pooled). */
+export function twoProportionZ(k1: number, n1: number, k2: number, n2: number): number {
+  if (n1 <= 0 || n2 <= 0) return 0
+  const p = (k1 + k2) / (n1 + n2)
+  const v = p * (1 - p) * (1 / n1 + 1 / n2)
+  return v > 0 ? (k2 / n2 - k1 / n1) / Math.sqrt(v) : 0
+}
+
+export function verdictFor(
+  metric: JournalMetric,
+  direction: "up" | "down",
+  baseline: Measurement,
+  observed: Measurement
+): { verdict: Verdict; z: number | null; reason: string } {
+  let z: number | null = null
+  if (metric === "paid_orders") {
+    if (baseline.count + observed.count < MIN_COUNT_EVENTS) {
+      return { verdict: "inconclusive", z: null, reason: `Moins de ${MIN_COUNT_EVENTS} commandes sur les deux périodes : trop peu pour conclure.` }
+    }
+    z = twoPeriodZ(baseline.count, observed.count)
+  } else {
+    if ((baseline.base ?? 0) < MIN_PROPORTION_BASE || (observed.base ?? 0) < MIN_PROPORTION_BASE) {
+      return { verdict: "inconclusive", z: null, reason: `Moins de ${MIN_PROPORTION_BASE} observations sur une des périodes : trop peu pour conclure.` }
+    }
+    z = twoProportionZ(baseline.count, baseline.base!, observed.count, observed.base!)
+  }
+  const signed = direction === "up" ? z : -z
+  const zTxt = Math.abs(z).toFixed(1).replace(".", ",")
+  if (signed >= VERDICT_Z) return { verdict: "improved", z, reason: `Évolution favorable de ${zTxt} écarts-types (seuil ${VERDICT_Z}).` }
+  if (signed <= -VERDICT_Z) return { verdict: "worsened", z, reason: `Évolution défavorable de ${zTxt} écarts-types (seuil ${VERDICT_Z}).` }
+  return { verdict: "inconclusive", z, reason: `Écart de ${zTxt} écart-type(s), dans la marge du hasard (seuil ${VERDICT_Z}).` }
+}
+
+export function validateDecisionInput(body: unknown):
+  | { ok: true; value: { signalId: string; decision: DecisionKind; rationale: string; measureAfterDays: number | null } }
+  | { ok: false; error: string } {
+  if (!body || typeof body !== "object") return { ok: false, error: "invalid_body" }
+  const b = body as Record<string, unknown>
+  const signalId = typeof b.signalId === "string" ? b.signalId.trim() : ""
+  if (!signalId || signalId.length > 300) return { ok: false, error: "invalid_signal" }
+  const decision = b.decision
+  if (typeof decision !== "string" || !(DECISIONS as readonly string[]).includes(decision)) return { ok: false, error: "invalid_decision" }
+  const rationale = typeof b.rationale === "string" ? b.rationale.trim() : ""
+  if (rationale.length < 3 || rationale.length > 2000) return { ok: false, error: "invalid_rationale" }
+  let measureAfterDays: number | null = null
+  if (b.measureAfterDays !== undefined && b.measureAfterDays !== null && b.measureAfterDays !== "") {
+    const n = Number(b.measureAfterDays)
+    if (!Number.isInteger(n) || n < 7 || n > 180) return { ok: false, error: "invalid_days" }
+    measureAfterDays = n
+  }
+  return { ok: true, value: { signalId, decision: decision as DecisionKind, rationale, measureAfterDays } }
+}
+
+/** What is kept of the signal as it was shown (the evidence the decision was taken on). */
+export function signalSnapshot(s: StrategicSignal) {
+  return {
+    id: s.id,
+    domain: s.domain,
+    priority: s.priority,
+    kind: s.kind,
+    title: s.title,
+    evidence: s.evidence,
+    source: s.source,
+    observedAt: s.observedAt,
+    window: s.window,
+    confidence: s.confidence,
+    confidenceReason: s.confidenceReason,
+    recommendedAction: s.recommendedAction,
+  }
+}
+
+export type LearningRow = { decision: DecisionKind; domain: string; verdict: Verdict }
+export type LearningCell = { decisions: "acted" | "not_acted"; domain: string; measured: number; improved: number; worsened: number; inconclusive: number }
+
+export const LEARNING_MIN_MEASURED = 5
+
+/**
+ * Observed results grouped by "acted" (act / experiment) vs "not acted" (watch / dismiss) and by domain. Only measured
+ * outcomes count; a cell with fewer than LEARNING_MIN_MEASURED results is shown as "too few to conclude".
+ */
+export function summarizeLearning(rows: LearningRow[]): LearningCell[] {
+  const cells = new Map<string, LearningCell>()
+  for (const r of rows) {
+    const decisions = r.decision === "act" || r.decision === "experiment" ? "acted" : "not_acted"
+    const key = `${decisions}|${r.domain}`
+    const c = cells.get(key) ?? { decisions, domain: r.domain, measured: 0, improved: 0, worsened: 0, inconclusive: 0 }
+    c.measured++
+    c[r.verdict]++
+    cells.set(key, c)
+  }
+  return [...cells.values()].sort((a, b) => a.domain.localeCompare(b.domain) || a.decisions.localeCompare(b.decisions))
+}

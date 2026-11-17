@@ -18,6 +18,9 @@ const m = vi.hoisted(() => ({
 vi.mock("@/auth", () => ({ auth: m.auth }))
 vi.mock("next/navigation", () => ({ redirect: m.redirect, notFound: vi.fn() }))
 vi.mock("@/lib/strategic-intelligence/collect.server", () => ({ loadIntelligenceCockpit: m.load }))
+vi.mock("@/lib/strategic-intelligence/journal.server", () => ({
+  loadJournal: async () => ({ available: true, entries: [], learning: [], latestBySignal: {} }),
+}))
 vi.mock("@/components/admin/admin-layout-chrome", () => ({ AdminLayoutChrome: () => null }))
 
 const cockpit = { generatedAt: "2026-11-17T00:00:00.000Z", signals: [], sources: [], coverage: [], collectors: [] }
@@ -61,7 +64,7 @@ describe("/admin/intelligence — reserved to ADMIN", () => {
     await expect(Layout({ children: null })).rejects.toThrow(/NEXT_REDIRECT/)
   })
 
-  it("nothing but the admin page imports the cockpit collector (no API route serves it)", () => {
+  it("only the admin page and the ADMIN decision route import the cockpit collector (no API route serves it)", () => {
     const hits: string[] = []
     const walk = (dir: string) => {
       for (const name of readdirSync(dir)) {
@@ -73,6 +76,9 @@ describe("/admin/intelligence — reserved to ADMIN", () => {
     }
     walk(join(process.cwd(), "app"))
     walk(join(process.cwd(), "components"))
-    expect(hits.map((h) => h.replace(process.cwd() + "/", ""))).toEqual(["app/admin/intelligence/page.tsx"])
+    expect(hits.map((h) => h.replace(process.cwd() + "/", "")).sort()).toEqual([
+      "app/admin/intelligence/page.tsx",
+      "app/api/admin/intelligence/decisions/route.ts", // ADMIN-gated, returns only the new decision's id
+    ])
   })
 })

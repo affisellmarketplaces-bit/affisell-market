@@ -2,7 +2,10 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 
 import { auth } from "@/auth"
+import { DecisionForm, MeasureButton } from "@/components/admin/intelligence/decision-controls"
 import { loadIntelligenceCockpit } from "@/lib/strategic-intelligence/collect.server"
+import { DECISION_LABELS, LEARNING_MIN_MEASURED, METRIC_LABELS, metricForSignal, type DecisionKind, type JournalMetric } from "@/lib/strategic-intelligence/journal"
+import { loadJournal, type JournalEntry } from "@/lib/strategic-intelligence/journal.server"
 import {
   DOMAIN_LABELS,
   INTELLIGENCE_DOMAINS,
@@ -26,7 +29,24 @@ const STATUS: Record<string, { label: string; cls: string }> = {
   not_connected: { label: "Non connectée", cls: "text-zinc-500" },
 }
 
-function SignalCard({ s }: { s: StrategicSignal }) {
+const VERDICT: Record<string, string> = { improved: "Amélioration", worsened: "Dégradation", inconclusive: "Non concluant" }
+const day = (iso: string) => iso.slice(0, 10)
+
+function DecisionBadge({ e }: { e: JournalEntry }) {
+  return (
+    <p className="mt-2 rounded-md bg-black/5 px-2 py-1 text-xs dark:bg-white/10">
+      Décision du {day(e.createdAt)} : <span className="font-medium">{DECISION_LABELS[e.decision as DecisionKind] ?? e.decision}</span> — {e.rationale}
+      {e.outcome
+        ? ` · Résultat : ${VERDICT[e.outcome.verdict] ?? e.outcome.verdict}`
+        : e.dueAt
+          ? ` · Mesure prévue le ${day(e.dueAt)}`
+          : " · Sans mesure automatique"}
+    </p>
+  )
+}
+
+function SignalCard({ s, decision, journalAvailable }: { s: StrategicSignal; decision?: JournalEntry; journalAvailable: boolean }) {
+  const plan = metricForSignal(s.id)
   return (
     <li className={`rounded-xl border px-4 py-3 ${PRIORITY[s.priority].cls}`}>
       <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wide opacity-80">
@@ -57,6 +77,10 @@ function SignalCard({ s }: { s: StrategicSignal }) {
         Source : {s.source.id} — {s.source.query}. Observé le {s.observedAt.slice(0, 16).replace("T", " ")} UTC
         {s.window ? ` sur ${s.window.from.slice(0, 10)} → ${s.window.to.slice(0, 10)}` : ""}. Confiance {CONF[s.confidence]} : {s.confidenceReason}
       </p>
+      {decision ? <DecisionBadge e={decision} /> : null}
+      {journalAvailable && !(decision && decision.status === "open") ? (
+        <DecisionForm signalId={s.id} measurable={Boolean(plan)} defaultDays={plan?.defaultDays ?? null} />
+      ) : null}
     </li>
   )
 }
@@ -71,7 +95,8 @@ export default async function AdminIntelligencePage() {
   if (!session?.user?.id) redirect("/login/admin?callbackUrl=/admin/intelligence")
   if ((session.user as { role?: string }).role !== "ADMIN") redirect("/")
 
-  const cockpit = await loadIntelligenceCockpit()
+  const [cockpit, journal] = await Promise.all([loadIntelligenceCockpit(), loadJournal()])
+  const now = new Date().toISOString()
   const groups: SignalPriority[] = ["critical", "important", "study"]
 
   return (
@@ -97,13 +122,68 @@ export default async function AdminIntelligencePage() {
             ) : (
               <ul className="space-y-2">
                 {list.map((s) => (
-                  <SignalCard key={s.id} s={s} />
+                  <SignalCard key={s.id} s={s} decision={journal.latestBySignal[s.id]} journalAvailable={journal.available} />
                 ))}
               </ul>
             )}
           </section>
         )
       })}
+
+      <section className="space-y-2">
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Journal des décisions et résultats</h2>
+        {!journal.available ? (
+          <p className="text-sm text-amber-700">Journal indisponible : la migration 20261117150000_intelligence_decision_journal n’est pas appliquée.</p>
+        ) : journal.entries.length === 0 ? (
+          <p className="text-sm text-zinc-500">Aucune décision consignée pour l’instant.</p>
+        ) : (
+          <ul className="space-y-1 text-sm">
+            {journal.entries.map((e) => (
+              <li key={e.id} className="rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-800">
+                <span className="text-xs text-zinc-500">{day(e.createdAt)}</span>{" "}
+                <span className="font-medium">{DECISION_LABELS[e.decision as DecisionKind] ?? e.decision}</span> — {e.title}
+                <div className="text-xs text-zinc-600 dark:text-zinc-400">{e.rationale}</div>
+                {e.metric ? (
+                  <div className="text-xs">
+                    {METRIC_LABELS[e.metric as JournalMetric] ?? e.metric} : avant {e.baselineValue}
+                    {e.outcome ? (
+                      <>
+                        {" "}→ après {e.outcome.observedValue} · <span className="font-medium">{VERDICT[e.outcome.verdict] ?? e.outcome.verdict}</span> ({e.outcome.method})
+                      </>
+                    ) : e.dueAt && e.dueAt <= now ? (
+                      <>
+                        {" "}· à échéance <MeasureButton decisionId={e.id} />
+                      </>
+                    ) : (
+                      ` · mesure le ${e.dueAt ? day(e.dueAt) : "—"}`
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-xs text-zinc-500">Sans indicateur mesurable automatiquement.</div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        {journal.learning.length > 0 ? (
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold">Ce que les résultats mesurés montrent</h3>
+            <p className="text-xs text-zinc-500">
+              Évolutions observées après la décision, pas une preuve de causalité (pas de groupe témoin). « Agi » = agir ou expérimenter ; « non agi » = surveiller ou écarter.
+            </p>
+            <ul className="text-xs">
+              {journal.learning.map((c) => (
+                <li key={`${c.decisions}-${c.domain}`}>
+                  {DOMAIN_LABELS[c.domain as keyof typeof DOMAIN_LABELS] ?? c.domain} · {c.decisions === "acted" ? "agi" : "non agi"} :{" "}
+                  {c.measured < LEARNING_MIN_MEASURED
+                    ? `${c.measured} résultat(s) — trop peu pour conclure`
+                    : `${c.improved} amélioration(s), ${c.worsened} dégradation(s), ${c.inconclusive} non concluant(s) sur ${c.measured}`}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </section>
 
       <section className="space-y-2">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Couverture des huit domaines</h2>
