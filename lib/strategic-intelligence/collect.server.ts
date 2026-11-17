@@ -23,6 +23,8 @@ import { fxMoves, fxSignals } from "@/lib/strategic-intelligence/external/ecb-fx
 import { fetchEcbHist90d } from "@/lib/strategic-intelligence/external/ecb-fx.server"
 import { gtin14, matchSafetyGateAlerts, normalizeBrand, normalizeModel, safetyGateSignals, type CatalogIdentity } from "@/lib/strategic-intelligence/external/safety-gate"
 import { fetchLatestSafetyGateAlerts } from "@/lib/strategic-intelligence/external/safety-gate.server"
+import { dependencySignals } from "@/lib/strategic-intelligence/external/osv"
+import { scanDependenciesWithOsv } from "@/lib/strategic-intelligence/external/osv.server"
 import { IDENTITY_KEYS } from "@/lib/listing-compliance/keys"
 import { listLinksMissingCost } from "@/lib/admin/auto-fulfill/links-missing-cost"
 import { isAutoBuyDisabled } from "@/lib/fulfillment/auto-buy"
@@ -64,7 +66,7 @@ async function guarded(
       id,
       ok: false,
       signals: 0,
-      error: message === "echantillon_tronque" ? "echantillon_tronque" : /does not exist|P2021/i.test(message) ? "table_absente" : /^(ecb|safety_gate)_|abort|timeout|fetch failed/i.test(message) ? "source_injoignable" : "lecture_impossible",
+      error: message === "echantillon_tronque" ? "echantillon_tronque" : /does not exist|P2021/i.test(message) ? "table_absente" : /^(ecb|safety_gate|osv)_|abort|timeout|fetch failed/i.test(message) ? "source_injoignable" : "lecture_impossible",
     })
     return []
   }
@@ -205,6 +207,12 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
     guarded("supplier.auto_buy_cost_unknown", async () => {
       const { total } = await listLinksMissingCost(1)
       return autoBuyCostUnknownSignal({ links: total, autoBuyEnabled: !isAutoBuyDisabled() }, { observedAt })
+    }, report),
+
+    guarded("risk.dependencies_osv", async () => {
+      const scan = await scanDependenciesWithOsv(now.getTime())
+      verified.add("osv.dev")
+      return dependencySignals(scan, { observedAt })
     }, report),
 
     guarded("market.category_demand", async () => {

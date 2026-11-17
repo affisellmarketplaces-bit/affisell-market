@@ -9,6 +9,7 @@ on:
     paths:
       - "lib/strategic-intelligence/**"
       - "lib/__tests__/live-source-*.test.ts"
+      - "package-lock.json"
       - ".github/workflows/intelligence-live-sources.yml"
   schedule:
     - cron: "43 16 * * 1" # Mondays, after the ECB's ~16:00 CET publication (and the Friday Safety Gate report)
@@ -36,3 +37,7 @@ jobs:
         env:
           AFFISELL_LIVE_SOURCES: "1"
         run: npx vitest run lib/__tests__/live-source-safety-gate.test.ts --reporter=verbose
+      - name: Live read — OSV.dev (production dependency versions)
+        env:
+          AFFISELL_LIVE_SOURCES: "1"
+        run: npx vitest run lib/__tests__/live-source-osv.test.ts --reporter=verbose
