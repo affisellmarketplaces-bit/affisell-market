@@ -36,6 +36,7 @@ import { evaluateShipPulseAutoCancel } from "@/lib/orders/ship-pulse-policy"
 import { resolveShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
 import { UNALLOCATED_LINE_AUDIT_ACTION, UNALLOCATED_LINE_REFUNDED_AUDIT_ACTION } from "@/lib/unallocated-line"
 import { entitySynthesisSignals } from "@/lib/strategic-intelligence/synthesis"
+import { detectEmerging, emergingSignals, EMERGING_PRIOR_DAYS, EMERGING_RECENT_DAYS, type EmergingCounts } from "@/lib/strategic-intelligence/emerging"
 import {
   aggregateQuality,
   detectQualityOutliers,
@@ -400,6 +401,45 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
           .map(([productId, p]) => ({ productId, name: p.name, orders30: p.orders, resellers: p.resellers.size, listedResellers: listedBy.get(productId) ?? 0 }))
           .sort((a, b) => b.orders30 - a.orders30),
         { observedAt, window: win30 }
+      )
+    }, report),
+
+    guarded("discovery.emerging", async () => {
+      const all = await ordersPromise
+      // A capped read would compare a truncated recent period with nothing older: no conclusion.
+      if (all.length >= MAX_ORDERS) throw new Error("echantillon_tronque")
+      const recentFrom = d(EMERGING_RECENT_DAYS)
+      const priorFrom = d(EMERGING_RECENT_DAYS + EMERGING_PRIOR_DAYS)
+      const byProduct = new Map<string, EmergingCounts & { resellers: Set<string> }>()
+      const market = { recent: 0, prior: 0 }
+      for (const o of all) {
+        if (!o.paidAt || o.paidAt < priorFrom) continue
+        const isRecent = o.paidAt >= recentFrom
+        const p = byProduct.get(o.productId) ?? { productId: o.productId, name: o.product?.name ?? o.productId, recent: 0, prior: 0, sellingResellers: 0, resellers: new Set<string>() }
+        if (isRecent) {
+          p.recent++
+          market.recent++
+          p.resellers.add(o.affiliateId)
+        } else {
+          p.prior++
+          market.prior++
+        }
+        byProduct.set(o.productId, p)
+      }
+      const findings = detectEmerging(
+        [...byProduct.values()].map((p) => ({ productId: p.productId, name: p.name, recent: p.recent, prior: p.prior, sellingResellers: p.resellers.size })),
+        market
+      )
+      if (findings.length === 0) return []
+      const listed = await prisma.affiliateProduct.groupBy({
+        by: ["productId"],
+        where: { productId: { in: findings.slice(0, 10).map((f) => f.productId) }, isListed: true },
+        _count: { _all: true },
+      })
+      return emergingSignals(
+        findings,
+        new Map(listed.map((l) => [l.productId, Number((l._count as { _all?: number })._all ?? 0)])),
+        { observedAt, window: { from: priorFrom.toISOString(), to: observedAt } }
       )
     }, report),
 

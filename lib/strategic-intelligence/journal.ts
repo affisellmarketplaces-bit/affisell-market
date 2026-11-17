@@ -37,7 +37,7 @@ export function metricForSignal(signalId: string): MetricPlan | null {
   let m = signalId.match(/^market:category:(?:rise|fall):(.+)$/)
   if (m) return { metric: "paid_orders", scope: `category:${m[1]}`, direction: "up", defaultDays: 30 }
   if (/^market:marketplace:(?:rise|fall):/.test(signalId)) return { metric: "paid_orders", scope: "all", direction: "up", defaultDays: 30 }
-  m = signalId.match(/^discovery:under-distributed:(.+)$/)
+  m = signalId.match(/^discovery:(?:under-distributed|emerging):(.+)$/)
   if (m) return { metric: "paid_orders", scope: `product:${m[1]}`, direction: "up", defaultDays: 30 }
   if (/^risk:dispute-activity:/.test(signalId)) return { metric: "dispute_activity_bps", scope: "all", direction: "down", defaultDays: 30 }
   if (/^risk:safety-gate:coverage:/.test(signalId)) return { metric: "valid_gtin_share_bps", scope: "all", direction: "up", defaultDays: 30 }
