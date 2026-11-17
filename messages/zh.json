@@ -5163,7 +5163,12 @@
       "pushBody": "在此设备上接收配送提醒 —— 绝无垃圾信息。",
       "pushEnable": "启用提醒",
       "pushLoading": "通知中…"
-    }
+    },
+    "unallocatedBadge": "已收到付款",
+    "unallocatedTitle": "商品未能确认",
+    "unallocatedBody": "我们已收到你的付款，但该商品未能确认。它不会发货，相应金额将退还给你。你无需进行任何操作。",
+    "unallocatedBodyRefunded": "我们已收到你的付款，但该商品未能确认。它不会发货：相应金额已退还给你（到账时间取决于你的银行）。",
+    "unallocatedSome": "{count, plural, other {# 件商品未能确认：不会发货，相应金额将退还给你。}}"
   },
   "cancel": {
     "title": "订单已取消",

@@ -5163,7 +5163,12 @@
       "pushBody": "Powiadomienia o wysyłce i dostawie na tym urządzeniu — bez spamu.",
       "pushEnable": "Włącz powiadomienia",
       "pushLoading": "Powiadomienia…"
-    }
+    },
+    "unallocatedBadge": "Płatność otrzymana",
+    "unallocatedTitle": "Produkt niepotwierdzony",
+    "unallocatedBody": "Otrzymaliśmy Twoją płatność, ale nie udało się potwierdzić produktu. Nie zostanie wysłany, a jego kwota zostanie Ci zwrócona. Nie musisz nic robić.",
+    "unallocatedBodyRefunded": "Otrzymaliśmy Twoją płatność, ale nie udało się potwierdzić produktu. Nie zostanie wysłany: jego kwota została Ci zwrócona (termin zależy od Twojego banku).",
+    "unallocatedSome": "{count, plural, one {# produktu nie udało się potwierdzić: nie zostanie wysłany, a jego kwota zostanie Ci zwrócona.} few {# produktów nie udało się potwierdzić: nie zostaną wysłane, a ich kwota zostanie Ci zwrócona.} many {# produktów nie udało się potwierdzić: nie zostaną wysłane, a ich kwota zostanie Ci zwrócona.} other {# produktów nie udało się potwierdzić: nie zostaną wysłane, a ich kwota zostanie Ci zwrócona.}}"
   },
   "cancel": {
     "title": "Zamówienie anulowane",

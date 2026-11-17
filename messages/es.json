@@ -5163,7 +5163,12 @@
       "pushBody": "Alertas de envío y entrega en este dispositivo — sin spam.",
       "pushEnable": "Activar alertas",
       "pushLoading": "Notificaciones…"
-    }
+    },
+    "unallocatedBadge": "Pago recibido",
+    "unallocatedTitle": "Artículo no confirmado",
+    "unallocatedBody": "Hemos recibido tu pago, pero el artículo no se ha podido confirmar. No se enviará y te reembolsaremos su importe. No tienes que hacer nada.",
+    "unallocatedBodyRefunded": "Hemos recibido tu pago, pero el artículo no se ha podido confirmar. No se enviará: su importe ya te ha sido reembolsado (el plazo depende de tu banco).",
+    "unallocatedSome": "{count, plural, one {# artículo no se ha podido confirmar: no se enviará y te reembolsaremos su importe.} other {# artículos no se han podido confirmar: no se enviarán y te reembolsaremos su importe.}}"
   },
   "cancel": {
     "title": "Checkout cancelado",

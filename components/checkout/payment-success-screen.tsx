@@ -15,6 +15,7 @@ import {
 
 import { SuccessConversionHub } from "@/components/checkout/success-conversion-hub"
 import { useStorefrontHost } from "@/components/storefront/storefront-host-context"
+import { successOutcome } from "@/lib/checkout-success-outcome"
 import { buttonVariants } from "@/components/ui/button"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import {
@@ -50,6 +51,9 @@ export type PaymentSuccessPayload = {
   currency?: string | null
   productName?: string | null
   productImageUrl?: string | null
+  /** Paid lines that produced no order (they will not ship and are owed back), and how many are already refunded. */
+  unallocatedLines?: number
+  unallocatedRefunded?: number
   error?: string
 }
 
@@ -153,6 +157,11 @@ export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props
   const { isStoreHost } = useStorefrontHost()
 
   const isError = payload.error === "missing_session"
+  const outcome = successOutcome(payload)
+  // Nothing was confirmed: no celebration, no order reference, a « payment received » badge instead of « confirmed ».
+  const nothingConfirmed = outcome === "unallocated"
+  const lostLines = payload.unallocatedLines ?? 0
+  const allLostRefunded = lostLines > 0 && (payload.unallocatedRefunded ?? 0) >= lostLines
   const orderCount = payload.orderIds?.length ?? (payload.orderId ? 1 : 0)
   const primaryOrderIdRaw = payload.orderIds?.[0] ?? payload.orderId ?? null
   const primaryOrderRef =
@@ -163,10 +172,10 @@ export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props
         : null
 
   useEffect(() => {
-    if (isError || confettiFired.current) return
+    if (isError || nothingConfirmed || confettiFired.current) return
     confettiFired.current = true
     fireSuccessConfetti()
-  }, [isError])
+  }, [isError, nothingConfirmed])
 
   const amountLabel =
     typeof payload.amountTotal === "number" && payload.amountTotal > 0
@@ -179,7 +188,11 @@ export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props
 
   const bodyCopy = isError
     ? t("errorBody")
-    : payload.fulfilled
+    : nothingConfirmed
+      ? allLostRefunded
+        ? t("unallocatedBodyRefunded")
+        : t("unallocatedBody")
+      : payload.fulfilled
       ? orderCount > 1
         ? t("fulfilledMulti", { count: orderCount })
         : t("fulfilledSingle")
@@ -214,7 +227,7 @@ export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props
         <div className="mx-auto max-w-xl">
         <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/75 p-8 shadow-[0_24px_80px_-24px_rgba(16,185,129,0.35)] ring-1 ring-emerald-500/10 backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/70 dark:shadow-[0_24px_80px_-24px_rgba(0,0,0,0.65)] sm:p-10">
           <div className="text-center">
-            {isError ? (
+            {isError || nothingConfirmed ? (
               <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
                 <ShieldCheck className="h-12 w-12" aria-hidden />
               </div>
@@ -229,7 +242,7 @@ export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props
               transition={{ delay: 0.25 }}
             >
               <Sparkles className="h-3 w-3" aria-hidden />
-              {isError ? t("errorBadge") : t("confirmedBadge")}
+              {isError ? t("errorBadge") : nothingConfirmed ? t("unallocatedBadge") : t("confirmedBadge")}
             </motion.p>
 
             <motion.h1
@@ -238,7 +251,7 @@ export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              {isError ? t("errorTitle") : t("paymentSuccessful")}
+              {isError ? t("errorTitle") : nothingConfirmed ? t("unallocatedTitle") : t("paymentSuccessful")}
             </motion.h1>
 
             <motion.p
@@ -249,6 +262,12 @@ export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props
             >
               {bodyCopy}
             </motion.p>
+
+            {outcome === "partially_unallocated" ? (
+              <p className="mx-auto mt-3 max-w-md rounded-xl border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-sm leading-relaxed text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200" role="status">
+                {t("unallocatedSome", { count: lostLines })}
+              </p>
+            ) : null}
 
             {amountLabel && !isError ? (
               <motion.div
@@ -285,7 +304,7 @@ export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props
               </motion.div>
             ) : null}
 
-            {primaryOrderRef && !isError ? (
+            {primaryOrderRef && !isError && !nothingConfirmed ? (
               <motion.p
                 className="mt-3 font-mono text-xs text-zinc-500 dark:text-zinc-400"
                 initial={reducedMotion ? false : { opacity: 0 }}

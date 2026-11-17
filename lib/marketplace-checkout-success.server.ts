@@ -1,5 +1,11 @@
 import { listingDisplayTitle } from "@/lib/affiliate-listing-display"
 import {
+  summarizeUnallocatedTraces,
+  UNALLOCATED_REFUNDED_ACTION,
+  UNALLOCATED_TRACE_ACTION,
+  type UnallocatedSummary,
+} from "@/lib/checkout-success-outcome"
+import {
   ensureMarketplaceCheckoutFulfilled,
   isMarketplaceCheckoutFulfilled,
   marketplaceCheckoutNeedsFulfillment,
@@ -24,6 +30,26 @@ export type PaidCheckoutSessionResult = {
   currency: string
   productName: string | null
   productImageUrl: string | null
+  /** Paid lines of this checkout that produced no order (traced), and how many of them are already refunded. */
+  unallocatedLines: number
+  unallocatedRefunded: number
+}
+
+/** Read-only, never throws: a failed read keeps the page's previous behaviour (no claim either way). */
+async function loadUnallocatedSummary(sessionId: string): Promise<UnallocatedSummary> {
+  try {
+    const rows = await prisma.auditLog.findMany({
+      where: {
+        action: { in: [UNALLOCATED_TRACE_ACTION, UNALLOCATED_REFUNDED_ACTION] },
+        entityId: { startsWith: `${sessionId}:line:` },
+      },
+      select: { action: true, entityId: true },
+      take: 200,
+    })
+    return summarizeUnallocatedTraces(sessionId, rows)
+  } catch {
+    return { lines: 0, refunded: 0 }
+  }
 }
 
 /** Idempotent: mark orders paid + partner notifications after Stripe Checkout. */
@@ -103,9 +129,13 @@ export async function fulfillPaidCheckoutSession(
     })),
   })
 
+  const unallocated = paid ? await loadUnallocatedSummary(sessionId) : { lines: 0, refunded: 0 }
+
   return {
     paid,
     fulfilled,
+    unallocatedLines: unallocated.lines,
+    unallocatedRefunded: unallocated.refunded,
     orderId: orderIds[0] ?? session.metadata?.orderId ?? null,
     orderIds,
     affiliateProductId: orderRows[0]?.affiliateProductId ?? null,

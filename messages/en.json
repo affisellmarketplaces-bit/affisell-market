@@ -5163,7 +5163,12 @@
       "pushBody": "Shipping and delivery alerts on this device — no spam.",
       "pushEnable": "Enable alerts",
       "pushLoading": "Notifications…"
-    }
+    },
+    "unallocatedBadge": "Payment received",
+    "unallocatedTitle": "Item not confirmed",
+    "unallocatedBody": "Your payment was received, but the item could not be confirmed. It will not be shipped and its amount will be refunded to you. There is nothing you need to do.",
+    "unallocatedBodyRefunded": "Your payment was received, but the item could not be confirmed. It will not be shipped: its amount has been refunded to you (how soon it shows depends on your bank).",
+    "unallocatedSome": "{count, plural, one {# item could not be confirmed: it will not be shipped and its amount will be refunded to you.} other {# items could not be confirmed: they will not be shipped and their amount will be refunded to you.}}"
   },
   "cancel": {
     "title": "Checkout cancelled",

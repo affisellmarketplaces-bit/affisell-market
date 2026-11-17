@@ -5163,7 +5163,12 @@
       "pushBody": "Alertes expédition et livraison sur cet appareil — sans spam.",
       "pushEnable": "Activer les alertes",
       "pushLoading": "Notifications…"
-    }
+    },
+    "unallocatedBadge": "Paiement reçu",
+    "unallocatedTitle": "Article non confirmé",
+    "unallocatedBody": "Votre paiement a bien été reçu, mais l'article n'a pas pu être confirmé. Il ne sera pas expédié et son montant vous sera remboursé. Aucune démarche n'est nécessaire de votre part.",
+    "unallocatedBodyRefunded": "Votre paiement a bien été reçu, mais l'article n'a pas pu être confirmé. Il ne sera pas expédié : son montant vous a été remboursé (le délai d'affichage dépend de votre banque).",
+    "unallocatedSome": "{count, plural, one {# article n'a pas pu être confirmé : il ne sera pas expédié et son montant vous sera remboursé.} other {# articles n'ont pas pu être confirmés : ils ne seront pas expédiés et leur montant vous sera remboursé.}}"
   },
   "cancel": {
     "title": "Paiement annulé",

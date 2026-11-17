@@ -5163,7 +5163,12 @@
       "pushBody": "Verzend- en bezorgmeldingen op dit apparaat — geen spam.",
       "pushEnable": "Meldingen inschakelen",
       "pushLoading": "Meldingen…"
-    }
+    },
+    "unallocatedBadge": "Betaling ontvangen",
+    "unallocatedTitle": "Artikel niet bevestigd",
+    "unallocatedBody": "Je betaling is ontvangen, maar het artikel kon niet worden bevestigd. Het wordt niet verzonden en het bedrag wordt aan je terugbetaald. Je hoeft niets te doen.",
+    "unallocatedBodyRefunded": "Je betaling is ontvangen, maar het artikel kon niet worden bevestigd. Het wordt niet verzonden: het bedrag is aan je terugbetaald (wanneer je het ziet, hangt af van je bank).",
+    "unallocatedSome": "{count, plural, one {# artikel kon niet worden bevestigd: het wordt niet verzonden en het bedrag wordt aan je terugbetaald.} other {# artikelen konden niet worden bevestigd: ze worden niet verzonden en het bedrag wordt aan je terugbetaald.}}"
   },
   "cancel": {
     "title": "Afgekeurd",

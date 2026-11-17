@@ -5163,7 +5163,12 @@
       "pushBody": "Avvisi di spedizione e consegna su questo dispositivo — niente spam.",
       "pushEnable": "Attiva avvisi",
       "pushLoading": "Notifiche…"
-    }
+    },
+    "unallocatedBadge": "Pagamento ricevuto",
+    "unallocatedTitle": "Articolo non confermato",
+    "unallocatedBody": "Abbiamo ricevuto il tuo pagamento, ma l'articolo non è stato confermato. Non verrà spedito e il suo importo ti verrà rimborsato. Non devi fare nulla.",
+    "unallocatedBodyRefunded": "Abbiamo ricevuto il tuo pagamento, ma l'articolo non è stato confermato. Non verrà spedito: il suo importo ti è stato rimborsato (i tempi dipendono dalla tua banca).",
+    "unallocatedSome": "{count, plural, one {# articolo non è stato confermato: non verrà spedito e il suo importo ti verrà rimborsato.} other {# articoli non sono stati confermati: non verranno spediti e il loro importo ti verrà rimborsato.}}"
   },
   "cancel": {
     "title": "Checkout annullato",

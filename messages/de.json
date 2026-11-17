@@ -5163,7 +5163,12 @@
       "pushBody": "Versand- und Lieferbenachrichtigungen auf diesem Gerät — kein Spam.",
       "pushEnable": "Benachrichtigungen aktivieren",
       "pushLoading": "Benachrichtigungen…"
-    }
+    },
+    "unallocatedBadge": "Zahlung erhalten",
+    "unallocatedTitle": "Artikel nicht bestätigt",
+    "unallocatedBody": "Deine Zahlung ist eingegangen, aber der Artikel konnte nicht bestätigt werden. Er wird nicht versendet und der Betrag wird dir erstattet. Du musst nichts weiter tun.",
+    "unallocatedBodyRefunded": "Deine Zahlung ist eingegangen, aber der Artikel konnte nicht bestätigt werden. Er wird nicht versendet: Der Betrag wurde dir erstattet (wann er erscheint, hängt von deiner Bank ab).",
+    "unallocatedSome": "{count, plural, one {# Artikel konnte nicht bestätigt werden: Er wird nicht versendet und der Betrag wird dir erstattet.} other {# Artikel konnten nicht bestätigt werden: Sie werden nicht versendet und der Betrag wird dir erstattet.}}"
   },
   "cancel": {
     "title": "Zahlung abgebrochen",
