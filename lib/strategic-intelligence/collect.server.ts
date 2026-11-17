@@ -48,6 +48,7 @@ import {
   type ProductPotential,
 } from "@/lib/strategic-intelligence/product-economics"
 import { loadEconomicsCohort } from "@/lib/strategic-intelligence/product-economics.server"
+import { priceGapRequests, unansweredRequests, unmetDemandSignals, unmetSearches, UNMET_WINDOW_DAYS } from "@/lib/strategic-intelligence/unmet-demand"
 import { loadJournal } from "@/lib/strategic-intelligence/journal.server"
 import { detectEmerging, emergingSignals, EMERGING_PRIOR_DAYS, EMERGING_RECENT_DAYS, type EmergingCounts } from "@/lib/strategic-intelligence/emerging"
 import { aggregateQuality, detectQualityOutliers, qualityRiskSignals } from "@/lib/strategic-intelligence/quality-risk"
@@ -541,6 +542,33 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
           supplier: supplierName,
         },
         { observedAt, window: { from: from.toISOString(), to: to.toISOString() } }
+      )
+    }, report),
+
+    guarded("discovery.unmet_demand", async () => {
+      const since = d(UNMET_WINDOW_DAYS)
+      const [searches, requests] = await Promise.all([
+        prisma.searchHistory.findMany({ where: { createdAt: { gte: since }, userId: { not: null } }, take: 100_000, select: { userId: true, query: true, productId: true } }),
+        prisma.productRequest.findMany({
+          where: { createdAt: { gte: since } },
+          take: 20_000,
+          select: { resellerId: true, title: true, category: true, quotesCount: true, targetPrice: true, createdAt: true, status: true, quotes: { select: { price: true } } },
+        }),
+      ])
+      if (searches.length >= 100_000 || requests.length >= 20_000) throw new Error("echantillon_tronque")
+      const reqRows = requests.map((r) => ({
+        resellerId: r.resellerId,
+        title: r.title,
+        category: r.category,
+        quotesCount: r.quotesCount,
+        targetPriceEur: r.targetPrice,
+        createdAt: r.createdAt,
+        status: r.status,
+        quotePricesEur: r.quotes.map((q) => q.price).filter((p) => Number.isFinite(p) && p > 0),
+      }))
+      return unmetDemandSignals(
+        { searches: unmetSearches(searches), unanswered: unansweredRequests(reqRows, now), priceGaps: priceGapRequests(reqRows), searchRowsRead: searches.length },
+        { observedAt, window: { from: since.toISOString(), to: observedAt } }
       )
     }, report),
 
