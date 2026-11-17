@@ -18,6 +18,7 @@ const m = vi.hoisted(() => ({
 vi.mock("@/auth", () => ({ auth: m.auth }))
 vi.mock("next/navigation", () => ({ redirect: m.redirect, notFound: vi.fn() }))
 vi.mock("@/lib/strategic-intelligence/collect.server", () => ({ loadIntelligenceCockpit: m.load }))
+vi.mock("@/lib/strategic-intelligence/scheduled.server", () => ({ loadSignalHistory: async () => ({}) }))
 vi.mock("@/lib/strategic-intelligence/journal.server", () => ({
   loadJournal: async () => ({ available: true, entries: [], learning: [], latestBySignal: {} }),
 }))
@@ -76,9 +77,11 @@ describe("/admin/intelligence — reserved to ADMIN", () => {
     }
     walk(join(process.cwd(), "app"))
     walk(join(process.cwd(), "components"))
+    walk(join(process.cwd(), "lib", "strategic-intelligence"))
     expect(hits.map((h) => h.replace(process.cwd() + "/", "")).sort()).toEqual([
       "app/admin/intelligence/page.tsx",
       "app/api/admin/intelligence/decisions/route.ts", // ADMIN-gated, returns only the new decision's id
+      "lib/strategic-intelligence/scheduled.server.ts", // the cron run (CRON_SECRET), sends a digest to the ops channel
     ])
   })
 })

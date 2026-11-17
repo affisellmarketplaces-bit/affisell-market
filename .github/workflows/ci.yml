@@ -96,3 +96,4 @@ jobs:
           lib/__tests__/listing-price-history-trigger-db.test.ts
           lib/__tests__/profit-alerts-db.test.ts
           lib/__tests__/intelligence-journal-db.test.ts
+          lib/__tests__/intelligence-scheduled-db.test.ts

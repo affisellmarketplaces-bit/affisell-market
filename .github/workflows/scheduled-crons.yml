@@ -19,6 +19,7 @@ name: Scheduled crons
 #   scheduled   restore-closed-order-stock every 30 min  gives back units of closed, never-shipped orders (enforce only).
 #   scheduled   reconcile-wholesale-changes every 30 min supplier price increases from ANY writer -> reseller margin guard.
 #   scheduled   reseller-profit-alerts daily         idempotent (DB unique keys); writes alerts/notifications only, never money.
+#   scheduled   intelligence-daily     daily         founder cockpit run: signal log, due decision measurements, one digest; never money.
 #   NOT         review-invites         deprecated alias of review-reminder, which is scheduled: both would double the work.
 #   scheduled   sync-auto-buy-tracking every 3 h     read-only AliExpress lookups (G4); writes only orders still awaiting shipment.
 #   NOT         update-supplier-scores recomputes what refresh-supplier-trust-scores / refresh-supplier-delivery-stats already
@@ -139,7 +140,8 @@ jobs:
             "/api/cron/onboarding" \
             "/api/cron/ing-manual-nudge" \
             "/api/cron/merchant-kyc-reminder" \
-            "/api/cron/reseller-profit-alerts"
+            "/api/cron/reseller-profit-alerts" \
+            "/api/cron/intelligence-daily"
 
   # Payout reconciliation + the "paid order without a handled webhook" monitor (a monitor that fails silently is blind): STRICT.
   reconcile-payouts:

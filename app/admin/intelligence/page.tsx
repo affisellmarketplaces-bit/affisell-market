@@ -6,6 +6,8 @@ import { DecisionForm, MeasureButton } from "@/components/admin/intelligence/dec
 import { loadIntelligenceCockpit } from "@/lib/strategic-intelligence/collect.server"
 import { DECISION_LABELS, LEARNING_MIN_MEASURED, METRIC_LABELS, metricForSignal, type DecisionKind, type JournalMetric } from "@/lib/strategic-intelligence/journal"
 import { loadJournal, type JournalEntry } from "@/lib/strategic-intelligence/journal.server"
+import { NEW_SIGNAL_WINDOW_MS } from "@/lib/strategic-intelligence/scheduled"
+import { loadSignalHistory, type SignalHistory } from "@/lib/strategic-intelligence/scheduled.server"
 import {
   DOMAIN_LABELS,
   INTELLIGENCE_DOMAINS,
@@ -45,12 +47,34 @@ function DecisionBadge({ e }: { e: JournalEntry }) {
   )
 }
 
-function SignalCard({ s, decision, journalAvailable }: { s: StrategicSignal; decision?: JournalEntry; journalAvailable: boolean }) {
+function HistoryLine({ h, generatedAt }: { h: SignalHistory; generatedAt: string }) {
+  const isNew = new Date(generatedAt).getTime() - new Date(h.firstSeenAt).getTime() < NEW_SIGNAL_WINDOW_MS
+  return (
+    <span className="ml-2 rounded bg-black/10 px-1.5 py-0.5 text-[10px] font-semibold normal-case tracking-normal dark:bg-white/15">
+      {isNew ? "Nouveau" : `Signalé depuis le ${day(h.firstSeenAt)} · ${h.timesSeen} relevé(s)`}
+    </span>
+  )
+}
+
+function SignalCard({
+  s,
+  decision,
+  journalAvailable,
+  history,
+  generatedAt,
+}: {
+  s: StrategicSignal
+  decision?: JournalEntry
+  journalAvailable: boolean
+  history?: SignalHistory
+  generatedAt: string
+}) {
   const plan = metricForSignal(s.id)
   return (
     <li className={`rounded-xl border px-4 py-3 ${PRIORITY[s.priority].cls}`}>
       <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wide opacity-80">
         <span>{PRIORITY[s.priority].label}</span>·<span>{DOMAIN_LABELS[s.domain]}</span>·<span>{KIND[s.kind]}</span>
+        {history ? <HistoryLine h={history} generatedAt={generatedAt} /> : null}
       </div>
       <div className="mt-1 font-semibold">{s.title}</div>
       <dl className="mt-1 grid gap-x-4 text-xs sm:grid-cols-2">
@@ -96,6 +120,7 @@ export default async function AdminIntelligencePage() {
   if ((session.user as { role?: string }).role !== "ADMIN") redirect("/")
 
   const [cockpit, journal] = await Promise.all([loadIntelligenceCockpit(), loadJournal()])
+  const history = await loadSignalHistory(cockpit.signals.map((s) => s.id))
   const now = new Date().toISOString()
   const groups: SignalPriority[] = ["critical", "important", "study"]
 
@@ -104,7 +129,7 @@ export default async function AdminIntelligencePage() {
       <header className="space-y-2">
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Affisell Intelligence</h1>
         <p className="max-w-3xl text-sm text-zinc-600 dark:text-zinc-400">
-          Poste de pilotage — étape 1. Les signaux viennent uniquement des sources marquées « connectée » ci-dessous ; un
+          Poste de pilotage. Calculé chaque jour par une tâche planifiée (journal des signaux, mesure des décisions échues, un seul récapitulatif quand il y a du nouveau) ; cette page le recalcule à l’affichage sans rien écrire. Les signaux viennent uniquement des sources marquées « connectée » ci-dessous ; un
           domaine sans source n’est pas surveillé et le dit. Chaque signal indique s’il s’agit d’un fait, d’une estimation,
           d’une hypothèse ou d’une recommandation. Généré le {cockpit.generatedAt.slice(0, 16).replace("T", " ")} UTC.
         </p>
@@ -122,7 +147,14 @@ export default async function AdminIntelligencePage() {
             ) : (
               <ul className="space-y-2">
                 {list.map((s) => (
-                  <SignalCard key={s.id} s={s} decision={journal.latestBySignal[s.id]} journalAvailable={journal.available} />
+                  <SignalCard
+                    key={s.id}
+                    s={s}
+                    decision={journal.latestBySignal[s.id]}
+                    journalAvailable={journal.available}
+                    history={history[s.id]}
+                    generatedAt={cockpit.generatedAt}
+                  />
                 ))}
               </ul>
             )}

@@ -491,6 +491,26 @@ model IntelligenceOutcome {
   measuredAt    DateTime @default(now())
 }
 
+/// AFFISELL INTELLIGENCE — one row per signal raised by a scheduled run (migration 20261117180000_intelligence_signal_log).
+model IntelligenceSignalLog {
+  signalId     String    @id
+  domain       String
+  /// critical | important | study
+  priority     String
+  kind         String
+  title        String
+  firstSeenAt  DateTime
+  lastSeenAt   DateTime
+  timesSeen    Int       @default(1)
+  lastSnapshot Json
+  /// Claim of the founder notification (set once by UPDATE … WHERE notifiedAt IS NULL).
+  notifiedAt   DateTime?
+  /// sent | no_channel | failed
+  notifyResult String?
+
+  @@index([lastSeenAt])
+}
+
 model ResellerAlertPreference {
   affiliateId String   @id
   inApp       Boolean  @default(true)
