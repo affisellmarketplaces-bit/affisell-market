@@ -95,7 +95,7 @@ describe("buyer notice for a paid line with no order", () => {
     const mail = sends.calls[0]!
     expect(mail.intendedTo).toBe("buyer@example.com")
     expect(mail.idempotencyKey).toBe(`unallocated-buyer-notice:${SID}:initial:1`)
-    expect(mail.html).toMatch(/Aucun remboursement n.a encore été émis/)
+    expect(mail.html).toMatch(/Aucun remboursement n(?:'|&#x27;|&#39;|&apos;)a encore été émis/) // the HTML encodes the apostrophe
     expect(mail.html).toMatch(/36,00/)
     for (const internal of [SID, "commission_not_explicit", "pi_SECRET", "prod_SECRET", "re_SECRET", "ap_1"]) expect(mail.html + mail.subject).not.toContain(internal)
     // replay (webhook, page, cron): nothing more
