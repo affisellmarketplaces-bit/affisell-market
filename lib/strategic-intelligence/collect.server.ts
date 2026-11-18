@@ -49,7 +49,9 @@ import {
 } from "@/lib/strategic-intelligence/product-economics"
 import { loadOrderFacts, matureCohortWindow, type MatureOrder } from "@/lib/strategic-intelligence/mature-orders.server"
 import { buildSupplierReliability, type SupplierReliabilityResult } from "@/lib/strategic-intelligence/supplier-reliability.server"
-import { representativeInput, simulateLevers } from "@/lib/strategic-intelligence/lever-simulation"
+import { representativeInput, simulateLevers, type UnitEconomicsInput } from "@/lib/strategic-intelligence/lever-simulation"
+import { findSourcingOpportunities, sourcingSignals, type SourcingCoverage, type SourcingOpportunity } from "@/lib/strategic-intelligence/sourcing-opportunities"
+import { loadSourcingProducts } from "@/lib/strategic-intelligence/sourcing-opportunities.server"
 import { priceGapRequests, unansweredRequests, unmetDemandSignals, unmetSearches, UNMET_WINDOW_DAYS } from "@/lib/strategic-intelligence/unmet-demand"
 import { loadJournal } from "@/lib/strategic-intelligence/journal.server"
 import { adjustScenario, chooseElasticity, summarizePool, type ElasticityPool } from "@/lib/strategic-intelligence/demand-adjusted-simulation"
@@ -81,6 +83,8 @@ export type CockpitResult = {
   reliability: SupplierReliabilityResult
   /** Real commercial potential per product (product-economics.ts); null when it could not be computed this run. */
   economics: { quality: FinancialDataQuality; counts: Partial<Record<PotentialClass, number>>; items: ProductPotential[]; error?: string } | null
+  /** Sourcing decision support (sourcing-opportunities.ts) — INTERNAL; null when economics could not be computed. */
+  sourcing?: { coverage: SourcingCoverage | null; opportunities: SourcingOpportunity[]; error?: string } | null
   /** Price-sensitivity model and its validation (price-response.ts), per pool; null on cockpits computed before it existed. */
   priceModel?: {
     observed: number
@@ -774,6 +778,7 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
   // Real commercial potential: needs the other detectors' findings (emergence, quality, better source) as context, so it
   // runs after them; isolated like a collector (a failure is reported, never hides the rest).
   let economics: CockpitResult["economics"] = null
+  let sourcing: CockpitResult["sourcing"] = null
   const economicsSignals: StrategicSignal[] = []
   try {
     const flat = results.flat()
@@ -875,6 +880,32 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
     const counts: Partial<Record<PotentialClass, number>> = {}
     for (const p of items) counts[p.cls] = (counts[p.cls] ?? 0) + 1
     economics = { quality: financialDataQuality(econOrders), counts, items }
+
+    // Sourcing decision support: same measured economics × same-GTIN alternatives × internal reliability × quality.
+    // Isolated: a failure is reported, the economics above stay.
+    try {
+      const baseInputs = new Map<string, UnitEconomicsInput>()
+      for (const [productId, orders] of byProduct) {
+        const b = representativeInput(orders)
+        if (b) baseInputs.set(productId, b)
+      }
+      const products = await loadSourcingProducts({
+        econ,
+        base: baseInputs,
+        orders30,
+        names,
+        qualityWorse,
+        reliability: reliability.ok ? reliability.suppliers : [],
+      })
+      const found = findSourcingOpportunities(products)
+      sourcing = { coverage: found.coverage, opportunities: found.opportunities.slice(0, 30) }
+      economicsSignals.push(...sourcingSignals(found.opportunities, { observedAt, window: matureWindowIso }))
+      report.push({ id: "commercial.sourcing", ok: true, signals: Math.min(15, found.opportunities.length) })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      sourcing = { coverage: null, opportunities: [], error: message === "echantillon_tronque" ? "echantillon_tronque" : "lecture_impossible" }
+      report.push({ id: "commercial.sourcing", ok: false, signals: 0, error: sourcing.error })
+    }
     economicsSignals.push(...potentialSignals(items, { observedAt, window: matureWindowIso }))
     report.push({ id: "commercial.product_economics", ok: true, signals: economicsSignals.length })
   } catch (error) {
@@ -887,6 +918,7 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
   return {
     generatedAt: observedAt,
     priceModel,
+    sourcing,
     priorityChanges: learned.changes,
     economics,
     reliability,

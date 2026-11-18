@@ -55,7 +55,7 @@ export function metricForSignal(signalId: string): MetricPlan | null {
   if (/^market:marketplace:(?:rise|fall):/.test(signalId)) return { metric: "paid_orders", scope: "all", direction: "up", defaultDays: 30 }
   m = signalId.match(/^(?:discovery:(?:under-distributed|emerging)|commercial:economics:(?:a_distribuer|fort_potentiel)):(.+)$/)
   if (m) return { metric: "paid_orders", scope: `product:${m[1]}`, direction: "up", defaultDays: 30 }
-  m = signalId.match(/^commercial:economics:(?:populaire_non_rentable|a_abandonner|marge_ameliorable_sourcing):(.+)$/)
+  m = signalId.match(/^(?:commercial:economics:(?:populaire_non_rentable|a_abandonner|marge_ameliorable_sourcing)|commercial:sourcing):(.+)$/)
   if (m) return { metric: "affisell_net_cents_per_order", scope: `product:${m[1]}`, direction: "up", defaultDays: 30, maturityDays: MARGIN_MATURITY_DAYS }
   if (/^risk:dispute-activity:/.test(signalId)) return { metric: "dispute_activity_bps", scope: "all", direction: "down", defaultDays: 30 }
   if (/^risk:safety-gate:coverage:/.test(signalId)) return { metric: "valid_gtin_share_bps", scope: "all", direction: "up", defaultDays: 30 }

@@ -8,6 +8,7 @@ import { GRADE_LABELS, RELIABILITY_MIN_ORDERS, type ComponentVerdict, type RateC
 import { familyLearning, LEARN_MIN_ACTED, type LearningState } from "@/lib/strategic-intelligence/learned-priority"
 import { POTENTIAL_LABELS, type PotentialClass, type SimulationSummary } from "@/lib/strategic-intelligence/product-economics"
 import { DEMAND_ADJUSTMENT_CAVEAT } from "@/lib/strategic-intelligence/demand-adjusted-simulation"
+import { SOURCING_MAX_MODEL_GAP_CENTS, SOURCING_SCOPE } from "@/lib/strategic-intelligence/sourcing-opportunities"
 import { backtestLabel, GRADE_LABELS as PRICE_GRADE_LABELS, PRICE_RESPONSE_SCOPE } from "@/lib/strategic-intelligence/price-response"
 import { SIMULATION_CAVEAT } from "@/lib/strategic-intelligence/lever-simulation"
 import {
@@ -400,6 +401,8 @@ export default async function AdminIntelligencePage() {
         )}
       </section>
 
+      {cockpit.sourcing ? <SourcingSection sourcing={cockpit.sourcing} /> : null}
+
       {cockpit.priceModel ? <PriceModelSection model={cockpit.priceModel} /> : null}
 
       <section className="space-y-2">
@@ -672,6 +675,120 @@ function PriceModelSection({ model }: { model: PriceModel }) {
           mûrir : plusieurs revendeurs sur les mêmes produits, et des changements de prix dans les deux sens.
         </p>
       ) : null}
+    </section>
+  )
+}
+
+type Sourcing = NonNullable<Awaited<ReturnType<typeof loadIntelligenceCockpit>>["sourcing"]>
+
+const FEASIBILITY_LABELS = { realisable: "réalisable", a_verifier: "à vérifier", bloquee: "bloquée" } as const
+const QUALITY_LABELS = { meilleure: "meilleure", comparable: "comparable", moins_bonne: "moins bonne", inconnue: "inconnue" } as const
+
+/** Where a change of supplier could most improve Affisell's real margin — internal decision support, nothing applied. */
+function SourcingSection({ sourcing }: { sourcing: Sourcing }) {
+  const e = (c: number) => `${c < 0 ? "−" : ""}${(Math.abs(c) / 100).toFixed(2).replace(".", ",")} €`
+  const c = sourcing.coverage
+  return (
+    <section className="space-y-2">
+      <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Changer de fournisseur : où la marge Affisell gagnerait le plus (interne)</h2>
+      <p className="text-sm text-zinc-500">{SOURCING_SCOPE}</p>
+      {sourcing.error ? (
+        <p className="text-sm text-amber-700 dark:text-amber-400">Calcul impossible ({sourcing.error === "echantillon_tronque" ? "lecture plafonnée : le classement serait faux" : "lecture impossible"}).</p>
+      ) : null}
+      {c ? (
+        <p className="text-xs text-zinc-500">
+          Observé : {c.productsJudged} produit(s) à la marge mesurée, {c.withGtin} avec un code-barres valide, {c.withAlternative} avec au moins une offre d’un autre
+          fournisseur au même code-barres.
+          {c.withoutGtinButProblem > 0 ? ` ${c.withoutGtinButProblem} produit(s) à problème sans code-barres : aucune comparaison vérifiable possible (donnée manquante).` : ""}
+        </p>
+      ) : null}
+      {sourcing.opportunities.length === 0 ? (
+        <p className="text-sm text-zinc-500">Aucune opportunité démontrable pour l’instant.</p>
+      ) : (
+        <ul className="space-y-2 text-sm">
+          {sourcing.opportunities.map((o) => {
+            const b = o.best!
+            return (
+              <li key={o.product.productId}>
+                <details className="rounded border border-zinc-200 p-2 dark:border-zinc-800">
+                  <summary className="cursor-pointer">
+                    <span className="font-medium">{o.product.productName}</span> — {o.product.supplierName} → {b.alt.supplierName} : marge Affisell {e(b.deltaAffisellPerOrderCents)}
+                    /commande, {e(b.deltaAffisellMonthlyCents)} sur 30 j (estimé) · revendeur {e(b.deltaResellerPerOrderCents)}/commande · qualité {QUALITY_LABELS[b.quality]} ·{" "}
+                    <span className={b.feasibility === "bloquee" ? "text-red-600" : b.feasibility === "a_verifier" ? "text-amber-700 dark:text-amber-400" : ""}>
+                      {FEASIBILITY_LABELS[b.feasibility]}
+                    </span>{" "}
+                    · confiance {b.confidence}
+                  </summary>
+                  <div className="mt-2 space-y-1 text-xs">
+                    <p>
+                      <strong>Observé</strong> : {o.product.econ.usable} commandes mûres, marge Affisell {e(o.product.econ.meanNetCents)} par commande ({e(o.product.econ.lowNetCents)} à{" "}
+                      {e(o.product.econ.highNetCents)}, {Math.round(o.product.econ.constatedShare * 100)} % constaté), {o.product.orders30} commandes sur 30 jours, code-barres{" "}
+                      {o.product.gtin}.{o.why.length ? ` ${o.why.join(" ; ")}.` : ""}
+                    </p>
+                    {o.modelGapCents > SOURCING_MAX_MODEL_GAP_CENTS ? (
+                      <p className="text-amber-700 dark:text-amber-400">Le modèle s’écarte de la marge constatée de {e(o.modelGapCents)} par commande : estimation indicative seulement.</p>
+                    ) : null}
+                    <table className="w-full text-left">
+                      <thead className="text-zinc-500">
+                        <tr>
+                          <th className="py-1 pr-3">Offre (même code-barres)</th>
+                          <th className="py-1 pr-3">Prix catalogue · canal · stock</th>
+                          <th className="py-1 pr-3">Affisell / commande</th>
+                          <th className="py-1 pr-3">Revendeur / commande</th>
+                          <th className="py-1 pr-3">Qualité · délai p90</th>
+                          <th className="py-1">Faisabilité</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-t border-zinc-200 dark:border-zinc-800">
+                          <td className="py-1 pr-3">Aujourd’hui : {o.product.supplierName}</td>
+                          <td className="py-1 pr-3">{o.product.channel === "auto_buy" ? "achat automatique" : "catalogue"}</td>
+                          <td className="py-1 pr-3">{e(o.baseline.affisellNetCents)}</td>
+                          <td className="py-1 pr-3">{e(o.baseline.resellerNetCents)}</td>
+                          <td className="py-1 pr-3">{o.product.deliveryP90Days !== null ? `${o.product.deliveryP90Days} j` : "non mesuré"}</td>
+                          <td className="py-1">—</td>
+                        </tr>
+                        {o.options.map((x) => (
+                          <tr key={x.alt.productId} className="border-t border-zinc-200 align-top dark:border-zinc-800">
+                            <td className="py-1 pr-3">{x.alt.supplierName}</td>
+                            <td className="py-1 pr-3">
+                              {e(x.alt.listedPriceCents)} · {x.alt.channel === "auto_buy" ? "achat automatique" : "catalogue"} · {x.alt.stock}
+                            </td>
+                            <td className="py-1 pr-3">
+                              {e(x.perOrder.affisellCents)} ({x.deltaAffisellPerOrderCents >= 0 ? "+" : ""}
+                              {e(x.deltaAffisellPerOrderCents)})
+                            </td>
+                            <td className="py-1 pr-3">
+                              {e(x.perOrder.resellerCents)} ({x.deltaResellerPerOrderCents >= 0 ? "+" : ""}
+                              {e(x.deltaResellerPerOrderCents)})
+                            </td>
+                            <td className="py-1 pr-3">
+                              {QUALITY_LABELS[x.quality]} ({x.qualityReason}) · {x.alt.deliveryP90Days !== null ? `${x.alt.deliveryP90Days} j` : "non mesuré"}
+                            </td>
+                            <td className="py-1">
+                              {FEASIBILITY_LABELS[x.feasibility]}
+                              {x.blocking.length ? <span className="text-red-600"> — {x.blocking.join(" ; ")}</span> : null}
+                              {x.toVerify.length ? <span className="text-amber-700 dark:text-amber-400"> — à vérifier : {x.toVerify.join(" ; ")}</span> : null}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    <p className="text-zinc-500">
+                      <strong>Hypothèses</strong> : {b.hypotheses.join(" ; ")}.
+                    </p>
+                    {b.missing.length ? (
+                      <p className="text-zinc-500">
+                        <strong>Données manquantes</strong> : {b.missing.join(" ; ")}.
+                      </p>
+                    ) : null}
+                  </div>
+                </details>
+              </li>
+            )
+          })}
+        </ul>
+      )}
     </section>
   )
 }

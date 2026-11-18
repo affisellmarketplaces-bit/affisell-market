@@ -99,4 +99,19 @@ describe("/admin/intelligence — reserved to ADMIN", () => {
     walk(join(process.cwd(), "components"))
     expect(hits.map((h) => h.replace(process.cwd() + "/", "")).sort()).toEqual(["app/admin/intelligence/page.tsx"])
   })
+
+  it("the sourcing decision support (supplier comparisons) is read by the ADMIN page only (never published, no API route)", () => {
+    const hits: string[] = []
+    const walk = (dir: string) => {
+      for (const name of readdirSync(dir)) {
+        if (name === "node_modules" || name.startsWith(".")) continue
+        const p = join(dir, name)
+        if (statSync(p).isDirectory()) walk(p)
+        else if (/\.(ts|tsx)$/.test(name) && /strategic-intelligence\/sourcing-opportunities/.test(readFileSync(p, "utf8"))) hits.push(p)
+      }
+    }
+    walk(join(process.cwd(), "app"))
+    walk(join(process.cwd(), "components"))
+    expect(hits.map((h) => h.replace(process.cwd() + "/", "")).sort()).toEqual(["app/admin/intelligence/page.tsx"])
+  })
 })
