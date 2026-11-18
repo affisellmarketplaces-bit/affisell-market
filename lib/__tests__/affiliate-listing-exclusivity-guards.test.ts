@@ -151,7 +151,7 @@ describe("listing PATCH (re-list)", () => {
     isListed: false,
     auctionEligible: false,
     sellingPriceCents: 5000,
-    product: { basePriceCents: 1000, ...exclusive },
+    product: { basePriceCents: 1000, active: true, isDraft: false, tags: [], ...exclusive },
   })
   const ctx = { params: Promise.resolve({ id: "l1" }) }
 
