@@ -10,6 +10,8 @@ import { BentoShell } from "@/components/affisell/bento-ui"
 import { CategoryAutosuggest } from "@/components/product/CategoryAutosuggest"
 import { SmartMarginAiPanel } from "@/components/supplier/smart-margin-ai-panel"
 import { ListingComplianceSection } from "@/components/supplier/listing-compliance/listing-compliance-section"
+import { ReturnWindowField } from "@/components/supplier/return-window-field"
+import { CANONICAL_RETURN_WINDOW_LABEL, parseReturnWindowDays, RETURN_WINDOW_KEY } from "@/lib/return-terms"
 import type { ReadinessIssue } from "@/lib/listing-compliance/evaluate"
 import { CANONICAL_LABELS, LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
 import { ProductLivePreview } from "@/components/supplier/product-live-preview"
@@ -399,6 +401,13 @@ function WizardExpressTab(props: ExpressTabProps) {
                 showBrand
                 serverIssues={complianceIssues}
                 idPrefix="express"
+              />
+              {/* Same return-window field as the classic form and the guided wizard (stored as its reserved attribute). */}
+              <ReturnWindowField
+                id="express-return-window"
+                className="mt-6"
+                value={compliance[RETURN_WINDOW_KEY] ?? ""}
+                onChange={(next) => onComplianceChange(RETURN_WINDOW_KEY, next)}
               />
             </div>
           </details>
@@ -860,11 +869,19 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
           commission: commissionPct,
           descriptionIllustrationImages: expressImportPatch?.illustrationImages,
           skuVariants,
-          attributes: LISTING_COMPLIANCE_KEYS.map((key) => ({
-            key,
-            label: CANONICAL_LABELS[key] ?? key,
-            value: (compliance[key] ?? "").trim(),
-          })).filter((a) => a.value.length > 0),
+          attributes: [
+            ...LISTING_COMPLIANCE_KEYS.map((key) => ({
+              key,
+              label: CANONICAL_LABELS[key] ?? key,
+              value: (compliance[key] ?? "").trim(),
+            })),
+            // Return window beyond the legal 14 days (empty / invalid = legal window, no row).
+            {
+              key: RETURN_WINDOW_KEY,
+              label: CANONICAL_RETURN_WINDOW_LABEL,
+              value: String(parseReturnWindowDays(compliance[RETURN_WINDOW_KEY]) ?? ""),
+            },
+          ].filter((a) => a.value.length > 0),
         },
         defaults
       )

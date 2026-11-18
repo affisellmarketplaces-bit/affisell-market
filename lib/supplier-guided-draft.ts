@@ -10,6 +10,7 @@
  * publish or when the supplier chooses to start over.
  */
 import { LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
+import { parseReturnWindowDays } from "@/lib/return-terms"
 
 export const GUIDED_DRAFT_VERSION = 1
 export const GUIDED_DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000
@@ -34,6 +35,8 @@ export type GuidedDraftForm = {
   imageUrl: string
   extraImages: string[]
   compliance: Record<string, string>
+  /** Return window offered beyond the legal 14 days, in days as text; "" = legal window only. */
+  returnWindowDays: string
 }
 
 export type StoredGuidedDraft = {
@@ -85,6 +88,10 @@ export function sanitizeGuidedDraftForm(raw: unknown, allowedCategories: readonl
     imageUrl,
     extraImages: uniqueExtra,
     compliance,
+    returnWindowDays: (() => {
+      const days = parseReturnWindowDays(str(r.returnWindowDays, 4))
+      return days ? String(days) : ""
+    })(),
   }
 }
 

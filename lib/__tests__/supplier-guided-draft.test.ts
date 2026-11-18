@@ -20,7 +20,7 @@ const NOW = 1_800_000_000_000
 const form = (over: Partial<GuidedDraftForm> = {}): GuidedDraftForm => ({
   title: "Lampe en lin", category: "Home", leafId: "leaf_1", leafBreadcrumb: "Home > Lamps", description: "Une lampe de chevet en lin lavé.",
   descriptionBullets: ["Lin lavé"], material: "Lin", color: "Écru", dimensions: "30×20 cm", stock: "12", price: "19.90",
-  imageUrl: "https://cdn.example.com/a.jpg", extraImages: ["https://cdn.example.com/b.jpg"], compliance: { gpsr_manufacturer_name: "Atelier Dupont" }, ...over,
+  imageUrl: "https://cdn.example.com/a.jpg", extraImages: ["https://cdn.example.com/b.jpg"], compliance: { gpsr_manufacturer_name: "Atelier Dupont" }, returnWindowDays: "30", ...over,
 })
 const memory = (): StorageLike & { data: Map<string, string> } => {
   const data = new Map<string, string>()
@@ -121,5 +121,15 @@ describe("meaningful drafts and the store round trip", () => {
     expect(readGuidedDraft(broken, "s", CATS, NOW)).toBeNull()
     expect(() => clearGuidedDraft(broken, "s")).not.toThrow()
     expect(readGuidedDraft(null, "s", CATS, NOW)).toBeNull()
+  })
+})
+
+describe("guided draft — return window (chantier 4, parity with the classic form)", () => {
+  it("keeps a valid extension and drops anything else", () => {
+    expect(sanitizeGuidedDraftForm(form({ returnWindowDays: "60" }), CATS)!.returnWindowDays).toBe("60")
+    expect(sanitizeGuidedDraftForm(form({ returnWindowDays: "" }), CATS)!.returnWindowDays).toBe("")
+    expect(sanitizeGuidedDraftForm({ ...form(), returnWindowDays: "7" }, CATS)!.returnWindowDays).toBe("")
+    expect(sanitizeGuidedDraftForm({ ...form(), returnWindowDays: "9999" }, CATS)!.returnWindowDays).toBe("")
+    expect(sanitizeGuidedDraftForm({ ...form(), returnWindowDays: 30 }, CATS)!.returnWindowDays).toBe("")
   })
 })
