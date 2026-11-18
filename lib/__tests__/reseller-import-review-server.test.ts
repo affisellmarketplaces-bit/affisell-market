@@ -78,12 +78,40 @@ describe("applyResellerImportReview", () => {
     expect(m.listingUpdates[0]!.data).toEqual({ isListed: false })
   })
 
-  it("approve goes through the readiness gate (enforce: a physical sheet without safety data is refused)", async () => {
-    vi.stubEnv("LISTING_READINESS_MODE", "enforce")
-    m.product = { ...m.product!, listingKind: "PHYSICAL" }
-    expect(await applyResellerImportReview({ ...base, decision: "approve" })).toEqual({ ok: false, error: "listing_not_ready" })
-    expect(m.productUpdates).toHaveLength(0)
+  it("an approval never bypasses blocking safety data — even in observation mode the product stays a draft", async () => {
+    for (const mode of ["warn", "enforce", "off"]) {
+      vi.stubEnv("LISTING_READINESS_MODE", mode)
+      m.productUpdates.length = 0
+      m.listingUpdates.length = 0
+      m.product = { ...m.product!, listingKind: "PHYSICAL", tags: ["import-review:pending"], active: false, isDraft: true }
+      const out = await applyResellerImportReview({ ...base, decision: "approve" })
+      expect(out).toMatchObject({ ok: true, state: "approved", published: false, listedListings: 0 })
+      expect(out.ok && out.blocking.length).toBeGreaterThan(0)
+      expect(m.productUpdates[0]).toEqual({ tags: ["import-review:approved"] })
+      expect(m.listingUpdates).toHaveLength(0)
+    }
     vi.unstubAllEnvs()
+  })
+
+  it("approving a legacy product that is already live does not change its publication (founder decision)", async () => {
+    m.product = { ...m.product!, listingKind: "PHYSICAL", tags: [], active: true, isDraft: false }
+    const out = await applyResellerImportReview({ ...base, decision: "approve" })
+    expect(out).toMatchObject({ ok: true, published: true, blocking: [] })
+    expect(m.productUpdates[0]).toEqual({ tags: ["import-review:approved"] })
+    expect(m.audits.at(-1)).toMatchObject({ payload: expect.objectContaining({ alreadyLive: true }) })
+  })
+
+  it("publishApprovedResellerImport re-judges compliance and refuses an incomplete sheet", async () => {
+    const { publishApprovedResellerImport } = await import("@/lib/reseller-import/review.server")
+    m.product = { ...m.product!, listingKind: "PHYSICAL", tags: ["import-review:approved"], active: false, isDraft: true }
+    const refused = await publishApprovedResellerImport({ productId: "p1", adminId: "admin1", note: "ok" })
+    expect(refused).toMatchObject({ ok: false, error: "compliance_blocking" })
+    m.product = { ...m.product!, listingKind: "DIGITAL" }
+    m.productUpdates.length = 0
+    expect(await publishApprovedResellerImport({ productId: "p1", adminId: "admin1", note: "ok" })).toEqual({ ok: true, listedListings: 2 })
+    expect(m.productUpdates[0]).toEqual({ active: true, isDraft: false })
+    m.product = { ...m.product!, tags: ["import-review:pending"] }
+    expect(await publishApprovedResellerImport({ productId: "p1", adminId: "admin1", note: "ok" })).toMatchObject({ ok: false, error: "not_approved" })
   })
 
   it("refuses a product that is not a reseller import, and invalid transitions", async () => {

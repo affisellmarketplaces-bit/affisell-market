@@ -7376,6 +7376,7 @@
     "jobToastCsv": "CSV geëxporteerd",
     "jobToastNoDraft": "Geen catalogusconcept om te listen",
     "jobToastListed": "{ok}/{total} producten in de winkel gelist",
+    "jobToastPendingReview": "{count} product(en) wachten op controle door Affisell: ze gaan online na de controle.",
     "jobToastListFailed": "Bulk listen mislukt",
     "arbTip": "Ingekocht {cost}€ → Verkocht {sale}€ = +{margin}€",
     "arbTipScore": "Ingekocht {cost}€ → Verkocht {sale}€ = +{margin}€ | Score {score}/100",

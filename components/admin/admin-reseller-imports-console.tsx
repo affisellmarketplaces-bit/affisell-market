@@ -6,14 +6,16 @@ import { ExternalLink, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
 
 import type { ResellerImportDetail, ResellerImportReviewRow } from "@/lib/reseller-import/review.server"
+import { ListingComplianceSection } from "@/components/supplier/listing-compliance/listing-compliance-section"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-type Filter = "pending" | "legacy_unreviewed" | "rejected" | "all"
+type Filter = "pending" | "approved_awaiting_publication" | "legacy_unreviewed" | "rejected" | "all"
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: "pending", label: "À valider" },
+  { id: "approved_awaiting_publication", label: "Approuvés — conformité à compléter" },
   { id: "legacy_unreviewed", label: "Anciens imports (non validés)" },
   { id: "rejected", label: "Refusés" },
   { id: "all", label: "Tous" },
@@ -21,6 +23,7 @@ const FILTERS: { id: Filter; label: string }[] = [
 
 const STATE_LABEL: Record<string, string> = {
   pending: "À valider",
+  approved_awaiting_publication: "Approuvé — non publiable",
   legacy_unreviewed: "Ancien import — jamais validé",
   rejected: "Refusé",
   approved: "Approuvé",
@@ -28,6 +31,7 @@ const STATE_LABEL: Record<string, string> = {
 
 const STATE_TONE: Record<string, string> = {
   pending: "border-amber-500/40 bg-amber-500/15 text-amber-100",
+  approved_awaiting_publication: "border-sky-500/40 bg-sky-500/15 text-sky-100",
   legacy_unreviewed: "border-rose-500/40 bg-rose-500/15 text-rose-100",
   rejected: "border-zinc-500/40 bg-zinc-500/15 text-zinc-300",
   approved: "border-emerald-500/40 bg-emerald-500/15 text-emerald-100",
@@ -55,8 +59,9 @@ const ERROR_LABEL: Record<string, string> = {
   not_found: "Produit introuvable.",
   not_a_reseller_import: "Ce produit n'est pas un import revendeur.",
   transition_not_allowed: "Cette décision n'est pas possible dans l'état actuel.",
-  listing_not_ready:
-    "Publication refusée par le contrôle de conformité (mode bloquant) : complétez les données de sécurité produit.",
+  not_approved: "L'import doit d'abord être approuvé.",
+  already_live: "Ce produit est déjà en ligne.",
+  compliance_blocking: "Publication refusée : des données de sécurité produit obligatoires manquent.",
 }
 
 function formatWhen(iso: string) {
@@ -88,10 +93,12 @@ export function AdminResellerImportsConsole({ initialRows }: { initialRows: Rese
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [note, setNote] = useState("")
   const [confirmReject, setConfirmReject] = useState(false)
+  const [compliance, setCompliance] = useState<Record<string, string>>({})
+  const [reloadTick, setReloadTick] = useState(0)
   const [pending, startTransition] = useTransition()
 
   const counts = useMemo(() => {
-    const c: Record<string, number> = { pending: 0, legacy_unreviewed: 0, rejected: 0 }
+    const c: Record<string, number> = { pending: 0, approved_awaiting_publication: 0, legacy_unreviewed: 0, rejected: 0 }
     for (const r of rows) c[r.state] = (c[r.state] ?? 0) + 1
     return c
   }, [rows])
@@ -122,7 +129,9 @@ export function AdminResellerImportsConsole({ initialRows }: { initialRows: Rese
     fetch(`/api/admin/reseller-imports/${encodeURIComponent(selectedId)}`, { credentials: "include" })
       .then(async (res) => (res.ok ? ((await res.json()) as { import: ResellerImportDetail }).import : null))
       .then((d) => {
-        if (!cancelled) setDetail(d)
+        if (cancelled) return
+        setDetail(d)
+        setCompliance(d?.complianceValues ?? {})
       })
       .catch(() => {
         if (!cancelled) setDetail(null)
@@ -133,7 +142,7 @@ export function AdminResellerImportsConsole({ initialRows }: { initialRows: Rese
     return () => {
       cancelled = true
     }
-  }, [selectedId])
+  }, [selectedId, reloadTick])
 
   const decide = (decision: "approve" | "reject") => {
     if (!detail) return
@@ -154,6 +163,8 @@ export function AdminResellerImportsConsole({ initialRows }: { initialRows: Rese
       })
       const json = (await res.json().catch(() => ({}))) as {
         error?: string
+        published?: boolean
+        blocking?: string[]
         listedListings?: number
         unlistedListings?: number
       }
@@ -161,11 +172,55 @@ export function AdminResellerImportsConsole({ initialRows }: { initialRows: Rese
         toast.error(ERROR_LABEL[json.error ?? ""] ?? "La décision n'a pas pu être enregistrée.")
         return
       }
-      toast.success(
-        decision === "approve"
-          ? `Approuvé et publié — ${json.listedListings ?? 0} annonce(s) mise(s) en ligne.`
-          : `Refusé — ${json.unlistedListings ?? 0} annonce(s) retirée(s).`
-      )
+      if (decision === "reject") toast.success(`Refusé — ${json.unlistedListings ?? 0} annonce(s) retirée(s).`)
+      else if (json.published) toast.success(`Approuvé — produit publiable, ${json.listedListings ?? 0} annonce(s) mise(s) en ligne.`)
+      else
+        toast.warning(
+          `Approuvé, mais NON publié : ${(json.blocking ?? []).map((c) => ISSUE_LABEL[c] ?? c).join(", ")}. Complétez ces données puis publiez.`
+        )
+      setSelectedId(null)
+      refresh()
+    })
+  }
+
+  const saveCompliance = () => {
+    if (!detail) return
+    startTransition(async () => {
+      const res = await fetch(`/api/admin/reseller-imports/${encodeURIComponent(detail.productId)}/compliance`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ values: compliance }),
+      })
+      const json = (await res.json().catch(() => ({}))) as { error?: string; ready?: boolean }
+      if (!res.ok) {
+        toast.error(ERROR_LABEL[json.error ?? ""] ?? "Les données n'ont pas pu être enregistrées.")
+        return
+      }
+      toast.success(json.ready ? "Conformité complète." : "Enregistré — des données obligatoires manquent encore.")
+      setReloadTick((n) => n + 1)
+    })
+  }
+
+  const publish = () => {
+    if (!detail) return
+    if (note.trim().length < 3) {
+      toast.error(ERROR_LABEL.invalid_body)
+      return
+    }
+    startTransition(async () => {
+      const res = await fetch(`/api/admin/reseller-imports/${encodeURIComponent(detail.productId)}/publish`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ note: note.trim() }),
+      })
+      const json = (await res.json().catch(() => ({}))) as { error?: string; listedListings?: number }
+      if (!res.ok) {
+        toast.error(ERROR_LABEL[json.error ?? ""] ?? "La publication a échoué.")
+        return
+      }
+      toast.success(`Publié — ${json.listedListings ?? 0} annonce(s) mise(s) en ligne.`)
       setSelectedId(null)
       refresh()
     })
@@ -299,6 +354,25 @@ export function AdminResellerImportsConsole({ initialRows }: { initialRows: Rese
                 <p className="text-sm text-rose-300">Description vide.</p>
               )}
 
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="rounded-lg border border-white/10 p-2">
+                  <p className="text-zinc-400">1. Revue de l&apos;import</p>
+                  <p className="mt-1 font-medium">{STATE_LABEL[detail.state] ?? detail.state}</p>
+                </div>
+                <div className="rounded-lg border border-white/10 p-2">
+                  <p className="text-zinc-400">2. Conformité produit</p>
+                  <p className={cn("mt-1 font-medium", detail.readiness.ready || !detail.readiness.applicable ? "text-emerald-300" : "text-rose-300")}>
+                    {!detail.readiness.applicable ? "Non concerné" : detail.readiness.ready ? "Complète" : "Bloquante"}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-white/10 p-2">
+                  <p className="text-zinc-400">3. Publication</p>
+                  <p className={cn("mt-1 font-medium", detail.live ? "text-emerald-300" : detail.publication.publishable ? "text-sky-200" : "text-zinc-300")}>
+                    {detail.live ? "En ligne" : detail.publication.publishable ? "Autorisée" : "Non autorisée"}
+                  </p>
+                </div>
+              </div>
+
               <div className="rounded-xl border border-white/10 p-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Conformité (sécurité produit)</p>
                 {!detail.readiness.applicable ? (
@@ -319,11 +393,32 @@ export function AdminResellerImportsConsole({ initialRows }: { initialRows: Rese
                 ) : null}
                 {detail.readiness.applicable && !detail.readiness.ready ? (
                   <p className="mt-2 text-xs text-amber-200">
-                    Tant que le contrôle de publication est en observation, une approbation publierait ce produit
-                    malgré ces manques.
+                    Une approbation enregistre la revue mais ne publie pas ce produit tant que ces données manquent
+                    (quel que soit le mode du contrôle de publication).
                   </p>
                 ) : null}
               </div>
+
+              {!detail.live && detail.state !== "rejected" ? (
+                <div className="space-y-3 rounded-xl border border-white/10 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                    Compléter les données de sécurité produit
+                  </p>
+                  <ListingComplianceSection
+                    values={compliance}
+                    onChange={(key, value) => setCompliance((cur) => ({ ...cur, [key]: value }))}
+                    listingKind={detail.listingKind ?? "PHYSICAL"}
+                    productId={detail.productId}
+                    name={detail.name}
+                    mainImageUrl={detail.images[0] ?? null}
+                    showBrand
+                    idPrefix={`admin-import-${detail.productId}`}
+                  />
+                  <Button variant="outline" size="sm" onClick={saveCompliance} disabled={pending}>
+                    Enregistrer la conformité
+                  </Button>
+                </div>
+              ) : null}
 
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
@@ -356,7 +451,33 @@ export function AdminResellerImportsConsole({ initialRows }: { initialRows: Rese
                 </div>
               ) : null}
 
-              {detail.state === "approved" ? null : (
+              {detail.state === "approved" ? (
+                <div className="space-y-3 border-t border-white/10 pt-4">
+                  {detail.live ? (
+                    <p className="text-sm text-zinc-300">Approuvé et en ligne.</p>
+                  ) : (
+                    <>
+                      <label className="block text-xs text-zinc-400" htmlFor="publish-note">
+                        Raison de la publication (obligatoire)
+                      </label>
+                      <textarea
+                        id="publish-note"
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        rows={2}
+                        maxLength={1000}
+                        className="w-full rounded-lg border border-white/10 bg-black/30 p-2 text-sm"
+                      />
+                      <Button onClick={publish} disabled={pending || !detail.publication.publishable}>
+                        Publier
+                      </Button>
+                      {!detail.publication.publishable ? (
+                        <p className="text-xs text-amber-200">Complétez d&apos;abord les données de sécurité produit.</p>
+                      ) : null}
+                    </>
+                  )}
+                </div>
+              ) : (
                 <div className="space-y-3 border-t border-white/10 pt-4">
                   <label className="block text-xs text-zinc-400" htmlFor="review-note">
                     Raison de la décision (obligatoire, conservée dans le journal)
@@ -376,8 +497,8 @@ export function AdminResellerImportsConsole({ initialRows }: { initialRows: Rese
                     </p>
                   ) : null}
                   <div className="flex flex-wrap gap-2">
-                    <Button onClick={() => decide("approve")} disabled={pending || detail.state === "rejected"}>
-                      Approuver et publier
+                    <Button onClick={() => decide("approve")} disabled={pending}>
+                      Approuver l&apos;import
                     </Button>
                     <Button
                       variant="outline"

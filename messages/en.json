@@ -7376,6 +7376,7 @@
     "jobToastCsv": "CSV exported",
     "jobToastNoDraft": "No catalog draft to list",
     "jobToastListed": "{ok}/{total} products listed on the storefront",
+    "jobToastPendingReview": "{count} product(s) awaiting Affisell's review: they will go live once checked.",
     "jobToastListFailed": "Bulk listing failed",
     "arbTip": "Bought {cost}€ → Sold {sale}€ = +{margin}€",
     "arbTipScore": "Bought {cost}€ → Sold {sale}€ = +{margin}€ | Score {score}/100",

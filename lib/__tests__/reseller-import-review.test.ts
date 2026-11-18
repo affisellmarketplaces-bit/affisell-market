@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import {
   canApplyReviewDecision,
+  importPublicationStatus,
   importReviewStateAfterImport,
   importReviewStateFromTags,
   mayListOnProduct,
@@ -48,5 +49,26 @@ describe("a reseller can not list an unreviewed product by hand", () => {
     const src = readFileSync(path.resolve(__dirname, "../../app/api/affiliate/listings/[id]/route.ts"), "utf8")
     expect(src).toContain("mayListOnProduct(row.product)")
     expect(src).toContain("product_not_reviewed")
+  })
+})
+
+describe("importPublicationStatus — review, compliance and publication kept apart", () => {
+  const blocking = { applicable: true, blocking: ["gpsr_manufacturer_name_missing"] }
+  const ready = { applicable: true, blocking: [] }
+  it("an approval never makes a product with blocking safety issues publishable", () => {
+    expect(importPublicationStatus({ reviewState: "approved", compliance: blocking })).toEqual({
+      publishable: false,
+      reason: "compliance_blocking",
+      blocking: ["gpsr_manufacturer_name_missing"],
+    })
+  })
+  it("complete data without approval is not publishable either", () => {
+    expect(importPublicationStatus({ reviewState: "pending", compliance: ready }).publishable).toBe(false)
+    expect(importPublicationStatus({ reviewState: "legacy_unreviewed", compliance: ready }).publishable).toBe(false)
+    expect(importPublicationStatus({ reviewState: "rejected", compliance: ready })).toMatchObject({ reason: "rejected" })
+  })
+  it("approved + complete (or not a physical product) = publishable", () => {
+    expect(importPublicationStatus({ reviewState: "approved", compliance: ready })).toEqual({ publishable: true })
+    expect(importPublicationStatus({ reviewState: "approved", compliance: { applicable: false, blocking: ["x"] } })).toEqual({ publishable: true })
   })
 })

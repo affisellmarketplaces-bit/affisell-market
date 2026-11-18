@@ -78,3 +78,26 @@ export function reviewableState(product: { importSource?: string | null; tags?: 
   if (state) return state
   return product.importSource === RESELLER_URL_IMPORT_SOURCE_VALUE ? "pending" : null
 }
+
+/**
+ * Three notions kept apart (founder rule 2026-11-18):
+ * 1. ADMIN REVIEW of the import (pending / approved / rejected / legacy) — an admin's judgement of the source;
+ * 2. COMPLIANCE of the product sheet — the blocking product-safety data (`evaluateListingReadiness`), judged STRICTLY
+ *    here whatever `LISTING_READINESS_MODE` says: the observation mode is for supplier forms, never a way around the
+ *    rule for a product Affisell itself validates;
+ * 3. PUBLICATION — allowed only when 1 is `approved` AND 2 has no blocking issue. An approval never bypasses 2.
+ */
+export type ImportPublicationStatus =
+  | { publishable: true }
+  | { publishable: false; reason: "not_approved" | "rejected" | "compliance_blocking"; blocking: string[] }
+
+export function importPublicationStatus(args: {
+  reviewState: ImportReviewState | "legacy_unreviewed"
+  compliance: { applicable: boolean; blocking: ReadonlyArray<string> }
+}): ImportPublicationStatus {
+  const blocking = args.compliance.applicable ? [...args.compliance.blocking] : []
+  if (args.reviewState === "rejected") return { publishable: false, reason: "rejected", blocking }
+  if (args.reviewState !== "approved") return { publishable: false, reason: "not_approved", blocking }
+  if (blocking.length > 0) return { publishable: false, reason: "compliance_blocking", blocking }
+  return { publishable: true }
+}

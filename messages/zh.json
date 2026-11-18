@@ -7376,6 +7376,7 @@
     "jobToastCsv": "CSV 已导出",
     "jobToastNoDraft": "没有可上架的目录草稿",
     "jobToastListed": "已在店铺上架 {ok}/{total} 个产品",
+    "jobToastPendingReview": "{count} 件商品正在等待 Affisell 审核：审核通过后将上架。",
     "jobToastListFailed": "批量上架失败",
     "arbTip": "采购 {cost}€ → 售出 {sale}€ = +{margin}€",
     "arbTipScore": "采购 {cost}€ → 售出 {sale}€ = +{margin}€ | 评分 {score}/100",

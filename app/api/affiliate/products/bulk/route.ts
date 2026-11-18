@@ -6,6 +6,7 @@ import { cancelAuctionsForListings } from "@/lib/auction-listing-lifecycle"
 import { affiliateListingsWhere } from "@/lib/merchant-tenant-scope"
 import { prisma } from "@/lib/prisma"
 import { findExclusiveProductsBlockedForAffiliate } from "@/lib/product-exclusivity-guard.server"
+import { mayListOnProduct } from "@/lib/reseller-import/review"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 
 export const runtime = "nodejs"
@@ -57,19 +58,27 @@ export async function PATCH(request: Request) {
 
   /** Listings that could not go live because their product is held in exclusivity by another reseller. */
   let exclusiveBlockedIds: string[] = []
+  /** Listings whose product is a reseller import not yet approved / publishable. */
+  let notReviewedIds: string[] = []
 
   if (typeof body.isListed === "boolean") {
     let listedWhere = where
     if (body.isListed) {
-      const candidates = await prisma.affiliateProduct.findMany({ where, select: { id: true, productId: true } })
+      const candidates = await prisma.affiliateProduct.findMany({
+        where,
+        select: { id: true, productId: true, product: { select: { active: true, isDraft: true, tags: true } } },
+      })
+      // A reseller import not yet approved (or not publishable) is never listed by hand (same rule as the listing PATCH).
+      notReviewedIds = candidates.filter((c) => !c.product || !mayListOnProduct(c.product)).map((c) => c.id)
       const blocked = await findExclusiveProductsBlockedForAffiliate(
         candidates.map((c) => c.productId),
         session.user.id
       )
       const blockedProducts = new Set(blocked.map((b) => b.productId))
       exclusiveBlockedIds = candidates.filter((c) => blockedProducts.has(c.productId)).map((c) => c.id)
-      if (exclusiveBlockedIds.length > 0) {
-        listedWhere = { ...where, id: { in: candidates.filter((c) => !blockedProducts.has(c.productId)).map((c) => c.id) } }
+      const refused = new Set([...exclusiveBlockedIds, ...notReviewedIds])
+      if (refused.size > 0) {
+        listedWhere = { ...where, id: { in: candidates.filter((c) => !refused.has(c.id)).map((c) => c.id) } }
       }
     }
     await prisma.affiliateProduct.updateMany({
@@ -105,6 +114,7 @@ export async function PATCH(request: Request) {
   return NextResponse.json({
     ok: true,
     ...(exclusiveBlockedIds.length > 0 ? { exclusiveBlocked: exclusiveBlockedIds.length } : {}),
+    ...(notReviewedIds.length > 0 ? { notReviewed: notReviewedIds.length } : {}),
   })
 }
 

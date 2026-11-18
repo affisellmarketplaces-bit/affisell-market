@@ -7376,6 +7376,7 @@
     "jobToastCsv": "CSV wyeksportowany",
     "jobToastNoDraft": "Brak szkicu katalogu do wystawienia",
     "jobToastListed": "{ok}/{total} produktów wystawiono w sklepie",
+    "jobToastPendingReview": "{count} produkt(ów) czeka na weryfikację przez Affisell: zostaną opublikowane po sprawdzeniu.",
     "jobToastListFailed": "Wystawianie zbiorcze nie powiodło się",
     "arbTip": "Kupiono {cost}€ → Sprzedano {sale}€ = +{margin}€",
     "arbTipScore": "Kupiono {cost}€ → Sprzedano {sale}€ = +{margin}€ | Wynik {score}/100",

@@ -11,13 +11,12 @@ const STATUS: Record<string, number> = {
   not_found: 404,
   not_a_reseller_import: 409,
   transition_not_allowed: 409,
-  listing_not_ready: 422,
 }
 
 /**
  * ADMIN decision on a reseller URL import: `{ "decision": "approve" | "reject", "note": "why" }`.
- * Approve publishes through the readiness gate and lists the listings whose reseller asked to go live; reject keeps
- * the product a draft and unlists it. A reason is required (audit trail).
+ * Approve records the review; the product is published (and requested listings listed) only when its blocking
+ * product-safety data is complete — an approval never bypasses it. Reject keeps the product a draft and unlists it. A reason is required (audit trail).
  */
 export async function POST(req: Request, context: { params: Promise<{ productId: string }> }): Promise<Response> {
   const originBlock = assertSameSiteRequestOrigin(req)

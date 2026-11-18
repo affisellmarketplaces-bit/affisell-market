@@ -7376,6 +7376,7 @@
     "jobToastCsv": "CSV exportiert",
     "jobToastNoDraft": "Kein Katalogentwurf zum Listen",
     "jobToastListed": "{ok}/{total} Produkte im Shop gelistet",
+    "jobToastPendingReview": "{count} Produkt(e) warten auf die Prüfung durch Affisell: Sie gehen nach der Prüfung online.",
     "jobToastListFailed": "Massen-Listing fehlgeschlagen",
     "arbTip": "Eingekauft {cost}€ → Verkauft {sale}€ = +{margin}€",
     "arbTipScore": "Eingekauft {cost}€ → Verkauft {sale}€ = +{margin}€ | Score {score}/100",

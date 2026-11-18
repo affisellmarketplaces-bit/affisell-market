@@ -7376,6 +7376,7 @@
     "jobToastCsv": "CSV esportato",
     "jobToastNoDraft": "Nessuna bozza di catalogo da elencare",
     "jobToastListed": "{ok}/{total} prodotti elencati in vetrina",
+    "jobToastPendingReview": "{count} prodotto/i in attesa di convalida da parte di Affisell: saranno pubblicati dopo la verifica.",
     "jobToastListFailed": "Elenco in blocco non riuscito",
     "arbTip": "Acquistato {cost}€ → Venduto {sale}€ = +{margin}€",
     "arbTipScore": "Acquistato {cost}€ → Venduto {sale}€ = +{margin}€ | Punteggio {score}/100",

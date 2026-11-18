@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { mayListOnProduct } from "@/lib/reseller-import/review"
 
 import { Prisma } from "@prisma/client"
 
@@ -329,6 +330,10 @@ export async function PATCH(
   }
 
   if (nextListed && !listing.isListed) {
+    // A reseller import not yet approved / publishable is never listed by hand (same rule as /api/affiliate/listings/[id]).
+    if (!mayListOnProduct(listing.product)) {
+      return NextResponse.json({ error: "product_not_reviewed" }, { status: 409 })
+    }
     const kycBlocked = await requireMerchantVerifiedForPublish(session.user.id)
     if (kycBlocked) return kycBlocked
   }
