@@ -1,3 +1,4 @@
+import { evaluateListingReadiness } from "@/lib/listing-compliance/evaluate"
 import { decideImportPublication } from "@/lib/listing-compliance/import-publication.server"
 import { prisma } from "@/lib/prisma"
 import {
@@ -151,4 +152,122 @@ export async function applyResellerImportReview(args: {
       unlistedListings: unlisted,
     }
   })
+}
+
+export type ResellerImportDetail = {
+  productId: string
+  name: string
+  state: "pending" | "legacy_unreviewed" | "rejected" | "approved"
+  live: boolean
+  sourceUrl: string | null
+  importedAt: string
+  images: string[]
+  descriptionExcerpt: string
+  supplierPriceCents: number
+  stock: number
+  listingKind: string | null
+  /** Product-safety / identity data the publication gate checks (presence and format only). */
+  readiness: { applicable: boolean; ready: boolean; blocking: string[]; advisory: string[] }
+  listings: Array<{
+    listingId: string
+    resellerName: string
+    sellingPriceCents: number
+    isListed: boolean
+    listRequested: boolean
+    createdAt: string
+  }>
+  history: Array<{ at: string; decision: string; note: string }>
+}
+
+/** ADMIN: everything needed to VERIFY one reseller import before deciding. Read-only. */
+export async function loadResellerImportDetail(productId: string): Promise<ResellerImportDetail | null> {
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    select: {
+      id: true,
+      name: true,
+      tags: true,
+      importSource: true,
+      active: true,
+      isDraft: true,
+      sourceUrl: true,
+      createdAt: true,
+      images: true,
+      description: true,
+      basePriceCents: true,
+      stock: true,
+      listingKind: true,
+      attributes: { select: { key: true, value: true } },
+      affiliateProducts: {
+        orderBy: { createdAt: "asc" },
+        take: 200,
+        select: {
+          id: true,
+          sellingPriceCents: true,
+          isListed: true,
+          createdAt: true,
+          affiliate: { select: { name: true } },
+        },
+      },
+    },
+  })
+  if (!product || reviewableState(product) == null) return null
+
+  const [submitted, reviewed] = await Promise.all([
+    prisma.auditLog.findMany({
+      where: { action: "reseller_import.submitted", entityId: product.id },
+      select: { payload: true },
+    }),
+    prisma.auditLog.findMany({
+      where: { action: "reseller_import.reviewed", entityId: product.id },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: { createdAt: true, payload: true },
+    }),
+  ])
+  const requested = new Set(
+    submitted
+      .map((r) => r.payload as { affiliateProductId?: unknown; listRequested?: unknown } | null)
+      .filter((p) => p?.listRequested === true && typeof p.affiliateProductId === "string")
+      .map((p) => p!.affiliateProductId as string)
+  )
+  const readiness = evaluateListingReadiness({ listingKind: product.listingKind, attributes: product.attributes })
+  const tagged = importReviewStateFromTags(product.tags)
+  return {
+    productId: product.id,
+    name: product.name,
+    state:
+      tagged === "approved" || tagged === "rejected" || tagged === "pending" ? tagged : "legacy_unreviewed",
+    live: product.active && !product.isDraft,
+    sourceUrl: product.sourceUrl,
+    importedAt: product.createdAt.toISOString(),
+    images: product.images.slice(0, 8),
+    descriptionExcerpt: product.description.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 600),
+    supplierPriceCents: product.basePriceCents,
+    stock: product.stock,
+    listingKind: product.listingKind,
+    readiness: {
+      applicable: readiness.applicable,
+      ready: readiness.ready,
+      blocking: readiness.blocking.map((i) => i.code),
+      advisory: readiness.advisory.map((i) => i.code),
+    },
+    listings: product.affiliateProducts.map((l) => ({
+      listingId: l.id,
+      // A display name for the admin; never the e-mail (the admin page does not need it).
+      resellerName: l.affiliate.name?.trim() || "Revendeur sans nom",
+      sellingPriceCents: l.sellingPriceCents,
+      isListed: l.isListed,
+      listRequested: requested.has(l.id),
+      createdAt: l.createdAt.toISOString(),
+    })),
+    history: reviewed.map((r) => {
+      const p = (r.payload ?? {}) as { decision?: unknown; note?: unknown }
+      return {
+        at: r.createdAt.toISOString(),
+        decision: typeof p.decision === "string" ? p.decision : "?",
+        note: typeof p.note === "string" ? p.note : "",
+      }
+    }),
+  }
 }

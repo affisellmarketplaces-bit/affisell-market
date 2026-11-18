@@ -33,7 +33,10 @@ vi.mock("@/lib/prisma", () => {
   return {
     prisma: {
       product: { findUnique: async () => m.product },
-      auditLog: { findMany: async () => m.requests },
+      auditLog: {
+        findMany: async (a?: { where?: { action?: string } }) =>
+          a?.where?.action === "reseller_import.reviewed" ? [] : m.requests,
+      },
       $transaction: async (cb: (t: typeof tx) => unknown) => cb(tx),
     },
   }
@@ -93,5 +96,48 @@ describe("applyResellerImportReview", () => {
   it("a legacy import (no review tag) can be reviewed", async () => {
     m.product = { ...m.product!, tags: ["reseller-import"] }
     expect(await applyResellerImportReview({ ...base, decision: "approve" })).toMatchObject({ ok: true })
+  })
+})
+
+describe("loadResellerImportDetail", () => {
+  it("gives the admin what to verify, without the reseller's e-mail, and marks the listings that asked to go live", async () => {
+    const { loadResellerImportDetail } = await import("@/lib/reseller-import/review.server")
+    m.product = {
+      id: "p1",
+      name: "Lampe",
+      tags: [],
+      importSource: "reseller_url_import",
+      active: true,
+      isDraft: false,
+      sourceUrl: "https://shop.example/lampe",
+      createdAt: new Date("2026-10-01T00:00:00Z"),
+      images: ["https://img.example/a.jpg"],
+      description: "<p>Une   lampe</p>",
+      basePriceCents: 1500,
+      stock: 10,
+      listingKind: "PHYSICAL",
+      attributes: [],
+      affiliateProducts: [
+        { id: "l1", sellingPriceCents: 2500, isListed: true, createdAt: new Date(), affiliate: { name: "Boutique A" } },
+        { id: "l2", sellingPriceCents: 2600, isListed: false, createdAt: new Date(), affiliate: { name: null } },
+      ],
+    }
+    m.requests = [{ payload: { affiliateProductId: "l2", listRequested: true } }]
+    const d = await loadResellerImportDetail("p1")
+    expect(d?.state).toBe("legacy_unreviewed")
+    expect(d?.live).toBe(true)
+    expect(d?.descriptionExcerpt).toBe("Une lampe")
+    expect(d?.readiness.ready).toBe(false)
+    expect(d?.listings.map((l) => [l.listingId, l.listRequested])).toEqual([
+      ["l1", false],
+      ["l2", true],
+    ])
+    expect(JSON.stringify(d)).not.toContain("@")
+  })
+
+  it("returns null for a product that is not a reseller import", async () => {
+    const { loadResellerImportDetail } = await import("@/lib/reseller-import/review.server")
+    m.product = { id: "p2", tags: [], importSource: "supplier_csv" }
+    expect(await loadResellerImportDetail("p2")).toBeNull()
   })
 })

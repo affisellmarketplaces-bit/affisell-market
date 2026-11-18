@@ -24,6 +24,7 @@ export const ADMIN_NAV_LINKS: readonly AdminNavLink[] = [
   { href: "/admin/returns", label: "Retours", group: "operations" },
   { href: "/admin/auto-fulfill", label: "Auto-Fulfill", group: "supply" },
   { href: "/admin/products/new", label: "Produit AE", group: "supply" },
+  { href: "/admin/reseller-imports", label: "Imports revendeurs", group: "supply" },
   { href: "/admin/orders", label: "Commandes", group: "operations" },
   { href: "/admin/providers", label: "Fournisseurs API", group: "supply" },
   { href: "/admin/supply-lab", label: "Supply Lab", group: "supply" },
