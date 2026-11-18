@@ -35,6 +35,16 @@ describe("planOrderResume — never a double payment, never a guess", () => {
     expect(planOrderResume(order({ disputeOpen: true }))[0]!.decision).toBe("dispute_open")
     expect(planOrderResume(order({ refundedCents: 100 }))[0]!.decision).toBe("partially_refunded")
   })
+  it("a leg already paid by another rail, or to an account not ready for transfers, is never created", () => {
+    const paid = order({ legs: [{ role: "SUPPLIER", partnerId: "s1", plannedCents: 800, destination: "acct_s", hasAttempt: false, paidElsewhere: true }] })
+    expect(planOrderResume(paid)[0]!.decision).toBe("paid_elsewhere")
+    const notReady = order({ legs: [{ role: "SUPPLIER", partnerId: "s1", plannedCents: 800, destination: "acct_s", hasAttempt: false, destinationNotReady: true }] })
+    expect(planOrderResume(notReady)[0]!.decision).toBe("account_not_ready")
+    // an existing attempt (even FAILED after a cron error) wins over every other reason: never duplicated
+    const failed = order({ legs: [{ role: "SUPPLIER", partnerId: "s1", plannedCents: 800, destination: "acct_s", hasAttempt: true, paidElsewhere: true }] })
+    expect(planOrderResume(failed)[0]!.decision).toBe("already_scheduled")
+  })
+
   it("the platform auto-buy account is never owed; a zero leg owes nothing", () => {
     expect(planOrderResume(order({ supplierIsPlatform: true }))[0]!.decision).toBe("platform_account")
     const z = order({ legs: [{ role: "SUPPLIER", partnerId: "s1", plannedCents: 0, destination: "acct_s", hasAttempt: false }] })

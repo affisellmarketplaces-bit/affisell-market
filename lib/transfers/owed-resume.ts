@@ -14,6 +14,12 @@
  * - a partially refunded order is never resumed automatically (`partially_refunded`): the refund already reversed the
  *   OTHER legs pro rata, and a late transfer would have to be netted by hand;
  * - an order with an open dispute is held (`dispute_open`), a closed order owes nothing (`order_closed`);
+ * - a leg already paid by ANOTHER rail (Lightning, a ledger payout carrying a Stripe transfer, an order marked PAID) is
+ *   never resumed (`paid_elsewhere`) — the same rule `process-transfers` re-checks before paying;
+ * - a partner whose Connect account is known not to accept transfers yet is `account_not_ready` (nothing created:
+ *   `process-transfers` would only fail it); a partner who CHANGED account is resumed to the account on file TODAY;
+ * - an attempt that already exists in FAILED state (cron error, onboarding) is never duplicated — it is reported for
+ *   the existing retry path (`failedAttempts` in the plan), never re-created;
  * - every created attempt carries an AuditLog row with a deterministic id (`owed-resume:<order>:<role>`): replaying the
  *   same plan writes nothing twice and says who resumed what.
  */
@@ -26,6 +32,11 @@ export type ResumeLegFacts = {
   /** The partner's Connect account TODAY (null = still none). */
   destination: string | null
   hasAttempt: boolean
+  /** Paid by another rail (Lightning, ledger payout with a Stripe transfer id, order marked PAID) — same rule as
+   *  `marketplaceRoleAlreadySettled`, which `process-transfers` applies too. */
+  paidElsewhere?: boolean
+  /** The partner's account is known NOT to accept transfers yet (Connect onboarding unfinished). Optional. */
+  destinationNotReady?: boolean
 }
 
 export type ResumeOrderFacts = {
@@ -48,6 +59,8 @@ export type ResumeLegDecision =
   | "order_closed"
   | "nothing_owed"
   | "platform_account"
+  | "paid_elsewhere"
+  | "account_not_ready"
 
 export type ResumeLegPlan = {
   orderId: string
@@ -83,10 +96,12 @@ export function planOrderResume(order: ResumeOrderFacts): ResumeLegPlan[] {
     if (leg.role === "SUPPLIER" && order.supplierIsPlatform) return decide("platform_account")
     if (!(leg.plannedCents > 0)) return decide("nothing_owed")
     if (leg.hasAttempt) return decide("already_scheduled")
+    if (leg.paidElsewhere) return decide("paid_elsewhere")
     if (order.closed) return decide("order_closed")
     if (order.disputeOpen) return decide("dispute_open")
     if (order.refundedCents > 0) return decide("partially_refunded")
     if (!leg.destination?.trim()) return decide("still_no_connect")
+    if (leg.destinationNotReady) return decide("account_not_ready")
     return decide("create")
   })
 }
@@ -107,6 +122,8 @@ export function summarizeResume(plans: ReadonlyArray<ResumeLegPlan>): ResumeSumm
     order_closed: zero(),
     nothing_owed: zero(),
     platform_account: zero(),
+    paid_elsewhere: zero(),
+    account_not_ready: zero(),
   } satisfies ResumeSummary["byDecision"]
   const partners = new Set<string>()
   for (const p of plans) {

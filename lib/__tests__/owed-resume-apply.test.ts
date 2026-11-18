@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const m = vi.hoisted(() => ({
   attempts: [] as Array<{ orderId: string; role: string; amountCents: number; destination: string; status?: string }>,
   audits: new Set<string>(),
+  ledger: [] as Array<{ beneficiaryRole: string; stripeTransferId: string | null; payoutRail: string | null; blindDropshipOrderId: string | null }>,
 }))
 
 vi.mock("server-only", () => ({}))
@@ -24,10 +25,12 @@ vi.mock("@/lib/prisma", () => {
     affiliateId: "a1",
     affiliateStripeAccountId: null,
     supplierMarginCents: 800,
-    supplier: { id: "s1", email: "s@x.fr", stripeAccountId: "acct_s" },
-    affiliate: { id: "a1", stripeAccountId: null },
+    payoutStatus: "PENDING",
+    supplier: { id: "s1", email: "s@x.fr", stripeAccountId: "acct_s", stripeOnboardedAt: new Date() },
+    affiliate: { id: "a1", stripeAccountId: null, stripeOnboardedAt: null },
     transferAttempts: m.attempts.filter((a) => a.orderId === "o1").map((a) => ({ role: a.role })),
     stripeRefunds: [],
+    merchantPayoutLedger: m.ledger,
   })
   const tx = {
     $queryRaw: async () => [],
@@ -57,9 +60,19 @@ vi.mock("@/lib/prisma", () => {
 import { applyOwedTransferResume } from "@/lib/transfers/owed-resume.server"
 
 describe("applyOwedTransferResume", () => {
+  it("never creates a leg already paid by another rail (Lightning / ledger payout)", async () => {
+    process.env.OWED_TRANSFER_RESUME_MODE = "enforce"
+    m.ledger = [{ beneficiaryRole: "SUPPLIER", stripeTransferId: "tr_lightning", payoutRail: "lightning", blindDropshipOrderId: null }]
+    const out = await applyOwedTransferResume({ adminId: "admin", orderIds: ["o1"] })
+    expect(out.ok && out.created).toEqual([])
+    expect(out.ok && out.skipped.map((p) => p.decision)).toContain("paid_elsewhere")
+    expect(m.attempts).toEqual([])
+  })
+
   beforeEach(() => {
     m.attempts.length = 0
     m.audits.clear()
+    m.ledger = []
     delete process.env.OWED_TRANSFER_RESUME_MODE
   })
 

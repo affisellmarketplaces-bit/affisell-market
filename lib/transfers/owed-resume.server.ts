@@ -6,6 +6,7 @@ import { computeTransferAmountsFromOrder, orderSplitInputFromOrder } from "@/lib
 import { computeOrderEscrowAllocation, resolveOrderEscrowAllocation } from "@/lib/order-escrow-allocation"
 import { DISPUTE_HOLD_ID_PREFIX, DISPUTE_HOLD_STATUS } from "@/lib/orders/dispute-hold.server"
 import { isOrderClosedForPayout } from "@/lib/orders/payment-state"
+import { isLedgerPayoutRealized } from "@/lib/payout-settlement.shared"
 import { prisma } from "@/lib/prisma"
 import {
   OWED_RESUME_AUDIT_ACTION,
@@ -19,10 +20,14 @@ import {
 const MAX_ORDERS = 5_000
 
 const ORDER_INCLUDE = {
-  supplier: { select: { id: true, email: true, stripeAccountId: true } },
-  affiliate: { select: { id: true, stripeAccountId: true } },
-  transferAttempts: { select: { role: true } },
+  supplier: { select: { id: true, email: true, stripeAccountId: true, stripeOnboardedAt: true } },
+  affiliate: { select: { id: true, stripeAccountId: true, stripeOnboardedAt: true } },
+  transferAttempts: { select: { role: true, status: true, errorCode: true } },
   stripeRefunds: { select: { amountCents: true } },
+  merchantPayoutLedger: {
+    where: { entryType: "PAYOUT" },
+    select: { beneficiaryRole: true, stripeTransferId: true, payoutRail: true, blindDropshipOrderId: true },
+  },
 } satisfies Prisma.OrderInclude
 
 type OrderWithFacts = Prisma.OrderGetPayload<{ include: typeof ORDER_INCLUDE }>
@@ -39,6 +44,9 @@ function factsForOrder(order: OrderWithFacts, disputeOpen: boolean): ResumeOrder
           supplierPayoutCents: amounts.supplierPayoutCents,
         })
   const roles = new Set(order.transferAttempts.map((a) => a.role))
+  const orderPaid = order.payoutStatus === "PAID"
+  const paidElsewhere = (role: "SUPPLIER" | "AFFILIATE") =>
+    orderPaid || order.merchantPayoutLedger.some((e) => e.beneficiaryRole === role && isLedgerPayoutRealized(e))
   const affiliateDestination = order.affiliateStripeAccountId?.trim() || order.affiliate?.stripeAccountId?.trim() || null
   return {
     orderId: order.id,
@@ -54,6 +62,9 @@ function factsForOrder(order: OrderWithFacts, disputeOpen: boolean): ResumeOrder
         plannedCents: amounts.supplierPayoutCents > 0 ? escrow.supplierMarginCents : 0,
         destination: order.supplier.stripeAccountId?.trim() || null,
         hasAttempt: roles.has("SUPPLIER"),
+        paidElsewhere: paidElsewhere("SUPPLIER"),
+        // `stripeOnboardedAt` is set when the transfers capability is active; without it process-transfers would fail.
+        destinationNotReady: !order.supplier.stripeOnboardedAt,
       },
       ...(order.affiliateId
         ? [
@@ -63,6 +74,9 @@ function factsForOrder(order: OrderWithFacts, disputeOpen: boolean): ResumeOrder
               plannedCents: amounts.affiliateTransferCents,
               destination: affiliateDestination,
               hasAttempt: roles.has("AFFILIATE"),
+              paidElsewhere: paidElsewhere("AFFILIATE"),
+              destinationNotReady:
+                !order.affiliateStripeAccountId?.trim() && !order.affiliate?.stripeOnboardedAt,
             },
           ]
         : []),
@@ -95,12 +109,19 @@ export async function planOwedTransferResume(days = 180) {
   const disputed = await openDisputeOrderIds(prisma, kept.map((o) => o.id))
   const plans = kept.flatMap((o) => planOrderResume(factsForOrder(o, disputed.has(o.id))))
   const relevant = plans.filter((p) => p.decision !== "nothing_owed" && p.decision !== "platform_account")
+  // Attempts that exist but FAILED (cron error, onboarding): never re-created here — they belong to the retry path.
+  const failedAttempts = kept.flatMap((o) =>
+    o.transferAttempts
+      .filter((a) => a.status === "FAILED")
+      .map((a) => ({ orderId: o.id, role: a.role, errorCode: a.errorCode ?? null }))
+  )
   return {
     mode: resolveOwedResumeMode(),
     windowDays: days,
     ordersRead: kept.length,
     truncated,
     summary: summarizeResume(plans),
+    failedAttempts: { count: failedAttempts.length, sample: failedAttempts.slice(0, 50) },
     legs: relevant.filter((p) => p.decision !== "already_scheduled").slice(0, 500),
     note:
       "Simulation — rien n'est écrit ni versé. « create » = un virement EN ATTENTE serait créé, puis payé par le cron process-transfers. Commandes partiellement remboursées et litiges ouverts : jamais automatiques.",
