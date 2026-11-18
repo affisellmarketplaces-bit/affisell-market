@@ -52,6 +52,7 @@ import { buildSupplierReliability, type SupplierReliabilityResult } from "@/lib/
 import { representativeInput, simulateLevers } from "@/lib/strategic-intelligence/lever-simulation"
 import { priceGapRequests, unansweredRequests, unmetDemandSignals, unmetSearches, UNMET_WINDOW_DAYS } from "@/lib/strategic-intelligence/unmet-demand"
 import { loadJournal } from "@/lib/strategic-intelligence/journal.server"
+import { measurePriceEvents, priceResponseSignals, PR_MIN_EVENTS, PR_WINDOW_DAYS, type PricePool } from "@/lib/strategic-intelligence/price-response"
 import { detectEmerging, emergingSignals, EMERGING_PRIOR_DAYS, EMERGING_RECENT_DAYS, type EmergingCounts } from "@/lib/strategic-intelligence/emerging"
 import { aggregateQuality, detectQualityOutliers, qualityRiskSignals } from "@/lib/strategic-intelligence/quality-risk"
 
@@ -115,7 +116,7 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
     where: { paidAt: { gte: d(60) } },
     take: MAX_ORDERS,
     orderBy: { paidAt: "desc" },
-    select: { productId: true, affiliateId: true, supplierId: true, paidAt: true, quantity: true, product: { select: { categoryId: true, name: true } } },
+    select: { productId: true, affiliateId: true, affiliateProductId: true, supplierId: true, paidAt: true, quantity: true, product: { select: { categoryId: true, name: true } } },
   })
 
   // The cockpit's ONE read of mature orders (mature-orders.server.ts): quality, supplier reliability and economics all
@@ -641,6 +642,52 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
       )
     }, report),
 
+    guarded("commercial.price_response", async () => {
+      // Natural price experiments (price-response.ts): every reseller price change of the last 60 days whose ±14-day
+      // window is complete, against the same product's other resellers. Reads the recorded history + the shared order read.
+      const all = await ordersPromise
+      if (all.length >= MAX_ORDERS) throw new Error("echantillon_tronque")
+      const MAX_CHANGES = 20_000
+      const rows = (await prisma.listingPriceHistory.findMany({
+        where: { variantKey: null, priceCents: { not: null }, previousCents: { not: null }, effectiveAt: { gte: d(60 + PR_WINDOW_DAYS) } },
+        take: MAX_CHANGES,
+        select: { affiliateProductId: true, productId: true, effectiveAt: true, priceCents: true, previousCents: true },
+      })) as Array<{ affiliateProductId: string; productId: string; effectiveAt: Date; priceCents: number; previousCents: number }>
+      if (rows.length >= MAX_CHANGES) throw new Error("echantillon_tronque")
+      if (rows.length === 0) return []
+      const measured = measurePriceEvents(
+        rows.map((r) => ({ listingId: r.affiliateProductId, productId: r.productId, at: r.effectiveAt, fromCents: r.previousCents, toCents: r.priceCents })),
+        all.filter((o) => o.paidAt).map((o) => ({ listingId: o.affiliateProductId, productId: o.productId, paidAt: o.paidAt! })),
+        { now, dataFrom: d(60) }
+      )
+      const pools: PricePool[] = [{ key: "marketplace", label: "Marketplace", events: measured.events }]
+      if (measured.events.length >= PR_MIN_EVENTS) {
+        // Per Google-taxonomy root, so a category's own behaviour is not drowned in the marketplace average.
+        const cats = await prisma.category.findMany({ select: { id: true, parentId: true, name: true }, take: 50_000 })
+        if (cats.length < 50_000) {
+          const parent = new Map(cats.map((c) => [c.id, c.parentId]))
+          const name = new Map(cats.map((c) => [c.id, c.name]))
+          const catOfProduct = new Map(all.map((o) => [o.productId, o.product?.categoryId ?? null]))
+          const rootOf = (id: string | null): string | null => {
+            let cur = id
+            let guard = 0
+            while (cur && parent.get(cur) && guard++ < 20) cur = parent.get(cur) ?? null
+            return cur
+          }
+          const byRoot = new Map<string, PricePool>()
+          for (const e of measured.events) {
+            const root = rootOf(catOfProduct.get(e.productId) ?? null)
+            if (!root) continue
+            const pool = byRoot.get(root) ?? { key: `root:${root}`, label: name.get(root) ?? "Catégorie", events: [] }
+            pool.events.push(e)
+            byRoot.set(root, pool)
+          }
+          pools.push(...byRoot.values())
+        }
+      }
+      return priceResponseSignals(pools, { observed: measured.observed, usable: measured.events.length, excluded: measured.excluded }, { observedAt, window: { from: d(60).toISOString(), to: observedAt } })
+    }, report),
+
     guarded("risk.sentinel", async () => {
       const open = await prisma.opsSignal.groupBy({ by: ["severity"], where: { resolvedAt: null }, _count: { _all: true } })
       const count = (sev: string) => Number((open.find((o) => o.severity === sev)?._count as { _all?: number } | undefined)?._all ?? 0)
@@ -653,6 +700,7 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
   const MIGRATION_OF: Record<string, string> = {
     "supplier.price_increases": "20261116200000_product_price_history",
     "commercial.profit_alert_pattern": "20261117120000_reseller_profit_alerts",
+    "commercial.price_response": "20261117090000_listing_price_history",
   }
   const evolution = evolutionRecommendations(
     {
