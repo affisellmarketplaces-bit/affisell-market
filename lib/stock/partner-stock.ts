@@ -67,23 +67,88 @@ export function mergeVariantRowStocks<R extends StockRow>(args: {
   incomingRows: ReadonlyArray<R>
   baseline: Readonly<Record<string, unknown>> | null | undefined
 }): { rows: Array<R & { stock: number }>; total: number } {
-  const current = new Map<string, number>()
+  // Existing rows by id, and by name when that name is unique. A row whose id changed between two saves (a row
+  // first saved as `new-…` and later reloaded from the ProductVariant table with its database id) is still the
+  // same SKU: it is found by its name, and its baseline is read under the key the form loaded it with.
+  const byId = new Map<string, { key: string; stock: number }>()
+  const byName = new Map<string, { key: string; stock: number } | null>()
   for (const row of args.existingRows) {
     const key = rowKey(row)
     const n = Number(row.stock)
-    if (key && Number.isFinite(n)) current.set(key, Math.max(0, Math.round(n)))
+    if (!key || !Number.isFinite(n)) continue
+    const entry = { key, stock: Math.max(0, Math.round(n)) }
+    const id = idOf(row)
+    if (id) byId.set(id, entry)
+    const name = nameOf(row)
+    if (name) byName.set(name, byName.has(name) ? null : entry)
+  }
+  const incomingNames = new Map<string, number>()
+  for (const row of args.incomingRows) {
+    const name = nameOf(row)
+    if (name) incomingNames.set(name, (incomingNames.get(name) ?? 0) + 1)
   }
   const rows = args.incomingRows.map((row) => {
-    const key = rowKey(row)
-    const known = key != null && current.has(key)
+    const id = idOf(row)
+    const name = nameOf(row)
+    const match =
+      (id ? byId.get(id) : undefined) ??
+      (name && incomingNames.get(name) === 1 ? byName.get(name) ?? undefined : undefined)
+    const ownKey = rowKey(row)
+    const baselineRaw =
+      match && args.baseline
+        ? args.baseline[match.key] ?? (ownKey ? args.baseline[ownKey] : undefined)
+        : undefined
     const stock = resolveSupplierStockWrite({
-      current: known ? current.get(key!)! : 0,
+      current: match ? match.stock : 0,
       submitted: row.stock,
-      baseline: known && args.baseline ? args.baseline[key!] : undefined,
+      baseline: baselineRaw,
     })
     return { ...row, stock }
   })
   return { rows, total: rows.reduce((acc, r) => acc + r.stock, 0) }
+}
+
+/**
+ * The ProductVariant TABLE rows a form sends with the advanced SKU table (`variants`, written by
+ * `syncProductVariants`, which then sets `Product.stock` to the table's sum). Checkout decrements the JSON rows
+ * (`Product.variants.variantRows`), never the table, so writing the table from the submitted values put the units
+ * sold meanwhile back into `Product.stock`. Each table row takes the stock of the merged JSON row of the same SKU
+ * (same id, else the same unique label "color / size"); a table row with no JSON counterpart keeps the submitted
+ * value (nothing ever decremented it). `aligned` counts the rows that were matched.
+ */
+export function alignTableVariantStocks<
+  T extends { id?: string | null; color: string; size?: string | null; stock: number },
+>(
+  tableRows: ReadonlyArray<T>,
+  mergedRows: ReadonlyArray<StockRow & { stock: number }>,
+  labelOf: (color: string, size: string | null | undefined) => string
+): { rows: T[]; aligned: number } {
+  const byId = new Map<string, number>()
+  const byName = new Map<string, number | null>()
+  for (const row of mergedRows) {
+    const id = idOf(row)
+    if (id) byId.set(id, row.stock)
+    const name = nameOf(row)
+    if (name) byName.set(name, byName.has(name) ? null : row.stock)
+  }
+  let aligned = 0
+  const rows = tableRows.map((row) => {
+    const id = typeof row.id === "string" && row.id.trim() ? row.id.trim() : null
+    const label = labelOf(row.color, row.size).trim().toLowerCase()
+    const stock = (id ? byId.get(id) : undefined) ?? (label ? byName.get(label) ?? undefined : undefined)
+    if (stock == null) return row
+    aligned += 1
+    return { ...row, stock }
+  })
+  return { rows, aligned }
+}
+
+function idOf(row: StockRow): string | null {
+  return typeof row.id === "string" && row.id.trim() ? row.id.trim() : null
+}
+
+function nameOf(row: StockRow): string | null {
+  return typeof row.name === "string" && row.name.trim() ? row.name.trim().toLowerCase() : null
 }
 
 /** The baseline key of a variant row, as the form must send it (`variantStockBaseline`). */

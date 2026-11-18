@@ -7,6 +7,7 @@ import { readFileSync } from "node:fs"
 import path from "node:path"
 import { describe, expect, it, vi } from "vitest"
 import {
+  alignTableVariantStocks,
   mergeVariantRowStocks,
   partnerStockUpdate,
   partnerStockValue,
@@ -148,8 +149,46 @@ describe("advanced SKU table: sold units are never resurrected, row by row", () 
     expect(variantStockBaselineFromRows([])).toBeNull()
   })
 
-  it("both supplier routes merge the rows", () => {
+  it("a row whose id changed (first saved as new-…, reloaded from the table) is matched by its name", () => {
+    const merged = mergeVariantRowStocks({
+      existingRows: [{ id: "new-abc", name: "Rouge / M", stock: 4 }], // loaded 6, 2 sold
+      incomingRows: [{ id: "cuid_rouge_m", name: "Rouge / M", stock: 6 }],
+      baseline: { "id:new-abc": 6 },
+    })
+    expect(merged.rows[0]!.stock).toBe(4)
+  })
+
+  it("a duplicated name is never guessed: the submitted value is kept", () => {
+    const merged = mergeVariantRowStocks({
+      existingRows: [
+        { id: "a", name: "Rouge", stock: 1 },
+        { id: "b", name: "Rouge", stock: 9 },
+      ],
+      incomingRows: [{ id: "z", name: "Rouge", stock: 5 }],
+      baseline: { "id:a": 5 },
+    })
+    expect(merged.rows[0]!.stock).toBe(5)
+  })
+
+  it("the ProductVariant table rows take the merged stock of the same SKU, so Product.stock is not resurrected", () => {
+    const label = (c: string, sz?: string | null) => (c && sz ? `${c} / ${sz}` : c || sz || "")
+    const table = [
+      { id: "cuid_rouge_m", color: "Rouge", size: "M", stock: 6 },
+      { color: "Bleu", size: "M", stock: 15 },
+      { id: "only_in_table", color: "Noir", size: null, stock: 3 },
+    ]
+    const mergedRows = [
+      { id: "new-abc", name: "Rouge / M", stock: 4 },
+      { id: "new-def", name: "Bleu / M", stock: 13 },
+    ]
+    const { rows, aligned } = alignTableVariantStocks(table, mergedRows, label)
+    expect(rows.map((r) => r.stock)).toEqual([4, 13, 3])
+    expect(aligned).toBe(2)
+  })
+
+  it("both supplier routes merge the rows and align the table", () => {
     const src = read("app/api/supplier/products/[id]/route.ts")
     expect(src.match(/mergeVariantRowStocks\(/g)?.length).toBe(2)
+    expect(src.match(/alignTableVariantStocks\(/g)?.length).toBe(2)
   })
 })

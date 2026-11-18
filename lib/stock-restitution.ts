@@ -79,6 +79,10 @@ export type StockRestitutionOrderSnapshot = {
   trackingNumber: string | null
   supplierOrderId: string | null
   fulfillmentStatus: string | null
+  /** Delivery attested (carrier, digital, booking): the goods reached the buyer. Optional for legacy callers. */
+  deliveredAt?: Date | string | null
+  /** Number of return requests on the order. Optional for legacy callers. */
+  returnCount?: number
 }
 
 /** Supplier-side states meaning the goods were (or may have been) bought or sent. */
@@ -86,11 +90,18 @@ const GOODS_MOVED_FULFILLMENT = new Set(["ORDERED", "SHIPPED", "DELIVERED", "PAR
 
 export type StockRestitutionEligibility =
   | { eligible: true }
-  | { eligible: false; reason: "order_open" | "order_shipped" | "supplier_purchase_exists" }
+  | {
+      eligible: false
+      reason: "order_open" | "order_shipped" | "supplier_purchase_exists" | "order_delivered" | "return_requested"
+    }
 
 export function evaluateStockRestitution(order: StockRestitutionOrderSnapshot): StockRestitutionEligibility {
   if (!isOrderClosedForPayout(order)) return { eligible: false, reason: "order_open" }
   if (order.shippedAt || order.trackingNumber?.trim()) return { eligible: false, reason: "order_shipped" }
+  // Goods that reached the buyer, or came back through a return, are given back ONLY after an inspection says they
+  // are resellable (lib/return-disposition.ts) — never by this automatic restitution.
+  if (order.deliveredAt) return { eligible: false, reason: "order_delivered" }
+  if ((order.returnCount ?? 0) > 0) return { eligible: false, reason: "return_requested" }
   if (order.supplierOrderId?.trim()) return { eligible: false, reason: "supplier_purchase_exists" }
   if (GOODS_MOVED_FULFILLMENT.has((order.fulfillmentStatus ?? "").trim().toUpperCase())) {
     return { eligible: false, reason: "supplier_purchase_exists" }

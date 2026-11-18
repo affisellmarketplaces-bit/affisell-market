@@ -41,6 +41,8 @@ export type StockRestitutionOutcome =
   | "order_open"
   | "order_shipped"
   | "supplier_purchase_exists"
+  | "order_delivered"
+  | "return_requested"
   | "order_missing"
   | "product_missing"
   | "unreadable_marker"
@@ -121,10 +123,16 @@ async function restoreOne(candidate: CandidateRow): Promise<StockRestitutionOutc
         trackingNumber: true,
         supplierOrderId: true,
         fulfillmentStatus: true,
+        deliveredAt: true,
+        _count: { select: { returns: true } },
       },
     })
     if (!order) return "order_missing"
-    const eligibility = evaluateStockRestitution({ ...order, fulfillmentStatus: String(order.fulfillmentStatus ?? "") })
+    const eligibility = evaluateStockRestitution({
+      ...order,
+      fulfillmentStatus: String(order.fulfillmentStatus ?? ""),
+      returnCount: (order as { _count?: { returns?: number } })._count?.returns ?? 0,
+    })
     if (!eligibility.eligible) {
       if (eligibility.reason === "order_open") return "order_open"
       return (await writeMarker(eligibility.reason)) ? eligibility.reason : "already_done"

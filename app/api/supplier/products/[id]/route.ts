@@ -4,7 +4,8 @@ import { auth } from "@/auth"
 import { PRODUCT_RECALLED_ERROR } from "@/lib/legal/recall-hold"
 import { isProductHeldByRecall } from "@/lib/legal/recall-hold.server"
 import { prisma } from "@/lib/prisma"
-import { mergeVariantRowStocks, resolveSupplierStockWrite } from "@/lib/stock/partner-stock"
+import { alignTableVariantStocks, mergeVariantRowStocks, resolveSupplierStockWrite } from "@/lib/stock/partner-stock"
+import { buildVariantOptionLabel } from "@/lib/marketplace-purchase-quantity"
 import { SUPPLIER_PRODUCT_WRITE_TX } from "@/lib/prisma-transaction-options"
 import { loadSupplierProductForPut } from "@/lib/supplier-product-put-load"
 import {
@@ -369,6 +370,7 @@ export async function PUT(
     rawBody.variantStockBaseline && typeof rawBody.variantStockBaseline === "object" && !Array.isArray(rawBody.variantStockBaseline)
       ? (rawBody.variantStockBaseline as Record<string, unknown>)
       : null
+  let mergedJsonVariantRows: Array<{ id?: unknown; name?: unknown; stock: number }> | null = null
   if (variantStockBaseline && attr.variants?.variantRows?.length) {
     const merged = mergeVariantRowStocks({
       existingRows: parseVariantsPayload(putLoad.listingVariantsJson ?? null)?.variantRows ?? [],
@@ -377,6 +379,7 @@ export async function PUT(
     })
     attr.variants = { ...attr.variants, variantRows: merged.rows }
     stock = merged.total
+    mergedJsonVariantRows = merged.rows
   }
   const ship = parseSupplierProductShippingBody(body as unknown as Record<string, unknown>)
   if (publish || activatingFromDraft) {
@@ -487,6 +490,12 @@ export async function PUT(
       )
     }
     // Brouillon : on enregistre le reste même si le tableau SKU est incomplet.
+  }
+
+  if (variantPatch && !("error" in variantPatch) && mergedJsonVariantRows && variantPatch.hasVariants) {
+    // The table must carry the same per-SKU stock as the merged JSON rows, or syncProductVariants puts the units
+    // sold meanwhile back into Product.stock (it sets it to the table's sum).
+    variantPatch.variants = alignTableVariantStocks(variantPatch.variants, mergedJsonVariantRows, buildVariantOptionLabel).rows
   }
 
   if (variantPatch && !("error" in variantPatch)) {
@@ -1001,6 +1010,9 @@ export async function PATCH(
         })
         variantRows = merged.rows
         data.stock = merged.total
+        if (variantPatch.hasVariants && variantPatch.variants.length > 0) {
+          variantPatch.variants = alignTableVariantStocks(variantPatch.variants, merged.rows, buildVariantOptionLabel).rows
+        }
       }
       data.variants = {
         ...existingVariants,

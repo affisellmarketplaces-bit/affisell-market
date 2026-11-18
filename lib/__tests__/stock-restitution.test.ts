@@ -86,6 +86,18 @@ describe("evaluateStockRestitution", () => {
     fulfillmentStatus: "PENDING",
   }
 
+  it("never gives back goods that reached the buyer or came back through a return (inspection decides)", () => {
+    expect(evaluateStockRestitution({ ...closed, deliveredAt: new Date() })).toEqual({
+      eligible: false,
+      reason: "order_delivered",
+    })
+    expect(evaluateStockRestitution({ ...closed, returnCount: 1 })).toEqual({
+      eligible: false,
+      reason: "return_requested",
+    })
+    expect(evaluateStockRestitution({ ...closed, deliveredAt: null, returnCount: 0 })).toEqual({ eligible: true })
+  })
+
   it("gives back the stock of a closed order that never shipped", () => {
     expect(evaluateStockRestitution(closed)).toEqual({ eligible: true })
     expect(evaluateStockRestitution({ ...closed, status: "cancelled", paymentSettlementStatus: "CANCELLED" })).toEqual({
