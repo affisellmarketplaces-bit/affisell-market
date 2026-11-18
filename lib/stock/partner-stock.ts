@@ -168,3 +168,36 @@ export function variantStockBaselineFromRows(rows: unknown): Record<string, numb
   }
   return Object.keys(out).length > 0 ? out : null
 }
+
+/**
+ * Preparing the scheduling of `sync-stock` (founder decision pending): what ONE partner stock row may write.
+ * - an unreadable partner value (empty, text, NaN) is a TECHNICAL failure: nothing is written (writing 0 would show
+ *   the product sold out because of an API glitch — the lifecycle rule says a technical failure never changes a state);
+ * - a product whose stock lives in advanced SKU rows (`variants.variantRows`) is skipped: `Product.stock` is their SUM,
+ *   a product-level partner count would desynchronise them (a per-row SKU mapping is the follow-up);
+ * - an unchanged value writes nothing.
+ */
+export type PartnerStockPlan =
+  | { action: "write"; stock: number }
+  | { action: "skip"; reason: "unreadable" | "variant_rows" | "unchanged" }
+
+export function planPartnerStockWrite(raw: unknown, current: { stock: number; variants: unknown }): PartnerStockPlan {
+  const readable =
+    (typeof raw === "number" && Number.isFinite(raw)) ||
+    (typeof raw === "string" && raw.trim() !== "" && Number.isFinite(Number(raw)))
+  if (!readable) return { action: "skip", reason: "unreadable" }
+  const rows = (current.variants as { variantRows?: unknown } | null)?.variantRows
+  if (Array.isArray(rows) && rows.length > 0) return { action: "skip", reason: "variant_rows" }
+  const stock = partnerStockValue(raw)
+  if (stock === current.stock) return { action: "skip", reason: "unchanged" }
+  return { action: "write", stock }
+}
+
+/** `PARTNER_STOCK_SYNC_MODE`: `off` | `observe` (DEFAULT — computes and logs, writes nothing) | `enforce`. */
+export type PartnerStockSyncMode = "off" | "observe" | "enforce"
+export function resolvePartnerStockSyncMode(env: Record<string, string | undefined> = process.env): PartnerStockSyncMode {
+  const v = env.PARTNER_STOCK_SYNC_MODE?.trim().toLowerCase()
+  if (v === "off") return "off"
+  if (v === "enforce") return "enforce"
+  return "observe"
+}

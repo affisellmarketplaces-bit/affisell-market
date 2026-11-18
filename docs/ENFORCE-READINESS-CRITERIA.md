@@ -56,3 +56,28 @@ préfixe indiqué) ou avec les rapports en lecture seule cités.
 
 Chaque passage se fait sur une Preview d'abord, puis en production sur ta décision, et se réverse en remettant la
 variable à `warn` / `off` sans déploiement de code.
+
+## 5. `PARTNER_STOCK_SYNC_MODE` et planification de `sync-stock` (ajouté le 18 novembre, soir)
+
+- **État** : la tâche n'est pas planifiée. Son mode par défaut est désormais `observe` : elle calcule et journalise
+  (`[sync-stock] would_write`, `skipped`) sans rien écrire, pas même l'état de synchronisation du partenaire.
+- **Ce qu'elle refuse déjà d'écrire** : une valeur illisible du partenaire (une panne d'API ne met plus un produit en
+  rupture), un produit dont le stock est tenu par ligne de variante, une valeur inchangée. Elle n'écrit jamais
+  `active` ni la publication.
+- **Critères proposés pour la planifier** : 1) décision sur le sens de `active` (déjà prise de fait : la tâche ne
+  l'écrit plus) ; 2) une semaine en `observe` planifiée, lecture des `would_write` — écarts plausibles, aucune rafale
+  de mises à 0 ; 3) puis `enforce`.
+
+## 6. Imports revendeurs — ce qui ne dépend plus d'un interrupteur
+
+Depuis le 18 novembre au soir, une approbation administrative ne publie jamais un produit dont les données de
+sécurité obligatoires manquent, **quel que soit** `LISTING_READINESS_MODE`. Ce n'est pas un mode à basculer : c'est la
+règle de cette voie.
+
+## 7. `OWED_TRANSFER_RESUME_MODE` — reprise des sommes dues
+
+- `GET /api/admin/payouts/owed-without-connect/resume` donne, sans rien écrire, les virements qui seraient créés et
+  pourquoi les autres ne le sont pas (déjà payé ailleurs, compte non prêt, remboursement partiel, litige…).
+- **Critères proposés** : simulation relue ; vérification sur Stripe que chaque compte « à créer » est bien celui
+  du partenaire ; premier passage sur une seule commande, puis contrôle du virement.
+- Passer en `enforce` déclenche de vrais virements (par le cron existant) : **décision du fondateur**.

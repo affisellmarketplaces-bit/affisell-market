@@ -11,6 +11,8 @@ import {
   mergeVariantRowStocks,
   partnerStockUpdate,
   partnerStockValue,
+  planPartnerStockWrite,
+  resolvePartnerStockSyncMode,
   resolveSupplierStockWrite,
   variantStockBaselineFromRows,
 } from "@/lib/stock/partner-stock"
@@ -54,6 +56,26 @@ describe("partner stock sync: availability only", () => {
   it("the update carries the stock and nothing else (no active, no isDraft)", () => {
     expect(partnerStockUpdate(0)).toEqual({ stock: 0 })
     expect(Object.keys(partnerStockUpdate(5))).toEqual(["stock"])
+  })
+
+  it("planPartnerStockWrite: an unreadable value, variant rows or no change write nothing", () => {
+    expect(planPartnerStockWrite("n/a", { stock: 5, variants: null })).toEqual({ action: "skip", reason: "unreadable" })
+    expect(planPartnerStockWrite(null, { stock: 5, variants: null })).toEqual({ action: "skip", reason: "unreadable" })
+    expect(planPartnerStockWrite(3, { stock: 5, variants: { variantRows: [{ id: "a", stock: 5 }] } })).toEqual({
+      action: "skip",
+      reason: "variant_rows",
+    })
+    expect(planPartnerStockWrite("5", { stock: 5, variants: null })).toEqual({ action: "skip", reason: "unchanged" })
+    expect(planPartnerStockWrite(-2, { stock: 5, variants: null })).toEqual({ action: "write", stock: 0 })
+    expect(planPartnerStockWrite(9, { stock: 5, variants: {} })).toEqual({ action: "write", stock: 9 })
+  })
+
+  it("the sync-stock mode is observe by default and writes only in enforce", () => {
+    expect(resolvePartnerStockSyncMode({})).toBe("observe")
+    expect(resolvePartnerStockSyncMode({ PARTNER_STOCK_SYNC_MODE: "enforce" })).toBe("enforce")
+    const src = read("app/api/cron/sync-stock/route.ts")
+    expect(src).toContain('if (mode === "observe")')
+    expect(src).toContain("planPartnerStockWrite(")
   })
 
   it("the sync-stock cron writes through partnerStockUpdate and never sets active", () => {
