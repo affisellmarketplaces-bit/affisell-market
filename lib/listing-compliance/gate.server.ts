@@ -19,6 +19,7 @@ export type ReadinessSource =
   | "import_dropforge"
   | "import_exec"
   | "import_marketplace_url"
+  | "import_reseller_url"
 
 export type ReadinessGateArgs = {
   source: ReadinessSource

@@ -38,6 +38,12 @@ import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-
 import { syncProductVariants } from "@/lib/product-variant-sku"
 import { runProductImportAgent, type ProductImportAgentResult } from "@/lib/product-import-agent"
 import { prisma } from "@/lib/prisma"
+import {
+  importReviewStateAfterImport,
+  importReviewStateFromTags,
+  mayListOnProduct,
+  withImportReviewState,
+} from "@/lib/reseller-import/review"
 import type { SupplierScrapedProduct } from "@/lib/supplier-import-url-handler"
 import { normalizeImportBrand } from "@/lib/url-import-apply"
 
@@ -822,6 +828,8 @@ export async function commitResellerUrlImport(args: {
       shopHref: string
       editHref: string
       isListed: boolean
+      /** The product waits for Affisell's review: nothing can be bought until it is approved. */
+      reviewPending: boolean
     }
   | { ok: false; error: string; status: number }
 > {
@@ -957,8 +965,15 @@ export async function commitResellerUrlImport(args: {
           ...(aeId ? [{ aliexpressProductId: aeId }] : []),
         ],
       },
-      select: { id: true },
+      select: { id: true, tags: true },
     })
+    // Import → validation → publication (lib/reseller-import/review.ts): a new import is a DRAFT pending Affisell's
+    // review; a re-import refreshes the content and never changes an existing decision or publication.
+    // A product imported BEFORE this flow existed (no review tag) keeps its state: pulling live products silently is a
+    // commercial decision (founder), they are listed for review by the admin route instead.
+    const reviewState = existingProduct
+      ? importReviewStateFromTags(existingProduct.tags)
+      : importReviewStateAfterImport(null)
 
     const productData = {
       name: persist.name,
@@ -970,7 +985,7 @@ export async function commitResellerUrlImport(args: {
       ...(persist.colorImages != null ? { colorImages: persist.colorImages } : {}),
       ...(persist.variants != null ? { variants: persist.variants } : {}),
       categories: preview.category ? [preview.category] : [],
-      tags: persist.tags,
+      tags: reviewState ? withImportReviewState(persist.tags, reviewState) : persist.tags,
       basePriceCents: costCents,
       ...(persist.compareAt ? { compareAt: persist.compareAt } : {}),
       commissionRate: 15,
@@ -986,8 +1001,6 @@ export async function commitResellerUrlImport(args: {
       shipsFrom: persist.shipsFrom,
       hasVariants: persist.variantInputs.length > 0,
       ...(aeId ? { aliexpressProductId: aeId, autoFulfill: true, autoBuyEnabled: true } : {}),
-      active: true,
-      isDraft: false,
     }
 
     const product = existingProduct
@@ -1000,6 +1013,9 @@ export async function commitResellerUrlImport(args: {
           data: {
             supplierId,
             ...productData,
+            // Never sellable before Affisell's review.
+            active: false,
+            isDraft: true,
           },
           select: { id: true },
         })
@@ -1046,6 +1062,15 @@ export async function commitResellerUrlImport(args: {
     })
   }
 
+  // A listing goes live only on a product that is published, on sale and (for an import) approved. Otherwise the
+  // reseller's wish is recorded and honoured at approval time.
+  const productState = await prisma.product.findUnique({
+    where: { id: productId },
+    select: { active: true, isDraft: true, tags: true },
+  })
+  const listNow = listLive && productState != null && mayListOnProduct(productState)
+  const reviewPending = productState != null && !mayListOnProduct(productState)
+
   const listing = await prisma.affiliateProduct.upsert({
     where: {
       affiliateId_productId: {
@@ -1061,7 +1086,7 @@ export async function commitResellerUrlImport(args: {
       customTitle: preview.title,
       customDescription: preview.description,
       customImages: persist.images,
-      isListed: listLive,
+      isListed: listNow,
     },
     update: {
       sellingPriceCents,
@@ -1069,10 +1094,36 @@ export async function commitResellerUrlImport(args: {
       customTitle: preview.title,
       customDescription: preview.description,
       customImages: persist.images,
-      isListed: listLive,
+      isListed: listNow,
     },
     select: { id: true, isListed: true },
   })
+
+  if (reviewPending) {
+    // One row per listing: what the reseller asked for, read by the admin review when it approves.
+    const requestId = `reseller-import-request:${listing.id}`
+    const payload = { productId, affiliateProductId: listing.id, affiliateId: args.affiliateId, listRequested: listLive }
+    await prisma.auditLog
+      .upsert({
+        where: { id: requestId },
+        create: {
+          id: requestId,
+          action: "reseller_import.submitted",
+          entityType: "Product",
+          entityId: productId,
+          actorId: args.affiliateId,
+          payload,
+        },
+        update: { payload },
+      })
+      .catch((error: unknown) => {
+        console.error("[affiliate-url-import]", {
+          productId,
+          result: "review_request_not_recorded",
+          error: error instanceof Error ? error.message : String(error),
+        })
+      })
+  }
 
   console.log("[affiliate-url-import]", {
     affiliateId: args.affiliateId,
@@ -1098,6 +1149,7 @@ export async function commitResellerUrlImport(args: {
     shopHref: shopListingPath(store.slug, listing.id),
     editHref: `/dashboard/affiliate/catalog?productId=${encodeURIComponent(productId)}`,
     isListed: listing.isListed,
+    reviewPending,
   }
 }
 

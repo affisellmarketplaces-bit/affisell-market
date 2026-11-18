@@ -44,6 +44,7 @@ describe("every automated importer that can publish reads the gate", () => {
     "lib/supplier-products-import-exec.ts",
     "lib/supplier-dropforge-import.server.ts",
     "lib/marketplace/import-from-url.server.ts",
+    "lib/reseller-import/review.server.ts",
   ])("%s", (file) => {
     expect(readFileSync(path.join(root, file), "utf8")).toContain("decideImportPublication(")
   })

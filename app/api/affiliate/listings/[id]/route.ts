@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { cancelAuctionsForListings } from "@/lib/auction-listing-lifecycle"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
+import { mayListOnProduct } from "@/lib/reseller-import/review"
 import { exclusivityBlockBody } from "@/lib/product-exclusivity-shared"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 import { revalidateListingCardImage } from "@/lib/revalidate-listing-card-image"
@@ -67,6 +68,11 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   }
 
   if (nextListed && !row.isListed) {
+    // Import → validation → publication: a reseller can not list a product Affisell has not approved (or that is
+    // not published / on sale). The listing goes live by itself at approval when the reseller asked for it.
+    if (!mayListOnProduct(row.product)) {
+      return NextResponse.json({ error: "product_not_reviewed" }, { status: 409 })
+    }
     const exclusiveBlock = exclusivityBlockBody(row.product, session.user.id)
     if (exclusiveBlock) return NextResponse.json(exclusiveBlock, { status: 409 })
     const kycBlocked = await requireMerchantVerifiedForPublish(session.user.id)
