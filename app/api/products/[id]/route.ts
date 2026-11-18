@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { PRODUCT_RECALLED_ERROR } from "@/lib/legal/recall-hold"
+import { isProductHeldByRecall } from "@/lib/legal/recall-hold.server"
 import { prisma } from "@/lib/prisma"
 import { serializeProductVariantRow } from "@/lib/product-variant-sku"
 
@@ -88,6 +90,11 @@ export async function PATCH(
 
   if (existing.supplierId !== session.user.id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
+  // A supplier pause can be lifted by the supplier; an Affisell suspension (open recall) can not.
+  if (Boolean(body.active) && (await isProductHeldByRecall(id))) {
+    return NextResponse.json({ error: PRODUCT_RECALLED_ERROR }, { status: 409 })
   }
 
   const updated = await prisma.product.update({

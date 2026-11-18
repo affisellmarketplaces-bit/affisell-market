@@ -1,6 +1,8 @@
 import { Prisma } from "@prisma/client"
 
 import { auth } from "@/auth"
+import { PRODUCT_RECALLED_ERROR } from "@/lib/legal/recall-hold"
+import { isProductHeldByRecall } from "@/lib/legal/recall-hold.server"
 import { prisma } from "@/lib/prisma"
 import { resolveSupplierStockWrite } from "@/lib/stock/partner-stock"
 import { SUPPLIER_PRODUCT_WRITE_TX } from "@/lib/prisma-transaction-options"
@@ -192,6 +194,10 @@ export async function PUT(
   }
 
   const publish = Boolean(rawBody.publish)
+  // Publishing sets `active = true`: never over an Affisell suspension (open product-safety recall).
+  if (publish && (await isProductHeldByRecall(id))) {
+    return Response.json({ error: PRODUCT_RECALLED_ERROR }, { status: 409 })
+  }
   const saveAsDraftReq = Boolean(rawBody.saveAsDraft)
   /** Ignore stale client autosaves that still send saveAsDraft after the listing went live. */
   const effectiveSaveAsDraft = saveAsDraftReq && existingRow.isDraft

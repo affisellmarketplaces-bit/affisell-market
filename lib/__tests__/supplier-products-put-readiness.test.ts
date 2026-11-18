@@ -20,6 +20,8 @@ vi.mock("@/lib/prisma", () => {
       $transaction: async (cb: (t: typeof tx) => unknown) => cb(tx),
       store: { findUnique: async () => null },
       product: { findUnique: async () => null },
+      // No recall by default (the publish path checks for an open product-safety recall first).
+      productRecall: { findMany: async () => [] },
     },
   }
 })
