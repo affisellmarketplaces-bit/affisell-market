@@ -1,0 +1,58 @@
+# Passage en mode bloquant — critères (préparé le 18 novembre 2026)
+
+Quatre interrupteurs sont en mode observation. Aucun n'est activé en production : chaque passage est une décision
+du fondateur. Ce document dit, pour chacun, ce qu'il faut mesurer, à partir de quels journaux, et à quelles
+conditions le passage est techniquement sûr. Les seuils sont des propositions techniques, à confirmer.
+
+Je n'ai pas accès aux journaux de production. Les chiffres réels sont donc à relever (Vercel → Logs, filtre sur le
+préfixe indiqué) ou avec les rapports en lecture seule cités.
+
+## 1. `CHECKOUT_STOCK_MODE` — stock avant et pendant le paiement
+
+- **Journaux** : `[checkout] would_refuse_insufficient_stock`, `[stock] would_decrement`, `[stock] would_drop`.
+- **Rapport** : `npm run report:checkout-stock` (lecture seule).
+- **Préalables techniques (faits le 18/11)** : le formulaire ne ressuscite plus les unités vendues (produit et
+  lignes de variantes), la synchro n'écrit plus le statut commercial, Ghost ne dépublie plus.
+- **Critères proposés** :
+  1. sur 14 jours, `would_drop` = 0 pour les produits dont le stock est réellement tenu par le fournisseur ;
+  2. les produits à stock nominal (99 / 999 / 1 posés par les importeurs) sont listés et leur stock corrigé ou
+     marqué « non suivi » avant le passage, sinon ils seront épuisés après N ventes ;
+  3. `would_refuse` correspond à des ruptures réelles (vérification sur un échantillon de 20 refus).
+- **Décision liée** : remise en stock des retours (voir 4).
+
+## 2. `LISTING_READINESS_MODE` — publication
+
+- **Journaux** : `[listing-readiness] would_refuse_if_enforced` (créations, publications, imports).
+- **Rapport** : `npm run report:listing-readiness` (lecture seule).
+- **Préalables techniques (faits)** : les quatre imports automatiques et la validation des imports revendeurs
+  passent par le même contrôle ; en `enforce`, un import incomplet devient un brouillon au lieu d'échouer.
+- **Critères proposés** :
+  1. chaque interface de publication permet de compléter les champs exigés (fait : formulaire, assistant guidé,
+     Express, modèle CSV) ;
+  2. part des publications de la semaine qui seraient refusées < 10 %, ou fournisseurs concernés prévenus ;
+  3. aucun refus dû à un faux positif (échantillon de 20 refus lus à la main).
+
+## 3. `PROCUREMENT_CHECKOUT_GATE` — produits que seul un achat externe peut livrer
+
+- **Journaux** : `[procurement-checkout] would_refuse_external_purchase_disabled`.
+- **Critères proposés** : tant que l'achat automatique est coupé (`AUTO_BUY_ENABLED` absent), chaque ligne relevée
+  ici est une vente que personne ne livrera sans achat manuel. Passer en `enforce` dès que ce nombre n'est pas nul
+  et qu'aucun achat manuel n'est organisé pour ces produits — ou retirer ces produits du catalogue.
+
+## 4. `RETURN_RESTOCK_MODE` — remise en stock des retours
+
+- **Étapes** : `observe` d'abord (journal `[return-restock] would_restock`), puis `enforce`.
+- **Préalable** : `CHECKOUT_STOCK_MODE=enforce` (sans décrément à la vente, il n'y a rien à rendre — le code le
+  refuse de lui-même, raison `never_decremented`).
+- **Critères proposés** : 20 inspections enregistrées, résultats « revendable » vérifiés sur un échantillon.
+- **Décision** : un article retourné en bon état est-il remis en vente ? (règle commerciale).
+
+## Ordre conseillé
+
+1. `PROCUREMENT_CHECKOUT_GATE` (le plus petit périmètre, protège l'acheteur).
+2. `LISTING_READINESS_MODE` (n'affecte que les nouvelles publications).
+3. `CHECKOUT_STOCK_MODE` (touche toutes les ventes de produits physiques).
+4. `RETURN_RESTOCK_MODE` en `observe`, puis `enforce`.
+
+Chaque passage se fait sur une Preview d'abord, puis en production sur ta décision, et se réverse en remettant la
+variable à `warn` / `off` sans déploiement de code.
