@@ -6,22 +6,24 @@
  *   npm run report:listing-readiness -- --json
  *   npm run report:listing-readiness -- --limit=5000     # cap the number of products read (default 20000)
  *
- * Uses the DATABASE_URL of .env.local / .env — read that carefully: the default one may be PRODUCTION (reads only).
+ * Uses the DATABASE_URL of the shell, else .env.local, else .env. `--target` prints the database, the tables and the
+ * read-only guarantees WITHOUT connecting; a production (or unidentified) database is read only with
+ * `--confirm-endpoint=<endpoint id>` (the founder's authorisation). Reads run in a READ ONLY transaction.
  * Decide when to flip `warn` -> `enforce` from this report plus the "[listing-readiness]" log lines.
  */
-import { PrismaClient } from "@prisma/client"
-import { config } from "dotenv"
+import type { Prisma } from "@prisma/client"
+
+import { runReadOnlyReport } from "./lib/read-only-report"
 
 import { evaluateListingReadiness } from "../lib/listing-compliance/evaluate"
 import { LISTING_COMPLIANCE_KEYS } from "../lib/listing-compliance/keys"
 
-config({ path: ".env.local" })
-config({ path: ".env" })
 
 const asJson = process.argv.includes("--json")
 const BATCH = 500
 const LIMIT = Number((process.argv.find((a) => a.startsWith("--limit=")) ?? "--limit=20000").split("=")[1]) || 20000
-const prisma = new PrismaClient()
+// Set by runReadOnlyReport: a read-only transaction on a client that refuses writes.
+let prisma: Prisma.TransactionClient
 
 type Bucket = { products: number; ready: number; missing: Record<string, number> }
 
@@ -102,9 +104,14 @@ async function main() {
   console.log(`\n  ${report.note}\n`)
 }
 
-main()
-  .catch((e) => {
-    console.error("report failed:", e instanceof Error ? e.message : e)
-    process.exitCode = 1
-  })
-  .finally(() => prisma.$disconnect())
+runReadOnlyReport(
+  { tables: ["Product", "ProductAttribute (clés de conformité)"], purpose: "couverture des données de sécurité produit (LISTING_READINESS_MODE)" },
+  async (tx) => {
+    prisma = tx
+    await main()
+  },
+  () => {}
+).catch((e) => {
+  console.error("report failed:", e instanceof Error ? e.message : e)
+  process.exitCode = 1
+})

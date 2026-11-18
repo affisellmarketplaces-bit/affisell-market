@@ -7,23 +7,25 @@
  *   npm run report:checkout-stock -- --json
  *   npm run report:checkout-stock -- --limit=5000     # cap the number of variant products scanned (default 20000)
  *
- * Uses the DATABASE_URL of .env.local / .env — read that carefully: the default one may be PRODUCTION (reads only).
+ * Uses the DATABASE_URL of the shell, else .env.local, else .env. `--target` prints the database, the tables and the
+ * read-only guarantees WITHOUT connecting; a production (or unidentified) database is read only with
+ * `--confirm-endpoint=<endpoint id>` (the founder's authorisation). Reads run in a READ ONLY transaction.
  * Decide when to flip `warn` -> `enforce` from this report plus the "[stock] would_decrement" / "[stock] would_drop" and
  * "[checkout] would_refuse_insufficient_stock" log lines. In `warn` (the default) the guard is a DRY RUN: it writes nothing
  * to `Product.stock` and refuses nothing — it only logs what `enforce` WOULD do. The guard treats `Product.stock` as the
  * inventory; the Express wizard writes 99, the classic form defaults to 0, importers write 1 / 99 / 999 — those rows are
  * exactly what this report counts.
  */
-import { PrismaClient } from "@prisma/client"
-import { config } from "dotenv"
+import type { Prisma } from "@prisma/client"
 
-config({ path: ".env.local" })
-config({ path: ".env" })
+import { runReadOnlyReport } from "./lib/read-only-report"
+
 
 const asJson = process.argv.includes("--json")
 const BATCH = 500
 const LIMIT = Number((process.argv.find((a) => a.startsWith("--limit=")) ?? "--limit=20000").split("=")[1]) || 20000
-const prisma = new PrismaClient()
+// Set by runReadOnlyReport: a read-only transaction on a client that refuses writes.
+let prisma: Prisma.TransactionClient
 
 const LIVE_PHYSICAL = { isDraft: false, active: true, listingKind: "PHYSICAL" } as const
 /** Values that importers / wizards write as a placeholder, not as an inventory. */
@@ -106,9 +108,14 @@ async function main() {
   console.log(`\n  ${report.note}\n`)
 }
 
-main()
-  .catch((e) => {
-    console.error("report failed:", e instanceof Error ? e.message : e)
-    process.exitCode = 1
-  })
-  .finally(() => prisma.$disconnect())
+runReadOnlyReport(
+  { tables: ["Product"], purpose: "stocks des produits en ligne (CHECKOUT_STOCK_MODE)" },
+  async (tx) => {
+    prisma = tx
+    await main()
+  },
+  () => {}
+).catch((e) => {
+  console.error("report failed:", e instanceof Error ? e.message : e)
+  process.exitCode = 1
+})
