@@ -110,3 +110,33 @@ Rien n'a été envoyé, aucune donnée n'a été lue ou modifiée. Chaque blocag
 Le test **échoue** si Resend se comporte autrement. Ce serait alors une découverte bloquante pour l'activation, et non un détail. Il refuse de s'exécuter sans l'expéditeur sandbox et `TEST_EMAIL_TO`, ainsi qu'en production.
 
 Restent hors de ce workflow et attendent la préproduction : les remboursements ambigus et manuels sur Stripe en mode test, ainsi que la cohérence avec la page de succès (étapes 6, 7 et 3).
+
+## 7. Revue de sécurité du workflow `Resend — live buyer-notice probe` (2026-11-18) — rien n'a été lancé, aucun secret demandé
+
+Fichiers relus intégralement : `.github/workflows/resend-live-probe.yml`, `lib/__tests__/live-resend-buyer-notice.test.ts`, et le code applicatif qu'ils exécutent : `lib/emails/resend-delivery.ts`, `lib/emails/resolve-resend-recipient.ts`, `lib/env/resend.ts`, `lib/unallocated-buyer-notice.server.ts` (`buildNoticeCopy`). J'ai aussi vérifié la source du SDK `resend` 6.12.4.
+
+| Point demandé | Constat avant revue | État après correction (`4701b2f02`) |
+|---|---|---|
+| Permissions GitHub Actions | `contents: read` seulement ; déclenchement **manuel uniquement** (ni push, ni PR, ni planification) | Inchangé. S'y ajoutent `persist-credentials: false` (le jeton GitHub n'est pas laissé dans le dépôt cloné) et `concurrency` (jamais deux exécutions en parallèle) |
+| Exécution impossible en production | Aucun secret de production n'est référencé (pas de base, pas de Stripe, pas de `VERCEL_*`). Le test exige `isProductionEmailDelivery() === false` | De plus, `VERCEL_ENV: ""` est forcé, et la base et Stripe sont remplacés par des modules vides dans le test : aucune donnée réelle n'est accessible |
+| Provenance du code exécuté | **Faille** : n'importe quelle branche pouvait lancer le workflow avec du code modifié, et les secrets de dépôt étaient disponibles sur toutes les branches | L'exécution est **refusée** si le SHA saisi (`expected_sha`) diffère du commit exécuté, ou si la branche n'est ni `release/finalisation-2026-11-13` ni `main`. Les secrets passent dans un **environnement GitHub protégé** `resend-probe` (approbation du fondateur à chaque exécution, branches autorisées) |
+| Destination exclusive des e-mails | Le résolveur de l'application redirige vers `TEST_EMAIL_TO` hors production avec l'expéditeur sandbox ; le destinataire nominal était `buyer-never-used@example.com` | **Avant chaque envoi**, le test interroge le résolveur de l'application : si la destination n'est pas la boîte de test, il s'arrête sans rien envoyer. Le destinataire nominal est sur le domaine réservé `.invalid` (RFC 2606 : impossible à livrer par définition). Côté Resend, l'expéditeur sandbox ne livre qu'au titulaire du compte : c'est une seconde barrière, indépendante du code |
+| Secrets et journaux | GitHub masque automatiquement les valeurs des secrets. Le message d'erreur du fournisseur était journalisé et pouvait reprendre l'adresse | Seuls les **codes** d'erreur Resend sont journalisés. Les adresses sont masquées par `maskEmailForLog`. Une assertion qui échoue n'affiche que des booléens, des codes ou des identifiants d'e-mail |
+| Envoi à un véritable acheteur | Impossible : aucune donnée d'acheteur n'est lue, il n'y a ni base ni Stripe | Inchangé, avec en plus le contrôle de destination avant chaque envoi |
+| Conséquences d'une relance | Chaque exécution utilise une **nouvelle** clé aléatoire : 17 e-mails de plus vers la boîte de test, aucun effet ailleurs, aucune donnée écrite | Inchangé ; jamais deux exécutions en même temps |
+| Coûts | Quelques minutes d'Actions par exécution (incluses dans le quota GitHub, sinon facturées à la minute). Resend : 17 e-mails, dans l'offre gratuite (100 par jour) | Inchangé |
+| Test à 24 h | **Défaut** : la clé ne portait que la date ; une relance trop tôt aurait faussement « échoué ». Surtout, ce n'était pas le bon contrôle | La clé porte son heure de création. **Entre 18 et 20 h**, le renvoi **doit** être dédupliqué : c'est la fenêtre de reprise de l'application (20 h), et l'échec signalerait un risque de double envoi. Après 24 h 05 min, un nouvel envoi est attendu (Resend documente 24 h). Entre les deux, le contrôle est ignoré avec un message |
+
+**Risques résiduels**
+
+- (1) Les actions `actions/checkout@v4` et `actions/setup-node@v4` sont référencées par étiquette, comme dans les autres workflows du dépôt. Les épingler par empreinte de commit est recommandé ; leurs dépôts n'étaient pas lisibles depuis cette session.
+- (2) Pendant le test, la clé Resend est présente dans l'environnement du processus `vitest`, donc lisible par toute dépendance npm. C'est pourquoi on utilise une clé « Sending access » uniquement, sur un compte Resend de test, révoquée après usage.
+- (3) Créer l'environnement `resend-probe` **avant** d'y mettre les secrets, avec approbation obligatoire ; GitHub crée sinon un environnement non protégé au premier lancement (il serait vide, donc le workflow s'arrêterait à « Require the test secrets »).
+
+**Conclusion.** Après ces corrections, le workflow ne peut écrire qu'à la boîte de test, ne lit aucune donnée réelle, ne s'exécute que sur le commit relu et après ton approbation, et ne laisse fuir ni la clé ni l'adresse. Je le considère sûr à exécuter **une fois les risques (2) et (3) traités**. Je ne l'ai pas lancé et je n'ai demandé aucun secret.
+
+## 8. Préproduction sans Vercel, avec l'infrastructure existante (étude, 2026-11-18)
+
+- **Possible et sans coût : une préproduction éphémère dans GitHub Actions.** Elle combine un PostgreSQL jetable (déjà utilisé par les tests de la CI et par `home-server-timing`), la vraie application (`next start` sur le commit exact) et un faux serveur Resend local. Le SDK `resend` lit `RESEND_BASE_URL` (vérifié dans sa source, version 6.12.4) : aucun e-mail ne sort du runner. On peut y appeler le vrai cron `/api/cron/unallocated-buyer-notices` avec un `CRON_SECRET` généré pour l'exécution.
+- **Ce qu'elle ne couvre pas sans décision de ta part.** Stripe : la notification relit la session et les remboursements chez Stripe. Il faudrait soit une clé Stripe **de mode test** (aucune opération financière réelle, mais c'est un secret, donc ta décision), soit faire pointer le client Stripe vers `stripe-mock`. Cette seconde option modifie la configuration du client de paiement ; je ne la propose pas.
+- **Déjà fait dans cet esprit.** `lib/__tests__/unallocated-buyer-notice-db.test.ts` exécute le mécanisme réel sur un **vrai PostgreSQL** dans la CI : 8 envois simultanés donnent une seule réservation (clé primaire), la reprise, l'alerte unique, la résolution administrateur unique, et le balayage du cron avec les vraies formes de requêtes. Cela lève la limite n° 4 de la §3.

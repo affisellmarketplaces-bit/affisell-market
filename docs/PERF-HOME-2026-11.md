@@ -60,5 +60,33 @@ Aucune fonctionnalité retirée : mêmes textes, mêmes langues. La page d'erreu
 
 - **Le préchargement des liens n'a pas d'effet mesurable dans la CI.** Les 24 requêtes restent : Next continue à demander la coquille de chaque route visible. L'effet attendu, moins de rendus serveur complets avec leurs requêtes en base, ne se voit pas dans une CI sans base. Il reste à confirmer sur une préproduction.
 - **Les traductions de la langue active restent intégrées à chaque page** (HTML de 511 Ko, 143 Kio transférés). 82 espaces de noms, soit 87 % du volume, sont utilisés par des composants client : un tri par espace de noms ne gagnerait qu'environ 13 % et risquerait des textes manquants après une navigation côté client. La vraie correction passerait par des fournisseurs de traduction par zone (acheteur, tableau de bord). C'est un chantier à part.
-- **Mesures faites avec un catalogue vide** (CI sans base). Avec des produits, les images du catalogue deviennent candidates LCP. `HomeLcpPreloadBoundary` les précharge, mais il n'est pas placé dans un `Suspense` et attend donc le chargement du catalogue (jusqu'à 12 s) avant le premier octet de la page. **À vérifier en préproduction** avec une base : temps de réponse réel de `/`.
+- ~~Premier octet retenu par le catalogue~~ : **confirmé puis corrigé**, voir la section suivante.
 - Les gros halos flous animés du hero (`buyer-home-mesh-canvas`) n'apparaissent pas comme coût dominant dans ces mesures. Ils n'ont pas été touchés.
+
+
+## Lot 2 (2026-11-18) — le premier octet ne dépend plus de la base
+
+**Chemin d'exécution (lu dans le code, puis mesuré).** `app/page.tsx` rendait `HomeLcpPreloadBoundary` **hors de tout `Suspense`**. Ce composant attend `loadHomeMarketplaceShellSafe` : arbre des catégories (cache par requête seulement), annonces (cache de 60 s), compteurs d'offres (aucun cache entre requêtes), puis le cache Redis des titres traduits. Le délai maximal est de 12 s (`HOME_SHELL_TIMEOUT_MS`). Sans `loading.tsx` à la racine, React ne peut envoyer aucun octet de la page tant que ce composant n'a pas fini, y compris le hero, qui ne dépend d'aucune donnée. La section catalogue avait pourtant déjà son propre `Suspense` et son squelette : c'est ce composant de préchargement qui annulait leur effet. La mise en page racine, elle, n'interroge pas la base pour un visiteur anonyme (session JWT, pas de domaine de boutique sur la plateforme).
+
+**Condition d'apparition.** Le retard est proportionnel à la latence de la base. Il est maximal lors d'un réveil Neon, sur un lien lent, ou si la base est injoignable.
+
+**Instrument.** Job CI `home-server-timing` (`lighthouse-mobile.yml`) : PostgreSQL jetable avec le schéma complet, relais TCP qui ajoute 150 ms par paquet (`scripts/perf/tcp-delay-proxy.mjs`), et chronométrage du flux HTML (`scripts/perf/stream-timing.mjs`). On y ajoute un vrai Chrome mobile ralenti (`scripts/lcp-candidates.mjs`).
+
+| Base | Premier octet avant (`6f814c41b`) | Premier octet après (`4701b2f02`) | Hero dans le flux, après | Fin du flux, après |
+|---|---|---|---|---|
+| locale (rapide) | 118 – 130 ms | 96 – 110 ms | idem | 113 – 125 ms |
+| +150 ms par paquet | 700 – 704 ms | **90 – 91 ms** | 91 – 93 ms | 673 – 680 ms (catalogue) |
+| injoignable | **10,1 – 10,3 s** | **106 ms** | 107 ms | 10,1 s (catalogue vide après le délai) |
+
+Vrai Chrome mobile ralenti, après correction : le titre du hero (LCP) s'affiche à **3,7 s avec la base lente et 3,4 s avec la base injoignable**. Avant, il ne pouvait pas apparaître avant le premier octet, soit au moins 10,1 s. Lighthouse (catalogue vide) : LCP 7,5 – 7,6 s, JavaScript initial 598 Kio, valeurs inchangées par ce lot.
+
+**Correction.** `<Suspense fallback={null}>` autour de `HomeLcpPreloadBoundary`. Ce composant ne rend que des balises `<link rel="preload">` : aucune mise en page, rien de visible. Les préchargements d'images arrivent dans le même morceau du flux que le catalogue qu'ils servent. Le référencement est inchangé : la réponse HTML complète contient toujours le catalogue, et seul l'ordre d'arrivée change. Le test `home-first-byte.test.ts` verrouille cette correction.
+
+**Limite observée.** Avec une base injoignable, `DOMContentLoaded` attend la fin du flux (10,1 s), même si la page est visible à 3,4 s. Réduire ce délai demanderait de raccourcir le délai d'attente du catalogue (12 s), ce qui modifie son comportement de repli. Ce n'est pas fait ici.
+
+## Traductions de la langue active : étude chiffrée (non implémentée)
+
+- Elles pèsent **≈ 115 Kio compressés, soit environ 80 % des 143 Kio de la page HTML** (catalogue anglais : 347 Kio bruts).
+- Les espaces de noms qu'aucun module client ne nomme représentent 16 espaces et 35 Ko, soit 9,5 %. Gain faible, avec un risque de textes manquants (`useTranslations()` sans espace de noms dans `partner-mobile-dock`, clés construites dynamiquement).
+- Les espaces de noms qu'aucun module client d'une route **publique** ne nomme représentent 28 espaces et 81 Ko, soit 22 %, ou environ 25 Kio compressés. Il faudrait des fournisseurs imbriqués dans les mises en page du tableau de bord et de l'administration. Le fournisseur racine persiste lors des navigations côté client, d'où cette exigence. Les traductions seraient alors doublées sur les pages du tableau de bord, et le grand espace `supplier` (56 Ko) reste utilisé par des pages publiques.
+- **Décision : non engagé.** Le gain réel est d'environ 18 % du document, pour une refonte des fournisseurs et un risque de régression des traductions. La voie qui supprimerait vraiment ce poids est de rendre côté serveur les textes des composants qui n'ont pas besoin d'être interactifs. C'est un chantier progressif, composant par composant, pas une bascule.
