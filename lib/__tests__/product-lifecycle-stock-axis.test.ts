@@ -6,7 +6,13 @@
 import { readFileSync } from "node:fs"
 import path from "node:path"
 import { describe, expect, it, vi } from "vitest"
-import { partnerStockUpdate, partnerStockValue, resolveSupplierStockWrite } from "@/lib/stock/partner-stock"
+import {
+  mergeVariantRowStocks,
+  partnerStockUpdate,
+  partnerStockValue,
+  resolveSupplierStockWrite,
+  variantStockBaselineFromRows,
+} from "@/lib/stock/partner-stock"
 
 vi.mock("@/lib/prisma", () => ({ prisma: {} }))
 vi.mock("@/lib/ops-webhook", () => ({ opsWebhookAlert: async () => undefined }))
@@ -87,5 +93,63 @@ describe("supplier form save: sold units are never resurrected", () => {
   it("both supplier write routes use the rule", () => {
     const src = read("app/api/supplier/products/[id]/route.ts")
     expect(src.match(/resolveSupplierStockWrite\(/g)?.length).toBeGreaterThanOrEqual(3)
+  })
+})
+
+describe("advanced SKU table: sold units are never resurrected, row by row", () => {
+  const existing = [
+    { id: "r1", name: "Rouge / M", stock: 4 }, // loaded 6, 2 sold since
+    { id: "r2", name: "Bleu / M", stock: 10 },
+  ]
+  const baseline = variantStockBaselineFromRows([
+    { id: "r1", stock: 6 },
+    { id: "r2", stock: 10 },
+  ])
+
+  it("untouched rows keep the current stock; a changed row gets only the supplier's change", () => {
+    const { rows, total } = mergeVariantRowStocks({
+      existingRows: existing,
+      incomingRows: [
+        { id: "r1", name: "Rouge / M", stock: 6 }, // untouched in the form
+        { id: "r2", name: "Bleu / M", stock: 15 }, // +5
+      ],
+      baseline,
+    })
+    expect(rows.map((r) => r.stock)).toEqual([4, 15])
+    expect(total).toBe(19)
+  })
+
+  it("a new SKU row takes the submitted stock; extra fields are kept", () => {
+    const { rows } = mergeVariantRowStocks({
+      existingRows: existing,
+      incomingRows: [{ id: "r3", name: "Vert / M", stock: 7, sku: "V-M" }],
+      baseline,
+    })
+    expect(rows[0]).toEqual({ id: "r3", name: "Vert / M", stock: 7, sku: "V-M" })
+  })
+
+  it("rows without id match by name; without a baseline the submitted value is kept (legacy)", () => {
+    const merged = mergeVariantRowStocks({
+      existingRows: [{ name: "Unique", stock: 1 }],
+      incomingRows: [{ name: "unique", stock: 3 }],
+      baseline: { "name:unique": 3 },
+    })
+    expect(merged.rows[0]!.stock).toBe(1)
+    expect(
+      mergeVariantRowStocks({ existingRows: existing, incomingRows: [{ id: "r1", stock: 6 }], baseline: null }).rows[0]!
+        .stock
+    ).toBe(6)
+  })
+
+  it("baseline builder ignores unreadable rows", () => {
+    expect(variantStockBaselineFromRows([{ id: "a", stock: "x" }, null, { name: "B", stock: 2.4 }])).toEqual({
+      "name:b": 2,
+    })
+    expect(variantStockBaselineFromRows([])).toBeNull()
+  })
+
+  it("both supplier routes merge the rows", () => {
+    const src = read("app/api/supplier/products/[id]/route.ts")
+    expect(src.match(/mergeVariantRowStocks\(/g)?.length).toBe(2)
   })
 })

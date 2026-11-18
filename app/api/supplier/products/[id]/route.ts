@@ -4,7 +4,7 @@ import { auth } from "@/auth"
 import { PRODUCT_RECALLED_ERROR } from "@/lib/legal/recall-hold"
 import { isProductHeldByRecall } from "@/lib/legal/recall-hold.server"
 import { prisma } from "@/lib/prisma"
-import { resolveSupplierStockWrite } from "@/lib/stock/partner-stock"
+import { mergeVariantRowStocks, resolveSupplierStockWrite } from "@/lib/stock/partner-stock"
 import { SUPPLIER_PRODUCT_WRITE_TX } from "@/lib/prisma-transaction-options"
 import { loadSupplierProductForPut } from "@/lib/supplier-product-put-load"
 import {
@@ -363,6 +363,21 @@ export async function PUT(
       ? parseDescriptionIllustrationVideos(rawBody)
       : undefined
   const attr = parseProductAttributesBody(body as unknown as Record<string, unknown>)
+  // Advanced SKU table: the same "never resurrect sold units" rule as the product stock, row by row. The form sends
+  // each row's stock as loaded (`variantStockBaseline`); Product.stock becomes the merged rows' sum.
+  const variantStockBaseline =
+    rawBody.variantStockBaseline && typeof rawBody.variantStockBaseline === "object" && !Array.isArray(rawBody.variantStockBaseline)
+      ? (rawBody.variantStockBaseline as Record<string, unknown>)
+      : null
+  if (variantStockBaseline && attr.variants?.variantRows?.length) {
+    const merged = mergeVariantRowStocks({
+      existingRows: parseVariantsPayload(putLoad.listingVariantsJson ?? null)?.variantRows ?? [],
+      incomingRows: attr.variants.variantRows,
+      baseline: variantStockBaseline,
+    })
+    attr.variants = { ...attr.variants, variantRows: merged.rows }
+    stock = merged.total
+  }
   const ship = parseSupplierProductShippingBody(body as unknown as Record<string, unknown>)
   if (publish || activatingFromDraft) {
     const imagesErr = validateSupplierProductImagesForPublish(images)
@@ -972,11 +987,25 @@ export async function PATCH(
     ) {
       const existingVariants = parseVariantsPayload(existingRow.variants) ?? {}
       const incoming = rawBody.listingVariants as Record<string, unknown>
+      let variantRows = incoming.variantRows ?? existingVariants.variantRows
+      // Same "never resurrect sold units" rule per SKU row as the product stock (form sends `variantStockBaseline`).
+      const rowBaseline =
+        rawBody.variantStockBaseline && typeof rawBody.variantStockBaseline === "object" && !Array.isArray(rawBody.variantStockBaseline)
+          ? (rawBody.variantStockBaseline as Record<string, unknown>)
+          : null
+      if (rowBaseline && Array.isArray(incoming.variantRows) && incoming.variantRows.length > 0) {
+        const merged = mergeVariantRowStocks({
+          existingRows: existingVariants.variantRows ?? [],
+          incomingRows: incoming.variantRows as Array<Record<string, unknown>>,
+          baseline: rowBaseline,
+        })
+        variantRows = merged.rows
+        data.stock = merged.total
+      }
       data.variants = {
         ...existingVariants,
         ...incoming,
-        variantRows:
-          incoming.variantRows ?? existingVariants.variantRows,
+        variantRows,
       } as unknown as Prisma.InputJsonValue
     }
     if (!variantPatch.hasVariants) {

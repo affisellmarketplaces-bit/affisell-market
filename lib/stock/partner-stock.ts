@@ -46,3 +46,60 @@ function toFiniteNumber(raw: unknown): number | null {
   }
   return null
 }
+
+type StockRow = { id?: unknown; name?: unknown; stock?: unknown }
+
+function rowKey(row: StockRow): string | null {
+  if (typeof row.id === "string" && row.id.trim()) return `id:${row.id.trim()}`
+  if (typeof row.name === "string" && row.name.trim()) return `name:${row.name.trim().toLowerCase()}`
+  return null
+}
+
+/**
+ * Same rule as `resolveSupplierStockWrite`, row by row, for the advanced SKU table (`variants.variantRows[].stock`):
+ * the form sends each row's stock as it loaded it (`baseline`, keyed by row id — `id:<id>` — else name — `name:<name>`).
+ * An untouched row keeps its CURRENT stock (sales decrement the row in enforce mode); a changed row gets the
+ * supplier's change on top; a row unknown to the server (new SKU) or without a baseline takes the submitted value.
+ * Returns the rows to store and their total, which becomes `Product.stock` (the sum the PDP reads).
+ */
+export function mergeVariantRowStocks<R extends StockRow>(args: {
+  existingRows: ReadonlyArray<StockRow>
+  incomingRows: ReadonlyArray<R>
+  baseline: Readonly<Record<string, unknown>> | null | undefined
+}): { rows: Array<R & { stock: number }>; total: number } {
+  const current = new Map<string, number>()
+  for (const row of args.existingRows) {
+    const key = rowKey(row)
+    const n = Number(row.stock)
+    if (key && Number.isFinite(n)) current.set(key, Math.max(0, Math.round(n)))
+  }
+  const rows = args.incomingRows.map((row) => {
+    const key = rowKey(row)
+    const known = key != null && current.has(key)
+    const stock = resolveSupplierStockWrite({
+      current: known ? current.get(key!)! : 0,
+      submitted: row.stock,
+      baseline: known && args.baseline ? args.baseline[key!] : undefined,
+    })
+    return { ...row, stock }
+  })
+  return { rows, total: rows.reduce((acc, r) => acc + r.stock, 0) }
+}
+
+/** The baseline key of a variant row, as the form must send it (`variantStockBaseline`). */
+export function variantStockBaselineKey(row: StockRow): string | null {
+  return rowKey(row)
+}
+
+/** The `variantStockBaseline` a form sends: each row's stock as it loaded it, keyed like the server merges. */
+export function variantStockBaselineFromRows(rows: unknown): Record<string, number> | null {
+  if (!Array.isArray(rows) || rows.length === 0) return null
+  const out: Record<string, number> = {}
+  for (const row of rows) {
+    if (!row || typeof row !== "object") continue
+    const key = rowKey(row as StockRow)
+    const n = Number((row as StockRow).stock)
+    if (key && Number.isFinite(n)) out[key] = Math.max(0, Math.round(n))
+  }
+  return Object.keys(out).length > 0 ? out : null
+}
