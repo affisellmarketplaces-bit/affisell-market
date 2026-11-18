@@ -37,7 +37,11 @@ export type DecisionResult =
     }
   | { ok: false; error: "not_found" | "forbidden" | "not_received" | "already_restocked" | "not_inspected" | "not_resellable" }
 
-async function loadReturnForSupplier(returnId: string, supplierId: string) {
+type LoadedReturn =
+  | { error: "not_found" | "forbidden" | "not_received" }
+  | { error?: undefined; ret: { id: string; status: string; receivedAt: Date | null; order: { id: string; supplierId: string; quantity: number } } }
+
+async function loadReturnForSupplier(returnId: string, supplierId: string): Promise<LoadedReturn> {
   const ret = await prisma.orderReturn.findUnique({
     where: { id: returnId },
     select: { id: true, status: true, receivedAt: true, order: { select: { id: true, supplierId: true, quantity: true } } },
@@ -60,7 +64,7 @@ export async function recordReturnInspection(args: {
   note: string
 }): Promise<InspectionResult> {
   const loaded = await loadReturnForSupplier(args.returnId, args.supplierId)
-  if ("error" in loaded) return { ok: false, error: loaded.error }
+  if (loaded.error !== undefined) return { ok: false, error: loaded.error }
   const restocked = await prisma.auditLog.findUnique({ where: { id: returnRestockedAuditId(args.returnId) }, select: { id: true } })
   if (restocked) return { ok: false, error: "already_restocked" }
 
@@ -109,7 +113,7 @@ export async function decideReturnDisposition(args: {
   note: string
 }): Promise<DecisionResult> {
   const loaded = await loadReturnForSupplier(args.returnId, args.supplierId)
-  if ("error" in loaded) return { ok: false, error: loaded.error }
+  if (loaded.error !== undefined) return { ok: false, error: loaded.error }
   const ret = loaded.ret
   const orderId = ret.order.id
   const [latestRow, restockedRow, restoredRow, reservationRow] = await Promise.all([
