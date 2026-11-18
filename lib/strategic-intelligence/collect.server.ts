@@ -53,7 +53,7 @@ import { representativeInput, simulateLevers } from "@/lib/strategic-intelligenc
 import { priceGapRequests, unansweredRequests, unmetDemandSignals, unmetSearches, UNMET_WINDOW_DAYS } from "@/lib/strategic-intelligence/unmet-demand"
 import { loadJournal } from "@/lib/strategic-intelligence/journal.server"
 import { adjustScenario, chooseElasticity, summarizePool, type ElasticityPool } from "@/lib/strategic-intelligence/demand-adjusted-simulation"
-import { measurePriceEvents, priceResponseSignals, PR_MIN_EVENTS, PR_WINDOW_DAYS, scoreRecordedEstimates, type ExclusionReason, type PredictionScore, type PricePool } from "@/lib/strategic-intelligence/price-response"
+import { measurePriceEvents, priceResponseSignals, PR_MIN_EVENTS, PR_MODEL_VERSION, PR_WINDOW_DAYS, scoreRecordedEstimates, type ExclusionReason, type PredictionScore, type PricePool } from "@/lib/strategic-intelligence/price-response"
 import { loadRecordedPriceEstimates } from "@/lib/strategic-intelligence/price-estimate-history.server"
 import { detectEmerging, emergingSignals, EMERGING_PRIOR_DAYS, EMERGING_RECENT_DAYS, type EmergingCounts } from "@/lib/strategic-intelligence/emerging"
 import { aggregateQuality, detectQualityOutliers, qualityRiskSignals } from "@/lib/strategic-intelligence/quality-risk"
@@ -727,7 +727,7 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
           products: new Set(pool.events.map((e) => e.productId)).size,
           summary,
           forward: records.available ? scoreRecordedEstimates(pool.key, pool.events, records.rows) : null,
-          recordedEstimates: records.rows.filter((r) => r.poolKey === pool.key).length,
+          recordedEstimates: records.rows.filter((r) => r.poolKey === pool.key && r.modelVersion === PR_MODEL_VERSION).length,
         })
       }
       priceModel.historyAvailable = records.available

@@ -284,34 +284,100 @@ export function metaAnalyse(items: Array<{ y: number; v: number }>): MetaResult 
 const elasticityItems = (events: PriceEvent[]) => events.map((e) => ({ y: e.elasticity, v: e.varE }))
 
 // ── Validation: does the estimate predict what happens NEXT better than "no price effect"? ─────────────────────────
+//
+// What is compared (identical for both, by construction — every item carries BOTH errors, an observation without a
+// model prediction is in neither): the observed log difference-in-differences d of ONE price change over its 14 days
+// after the change, predicted by the model as e × ln(p1/p0) and by constant volume as 0. Error = |observed − predicted|
+// on that same quantity and horizon. Changes of the SAME product share their controls, so the comparison is made on
+// PRODUCTS (the mean gain of each product's changes), not on changes: one product with many changes counts once.
+// « meilleur » needs three things together: the product-level paired z ≥ 2, a majority of products where the model was
+// closer (one-sided sign test p < 0.05), and both still holding when the product most favourable to the model is
+// removed — so a few atypical observations can not carry the verdict. A better historical prediction is an
+// association, never a proof that the price caused the change.
 
-export type PredictionItem = { d: number; x: number; varD: number; mean: number; se: number; tau2: number }
+/** Version of the estimator. Bump when the measurement, the pooling or the prediction rule changes: recorded estimates
+ * of another version are never scored against this one. */
+export const PR_MODEL_VERSION = "pr-2026-11-18.2"
+
+export type PredictionItem = { productId: string; d: number; x: number; varD: number; mean: number; se: number; tau2: number }
 export type PredictionScore = {
+  /** Price changes predicted (the same ones for the model and for constant volume). */
   n: number
-  /** Mean absolute error on the log-change of orders vs controls: model (e × Δ ln price) and constant volume (0). */
+  /** Distinct products among them — the unit of the test. */
+  products: number
+  /** Mean absolute error on d (log change of the listing's orders vs its controls, 14 days after the change). */
   maeModel: number
   maeConstant: number
-  /** Paired z of (|error constant| − |error model|): ≥ 2 = the model predicts clearly better. */
+  /** Product-level paired z of (|error constant| − |error model|). */
   z: number | null
+  /** Products where the model was closer, and the one-sided sign-test p-value. */
+  productsBetter: number
+  signP: number | null
+  /** z once the product most favourable to the model is removed. */
+  zWithoutBest: number | null
   /** Share of outcomes inside the 95 % prediction band (≈ 95 % if the stated uncertainty is honest). */
   coverage: number
   verdict: "meilleur" | "moins_bon" | "non_tranche" | "trop_peu"
 }
 
 export const PR_MIN_PREDICTIONS = 10
+/** Distinct products the prediction check needs before it can say anything. */
+export const PR_MIN_PREDICTION_PRODUCTS = 6
+
+function pairedZ(xs: number[]): number | null {
+  const n = xs.length
+  if (n < 2) return null
+  const m = xs.reduce((a, b) => a + b, 0) / n
+  const sd = Math.sqrt(xs.reduce((a, b) => a + (b - m) ** 2, 0) / (n - 1))
+  return sd > 0 ? m / (sd / Math.sqrt(n)) : m > 0 ? Infinity : m < 0 ? -Infinity : null
+}
+
+/** One-sided P(X ≥ k) for X ~ Binomial(n, ½). */
+export function signTestP(k: number, n: number): number {
+  let c = 1, p = 0
+  for (let i = 0; i <= n; i++) {
+    if (i >= k) p += c
+    c = (c * (n - i)) / (i + 1)
+  }
+  return p / 2 ** n
+}
 
 export function scorePredictions(items: PredictionItem[]): PredictionScore {
   const n = items.length
-  if (n === 0) return { n: 0, maeModel: 0, maeConstant: 0, z: null, coverage: 0, verdict: "trop_peu" }
+  const empty = { n, products: 0, maeModel: 0, maeConstant: 0, z: null, productsBetter: 0, signP: null, zWithoutBest: null, coverage: 0, verdict: "trop_peu" as const }
+  if (n === 0) return empty
   const errM = items.map((i) => Math.abs(i.d - i.mean * i.x))
   const errC = items.map((i) => Math.abs(i.d))
-  const delta = items.map((_, j) => errC[j]! - errM[j]!)
-  const md = delta.reduce((a, b) => a + b, 0) / n
-  const sd = n > 1 ? Math.sqrt(delta.reduce((a, b) => a + (b - md) ** 2, 0) / (n - 1)) : 0
-  const z = n > 1 && sd > 0 ? md / (sd / Math.sqrt(n)) : null
+  const byProduct = new Map<string, number[]>()
+  items.forEach((it, j) => byProduct.set(it.productId, [...(byProduct.get(it.productId) ?? []), errC[j]! - errM[j]!]))
+  const gains = [...byProduct.values()].map((g) => g.reduce((a, b) => a + b, 0) / g.length)
+  const products = gains.length
+  const z = pairedZ(gains)
+  const productsBetter = gains.filter((g) => g > 0).length
+  const signP = products > 0 ? signTestP(productsBetter, products) : null
+  const best = gains.indexOf(Math.max(...gains))
+  const zWithoutBest = pairedZ(gains.filter((_, j) => j !== best))
   const covered = items.filter((i) => Math.abs(i.d - i.mean * i.x) <= 1.96 * Math.sqrt(i.varD + i.x * i.x * (i.se * i.se + i.tau2))).length
-  const verdict = n < PR_MIN_PREDICTIONS || z === null ? "trop_peu" : z >= 2 ? "meilleur" : z <= -2 ? "moins_bon" : "non_tranche"
-  return { n, maeModel: errM.reduce((a, b) => a + b, 0) / n, maeConstant: errC.reduce((a, b) => a + b, 0) / n, z, coverage: covered / n, verdict }
+  const enough = n >= PR_MIN_PREDICTIONS && products >= PR_MIN_PREDICTION_PRODUCTS && z !== null
+  const verdict = !enough
+    ? "trop_peu"
+    : z! >= 2 && signP !== null && signP < 0.05 && zWithoutBest !== null && zWithoutBest >= 2
+      ? "meilleur"
+      : z! <= -2
+        ? "moins_bon"
+        : "non_tranche"
+  return {
+    n,
+    products,
+    maeModel: errM.reduce((a, b) => a + b, 0) / n,
+    maeConstant: errC.reduce((a, b) => a + b, 0) / n,
+    z,
+    productsBetter,
+    signP,
+    zWithoutBest,
+    coverage: covered / n,
+    verdict,
+  }
 }
 
 /** Out-of-sample check inside the data: each event is predicted ONLY from events whose whole window had ended before
@@ -324,31 +390,60 @@ export function backtestEvents(events: PriceEvent[]): PredictionScore {
     const known = sorted.filter((p) => p.at.getTime() + W <= e.at.getTime())
     if (known.length < PR_MIN_EVENTS || new Set(known.map((p) => p.productId)).size < PR_MIN_PRODUCTS) continue
     const m = metaAnalyse(elasticityItems(known))
-    if (m) items.push({ d: e.d, x: e.x, varD: e.varD, mean: m.mean, se: m.se, tau2: m.tau2 })
+    if (m) items.push({ productId: e.productId, d: e.d, x: e.x, varD: e.varD, mean: m.mean, se: m.se, tau2: m.tau2 })
   }
   return scorePredictions(items)
 }
 
-/** A past estimate, as recorded by the daily run (AuditLog `intelligence.price_response_estimate`). */
-export type RecordedEstimate = { poolKey: string; recordedAt: Date; mean: number; se: number; tau2: number }
+/** A past estimate, as recorded by the daily run (AuditLog `intelligence.price_response_estimate`). `dataCutoff` = the
+ * end of the latest outcome window it used: nothing after that date entered the estimate. */
+export type RecordedEstimate = {
+  poolKey: string
+  modelVersion: string
+  recordedAt: Date
+  dataCutoff: Date
+  mean: number
+  se: number
+  tau2: number
+}
 
-/** Forward check against the RECORDED history: each event is scored with the latest estimate recorded for its pool
- * BEFORE its price changed. */
-export function scoreRecordedEstimates(poolKey: string, events: PriceEvent[], records: RecordedEstimate[]): PredictionScore {
-  const mine = records.filter((r) => r.poolKey === poolKey).sort((a, b) => a.recordedAt.getTime() - b.recordedAt.getTime())
+/** Forward check against the RECORDED history. Each later change is scored with the latest estimate of the SAME model
+ * version whose data cutoff AND recording both precede the change: no information from after the change can enter. */
+export function scoreRecordedEstimates(poolKey: string, events: PriceEvent[], records: RecordedEstimate[], version = PR_MODEL_VERSION): PredictionScore {
+  const mine = records
+    .filter((r) => r.poolKey === poolKey && r.modelVersion === version)
+    .sort((a, b) => a.recordedAt.getTime() - b.recordedAt.getTime())
   const items: PredictionItem[] = []
   for (const e of events) {
-    const before = mine.filter((r) => r.recordedAt.getTime() <= e.at.getTime())
+    const t = e.at.getTime()
+    const before = mine.filter((r) => r.recordedAt.getTime() <= t && r.dataCutoff.getTime() <= t)
     const r = before[before.length - 1]
-    if (r) items.push({ d: e.d, x: e.x, varD: e.varD, mean: r.mean, se: r.se, tau2: r.tau2 })
+    if (r) items.push({ productId: e.productId, d: e.d, x: e.x, varD: e.varD, mean: r.mean, se: r.se, tau2: r.tau2 })
   }
   return scorePredictions(items)
 }
 
 // ── Assessment of one pool: estimate + how much to trust it ────────────────────────────────────────────────────────
 
-/** Distinct products before a pool is used at all (events of one product share their controls: not independent). */
+/** MINIMUM TO COMPUTE a pooled number — never a basis for trust: distinct products before a pool is computed at all
+ * (events of one product share their controls, so products, not events, carry independent information). */
 export const PR_MIN_PRODUCTS = 3
+
+/** MINIMUM FOR A RELIABLE CONCLUSION (« modérée »). Independence comes from products, resellers and time, not from the
+ * count of events: events of one product share controls, events of one reseller share his habits and audience, events
+ * of the same weeks share the same marketplace moments. Below any of these, the grade stays « faible » — the criteria
+ * are never relaxed to reach « modérée ». */
+export const PR_RELIABLE = {
+  events: 20,
+  products: 10,
+  resellers: 5,
+  /** Distinct calendar weeks in which the changes happened. */
+  weeks: 3,
+  /** No single reseller may make more than this share of the changes. */
+  maxResellerShare: 0.5,
+  /** No single product may carry more than this share of the pooled weight. */
+  maxProductWeight: 0.5,
+} as const
 
 export type ReliabilityGrade = "insuffisante" | "faible" | "moderee" | "solide"
 
@@ -376,8 +471,12 @@ export type PooledResponse = {
   maxAbsChangePct: number
   firstAt: string
   lastAt: string
+  /** End of the latest outcome window used (last change + window): no data after this date entered the estimate. */
+  dataCutoff: string
   /** Leaving out one PRODUCT at a time: range of the estimate, and whether one product decides the conclusion. */
-  influence: { min: number; max: number; fragile: boolean; maxProductWeight: number }
+  influence: { min: number; max: number; fragile: boolean; maxProductWeight: number; resellerFragile: boolean; maxResellerShare: number | null }
+  /** Distinct calendar weeks (7-day buckets) in which the changes happened. */
+  weeks: number
   /** Placebo on the 14 days BEFORE the pre-window: did the listing already drift away from its controls before the
    * change (timing bias)? null when fewer than PR_MIN_EVENTS events have that earlier window. */
   preTrend: { n: number; meanLogChange: number; lo: number; hi: number; flagged: boolean } | null
@@ -414,6 +513,21 @@ export function poolPriceResponse(events: PriceEvent[]): PooledResponse | null {
     if (verdictOf(r.lo, r.hi) !== verdict || (r.hi < 0) !== (m.hi < 0)) fragile = true
   }
 
+  // Influence, by reseller (his habits / audience are shared by all his changes).
+  let resellerFragile = false
+  let maxResellerShare: number | null = null
+  if (resellerIds !== null) {
+    const counts = new Map<string, number>()
+    for (const e of events) counts.set(e.resellerId!, (counts.get(e.resellerId!) ?? 0) + 1)
+    maxResellerShare = Math.max(...counts.values()) / events.length
+    for (const rid of counts.keys()) {
+      const rest = events.filter((e) => e.resellerId !== rid)
+      const r = rest.length >= 2 ? metaAnalyse(elasticityItems(rest)) : null
+      if (!r || verdictOf(r.lo, r.hi) !== verdict || (r.hi < 0) !== (m.hi < 0)) resellerFragile = true
+    }
+  }
+  const weeks = new Set(events.map((e) => Math.floor(e.at.getTime() / (7 * DAY_MS)))).size
+
   const pre = events.filter((e) => e.pre)
   const pm = pre.length >= PR_MIN_EVENTS ? metaAnalyse(pre.map((e) => ({ y: e.pre!.d, v: e.pre!.varD }))) : null
   const preTrend = pm ? { n: pre.length, meanLogChange: pm.mean, lo: pm.lo, hi: pm.hi, flagged: pm.lo > 0 || pm.hi < 0 } : null
@@ -436,10 +550,16 @@ export function poolPriceResponse(events: PriceEvent[]): PooledResponse | null {
   const weak: string[] = []
   if (productIds.length < PR_MIN_PRODUCTS) blocking.push(`${productIds.length} produit(s) distinct(s) seulement (minimum ${PR_MIN_PRODUCTS})`)
   if (resellerIds !== null && resellerIds < 2) blocking.push("un seul revendeur à l'origine des changements")
-  if (events.length < 15) weak.push(`${events.length} changements de prix seulement`)
-  if (productIds.length < 5) weak.push(`${productIds.length} produits distincts seulement`)
+  // Volume for a RELIABLE conclusion (PR_RELIABLE) — distinct from the minimum to compute (PR_MIN_EVENTS / PR_MIN_PRODUCTS).
+  if (events.length < PR_RELIABLE.events) weak.push(`${events.length} changements de prix seulement (${PR_RELIABLE.events} pour une conclusion fiable)`)
+  if (productIds.length < PR_RELIABLE.products) weak.push(`${productIds.length} produits distincts seulement (${PR_RELIABLE.products} pour une conclusion fiable)`)
   if (resellerIds === null) weak.push("revendeurs à l'origine des changements inconnus")
+  else if (resellerIds < PR_RELIABLE.resellers) weak.push(`${resellerIds} revendeurs seulement (${PR_RELIABLE.resellers} pour une conclusion fiable)`)
+  if (maxResellerShare !== null && maxResellerShare > PR_RELIABLE.maxResellerShare) weak.push(`un revendeur fait ${Math.round(maxResellerShare * 100)} % des changements`)
+  if (weeks < PR_RELIABLE.weeks) weak.push(`changements concentrés sur ${weeks} semaine(s) (${PR_RELIABLE.weeks} pour une conclusion fiable)`)
   if (fragile) weak.push("la conclusion dépend d'un seul produit")
+  else if (maxProductWeight > PR_RELIABLE.maxProductWeight) weak.push(`un produit porte ${Math.round(maxProductWeight * 100)} % du poids de l'estimation`)
+  if (resellerFragile) weak.push("la conclusion dépend d'un seul revendeur")
   if (!preTrend) weak.push("biais de moment non testable (trop peu d'historique avant les changements)")
   else if (preTrend.flagged) weak.push("les ventes de l'annonce s'écartaient déjà de celles des autres revendeurs avant le changement (biais de moment probable)")
   if (m.i2 > 0.75) weak.push(`réactions très différentes d'un changement à l'autre (hétérogénéité ${Math.round(m.i2 * 100)} %)`)
@@ -449,9 +569,9 @@ export function poolPriceResponse(events: PriceEvent[]): PooledResponse | null {
   else if (backtest.verdict !== "meilleur") weak.push(`hors échantillon, ne prédit pas clairement mieux que le volume constant (${backtest.n} prévisions)`)
   const solid =
     events.length >= 40 && productIds.length >= 15 && (resellerIds ?? 0) >= 10 && !!preTrend && preTrend.n >= 15 && !preTrend.flagged &&
-    !fragile && m.i2 <= 0.5 && !!stability && !stability.unstable && backtest.verdict === "meilleur"
+    !fragile && !resellerFragile && weeks >= 6 && m.i2 <= 0.5 && !!stability && !stability.unstable && backtest.verdict === "meilleur"
   const grade: ReliabilityGrade = blocking.length > 0 ? "insuffisante" : weak.length > 0 ? "faible" : solid ? "solide" : "moderee"
-  const gradeReasons = blocking.length > 0 ? blocking : weak.length > 0 ? weak : solid ? [] : ["volume encore insuffisant pour « solide » (40 changements, 15 produits, 10 revendeurs, 15 placebos)"]
+  const gradeReasons = blocking.length > 0 ? blocking : weak.length > 0 ? weak : solid ? [] : ["volume encore insuffisant pour « solide » (40 changements, 15 produits, 10 revendeurs, 6 semaines, 15 placebos)"]
 
   const changes = events.map((e) => (e.toCents / e.fromCents - 1) * 100).sort((a, b) => a - b)
   const mid = Math.floor(changes.length / 2)
@@ -475,7 +595,9 @@ export function poolPriceResponse(events: PriceEvent[]): PooledResponse | null {
     maxAbsChangePct: Math.max(...changes.map(Math.abs)),
     firstAt: new Date(Math.min(...times)).toISOString(),
     lastAt: new Date(Math.max(...times)).toISOString(),
-    influence: { min, max, fragile, maxProductWeight },
+    dataCutoff: new Date(Math.max(...times) + PR_WINDOW_DAYS * DAY_MS).toISOString(),
+    influence: { min, max, fragile, maxProductWeight, resellerFragile, maxResellerShare },
+    weeks,
     preTrend,
     stability,
     backtest,
@@ -496,9 +618,9 @@ export function impliedTenPercentCut(e: number): { ordersPct: number; revenuePct
 export type PricePool = { key: string; label: string; events: PriceEvent[] }
 
 export function backtestLabel(b: PredictionScore): string {
-  if (b.verdict === "trop_peu") return `trop peu de prévisions vérifiables (${b.n}, minimum ${PR_MIN_PREDICTIONS})`
-  const word = b.verdict === "meilleur" ? "prédit mieux" : b.verdict === "moins_bon" ? "prédit moins bien" : "ne prédit pas clairement mieux"
-  return `${word} que le volume constant sur ${b.n} changements suivants (erreur moyenne ${b.maeModel.toFixed(2)} contre ${b.maeConstant.toFixed(2)}, ${Math.round(b.coverage * 100)} % dans l’intervalle annoncé)`
+  if (b.verdict === "trop_peu") return `trop peu de prévisions vérifiables (${b.n} changements sur ${b.products} produits ; minimum ${PR_MIN_PREDICTIONS} sur ${PR_MIN_PREDICTION_PRODUCTS})`
+  const word = b.verdict === "meilleur" ? "a mieux prédit" : b.verdict === "moins_bon" ? "a moins bien prédit" : "n’a pas clairement mieux prédit"
+  return `${word} que le volume constant les ${b.n} changements suivants (${b.products} produits, meilleur sur ${b.productsBetter} ; erreur moyenne ${b.maeModel.toFixed(2)} contre ${b.maeConstant.toFixed(2)} ; ${Math.round(b.coverage * 100)} % dans l’intervalle annoncé) — association historique, pas une preuve causale`
 }
 
 export const GRADE_LABELS: Record<ReliabilityGrade, string> = { insuffisante: "insuffisante", faible: "faible", moderee: "modérée", solide: "solide" }

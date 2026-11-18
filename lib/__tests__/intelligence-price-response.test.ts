@@ -11,7 +11,10 @@ import {
   PR_MIN_EVENTS,
   scorePredictions,
   scoreRecordedEstimates,
+  signTestP,
   t975,
+  PR_MODEL_VERSION,
+  PR_RELIABLE,
   type ListingOrder,
   type PriceChange,
   type PriceEvent,
@@ -157,6 +160,22 @@ describe("grade — five events are a first number, not trust", () => {
     expect(r.gradeReasons.join(" ")).toMatch(/hors échantillon/)
   })
 
+  it("the minimum to COMPUTE is not the volume for a reliable conclusion: 3 products give a number, never « modérée »", () => {
+    expect(PR_RELIABLE.products).toBeGreaterThan(3)
+    const r = pooled(products(PR_MIN_EVENTS).slice(0, 5))!
+    expect(r.grade).toBe("faible")
+    expect(r.gradeReasons.join(" ")).toMatch(/pour une conclusion fiable/)
+  })
+
+  it("dependence: changes concentrated in one week, or mostly by one reseller, keep the grade « faible »", () => {
+    const r = pooled(products(8))! // all on the same day
+    expect(r.weeks).toBe(1)
+    expect(r.gradeReasons.join(" ")).toMatch(/concentrés sur 1 semaine/)
+    const mostlyOne = pooled(products(8).map((x, i) => ({ ...x, change: { ...x.change, resellerId: i < 6 ? "R-big" : x.change.resellerId } })))!
+    expect(mostlyOne.influence.maxResellerShare).toBeCloseTo(0.75, 9)
+    expect(mostlyOne.gradeReasons.join(" ")).toMatch(/un revendeur fait 75 %/)
+  })
+
   it("a placebo showing listings already drifting downgrades the estimate", () => {
     const xs = products(8, { prior: [40, 20] }) // sales of the listing already halving vs control before every cut
     const r = pooled(xs)!
@@ -180,16 +199,48 @@ describe("grade — five events are a first number, not trust", () => {
 })
 
 describe("validation — predictions checked against what happened next", () => {
-  const ev = (daysAgo: number, d: number, x = Math.log(0.9), product = `p${daysAgo}`): PriceEvent => ({
+  const ev = (daysAgo: number, d: number, x = Math.log(0.9), product = `p${Math.round(daysAgo)}`): PriceEvent => ({
     listingId: `L${daysAgo}`, productId: product, at: at(daysAgo), fromCents: 1000, toCents: 900, x, a0: 10, a1: 10, b0: 10, b1: 10, d, varD: 0.4, elasticity: d / x, varE: 0.4 / (x * x),
   })
 
-  it("scoring: a model that predicts the outcomes beats constant volume; with fewer than 10 predictions, no verdict", () => {
-    const good = Array.from({ length: 12 }, (_, i) => ({ d: 0.21 + (i % 3) * 0.01, x: Math.log(0.9), varD: 0.4, mean: -2, se: 0.2, tau2: 0 }))
+  const item = (productId: string, d: number, mean = -2) => ({ productId, d, x: Math.log(0.9), varD: 0.4, mean, se: 0.2, tau2: 0 })
+
+  it("model and constant volume are scored on the SAME observations and horizon (each item carries both errors)", () => {
+    const items = Array.from({ length: 12 }, (_, i) => item(`p${i}`, 0.21 + (i % 3) * 0.01))
+    const s = scorePredictions(items)
+    expect(s.n).toBe(12)
+    expect(s.maeConstant).toBeCloseTo(items.reduce((a, i) => a + Math.abs(i.d), 0) / 12, 9)
+    expect(s.maeModel).toBeCloseTo(items.reduce((a, i) => a + Math.abs(i.d - i.mean * i.x), 0) / 12, 9)
+  })
+
+  it("a model that predicts the outcomes of many PRODUCTS beats constant volume; too few predictions or products: no verdict", () => {
+    const good = Array.from({ length: 12 }, (_, i) => item(`p${i}`, 0.21 + (i % 3) * 0.01))
     expect(scorePredictions(good).verdict).toBe("meilleur")
     expect(scorePredictions(good.slice(0, 9)).verdict).toBe("trop_peu")
-    const wrong = good.map((g) => ({ ...g, d: -0.2 + (g.d - 0.21) }))
-    expect(scorePredictions(wrong).verdict).toBe("moins_bon")
+    expect(scorePredictions(good.map((g) => ({ ...g, d: -0.2 + (g.d - 0.21) }))).verdict).toBe("moins_bon")
+  })
+
+  it("many changes of ONE product count once: 12 good predictions on 2 products are « trop peu »", () => {
+    const s = scorePredictions(Array.from({ length: 12 }, (_, i) => item(i % 2 ? "A" : "B", 0.21)))
+    expect(s.products).toBe(2)
+    expect(s.verdict).toBe("trop_peu")
+  })
+
+  it("a few atypical products can not carry the verdict: large wins on 4 products, slightly worse on 6 → not « meilleur »", () => {
+    const items = [
+      ...Array.from({ length: 4 }, (_, i) => item(`big${i}`, -30 * Math.log(0.9), -30)), // the model was spot on, by a lot
+      ...Array.from({ length: 6 }, (_, i) => item(`small${i}`, 0.105)), // the model was a hair worse
+    ]
+    const s = scorePredictions(items)
+    expect(s.z!).toBeGreaterThanOrEqual(2) // the mean alone would have said « better »…
+    expect(s.productsBetter).toBe(4)
+    expect(s.signP!).toBeGreaterThan(0.05) // …but most products disagree
+    expect(s.verdict).toBe("non_tranche")
+  })
+
+  it("sign test", () => {
+    expect(signTestP(10, 10)).toBeCloseTo(1 / 1024, 9)
+    expect(signTestP(0, 10)).toBeCloseTo(1, 9)
   })
 
   it("backtest never looks ahead: an event is predicted only from events whose whole window had ended", () => {
@@ -200,12 +251,15 @@ describe("validation — predictions checked against what happened next", () => 
     expect(backtestEvents(early).n).toBe(0)
   })
 
-  it("recorded history: each event is scored with the latest estimate recorded BEFORE its price changed", () => {
+  it("recorded history: only an estimate of the SAME model version, recorded AND built from data that end BEFORE the change", () => {
     const events = [ev(30, 0.2), ev(20, 0.2)]
+    const rec = (recordedAt: Date, dataCutoff: Date, mean: number, over: Partial<{ poolKey: string; modelVersion: string }> = {}) => ({ poolKey: "marketplace", modelVersion: PR_MODEL_VERSION, recordedAt, dataCutoff, mean, se: 0.1, tau2: 0, ...over })
     const records = [
-      { poolKey: "marketplace", recordedAt: at(25), mean: -2, se: 0.1, tau2: 0 },
-      { poolKey: "marketplace", recordedAt: at(10), mean: 5, se: 0.1, tau2: 0 }, // made after both changes: never used
-      { poolKey: "root:1", recordedAt: at(40), mean: 5, se: 0.1, tau2: 0 }, // another pool: never used
+      rec(at(25), at(26), -2),
+      rec(at(10), at(11), 5), // made after both changes: never used
+      rec(at(24), at(19), 7), // recorded before the 2nd change but its DATA reach after it: never used for it
+      rec(at(40), at(41), 5, { poolKey: "root:1" }), // another pool
+      rec(at(22), at(23), 9, { modelVersion: "old" }), // another model version
     ]
     const s = scoreRecordedEstimates("marketplace", events, records)
     expect(s.n).toBe(1)
