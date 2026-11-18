@@ -1,5 +1,6 @@
 import { computeTransferAmountsFromOrder, estimateStripeFeeCents, orderSplitInputFromOrder } from "@/lib/marketplace-split-amounts"
 import { orderChargedTotalCents } from "@/lib/money/split-guard"
+import type { AdjustedScenario, PeriodTotals } from "@/lib/strategic-intelligence/demand-adjusted-simulation"
 import type { StrategicSignal } from "@/lib/strategic-intelligence/types"
 
 /**
@@ -248,6 +249,16 @@ export type SimulationSummary = {
   defaulted: string[]
   scenarios: Array<{ label: string; affisellCents: number; resellerCents: number; buyerCents: number; deltaBuyerPct: number }>
   best: { label: string; affisellCents: number; resellerCents: number; buyerCents: number; deltaBuyerPct: number } | null
+  /** The price-moving scenarios over the last 30 days: constant volume vs volume re-estimated from the measured price
+   * sensitivity (demand-adjusted-simulation.ts). Absent on cockpits computed before it existed. */
+  demand?: {
+    orders30: number
+    choice:
+      | { ok: true; scope: "categorie" | "marketplace"; label: string; n: number; cuts: number; raises: number; elasticity: number; lo: number; hi: number; maxAbsChangePct: number; firstAt: string; lastAt: string; notes: string[] }
+      | { ok: false; reason: string }
+    baseline: PeriodTotals
+    scenarios: AdjustedScenario[]
+  }
 }
 
 export type ProductPotential = { productId: string; name: string; cls: PotentialClass; reasons: string[]; econ: ProductEconomics | null; ctx: ProductContext; simulation?: SimulationSummary }

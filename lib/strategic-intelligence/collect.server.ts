@@ -52,6 +52,7 @@ import { buildSupplierReliability, type SupplierReliabilityResult } from "@/lib/
 import { representativeInput, simulateLevers } from "@/lib/strategic-intelligence/lever-simulation"
 import { priceGapRequests, unansweredRequests, unmetDemandSignals, unmetSearches, UNMET_WINDOW_DAYS } from "@/lib/strategic-intelligence/unmet-demand"
 import { loadJournal } from "@/lib/strategic-intelligence/journal.server"
+import { adjustScenario, chooseElasticity, summarizePool, type ElasticityPool } from "@/lib/strategic-intelligence/demand-adjusted-simulation"
 import { measurePriceEvents, priceResponseSignals, PR_MIN_EVENTS, PR_WINDOW_DAYS, type PricePool } from "@/lib/strategic-intelligence/price-response"
 import { detectEmerging, emergingSignals, EMERGING_PRIOR_DAYS, EMERGING_RECENT_DAYS, type EmergingCounts } from "@/lib/strategic-intelligence/emerging"
 import { aggregateQuality, detectQualityOutliers, qualityRiskSignals } from "@/lib/strategic-intelligence/quality-risk"
@@ -128,6 +129,9 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
 
   const verified = new Set<string>()
 
+  // Measured price sensitivity, handed from the price-response collector to the lever simulation (which runs after it).
+  const elasticityPools = new Map<string, ElasticityPool>()
+  const rootKeyOfProduct = new Map<string, string>()
   const results = await Promise.all([
     guarded("supplier.fx_ecb", async () => {
       const days = await fetchEcbHist90d()
@@ -683,7 +687,15 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
             byRoot.set(root, pool)
           }
           pools.push(...byRoot.values())
+          for (const [productId, categoryId] of catOfProduct) {
+            const root = rootOf(categoryId)
+            if (root) rootKeyOfProduct.set(productId, `root:${root}`)
+          }
         }
+      }
+      for (const pool of pools) {
+        const summary = summarizePool(pool)
+        if (summary) elasticityPools.set(pool.key, summary)
       }
       return priceResponseSignals(pools, { observed: measured.observed, usable: measured.events.length, excluded: measured.excluded }, { observedAt, window: { from: d(60).toISOString(), to: observedAt } })
     }, report),
@@ -766,6 +778,22 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
     // What-if levers for the products whose margin is the problem (pure calculation, nothing changes).
     const byProduct = new Map<string, typeof econOrders>()
     for (const o of econOrders) byProduct.set(o.productId, [...(byProduct.get(o.productId) ?? []), o])
+    // Same scenarios with the number of orders re-estimated from the measured price sensitivity (refused, with the
+    // reason, when no measurement is conclusive). Only scenarios that move the buyer's price change volume.
+    const demandView = (productId: string, orders30: number, sim: ReturnType<typeof simulateLevers>) => {
+      const choice = chooseElasticity(rootKeyOfProduct.get(productId) ?? null, elasticityPools)
+      const priced = [...sim.scenarios, ...(sim.bestCombination ? [{ ...sim.bestCombination, label: `Combinaison : ${sim.bestCombination.label}` }] : [])].filter(
+        (s) => s.outcome.buyerPriceCents !== sim.baseline.buyerPriceCents
+      )
+      return {
+        orders30,
+        choice: choice.ok
+          ? { ok: true as const, scope: choice.scope, label: choice.pool.label, n: choice.pool.n, cuts: choice.pool.cuts, raises: choice.pool.raises, elasticity: choice.pool.elasticity, lo: choice.pool.lo, hi: choice.pool.hi, maxAbsChangePct: choice.pool.maxAbsChangePct, firstAt: choice.pool.firstAt, lastAt: choice.pool.lastAt, notes: choice.notes }
+          : { ok: false as const, reason: orders30 > 0 ? choice.reason : "Volume ajusté refusé — aucune commande payée sur 30 jours à mettre à l'échelle." },
+        baseline: { orders: orders30, buyerRevenueCents: sim.baseline.buyerPriceCents * orders30, affisellCents: sim.baseline.affisellNetCents * orders30, resellerCents: sim.baseline.resellerNetCents * orders30 },
+        scenarios: priced.map((s) => adjustScenario(s, sim.baseline, orders30, choice)),
+      }
+    }
     for (const p of items) {
       if (!SIMULATED_CLASSES.has(p.cls)) continue
       const base = representativeInput(byProduct.get(p.productId) ?? [])
@@ -786,6 +814,7 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
         defaulted: base.defaulted,
         scenarios: sim.scenarios.map(view),
         best: sim.bestCombination ? view(sim.bestCombination) : null,
+        demand: demandView(p.productId, p.ctx.orders30, sim),
       }
     }
     const counts: Partial<Record<PotentialClass, number>> = {}

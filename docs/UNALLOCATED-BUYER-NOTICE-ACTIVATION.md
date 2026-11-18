@@ -135,6 +135,33 @@ Fichiers relus intégralement : `.github/workflows/resend-live-probe.yml`, `lib/
 
 **Conclusion.** Après ces corrections, le workflow ne peut écrire qu'à la boîte de test, ne lit aucune donnée réelle, ne s'exécute que sur le commit relu et après ton approbation, et ne laisse fuir ni la clé ni l'adresse. Je le considère sûr à exécuter **une fois les risques (2) et (3) traités**. Je ne l'ai pas lancé et je n'ai demandé aucun secret.
 
+### 7 bis. Revue finale (2026-11-18, commit `4996a23f7`) — corrigé directement, rien lancé, aucun secret demandé
+
+Ce qui précède contenait une **affirmation fausse** : « les adresses sont masquées par `maskEmailForLog` » n'était vrai que pour le test. Le code applicatif `sendResendEmail`, que le test appelle, écrivait en clair dans les journaux le message d'erreur de Resend (qui reprend l'adresse) et le destinataire prévu. Corrigé.
+
+| Point | Constat | Correction et preuve |
+|---|---|---|
+| Actions épinglées | `@v4` (étiquette déplaçable) | `actions/checkout@11d5960…677262` et `actions/setup-node@49933ea…820020` : empreintes complètes, lues de deux sources concordantes (journal « Download action repository » d'une exécution CI et `git ls-remote` des dépôts). Le cache npm partagé est retiré (`npm ci` vérifie de toute façon les empreintes du lockfile). Test : toute ligne `uses:` doit porter une empreinte de 40 caractères |
+| Jeton `GITHUB_TOKEN` | `contents: read` | Inchangé ; le test refuse tout `write`, `write-all` ou `id-token` |
+| Accès aux secrets | Uniquement dans l'environnement `resend-probe`, après le contrôle de provenance | Le test vérifie que la première référence `secrets.` vient **après** ce contrôle, et qu'aucun artefact ni cache n'est publié |
+| Déclenchement par une branche ou une PR non autorisée | Déclencheur manuel uniquement (le test refuse `push`, `pull_request`, `pull_request_target`, `schedule`, `workflow_run`, `repository_dispatch`). Une PR, y compris depuis un fork, ne peut pas le lancer. **Mais** le contrôle de branche et de SHA est écrit dans le fichier du workflow : quelqu'un qui a le droit d'écriture peut pousser une branche dont le workflow l'a retiré | La vraie barrière est donc **la protection de l'environnement**, appliquée par GitHub et non par le fichier : branches autorisées = les deux branches, plus ton approbation à chaque exécution. Au moment d'approuver, vérifie que le commit affiché est bien celui que tu as relu |
+| Injection par les champs saisis | Les champs `expected_sha`, `replay_key` et `replay_id` passent par `env`, jamais dans un script | Test : aucune expression `${{ … }}` dans un bloc `run:` |
+| Destination de chacun des 17 e-mails | Le destinataire nominal (`no-real-buyer@affisell-probe.invalid`) n'est jamais utilisé : c'est le résolveur de l'application qui fixe la destination | `assertProbeEnvironment` refuse avant tout envoi : production (`VERCEL_ENV=production`), expéditeur non sandbox, `TEST_EMAIL_TO` absent ou mal formé. `assertRoutesToTestInbox` refuse **chaque** envoi si le résolveur ne renvoie pas la boîte de test. Test sans réseau (vrai `sendResendEmail`, vrai résolveur, SDK remplacé par un enregistreur) : sur les 17 envois, en cas de succès comme de refus de Resend, **chaque** `to` est la boîte de test, et il n'y a jamais de `cc`, `bcc` ni `reply_to`. Le repli de `sendResendEmail` (nouvel essai vers `TEST_EMAIL_TO`) ne se déclenche pas, puisque la destination est déjà la boîte de test. En production, le test prouve que le garde arrête l'envoi |
+| Fuites dans les journaux | `sendResendEmail` écrivait en clair l'adresse prévue et le message de Resend | `redactEmails` remplace toute adresse par `[email]` dans le message du fournisseur ; l'adresse prévue est masquée. Le test vérifie que la sortie ne contient ni la clé, ni la boîte de test (**quelle que soit la casse** : GitHub ne masque que le texte exact du secret, et Resend renvoie l'adresse en minuscules), ni le destinataire nominal |
+| Relance et interruption | — | Une relance de l'exécution redemande ton approbation, reprend le même commit et crée une nouvelle clé aléatoire : 17 e-mails de plus vers la boîte de test, rien d'écrit ailleurs. Une interruption ne laisse que des e-mails déjà reçus par la boîte de test ; aucune donnée ni aucun état n'est conservé |
+
+**Ce qui reste hors du code** : le processus de test a la clé en mémoire, donc toute dépendance npm compromise pourrait la lire. Utilise une clé « Sending access » sur un compte Resend de test, révoquée juste après.
+
+**Actions manuelles, à faire par toi seulement quand tu décideras de lancer le test (rien n'a été fait)** :
+1. GitHub → Settings → Environments → créer `resend-probe` **avant** d'y mettre le moindre secret :
+   - *Required reviewers* : toi ;
+   - *Deployment branches* : « Selected branches », avec `release/finalisation-2026-11-13` et `main` ;
+   - ne pas cocher l'option qui permet aux administrateurs de passer outre.
+2. Sur un compte Resend de test, créer une clé « Sending access ». L'adresse du titulaire de ce compte sera `RESEND_TEST_EMAIL_TO`. Ajouter les deux secrets **dans l'environnement**, pas au niveau du dépôt.
+3. Lancer le workflow depuis la branche, avec `expected_sha` égal au commit relu. Approuver après avoir vérifié le commit affiché. Contrôler la boîte de réception, Gmail et Outlook.
+4. Pour le contrôle à 18–20 h : relancer avec les champs `replay_key` et `replay_id` affichés par la première exécution.
+5. Révoquer la clé, puis supprimer les secrets.
+
 ## 8. Préproduction sans Vercel, avec l'infrastructure existante (étude, 2026-11-18)
 
 - **Possible et sans coût : une préproduction éphémère dans GitHub Actions.** Elle combine un PostgreSQL jetable (déjà utilisé par les tests de la CI et par `home-server-timing`), la vraie application (`next start` sur le commit exact) et un faux serveur Resend local. Le SDK `resend` lit `RESEND_BASE_URL` (vérifié dans sa source, version 6.12.4) : aucun e-mail ne sort du runner. On peut y appeler le vrai cron `/api/cron/unallocated-buyer-notices` avec un `CRON_SECRET` généré pour l'exécution.

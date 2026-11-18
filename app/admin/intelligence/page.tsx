@@ -6,7 +6,8 @@ import { DecisionForm, MeasureButton } from "@/components/admin/intelligence/dec
 import { loadIntelligenceCockpit } from "@/lib/strategic-intelligence/collect.server"
 import { GRADE_LABELS, RELIABILITY_MIN_ORDERS, type ComponentVerdict, type RateComponent } from "@/lib/strategic-intelligence/supplier-reliability"
 import { familyLearning, LEARN_MIN_ACTED, type LearningState } from "@/lib/strategic-intelligence/learned-priority"
-import { POTENTIAL_LABELS, type PotentialClass } from "@/lib/strategic-intelligence/product-economics"
+import { POTENTIAL_LABELS, type PotentialClass, type SimulationSummary } from "@/lib/strategic-intelligence/product-economics"
+import { DEMAND_ADJUSTMENT_CAVEAT } from "@/lib/strategic-intelligence/demand-adjusted-simulation"
 import { SIMULATION_CAVEAT } from "@/lib/strategic-intelligence/lever-simulation"
 import {
   DECISION_LABELS,
@@ -388,6 +389,7 @@ export default async function AdminIntelligencePage() {
                             ))}
                           </tbody>
                         </table>
+                        {s.demand ? <DemandAdjustedTable demand={s.demand} /> : null}
                       </details>
                     )
                   })}
@@ -516,6 +518,71 @@ export default async function AdminIntelligencePage() {
           {cockpit.collectors.map((c) => `${c.id} ${c.ok ? `✓ (${c.signals})` : `✗ ${c.error}`}`).join(" · ")}
         </p>
       </section>
+    </div>
+  )
+}
+
+type DemandView = NonNullable<SimulationSummary["demand"]>
+
+const DEMAND_STATUS_LABELS = { ajuste: "", prix_inchange: "prix acheteur inchangé : volume inchangé", hors_plage: "hors de la plage de prix observée : non ajusté", refuse: "non ajusté" } as const
+
+/** Constant volume vs volume re-estimated from the measured price sensitivity, over the product's last 30 days. */
+function DemandAdjustedTable({ demand }: { demand: DemandView }) {
+  const e = (c: number) => `${(c / 100).toFixed(0)} €`
+  const n = (v: number) => v.toFixed(1).replace(".", ",")
+  const num = (v: number) => v.toFixed(2).replace(".", ",").replace("-", "−")
+  const day = (iso: string) => new Date(iso).toLocaleDateString("fr-FR")
+  const cell = (constant: number, r: { central: number; min: number; max: number } | undefined, fmt: (v: number) => string) =>
+    r ? `${fmt(constant)} → ${fmt(r.central)} (${fmt(r.min)} à ${fmt(r.max)})` : fmt(constant)
+  const c = demand.choice
+  return (
+    <div className="mt-3 space-y-1 text-xs">
+      <p className="font-medium text-zinc-800 dark:text-zinc-200">
+        Sur 30 jours ({demand.orders30} commande(s) payée(s), constaté) : volume constant → volume ajusté à la demande
+      </p>
+      {c.ok ? (
+        <p className="text-zinc-600 dark:text-zinc-400">
+          Estimation : élasticité {num(c.elasticity)} (de {num(c.lo)} à {num(c.hi)}, ± 2 erreurs types), {c.scope === "categorie" ? `catégorie « ${c.label} »` : "marketplace"} —{" "}
+          {c.n} changements de prix observés ({c.cuts} baisses, {c.raises} hausses, jusqu’à {n(c.maxAbsChangePct)} %) du {day(c.firstAt)} au {day(c.lastAt)}.
+          {c.notes.length > 0 ? ` ${c.notes.join(" ; ")}.` : ""}
+        </p>
+      ) : (
+        <p className="text-amber-700 dark:text-amber-400">{c.reason} Seul le volume constant est affiché.</p>
+      )}
+      <table className="w-full text-left">
+        <thead className="text-zinc-500">
+          <tr>
+            <th className="py-1 pr-3">Scénario</th>
+            <th className="py-1 pr-3">Commandes</th>
+            <th className="py-1 pr-3">Payé par les acheteurs (TTC)</th>
+            <th className="py-1 pr-3">Marge Affisell</th>
+            <th className="py-1">Marge revendeur</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr className="border-t border-zinc-200 dark:border-zinc-800">
+            <td className="py-1 pr-3">Aujourd’hui</td>
+            <td className="py-1 pr-3">{n(demand.baseline.orders)}</td>
+            <td className="py-1 pr-3">{e(demand.baseline.buyerRevenueCents)}</td>
+            <td className="py-1 pr-3">{e(demand.baseline.affisellCents)}</td>
+            <td className="py-1">{e(demand.baseline.resellerCents)}</td>
+          </tr>
+          {demand.scenarios.map((r) => (
+            <tr key={r.label} className="border-t border-zinc-200 dark:border-zinc-800">
+              <td className="py-1 pr-3">
+                {r.label} ({r.priceChangePct >= 0 ? "+" : ""}
+                {n(r.priceChangePct)} % acheteur){r.status !== "ajuste" ? <span className="text-zinc-500"> — {DEMAND_STATUS_LABELS[r.status]}</span> : null}
+                {r.resellerKeeps90Pct === false ? <span className="text-amber-700 dark:text-amber-400"> — le revendeur perd plus de 10 % sur la période</span> : null}
+              </td>
+              <td className="py-1 pr-3">{cell(r.constant.orders, r.adjusted?.orders, n)}</td>
+              <td className="py-1 pr-3">{cell(r.constant.buyerRevenueCents, r.adjusted?.buyerRevenueCents, e)}</td>
+              <td className="py-1 pr-3">{cell(r.constant.affisellCents, r.adjusted?.affisellCents, e)}</td>
+              <td className="py-1">{cell(r.constant.resellerCents, r.adjusted?.resellerCents, e)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="text-zinc-500">{DEMAND_ADJUSTMENT_CAVEAT}</p>
     </div>
   )
 }
