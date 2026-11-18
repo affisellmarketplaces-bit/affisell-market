@@ -1223,7 +1223,8 @@
       "merchantVerificationPending": "Verifica del venditore richiesta — completa la tua pratica KYC su /dashboard/verification prima di pubblicare.",
       "affiliateCommissionRequired": "Imposta la commissione offerta agli affiliati su ogni vendita (> 0%). La griglia per categoria è solo indicativa.",
       "productImagesRequiredHosted": "Aggiungi almeno una foto prodotto ospitata (upload completato) prima di pubblicare.",
-      "variantsInvalidGeneric": "Correggi le varianti / righe SKU (campi non validi)."
+      "variantsInvalidGeneric": "Correggi le varianti / righe SKU (campi non validi).",
+      "productRecalled": "Questo prodotto è oggetto di un richiamo di sicurezza aperto da Affisell: per ora non può essere rimesso in vendita. Contatta l'assistenza Affisell per sapere come revocare il richiamo."
     },
     "descriptionField": {
       "label": "Descrizione",

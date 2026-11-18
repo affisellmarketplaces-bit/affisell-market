@@ -1223,7 +1223,8 @@
       "merchantVerificationPending": "Händlerverifizierung erforderlich — vervollständigen Sie Ihre KYC-Unterlagen unter /dashboard/verification vor der Veröffentlichung.",
       "affiliateCommissionRequired": "Legen Sie die den Affiliates angebotene Provision pro Verkauf fest (> 0 %). Das Kategorieraster dient nur zur Orientierung.",
       "productImagesRequiredHosted": "Fügen Sie vor der Veröffentlichung mindestens ein gehostetes Produktfoto hinzu (Upload abgeschlossen).",
-      "variantsInvalidGeneric": "Korrigieren Sie die Varianten/SKU-Zeilen (ungültige Felder)."
+      "variantsInvalidGeneric": "Korrigieren Sie die Varianten/SKU-Zeilen (ungültige Felder).",
+      "productRecalled": "Für dieses Produkt gilt ein von Affisell eingeleiteter Sicherheitsrückruf. Es kann vorerst nicht wieder verkauft werden. Wenden Sie sich an den Affisell-Support, um zu erfahren, wie der Rückruf aufgehoben werden kann."
     },
     "descriptionField": {
       "label": "Beschreibung",

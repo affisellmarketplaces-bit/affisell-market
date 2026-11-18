@@ -1223,7 +1223,8 @@
       "merchantVerificationPending": "Vérification marchand requise — complétez votre dossier KYC sur /dashboard/verification avant de publier.",
       "affiliateCommissionRequired": "Définissez la commission offerte aux affiliés sur chaque vente (> 0 %). La grille catégorie est indicative uniquement.",
       "productImagesRequiredHosted": "Ajoutez au moins une photo produit hébergée (upload terminé) avant de publier.",
-      "variantsInvalidGeneric": "Corrigez les variantes / lignes SKU (champs invalides)."
+      "variantsInvalidGeneric": "Corrigez les variantes / lignes SKU (champs invalides).",
+      "productRecalled": "Ce produit fait l'objet d'un rappel de sécurité ouvert par Affisell : il ne peut pas être remis en vente pour le moment. Contactez le support Affisell pour connaître les étapes de levée du rappel."
     },
     "descriptionField": {
       "label": "Description",

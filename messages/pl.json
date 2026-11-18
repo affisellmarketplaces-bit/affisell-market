@@ -1223,7 +1223,8 @@
       "merchantVerificationPending": "Wymagana weryfikacja sprzedawcy — uzupełnij dokumentację KYC na /dashboard/verification przed publikacją.",
       "affiliateCommissionRequired": "Ustaw prowizję oferowaną partnerom przy każdej sprzedaży (> 0%). Siatka kategorii ma charakter poglądowy.",
       "productImagesRequiredHosted": "Dodaj co najmniej jedno hostowane zdjęcie produktu (zakończony upload) przed publikacją.",
-      "variantsInvalidGeneric": "Popraw warianty / wiersze SKU (nieprawidłowe pola)."
+      "variantsInvalidGeneric": "Popraw warianty / wiersze SKU (nieprawidłowe pola).",
+      "productRecalled": "Ten produkt jest objęty wycofaniem z powodów bezpieczeństwa, wszczętym przez Affisell: na razie nie może wrócić do sprzedaży. Skontaktuj się z pomocą Affisell, aby dowiedzieć się, jak zakończyć wycofanie."
     },
     "descriptionField": {
       "label": "Opis",

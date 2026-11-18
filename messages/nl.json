@@ -1223,7 +1223,8 @@
       "merchantVerificationPending": "Verkopersverificatie vereist — voltooi je KYC-dossier op /dashboard/verification voordat je publiceert.",
       "affiliateCommissionRequired": "Stel de commissie in die aan affiliates wordt aangeboden per verkoop (> 0%). Het categorierooster is alleen indicatief.",
       "productImagesRequiredHosted": "Voeg minstens één gehoste productfoto toe (upload voltooid) voordat je publiceert.",
-      "variantsInvalidGeneric": "Corrigeer de varianten / SKU-rijen (ongeldige velden)."
+      "variantsInvalidGeneric": "Corrigeer de varianten / SKU-rijen (ongeldige velden).",
+      "productRecalled": "Voor dit product loopt een veiligheidsterugroeping die door Affisell is geopend: het kan voorlopig niet opnieuw te koop worden gezet. Neem contact op met de Affisell-support om te horen hoe de terugroeping kan worden opgeheven."
     },
     "descriptionField": {
       "label": "Beschrijving",

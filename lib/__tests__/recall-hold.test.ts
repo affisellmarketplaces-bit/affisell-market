@@ -53,3 +53,19 @@ describe("both supplier activation paths check the hold", () => {
     expect(PRODUCT_RECALLED_ERROR).toBe("product_recalled")
   })
 })
+
+describe("the supplier sees words, not the code", () => {
+  it("product_recalled is a known publish blocker translated in every locale", async () => {
+    const { mapServerPublishBlockers } = await import("@/lib/supplier-publish-blockers")
+    for (const locale of ["fr", "en"] as const) {
+      const [blocker] = mapServerPublishBlockers({ error: PRODUCT_RECALLED_ERROR }, locale)
+      expect(blocker?.message).toBeTruthy()
+      expect(blocker?.message).not.toContain("product_recalled")
+    }
+    const root = path.resolve(__dirname, "../..")
+    for (const loc of ["fr", "en", "de", "es", "it", "nl", "pl", "zh"]) {
+      const msgs = JSON.parse(readFileSync(path.join(root, `messages/${loc}.json`), "utf8"))
+      expect(typeof msgs.supplier.publishBlockers.productRecalled).toBe("string")
+    }
+  })
+})

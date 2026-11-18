@@ -1223,7 +1223,8 @@
       "merchantVerificationPending": "Verificación de comerciante requerida — completa tu expediente KYC en /dashboard/verification antes de publicar.",
       "affiliateCommissionRequired": "Define la comisión ofrecida a los afiliados por cada venta (> 0 %). La tabla de categorías es solo orientativa.",
       "productImagesRequiredHosted": "Añade al menos una foto de producto alojada (subida completa) antes de publicar.",
-      "variantsInvalidGeneric": "Corrige las variantes / filas SKU (campos no válidos)."
+      "variantsInvalidGeneric": "Corrige las variantes / filas SKU (campos no válidos).",
+      "productRecalled": "Este producto está sujeto a una retirada de seguridad abierta por Affisell: no puede volver a ponerse a la venta por ahora. Contacta con el soporte de Affisell para saber cómo levantar la retirada."
     },
     "descriptionField": {
       "label": "Descripción",

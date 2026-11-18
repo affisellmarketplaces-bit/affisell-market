@@ -1223,7 +1223,8 @@
       "merchantVerificationPending": "Merchant verification required — complete your KYC file at /dashboard/verification before publishing.",
       "affiliateCommissionRequired": "Set the commission offered to affiliates on each sale (> 0%). The category grid is indicative only.",
       "productImagesRequiredHosted": "Add at least one hosted product photo (upload complete) before publishing.",
-      "variantsInvalidGeneric": "Fix the variants / SKU rows (invalid fields)."
+      "variantsInvalidGeneric": "Fix the variants / SKU rows (invalid fields).",
+      "productRecalled": "This product is under a safety recall opened by Affisell, so it can't be put back on sale for now. Contact Affisell support to learn how the recall can be lifted."
     },
     "descriptionField": {
       "label": "Description",
