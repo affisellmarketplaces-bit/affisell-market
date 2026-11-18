@@ -44,8 +44,14 @@ describe("every automated importer that can publish reads the gate", () => {
     "lib/supplier-products-import-exec.ts",
     "lib/supplier-dropforge-import.server.ts",
     "lib/marketplace/import-from-url.server.ts",
-    "lib/reseller-import/review.server.ts",
   ])("%s", (file) => {
     expect(readFileSync(path.join(root, file), "utf8")).toContain("decideImportPublication(")
+  })
+
+  it("the reseller-import review is STRICTER: it judges the blocking safety data itself, whatever the mode", () => {
+    const src = readFileSync(path.join(root, "lib/reseller-import/review.server.ts"), "utf8")
+    expect(src).toContain("importPublicationStatus(")
+    expect(src).toContain("evaluateListingReadiness(")
+    expect(src).not.toContain("decideImportPublication(")
   })
 })
