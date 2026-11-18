@@ -8,6 +8,7 @@ import {
 import { auth } from "@/auth"
 import { assertGhostStockForCheckout } from "@/lib/ghost/checkout-gate"
 import { evaluateCheckoutStockGate, type StockCheckLine } from "@/lib/checkout-stock"
+import { evaluateExternalPurchaseCheckoutGate } from "@/lib/procurement/external-purchase-checkout.server"
 import { getSimilarInStockProducts } from "@/lib/ghost/similar-products"
 import { ensureGhostStockSchema } from "@/lib/ghost/ensure-ghost-schema"
 import {
@@ -336,6 +337,29 @@ async function checkoutStockGate(lines: StockCheckLine[]): Promise<NextResponse 
   )
 }
 
+/**
+ * Chantier 1 (single external-purchase switch): a product only an external purchase can deliver (platform auto-buy
+ * account) must not take a payment while purchases are off. `PROCUREMENT_CHECKOUT_GATE`: `warn` (default) only logs,
+ * `enforce` refuses here, before the Stripe session exists. The buyer sees the same "no longer available" message as a
+ * sold-out product (the product IS unavailable to buy); the reason stays in the server log, never in the UI.
+ */
+async function externalPurchaseCheckoutGate(
+  lines: { productId: string; productName: string; supplierId: string | null }[]
+): Promise<NextResponse | null> {
+  const decision = await evaluateExternalPurchaseCheckoutGate(lines)
+  if (!decision.refuse || !decision.blocked) return null
+  return NextResponse.json(
+    {
+      error: "OUT_OF_STOCK",
+      productName: decision.blocked.productName ?? null,
+      availableQty: 0,
+      requestedQty: 0,
+      alternatives: [],
+    },
+    { status: 409 }
+  )
+}
+
 type LoadedLine = {
   affiliateProductId: string
   qty: number
@@ -484,6 +508,15 @@ async function checkoutFromItems(
     }))
   )
   if (stockGate) return stockGate
+
+  const purchaseGate = await externalPurchaseCheckoutGate(
+    loaded.map((line) => ({
+      productId: line.listing.product.id,
+      productName: line.listing.product.name,
+      supplierId: line.listing.product.supplierId,
+    }))
+  )
+  if (purchaseGate) return purchaseGate
 
   const ghostGates = await Promise.all(
     loaded.map((line) => assertGhostStockForCheckout(line.listing.product))
@@ -692,6 +725,11 @@ export async function marketplaceCheckoutPOST(
     },
   ])
   if (stockGate) return stockGate
+
+  const purchaseGate = await externalPurchaseCheckoutGate([
+    { productId: product.id, productName: product.name, supplierId: product.supplierId },
+  ])
+  if (purchaseGate) return purchaseGate
 
   const affiliateProduct = listing
   const affiliate = listing.affiliate

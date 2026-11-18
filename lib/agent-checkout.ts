@@ -1,6 +1,7 @@
 import { isPricedBelowSupplierPrice } from "@/lib/checkout-price-guard"
 import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing-display"
 import { evaluateCheckoutStockGate } from "@/lib/checkout-stock"
+import { evaluateExternalPurchaseCheckoutGate } from "@/lib/procurement/external-purchase-checkout.server"
 import { ensureGhostStockSchema } from "@/lib/ghost/ensure-ghost-schema"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { isPrismaMissingColumnError } from "@/lib/prisma-missing-column"
@@ -30,6 +31,7 @@ const agentListingSelect = {
       hasVariants: true,
       listingKind: true,
       basePriceCents: true,
+      supplierId: true,
     },
   },
 } as const
@@ -99,6 +101,12 @@ export async function createCheckoutSession(productId: string, userId?: string):
     },
   ])
   if (stockGate.refuse) return { checkoutUrl: null, reason: "out_of_stock", name }
+
+  // Single external-purchase switch: a product only an external purchase can deliver (warn by default, see the module).
+  const purchaseGate = await evaluateExternalPurchaseCheckoutGate([
+    { productId: listing.productId, productName: listing.product.name, supplierId: listing.product.supplierId },
+  ])
+  if (purchaseGate.refuse) return { checkoutUrl: null, reason: "out_of_stock", name }
 
   // Never below the supplier's current price (lib/checkout-price-guard.ts): nobody could be paid for that sale.
   if (isPricedBelowSupplierPrice({ unitSellingCents: listing.sellingPriceCents, unitSupplierCents: listing.product.basePriceCents })) {

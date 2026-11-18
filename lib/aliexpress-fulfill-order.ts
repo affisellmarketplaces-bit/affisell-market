@@ -10,6 +10,10 @@ import {
   reportInDoubtPurchase,
   reportStaleClaimIfOld,
 } from "@/lib/fulfillment/supplier-purchase-guard"
+import {
+  EXTERNAL_PURCHASE_DISABLED_ERROR,
+  isExternalPurchaseEnabled,
+} from "@/lib/procurement/external-purchase-switch"
 import { prisma } from "@/lib/prisma"
 
 export type FulfillAffisellOrderResult =
@@ -37,7 +41,8 @@ export function isNeverRetryFulfillError(error: string): boolean {
     error.startsWith("supplier_outcome_uncertain") ||
     error.startsWith("supplier_order_unrecorded") ||
     error.startsWith("fulfillment_in_progress") ||
-    error.startsWith("margin_refused")
+    error.startsWith("margin_refused") ||
+    error.startsWith(EXTERNAL_PURCHASE_DISABLED_ERROR)
   )
 }
 
@@ -105,6 +110,12 @@ export async function fulfillAffisellOrderWithAliExpress(
       status: "fulfilling",
       alreadyFulfilled: true,
     }
+  }
+
+  // Single external-purchase switch (owner decision: opt-in). An order already bought above is still reported.
+  if (!isExternalPurchaseEnabled()) {
+    console.log("[aliexpress-fulfill]", { result: EXTERNAL_PURCHASE_DISABLED_ERROR, orderId })
+    return { ok: false, error: EXTERNAL_PURCHASE_DISABLED_ERROR, orderId }
   }
 
   if (order.autoBuyLog?.status === "BUYING") {

@@ -1,6 +1,7 @@
 import type { AutoBuyStatus } from "@prisma/client"
 import type Stripe from "stripe"
 import { captureException } from "@sentry/nextjs"
+import { isExternalPurchaseEnabled } from "@/lib/procurement/external-purchase-switch"
 
 import { isAeDryRun } from "@/lib/fulfillment/ae-dry-run"
 import { placeAliExpressDsOrder } from "@/lib/fulfillment/ae-ds-order"
@@ -51,8 +52,8 @@ function startOfTodayUtc(): Date {
  * It used to be opt-out (running unless `DISABLE_AUTO_BUY=true`), which left real purchases one forgotten variable away.
  */
 export function isAutoBuyDisabled(): boolean {
-  if (process.env.DISABLE_AUTO_BUY === "true" || process.env.AUTO_ORDER_ENABLED === "false") return true
-  return process.env.AUTO_BUY_ENABLED !== "true"
+  // One switch for every external purchase path (engine, order.paid, China buy, this module): see the module.
+  return !isExternalPurchaseEnabled()
 }
 
 function logAutoBuy(metric: string, payload: Record<string, unknown>) {
