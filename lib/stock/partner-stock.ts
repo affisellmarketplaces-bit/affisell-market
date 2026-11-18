@@ -201,3 +201,33 @@ export function resolvePartnerStockSyncMode(env: Record<string, string | undefin
   if (v === "enforce") return "enforce"
   return "observe"
 }
+
+/**
+ * Observation summary of a `sync-stock` run (protocol: docs/ENFORCE-READINESS-CRITERIA.md §5). What a reviewer needs
+ * to judge a week of `observe` without reading every line: how many writes WOULD happen, how many would put a product
+ * at 0 (the risky ones), how many would bring one back from 0, how many are large jumps, and why the others are skipped.
+ */
+export type PartnerStockObservation = {
+  wouldWrite: number
+  toZero: number
+  fromZero: number
+  largeChange: number
+  skipped: Record<"unreadable" | "variant_rows" | "unchanged", number>
+}
+
+export function emptyPartnerStockObservation(): PartnerStockObservation {
+  return { wouldWrite: 0, toZero: 0, fromZero: 0, largeChange: 0, skipped: { unreadable: 0, variant_rows: 0, unchanged: 0 } }
+}
+
+/** A change is "large" when it moves the stock by more than half AND by at least 10 units. */
+export function recordPartnerStockPlan(obs: PartnerStockObservation, current: number, plan: PartnerStockPlan): void {
+  if (plan.action === "skip") {
+    obs.skipped[plan.reason] += 1
+    return
+  }
+  obs.wouldWrite += 1
+  if (plan.stock === 0 && current > 0) obs.toZero += 1
+  if (current === 0 && plan.stock > 0) obs.fromZero += 1
+  const delta = Math.abs(plan.stock - current)
+  if (delta >= 10 && delta > Math.max(current, 1) / 2) obs.largeChange += 1
+}

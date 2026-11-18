@@ -12,6 +12,8 @@ import {
   partnerStockUpdate,
   partnerStockValue,
   planPartnerStockWrite,
+  emptyPartnerStockObservation,
+  recordPartnerStockPlan,
   resolvePartnerStockSyncMode,
   resolveSupplierStockWrite,
   variantStockBaselineFromRows,
@@ -68,6 +70,16 @@ describe("partner stock sync: availability only", () => {
     expect(planPartnerStockWrite("5", { stock: 5, variants: null })).toEqual({ action: "skip", reason: "unchanged" })
     expect(planPartnerStockWrite(-2, { stock: 5, variants: null })).toEqual({ action: "write", stock: 0 })
     expect(planPartnerStockWrite(9, { stock: 5, variants: {} })).toEqual({ action: "write", stock: 9 })
+  })
+
+  it("the observation summary counts risky writes and skip reasons", () => {
+    const o = emptyPartnerStockObservation()
+    recordPartnerStockPlan(o, 8, { action: "write", stock: 0 })
+    recordPartnerStockPlan(o, 0, { action: "write", stock: 4 })
+    recordPartnerStockPlan(o, 5, { action: "write", stock: 40 })
+    recordPartnerStockPlan(o, 100, { action: "write", stock: 95 })
+    recordPartnerStockPlan(o, 3, { action: "skip", reason: "unreadable" })
+    expect(o).toEqual({ wouldWrite: 4, toZero: 1, fromZero: 1, largeChange: 1, skipped: { unreadable: 1, variant_rows: 0, unchanged: 0 } })
   })
 
   it("the sync-stock mode is observe by default and writes only in enforce", () => {

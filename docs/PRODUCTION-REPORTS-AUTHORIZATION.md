@@ -64,3 +64,25 @@ npm run report:checkout-stock -- --confirm-endpoint=<endpoint>
 
 Tu peux les lancer toi-même ; ils ne demandent aucune clé Stripe ni AliExpress. Le rapprochement des frais
 (`report:fee-reconciliation`) a ses propres règles (mode plan par défaut, clé restreinte) et n'est pas concerné ici.
+
+## 6. Procédure d'exécution, pas à pas (préparée le 19 novembre)
+
+1. **Repérer la cible, sans connexion** : lancer les trois commandes `--target` du §1, sur la machine qui contient
+   `.env.local`, et me transmettre leur sortie (elle ne contient ni mot de passe ni adresse complète).
+2. **Vérifier ensemble** : l'environnement affiché doit être celui que tu veux lire ; l'identifiant d'endpoint
+   affiché est celui que tu recopieras dans `--confirm-endpoint`. S'il diffère de `ep-misty-sea-al1ne07p` ou si
+   l'environnement est « non identifié », on s'arrête et on cherche pourquoi.
+3. **Autoriser** : ton message « j'autorise la lecture de <endpoint> pour les trois rapports » est la décision ;
+   le paramètre `--confirm-endpoint` en est la trace dans la commande.
+4. **Lancer** chaque rapport en enregistrant sa sortie :
+   `npm run report:legacy-reseller-imports -- --confirm-endpoint=<endpoint> > rapport-imports.txt` (idem pour les
+   deux autres). Une erreur de connexion n'a aucun effet : il suffit de relancer.
+5. **Me transmettre** les trois fichiers. Ils ne contiennent que des agrégats et des identifiants internes.
+
+## 7. Ce que chaque résultat permet de décider
+
+| Rapport | Question tranchée | Ce qui en découle |
+|---|---|---|
+| `report:legacy-reseller-imports` | Combien d'anciens imports revendeurs sont en ligne, vendent, et lesquels présentent un risque (sécurité, rappel, photo, prix) | La méthode de régularisation de `docs/LEGACY-RESELLER-IMPORTS.md`, chiffrée ; aucune annonce n'est touchée avant ta décision |
+| `report:listing-readiness` | Combien de nouvelles publications seraient refusées en `enforce`, chez quels fournisseurs | Le passage de `LISTING_READINESS_MODE` en `enforce`, et qui prévenir avant |
+| `report:checkout-stock` | Combien de produits n'ont pas de stock réellement tenu (valeurs fictives 99 / 999, stock à 0 en vente) | Le passage de `CHECKOUT_STOCK_MODE` en `enforce`, et les fournisseurs à faire corriger avant |

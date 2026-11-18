@@ -68,6 +68,24 @@ variable à `warn` / `off` sans déploiement de code.
   l'écrit plus) ; 2) une semaine en `observe` planifiée, lecture des `would_write` — écarts plausibles, aucune rafale
   de mises à 0 ; 3) puis `enforce`.
 
+### Protocole d'observation d'une semaine (préparé le 19 novembre — non planifié)
+
+1. **Préalable** : `PARTNER_STOCK_SYNC_MODE` absent ou `observe` sur l'environnement visé (vérifier la variable
+   avant tout), et au moins un fournisseur partenaire configuré (`BlindDropshipSupplier`, API REST).
+2. **Planification, sur ta décision** : ajouter la route à `scheduled-crons.yml` en mode `lenient`, une fois par
+   jour, pendant 7 jours. En `observe`, la tâche lit le stock du partenaire et la base, et n'écrit rien.
+3. **Ce que chaque exécution produit** : une ligne `[sync-stock] run_observation` et le champ `observation` de la
+   réponse : écritures qui auraient eu lieu (`wouldWrite`), dont mises à 0 (`toZero`), retours de 0 (`fromZero`),
+   grands écarts (`largeChange` : plus de la moitié et au moins 10 unités), et produits écartés (valeur illisible,
+   stock par variante, inchangé).
+4. **Critères de réussite au bout de 7 jours** :
+   - aucune exécution en erreur, ou des erreurs expliquées (partenaire indisponible) ;
+   - `toZero` cohérent avec de vraies ruptures (vérification par échantillon sur la fiche du partenaire) ;
+   - `largeChange` rare et expliqué ; aucune rafale (par exemple tous les produits d'un fournisseur à 0 le même jour) ;
+   - `unreadable` proche de 0 (sinon, corriger d'abord le connecteur du fournisseur concerné).
+5. **Ensuite seulement**, sur ta décision : `enforce`. Retour arrière immédiat : remettre `observe`. Les stocks
+   déjà écrits restent tels quels (aucun statut de publication n'est jamais modifié par cette tâche).
+
 ## 6. Imports revendeurs — ce qui ne dépend plus d'un interrupteur
 
 Depuis le 18 novembre au soir, une approbation administrative ne publie jamais un produit dont les données de
@@ -81,3 +99,18 @@ règle de cette voie.
 - **Critères proposés** : simulation relue ; vérification sur Stripe que chaque compte « à créer » est bien celui
   du partenaire ; premier passage sur une seule commande, puis contrôle du virement.
 - Passer en `enforce` déclenche de vrais virements (par le cron existant) : **décision du fondateur**.
+
+## 8. Tableau de bord des contrôles (mis à jour le 19 novembre)
+
+| Contrôle | Développé | Testé (CI) | Prêt à activer | Réellement actif en production |
+|---|---|---|---|---|
+| Stock au paiement (`CHECKOUT_STOCK_MODE`) | oui | oui | après `report:checkout-stock` et décisions §1 | non (`warn`, aucune écriture) |
+| Conformité des publications (`LISTING_READINESS_MODE`) | oui | oui | après `report:listing-readiness` | non (`warn`) |
+| Achats externes au paiement (`PROCUREMENT_CHECKOUT_GATE`) | oui | oui | après lecture des journaux `would_refuse` | non (`warn`) |
+| Remise en stock des retours (`RETURN_RESTOCK_MODE`) | oui | oui | oui techniquement ; décision commerciale | non (`off`) |
+| Synchronisation partenaire (`PARTNER_STOCK_SYNC_MODE`) | oui | oui | après le protocole d'une semaine | non (tâche non planifiée) |
+| Reprise des sommes dues (`OWED_TRANSFER_RESUME_MODE`) | oui | oui | après relecture de la simulation | non (`off`, aucun virement) |
+| Validation des imports revendeurs | oui | oui | — (règle sans interrupteur) | actif dès le déploiement de la branche |
+| Suspension Affisell distincte de la pause | oui | oui | — (outil d'administration) | actif dès le déploiement de la branche |
+
+« Actif dès le déploiement » : la branche n'est pas déployée ; rien de ce tableau n'est actif aujourd'hui.

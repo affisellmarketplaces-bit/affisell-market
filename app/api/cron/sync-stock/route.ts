@@ -2,7 +2,13 @@ import { authorizeCronRequest } from "@/lib/cron/authorize-cron-request"
 import { openBlindSecret } from "@/lib/blind-dropship-crypto"
 import { buildSupplierAdapterFromConfig } from "@/lib/suppliers/build-rest-adapter"
 import { prisma } from "@/lib/prisma"
-import { partnerStockUpdate, planPartnerStockWrite, resolvePartnerStockSyncMode } from "@/lib/stock/partner-stock"
+import {
+  emptyPartnerStockObservation,
+  partnerStockUpdate,
+  planPartnerStockWrite,
+  recordPartnerStockPlan,
+  resolvePartnerStockSyncMode,
+} from "@/lib/stock/partner-stock"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -20,6 +26,8 @@ export async function GET(req: Request) {
   })
 
   const summary: { id: string; updated: number; error?: string }[] = []
+  // What the run saw (or WOULD have written in observe) — the material of the one-week observation protocol.
+  const observation = emptyPartnerStockObservation()
 
   for (const s of suppliers) {
     try {
@@ -39,6 +47,7 @@ export async function GET(req: Request) {
         })
         for (const p of products) {
           const plan = planPartnerStockWrite(row.stock, p)
+          recordPartnerStockPlan(observation, p.stock, plan)
           if (plan.action === "skip") {
             skipped[plan.reason] = (skipped[plan.reason] ?? 0) + 1
             continue
@@ -73,5 +82,6 @@ export async function GET(req: Request) {
     }
   }
 
-  return Response.json({ ok: true, mode, suppliers: summary.length, summary })
+  console.log("[sync-stock]", { result: "run_observation", mode, ...observation })
+  return Response.json({ ok: true, mode, suppliers: summary.length, summary, observation })
 }
