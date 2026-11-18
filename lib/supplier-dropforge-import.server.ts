@@ -20,6 +20,7 @@ import { validateDropForgeProductUrl } from "@/lib/dropforge-product-url"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
 import { syncProductVariants } from "@/lib/product-variant-sku"
+import { decideImportPublication } from "@/lib/listing-compliance/import-publication.server"
 import { prisma } from "@/lib/prisma"
 
 /** Supplier DropForge catalog rows (B2B sourcing → resellers relist). */
@@ -345,20 +346,32 @@ export async function commitSupplierDropForgeImport(args: {
           autoFulfill: false,
           autoBuyEnabled: false,
         }),
-    active: publishLive,
-    isDraft: !publishLive,
   }
 
+  // Publication: through the same readiness gate as a hand-made sheet (enforce → draft, never refused). A re-import
+  // never UNpublishes a product the supplier already published; it only publishes when the supplier asked for it.
+  const publication = decideImportPublication({
+    source: "import_dropforge",
+    supplierId: args.supplierId,
+    productId: existingProduct?.id ?? null,
+    wantLive: publishLive,
+    attributes: persist.attributes,
+  })
   const product = existingProduct
     ? await prisma.product.update({
         where: { id: existingProduct.id },
-        data: productData,
+        data: {
+          ...productData,
+          ...(publication.live ? { active: true, isDraft: false } : {}),
+        },
         select: { id: true },
       })
     : await prisma.product.create({
         data: {
           supplierId: args.supplierId,
           ...productData,
+          active: publication.live,
+          isDraft: !publication.live,
         },
         select: { id: true },
       })
@@ -413,7 +426,7 @@ export async function commitSupplierDropForgeImport(args: {
     supplierId: args.supplierId,
     productId: product.id,
     method: preview.method,
-    isPublished: publishLive,
+    isPublished: publication.live,
     fulfillmentReady,
     fulfillmentType,
     supplierLink: Boolean(isAliExpress ? aeId : true),
@@ -429,7 +442,7 @@ export async function commitSupplierDropForgeImport(args: {
     storeSlug: store?.slug ?? "",
     editHref: `/dashboard/supplier/products/${product.id}`,
     catalogHref: `/dashboard/supplier/products`,
-    isPublished: publishLive,
+    isPublished: publication.live,
     fulfillmentReady,
     fulfillmentType,
   }

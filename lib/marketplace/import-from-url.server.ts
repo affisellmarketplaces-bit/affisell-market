@@ -34,6 +34,7 @@ import {
   type ProductVariantsJson,
 } from "@/lib/product-variants"
 import { syncProductVariants } from "@/lib/product-variant-sku"
+import { decideImportPublication } from "@/lib/listing-compliance/import-publication.server"
 import { prisma } from "@/lib/prisma"
 import type { SupplierScrapedProduct } from "@/lib/supplier-import-url-handler"
 import { normalizeImportBrand } from "@/lib/url-import-apply"
@@ -492,6 +493,9 @@ export async function publishMarketplaceImport(args: {
           importSource: true,
           isDraft: true,
           active: true,
+          supplierId: true,
+          listingKind: true,
+          attributes: { select: { key: true, value: true } },
         },
       },
     },
@@ -503,6 +507,19 @@ export async function publishMarketplaceImport(args: {
 
   if (listing.affiliate.email !== MARKETPLACE_IMPORT_AFFILIATE_EMAIL) {
     return { ok: false, error: "Listing non éligible à la publication marketplace", status: 403 }
+  }
+
+  // An imported product is published only through the same readiness gate as a hand-made sheet.
+  const publication = decideImportPublication({
+    source: "import_marketplace_url",
+    supplierId: listing.product.supplierId,
+    productId: listing.productId,
+    listingKind: listing.product.listingKind,
+    wantLive: true,
+    attributes: listing.product.attributes,
+  })
+  if (!publication.live) {
+    return { ok: false, error: "listing_not_ready", status: 422 }
   }
 
   await prisma.$transaction([

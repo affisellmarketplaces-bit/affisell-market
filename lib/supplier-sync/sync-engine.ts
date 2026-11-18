@@ -2,6 +2,7 @@ import { IntegrationProvider, Prisma, SyncStatus } from "@prisma/client"
 
 import { importSourceForProvider } from "@/lib/integrations/map-canonical-product"
 import { productDecoupleFieldsLive } from "@/lib/integrations/schema-capabilities"
+import { decideImportPublication } from "@/lib/listing-compliance/import-publication.server"
 import { prisma } from "@/lib/prisma"
 import type { MappedAffisellProduct, SyncProductResult } from "@/lib/supplier-sync/types"
 
@@ -103,6 +104,8 @@ export async function upsertSyncedProduct(args: {
     return { externalId, action: "updated" }
   }
 
+  // Publication is the supplier's choice at import, through the same readiness gate as a hand-made sheet.
+  const publication = decideImportPublication({ source: "import_sync", supplierId, wantLive: publishLive })
   await prisma.product.create({
     data: {
       supplierId,
@@ -110,9 +113,9 @@ export async function upsertSyncedProduct(args: {
       supplierTag,
       // Commission is a commercial condition: set once at import (default), never reset by a later sync.
       commissionRate: DEFAULT_COMMISSION,
-      // Publication is the supplier's choice at import; stock (even 0) is only availability.
-      active: publishLive,
-      isDraft: !publishLive,
+      // Stock (even 0) is only availability.
+      active: publication.live,
+      isDraft: !publication.live,
     },
   })
   return { externalId, action: "created" }

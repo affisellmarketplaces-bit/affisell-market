@@ -6,6 +6,7 @@ import { scheduleProductAutoCategorization } from "@/lib/product-auto-categorize
 import { catalogHexForColorName } from "@/lib/color-name-hex"
 import type { ProductColorImageRow } from "@/lib/product-color-images"
 import { type ProductVariantLine, newVariantRowId } from "@/lib/product-variants"
+import { decideImportPublication } from "@/lib/listing-compliance/import-publication.server"
 import { prisma } from "@/lib/prisma"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
 import {
@@ -206,7 +207,13 @@ export async function executeSupplierProductsImport(args: {
       typeof p.status === "string" ? p.status.toLowerCase() : ""
     const asDraft =
       statusRaw === "draft" || p.active === false || bodyDraft
-    const active = !asDraft
+    // Same readiness gate as a hand-made sheet (enforce: an incomplete row is created as a draft, never refused).
+    const active = decideImportPublication({
+      source: "import_exec",
+      supplierId,
+      listingKind,
+      wantLive: !asDraft,
+    }).live
 
     const stockN = Math.max(
       0,
@@ -543,6 +550,7 @@ export async function executeSupplierProductsImport(args: {
             supplierId,
             ...productData,
             active,
+            isDraft: !active,
             supplierTag: "import",
           },
         })
@@ -557,6 +565,7 @@ export async function executeSupplierProductsImport(args: {
           supplierId,
           ...productData,
           active,
+          isDraft: !active,
           supplierTag: "import",
         },
       })
