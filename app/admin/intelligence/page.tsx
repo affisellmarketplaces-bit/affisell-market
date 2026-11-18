@@ -8,6 +8,7 @@ import { GRADE_LABELS, RELIABILITY_MIN_ORDERS, type ComponentVerdict, type RateC
 import { familyLearning, LEARN_MIN_ACTED, type LearningState } from "@/lib/strategic-intelligence/learned-priority"
 import { POTENTIAL_LABELS, type PotentialClass, type SimulationSummary } from "@/lib/strategic-intelligence/product-economics"
 import { DEMAND_ADJUSTMENT_CAVEAT } from "@/lib/strategic-intelligence/demand-adjusted-simulation"
+import { backtestLabel, GRADE_LABELS as PRICE_GRADE_LABELS, PRICE_RESPONSE_SCOPE } from "@/lib/strategic-intelligence/price-response"
 import { SIMULATION_CAVEAT } from "@/lib/strategic-intelligence/lever-simulation"
 import {
   DECISION_LABELS,
@@ -399,6 +400,8 @@ export default async function AdminIntelligencePage() {
         )}
       </section>
 
+      {cockpit.priceModel ? <PriceModelSection model={cockpit.priceModel} /> : null}
+
       <section className="space-y-2">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Priorités apprises des résultats</h2>
         <p className="text-sm text-zinc-500">
@@ -524,7 +527,7 @@ export default async function AdminIntelligencePage() {
 
 type DemandView = NonNullable<SimulationSummary["demand"]>
 
-const DEMAND_STATUS_LABELS = { ajuste: "", prix_inchange: "prix acheteur inchangé : volume inchangé", hors_plage: "hors de la plage de prix observée : non ajusté", refuse: "non ajusté" } as const
+const DEMAND_STATUS_LABELS = { estime: "estimé", hypothetique: "HYPOTHÈSE", prix_inchange: "prix acheteur inchangé : volume inchangé", volume_constant: "volume constant (estimation pas assez fiable)" } as const
 
 /** Constant volume vs volume re-estimated from the measured price sensitivity, over the product's last 30 days. */
 function DemandAdjustedTable({ demand }: { demand: DemandView }) {
@@ -538,12 +541,18 @@ function DemandAdjustedTable({ demand }: { demand: DemandView }) {
   return (
     <div className="mt-3 space-y-1 text-xs">
       <p className="font-medium text-zinc-800 dark:text-zinc-200">
-        Sur 30 jours ({demand.orders30} commande(s) payée(s), constaté) : volume constant → volume ajusté à la demande
+        Sur 30 jours — <strong>observé</strong> : {demand.orders30} commande(s) payée(s), marges par commande du produit. Chaque case : volume constant → volume
+        ajusté (fourchette)
       </p>
       {c.ok ? (
         <p className="text-zinc-600 dark:text-zinc-400">
-          Estimation : élasticité {num(c.elasticity)} (de {num(c.lo)} à {num(c.hi)}, ± 2 erreurs types), {c.scope === "categorie" ? `catégorie « ${c.label} »` : "marketplace"} —{" "}
-          {c.n} changements de prix observés ({c.cuts} baisses, {c.raises} hausses, jusqu’à {n(c.maxAbsChangePct)} %) du {day(c.firstAt)} au {day(c.lastAt)}.
+          <strong>Estimé</strong> — réaction moyenne {c.scope === "categorie" ? `de la catégorie « ${c.label} »` : "de la marketplace"}, pas une mesure de ce produit
+          {c.ownEvents ? " (le produit y contribue)" : " (aucun changement de prix de ce produit n’y figure)"} : élasticité moyenne {num(c.elasticity)} (de {num(c.meanLo)} à{" "}
+          {num(c.meanHi)}), pour un produit pris isolément de {num(c.lo)} à {num(c.hi)} (intervalle 95 % utilisé ci-dessous). Fiabilité{" "}
+          {PRICE_GRADE_LABELS[c.grade]}
+          {c.gradeReasons.length ? ` (${c.gradeReasons.join(" ; ")})` : ""}. <strong>Observé</strong> : {c.n} changements de prix sur {c.products} produits
+          {c.resellers !== null ? `, ${c.resellers} revendeurs` : ""} ({c.cuts} baisses, {c.raises} hausses, jusqu’à {n(c.maxAbsChangePct)} %) du {day(c.firstAt)} au{" "}
+          {day(c.lastAt)}.
           {c.notes.length > 0 ? ` ${c.notes.join(" ; ")}.` : ""}
         </p>
       ) : (
@@ -571,7 +580,9 @@ function DemandAdjustedTable({ demand }: { demand: DemandView }) {
             <tr key={r.label} className="border-t border-zinc-200 dark:border-zinc-800">
               <td className="py-1 pr-3">
                 {r.label} ({r.priceChangePct >= 0 ? "+" : ""}
-                {n(r.priceChangePct)} % acheteur){r.status !== "ajuste" ? <span className="text-zinc-500"> — {DEMAND_STATUS_LABELS[r.status]}</span> : null}
+                {n(r.priceChangePct)} % acheteur)
+                <span className={r.status === "hypothetique" ? "font-semibold text-amber-700 dark:text-amber-400" : "text-zinc-500"}> — {DEMAND_STATUS_LABELS[r.status]}</span>
+                {r.hypothesis ? <span className="text-amber-700 dark:text-amber-400"> : {r.hypothesis}</span> : null}
                 {r.resellerKeeps90Pct === false ? <span className="text-amber-700 dark:text-amber-400"> — le revendeur perd plus de 10 % sur la période</span> : null}
               </td>
               <td className="py-1 pr-3">{cell(r.constant.orders, r.adjusted?.orders, n)}</td>
@@ -584,5 +595,83 @@ function DemandAdjustedTable({ demand }: { demand: DemandView }) {
       </table>
       <p className="text-zinc-500">{DEMAND_ADJUSTMENT_CAVEAT}</p>
     </div>
+  )
+}
+
+type PriceModel = NonNullable<Awaited<ReturnType<typeof loadIntelligenceCockpit>>["priceModel"]>
+
+/** How far the price-sensitivity estimates can be trusted, pool by pool — and how they did against later outcomes. */
+function PriceModelSection({ model }: { model: PriceModel }) {
+  const num = (v: number) => v.toFixed(2).replace(".", ",").replace("-", "−")
+  const pools = model.pools.filter((p) => p.events > 0)
+  const weak = model.pools.filter((p) => !p.summary || p.summary.grade === "insuffisante" || p.summary.grade === "faible")
+  return (
+    <section className="space-y-2">
+      <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Sensibilité au prix — fiabilité du modèle (interne)</h2>
+      <p className="text-sm text-zinc-500">
+        {model.observed} changement(s) de prix enregistré(s) ; {pools.reduce((a, p) => (p.key === "marketplace" ? a + p.events : a), 0)} exploitable(s). Cinq changements permettent un
+        premier calcul, jamais une confiance : le niveau dépend des produits et revendeurs concernés, d’un test placebo du moment choisi, de la stabilité
+        dans le temps et de la capacité à prédire les changements suivants mieux que le volume constant. {PRICE_RESPONSE_SCOPE}
+      </p>
+      {pools.length === 0 ? (
+        <p className="text-sm text-zinc-500">Données insuffisantes : aucun changement de prix exploitable pour l’instant.</p>
+      ) : (
+        <table className="w-full text-left text-xs">
+          <thead className="text-zinc-500">
+            <tr>
+              <th className="py-1 pr-3">Périmètre</th>
+              <th className="py-1 pr-3">Observé</th>
+              <th className="py-1 pr-3">Élasticité moyenne (95 %)</th>
+              <th className="py-1 pr-3">Un produit isolé (95 %)</th>
+              <th className="py-1 pr-3">Placebo / stabilité</th>
+              <th className="py-1 pr-3">Validation hors échantillon</th>
+              <th className="py-1 pr-3">Prévisions enregistrées</th>
+              <th className="py-1">Fiabilité</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pools.map((p) => {
+              const r = p.summary
+              return (
+                <tr key={p.key} className="border-t border-zinc-200 align-top dark:border-zinc-800">
+                  <td className="py-1 pr-3">{p.label}</td>
+                  <td className="py-1 pr-3">
+                    {p.events} chgt / {p.products} produit(s){r && r.resellers !== null ? ` / ${r.resellers} revendeur(s)` : ""}
+                    {r ? ` — ${r.cuts} baisses, ${r.raises} hausses, du ${r.firstAt.slice(0, 10)} au ${r.lastAt.slice(0, 10)}` : ""}
+                  </td>
+                  <td className="py-1 pr-3">{r ? `${num(r.elasticity)} (${num(r.lo)} à ${num(r.hi)}), hétérogénéité ${Math.round(r.i2 * 100)} %` : "—"}</td>
+                  <td className="py-1 pr-3">{r && r.predLo !== null && r.predHi !== null ? `${num(r.predLo)} à ${num(r.predHi)}` : "—"}</td>
+                  <td className="py-1 pr-3">
+                    {r?.preTrend ? (r.preTrend.flagged ? "écart avant le changement" : `aucun écart (${r.preTrend.n})`) : "placebo non testable"}
+                    {r?.stability ? ` ; ${r.stability.unstable ? "instable" : "stable"} entre les deux moitiés (${num(r.stability.early)} / ${num(r.stability.late)})` : ""}
+                    {r?.influence.fragile ? " ; dépend d’un seul produit" : ""}
+                  </td>
+                  <td className="py-1 pr-3">{r ? backtestLabel(r.backtest) : "—"}</td>
+                  <td className="py-1 pr-3">
+                    {!model.historyAvailable
+                      ? "historique illisible"
+                      : p.recordedEstimates === 0
+                        ? "aucune encore (la tâche quotidienne les enregistre)"
+                        : p.forward
+                          ? `${p.recordedEstimates} enregistrée(s) — ${backtestLabel(p.forward)}`
+                          : `${p.recordedEstimates} enregistrée(s)`}
+                  </td>
+                  <td className="py-1">
+                    {r ? PRICE_GRADE_LABELS[r.grade] : "insuffisante"}
+                    {r?.gradeReasons.length ? <span className="text-zinc-500"> — {r.gradeReasons.join(" ; ")}</span> : null}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      )}
+      {weak.length > 0 ? (
+        <p className="text-xs text-zinc-500">
+          Insuffisamment documentés (aucun volume ajusté n’y est calculé) : {weak.map((p) => `${p.label} (${p.events} chgt)`).join(", ")}. Ce qui les fera
+          mûrir : plusieurs revendeurs sur les mêmes produits, et des changements de prix dans les deux sens.
+        </p>
+      ) : null}
+    </section>
   )
 }

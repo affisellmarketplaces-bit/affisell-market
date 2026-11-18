@@ -8,6 +8,7 @@ import { loadIntelligenceCockpit } from "@/lib/strategic-intelligence/collect.se
 import { signalSnapshot } from "@/lib/strategic-intelligence/journal"
 import { measureDecision } from "@/lib/strategic-intelligence/journal.server"
 import { priorityChangeAuditId, type PriorityChange } from "@/lib/strategic-intelligence/learned-priority"
+import { recordPriceEstimates } from "@/lib/strategic-intelligence/price-estimate-history.server"
 import { buildFounderDigest, neutraliseMentions, NOTIFIED_PRIORITIES, type MeasuredOutcome } from "@/lib/strategic-intelligence/scheduled"
 import type { StrategicSignal } from "@/lib/strategic-intelligence/types"
 
@@ -107,6 +108,8 @@ export type IntelligenceDailyResult = {
   failedCollectors: string[]
   /** Learned priority changes newly written to the AuditLog by this run. */
   priorityChangesRecorded: number
+  /** Price-sensitivity estimates written to the history (one per pool and per day; 0 on a second run the same day). */
+  priceEstimatesRecorded: number
 }
 
 /** The daily scheduled run. Writes only the signal log, outcomes, the decision status and the trace of learned priority changes — never a price or money. */
@@ -116,6 +119,10 @@ export async function runIntelligenceDaily(now = new Date()): Promise<Intelligen
   const announce = logAvailable ? await claimSignalsToAnnounce(cockpit.signals, now) : []
   const measured = await measureDueDecisions(now)
   const priorityChangesRecorded = await recordPriorityChanges(cockpit.priorityChanges ?? [])
+  const priceEstimatesRecorded = await recordPriceEstimates(
+    (cockpit.priceModel?.pools ?? []).map((p) => p.summary).filter((p): p is NonNullable<typeof p> => p !== null),
+    now
+  )
   const failedCollectors = cockpit.collectors.filter((c) => !c.ok)
   const digest = buildFounderDigest({
     newSignals: announce,
@@ -146,6 +153,7 @@ export async function runIntelligenceDaily(now = new Date()): Promise<Intelligen
     notify,
     failedCollectors: failedCollectors.map((c) => c.id),
     priorityChangesRecorded,
+    priceEstimatesRecorded,
   }
 }
 

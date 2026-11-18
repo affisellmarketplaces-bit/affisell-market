@@ -53,7 +53,8 @@ import { representativeInput, simulateLevers } from "@/lib/strategic-intelligenc
 import { priceGapRequests, unansweredRequests, unmetDemandSignals, unmetSearches, UNMET_WINDOW_DAYS } from "@/lib/strategic-intelligence/unmet-demand"
 import { loadJournal } from "@/lib/strategic-intelligence/journal.server"
 import { adjustScenario, chooseElasticity, summarizePool, type ElasticityPool } from "@/lib/strategic-intelligence/demand-adjusted-simulation"
-import { measurePriceEvents, priceResponseSignals, PR_MIN_EVENTS, PR_WINDOW_DAYS, type PricePool } from "@/lib/strategic-intelligence/price-response"
+import { measurePriceEvents, priceResponseSignals, PR_MIN_EVENTS, PR_WINDOW_DAYS, scoreRecordedEstimates, type ExclusionReason, type PredictionScore, type PricePool } from "@/lib/strategic-intelligence/price-response"
+import { loadRecordedPriceEstimates } from "@/lib/strategic-intelligence/price-estimate-history.server"
 import { detectEmerging, emergingSignals, EMERGING_PRIOR_DAYS, EMERGING_RECENT_DAYS, type EmergingCounts } from "@/lib/strategic-intelligence/emerging"
 import { aggregateQuality, detectQualityOutliers, qualityRiskSignals } from "@/lib/strategic-intelligence/quality-risk"
 
@@ -80,6 +81,13 @@ export type CockpitResult = {
   reliability: SupplierReliabilityResult
   /** Real commercial potential per product (product-economics.ts); null when it could not be computed this run. */
   economics: { quality: FinancialDataQuality; counts: Partial<Record<PotentialClass, number>>; items: ProductPotential[]; error?: string } | null
+  /** Price-sensitivity model and its validation (price-response.ts), per pool; null on cockpits computed before it existed. */
+  priceModel?: {
+    observed: number
+    excluded: Partial<Record<ExclusionReason, number>>
+    pools: Array<{ key: string; label: string; events: number; products: number; summary: ElasticityPool | null; forward: PredictionScore | null; recordedEstimates: number }>
+    historyAvailable: boolean
+  }
 }
 
 async function guarded(
@@ -131,6 +139,8 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
 
   // Measured price sensitivity, handed from the price-response collector to the lever simulation (which runs after it).
   const elasticityPools = new Map<string, ElasticityPool>()
+  const poolProducts = new Map<string, Set<string>>()
+  const priceModel: NonNullable<CockpitResult["priceModel"]> = { observed: 0, excluded: {}, pools: [], historyAvailable: false }
   const rootKeyOfProduct = new Map<string, string>()
   const results = await Promise.all([
     guarded("supplier.fx_ecb", async () => {
@@ -652,18 +662,30 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
       const all = await ordersPromise
       if (all.length >= MAX_ORDERS) throw new Error("echantillon_tronque")
       const MAX_CHANGES = 20_000
+      // Every recorded movement (listing AND variant prices): variant movements are not experiments here, but they
+      // disqualify a listing as a control and overlap a change of the same listing.
       const rows = (await prisma.listingPriceHistory.findMany({
-        where: { variantKey: null, priceCents: { not: null }, previousCents: { not: null }, effectiveAt: { gte: d(60 + PR_WINDOW_DAYS) } },
+        where: { effectiveAt: { gte: d(60 + PR_WINDOW_DAYS) } },
         take: MAX_CHANGES,
-        select: { affiliateProductId: true, productId: true, effectiveAt: true, priceCents: true, previousCents: true },
-      })) as Array<{ affiliateProductId: string; productId: string; effectiveAt: Date; priceCents: number; previousCents: number }>
+        select: { affiliateProductId: true, affiliateId: true, productId: true, variantKey: true, effectiveAt: true, priceCents: true, previousCents: true, source: true },
+      })) as Array<{ affiliateProductId: string; affiliateId: string; productId: string; variantKey: string | null; effectiveAt: Date; priceCents: number | null; previousCents: number | null; source: string }>
       if (rows.length >= MAX_CHANGES) throw new Error("echantillon_tronque")
       if (rows.length === 0) return []
+      const listingRows = rows.filter((r) => r.variantKey === null && r.priceCents !== null && r.previousCents !== null)
+      // Listing creation dates of every listing of the products concerned (treated and controls).
+      const productIds = [...new Set(rows.map((r) => r.productId))]
+      const createdAt = new Map<string, Date>()
+      for (let i = 0; i < productIds.length; i += 2000) {
+        const ls = await prisma.affiliateProduct.findMany({ where: { productId: { in: productIds.slice(i, i + 2000) } }, select: { id: true, createdAt: true } })
+        for (const l of ls) createdAt.set(l.id, l.createdAt)
+      }
       const measured = measurePriceEvents(
-        rows.map((r) => ({ listingId: r.affiliateProductId, productId: r.productId, at: r.effectiveAt, fromCents: r.previousCents, toCents: r.priceCents })),
+        listingRows.map((r) => ({ listingId: r.affiliateProductId, productId: r.productId, resellerId: r.affiliateId, source: r.source, at: r.effectiveAt, fromCents: r.previousCents!, toCents: r.priceCents! })),
         all.filter((o) => o.paidAt).map((o) => ({ listingId: o.affiliateProductId, productId: o.productId, paidAt: o.paidAt! })),
-        { now, dataFrom: d(60) }
+        { now, dataFrom: d(60), listingCreatedAt: createdAt, otherChanges: rows.filter((r) => r.variantKey !== null).map((r) => ({ listingId: r.affiliateProductId, at: r.effectiveAt })) }
       )
+      priceModel.observed = measured.observed
+      priceModel.excluded = measured.excluded
       const pools: PricePool[] = [{ key: "marketplace", label: "Marketplace", events: measured.events }]
       if (measured.events.length >= PR_MIN_EVENTS) {
         // Per Google-taxonomy root, so a category's own behaviour is not drowned in the marketplace average.
@@ -693,10 +715,22 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
           }
         }
       }
+      const records = await loadRecordedPriceEstimates(now)
       for (const pool of pools) {
         const summary = summarizePool(pool)
         if (summary) elasticityPools.set(pool.key, summary)
+        poolProducts.set(pool.key, new Set(pool.events.map((e) => e.productId)))
+        priceModel.pools.push({
+          key: pool.key,
+          label: pool.label,
+          events: pool.events.length,
+          products: new Set(pool.events.map((e) => e.productId)).size,
+          summary,
+          forward: records.available ? scoreRecordedEstimates(pool.key, pool.events, records.rows) : null,
+          recordedEstimates: records.rows.filter((r) => r.poolKey === pool.key).length,
+        })
       }
+      priceModel.historyAvailable = records.available
       return priceResponseSignals(pools, { observed: measured.observed, usable: measured.events.length, excluded: measured.excluded }, { observedAt, window: { from: d(60).toISOString(), to: observedAt } })
     }, report),
 
@@ -788,8 +822,29 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
       return {
         orders30,
         choice: choice.ok
-          ? { ok: true as const, scope: choice.scope, label: choice.pool.label, n: choice.pool.n, cuts: choice.pool.cuts, raises: choice.pool.raises, elasticity: choice.pool.elasticity, lo: choice.pool.lo, hi: choice.pool.hi, maxAbsChangePct: choice.pool.maxAbsChangePct, firstAt: choice.pool.firstAt, lastAt: choice.pool.lastAt, notes: choice.notes }
-          : { ok: false as const, reason: orders30 > 0 ? choice.reason : "Volume ajusté refusé — aucune commande payée sur 30 jours à mettre à l'échelle." },
+          ? {
+              ok: true as const,
+              scope: choice.scope,
+              label: choice.pool.label,
+              n: choice.pool.n,
+              products: choice.pool.products,
+              resellers: choice.pool.resellers,
+              ownEvents: poolProducts.get(choice.pool.key)?.has(productId) ?? false,
+              cuts: choice.pool.cuts,
+              raises: choice.pool.raises,
+              elasticity: choice.pool.elasticity,
+              meanLo: choice.pool.lo,
+              meanHi: choice.pool.hi,
+              lo: choice.lo,
+              hi: choice.hi,
+              grade: choice.pool.grade,
+              gradeReasons: choice.pool.gradeReasons,
+              maxAbsChangePct: choice.pool.maxAbsChangePct,
+              firstAt: choice.pool.firstAt,
+              lastAt: choice.pool.lastAt,
+              notes: choice.notes,
+            }
+          : { ok: false as const, reason: orders30 > 0 ? choice.reason : "Volume ajusté non calculé, volume constant conservé — aucune commande payée sur 30 jours à mettre à l'échelle." },
         baseline: { orders: orders30, buyerRevenueCents: sim.baseline.buyerPriceCents * orders30, affisellCents: sim.baseline.affisellNetCents * orders30, resellerCents: sim.baseline.resellerNetCents * orders30 },
         scenarios: priced.map((s) => adjustScenario(s, sim.baseline, orders30, choice)),
       }
@@ -831,6 +886,7 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
   const detected = learned.signals
   return {
     generatedAt: observedAt,
+    priceModel,
     priorityChanges: learned.changes,
     economics,
     reliability,

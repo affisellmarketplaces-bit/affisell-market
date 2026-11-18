@@ -1,6 +1,7 @@
 import { computeTransferAmountsFromOrder, estimateStripeFeeCents, orderSplitInputFromOrder } from "@/lib/marketplace-split-amounts"
 import { orderChargedTotalCents } from "@/lib/money/split-guard"
 import type { AdjustedScenario, PeriodTotals } from "@/lib/strategic-intelligence/demand-adjusted-simulation"
+import type { ReliabilityGrade } from "@/lib/strategic-intelligence/price-response"
 import type { StrategicSignal } from "@/lib/strategic-intelligence/types"
 
 /**
@@ -254,7 +255,31 @@ export type SimulationSummary = {
   demand?: {
     orders30: number
     choice:
-      | { ok: true; scope: "categorie" | "marketplace"; label: string; n: number; cuts: number; raises: number; elasticity: number; lo: number; hi: number; maxAbsChangePct: number; firstAt: string; lastAt: string; notes: string[] }
+      | {
+          ok: true
+          scope: "categorie" | "marketplace"
+          label: string
+          n: number
+          products: number
+          resellers: number | null
+          /** Does THIS product contribute events to the pool? (Otherwise the estimate says nothing measured on it.) */
+          ownEvents: boolean
+          cuts: number
+          raises: number
+          elasticity: number
+          /** Interval of the pool's MEAN (category average). */
+          meanLo: number
+          meanHi: number
+          /** Interval for ONE product — the one used for the simulated range. */
+          lo: number
+          hi: number
+          grade: ReliabilityGrade
+          gradeReasons: string[]
+          maxAbsChangePct: number
+          firstAt: string
+          lastAt: string
+          notes: string[]
+        }
       | { ok: false; reason: string }
     baseline: PeriodTotals
     scenarios: AdjustedScenario[]
