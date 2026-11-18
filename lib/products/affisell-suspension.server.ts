@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import {
   PRODUCT_HOLD_UNVERIFIABLE_ERROR,
@@ -131,7 +132,7 @@ export async function liftProductSuspension(args: { productId: string; adminId: 
 
 type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0]
 
-async function writeSuspensionRows(tx: Tx, productId: string, adminId: string, n: number, payload: Record<string, unknown>) {
+async function writeSuspensionRows(tx: Tx, productId: string, adminId: string, n: number, payload: Prisma.InputJsonObject) {
   const base = { action: PRODUCT_SUSPENSION_ACTION, entityType: "Product", entityId: productId, actorId: adminId, payload }
   await tx.auditLog.create({ data: { id: suspensionHistoryId(productId, n), ...base } })
   await tx.auditLog.upsert({
