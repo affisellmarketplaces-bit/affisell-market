@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Suspense } from "react"
 import { notFound, redirect } from "next/navigation"
 
+import { AdminProductSuspensionPanel } from "@/components/admin/admin-product-suspension-panel"
 import { AdminProductVariantsEditor } from "@/components/admin/admin-product-variants-editor"
 import { ProductSupplierLinkPanel } from "@/components/admin/product-supplier-link-panel"
 import { auth } from "@/auth"
@@ -39,6 +40,8 @@ export default async function AdminProductSupplierLinkPage({ params }: Props) {
             ← Auto-Fulfill
           </Link>
         </div>
+
+        <AdminProductSuspensionPanel productId={product.id} />
 
         <AdminProductVariantsEditor
           productId={product.id}

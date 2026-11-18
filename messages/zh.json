@@ -1224,7 +1224,9 @@
       "affiliateCommissionRequired": "请设置每笔销售提供给联盟会员的佣金(> 0%)。类目参考表仅供参考。",
       "productImagesRequiredHosted": "发布前请至少添加一张已托管的产品照片(上传完成)。",
       "variantsInvalidGeneric": "请修正变体/SKU 行(字段无效)。",
-      "productRecalled": "该商品正处于 Affisell 发起的安全召回中，暂时无法重新上架销售。请联系 Affisell 支持团队，了解解除召回的步骤。"
+      "productRecalled": "该商品正处于 Affisell 发起的安全召回中，暂时无法重新上架销售。请联系 Affisell 支持团队，了解解除召回的步骤。",
+      "productSuspended": "Affisell 已暂停该商品的销售，暂时无法重新上架。请联系 Affisell 支持团队了解原因及解除暂停的步骤。",
+      "productHoldUnverifiable": "我们暂时无法确认该商品能否重新上架，请稍后再试。"
     },
     "descriptionField": {
       "label": "描述",

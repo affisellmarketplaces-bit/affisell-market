@@ -1,8 +1,7 @@
 import { Prisma } from "@prisma/client"
+import { checkSupplierMayActivate } from "@/lib/products/affisell-suspension.server"
 
 import { auth } from "@/auth"
-import { PRODUCT_RECALLED_ERROR } from "@/lib/legal/recall-hold"
-import { isProductHeldByRecall } from "@/lib/legal/recall-hold.server"
 import { prisma } from "@/lib/prisma"
 import { alignTableVariantStocks, mergeVariantRowStocks, resolveSupplierStockWrite } from "@/lib/stock/partner-stock"
 import { buildVariantOptionLabel } from "@/lib/marketplace-purchase-quantity"
@@ -196,8 +195,9 @@ export async function PUT(
 
   const publish = Boolean(rawBody.publish)
   // Publishing sets `active = true`: never over an Affisell suspension (open product-safety recall).
-  if (publish && (await isProductHeldByRecall(id))) {
-    return Response.json({ error: PRODUCT_RECALLED_ERROR }, { status: 409 })
+  if (publish) {
+    const hold = await checkSupplierMayActivate(id)
+    if (hold.held) return Response.json({ error: hold.error }, { status: 409 })
   }
   const saveAsDraftReq = Boolean(rawBody.saveAsDraft)
   /** Ignore stale client autosaves that still send saveAsDraft after the listing went live. */

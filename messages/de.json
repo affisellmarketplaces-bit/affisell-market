@@ -1224,7 +1224,9 @@
       "affiliateCommissionRequired": "Legen Sie die den Affiliates angebotene Provision pro Verkauf fest (> 0 %). Das Kategorieraster dient nur zur Orientierung.",
       "productImagesRequiredHosted": "Fügen Sie vor der Veröffentlichung mindestens ein gehostetes Produktfoto hinzu (Upload abgeschlossen).",
       "variantsInvalidGeneric": "Korrigieren Sie die Varianten/SKU-Zeilen (ungültige Felder).",
-      "productRecalled": "Für dieses Produkt gilt ein von Affisell eingeleiteter Sicherheitsrückruf. Es kann vorerst nicht wieder verkauft werden. Wenden Sie sich an den Affisell-Support, um zu erfahren, wie der Rückruf aufgehoben werden kann."
+      "productRecalled": "Für dieses Produkt gilt ein von Affisell eingeleiteter Sicherheitsrückruf. Es kann vorerst nicht wieder verkauft werden. Wenden Sie sich an den Affisell-Support, um zu erfahren, wie der Rückruf aufgehoben werden kann.",
+      "productSuspended": "Affisell hat den Verkauf dieses Produkts ausgesetzt. Es kann vorerst nicht wieder verkauft werden. Wenden Sie sich an den Affisell-Support, um den Grund und die Schritte zur Aufhebung zu erfahren.",
+      "productHoldUnverifiable": "Wir konnten nicht prüfen, ob dieses Produkt wieder verkauft werden darf. Bitte versuchen Sie es gleich noch einmal."
     },
     "descriptionField": {
       "label": "Beschreibung",

@@ -1224,7 +1224,9 @@
       "affiliateCommissionRequired": "Set the commission offered to affiliates on each sale (> 0%). The category grid is indicative only.",
       "productImagesRequiredHosted": "Add at least one hosted product photo (upload complete) before publishing.",
       "variantsInvalidGeneric": "Fix the variants / SKU rows (invalid fields).",
-      "productRecalled": "This product is under a safety recall opened by Affisell, so it can't be put back on sale for now. Contact Affisell support to learn how the recall can be lifted."
+      "productRecalled": "This product is under a safety recall opened by Affisell, so it can't be put back on sale for now. Contact Affisell support to learn how the recall can be lifted.",
+      "productSuspended": "Affisell has suspended sales of this product, so it can't be put back on sale for now. Contact Affisell support to learn why and how the suspension can be lifted.",
+      "productHoldUnverifiable": "We couldn't check whether this product can be put back on sale. Please try again in a moment."
     },
     "descriptionField": {
       "label": "Description",

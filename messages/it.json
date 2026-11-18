@@ -1224,7 +1224,9 @@
       "affiliateCommissionRequired": "Imposta la commissione offerta agli affiliati su ogni vendita (> 0%). La griglia per categoria è solo indicativa.",
       "productImagesRequiredHosted": "Aggiungi almeno una foto prodotto ospitata (upload completato) prima di pubblicare.",
       "variantsInvalidGeneric": "Correggi le varianti / righe SKU (campi non validi).",
-      "productRecalled": "Questo prodotto è oggetto di un richiamo di sicurezza aperto da Affisell: per ora non può essere rimesso in vendita. Contatta l'assistenza Affisell per sapere come revocare il richiamo."
+      "productRecalled": "Questo prodotto è oggetto di un richiamo di sicurezza aperto da Affisell: per ora non può essere rimesso in vendita. Contatta l'assistenza Affisell per sapere come revocare il richiamo.",
+      "productSuspended": "Affisell ha sospeso la vendita di questo prodotto: per ora non può essere rimesso in vendita. Contatta l'assistenza Affisell per conoscerne il motivo e come revocare la sospensione.",
+      "productHoldUnverifiable": "Non siamo riusciti a verificare se questo prodotto può essere rimesso in vendita. Riprova tra qualche istante."
     },
     "descriptionField": {
       "label": "Descrizione",

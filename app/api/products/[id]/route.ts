@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server"
+import { checkSupplierMayActivate } from "@/lib/products/affisell-suspension.server"
 
 import { auth } from "@/auth"
-import { PRODUCT_RECALLED_ERROR } from "@/lib/legal/recall-hold"
-import { isProductHeldByRecall } from "@/lib/legal/recall-hold.server"
 import { prisma } from "@/lib/prisma"
 import { serializeProductVariantRow } from "@/lib/product-variant-sku"
 
@@ -93,8 +92,9 @@ export async function PATCH(
   }
 
   // A supplier pause can be lifted by the supplier; an Affisell suspension (open recall) can not.
-  if (Boolean(body.active) && (await isProductHeldByRecall(id))) {
-    return NextResponse.json({ error: PRODUCT_RECALLED_ERROR }, { status: 409 })
+  if (Boolean(body.active)) {
+    const hold = await checkSupplierMayActivate(id)
+    if (hold.held) return NextResponse.json({ error: hold.error }, { status: 409 })
   }
 
   const updated = await prisma.product.update({

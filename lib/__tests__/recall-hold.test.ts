@@ -45,8 +45,8 @@ describe("both supplier activation paths check the hold", () => {
   const root = path.resolve(__dirname, "../..")
   it.each(["app/api/products/[id]/route.ts", "app/api/supplier/products/[id]/route.ts"])("%s", (file) => {
     const src = readFileSync(path.join(root, file), "utf8")
-    expect(src).toContain("isProductHeldByRecall(")
-    expect(src).toContain("PRODUCT_RECALLED_ERROR")
+    // The recall is one of the Affisell holds read by checkSupplierMayActivate (lib/products/affisell-suspension.server.ts).
+    expect(src).toContain("checkSupplierMayActivate(")
   })
 
   it("the error code is stable", () => {

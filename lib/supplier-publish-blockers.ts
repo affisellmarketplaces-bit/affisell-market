@@ -230,6 +230,9 @@ const KNOWN_ERROR_CODES: Record<string, { field: PublishFieldKey; key: string }>
   booking_slots_required: { field: "specs", key: "bookingSlotsRequired" },
   // Open product-safety recall (lib/legal/recall-hold.ts): explained in words, never the raw code.
   product_recalled: { field: "specs", key: "productRecalled" },
+  // Affisell suspension (lib/products/affisell-suspension.ts) and a hold that could not be verified (fail closed).
+  product_suspended: { field: "specs", key: "productSuspended" },
+  product_hold_unverifiable: { field: "specs", key: "productHoldUnverifiable" },
   merchant_verification_pending: { field: "specs", key: "merchantVerificationPending" },
   warehouse_type_required: { field: "warehouseType", key: "warehouseTypeRequired" },
   delivery_countries_required: { field: "deliveryCountries", key: "deliveryCountriesRequired" },
