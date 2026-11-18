@@ -61,13 +61,15 @@ jobs:
             echo "::error::RESEND_TEST_API_KEY and RESEND_TEST_EMAIL_TO (environment resend-probe) are required — nothing sent."
             exit 1
           fi
-      - uses: actions/checkout@v4
+      # Pinned to the commit GitHub resolves for the v4 tag (read from a CI log and from `git ls-remote`, 2026-11-18).
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "24"
-          cache: npm
+          # No dependency cache: a cache is shared with other runs of the repository; `npm ci` checks the lockfile's
+          # integrity hashes anyway, but the probe holds a secret, so it starts from the registry every time.
       - name: Install (no install scripts)
         run: npm ci --ignore-scripts
       - name: Live probe (sandbox sender, test inbox only)

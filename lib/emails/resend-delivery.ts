@@ -10,6 +10,7 @@ import {
   type ResolveResendRecipientResult,
 } from "@/lib/emails/resolve-resend-recipient"
 import { readResendEnv } from "@/lib/env/resend"
+import { maskEmailForLog } from "@/lib/emails/mask-email"
 
 export type ResendDeliveryConfig = {
   apiKey: string
@@ -42,6 +43,11 @@ type ResendSendResult = {
   data: { id: string } | null
   /** `name` is Resend's error code (e.g. `invalid_idempotent_request`, `concurrent_idempotent_requests`). */
   error: { message: string; name?: string } | null
+}
+
+/** Replaces every e-mail address in a provider message before it reaches a log. */
+export function redactEmails(text: string): string {
+  return text.replace(/[^\s@<>"'(),;:]+@[^\s@<>"'(),;:]+/g, "[email]")
 }
 
 /**
@@ -100,8 +106,10 @@ export async function sendResendEmail(args: {
   if (canFallback) {
     console.warn(`[${context}]`, {
       result: "resend_retry_test_inbox",
-      firstError: errMsg,
-      intendedTo: intendedTo.trim().toLowerCase(),
+      // Never the raw address nor the provider's text (Resend echoes recipients in its messages, lower-cased — which
+      // GitHub's secret masking, an exact-match filter, would not catch).
+      firstError: redactEmails(errMsg),
+      intendedTo: maskEmailForLog(intendedTo),
     })
     result = await attempt(testTo)
     if (!result.error) {
@@ -112,7 +120,7 @@ export async function sendResendEmail(args: {
 
   console.error(`[${context}]`, {
     result: "resend_error",
-    message: result.error?.message ?? errMsg,
+    message: redactEmails(result.error?.message ?? errMsg),
     sandbox: isResendSandboxFrom(config.from),
     production: isProductionEmailDelivery(),
   })

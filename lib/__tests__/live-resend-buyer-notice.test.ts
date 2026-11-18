@@ -34,26 +34,20 @@ describe.skipIf(!LIVE)("buyer notice — live Resend idempotency (sandbox sender
     const { UnallocatedLineNoticeEmail } = await import("@/emails/unallocated-line-notice")
     const { buildNoticeCopy } = await import("@/lib/unallocated-buyer-notice.server")
     const { readResendDeliveryConfig, sendResendEmail } = await import("@/lib/emails/resend-delivery")
-    const { isProductionEmailDelivery, isResendSandboxFrom, resolveResendRecipient } = await import("@/lib/emails/resolve-resend-recipient")
+    const { assertProbeEnvironment, assertRoutesToTestInbox, PROBE_NOMINAL_RECIPIENT } = await import("@/lib/emails/live-probe-guard")
     const { PLATFORM_EMAIL_BRAND, toEmailBrandProps } = await import("@/lib/emails/email-brand-shared")
 
     const config = readResendDeliveryConfig()
-    expect(config, "RESEND_API_KEY missing").not.toBeNull()
-    expect(isProductionEmailDelivery(), "never against production").toBe(false)
-    expect(isResendSandboxFrom(config!.from), "sender must be onboarding@resend.dev").toBe(true)
-    expect(config!.testEmailTo.trim(), "TEST_EMAIL_TO missing").not.toBe("")
+    assertProbeEnvironment(config) // throws before anything is sent: production, non-sandbox sender, no test inbox
 
     const html = async (locale: Parameters<typeof buildNoticeCopy>[0], kind: "initial" | "refund_confirmed", state: Parameters<typeof buildNoticeCopy>[2]) => {
       const { subject, copy } = buildNoticeCopy(locale, kind, state, "36,00 €")
       return { subject, html: await render(UnallocatedLineNoticeEmail({ copy, supportUrl: "https://affisell.com/support", brand: toEmailBrandProps(PLATFORM_EMAIL_BRAND) })) }
     }
-    const NOMINAL = "no-real-buyer@affisell-probe.invalid"
-    const testInbox = config!.testEmailTo.trim().toLowerCase()
     const send = (subject: string, body: string, idempotencyKey: string) => {
       // Fail closed: where would the APP send this? Anything but the team test inbox stops the run before Resend is called.
-      const route = resolveResendRecipient({ intendedTo: NOMINAL, fromEmail: config!.from, testEmailTo: config!.testEmailTo })
-      if (route.to !== testInbox || !route.devRedirect) throw new Error("recipient_not_redirected_to_test_inbox — nothing sent")
-      return sendResendEmail({ context: "live-resend-probe", config: config!, intendedTo: NOMINAL, subject: `[TEST Affisell] ${subject}`, html: body, idempotencyKey })
+      assertRoutesToTestInbox(config!)
+      return sendResendEmail({ context: "live-resend-probe", config: config!, intendedTo: PROBE_NOMINAL_RECIPIENT, subject: `[TEST Affisell] ${subject}`, html: body, idempotencyKey })
     }
 
     // The key carries its creation time (minute precision) so a later run can tell how old a replayed key is.
