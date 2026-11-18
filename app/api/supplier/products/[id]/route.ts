@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { resolveSupplierStockWrite } from "@/lib/stock/partner-stock"
 import { SUPPLIER_PRODUCT_WRITE_TX } from "@/lib/prisma-transaction-options"
 import { loadSupplierProductForPut } from "@/lib/supplier-product-put-load"
 import {
@@ -274,12 +275,11 @@ export async function PUT(
     const rawName = typeof body.name === "string" ? body.name.trim() : ""
     nameResolved = (rawName || UNTITLED_DRAFT_SENTINEL).slice(0, 500)
 
-    stock = Math.max(
-      0,
-      Math.round(
-        Number.isFinite(Number(body.stock)) ? Number(body.stock) : existingRow.stock
-      )
-    )
+    stock = resolveSupplierStockWrite({
+      current: existingRow.stock,
+      submitted: body.stock,
+      baseline: rawBody.stockBaseline,
+    })
   } else {
     const name = typeof body.name === "string" ? body.name.trim() : ""
     if (!name) {
@@ -302,12 +302,11 @@ export async function PUT(
     }
     compareAt = strict.decimal
 
-    stock = Math.max(
-      0,
-      Math.round(
-        Number.isFinite(Number(body.stock)) ? Number(body.stock) : existingRow.stock
-      )
-    )
+    stock = resolveSupplierStockWrite({
+      current: existingRow.stock,
+      submitted: body.stock,
+      baseline: rawBody.stockBaseline,
+    })
   }
 
   const activatingFromDraft = Boolean(existingRow.isDraft && publish)
@@ -877,6 +876,7 @@ export async function PATCH(
       hasVariants: true,
       isDraft: true,
       active: true,
+      stock: true,
       productVariants: {
         select: {
           color: true,
@@ -978,9 +978,12 @@ export async function PATCH(
       if (Number.isFinite(price) && price > 0) {
         data.basePriceCents = Math.max(100, Math.round(price * 100))
       }
-      const stock = Number(rawBody.stock)
-      if (Number.isFinite(stock)) {
-        data.stock = Math.max(0, Math.round(stock))
+      if (rawBody.stock !== undefined) {
+        data.stock = resolveSupplierStockWrite({
+          current: existingRow.stock,
+          submitted: rawBody.stock,
+          baseline: rawBody.stockBaseline,
+        })
       }
     } else if (variantPatch.variants.length > 0) {
       data.basePriceCents = priceCentsForCompare

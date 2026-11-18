@@ -1539,7 +1539,7 @@ model Product {
   lastStockStatus  String?
   lastPriceSupplier Decimal?
   /**
-   * Consecutive Ghost check failures — at 3, product is auto-drafted.
+   * Consecutive Ghost check failures — at 3, availability is marked unknown (the product stays published).
    */
   stockCheckFails Int @default(0)
 

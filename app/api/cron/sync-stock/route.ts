@@ -2,6 +2,7 @@ import { authorizeCronRequest } from "@/lib/cron/authorize-cron-request"
 import { openBlindSecret } from "@/lib/blind-dropship-crypto"
 import { buildSupplierAdapterFromConfig } from "@/lib/suppliers/build-rest-adapter"
 import { prisma } from "@/lib/prisma"
+import { partnerStockUpdate } from "@/lib/stock/partner-stock"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -32,10 +33,9 @@ export async function GET(req: Request) {
             supplierId: s.linkedUserId,
             supplierSku: row.sku,
           },
-          data: {
-            stock: row.stock,
-            active: row.stock > 0,
-          },
+          // Availability axis ONLY (lifecycle rule, founder 2026-11-18): a partner's stock never re-lists a product a
+          // supplier paused or Affisell recalled, and never unpublishes a sold-out one. `active` is not written.
+          data: partnerStockUpdate(row.stock),
         })
         updated += r.count
       }

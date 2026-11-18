@@ -23,4 +23,10 @@ export const GHOST_CHECKOUT_OOS_CACHE_MS = 90 * 1000
 export const GHOST_LOW_STOCK_THRESHOLD = 5
 export const GHOST_PRICE_DRIFT_RATIO = 0.15
 export const GHOST_STOCK15_COUPON = "STOCK15"
-export const GHOST_FAILS_BEFORE_DRAFT = 3
+/**
+ * Consecutive TECHNICAL check failures after which the product's availability is marked `unknown` and ops are alerted
+ * once. It used to put the product back in draft (`isDraft: true, active: false`): a probe error unpublished a
+ * supplier's product. Lifecycle rule (founder, 2026-11-18): a technical failure never changes the publication or
+ * commercial status — only the availability axis.
+ */
+export const GHOST_FAILS_BEFORE_UNKNOWN = 3

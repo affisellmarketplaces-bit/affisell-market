@@ -431,6 +431,8 @@ export function SupplierAddProductForm({
   const [pendingDraftListingId, setPendingDraftListingId] = useState("")
   const [productIsDraft, setProductIsDraft] = useState(false)
   const draftIdRef = useRef("")
+  /** Stock as last loaded from / saved to the server: sent as `stockBaseline` so a save never resurrects units sold meanwhile. */
+  const stockBaselineRef = useRef<number | null>(null)
   const autosaveListingId = editId || draftIdFromUrlUsable || pendingDraftListingId
   const step = useSupplierProductWizardStore((s) => s.step)
   const trySetStep = useSupplierProductWizardStore((s) => s.trySetStep)
@@ -1049,6 +1051,7 @@ export function SupplierAddProductForm({
       const cmp = data.compareAt
       setCompareAt(cmp != null && Number(cmp) > 0 ? Number(cmp).toFixed(2) : "")
       setStock(String(data.stock ?? 0))
+      stockBaselineRef.current = Math.max(0, Math.round(Number(data.stock ?? 0) || 0))
       const lk = String(data.listingKind ?? "PHYSICAL").toUpperCase()
       setListingKind(LISTING_KINDS.includes(lk as ListingKind) ? (lk as ListingKind) : "PHYSICAL")
       setDigitalAccessUrl(typeof data.digitalAccessUrl === "string" ? data.digitalAccessUrl : "")
@@ -1906,7 +1909,9 @@ export function SupplierAddProductForm({
               headers: { "Content-Type": "application/json" },
               credentials: "include",
               signal: saveSignal,
-              body: JSON.stringify(body),
+              body: JSON.stringify(
+                stockBaselineRef.current != null ? { ...body, stockBaseline: stockBaselineRef.current } : body
+              ),
             })
             const json = await readJsonResponse<{ error?: string }>(res)
             if (res.status === 404) {
@@ -1925,6 +1930,9 @@ export function SupplierAddProductForm({
           } else {
             await saveViaPost()
           }
+
+          const savedStock = Number(body.stock)
+          if (Number.isFinite(savedStock)) stockBaselineRef.current = Math.max(0, Math.round(savedStock))
 
           if (!isLatestAutosaveGeneration(generation, autosaveGenerationRef.current)) {
             // Newer edit already queued — keep chain going without flipping UI to error/saved from stale write.

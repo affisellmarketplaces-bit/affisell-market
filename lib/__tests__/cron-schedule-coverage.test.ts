@@ -25,7 +25,7 @@ const UNSCHEDULED_ON_PURPOSE: Record<string, string> = {
   "verify-suppliers":
     "Grants AND revokes the 'verified supplier' badge and trust tier of every supplier from computed metrics (a visible product decision that can strip a manually verified supplier) and runs 2-3 queries per supplier, more than the 10 s default function budget: owner decision before it runs.",
   "sync-stock":
-    "Writes Product.active = (stock > 0) for EVERY product matching a partner SKU (route.ts): it re-lists a product a supplier paused (PATCH active=false) or an admin recalled (GPSR createRecall sets active=false) as soon as the partner reports stock. What `active` means (listed / sellable / recalled) is a founder decision: until it is made the route stays but is not run on a schedule.",
+    "Since 2026-11-18 it writes the availability axis only (stock, never Product.active: lifecycle rule decided by the founder). Not scheduled yet: running a partner stock sync in production changes what buyers can buy — enable it with the founder after a staging run.",
   "notify-failure":
     "Called by the `if: failure()` step of a failed cron job (POST, scripts/ci/notify-cron-failure.sh), never on a schedule.",
 }

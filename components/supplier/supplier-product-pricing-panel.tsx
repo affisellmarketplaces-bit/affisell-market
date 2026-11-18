@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -63,6 +63,7 @@ export function SupplierProductPricingPanel({ productId }: Props) {
   const [price, setPrice] = useState("")
   const [compareAt, setCompareAt] = useState("")
   const [stock, setStock] = useState("0")
+  const stockBaselineRef = useRef<number | null>(null)
   const [commissionRate, setCommissionRate] = useState("15")
   const [variantRows, setVariantRows] = useState<EditableVariantRow[]>([])
   const [skuHiddenColumns, setSkuHiddenColumns] = useState<SkuOptionalColumnKey[]>([])
@@ -91,6 +92,7 @@ export function SupplierProductPricingPanel({ productId }: Props) {
           : ""
       )
       setStock(String(data.stock ?? 0))
+      stockBaselineRef.current = Math.max(0, Math.round(Number(data.stock ?? 0) || 0))
       setCommissionRate(String(data.commissionRate ?? 15))
       setVariantRows(rowsFromProduct(data))
       const parsed = parseVariantsPayload(data.listingVariants)
@@ -138,6 +140,8 @@ export function SupplierProductPricingPanel({ productId }: Props) {
     } else {
       body.price = priceN
       body.stock = Number(stock)
+      // Sold units are never resurrected: the server applies only the supplier's change since this load.
+      if (stockBaselineRef.current != null) body.stockBaseline = stockBaselineRef.current
     }
     return body
   }, [
