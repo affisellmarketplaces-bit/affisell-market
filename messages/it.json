@@ -9075,5 +9075,53 @@
       "dimensions": "Dimensioni"
     },
     "returnWindowBadge": "Resi accettati entro {days} giorni"
+  },
+  "supplierReturns": {
+    "disposition": {
+      "title": "Merce restituita — ispezione e decisione",
+      "outcomeLabel": "Stato constatato",
+      "noteLabel": "Nota (cosa ha visto)",
+      "record": "Registra l'ispezione",
+      "decideRestock": "Conferma il rientro in magazzino",
+      "decideKeepOut": "Non rimettere in magazzino",
+      "decisionNoteLabel": "Motivo della decisione",
+      "timeline": "Cronologia",
+      "stage": {
+        "awaiting_reception": "In attesa di ricezione",
+        "awaiting_inspection": "Da ispezionare",
+        "inspected_not_resellable": "Ispezionato — non rivendibile",
+        "awaiting_decision": "Rivendibile — decisione da prendere",
+        "kept_out": "Tenuto fuori magazzino",
+        "restock_validated_not_applied": "Rientro confermato — non applicato",
+        "restocked": "Rimesso in magazzino"
+      },
+      "outcome": {
+        "resellable": "Rivendibile (come nuovo, completo)",
+        "damaged": "Danneggiato",
+        "defective": "Difettoso",
+        "missing_parts": "Parti mancanti",
+        "wrong_item_returned": "Articolo sbagliato restituito",
+        "not_received": "Nulla ricevuto"
+      },
+      "event": {
+        "received": "Ricevuto",
+        "inspected": "Ispezionato",
+        "decided": "Decisione",
+        "restocked": "Rimesso in magazzino ({qty})"
+      },
+      "decision": {
+        "restock": "rientro confermato",
+        "keep_out": "tenuto fuori magazzino"
+      },
+      "modeOff": "Il rientro automatico in magazzino è disattivato su Affisell: la sua decisione è registrata, lo stock non cambia.",
+      "modeObserve": "Modalità osservazione: la sua decisione è registrata, il rientro viene solo calcolato.",
+      "inspectionSaved": "Ispezione registrata.",
+      "decisionSaved": "Decisione registrata.",
+      "restocked": "Unità rimesse in magazzino.",
+      "error": "L'operazione non è riuscita.",
+      "errNotResellable": "L'ultima ispezione non consente il rientro in magazzino.",
+      "errNotInspected": "Ispezioni prima la merce.",
+      "errAlreadyRestocked": "Già rimesso in magazzino."
+    }
   }
 }

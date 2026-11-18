@@ -9075,5 +9075,53 @@
       "dimensions": "Afmetingen"
     },
     "returnWindowBadge": "Retour mogelijk binnen {days} dagen"
+  },
+  "supplierReturns": {
+    "disposition": {
+      "title": "Geretourneerde goederen — inspectie en beslissing",
+      "outcomeLabel": "Vastgestelde staat",
+      "noteLabel": "Notitie (wat u zag)",
+      "record": "Inspectie vastleggen",
+      "decideRestock": "Terugplaatsing bevestigen",
+      "decideKeepOut": "Niet terugplaatsen",
+      "decisionNoteLabel": "Reden van de beslissing",
+      "timeline": "Geschiedenis",
+      "stage": {
+        "awaiting_reception": "Wacht op ontvangst",
+        "awaiting_inspection": "Te inspecteren",
+        "inspected_not_resellable": "Geïnspecteerd — niet doorverkoopbaar",
+        "awaiting_decision": "Doorverkoopbaar — beslissing nodig",
+        "kept_out": "Buiten voorraad gehouden",
+        "restock_validated_not_applied": "Terugplaatsing bevestigd — niet toegepast",
+        "restocked": "Teruggeplaatst"
+      },
+      "outcome": {
+        "resellable": "Doorverkoopbaar (als nieuw, compleet)",
+        "damaged": "Beschadigd",
+        "defective": "Defect",
+        "missing_parts": "Onderdelen ontbreken",
+        "wrong_item_returned": "Verkeerd artikel teruggestuurd",
+        "not_received": "Niets ontvangen"
+      },
+      "event": {
+        "received": "Ontvangen",
+        "inspected": "Geïnspecteerd",
+        "decided": "Beslissing",
+        "restocked": "Teruggeplaatst ({qty})"
+      },
+      "decision": {
+        "restock": "terugplaatsing bevestigd",
+        "keep_out": "buiten voorraad"
+      },
+      "modeOff": "Automatische terugplaatsing staat uit bij Affisell: uw beslissing wordt vastgelegd, de voorraad verandert niet.",
+      "modeObserve": "Observatiemodus: uw beslissing wordt vastgelegd, de terugplaatsing wordt alleen berekend.",
+      "inspectionSaved": "Inspectie vastgelegd.",
+      "decisionSaved": "Beslissing vastgelegd.",
+      "restocked": "Eenheden teruggeplaatst.",
+      "error": "De actie is mislukt.",
+      "errNotResellable": "De laatste inspectie staat geen terugplaatsing toe.",
+      "errNotInspected": "Inspecteer eerst de goederen.",
+      "errAlreadyRestocked": "Al teruggeplaatst."
+    }
   }
 }

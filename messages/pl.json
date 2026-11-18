@@ -9075,5 +9075,53 @@
       "dimensions": "Wymiary"
     },
     "returnWindowBadge": "Zwrot możliwy w ciągu {days} dni"
+  },
+  "supplierReturns": {
+    "disposition": {
+      "title": "Zwrócony towar — inspekcja i decyzja",
+      "outcomeLabel": "Stwierdzony stan",
+      "noteLabel": "Notatka (co Pan/Pani zauważył/a)",
+      "record": "Zapisz inspekcję",
+      "decideRestock": "Zatwierdź przywrócenie na stan",
+      "decideKeepOut": "Nie przywracaj na stan",
+      "decisionNoteLabel": "Powód decyzji",
+      "timeline": "Historia",
+      "stage": {
+        "awaiting_reception": "Oczekuje na odbiór",
+        "awaiting_inspection": "Do inspekcji",
+        "inspected_not_resellable": "Sprawdzony — nie do odsprzedaży",
+        "awaiting_decision": "Do odsprzedaży — wymagana decyzja",
+        "kept_out": "Poza stanem",
+        "restock_validated_not_applied": "Przywrócenie zatwierdzone — niezastosowane",
+        "restocked": "Przywrócony na stan"
+      },
+      "outcome": {
+        "resellable": "Do odsprzedaży (jak nowy, kompletny)",
+        "damaged": "Uszkodzony",
+        "defective": "Wadliwy",
+        "missing_parts": "Brakujące części",
+        "wrong_item_returned": "Zwrócono niewłaściwy artykuł",
+        "not_received": "Nic nie otrzymano"
+      },
+      "event": {
+        "received": "Odebrano",
+        "inspected": "Sprawdzono",
+        "decided": "Decyzja",
+        "restocked": "Przywrócono na stan ({qty})"
+      },
+      "decision": {
+        "restock": "przywrócenie zatwierdzone",
+        "keep_out": "poza stanem"
+      },
+      "modeOff": "Automatyczne przywracanie na stan jest wyłączone w Affisell: decyzja jest zapisana, stan się nie zmienia.",
+      "modeObserve": "Tryb obserwacji: decyzja jest zapisana, przywrócenie jest tylko obliczane.",
+      "inspectionSaved": "Inspekcja zapisana.",
+      "decisionSaved": "Decyzja zapisana.",
+      "restocked": "Jednostki przywrócone na stan.",
+      "error": "Operacja nie powiodła się.",
+      "errNotResellable": "Ostatnia inspekcja nie pozwala na przywrócenie na stan.",
+      "errNotInspected": "Najpierw sprawdź towar.",
+      "errAlreadyRestocked": "Już przywrócono na stan."
+    }
   }
 }

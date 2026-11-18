@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest"
 import {
+  canDecideRestock,
   canInspectReturn,
+  dispositionStage,
   isReturnInspectionOutcome,
   planReturnRestock,
   resolveReturnRestockMode,
@@ -44,5 +46,32 @@ describe("returned goods: received → inspected → resellable → restocked", 
     expect(
       planReturnRestock({ mode: "enforce", outcome: "resellable", returnedQty: 5, alreadyRestocked: false, reservation })
     ).toMatchObject({ qty: 2 })
+  })
+})
+
+describe("dispositionStage / canDecideRestock — inspection then validation, never merged", () => {
+  const at = (m: number) => new Date(Date.UTC(2026, 10, 18, 10, m)).toISOString()
+  it("walks received → inspected → decided → restocked", () => {
+    expect(dispositionStage([])).toBe("awaiting_reception")
+    const received = { kind: "received" as const, at: at(0) }
+    expect(dispositionStage([received])).toBe("awaiting_inspection")
+    const ok = { kind: "inspected" as const, at: at(1), outcome: "resellable" as const, note: "" }
+    expect(dispositionStage([received, ok])).toBe("awaiting_decision")
+    const validated = { kind: "decided" as const, at: at(2), decision: "restock" as const, note: "", restock: "none:mode_off" }
+    expect(dispositionStage([received, ok, validated])).toBe("restock_validated_not_applied")
+    expect(dispositionStage([received, ok, validated, { kind: "restocked", at: at(3), qty: 1 }])).toBe("restocked")
+  })
+  it("a newer inspection reopens the decision; a damaged item is never awaiting a restock", () => {
+    const evts = [
+      { kind: "received" as const, at: at(0) },
+      { kind: "inspected" as const, at: at(1), outcome: "resellable" as const, note: "" },
+      { kind: "decided" as const, at: at(2), decision: "restock" as const, note: "", restock: "none:mode_off" },
+      { kind: "inspected" as const, at: at(3), outcome: "damaged" as const, note: "rayure" },
+    ]
+    expect(dispositionStage(evts)).toBe("inspected_not_resellable")
+    expect(canDecideRestock("damaged", "restock")).toBe(false)
+    expect(canDecideRestock("damaged", "keep_out")).toBe(true)
+    expect(canDecideRestock(null, "keep_out")).toBe(false)
+    expect(canDecideRestock("resellable", "restock")).toBe(true)
   })
 })

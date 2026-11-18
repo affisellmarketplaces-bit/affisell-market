@@ -9075,5 +9075,53 @@
       "dimensions": "Dimensions"
     },
     "returnWindowBadge": "Retours acceptés sous {days} jours"
+  },
+  "supplierReturns": {
+    "disposition": {
+      "title": "Marchandise retournée — inspection et décision",
+      "outcomeLabel": "État constaté",
+      "noteLabel": "Note (ce que vous avez vu)",
+      "record": "Enregistrer l'inspection",
+      "decideRestock": "Valider la remise en stock",
+      "decideKeepOut": "Ne pas remettre en stock",
+      "decisionNoteLabel": "Raison de la décision",
+      "timeline": "Historique",
+      "stage": {
+        "awaiting_reception": "En attente de réception",
+        "awaiting_inspection": "À inspecter",
+        "inspected_not_resellable": "Inspecté — non revendable",
+        "awaiting_decision": "Revendable — décision à prendre",
+        "kept_out": "Gardé hors stock",
+        "restock_validated_not_applied": "Remise en stock validée — non appliquée",
+        "restocked": "Remis en stock"
+      },
+      "outcome": {
+        "resellable": "Revendable (état neuf, complet)",
+        "damaged": "Endommagé",
+        "defective": "Défectueux",
+        "missing_parts": "Pièces manquantes",
+        "wrong_item_returned": "Mauvais article renvoyé",
+        "not_received": "Rien reçu"
+      },
+      "event": {
+        "received": "Reçu",
+        "inspected": "Inspecté",
+        "decided": "Décision",
+        "restocked": "Remis en stock ({qty})"
+      },
+      "decision": {
+        "restock": "remise en stock validée",
+        "keep_out": "gardé hors stock"
+      },
+      "modeOff": "La remise en stock automatique est désactivée sur Affisell : votre décision est enregistrée, le stock n'est pas modifié.",
+      "modeObserve": "Mode observation : votre décision est enregistrée, la remise en stock est seulement calculée.",
+      "inspectionSaved": "Inspection enregistrée.",
+      "decisionSaved": "Décision enregistrée.",
+      "restocked": "Unités remises en stock.",
+      "error": "L'opération a échoué.",
+      "errNotResellable": "La dernière inspection ne permet pas la remise en stock.",
+      "errNotInspected": "Inspectez d'abord la marchandise.",
+      "errAlreadyRestocked": "Déjà remis en stock."
+    }
   }
 }

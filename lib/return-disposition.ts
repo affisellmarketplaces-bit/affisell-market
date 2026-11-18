@@ -72,3 +72,55 @@ export const RETURN_INSPECTION_ACTION = "return.inspected"
 export const RETURN_RESTOCKED_ACTION = "return.restocked"
 export const returnInspectionAuditId = (returnId: string) => `return-inspection:${returnId}`
 export const returnRestockedAuditId = (returnId: string) => `return-restocked:${returnId}`
+
+/**
+ * Inspection (what was OBSERVED) and decision (what the supplier VALIDATES) are two separate, traced steps
+ * (founder rule 2026-11-18): recording an inspection never touches stock; only an explicit `restock` decision taken
+ * on a `resellable` inspection can — and then still only within `RETURN_RESTOCK_MODE`.
+ */
+export const RETURN_DECISIONS = ["restock", "keep_out"] as const
+export type ReturnDecision = (typeof RETURN_DECISIONS)[number]
+export function isReturnDecision(v: unknown): v is ReturnDecision {
+  return typeof v === "string" && (RETURN_DECISIONS as readonly string[]).includes(v)
+}
+
+export const RETURN_DECISION_ACTION = "return.disposition_decided"
+export const returnInspectionHistoryId = (returnId: string, n: number) => `return-inspection:${returnId}:${n}`
+export const returnDecisionId = (returnId: string, n: number) => `return-decision:${returnId}:${n}`
+
+export type DispositionEvent =
+  | { kind: "received"; at: string }
+  | { kind: "inspected"; at: string; outcome: ReturnInspectionOutcome; note: string }
+  | { kind: "decided"; at: string; decision: ReturnDecision; note: string; restock: string }
+  | { kind: "restocked"; at: string; qty: number }
+
+export type DispositionStage =
+  | "awaiting_reception"
+  | "awaiting_inspection"
+  | "inspected_not_resellable"
+  | "awaiting_decision"
+  | "kept_out"
+  | "restock_validated_not_applied"
+  | "restocked"
+
+/** Where the goods of a return stand, from its traced events (oldest first). */
+export function dispositionStage(events: ReadonlyArray<DispositionEvent>): DispositionStage {
+  if (events.some((e) => e.kind === "restocked")) return "restocked"
+  if (!events.some((e) => e.kind === "received")) return "awaiting_reception"
+  const inspections = events.filter((e): e is Extract<DispositionEvent, { kind: "inspected" }> => e.kind === "inspected")
+  const last = inspections.at(-1)
+  if (!last) return "awaiting_inspection"
+  const decisionAfter = events
+    .filter((e): e is Extract<DispositionEvent, { kind: "decided" }> => e.kind === "decided" && e.at >= last.at)
+    .at(-1)
+  if (last.outcome !== "resellable") return decisionAfter?.decision === "keep_out" ? "kept_out" : "inspected_not_resellable"
+  if (!decisionAfter) return "awaiting_decision"
+  return decisionAfter.decision === "keep_out" ? "kept_out" : "restock_validated_not_applied"
+}
+
+/** A restock can only be validated on the LATEST inspection, and only when it found the goods resellable. */
+export function canDecideRestock(latestOutcome: ReturnInspectionOutcome | null, decision: ReturnDecision): boolean {
+  if (latestOutcome == null) return false
+  if (decision === "keep_out") return true
+  return latestOutcome === "resellable"
+}

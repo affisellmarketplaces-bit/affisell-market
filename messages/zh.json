@@ -9075,5 +9075,53 @@
       "dimensions": "尺寸"
     },
     "returnWindowBadge": "支持 {days} 天内退货"
+  },
+  "supplierReturns": {
+    "disposition": {
+      "title": "退回商品 — 检验与决定",
+      "outcomeLabel": "检验结果",
+      "noteLabel": "备注（您看到的情况）",
+      "record": "保存检验",
+      "decideRestock": "确认重新入库",
+      "decideKeepOut": "不重新入库",
+      "decisionNoteLabel": "决定理由",
+      "timeline": "记录",
+      "stage": {
+        "awaiting_reception": "等待收货",
+        "awaiting_inspection": "待检验",
+        "inspected_not_resellable": "已检验 — 不可再售",
+        "awaiting_decision": "可再售 — 待决定",
+        "kept_out": "不入库",
+        "restock_validated_not_applied": "已确认入库 — 未执行",
+        "restocked": "已重新入库"
+      },
+      "outcome": {
+        "resellable": "可再售（全新、完整）",
+        "damaged": "已损坏",
+        "defective": "有缺陷",
+        "missing_parts": "缺少部件",
+        "wrong_item_returned": "退回了错误的商品",
+        "not_received": "未收到任何物品"
+      },
+      "event": {
+        "received": "已收货",
+        "inspected": "已检验",
+        "decided": "决定",
+        "restocked": "已重新入库（{qty}）"
+      },
+      "decision": {
+        "restock": "已确认重新入库",
+        "keep_out": "不入库"
+      },
+      "modeOff": "Affisell 已关闭自动重新入库：您的决定已记录，库存未变。",
+      "modeObserve": "观察模式：您的决定已记录，仅计算重新入库数量。",
+      "inspectionSaved": "检验已保存。",
+      "decisionSaved": "决定已保存。",
+      "restocked": "商品已重新入库。",
+      "error": "操作失败。",
+      "errNotResellable": "最近一次检验不允许重新入库。",
+      "errNotInspected": "请先检验商品。",
+      "errAlreadyRestocked": "已重新入库。"
+    }
   }
 }

@@ -9075,5 +9075,53 @@
       "dimensions": "Abmessungen"
     },
     "returnWindowBadge": "Rückgabe innerhalb von {days} Tagen möglich"
+  },
+  "supplierReturns": {
+    "disposition": {
+      "title": "Retournierte Ware — Prüfung und Entscheidung",
+      "outcomeLabel": "Festgestellter Zustand",
+      "noteLabel": "Notiz (was Sie gesehen haben)",
+      "record": "Prüfung speichern",
+      "decideRestock": "Wiedereinlagerung bestätigen",
+      "decideKeepOut": "Nicht wieder einlagern",
+      "decisionNoteLabel": "Grund der Entscheidung",
+      "timeline": "Verlauf",
+      "stage": {
+        "awaiting_reception": "Wartet auf Eingang",
+        "awaiting_inspection": "Zu prüfen",
+        "inspected_not_resellable": "Geprüft — nicht wiederverkaufbar",
+        "awaiting_decision": "Wiederverkaufbar — Entscheidung nötig",
+        "kept_out": "Nicht eingelagert",
+        "restock_validated_not_applied": "Wiedereinlagerung bestätigt — nicht angewendet",
+        "restocked": "Wieder eingelagert"
+      },
+      "outcome": {
+        "resellable": "Wiederverkaufbar (neuwertig, vollständig)",
+        "damaged": "Beschädigt",
+        "defective": "Defekt",
+        "missing_parts": "Teile fehlen",
+        "wrong_item_returned": "Falscher Artikel zurückgesendet",
+        "not_received": "Nichts erhalten"
+      },
+      "event": {
+        "received": "Eingegangen",
+        "inspected": "Geprüft",
+        "decided": "Entscheidung",
+        "restocked": "Wieder eingelagert ({qty})"
+      },
+      "decision": {
+        "restock": "Wiedereinlagerung bestätigt",
+        "keep_out": "nicht eingelagert"
+      },
+      "modeOff": "Die automatische Wiedereinlagerung ist bei Affisell ausgeschaltet: Ihre Entscheidung wird gespeichert, der Bestand bleibt unverändert.",
+      "modeObserve": "Beobachtungsmodus: Ihre Entscheidung wird gespeichert, die Wiedereinlagerung wird nur berechnet.",
+      "inspectionSaved": "Prüfung gespeichert.",
+      "decisionSaved": "Entscheidung gespeichert.",
+      "restocked": "Einheiten wieder eingelagert.",
+      "error": "Die Aktion ist fehlgeschlagen.",
+      "errNotResellable": "Die letzte Prüfung erlaubt keine Wiedereinlagerung.",
+      "errNotInspected": "Prüfen Sie zuerst die Ware.",
+      "errAlreadyRestocked": "Bereits wieder eingelagert."
+    }
   }
 }

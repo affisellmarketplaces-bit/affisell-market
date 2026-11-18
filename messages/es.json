@@ -9075,5 +9075,53 @@
       "dimensions": "Dimensiones"
     },
     "returnWindowBadge": "Devoluciones aceptadas hasta {days} días"
+  },
+  "supplierReturns": {
+    "disposition": {
+      "title": "Mercancía devuelta — inspección y decisión",
+      "outcomeLabel": "Estado constatado",
+      "noteLabel": "Nota (lo que ha visto)",
+      "record": "Registrar la inspección",
+      "decideRestock": "Validar la reposición",
+      "decideKeepOut": "No reponer en stock",
+      "decisionNoteLabel": "Motivo de la decisión",
+      "timeline": "Historial",
+      "stage": {
+        "awaiting_reception": "Pendiente de recepción",
+        "awaiting_inspection": "Por inspeccionar",
+        "inspected_not_resellable": "Inspeccionado — no revendible",
+        "awaiting_decision": "Revendible — decisión pendiente",
+        "kept_out": "Fuera de stock",
+        "restock_validated_not_applied": "Reposición validada — no aplicada",
+        "restocked": "Repuesto en stock"
+      },
+      "outcome": {
+        "resellable": "Revendible (como nuevo, completo)",
+        "damaged": "Dañado",
+        "defective": "Defectuoso",
+        "missing_parts": "Faltan piezas",
+        "wrong_item_returned": "Artículo equivocado devuelto",
+        "not_received": "No se recibió nada"
+      },
+      "event": {
+        "received": "Recibido",
+        "inspected": "Inspeccionado",
+        "decided": "Decisión",
+        "restocked": "Repuesto en stock ({qty})"
+      },
+      "decision": {
+        "restock": "reposición validada",
+        "keep_out": "fuera de stock"
+      },
+      "modeOff": "La reposición automática está desactivada en Affisell: su decisión queda registrada, el stock no cambia.",
+      "modeObserve": "Modo observación: su decisión queda registrada, la reposición solo se calcula.",
+      "inspectionSaved": "Inspección registrada.",
+      "decisionSaved": "Decisión registrada.",
+      "restocked": "Unidades repuestas en stock.",
+      "error": "La operación ha fallado.",
+      "errNotResellable": "La última inspección no permite la reposición.",
+      "errNotInspected": "Inspeccione primero la mercancía.",
+      "errAlreadyRestocked": "Ya repuesto en stock."
+    }
   }
 }

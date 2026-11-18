@@ -9075,5 +9075,53 @@
       "dimensions": "Dimensions"
     },
     "returnWindowBadge": "Returns accepted within {days} days"
+  },
+  "supplierReturns": {
+    "disposition": {
+      "title": "Returned goods — inspection and decision",
+      "outcomeLabel": "Condition observed",
+      "noteLabel": "Note (what you saw)",
+      "record": "Record inspection",
+      "decideRestock": "Validate restock",
+      "decideKeepOut": "Keep out of stock",
+      "decisionNoteLabel": "Reason for the decision",
+      "timeline": "History",
+      "stage": {
+        "awaiting_reception": "Awaiting reception",
+        "awaiting_inspection": "To inspect",
+        "inspected_not_resellable": "Inspected — not resellable",
+        "awaiting_decision": "Resellable — decision needed",
+        "kept_out": "Kept out of stock",
+        "restock_validated_not_applied": "Restock validated — not applied",
+        "restocked": "Restocked"
+      },
+      "outcome": {
+        "resellable": "Resellable (as new, complete)",
+        "damaged": "Damaged",
+        "defective": "Defective",
+        "missing_parts": "Missing parts",
+        "wrong_item_returned": "Wrong item returned",
+        "not_received": "Nothing received"
+      },
+      "event": {
+        "received": "Received",
+        "inspected": "Inspected",
+        "decided": "Decision",
+        "restocked": "Restocked ({qty})"
+      },
+      "decision": {
+        "restock": "restock validated",
+        "keep_out": "kept out of stock"
+      },
+      "modeOff": "Automatic restocking is switched off on Affisell: your decision is recorded, stock is not changed.",
+      "modeObserve": "Observation mode: your decision is recorded, the restock is only calculated.",
+      "inspectionSaved": "Inspection recorded.",
+      "decisionSaved": "Decision recorded.",
+      "restocked": "Units returned to stock.",
+      "error": "The action failed.",
+      "errNotResellable": "The latest inspection does not allow a restock.",
+      "errNotInspected": "Inspect the goods first.",
+      "errAlreadyRestocked": "Already restocked."
+    }
   }
 }

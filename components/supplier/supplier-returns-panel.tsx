@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useState } from "react"
 
+import { ReturnDispositionBlock } from "@/components/supplier/return-disposition-block"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
@@ -243,6 +244,9 @@ export function SupplierReturnsPanel({ className }: { className?: string }) {
               >
                 Mark refunded
               </Button>
+            ) : null}
+            {r.receivedAt && (r.status === "RECEIVED" || r.status === "REFUNDED") ? (
+              <ReturnDispositionBlock returnId={r.id} />
             ) : null}
             <p className="w-full text-xs text-zinc-500">
               Refunds are recorded here when you complete the payout (Stripe refund or manual). This does not
