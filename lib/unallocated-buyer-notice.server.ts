@@ -321,10 +321,25 @@ export async function resolveBuyerNoticeInDoubt(args: { sessionId: string; kind:
   if (!claim) return { ok: false, error: "claim_not_found" }
   const done = await prisma.auditLog.findMany({ where: { id: { in: [`${id}:sent`, `${id}:failed`] } }, select: { id: true } })
   if (done.length > 0) return { ok: false, error: "already_resolved" }
-  const ok = await writeOutcome(`${id}:${args.outcome}`, args.outcome === "sent" ? BUYER_NOTICE_SENT_ACTION : BUYER_NOTICE_FAILED_ACTION, args.sessionId, {
-    resolvedBy: args.actorId,
-    note: args.note?.slice(0, 500) ?? null,
-    manual: true,
-  })
-  return ok ? { ok: true } : { ok: false, error: "already_resolved" }
+  // One resolution per attempt, decided by the database: the `:resolved` row (deterministic primary key) and the outcome
+  // row are written in ONE transaction, so two admins answering « sent » and « failed » at the same time can not both
+  // win (found on a real PostgreSQL: the check above alone let both through). The parser ignores `:resolved`.
+  try {
+    await prisma.$transaction([
+      prisma.auditLog.create({ data: { id: `${id}:resolved`, action: "payment.unallocated_line.buyer_notice.resolved", entityType: BUYER_NOTICE_ENTITY_TYPE, entityId: args.sessionId, actorId: args.actorId, payload: { outcome: args.outcome } } }),
+      prisma.auditLog.create({
+        data: {
+          id: `${id}:${args.outcome}`,
+          action: args.outcome === "sent" ? BUYER_NOTICE_SENT_ACTION : BUYER_NOTICE_FAILED_ACTION,
+          entityType: BUYER_NOTICE_ENTITY_TYPE,
+          entityId: args.sessionId,
+          actorId: args.actorId,
+          payload: { resolvedBy: args.actorId, note: args.note?.slice(0, 500) ?? null, manual: true },
+        },
+      }),
+    ])
+    return { ok: true }
+  } catch {
+    return { ok: false, error: "already_resolved" }
+  }
 }

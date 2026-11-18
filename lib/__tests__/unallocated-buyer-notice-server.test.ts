@@ -20,19 +20,35 @@ function matches(r: Row, w: Where): boolean {
   if (w.createdAt && r.createdAt < w.createdAt.gte) return false
   return true
 }
+/** Like a Prisma promise: nothing runs until it is awaited (or run by `$transaction`). */
+function lazy<T>(run: () => T) {
+  return { run, then: (ok: (v: T) => unknown, ko?: (e: unknown) => unknown) => Promise.resolve().then(run).then(ok, ko) }
+}
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     auditLog: {
       findMany: async ({ where }: { where: Where }) => [...db.rows.values()].filter((r) => matches(r, where)),
       findUnique: async ({ where }: { where: { id: string } }) => db.rows.get(where.id) ?? null,
-      create: async ({ data }: { data: Omit<Row, "createdAt"> }) => {
-        if (db.rows.has(data.id)) throw Object.assign(new Error("Unique constraint failed"), { code: "P2002" })
-        const row = { ...data, createdAt: new Date() }
-        db.rows.set(data.id, row)
-        return row
-      },
+      create: ({ data }: { data: Omit<Row, "createdAt"> & { actorId?: string | null } }) =>
+        lazy(() => {
+          if (db.rows.has(data.id)) throw Object.assign(new Error("Unique constraint failed"), { code: "P2002" })
+          const row = { ...data, createdAt: new Date() }
+          db.rows.set(data.id, row)
+          return row
+        }),
     },
     affiliateProduct: { findUnique: async () => ({ affiliateId: "aff_1" }) },
+    // All-or-nothing like PostgreSQL: on a conflict, rows created by earlier operations of the batch are rolled back.
+    $transaction: async (ops: Array<{ run: () => Row }>) => {
+      const before = new Map(db.rows)
+      try {
+        return ops.map((op) => op.run())
+      } catch (e) {
+        db.rows.clear()
+        for (const [k, v] of before) db.rows.set(k, v)
+        throw e
+      }
+    },
   },
 }))
 const stripeState = vi.hoisted(() => ({ refundStatus: "succeeded" as string, paid: true, paymentRefunds: [] as Array<{ id: string; status: string; metadata: Record<string, string> }>, refundsReadable: true }))
@@ -198,6 +214,7 @@ describe("crash between the send and its record", () => {
     expect(alerts.messages).toHaveLength(1)
     expect(await resolveBuyerNoticeInDoubt({ sessionId: SID, kind: "initial", attempt: 1, outcome: "sent", actorId: "admin_1" })).toEqual({ ok: true })
     expect(await resolveBuyerNoticeInDoubt({ sessionId: SID, kind: "initial", attempt: 1, outcome: "failed", actorId: "admin_1" })).toEqual({ ok: false, error: "already_resolved" })
+    expect(db.rows.has(`${KEY1}:failed`), "a refused resolution writes nothing").toBe(false)
     expect(await notifyUnallocatedBuyer(SID)).toEqual({ status: "nothing_new" })
   })
 })
