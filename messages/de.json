@@ -3172,7 +3172,8 @@
       "doneWithdrawn": "Das Produkt wurde aus Ihrem Shop genommen.",
       "historyKept": "Nichts wird gelöscht: Historie, Statistiken und frühere Bestellungen bleiben unverändert.",
       "backToShop": "Zurück zu meinem Bereich",
-      "honesty": "Netto = Provision + Aufschlag − Affisell-Gebühr, berechnet wie Ihre Auszahlungen. Preise ohne MwSt.; nur der Barcode belegt, dass es dasselbe Produkt ist."
+      "honesty": "Netto = Provision + Aufschlag − Affisell-Gebühr, berechnet wie Ihre Auszahlungen. Preise ohne MwSt.; nur der Barcode belegt, dass es dasselbe Produkt ist.",
+      "bellMessage": "« {product} » kann in Ihrem Shop nicht mehr gekauft werden. Entfernen Sie es oder ersetzen Sie es durch ein gleichwertiges Produkt."
     }
   },
   "marketplace": {
@@ -9158,7 +9159,8 @@
     "reviewMargins": "Meine Margen prüfen",
     "viewInvitation": "Einladung ansehen",
     "viewAffiliateInvites": "Wiederverkäufer-Einladungen ansehen",
-    "viewProfitAlert": "Warnung ansehen"
+    "viewProfitAlert": "Warnung ansehen",
+    "viewReplacement": "Entfernen oder ersetzen"
   },
   "aiConnect": {
     "title": "KI verbinden",

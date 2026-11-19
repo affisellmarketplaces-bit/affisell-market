@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest"
 import { isValidGtin } from "@/lib/listing-compliance/gtin"
 import { computeResellerNetPerSale } from "@/lib/reseller-copilot/net-per-sale"
 import { availableUnits, listingProblem } from "@/lib/reseller-replacement/listing-state"
+import { readUnsellableAlertsMode, unsellableAlertId } from "@/lib/reseller-replacement/unsellable-alerts"
 import {
   buildReplacementProposal,
   gtin14,
@@ -167,6 +168,25 @@ describe("replacing an unsellable product (founder brief 2026-11-19)", () => {
       expect(m.affiliate.replacement.problem.out_of_stock, loc).toBeTruthy()
       expect(m.affiliate.replacement.none.no_reliable_match, loc).toBeTruthy()
       expect(m.affiliate.replacement.col.what, loc).toBeTruthy()
+    }
+  })
+
+  it("unsellable-listing alerts: observe by default, one id per listing / problem / 14-day window", () => {
+    expect(readUnsellableAlertsMode(undefined)).toBe("observe")
+    expect(readUnsellableAlertsMode("enforce")).toBe("enforce")
+    expect(readUnsellableAlertsMode("off")).toBe("off")
+    const d1 = new Date("2026-11-19T08:00:00Z")
+    const d2 = new Date("2026-11-19T20:00:00Z")
+    expect(unsellableAlertId("l1", "out_of_stock", d1)).toBe(unsellableAlertId("l1", "out_of_stock", d2))
+    expect(unsellableAlertId("l1", "out_of_stock", d1)).not.toBe(unsellableAlertId("l1", "no_commission", d1))
+    const server = read("lib/reseller-replacement/unsellable-alerts.server.ts")
+    expect(server).toMatch(/if \(mode === "observe"\) continue/)
+    expect(server).not.toMatch(/affiliateProduct\.(update|delete)/)
+    expect(read(".github/workflows/scheduled-crons.yml")).toContain('"/api/cron/reseller-unsellable-alerts"')
+    for (const loc of ["fr", "en", "de", "es", "it", "nl", "pl", "zh"]) {
+      const m = JSON.parse(read(`messages/${loc}.json`))
+      expect(m.affiliate.replacement.bellMessage, loc).toContain("{product}")
+      expect(m.merchantNotifications.viewReplacement, loc).toBeTruthy()
     }
   })
 })

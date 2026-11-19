@@ -3172,7 +3172,8 @@
       "doneWithdrawn": "该商品已从您的店铺下架。",
       "historyKept": "不会删除任何内容：历史、统计和过往订单都保持不变。",
       "backToShop": "返回我的空间",
-      "honesty": "净收益 = 佣金 + 加价 − Affisell 费用，计算方式与您的结算相同。价格不含税；只有条形码能证明是同一商品。"
+      "honesty": "净收益 = 佣金 + 加价 − Affisell 费用，计算方式与您的结算相同。价格不含税；只有条形码能证明是同一商品。",
+      "bellMessage": "「{product}」已无法在您的店铺购买。请将其下架或替换为同等商品。"
     }
   },
   "marketplace": {
@@ -9158,7 +9159,8 @@
     "reviewMargins": "查看我的利润",
     "viewInvitation": "查看邀请",
     "viewAffiliateInvites": "查看分销商邀请",
-    "viewProfitAlert": "查看提醒"
+    "viewProfitAlert": "查看提醒",
+    "viewReplacement": "下架或替换"
   },
   "aiConnect": {
     "title": "连接 AI",

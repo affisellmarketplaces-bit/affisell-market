@@ -17,6 +17,7 @@ import { SUPPLIER_INVITE_NOTIF } from "@/lib/supplier-invite-notif-constants"
 import { SUPPLIER_AFFILIATE_INVITE_NOTIF } from "@/lib/supplier-affiliate-invite-notif-constants"
 import { SUPPLIER_PRICE_CHANGE_NOTIF } from "@/lib/affiliate-wholesale-change-notif-constants"
 import { PROFIT_ALERT_NOTIF } from "@/lib/intelligence/profit-alert-types"
+import { UNSELLABLE_LISTING_NOTIF } from "@/lib/reseller-replacement/unsellable-alerts"
 import type { MerchantNotificationOrderSummary } from "@/lib/merchant-notification-order-summary-types"
 import { computeAnchoredPanelPosition, type AnchoredPanelPosition } from "@/lib/anchored-panel-position"
 import { cn } from "@/lib/utils"
@@ -79,6 +80,7 @@ const config: Record<
       n.type === "NEW_SALE" ||
       n.type === SUPPLIER_PRICE_CHANGE_NOTIF ||
       n.type === PROFIT_ALERT_NOTIF ||
+      n.type === UNSELLABLE_LISTING_NOTIF ||
       n.type === SUPPLIER_INVITE_NOTIF.CATALOG_LIVE ||
       n.type === SUPPLIER_INVITE_NOTIF.NEW_SUPPLIER_CATALOG ||
       isProductRequestNotifType(n.type),
@@ -129,6 +131,13 @@ function resolveNotificationLink(
     return {
       href: `/dashboard/affiliate?editListing=${encodeURIComponent(n.orderId)}`,
       label: t("reviewMargins"),
+    }
+  }
+
+  if (role === "AFFILIATE" && n.type === UNSELLABLE_LISTING_NOTIF && n.orderId) {
+    return {
+      href: `/dashboard/affiliate/products/${encodeURIComponent(n.orderId)}/replace`,
+      label: t("viewReplacement"),
     }
   }
 

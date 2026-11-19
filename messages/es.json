@@ -3172,7 +3172,8 @@
       "doneWithdrawn": "El producto se retiró de su tienda.",
       "historyKept": "No se elimina nada: el historial, las estadísticas y los pedidos pasados quedan intactos.",
       "backToShop": "Volver a mi espacio",
-      "honesty": "Neto = comisión + margen − tarifa de Affisell, calculado como sus pagos. Precios sin IVA; solo el código de barras prueba que es el mismo producto."
+      "honesty": "Neto = comisión + margen − tarifa de Affisell, calculado como sus pagos. Precios sin IVA; solo el código de barras prueba que es el mismo producto.",
+      "bellMessage": "« {product} » ya no se puede comprar en su tienda. Retírelo o sustitúyalo por un producto equivalente."
     }
   },
   "marketplace": {
@@ -9158,7 +9159,8 @@
     "reviewMargins": "Revisar mis márgenes",
     "viewInvitation": "Ver la invitación",
     "viewAffiliateInvites": "Ver invitaciones de revendedores",
-    "viewProfitAlert": "Ver la alerta"
+    "viewProfitAlert": "Ver la alerta",
+    "viewReplacement": "Retirar o sustituir"
   },
   "aiConnect": {
     "title": "Conectar una IA",
