@@ -83,6 +83,15 @@ variable à `warn` / `off` sans déploiement de code.
    - `toZero` cohérent avec de vraies ruptures (vérification par échantillon sur la fiche du partenaire) ;
    - `largeChange` rare et expliqué ; aucune rafale (par exemple tous les produits d'un fournisseur à 0 le même jour) ;
    - `unreadable` proche de 0 (sinon, corriger d'abord le connecteur du fournisseur concerné).
+**Ce qui est prouvé par les tests, sur la vraie route** (`sync-stock-observation-route.test.ts`) : en `observe`,
+aucune écriture, ni sur les produits ni sur l'état de synchronisation du partenaire, même quand le partenaire est en
+panne ; une valeur illisible n'est jamais écrite ; les grands écarts, mises à 0 et retours de 0 sont comptés, au total
+et par fournisseur ; chaque ligne de journal d'une exécution porte le même identifiant d'exécution (`runId`) ; `off`
+arrête tout avant la moindre lecture ; en `enforce`, seul le stock est écrit, jamais la publication.
+
+**Interrompre** : mettre `PARTNER_STOCK_SYNC_MODE=off` (effet à l'exécution suivante, sans déploiement de code), ou
+retirer la ligne de `scheduled-crons.yml`.
+
 5. **Ensuite seulement**, sur ta décision : `enforce`. Retour arrière immédiat : remettre `observe`. Les stocks
    déjà écrits restent tels quels (aucun statut de publication n'est jamais modifié par cette tâche).
 
