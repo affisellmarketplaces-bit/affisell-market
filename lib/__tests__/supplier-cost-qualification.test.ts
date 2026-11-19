@@ -96,7 +96,7 @@ describe("declared vs observed — only the same perimeter is comparable", () =>
     declaredAt: at,
     declaredBy: "s",
   })
-  const entry = (id: string, at: string, amount: number, o: Partial<ObservedCostEntry> & { perimeter?: Partial<ObservedCostEntry["perimeter"]> } = {}): ObservedCostEntry => ({
+  const entry = (id: string, at: string, amount: number, o: Partial<Omit<ObservedCostEntry, "perimeter">> & { perimeter?: Partial<ObservedCostEntry["perimeter"]> } = {}): ObservedCostEntry => ({
     kind: "charged_amount",
     orderId: id,
     productId: "p",
