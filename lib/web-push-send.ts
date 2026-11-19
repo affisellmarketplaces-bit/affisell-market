@@ -200,3 +200,10 @@ export async function sendAbandonedCartPushToUser(
     tag: "affisell-abandoned-cart",
   })
 }
+
+export type RestockPushPayload = { userId: string; title: string; body: string; url: string; tag: string }
+
+/** « Back in stock » for ONE variant the buyer explicitly asked to be told about (`lib/restock-watch`). Same channel. */
+export async function sendRestockPushToUser(payload: RestockPushPayload): Promise<number> {
+  return sendPushToUser(payload.userId, { title: payload.title, body: payload.body, url: payload.url, tag: payload.tag })
+}

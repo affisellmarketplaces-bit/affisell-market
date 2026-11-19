@@ -130,7 +130,7 @@ describe("POST /api/checkout/identified", () => {
 
     expect(m.checkout.mock.calls[0]![1]).toEqual({ buyerUserId: "new_1" })
     expect(m.merge).toHaveBeenCalledWith("new_1", [
-      { productId: "p1", qty: 1, selectedColor: null, selectedSize: null },
+      { productId: "p1", qty: 1, selectedColor: null, selectedSize: null, selectedStorage: null },
     ])
   })
 })

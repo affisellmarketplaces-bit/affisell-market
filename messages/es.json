@@ -9758,5 +9758,23 @@
       "stock_cover_short": "Al ritmo actual de ventas, el stock se agotará en menos de dos semanas (cálculo).",
       "variant_rows_indistinct": "Varias variantes tienen el mismo color, talla y capacidad: el comprador no puede elegir entre ellas."
     }
+  },
+  "restockWatch": {
+    "cta": "Avisarme cuando vuelva esta opción",
+    "watching": "Te avisaremos — cancelar",
+    "hint": "Una sola notificación cuando esta opción vuelva a estar disponible. No se conoce fecha de reposición.",
+    "hintNotActive": "Tu solicitud está guardada, pero los avisos aún no están activados. No se conoce fecha de reposición.",
+    "saved": "Hecho: una notificación cuando vuelva, una sola vez.",
+    "savedNotActive": "Solicitud guardada. Los avisos aún no se envían: vuelve a consultar.",
+    "cancelled": "Solicitud cancelada.",
+    "pushDenied": "Las notificaciones están bloqueadas en tu navegador: permítelas para recibir el aviso.",
+    "pushUnsupported": "Tu navegador no admite notificaciones.",
+    "availableNow": "Buenas noticias: esta opción ya está disponible.",
+    "tooMany": "Ya tienes demasiadas solicitudes pendientes.",
+    "error": "No se pudo guardar ahora.",
+    "signInPrompt": "Inicia sesión para recibir un aviso cuando vuelva esta opción.",
+    "signIn": "Iniciar sesión",
+    "pushTitle": "De vuelta: {product}",
+    "pushBody": "{variant} vuelve a estar disponible. Las cantidades pueden ser limitadas."
   }
 }

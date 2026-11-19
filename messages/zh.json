@@ -9758,5 +9758,23 @@
       "stock_cover_short": "按当前销售速度，库存将在两周内售罄（计算）。",
       "variant_rows_indistinct": "部分规格的颜色、尺码和容量完全相同：买家无法在它们之间选择。"
     }
+  },
+  "restockWatch": {
+    "cta": "此款式到货时通知我",
+    "watching": "到货将通知您 — 取消",
+    "hint": "此款式重新有货时仅通知一次。补货日期未知。",
+    "hintNotActive": "您的请求已保存，但提醒尚未开启。补货日期未知。",
+    "saved": "已完成：到货时通知您一次。",
+    "savedNotActive": "请求已保存。提醒暂未发送。",
+    "cancelled": "请求已取消。",
+    "pushDenied": "您的浏览器已屏蔽通知：请允许通知以便接收提醒。",
+    "pushUnsupported": "您的浏览器不支持通知。",
+    "availableNow": "好消息：此款式现在有货。",
+    "tooMany": "您待处理的请求已过多。",
+    "error": "暂时无法保存。",
+    "signInPrompt": "登录后，此款式到货时将通知您。",
+    "signIn": "登录",
+    "pushTitle": "已到货：{product}",
+    "pushBody": "{variant} 已重新有货，数量可能有限。"
   }
 }

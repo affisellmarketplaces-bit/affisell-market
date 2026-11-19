@@ -9758,5 +9758,23 @@
       "stock_cover_short": "Przy obecnym tempie sprzedaży zapas wyczerpie się w mniej niż dwa tygodnie (obliczenie).",
       "variant_rows_indistinct": "Niektóre warianty mają ten sam kolor, rozmiar i pojemność: kupujący nie może wybrać między nimi."
     }
+  },
+  "restockWatch": {
+    "cta": "Powiadom mnie, gdy ten wariant wróci",
+    "watching": "Otrzymasz powiadomienie — anuluj",
+    "hint": "Jedno powiadomienie, gdy ten wariant będzie znów dostępny. Data dostawy nie jest znana.",
+    "hintNotActive": "Twoja prośba została zapisana, ale powiadomienia nie są jeszcze włączone. Data dostawy nie jest znana.",
+    "saved": "Gotowe: jedno powiadomienie, gdy wróci.",
+    "savedNotActive": "Prośba zapisana. Powiadomienia nie są jeszcze wysyłane.",
+    "cancelled": "Prośba anulowana.",
+    "pushDenied": "Powiadomienia są zablokowane w przeglądarce: zezwól na nie.",
+    "pushUnsupported": "Twoja przeglądarka nie obsługuje powiadomień.",
+    "availableNow": "Dobra wiadomość: ten wariant jest teraz dostępny.",
+    "tooMany": "Masz już zbyt wiele oczekujących próśb.",
+    "error": "Nie udało się teraz zapisać.",
+    "signInPrompt": "Zaloguj się, aby otrzymać powiadomienie o powrocie tego wariantu.",
+    "signIn": "Zaloguj się",
+    "pushTitle": "Wróciło: {product}",
+    "pushBody": "{variant} jest znów dostępny. Ilość może być ograniczona."
   }
 }

@@ -805,6 +805,11 @@ export function useListingDetailController(props: ListingDetailProps) {
     savePriceAlert,
     isStorageOptionDisabled,
     safeCustomColumns,
+    // « Prévenez-moi au retour » — offered only for ONE exact variant (held as rows) that is sold out right now.
+    restockWatch:
+      hasVariantRows && variantChoiceComplete && availableStock <= 0
+        ? { listingId, color: selectedColor ?? null, size: cartSelectedSize ?? null, storage: cartSelectedStorage ?? null }
+        : null,
   }
 }
 

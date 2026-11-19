@@ -9758,5 +9758,23 @@
       "stock_cover_short": "In het huidige verkooptempo is de voorraad binnen twee weken op (berekening).",
       "variant_rows_indistinct": "Sommige varianten hebben dezelfde kleur, maat en capaciteit: kopers kunnen er niet tussen kiezen."
     }
+  },
+  "restockWatch": {
+    "cta": "Laat het me weten als deze variant terug is",
+    "watching": "U krijgt bericht — annuleren",
+    "hint": "Eén melding zodra deze variant weer beschikbaar is. Er is geen leverdatum bekend.",
+    "hintNotActive": "Uw verzoek is opgeslagen, maar meldingen zijn nog niet ingeschakeld. Er is geen leverdatum bekend.",
+    "saved": "Gelukt: één melding als hij terug is.",
+    "savedNotActive": "Verzoek opgeslagen. Meldingen worden nog niet verstuurd.",
+    "cancelled": "Verzoek geannuleerd.",
+    "pushDenied": "Meldingen zijn geblokkeerd in uw browser: sta ze toe.",
+    "pushUnsupported": "Uw browser ondersteunt geen meldingen.",
+    "availableNow": "Goed nieuws: deze variant is nu beschikbaar.",
+    "tooMany": "U hebt al te veel openstaande verzoeken.",
+    "error": "Opslaan is nu niet mogelijk.",
+    "signInPrompt": "Log in om bericht te krijgen als deze variant terug is.",
+    "signIn": "Inloggen",
+    "pushTitle": "Terug: {product}",
+    "pushBody": "{variant} is weer beschikbaar. Hoeveelheden kunnen beperkt zijn."
   }
 }

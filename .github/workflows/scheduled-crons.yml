@@ -21,6 +21,7 @@ name: Scheduled crons
 #   scheduled   unallocated-buyer-notices every 30 min  buyer notice for paid lines with no order; OFF unless UNALLOCATED_LINE_BUYER_EMAIL=true; e-mail only, never money.
 #   scheduled   reseller-profit-alerts daily         idempotent (DB unique keys); writes alerts/notifications only, never money.
 #   scheduled   reseller-unsellable-alerts daily     observe by default (logs only); enforce = one bell note per listing/problem/14 d; never money.
+#   scheduled   restock-watch-notify every 30 min    OFF unless RESTOCK_WATCH_MODE (observe = measures only); enforce = one Web Push per buyer request; never stock or money.
 #   scheduled   supplier-blocked-demand-alerts daily observe by default (measures only); enforce = one bell per supplier/day; never stock or money.
 #   scheduled   intelligence-daily     daily         founder cockpit run: signal log, due decision measurements, one digest; never money.
 #   NOT         review-invites         deprecated alias of review-reminder, which is scheduled: both would double the work.
@@ -114,7 +115,8 @@ jobs:
             "/api/cron/auctions-tick" \
             "/api/cron/restore-closed-order-stock" \
             "/api/cron/reconcile-wholesale-changes" \
-            "/api/cron/unallocated-buyer-notices"
+            "/api/cron/unallocated-buyer-notices" \
+            "/api/cron/restock-watch-notify"
 
   daily:
     if: github.event.schedule == '0 9 * * *' || github.event_name == 'workflow_dispatch'

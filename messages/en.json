@@ -9758,5 +9758,23 @@
       "stock_cover_short": "At the current sales pace, the stock runs out in less than two weeks (calculation).",
       "variant_rows_indistinct": "Some variants share the same colour, size and capacity: buyers can not choose between them."
     }
+  },
+  "restockWatch": {
+    "cta": "Notify me when this option is back",
+    "watching": "You'll be notified — cancel",
+    "hint": "One notification when this option is available again. No restock date is known.",
+    "hintNotActive": "Your request is saved, but alerts are not switched on yet. No restock date is known.",
+    "saved": "Done: one notification when it's back, only once.",
+    "savedNotActive": "Request saved. Alerts are not being sent yet — check back.",
+    "cancelled": "Request cancelled.",
+    "pushDenied": "Notifications are blocked in your browser: allow them to be notified.",
+    "pushUnsupported": "Your browser does not support notifications.",
+    "availableNow": "Good news: this option is available now.",
+    "tooMany": "You already have too many pending requests.",
+    "error": "Could not save right now.",
+    "signInPrompt": "Sign in to be notified when this option is back.",
+    "signIn": "Sign in",
+    "pushTitle": "Back: {product}",
+    "pushBody": "{variant} is available again. Quantities may be limited."
   }
 }

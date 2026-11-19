@@ -14,6 +14,7 @@ import { SizeSelector } from "./SizeSelector"
 import { ListingPurchaseDock } from "./ListingPurchaseDock"
 import { ListingDetailsPanel } from "./ListingDetailsPanel"
 import { ListingStorefrontCard } from "./ListingStorefrontCard"
+import { RestockWatchButton } from "@/components/restock/restock-watch-button"
 
 const BookingComingSoonRail = nextDynamic(
   () =>
@@ -114,6 +115,7 @@ export function ListingSidebarColumn({
     setTitleExpanded,
     categoryEyebrow,
     availableStock,
+    restockWatch,
     partnerHighlightLabel,
     selectedStorage,
     setSelectedStorage,
@@ -239,6 +241,12 @@ export function ListingSidebarColumn({
             />
           ) : null}
         </div>
+
+        {restockWatch ? (
+          <div className="px-4 py-2 lg:px-0">
+            <RestockWatchButton choice={restockWatch} />
+          </div>
+        ) : null}
 
         <div className="hidden space-y-2 px-4 py-2.5 lg:block lg:space-y-4 lg:px-0 lg:py-0">
           {availableStock <= 5 && availableStock > 0 ? (
