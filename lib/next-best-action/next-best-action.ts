@@ -12,6 +12,7 @@
  * account produced it, and two actions never have the same kind or (when another
  * product is available) the same product. Pure, client-safe.
  */
+import type { RestockDemandProduct } from "@/lib/restock-watch/restock-demand"
 import type { HealthClass, HealthIssue, HealthIssueCode, HealthReport } from "@/lib/supplier-catalog-health/diagnose"
 
 export type ActionPriority = "haute" | "moyenne" | "basse"
@@ -22,6 +23,7 @@ export type NextAction = {
   key: string
   kind:
     | "fix_blocage"
+    | "answer_restock_demand"
     | "resolve_availability"
     | "promote_to_resellers"
     | "publish_draft"
@@ -41,7 +43,11 @@ export type NextAction = {
     resellersListing?: number
     netPerSaleCents?: number
     netChangeCents?: number
+    /** Distinct buyers who explicitly asked to be told when THIS variant is back (≥ 3) — demand, not a sales forecast. */
+    waitingBuyers?: number
   }
+  /** The exact variant the action is about (its label in the supplier's own sheet), when it is about one. */
+  variantLabel?: string
   /** Where the account acts. */
   href: string
 }
@@ -111,11 +117,46 @@ function pickDistinct<T extends { kind: string; productId: string; score: number
   return out
 }
 
-export function supplierNextActions(report: HealthReport, max = 3): NextAction[] {
-  const cands: Array<NextAction & { score: number }> = []
+/**
+ * « N buyers are waiting for Noir / M » — from the supplier signal (≥ 3 distinct buyers, active requests on a variant
+ * still sold out; computed on read, so it disappears as soon as the variant is back or the requests lapse). One action
+ * for the most-awaited variant; the key names the variant, so a UI dismissal holds while that same demand lasts.
+ * It takes the place of the generic « resolve availability » action on the same product (same fix, sharper reason).
+ */
+export function restockDemandCandidates(demand: ReadonlyArray<RestockDemandProduct>): Array<NextAction & { score: number }> {
+  const out: Array<NextAction & { score: number }> = []
+  for (const p of demand) {
+    for (const v of p.variants) {
+      if (v.buyers < 3) continue
+      out.push({
+        key: `answer_restock_demand:${p.productId}:${v.variantKey}`,
+        kind: "answer_restock_demand",
+        productId: p.productId,
+        productName: p.productName,
+        variantLabel: v.variantLabel,
+        reason: "restock_demand",
+        priority: "haute",
+        evidence: {
+          variant: { value: v.variantLabel, qualification: "fiche" },
+          waitingBuyers: { value: v.buyers, qualification: "observe" },
+        },
+        impact: { qualification: "potentiel", waitingBuyers: v.buyers },
+        href: `/dashboard/supplier/products/${encodeURIComponent(p.productId)}/edit`,
+        // Above any availability diagnosis: explicit buyers waiting is the most concrete reason to act.
+        score: 1_000_000 + v.buyers,
+      })
+    }
+  }
+  return out
+}
+
+export function supplierNextActions(report: HealthReport, max = 3, restockDemand: ReadonlyArray<RestockDemandProduct> = []): NextAction[] {
+  const cands: Array<NextAction & { score: number }> = [...restockDemandCandidates(restockDemand)]
+  const demandProducts = new Set(cands.map((c) => c.productId))
   for (const i of report.issues) {
     const kind = SUPPLIER_KIND[i.code]
     if (!kind) continue
+    if (kind === "resolve_availability" && demandProducts.has(i.productId)) continue
     const demand = i.demand.paidOrders30d + i.demand.resellersListing
     if (NEEDS_DEMAND.has(i.code) && demand === 0) continue
     const evidence: Record<string, Qualified> = {}

@@ -49,6 +49,7 @@ export function NextActionsCard({ role }: { role: "supplier" | "affiliate" }) {
     if (typeof a.impact.netPerSaleCents === "number") parts.push(t("impact.netPerSale", { amount: money(a.impact.netPerSaleCents) }))
     if (typeof a.impact.paidOrders30d === "number") parts.push(t("impact.orders", { count: a.impact.paidOrders30d }))
     if (typeof a.impact.resellersListing === "number") parts.push(t("impact.resellers", { count: a.impact.resellersListing }))
+    if (typeof a.impact.waitingBuyers === "number") parts.push(t("impact.waitingBuyers", { count: a.impact.waitingBuyers }))
     return `${t("impact.label")} ${parts.join(" · ")}`
   }
 
@@ -72,7 +73,7 @@ export function NextActionsCard({ role }: { role: "supplier" | "affiliate" }) {
                 {t(`kind.${a.kind}`, { product: a.productName })}
               </span>
             </div>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{t(`reason.${a.reason}`)}</p>
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{t(`reason.${a.reason}`, { variant: a.variantLabel ?? "", count: a.impact.waitingBuyers ?? 0 })}</p>
             <p className="mt-1 text-xs text-zinc-500">{impactLine(a)}</p>
             <Link href={a.href} className="mt-2 inline-block text-sm font-medium text-violet-700 underline">
               {t(`cta.${a.kind}`)}

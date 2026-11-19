@@ -9689,7 +9689,18 @@
       "buyers": "{count} 位买家正在等待到货",
       "fix": "更新数量",
       "truncated": "目录过大：仅检查了部分商品。",
-      "disclaimer": "买家的明确请求，每位买家每个款式只计一次。这是真实需求的参考，而非销售预测：收到通知的买家不一定购买。"
+      "disclaimer": "买家的明确请求，每位买家每个款式只计一次。这是真实需求的参考，而非销售预测：收到通知的买家不一定购买。",
+      "noneNow": "目前没有款式达到阈值。",
+      "followUp": {
+        "title": "需求跟进（最近 90 天）",
+        "counts": "{episodes} 组需求：{waiting} 组等待中，{returned} 个款式已补货，{lapsed} 组未补货即关闭。",
+        "delay": "从需求到补货的中位时间：{days} 天。",
+        "orders": "补货后：这些款式共 {orders} 笔订单，其中 {refunded} 笔已退款或取消，{waitingBuyers} 笔来自等待中的买家。",
+        "notEvaluable": "{count} 次补货的订单无法关联到款式（未计入）。",
+        "partial": "{count} 次补货的件数少于等待的买家数。",
+        "resoldOut": "{count} 个款式补货后再次售罄。",
+        "caveat": "需求之后实际发生的情况。补货后的订单并不证明是需求或推荐促成的。"
+      }
     }
   },
   "nextActions": {
@@ -9709,7 +9720,8 @@
       "complete_sheet": "完善「{product}」的商品信息",
       "fix_shop_listing": "处理您店铺中的「{product}」",
       "review_profit_drop": "查看「{product}」的下降原因",
-      "add_ready_product": "将「{product}」加入您的店铺"
+      "add_ready_product": "将「{product}」加入您的店铺",
+      "answer_restock_demand": "回应 {product} 的需求"
     },
     "cta": {
       "fix_blocage": "打开商品",
@@ -9719,14 +9731,16 @@
       "complete_sheet": "打开商品",
       "fix_shop_listing": "下架或替换",
       "review_profit_drop": "查看分析",
-      "add_ready_product": "在目录中查看"
+      "add_ready_product": "在目录中查看",
+      "answer_restock_demand": "更新库存"
     },
     "impact": {
       "label": "潜在影响：",
       "orders": "{count, plural, =0 {30 天内无已付款订单} other {30 天内 # 笔已付款订单}}",
       "resellers": "{count, plural, =0 {无分销商} other {# 位分销商}}",
       "netPerSale": "每笔销售净得 {amount}（计算）",
-      "netChange": "净收益减少 {amount}（观察）"
+      "netChange": "净收益减少 {amount}（观察）",
+      "waitingBuyers": "{count} 位买家在等待"
     },
     "reason": {
       "price_missing": "缺少价格：商品无法销售。",
@@ -9765,7 +9779,8 @@
       "ready_to_sell": "它今天可以销售，且尚未加入您的店铺。",
       "stock_unconfirmed": "导入来源未提供数量：发布需等待您填写数量。",
       "stock_cover_short": "按当前销售速度，库存将在两周内售罄（计算）。",
-      "variant_rows_indistinct": "部分规格的颜色、尺码和容量完全相同：买家无法在它们之间选择。"
+      "variant_rows_indistinct": "部分规格的颜色、尺码和容量完全相同：买家无法在它们之间选择。",
+      "restock_demand": "{count} 位买家正在等待 {variant}。请更新该款式的库存以回应这一需求。"
     }
   },
   "restockWatch": {

@@ -9689,7 +9689,18 @@
       "buyers": "{count, plural, one {# koper wacht} other {# kopers wachten}} erop",
       "fix": "Hoeveelheid bijwerken",
       "truncated": "Zeer grote catalogus: slechts een deel van de producten is bekeken.",
-      "disclaimer": "Uitdrukkelijke verzoeken van kopers, één keer geteld per koper en variant. Een aanwijzing van echte vraag, geen verkoopprognose: een gewaarschuwde koper koopt niet altijd."
+      "disclaimer": "Uitdrukkelijke verzoeken van kopers, één keer geteld per koper en variant. Een aanwijzing van echte vraag, geen verkoopprognose: een gewaarschuwde koper koopt niet altijd.",
+      "noneNow": "Geen enkele variant bereikt nu de drempel.",
+      "followUp": {
+        "title": "Opvolging van de vraag (laatste 90 dagen)",
+        "counts": "{episodes} gegroepeerde vragen: {waiting} wachtend, {returned} varianten weer op voorraad, {lapsed} gesloten zonder terugkeer.",
+        "delay": "Mediane tijd tussen vraag en terugkeer: {days} dagen.",
+        "orders": "Na de terugkeer: {orders} bestellingen van deze varianten, waarvan {refunded} terugbetaald of geannuleerd, {waitingBuyers} door wachtende kopers.",
+        "notEvaluable": "Bij {count} terugkeren kunnen bestellingen niet aan de variant worden gekoppeld (niet geteld).",
+        "partial": "{count} terugkeren met minder stuks dan wachtende kopers.",
+        "resoldOut": "{count} varianten na terugkeer opnieuw uitverkocht.",
+        "caveat": "Wat er na de vraag gebeurde, vastgesteld. Een bestelling na aanvulling bewijst niet dat de vraag of de aanbeveling die veroorzaakte."
+      }
     }
   },
   "nextActions": {
@@ -9709,7 +9720,8 @@
       "complete_sheet": "Productfiche « {product} » verbeteren",
       "fix_shop_listing": "« {product} » in uw winkel regelen",
       "review_profit_drop": "Daling bij « {product} » bekijken",
-      "add_ready_product": "« {product} » aan uw winkel toevoegen"
+      "add_ready_product": "« {product} » aan uw winkel toevoegen",
+      "answer_restock_demand": "Reageer op de vraag naar {product}"
     },
     "cta": {
       "fix_blocage": "Product openen",
@@ -9719,14 +9731,16 @@
       "complete_sheet": "Product openen",
       "fix_shop_listing": "Verwijderen of vervangen",
       "review_profit_drop": "Analyse bekijken",
-      "add_ready_product": "In de catalogus bekijken"
+      "add_ready_product": "In de catalogus bekijken",
+      "answer_restock_demand": "Beschikbaarheid bijwerken"
     },
     "impact": {
       "label": "Mogelijke impact:",
       "orders": "{count, plural, =0 {geen betaalde bestelling in 30 d} one {# betaalde bestelling in 30 d} other {# betaalde bestellingen in 30 d}}",
       "resellers": "{count, plural, =0 {geen wederverkoper} one {# wederverkoper} other {# wederverkopers}}",
       "netPerSale": "{amount} netto per verkoop (berekend)",
-      "netChange": "{amount} minder netto-opbrengst (waargenomen)"
+      "netChange": "{amount} minder netto-opbrengst (waargenomen)",
+      "waitingBuyers": "{count, plural, one {# wachtende koper} other {# wachtende kopers}}"
     },
     "reason": {
       "price_missing": "De prijs ontbreekt: het product kan niet worden verkocht.",
@@ -9765,7 +9779,8 @@
       "ready_to_sell": "Het is vandaag verkoopbaar en staat nog niet in uw winkel.",
       "stock_unconfirmed": "De importbron gaf geen hoeveelheid: de publicatie wacht op de uwe.",
       "stock_cover_short": "In het huidige verkooptempo is de voorraad binnen twee weken op (berekening).",
-      "variant_rows_indistinct": "Sommige varianten hebben dezelfde kleur, maat en capaciteit: kopers kunnen er niet tussen kiezen."
+      "variant_rows_indistinct": "Sommige varianten hebben dezelfde kleur, maat en capaciteit: kopers kunnen er niet tussen kiezen.",
+      "restock_demand": "{count, plural, one {# koper wacht} other {# kopers wachten}} op {variant}. Werk de beschikbaarheid van deze variant bij om aan de vraag te voldoen."
     }
   },
   "restockWatch": {

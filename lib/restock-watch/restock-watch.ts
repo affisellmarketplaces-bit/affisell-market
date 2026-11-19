@@ -31,6 +31,11 @@ export const RESTOCK_WATCH_MAX_ACTIVE = 50
 
 const DAY = 86_400_000
 
+/** Short stable hash of a variant key (ids only — never used to compare variants). */
+export function variantKeyHash(variantKey: string): string {
+  return fnv(variantKey)
+}
+
 function fnv(s: string): string {
   let h = 0x811c9dc5
   for (let i = 0; i < s.length; i++) {

@@ -39,16 +39,7 @@ export function aggregateRestockDemand(args: {
   minBuyers?: number
 }): RestockDemandVariant[] {
   const min = Math.max(RESTOCK_DEMAND_MIN_BUYERS, args.minBuyers ?? RESTOCK_DEMAND_MIN_BUYERS)
-  const groups = new Map<string, { productId: string; variantKey: string; buyers: Set<string> }>()
-  for (const w of args.watches) {
-    if (w.state !== "active" || !w.userId || !w.productId || !w.variantKey) continue
-    const since = Date.parse(w.requestedAt)
-    if (!Number.isFinite(since) || args.now.getTime() - since > RESTOCK_WATCH_TTL_DAYS * DAY) continue
-    const k = `${w.productId}\u0000${w.variantKey}`
-    const g = groups.get(k) ?? { productId: w.productId, variantKey: w.variantKey, buyers: new Set<string>() }
-    g.buyers.add(w.userId)
-    groups.set(k, g)
-  }
+  const groups = distinctWaitingByVariant(args.watches, args.now)
   const out: RestockDemandVariant[] = []
   for (const g of groups.values()) {
     if (g.buyers.size < min) continue
@@ -57,6 +48,31 @@ export function aggregateRestockDemand(args: {
     out.push({ productId: g.productId, variantKey: g.variantKey, variantLabel: today.label, buyers: g.buyers.size })
   }
   return out.sort((a, b) => b.buyers - a.buyers || a.variantLabel.localeCompare(b.variantLabel))
+}
+
+/**
+ * Distinct buyers with an ACTIVE, unexpired request, per exact variant (product × variant key) — whatever the stock.
+ * The one counting rule shared by the supplier signal and the demand episodes.
+ */
+export function distinctWaitingByVariant(
+  watches: ReadonlyArray<RestockWatch>,
+  now: Date
+): Map<string, { productId: string; variantKey: string; buyers: Set<string> }> {
+  const groups = new Map<string, { productId: string; variantKey: string; buyers: Set<string> }>()
+  for (const w of watches) {
+    if (w.state !== "active" || !w.userId || !w.productId || !w.variantKey) continue
+    const since = Date.parse(w.requestedAt)
+    if (!Number.isFinite(since) || now.getTime() - since > RESTOCK_WATCH_TTL_DAYS * DAY) continue
+    const k = demandGroupKey(w.productId, w.variantKey)
+    const g = groups.get(k) ?? { productId: w.productId, variantKey: w.variantKey, buyers: new Set<string>() }
+    g.buyers.add(w.userId)
+    groups.set(k, g)
+  }
+  return groups
+}
+
+export function demandGroupKey(productId: string, variantKey: string): string {
+  return `${productId}\u0000${variantKey}`
 }
 
 export type RestockDemandProduct = { productId: string; productName: string; variants: RestockDemandVariant[] }

@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 
 import type { RestockDemandProduct } from "@/lib/restock-watch/restock-demand"
+import type { DemandFunnelSummary } from "@/lib/restock-watch/restock-funnel"
 
 /**
  * Supplier: how many distinct buyers asked to be told when a sold-out variant of its products comes back (from 3).
@@ -13,7 +14,12 @@ import type { RestockDemandProduct } from "@/lib/restock-watch/restock-demand"
  */
 export function RestockDemandSection() {
   const t = useTranslations("catalogHealth.restockDemand")
-  const [data, setData] = useState<{ minBuyers: number; products: RestockDemandProduct[]; truncated: boolean } | null>(null)
+  const [data, setData] = useState<{
+    minBuyers: number
+    products: RestockDemandProduct[]
+    truncated: boolean
+    followUp: DemandFunnelSummary | null
+  } | null>(null)
 
   useEffect(() => {
     void fetch("/api/supplier/restock-demand", { cache: "no-store" })
@@ -22,7 +28,9 @@ export function RestockDemandSection() {
       .catch(() => setData(null))
   }, [])
 
-  if (!data || data.products.length === 0) return null
+  const f = data?.followUp ?? null
+  const hasFollowUp = Boolean(f && f.episodes > 0)
+  if (!data || (data.products.length === 0 && !hasFollowUp)) return null
   return (
     <section id="restock-demand" className="space-y-3 rounded-2xl border border-sky-200 bg-sky-50/50 p-4">
       <header className="space-y-1">
@@ -31,6 +39,7 @@ export function RestockDemandSection() {
       </header>
       {data.truncated ? <p className="text-xs text-amber-700">{t("truncated")}</p> : null}
       <ul className="space-y-2">
+        {data.products.length === 0 ? <li className="text-sm text-zinc-500">{t("noneNow")}</li> : null}
         {data.products.map((p) => (
           <li key={p.productId} className="rounded-xl border border-zinc-200 bg-white p-3 text-sm">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -49,6 +58,22 @@ export function RestockDemandSection() {
           </li>
         ))}
       </ul>
+      {f && hasFollowUp ? (
+        <div className="space-y-1 rounded-xl border border-zinc-200 bg-white p-3 text-xs text-zinc-700">
+          <p className="font-semibold text-zinc-900">{t("followUp.title")}</p>
+          <p>{t("followUp.counts", { episodes: f.episodes, waiting: f.waiting, returned: f.returned, lapsed: f.closedWithoutReturn })}</p>
+          {f.medianDaysToReturn !== null ? <p>{t("followUp.delay", { days: f.medianDaysToReturn })}</p> : null}
+          {f.returned > 0 ? (
+            <p>
+              {t("followUp.orders", { orders: f.ordersAfterReturn, refunded: f.refundedOrCancelledAfterReturn, waitingBuyers: f.byWaitingBuyers })}
+              {f.purchasesNotEvaluable > 0 ? ` ${t("followUp.notEvaluable", { count: f.purchasesNotEvaluable })}` : ""}
+            </p>
+          ) : null}
+          {f.partialReturns > 0 ? <p>{t("followUp.partial", { count: f.partialReturns })}</p> : null}
+          {f.resoldOutAfterReturn > 0 ? <p>{t("followUp.resoldOut", { count: f.resoldOutAfterReturn })}</p> : null}
+          <p className="text-zinc-500">{t("followUp.caveat")}</p>
+        </div>
+      ) : null}
       <p className="text-xs text-zinc-500">{t("disclaimer")}</p>
     </section>
   )

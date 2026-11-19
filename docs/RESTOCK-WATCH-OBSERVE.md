@@ -100,3 +100,20 @@ Le but est de prouver l'envoi de bout en bout dans un vrai navigateur, sur la Pr
 12. **Fin** : remettre `RESTOCK_WATCH_MODE` sur la Preview à sa valeur d'avant et redéployer.
 
 Les tests automatisés (`restock-watch`, `restock-demand`, `variant-table-parity`) couvrent la logique, mais pas le navigateur ni le service de push. Ce protocole est la seule preuve d'un envoi réel ; il n'a pas encore été exécuté.
+
+## 10. Après la demande : la chaîne mesurée (ajout 2026-11-20)
+
+Chaque déclinaison qui atteint 3 acheteurs distincts ouvre un **épisode de demande**, suivi par le même cron. Chaque étape a sa nature :
+
+| Étape | Nature | Champ |
+|---|---|---|
+| Demande | observé | `buyersAtOpen`, `peakBuyers`, `buyersAtBack` |
+| Recommandation | recommandation : disponible dès l'ouverture, **servie** au fournisseur la première fois que sa carte l'affiche | `recommendationShownAt` |
+| Action du fournisseur | action : fiche modifiée (une date de fiche, pas un réassort) ; quantité vue > 0 | `sheetModifiedAt`, `stockSeenAt` |
+| Retour en disponibilité | observé : quantité > 0 **et** produit vendable **et** en ligne | `backAt`, `unitsAtBack` |
+| Notification | réel et théorique, séparés | `notificationsSent`, `notificationsTheoretical` |
+| Achats | résultat commercial, à la lecture : commandes distinctes de la déclinaison dans les 30 jours, remboursées/annulées à part | `ordersAfterReturn`, `refundedOrCancelled`, `byWaitingBuyers` |
+
+**Lecture honnête** : une commande après un retour en stock est une *association*. Elle ne prouve pas que la demande ou la recommandation l'a provoquée (pas de groupe témoin). Les cas où la commande ne peut pas être rattachée à la déclinaison (déclinaisons à capacité) sont comptés à part comme « non évaluables ».
+
+Indicateurs de décision : taux de retour, délai médian demande → retour, demandes closes sans retour, retours partiels, nouvelles ruptures, achats après retour. Le fournisseur les voit pour ses propres produits, le fondateur pour tous (lecture admin ci-dessus). Tout cela n'existe qu'une fois le mode passé à `observe` (§2).

@@ -183,7 +183,11 @@ export async function listRestockWatches(userId: string) {
     .map(({ id, watch }) => ({ id, listingId: watch.listingId, variantLabel: watch.variantLabel, state: watch.state, requestedAt: watch.requestedAt }))
 }
 
-export type RestockWatchRun = RestockWatchObservation & { truncated: boolean }
+export type RestockWatchRun = RestockWatchObservation & {
+  truncated: boolean
+  /** Demand episodes (see `restock-funnel.ts`): bookkeeping of this run, never a product or a stock. */
+  episodes?: { opened: number; returned: number; closed: number; updated: number } | { error: true }
+}
 
 /**
  * Periodic. `observe`: measures what it WOULD send and closes requests that became useless (variant removed, listing
@@ -224,7 +228,10 @@ export async function runRestockWatchNotify(now = new Date()): Promise<RestockWa
   run.active = watches.length
   run.activeBuyers = new Set(watches.map((w) => w.watch.userId)).size
   run.activeVariants = new Set(watches.map((w) => `${w.watch.listingId}\u0000${w.watch.variantKey}`)).size
-  if (watches.length === 0) return run
+  if (watches.length === 0) {
+    await trackEpisodes(run, now)
+    return run
+  }
 
   const listingIds = [...new Set(watches.map((w) => w.watch.listingId))]
   const listings = new Map((await prisma.affiliateProduct.findMany({ where: { id: { in: listingIds } }, select: listingSelect })).map((l) => [l.id, l]))
@@ -323,6 +330,7 @@ export async function runRestockWatchNotify(now = new Date()): Promise<RestockWa
     })
   }
 
+  await trackEpisodes(run, now)
   try {
     await prisma.auditLog.createMany({
       data: [
@@ -347,7 +355,10 @@ export async function runRestockWatchNotify(now = new Date()): Promise<RestockWa
 export type { RestockWatchMode }
 
 /** ADMIN read: daily snapshots + theoretical (observed markers) and real (send claims) counts, apart. Counts only. */
-export async function loadRestockWatchObservations(days = 30, now = new Date()): Promise<RestockObservationReport & { mode: RestockWatchMode }> {
+export async function loadRestockWatchObservations(
+  days = 30,
+  now = new Date()
+): Promise<RestockObservationReport & { mode: RestockWatchMode; funnel: import("@/lib/restock-watch/restock-funnel").DemandFunnelSummary | null }> {
   const span = Math.min(Math.max(1, Math.round(days)), 90)
   const since = new Date(now.getTime() - span * 86_400_000)
   const dayOf = (d: Date) => d.toISOString().slice(0, 10)
@@ -356,12 +367,27 @@ export async function loadRestockWatchObservations(days = 30, now = new Date()):
     prisma.auditLog.findMany({ where: { action: RESTOCK_WATCH_OBSERVED_ACTION, createdAt: { gte: since } }, select: { createdAt: true }, take: 50_000 }),
     prisma.auditLog.findMany({ where: { action: RESTOCK_WATCH_SENT_ACTION, createdAt: { gte: since } }, select: { createdAt: true }, take: 50_000 }),
   ])
+  const { loadDemandEpisodes } = await import("@/lib/restock-watch/restock-funnel.server")
+  const funnel = await loadDemandEpisodes({ supplierId: null, days: span, now })
+    .then((r) => r.summary)
+    .catch(() => null)
   return {
     mode: readRestockWatchMode(),
+    funnel,
     ...summarizeRestockObservations({
       snapshots: snapshots.map((s) => ({ day: s.entityId ?? "", payload: s.payload })).filter((s) => s.day),
       observedMarkerDays: observed.map((o) => dayOf(o.createdAt)),
       sentClaimDays: sent.map((o) => dayOf(o.createdAt)),
     }),
+  }
+}
+
+async function trackEpisodes(run: RestockWatchRun, now: Date): Promise<void> {
+  try {
+    const { trackRestockDemandEpisodes } = await import("@/lib/restock-watch/restock-funnel.server")
+    run.episodes = await trackRestockDemandEpisodes(now)
+  } catch (error) {
+    run.episodes = { error: true }
+    console.error("[restock-demand] episodes_failed", error instanceof Error ? error.message : "unknown")
   }
 }

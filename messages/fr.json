@@ -9689,7 +9689,18 @@
       "buyers": "{count, plural, one {# acheteur attend} other {# acheteurs attendent}} son retour",
       "fix": "Mettre à jour la quantité",
       "truncated": "Catalogue très large : seule une partie des produits a été examinée.",
-      "disclaimer": "Demandes explicites d'acheteurs, comptées une fois par acheteur et par déclinaison. C'est une indication de demande réelle, pas une prévision de ventes : un acheteur prévenu peut ne pas acheter."
+      "disclaimer": "Demandes explicites d'acheteurs, comptées une fois par acheteur et par déclinaison. C'est une indication de demande réelle, pas une prévision de ventes : un acheteur prévenu peut ne pas acheter.",
+      "noneNow": "Aucune déclinaison n'atteint le seuil en ce moment.",
+      "followUp": {
+        "title": "Suivi des demandes (90 derniers jours)",
+        "counts": "{episodes} demandes groupées : {waiting} en attente, {returned} déclinaisons revenues en stock, {lapsed} closes sans retour.",
+        "delay": "Délai médian entre la demande et le retour : {days} jours.",
+        "orders": "Après les retours : {orders} commandes de ces déclinaisons, dont {refunded} remboursées ou annulées, et {waitingBuyers} passées par des acheteurs qui attendaient.",
+        "notEvaluable": "Pour {count} retours, les commandes ne peuvent pas être rattachées à la déclinaison (non comptées).",
+        "partial": "{count} retours avec moins d'unités que d'acheteurs en attente.",
+        "resoldOut": "{count} déclinaisons de nouveau épuisées après leur retour.",
+        "caveat": "Ce qui s'est passé après la demande, constaté. Une commande après un retour en stock ne prouve pas que la demande ou la recommandation l'a provoquée."
+      }
     }
   },
   "nextActions": {
@@ -9709,7 +9720,8 @@
       "complete_sheet": "Améliorer la fiche « {product} »",
       "fix_shop_listing": "Régler « {product} » dans votre boutique",
       "review_profit_drop": "Examiner la baisse sur « {product} »",
-      "add_ready_product": "Ajouter « {product} » à votre boutique"
+      "add_ready_product": "Ajouter « {product} » à votre boutique",
+      "answer_restock_demand": "Répondre à la demande sur {product}"
     },
     "cta": {
       "fix_blocage": "Ouvrir la fiche",
@@ -9719,14 +9731,16 @@
       "complete_sheet": "Ouvrir la fiche",
       "fix_shop_listing": "Retirer ou remplacer",
       "review_profit_drop": "Voir l'analyse",
-      "add_ready_product": "Voir dans le catalogue"
+      "add_ready_product": "Voir dans le catalogue",
+      "answer_restock_demand": "Mettre à jour la disponibilité"
     },
     "impact": {
       "label": "Impact potentiel :",
       "orders": "{count, plural, =0 {aucune commande payée en 30 j} one {# commande payée en 30 j} other {# commandes payées en 30 j}}",
       "resellers": "{count, plural, =0 {aucun revendeur} one {# revendeur} other {# revendeurs}}",
       "netPerSale": "{amount} net par vente (calcul)",
-      "netChange": "{amount} de gain net en moins (constaté)"
+      "netChange": "{amount} de gain net en moins (constaté)",
+      "waitingBuyers": "{count, plural, one {# acheteur en attente} other {# acheteurs en attente}}"
     },
     "reason": {
       "price_missing": "Le prix est manquant : le produit ne peut pas être vendu.",
@@ -9765,7 +9779,8 @@
       "ready_to_sell": "Il est vendable aujourd'hui et pas encore dans votre boutique.",
       "stock_unconfirmed": "La source de l'import ne donnait aucune quantité : la publication attend la vôtre.",
       "stock_cover_short": "Au rythme actuel des ventes, le stock sera épuisé dans moins de deux semaines (calcul).",
-      "variant_rows_indistinct": "Des déclinaisons portent la même couleur, la même taille et la même capacité : l'acheteur ne peut pas choisir entre elles."
+      "variant_rows_indistinct": "Des déclinaisons portent la même couleur, la même taille et la même capacité : l'acheteur ne peut pas choisir entre elles.",
+      "restock_demand": "{count, plural, one {# acheteur attend} other {# acheteurs attendent}} {variant}. Mettez à jour la disponibilité de cette déclinaison pour répondre à cette demande."
     }
   },
   "restockWatch": {

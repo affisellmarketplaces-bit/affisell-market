@@ -9689,7 +9689,18 @@
       "buyers": "{count, plural, one {# kupujący czeka} few {# kupujących czeka} many {# kupujących czeka} other {# kupującego czeka}} na powrót",
       "fix": "Zaktualizuj ilość",
       "truncated": "Bardzo duży katalog: sprawdzono tylko część produktów.",
-      "disclaimer": "Wyraźne prośby kupujących, liczone raz na kupującego i wariant. To wskazówka rzeczywistego popytu, nie prognoza sprzedaży: powiadomiony kupujący może nie kupić."
+      "disclaimer": "Wyraźne prośby kupujących, liczone raz na kupującego i wariant. To wskazówka rzeczywistego popytu, nie prognoza sprzedaży: powiadomiony kupujący może nie kupić.",
+      "noneNow": "Żaden wariant nie osiąga teraz progu.",
+      "followUp": {
+        "title": "Śledzenie popytu (ostatnie 90 dni)",
+        "counts": "{episodes} zgrupowanych próśb: {waiting} oczekujących, {returned} wariantów ponownie dostępnych, {lapsed} zamkniętych bez powrotu.",
+        "delay": "Mediana czasu od prośby do powrotu: {days} dni.",
+        "orders": "Po powrotach: {orders} zamówień tych wariantów, w tym {refunded} zwróconych lub anulowanych, {waitingBuyers} od czekających kupujących.",
+        "notEvaluable": "Dla {count} powrotów zamówień nie można przypisać do wariantu (nie liczone).",
+        "partial": "{count} powrotów z mniejszą liczbą sztuk niż czekających kupujących.",
+        "resoldOut": "{count} wariantów ponownie wyprzedanych po powrocie.",
+        "caveat": "To, co nastąpiło po prośbach, stwierdzone. Zamówienie po uzupełnieniu nie dowodzi, że spowodowała je prośba lub rekomendacja."
+      }
     }
   },
   "nextActions": {
@@ -9709,7 +9720,8 @@
       "complete_sheet": "Ulepsz kartę « {product} »",
       "fix_shop_listing": "Rozwiąż problem z « {product} » w swoim sklepie",
       "review_profit_drop": "Sprawdź spadek dla « {product} »",
-      "add_ready_product": "Dodaj « {product} » do swojego sklepu"
+      "add_ready_product": "Dodaj « {product} » do swojego sklepu",
+      "answer_restock_demand": "Odpowiedz na popyt na {product}"
     },
     "cta": {
       "fix_blocage": "Otwórz produkt",
@@ -9719,14 +9731,16 @@
       "complete_sheet": "Otwórz produkt",
       "fix_shop_listing": "Wycofaj lub zastąp",
       "review_profit_drop": "Zobacz analizę",
-      "add_ready_product": "Zobacz w katalogu"
+      "add_ready_product": "Zobacz w katalogu",
+      "answer_restock_demand": "Zaktualizuj dostępność"
     },
     "impact": {
       "label": "Potencjalny wpływ:",
       "orders": "{count, plural, =0 {brak opłaconych zamówień w 30 dni} one {# opłacone zamówienie w 30 dni} other {# opłaconych zamówień w 30 dni}}",
       "resellers": "{count, plural, =0 {żaden sprzedawca} one {# sprzedawca} other {# sprzedawców}}",
       "netPerSale": "{amount} netto za sprzedaż (obliczenie)",
-      "netChange": "{amount} mniej zysku netto (zaobserwowane)"
+      "netChange": "{amount} mniej zysku netto (zaobserwowane)",
+      "waitingBuyers": "{count, plural, one {# czekający kupujący} few {# czekających kupujących} many {# czekających kupujących} other {# czekającego kupującego}}"
     },
     "reason": {
       "price_missing": "Brak ceny: produktu nie można sprzedać.",
@@ -9765,7 +9779,8 @@
       "ready_to_sell": "Można go dziś sprzedawać i nie ma go jeszcze w Twoim sklepie.",
       "stock_unconfirmed": "Źródło importu nie podało ilości: publikacja czeka na Twoją.",
       "stock_cover_short": "Przy obecnym tempie sprzedaży zapas wyczerpie się w mniej niż dwa tygodnie (obliczenie).",
-      "variant_rows_indistinct": "Niektóre warianty mają ten sam kolor, rozmiar i pojemność: kupujący nie może wybrać między nimi."
+      "variant_rows_indistinct": "Niektóre warianty mają ten sam kolor, rozmiar i pojemność: kupujący nie może wybrać między nimi.",
+      "restock_demand": "{count, plural, one {# kupujący czeka} few {# kupujących czeka} many {# kupujących czeka} other {# kupującego czeka}} na {variant}. Zaktualizuj dostępność tego wariantu, aby odpowiedzieć na popyt."
     }
   },
   "restockWatch": {

@@ -9689,7 +9689,18 @@
       "buyers": "{count, plural, one {# buyer is} other {# buyers are}} waiting for it",
       "fix": "Update the quantity",
       "truncated": "Very large catalogue: only part of the products was examined.",
-      "disclaimer": "Explicit buyer requests, counted once per buyer and per variant. An indication of real demand, not a sales forecast: a notified buyer may not buy."
+      "disclaimer": "Explicit buyer requests, counted once per buyer and per variant. An indication of real demand, not a sales forecast: a notified buyer may not buy.",
+      "noneNow": "No variant reaches the threshold right now.",
+      "followUp": {
+        "title": "Demand follow-up (last 90 days)",
+        "counts": "{episodes} grouped demands: {waiting} waiting, {returned} variants back in stock, {lapsed} closed without a return.",
+        "delay": "Median time from demand to return: {days} days.",
+        "orders": "After the returns: {orders} orders of these variants, {refunded} of them refunded or cancelled, {waitingBuyers} placed by buyers who were waiting.",
+        "notEvaluable": "For {count} returns, orders can not be tied to the variant (not counted).",
+        "partial": "{count} returns with fewer units than buyers waiting.",
+        "resoldOut": "{count} variants sold out again after their return.",
+        "caveat": "What happened after the demand, as observed. An order after a restock does not prove the demand or the recommendation caused it."
+      }
     }
   },
   "nextActions": {
@@ -9709,7 +9720,8 @@
       "complete_sheet": "Improve the « {product} » sheet",
       "fix_shop_listing": "Fix « {product} » in your shop",
       "review_profit_drop": "Look into the drop on « {product} »",
-      "add_ready_product": "Add « {product} » to your shop"
+      "add_ready_product": "Add « {product} » to your shop",
+      "answer_restock_demand": "Answer the demand on {product}"
     },
     "cta": {
       "fix_blocage": "Open the product",
@@ -9719,14 +9731,16 @@
       "complete_sheet": "Open the product",
       "fix_shop_listing": "Withdraw or replace",
       "review_profit_drop": "See the analysis",
-      "add_ready_product": "See it in the catalogue"
+      "add_ready_product": "See it in the catalogue",
+      "answer_restock_demand": "Update availability"
     },
     "impact": {
       "label": "Potential impact:",
       "orders": "{count, plural, =0 {no paid order in 30 d} one {# paid order in 30 d} other {# paid orders in 30 d}}",
       "resellers": "{count, plural, =0 {no reseller} one {# reseller} other {# resellers}}",
       "netPerSale": "{amount} net per sale (calculated)",
-      "netChange": "{amount} less net earnings (observed)"
+      "netChange": "{amount} less net earnings (observed)",
+      "waitingBuyers": "{count, plural, one {# buyer waiting} other {# buyers waiting}}"
     },
     "reason": {
       "price_missing": "The price is missing: the product cannot be sold.",
@@ -9765,7 +9779,8 @@
       "ready_to_sell": "It can be sold today and is not in your shop yet.",
       "stock_unconfirmed": "The import's source gave no quantity: publication waits for yours.",
       "stock_cover_short": "At the current sales pace, the stock runs out in less than two weeks (calculation).",
-      "variant_rows_indistinct": "Some variants share the same colour, size and capacity: buyers can not choose between them."
+      "variant_rows_indistinct": "Some variants share the same colour, size and capacity: buyers can not choose between them.",
+      "restock_demand": "{count, plural, one {# buyer is} other {# buyers are}} waiting for {variant}. Update this variant's availability to answer this demand."
     }
   },
   "restockWatch": {

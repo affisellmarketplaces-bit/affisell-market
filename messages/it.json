@@ -9689,7 +9689,18 @@
       "buyers": "{count, plural, one {# acquirente attende} other {# acquirenti attendono}} il rientro",
       "fix": "Aggiorna la quantità",
       "truncated": "Catalogo molto ampio: è stata esaminata solo una parte dei prodotti.",
-      "disclaimer": "Richieste esplicite di acquirenti, contate una volta per acquirente e variante. Un'indicazione di domanda reale, non una previsione di vendite: un acquirente avvisato può non acquistare."
+      "disclaimer": "Richieste esplicite di acquirenti, contate una volta per acquirente e variante. Un'indicazione di domanda reale, non una previsione di vendite: un acquirente avvisato può non acquistare.",
+      "noneNow": "Nessuna variante raggiunge la soglia al momento.",
+      "followUp": {
+        "title": "Seguito della domanda (ultimi 90 giorni)",
+        "counts": "{episodes} domande raggruppate: {waiting} in attesa, {returned} varianti rientrate, {lapsed} chiuse senza rientro.",
+        "delay": "Tempo mediano tra domanda e rientro: {days} giorni.",
+        "orders": "Dopo i rientri: {orders} ordini di queste varianti, {refunded} rimborsati o annullati, {waitingBuyers} da acquirenti in attesa.",
+        "notEvaluable": "Per {count} rientri gli ordini non possono essere collegati alla variante (non contati).",
+        "partial": "{count} rientri con meno unità degli acquirenti in attesa.",
+        "resoldOut": "{count} varianti di nuovo esaurite dopo il rientro.",
+        "caveat": "Ciò che è accaduto dopo la domanda, osservato. Un ordine dopo un rientro non prova che la domanda o la raccomandazione lo abbiano causato."
+      }
     }
   },
   "nextActions": {
@@ -9709,7 +9720,8 @@
       "complete_sheet": "Migliorare la scheda « {product} »",
       "fix_shop_listing": "Sistemare « {product} » nel suo negozio",
       "review_profit_drop": "Esaminare il calo su « {product} »",
-      "add_ready_product": "Aggiungere « {product} » al suo negozio"
+      "add_ready_product": "Aggiungere « {product} » al suo negozio",
+      "answer_restock_demand": "Rispondi alla domanda su {product}"
     },
     "cta": {
       "fix_blocage": "Apri il prodotto",
@@ -9719,14 +9731,16 @@
       "complete_sheet": "Apri il prodotto",
       "fix_shop_listing": "Ritira o sostituisci",
       "review_profit_drop": "Vedi l'analisi",
-      "add_ready_product": "Vedi nel catalogo"
+      "add_ready_product": "Vedi nel catalogo",
+      "answer_restock_demand": "Aggiorna la disponibilità"
     },
     "impact": {
       "label": "Impatto potenziale:",
       "orders": "{count, plural, =0 {nessun ordine pagato in 30 g} one {# ordine pagato in 30 g} other {# ordini pagati in 30 g}}",
       "resellers": "{count, plural, =0 {nessun rivenditore} one {# rivenditore} other {# rivenditori}}",
       "netPerSale": "{amount} netti per vendita (calcolo)",
-      "netChange": "{amount} di guadagno netto in meno (osservato)"
+      "netChange": "{amount} di guadagno netto in meno (osservato)",
+      "waitingBuyers": "{count, plural, one {# acquirente in attesa} other {# acquirenti in attesa}}"
     },
     "reason": {
       "price_missing": "Il prezzo manca: il prodotto non può essere venduto.",
@@ -9765,7 +9779,8 @@
       "ready_to_sell": "È vendibile oggi e non è ancora nel suo negozio.",
       "stock_unconfirmed": "La fonte dell'importazione non dava quantità: la pubblicazione attende la sua.",
       "stock_cover_short": "Al ritmo attuale delle vendite, lo stock si esaurirà in meno di due settimane (calcolo).",
-      "variant_rows_indistinct": "Alcune varianti hanno lo stesso colore, taglia e capacità: l'acquirente non può scegliere tra loro."
+      "variant_rows_indistinct": "Alcune varianti hanno lo stesso colore, taglia e capacità: l'acquirente non può scegliere tra loro.",
+      "restock_demand": "{count, plural, one {# acquirente attende} other {# acquirenti attendono}} {variant}. Aggiorna la disponibilità di questa variante per rispondere alla domanda."
     }
   },
   "restockWatch": {

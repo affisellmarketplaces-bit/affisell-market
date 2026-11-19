@@ -9689,7 +9689,18 @@
       "buyers": "{count, plural, one {# Käufer wartet} other {# Käufer warten}} darauf",
       "fix": "Menge aktualisieren",
       "truncated": "Sehr großer Katalog: nur ein Teil der Produkte wurde geprüft.",
-      "disclaimer": "Ausdrückliche Käuferanfragen, einmal pro Käufer und Variante gezählt. Ein Hinweis auf echte Nachfrage, keine Verkaufsprognose: ein benachrichtigter Käufer kauft nicht unbedingt."
+      "disclaimer": "Ausdrückliche Käuferanfragen, einmal pro Käufer und Variante gezählt. Ein Hinweis auf echte Nachfrage, keine Verkaufsprognose: ein benachrichtigter Käufer kauft nicht unbedingt.",
+      "noneNow": "Derzeit erreicht keine Variante die Schwelle.",
+      "followUp": {
+        "title": "Nachverfolgung (letzte 90 Tage)",
+        "counts": "{episodes} gebündelte Nachfragen: {waiting} wartend, {returned} Varianten wieder vorrätig, {lapsed} ohne Rückkehr geschlossen.",
+        "delay": "Mittlere Zeit von der Nachfrage bis zur Rückkehr: {days} Tage.",
+        "orders": "Nach den Rückkehren: {orders} Bestellungen dieser Varianten, davon {refunded} erstattet oder storniert, {waitingBuyers} von wartenden Käufern.",
+        "notEvaluable": "Bei {count} Rückkehren lassen sich Bestellungen der Variante nicht zuordnen (nicht gezählt).",
+        "partial": "{count} Rückkehren mit weniger Einheiten als wartenden Käufern.",
+        "resoldOut": "{count} Varianten nach ihrer Rückkehr erneut ausverkauft.",
+        "caveat": "Was nach der Nachfrage geschah, beobachtet. Eine Bestellung nach einer Wiederauffüllung beweist nicht, dass Nachfrage oder Empfehlung sie ausgelöst haben."
+      }
     }
   },
   "nextActions": {
@@ -9709,7 +9720,8 @@
       "complete_sheet": "Produktblatt « {product} » verbessern",
       "fix_shop_listing": "« {product} » in Ihrem Shop klären",
       "review_profit_drop": "Rückgang bei « {product} » prüfen",
-      "add_ready_product": "« {product} » in Ihren Shop aufnehmen"
+      "add_ready_product": "« {product} » in Ihren Shop aufnehmen",
+      "answer_restock_demand": "Auf die Nachfrage nach {product} reagieren"
     },
     "cta": {
       "fix_blocage": "Produkt öffnen",
@@ -9719,14 +9731,16 @@
       "complete_sheet": "Produkt öffnen",
       "fix_shop_listing": "Entfernen oder ersetzen",
       "review_profit_drop": "Analyse ansehen",
-      "add_ready_product": "Im Katalog ansehen"
+      "add_ready_product": "Im Katalog ansehen",
+      "answer_restock_demand": "Verfügbarkeit aktualisieren"
     },
     "impact": {
       "label": "Mögliche Wirkung:",
       "orders": "{count, plural, =0 {keine bezahlte Bestellung in 30 T.} one {# bezahlte Bestellung in 30 T.} other {# bezahlte Bestellungen in 30 T.}}",
       "resellers": "{count, plural, =0 {kein Wiederverkäufer} one {# Wiederverkäufer} other {# Wiederverkäufer}}",
       "netPerSale": "{amount} netto pro Verkauf (berechnet)",
-      "netChange": "{amount} weniger Nettoertrag (beobachtet)"
+      "netChange": "{amount} weniger Nettoertrag (beobachtet)",
+      "waitingBuyers": "{count, plural, one {# wartender Käufer} other {# wartende Käufer}}"
     },
     "reason": {
       "price_missing": "Der Preis fehlt: Das Produkt kann nicht verkauft werden.",
@@ -9765,7 +9779,8 @@
       "ready_to_sell": "Es ist heute verkaufbar und noch nicht in Ihrem Shop.",
       "stock_unconfirmed": "Die Importquelle gab keine Menge an: Die Veröffentlichung wartet auf Ihre.",
       "stock_cover_short": "Beim aktuellen Verkaufstempo ist der Bestand in weniger als zwei Wochen aufgebraucht (Berechnung).",
-      "variant_rows_indistinct": "Einige Varianten haben dieselbe Farbe, Größe und Kapazität: Käufer können nicht zwischen ihnen wählen."
+      "variant_rows_indistinct": "Einige Varianten haben dieselbe Farbe, Größe und Kapazität: Käufer können nicht zwischen ihnen wählen.",
+      "restock_demand": "{count, plural, one {# Käufer wartet} other {# Käufer warten}} auf {variant}. Aktualisieren Sie die Verfügbarkeit dieser Variante, um die Nachfrage zu bedienen."
     }
   },
   "restockWatch": {
