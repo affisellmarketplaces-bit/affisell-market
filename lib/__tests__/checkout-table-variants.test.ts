@@ -3,9 +3,11 @@ import { describe, expect, it, vi } from "vitest"
 
 vi.mock("@/lib/prisma", () => ({ prisma: {} }))
 
+import type { StockCheckLine } from "@/lib/checkout-stock"
 import { withTableVariants } from "@/lib/checkout-table-variants.server"
 
-const line = (over: Record<string, unknown> = {}) => ({
+// Typed as the real line so that `tableVariants` (added by the helper) is part of the type the assertions read.
+const line = (over: Record<string, unknown> = {}): StockCheckLine => ({
   productId: "p1",
   listingKind: "PHYSICAL",
   stock: 1,
