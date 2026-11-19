@@ -1828,7 +1828,16 @@
       "publishSuccessToast": "🎉 Produkt opublikowany — +10 XP",
       "aliexpressImportedToast": "Zaimportowano z AliExpress — {imgCount, plural, one {# zdjęcie} other {# zdjęć}}, {specCount, plural, one {# cecha} other {# cech}}",
       "productImportedToast": "Produkt zaimportowany — sprawdź podgląd",
-      "titleNotFoundError": "Nie znaleziono tytułu — spróbuj ponownie lub przełącz się na tryb Pro"
+      "titleNotFoundError": "Nie znaleziono tytułu — spróbuj ponownie lub przełącz się na tryb Pro",
+      "stockLabel": "Dostępna ilość",
+      "stockHint": "Liczba sztuk, które naprawdę możesz wysłać. Nigdy nie jest uzupełniana za Ciebie.",
+      "stockFromVariantsHint": "Ilość podaje się przy każdym wariancie (tabela wariantów).",
+      "declaration": {
+        "price_required": "Podaj cenę katalogową przed publikacją.",
+        "stock_required": "Podaj dostępną ilość przed publikacją (liczba całkowita).",
+        "stock_zero": "Ilość 0: produkt byłby pokazany jako wyprzedany. Podaj rzeczywiście dostępną ilość.",
+        "variant_stock_required": "Każdy wariant musi mieć dostępną ilość przed publikacją."
+      }
     },
     "categoryPicker": {
       "loading": "Wczytywanie kategorii…",
@@ -3100,7 +3109,8 @@
         "low_stock": "bardzo mało sztuk",
         "low_net_per_sale": "niski zysk ze sprzedaży"
       }
-    }
+    },
+    "supplierAffisell": "Dostawca Affisell"
   },
   "marketplace": {
     "title": "Rynek",
@@ -7566,7 +7576,8 @@
       "slaWarning": "poza typowym SLA",
       "provenanceLabel": "Pochodzenie",
       "complianceLabel": "Wymogi zgodności",
-      "complianceCount": "{count, plural, one {# wymóg} few {# wymogi} many {# wymogów} other {# wymogu}}"
+      "complianceCount": "{count, plural, one {# wymóg} few {# wymogi} many {# wymogów} other {# wymogu}}",
+      "supplierAffisell": "Dostawca Affisell"
     },
     "sla": {
       "singleMarket": "Dla {code}, rozsądna dostawa: {idealDays}–{maxDays} dni. Powyżej {maxDays} dni wskaźnik zwrotów wzrasta o ~40%.",

@@ -14,6 +14,7 @@ import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-fi
 import { summarizePriceHistory } from "@/lib/price-history"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
+import { resellerFacingSupplierLabel } from "@/lib/supplier-public-label"
 
 /** Products shown in "no sales data" besides the ones that sold (most recently updated first). */
 const NO_SALES_SAMPLE = 60
@@ -70,7 +71,7 @@ export async function loadOpportunityBoard(args: {
         listingKind: true,
         hasVariants: true,
         variants: true,
-        supplier: { select: { name: true, store: { select: { name: true } } } },
+        supplier: { select: { store: { select: { name: true } } } },
       },
     }),
     args.viewerAffiliateId
@@ -115,7 +116,7 @@ export async function loadOpportunityBoard(args: {
       productId: p.id,
       name: p.name,
       imageUrl: primaryProductImage(p.images) || null,
-      supplierLabel: p.supplier?.store?.name?.trim() || p.supplier?.name?.trim() || "Fournisseur",
+      supplierLabel: resellerFacingSupplierLabel(p.supplier?.store),
       basePriceCents: p.basePriceCents,
       commissionPercent: p.commissionRate,
       basePrice30dAgoCents: price30dAgo.get(p.id) ?? null,

@@ -1828,7 +1828,16 @@
       "publishSuccessToast": "🎉 Produit publié — +10 XP",
       "aliexpressImportedToast": "AliExpress importé — {imgCount, plural, one {# photo} other {# photos}}, {specCount, plural, one {# caractéristique} other {# caractéristiques}}",
       "productImportedToast": "Produit importé — vérifiez l’aperçu",
-      "titleNotFoundError": "Titre introuvable — réessayez ou passez en mode Pro"
+      "titleNotFoundError": "Titre introuvable — réessayez ou passez en mode Pro",
+      "stockLabel": "Quantité disponible",
+      "stockHint": "Le nombre d'unités que vous pouvez réellement expédier. Il n'est jamais rempli à votre place.",
+      "stockFromVariantsHint": "La quantité est celle de chaque déclinaison (tableau des variantes).",
+      "declaration": {
+        "price_required": "Indiquez le prix de vente catalogue avant de publier.",
+        "stock_required": "Indiquez la quantité disponible avant de publier (un nombre entier).",
+        "stock_zero": "Quantité à 0 : le produit serait affiché épuisé. Indiquez la quantité réellement disponible.",
+        "variant_stock_required": "Chaque déclinaison doit avoir sa quantité disponible avant publication."
+      }
     },
     "categoryPicker": {
       "loading": "Chargement des catégories…",
@@ -3100,7 +3109,8 @@
         "low_stock": "très peu d'unités en stock",
         "low_net_per_sale": "gain par vente faible"
       }
-    }
+    },
+    "supplierAffisell": "Fournisseur Affisell"
   },
   "marketplace": {
     "title": "Marketplace",
@@ -7566,7 +7576,8 @@
       "slaWarning": "hors SLA typique",
       "provenanceLabel": "Provenance",
       "complianceLabel": "Exigences conformité",
-      "complianceCount": "{count, plural, one {# exigence} other {# exigences}}"
+      "complianceCount": "{count, plural, one {# exigence} other {# exigences}}",
+      "supplierAffisell": "Fournisseur Affisell"
     },
     "sla": {
       "singleMarket": "Pour {code}, délai raisonnable : {idealDays}–{maxDays} j. Au-delà de {maxDays} j, ton taux de retour augmente de ~40%.",

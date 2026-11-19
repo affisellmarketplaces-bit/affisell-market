@@ -1828,7 +1828,16 @@
       "publishSuccessToast": "🎉 Produkt veröffentlicht — +10 XP",
       "aliexpressImportedToast": "AliExpress importiert — {imgCount, plural, one {# Foto} other {# Fotos}}, {specCount, plural, one {# Merkmal} other {# Merkmale}}",
       "productImportedToast": "Produkt importiert — Vorschau prüfen",
-      "titleNotFoundError": "Titel nicht gefunden — versuchen Sie es erneut oder wechseln Sie in den Pro-Modus"
+      "titleNotFoundError": "Titel nicht gefunden — versuchen Sie es erneut oder wechseln Sie in den Pro-Modus",
+      "stockLabel": "Verfügbare Menge",
+      "stockHint": "Die Anzahl der Einheiten, die Sie tatsächlich versenden können. Sie wird nie für Sie ausgefüllt.",
+      "stockFromVariantsHint": "Die Menge wird bei jeder Variante angegeben (Variantentabelle).",
+      "declaration": {
+        "price_required": "Geben Sie vor der Veröffentlichung den Katalogpreis an.",
+        "stock_required": "Geben Sie vor der Veröffentlichung die verfügbare Menge an (ganze Zahl).",
+        "stock_zero": "Menge 0: Das Produkt würde als ausverkauft angezeigt. Geben Sie die tatsächlich verfügbare Menge an.",
+        "variant_stock_required": "Jede Variante braucht vor der Veröffentlichung ihre verfügbare Menge."
+      }
     },
     "categoryPicker": {
       "loading": "Kategorien werden geladen…",
@@ -3100,7 +3109,8 @@
         "low_stock": "sehr geringer Bestand",
         "low_net_per_sale": "geringer Gewinn pro Verkauf"
       }
-    }
+    },
+    "supplierAffisell": "Affisell-Lieferant"
   },
   "marketplace": {
     "title": "Marktplatz",
@@ -7566,7 +7576,8 @@
       "slaWarning": "außerhalb der üblichen SLA",
       "provenanceLabel": "Herkunft",
       "complianceLabel": "Compliance-Anforderungen",
-      "complianceCount": "{count, plural, one {# Anforderung} other {# Anforderungen}}"
+      "complianceCount": "{count, plural, one {# Anforderung} other {# Anforderungen}}",
+      "supplierAffisell": "Affisell-Lieferant"
     },
     "sla": {
       "singleMarket": "Für {code} ist eine angemessene Lieferzeit {idealDays}–{maxDays} Tage. Über {maxDays} Tage hinaus steigt deine Rückgabequote um ca. 40%.",

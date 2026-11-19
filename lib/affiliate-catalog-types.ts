@@ -31,7 +31,6 @@ export type AffiliateCatalogProduct = {
   }[]
   affiliateCreatorsWatching?: number
   supplier: {
-    email: string
     store: { name: string; slug: string } | null
   }
 }

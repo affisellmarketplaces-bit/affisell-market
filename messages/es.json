@@ -1828,7 +1828,16 @@
       "publishSuccessToast": "🎉 Producto publicado — +10 XP",
       "aliexpressImportedToast": "AliExpress importado — {imgCount, plural, one {# foto} other {# fotos}}, {specCount, plural, one {# característica} other {# características}}",
       "productImportedToast": "Producto importado — revisa la vista previa",
-      "titleNotFoundError": "No se encontró el título — inténtalo de nuevo o cambia al modo Pro"
+      "titleNotFoundError": "No se encontró el título — inténtalo de nuevo o cambia al modo Pro",
+      "stockLabel": "Cantidad disponible",
+      "stockHint": "El número de unidades que realmente puede enviar. Nunca se rellena por usted.",
+      "stockFromVariantsHint": "La cantidad se indica en cada variante (tabla de variantes).",
+      "declaration": {
+        "price_required": "Indique el precio de catálogo antes de publicar.",
+        "stock_required": "Indique la cantidad disponible antes de publicar (un número entero).",
+        "stock_zero": "Cantidad 0: el producto aparecería agotado. Indique la cantidad realmente disponible.",
+        "variant_stock_required": "Cada variante necesita su cantidad disponible antes de publicar."
+      }
     },
     "categoryPicker": {
       "loading": "Cargando categorías…",
@@ -3100,7 +3109,8 @@
         "low_stock": "muy pocas unidades",
         "low_net_per_sale": "ganancia por venta baja"
       }
-    }
+    },
+    "supplierAffisell": "Proveedor Affisell"
   },
   "marketplace": {
     "title": "Mercado",
@@ -7566,7 +7576,8 @@
       "slaWarning": "fuera del SLA habitual",
       "provenanceLabel": "Origen",
       "complianceLabel": "Requisitos de cumplimiento",
-      "complianceCount": "{count, plural, one {# requisito} other {# requisitos}}"
+      "complianceCount": "{count, plural, one {# requisito} other {# requisitos}}",
+      "supplierAffisell": "Proveedor Affisell"
     },
     "sla": {
       "singleMarket": "Para {code}, entrega razonable: {idealDays}–{maxDays} días. Más allá de {maxDays} días, tu tasa de devoluciones sube ~40%.",

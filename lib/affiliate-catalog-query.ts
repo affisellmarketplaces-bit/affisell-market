@@ -10,6 +10,7 @@ import {
   parseCatalogVitrineFilter,
 } from "@/lib/affiliate-catalog-filters-shared"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
+import { resellerFacingSupplierLabel } from "@/lib/supplier-public-label"
 import {
   AFFILIATE_CATALOG_NICHES,
   type AffiliateCatalogHighlightCard,
@@ -40,7 +41,6 @@ type DiscoverRow = Awaited<
 
 function normalizeCatalogRow(row: DiscoverRow): AffiliateCatalogProduct {
   const supplier = row.supplier as unknown as {
-    email: string
     store: { name: string; slug: string } | null
   }
   const colors = row.colors ?? []
@@ -66,16 +66,13 @@ function normalizeCatalogRow(row: DiscoverRow): AffiliateCatalogProduct {
       conversions: a.conversions,
     })),
     supplier: {
-      email: supplier.email,
       store: supplier.store,
     },
   }
 }
 
 function supplierLabel(p: AffiliateCatalogProduct): string {
-  const brand = p.supplier.store?.name?.trim()
-  if (brand) return brand
-  return p.supplier.email
+  return resellerFacingSupplierLabel(p.supplier.store)
 }
 
 function mapProductToHighlight(

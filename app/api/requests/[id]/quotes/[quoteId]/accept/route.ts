@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { createProductRequestCommissionDraft } from "@/lib/product-request-commission.server"
 import { PRODUCT_REQUEST_NOTIF } from "@/lib/product-request-notif-constants"
+import { loadSupplierStoreNames } from "@/lib/product-request-store-names.server"
 import { serializeProductQuote } from "@/lib/product-request-types"
 import { prisma } from "@/lib/prisma"
 import { resolveRequestLocale } from "@/lib/resolve-request-locale"
@@ -169,7 +170,7 @@ export async function POST(_req: Request, ctx: RouteCtx) {
   })
 
   return NextResponse.json({
-    quote: serializeProductQuote(updatedQuote),
+    quote: serializeProductQuote(updatedQuote, await loadSupplierStoreNames([updatedQuote.supplierId])),
     affiliateProductId,
     draftCreationFailed,
     requestStatus: "fulfilled",

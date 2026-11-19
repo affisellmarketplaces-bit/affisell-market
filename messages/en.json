@@ -1828,7 +1828,16 @@
       "publishSuccessToast": "🎉 Product published — +10 XP",
       "aliexpressImportedToast": "AliExpress imported — {imgCount, plural, one {# photo} other {# photos}}, {specCount, plural, one {# spec} other {# specs}}",
       "productImportedToast": "Product imported — check the preview",
-      "titleNotFoundError": "Title not found — try again or switch to Pro mode"
+      "titleNotFoundError": "Title not found — try again or switch to Pro mode",
+      "stockLabel": "Quantity available",
+      "stockHint": "The number of units you can really ship. It is never filled in for you.",
+      "stockFromVariantsHint": "The quantity is set on each variant (variant table).",
+      "declaration": {
+        "price_required": "Enter the catalogue price before publishing.",
+        "stock_required": "Enter the quantity available before publishing (a whole number).",
+        "stock_zero": "Quantity 0: the product would show as sold out. Enter the quantity really available.",
+        "variant_stock_required": "Every variant needs its quantity available before publishing."
+      }
     },
     "categoryPicker": {
       "loading": "Loading categories…",
@@ -3100,7 +3109,8 @@
         "low_stock": "very few units in stock",
         "low_net_per_sale": "low gain per sale"
       }
-    }
+    },
+    "supplierAffisell": "Affisell supplier"
   },
   "marketplace": {
     "title": "Marketplace",
@@ -7566,7 +7576,8 @@
       "slaWarning": "outside typical SLA",
       "provenanceLabel": "Origin",
       "complianceLabel": "Compliance requirements",
-      "complianceCount": "{count, plural, one {# requirement} other {# requirements}}"
+      "complianceCount": "{count, plural, one {# requirement} other {# requirements}}",
+      "supplierAffisell": "Affisell supplier"
     },
     "sla": {
       "singleMarket": "For {code}, reasonable delivery: {idealDays}–{maxDays} days. Beyond {maxDays} days, your return rate rises ~40%.",

@@ -40,6 +40,8 @@ import type { CSSProperties } from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 
+import { resellerFacingSupplierLabel } from "@/lib/supplier-public-label"
+
 import AffiliateLiveStore from "@/components/affiliate/affiliate-live-store"
 import { AffiliateCatalogEconomicsPanel } from "@/components/affiliate/affiliate-catalog-economics-panel"
 import { DiscoverListingActions } from "@/components/affiliate/discover-listing-actions"
@@ -86,15 +88,14 @@ type CatalogProduct = {
   createdAt?: string | null
   /** Present on Supplier Catalog query; may be absent on nested `listing.product`. */
   affiliateProducts?: { id: string; isListed: boolean; sellingPriceCents?: number }[]
-  supplier: { email: string; store?: { name: string; slug: string } | null }
+  supplier: { store?: { name: string; slug: string } | null }
 }
 
 type DiscoverSortKey = "new" | "commission-desc" | "price-asc" | "price-desc" | "name"
 
+/** Never the supplier's e-mail (founder decision 2026-11-19): store name or « Fournisseur Affisell ». */
 function supplierDisplayLabel(p: CatalogProduct) {
-  const brand = p.supplier.store?.name?.trim()
-  if (brand) return brand
-  return p.supplier.email
+  return resellerFacingSupplierLabel(p.supplier.store)
 }
 
 function isSkuFresh(iso: string | null | undefined, days = 14) {

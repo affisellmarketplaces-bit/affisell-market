@@ -1828,7 +1828,16 @@
       "publishSuccessToast": "🎉 商品已发布 — +10 经验值",
       "aliexpressImportedToast": "已从 AliExpress 导入 — {imgCount} 张照片,{specCount} 项规格",
       "productImportedToast": "商品已导入 — 请检查预览",
-      "titleNotFoundError": "未找到标题 — 请重试或切换到专业模式"
+      "titleNotFoundError": "未找到标题 — 请重试或切换到专业模式",
+      "stockLabel": "可用数量",
+      "stockHint": "您实际能发货的件数。系统绝不会替您填写。",
+      "stockFromVariantsHint": "数量在每个规格中填写（规格表）。",
+      "declaration": {
+        "price_required": "发布前请填写目录价格。",
+        "stock_required": "发布前请填写可用数量（整数）。",
+        "stock_zero": "数量为 0：商品将显示为售罄。请填写实际可用的数量。",
+        "variant_stock_required": "发布前每个规格都需要填写可用数量。"
+      }
     },
     "categoryPicker": {
       "loading": "正在加载分类…",
@@ -3100,7 +3109,8 @@
         "low_stock": "库存极少",
         "low_net_per_sale": "每笔收益较低"
       }
-    }
+    },
+    "supplierAffisell": "Affisell 供应商"
   },
   "marketplace": {
     "title": "市场",
@@ -7566,7 +7576,8 @@
       "slaWarning": "超出常规 SLA 时限",
       "provenanceLabel": "产地",
       "complianceLabel": "合规要求",
-      "complianceCount": "{count, plural, other {# 项要求}}"
+      "complianceCount": "{count, plural, other {# 项要求}}",
+      "supplierAffisell": "Affisell 供应商"
     },
     "sla": {
       "singleMarket": "对于 {code}，合理配送时长为 {idealDays}–{maxDays} 天。超过 {maxDays} 天，退货率将上升约40%。",

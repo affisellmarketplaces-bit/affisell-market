@@ -1828,7 +1828,16 @@
       "publishSuccessToast": "🎉 Product gepubliceerd — +10 XP",
       "aliexpressImportedToast": "AliExpress geïmporteerd — {imgCount, plural, one {# foto} other {# foto’s}}, {specCount, plural, one {# kenmerk} other {# kenmerken}}",
       "productImportedToast": "Product geïmporteerd — controleer het voorbeeld",
-      "titleNotFoundError": "Titel niet gevonden — probeer opnieuw of schakel over naar Pro-modus"
+      "titleNotFoundError": "Titel niet gevonden — probeer opnieuw of schakel over naar Pro-modus",
+      "stockLabel": "Beschikbare hoeveelheid",
+      "stockHint": "Het aantal eenheden dat u echt kunt verzenden. Dit wordt nooit voor u ingevuld.",
+      "stockFromVariantsHint": "De hoeveelheid staat bij elke variant (varianttabel).",
+      "declaration": {
+        "price_required": "Vul de catalogusprijs in voordat u publiceert.",
+        "stock_required": "Vul de beschikbare hoeveelheid in voordat u publiceert (een geheel getal).",
+        "stock_zero": "Hoeveelheid 0: het product zou als uitverkocht worden getoond. Vul de echt beschikbare hoeveelheid in.",
+        "variant_stock_required": "Elke variant heeft een beschikbare hoeveelheid nodig voordat u publiceert."
+      }
     },
     "categoryPicker": {
       "loading": "Categorieën laden…",
@@ -3100,7 +3109,8 @@
         "low_stock": "zeer weinig voorraad",
         "low_net_per_sale": "lage winst per verkoop"
       }
-    }
+    },
+    "supplierAffisell": "Affisell-leverancier"
   },
   "marketplace": {
     "title": "Marktplaats",
@@ -7566,7 +7576,8 @@
       "slaWarning": "buiten de gebruikelijke SLA",
       "provenanceLabel": "Herkomst",
       "complianceLabel": "Compliance-vereisten",
-      "complianceCount": "{count, plural, one {# vereiste} other {# vereisten}}"
+      "complianceCount": "{count, plural, one {# vereiste} other {# vereisten}}",
+      "supplierAffisell": "Affisell-leverancier"
     },
     "sla": {
       "singleMarket": "Voor {code}, redelijke levering: {idealDays}–{maxDays} dagen. Na {maxDays} dagen stijgt je retourpercentage met ~40%.",

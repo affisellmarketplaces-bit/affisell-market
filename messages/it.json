@@ -1828,7 +1828,16 @@
       "publishSuccessToast": "🎉 Prodotto pubblicato — +10 XP",
       "aliexpressImportedToast": "AliExpress importato — {imgCount, plural, one {# foto} other {# foto}}, {specCount, plural, one {# caratteristica} other {# caratteristiche}}",
       "productImportedToast": "Prodotto importato — controlla l’anteprima",
-      "titleNotFoundError": "Titolo non trovato — riprova o passa alla modalità Pro"
+      "titleNotFoundError": "Titolo non trovato — riprova o passa alla modalità Pro",
+      "stockLabel": "Quantità disponibile",
+      "stockHint": "Il numero di unità che può davvero spedire. Non viene mai compilato al suo posto.",
+      "stockFromVariantsHint": "La quantità si indica su ogni variante (tabella delle varianti).",
+      "declaration": {
+        "price_required": "Indichi il prezzo di catalogo prima di pubblicare.",
+        "stock_required": "Indichi la quantità disponibile prima di pubblicare (un numero intero).",
+        "stock_zero": "Quantità 0: il prodotto risulterebbe esaurito. Indichi la quantità realmente disponibile.",
+        "variant_stock_required": "Ogni variante deve avere la sua quantità disponibile prima della pubblicazione."
+      }
     },
     "categoryPicker": {
       "loading": "Caricamento categorie…",
@@ -3100,7 +3109,8 @@
         "low_stock": "pochissime unità",
         "low_net_per_sale": "guadagno per vendita basso"
       }
-    }
+    },
+    "supplierAffisell": "Fornitore Affisell"
   },
   "marketplace": {
     "title": "Mercato",
@@ -7566,7 +7576,8 @@
       "slaWarning": "fuori dall'SLA tipico",
       "provenanceLabel": "Origine",
       "complianceLabel": "Requisiti di conformità",
-      "complianceCount": "{count, plural, one {# requisito} other {# requisiti}}"
+      "complianceCount": "{count, plural, one {# requisito} other {# requisiti}}",
+      "supplierAffisell": "Fornitore Affisell"
     },
     "sla": {
       "singleMarket": "Per {code}, consegna ragionevole: {idealDays}–{maxDays} giorni. Oltre {maxDays} giorni, il tuo tasso di reso sale del ~40%.",

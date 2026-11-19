@@ -6,18 +6,15 @@ import { buildAffiliateCatalogProductWhere } from "@/lib/affiliate-catalog-query
 import type { SwipeFeedFilters, SwipeFeedProduct } from "@/lib/affiliate-swipe-feed-types"
 import { primaryProductImage } from "@/lib/product-images"
 import { prisma } from "@/lib/prisma"
+import { resellerFacingSupplierLabel } from "@/lib/supplier-public-label"
 
 function estimateMarginCents(basePriceCents: number, commissionRate: number): number {
   const pct = Number(commissionRate) || 0
   return Math.max(0, Math.round((basePriceCents * pct) / 100))
 }
 
-function supplierLabel(row: {
-  supplier: { email: string; store: { name: string } | null }
-}): string {
-  const brand = row.supplier.store?.name?.trim()
-  if (brand) return brand
-  return row.supplier.email
+function supplierLabel(row: { supplier: { store: { name: string } | null } }): string {
+  return resellerFacingSupplierLabel(row.supplier.store)
 }
 
 function filtersToSearchParams(filters: SwipeFeedFilters): URLSearchParams {
@@ -75,7 +72,7 @@ function mapSwipeFeedRows(
     basePriceCents: number
     commissionRate: unknown
     deliveryMax: number | null
-    supplier: { email: string; isVerifiedSupplier: boolean; store: { name: string } | null }
+    supplier: { isVerifiedSupplier: boolean; store: { name: string } | null }
   }>
 ): SwipeFeedProduct[] {
   return rows.map((p) => {
@@ -106,7 +103,6 @@ const productSelect = {
   deliveryMax: true,
   supplier: {
     select: {
-      email: true,
       isVerifiedSupplier: true,
       store: { select: { name: true } },
     },

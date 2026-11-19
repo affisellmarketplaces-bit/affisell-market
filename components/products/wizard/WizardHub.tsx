@@ -32,7 +32,11 @@ import {
   trackWizardV2StepComplete,
   trackWizardV2View,
 } from "@/lib/analytics/wizard-v2-posthog"
-import { buildWizardV2PublishBody } from "@/lib/product-wizard-v2/build-publish-payload"
+import {
+  buildWizardV2PublishBody,
+  WizardPublishDeclarationError,
+} from "@/lib/product-wizard-v2/build-publish-payload"
+import { validatePublishDeclaration } from "@/lib/product-availability"
 import type { ProductVariantInput } from "@/lib/product-variant-sku"
 import { stripDescriptionImageMarkers, stripImportOptionsFromDescription } from "@/lib/description-rich-content"
 import { advancedSkuRowsFromExpressImport } from "@/lib/express-handoff-skus"
@@ -170,6 +174,9 @@ type ExpressTabProps = {
   setDescription: (v: string) => void
   price: string
   setPrice: (v: string) => void
+  /** Quantity typed by the supplier — never defaulted (founder decision 2026-11-19). */
+  stockQty: string
+  setStockQty: (v: string) => void
   categoryId: string
   categoryBreadcrumb: string
   setCategoryId: (v: string) => void
@@ -214,6 +221,8 @@ function WizardExpressTab(props: ExpressTabProps) {
     setDescription,
     price,
     setPrice,
+    stockQty,
+    setStockQty,
     categoryId,
     categoryBreadcrumb,
     setCategoryId,
@@ -325,8 +334,33 @@ function WizardExpressTab(props: ExpressTabProps) {
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               className="mt-1 h-11"
+              required
+              min={0.01}
+              step="0.01"
             />
           </div>
+          {skuVariants?.hasVariants && skuVariants.variants.length > 1 ? (
+            <p className="text-xs text-zinc-500">{t("stockFromVariantsHint")}</p>
+          ) : (
+            <div>
+              <Label htmlFor="v2-express-stock">{t("stockLabel")}</Label>
+              <Input
+                id="v2-express-stock"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                step={1}
+                required
+                value={stockQty}
+                onChange={(e) => setStockQty(e.target.value)}
+                className="mt-1 h-11"
+                aria-describedby="v2-express-stock-hint"
+              />
+              <p id="v2-express-stock-hint" className="mt-1 text-xs text-zinc-500">
+                {t("stockHint")}
+              </p>
+            </div>
+          )}
           <div className="space-y-2">
             <Label>{t("categoryLabel")}</Label>
             {categoryId && categoryBreadcrumb ? (
@@ -473,6 +507,7 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
   const [categoryId, setCategoryId] = useState("")
   const [categoryBreadcrumb, setCategoryBreadcrumb] = useState("")
   const [price, setPrice] = useState("")
+  const [stockQty, setStockQty] = useState("")
   const [expressUrl, setExpressUrl] = useState("")
   const [showAeBrowserBridge, setShowAeBrowserBridge] = useState(false)
   const [aeBrowserAutoStart, setAeBrowserAutoStart] = useState(false)
@@ -640,7 +675,7 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
         String(
           skuVariants?.hasVariants
             ? skuVariants.variants.reduce((acc, row) => acc + Math.max(0, row.stock), 0)
-            : 99
+            : (stockQty.trim() || "")
         ),
       listingKind: "PHYSICAL",
       commission: String(commissionPct),
@@ -698,6 +733,7 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
     price,
     push,
     skuVariants,
+    stockQty,
     t,
   ])
 
@@ -856,6 +892,23 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
       toast.error(t("invalidPriceError"))
       return
     }
+    // A declared quantity, never an invented one (founder decision 2026-11-19).
+    const declaration = validatePublishDeclaration({
+      listingKind: "PHYSICAL",
+      price: priceN,
+      stock: stockQty,
+      variantStocks:
+        skuVariants?.hasVariants && skuVariants.variants.length > 1
+          ? skuVariants.variants.map((v) => v.stock)
+          : null,
+    })
+    if (!declaration.ok) {
+      const code = declaration.errors.find((e) => e !== "price_required") ?? declaration.errors[0]
+      trackWizardV2PublishBlocked({ mode, reason: code, field: "stock" })
+      toast.error(t(`declaration.${code}`))
+      document.getElementById("v2-express-stock")?.focus()
+      return
+    }
 
     setPublishing(true)
     try {
@@ -864,6 +917,7 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
           name,
           description: stripDescriptionImageMarkers(description),
           price: priceN,
+          stock: stockQty,
           categoryId,
           images,
           commission: commissionPct,
@@ -920,6 +974,11 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
       toast.success(t("publishSuccessToast"))
       push("/dashboard/supplier/products")
     } catch (err) {
+      if (err instanceof WizardPublishDeclarationError) {
+        trackWizardV2PublishBlocked({ mode, reason: err.codes[0] ?? "declaration", field: "stock" })
+        toast.error(t(`declaration.${err.codes[0] ?? "stock_required"}`))
+        return
+      }
       const reason = err instanceof Error ? err.message : "publish_failed"
       trackWizardV2PublishBlocked({ mode, reason, field: "api" })
       toast.error(reason)
@@ -939,6 +998,7 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
     publishing,
     push,
     skuVariants,
+    stockQty,
     t,
     tCompliance,
     compliance,
@@ -978,6 +1038,8 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
               setDescription={setDescription}
               price={price}
               setPrice={setPrice}
+              stockQty={stockQty}
+              setStockQty={setStockQty}
               categoryId={categoryId}
               categoryBreadcrumb={categoryBreadcrumb}
               setCategoryId={setCategoryId}
