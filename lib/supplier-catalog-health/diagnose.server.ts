@@ -1,5 +1,6 @@
 import "server-only"
 
+import { isStockUnconfirmed, STOCK_UNCONFIRMED_KEY } from "@/lib/import-stock"
 import { evaluateListingReadiness } from "@/lib/listing-compliance/evaluate"
 import { IDENTITY_KEYS, LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
 import { readListingReadinessMode } from "@/lib/listing-compliance/mode"
@@ -40,7 +41,7 @@ export async function loadSupplierCatalogHealth(supplierId: string, now = new Da
       deliveryMax: true,
       createdAt: true,
       attributes: {
-        where: { key: { in: [...new Set([...LISTING_COMPLIANCE_KEYS, IDENTITY_KEYS.gtin])] } },
+        where: { key: { in: [...new Set([...LISTING_COMPLIANCE_KEYS, IDENTITY_KEYS.gtin, STOCK_UNCONFIRMED_KEY])] } },
         select: { key: true, value: true },
       },
     },
@@ -80,6 +81,7 @@ export async function loadSupplierCatalogHealth(supplierId: string, now = new Da
       basePriceCents: p.basePriceCents,
       stock: p.stock,
       hasVariants: p.hasVariants,
+      stockUnconfirmed: isStockUnconfirmed(p.attributes),
       variantRowStocks: Array.isArray(rowsRaw) && rowsRaw.length > 0 ? rowsRaw.map((r) => r?.stock) : null,
       commissionExplicit: productHasExplicitSupplierCommission({
         commissionRate: p.commissionRate,

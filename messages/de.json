@@ -1226,7 +1226,8 @@
       "variantsInvalidGeneric": "Korrigieren Sie die Varianten/SKU-Zeilen (ungültige Felder).",
       "productRecalled": "Für dieses Produkt gilt ein von Affisell eingeleiteter Sicherheitsrückruf. Es kann vorerst nicht wieder verkauft werden. Wenden Sie sich an den Affisell-Support, um zu erfahren, wie der Rückruf aufgehoben werden kann.",
       "productSuspended": "Affisell hat den Verkauf dieses Produkts ausgesetzt. Es kann vorerst nicht wieder verkauft werden. Wenden Sie sich an den Affisell-Support, um den Grund und die Schritte zur Aufhebung zu erfahren.",
-      "productHoldUnverifiable": "Wir konnten nicht prüfen, ob dieses Produkt wieder verkauft werden darf. Bitte versuchen Sie es gleich noch einmal."
+      "productHoldUnverifiable": "Wir konnten nicht prüfen, ob dieses Produkt wieder verkauft werden darf. Bitte versuchen Sie es gleich noch einmal.",
+      "stockUnconfirmed": "Die Menge dieses importierten Produkts wurde nie bestätigt: Die Quelle gab keine an. Geben Sie die tatsächlich verfügbare Menge ein, speichern Sie und veröffentlichen Sie dann."
     },
     "descriptionField": {
       "label": "Beschreibung",
@@ -9406,6 +9407,10 @@
       "no_gtin": {
         "title": "Kein Barcode",
         "why": "Freiwillig: Eine GTIN / EAN ermöglicht die Prüfung europäischer Sicherheitswarnungen und das Erkennen von Duplikaten."
+      },
+      "stock_unconfirmed": {
+        "title": "Menge zu bestätigen",
+        "why": "Ohne Mengenangabe der Quelle importiert: Bestand 0, Veröffentlichung abgelehnt, bis Sie die tatsächlich verfügbare Menge angeben."
       }
     }
   },
@@ -9479,7 +9484,8 @@
       "drop_refunds_up": "Die Erstattungen sind gestiegen.",
       "drop_disputes_up": "Die Streitfälle sind gestiegen.",
       "drop_other": "Ihr Nettoertrag bei diesem Produkt ist gesunken.",
-      "ready_to_sell": "Es ist heute verkaufbar und noch nicht in Ihrem Shop."
+      "ready_to_sell": "Es ist heute verkaufbar und noch nicht in Ihrem Shop.",
+      "stock_unconfirmed": "Die Importquelle gab keine Menge an: Die Veröffentlichung wartet auf Ihre."
     }
   }
 }

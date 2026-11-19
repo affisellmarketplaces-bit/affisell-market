@@ -46,6 +46,7 @@ import {
 } from "@/lib/reseller-import/review"
 import type { SupplierScrapedProduct } from "@/lib/supplier-import-url-handler"
 import { normalizeImportBrand } from "@/lib/url-import-apply"
+import { STOCK_UNCONFIRMED_KEY, stockFromSource } from "@/lib/import-stock"
 
 export const RESELLER_IMPORT_VAULT_EMAIL = "import-vault@affisell.internal"
 export const RESELLER_URL_IMPORT_SOURCE = "reseller_url_import"
@@ -195,7 +196,10 @@ function asPreview(
     currency: product.currency || "EUR",
     brand: normalizeImportBrand(product.brand || "", product.title),
     category: (product.category || "").slice(0, 120),
-    stock: Math.max(0, Math.min(9999, Math.round(product.stock || 99))),
+    // The source's quantity with its provenance — never a fallback (was 99).
+    ...(product.stockProvenance === "source"
+      ? stockFromSource(product.stock)
+      : { stock: 0, stockProvenance: "not_provided" as const }),
     platform: meta.platform,
     marketplaceLabel: meta.marketplaceLabel,
     method: meta.method,
@@ -340,7 +344,8 @@ async function scrapeOpenGraphPreview(url: string): Promise<SupplierScrapedProdu
         'meta[property="og:price:amount"]',
         'meta[itemprop="price"]'
       ) || "0"
-    const price = Math.max(0, parseFloat(priceRaw.replace(",", ".")) || 0) || 9.9
+    // No invented price (was 9.90 €): a page without a readable price gives 0 and the import is refused as incomplete.
+    const price = Math.max(0, parseFloat(priceRaw.replace(",", ".")) || 0)
     const suggested = psychologicalPrice(price * 2.8)
     return {
       title: title.slice(0, 200),
@@ -358,7 +363,8 @@ async function scrapeOpenGraphPreview(url: string): Promise<SupplierScrapedProdu
       brand: "",
       category: "",
       sku: "",
-      stock: 99,
+      stock: 0,
+      stockProvenance: "not_provided",
       shipping: {
         from_country: "",
         delivery_time: "",
@@ -481,6 +487,7 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
         brand: "Generic",
         category: market.label,
         stock: Math.max(0, catalog.stock),
+        stockProvenance: "source" as const, // the Affisell catalogue product's own stock
         platform: market.scrapePlatform,
         marketplaceLabel: market.label,
         method: "catalog-match",
@@ -770,10 +777,10 @@ function sanitizeCommitSnapshot(
         : "Generic",
     category:
       typeof o.category === "string" ? o.category.slice(0, 120) : market.label,
-    stock:
-      typeof o.stock === "number" && Number.isFinite(o.stock)
-        ? Math.max(0, Math.min(9999, Math.round(o.stock)))
-        : 99,
+    // A browser snapshot's number is only kept when the snapshot says it read it from the page.
+    ...(o.stockProvenance === "source"
+      ? stockFromSource(o.stock)
+      : { stock: 0, stockProvenance: "not_provided" as const }),
     platform:
       typeof o.platform === "string" && o.platform
         ? o.platform
@@ -863,6 +870,7 @@ export async function commitResellerUrlImport(args: {
         suggestedPrice: suggested,
         profitPerSale: Math.max(0, Number((suggested - cost).toFixed(2))),
         stock: Math.max(0, catalog.stock),
+        stockProvenance: "source" as const, // the Affisell catalogue product's own stock
         method: "catalog-match",
         catalogProductId: catalog.id,
         warnings: ["Produit catalogue Affisell — listage direct."],
@@ -989,7 +997,8 @@ export async function commitResellerUrlImport(args: {
       basePriceCents: costCents,
       ...(persist.compareAt ? { compareAt: persist.compareAt } : {}),
       commissionRate: 15,
-      stock: persist.stock,
+      // A re-import without a source quantity never overwrites the stock an existing product has (lib/import-stock.ts).
+      ...(existingProduct && !persist.stockConfirmed ? {} : { stock: persist.stock }),
       sourceUrl: preview.sourceUrl,
       importSource: RESELLER_URL_IMPORT_SOURCE,
       supplierTag: "reseller-import",
@@ -1023,6 +1032,8 @@ export async function commitResellerUrlImport(args: {
 
     if (persist.attributes.length > 0) {
       for (const attr of persist.attributes) {
+        // The « quantity to confirm » marker is only put on a NEW product (existing data is never degraded).
+        if (existingProduct && attr.key === STOCK_UNCONFIRMED_KEY) continue
         await prisma.productAttribute.upsert({
           where: {
             productId_key: { productId, key: attr.key },
@@ -1039,6 +1050,10 @@ export async function commitResellerUrlImport(args: {
           },
         })
       }
+    }
+    // The source now reports a quantity: an older « to confirm » marker is lifted.
+    if (existingProduct && persist.stockConfirmed) {
+      await prisma.productAttribute.deleteMany({ where: { productId: productId, key: STOCK_UNCONFIRMED_KEY } })
     }
 
     if (persist.variantInputs.length > 0) {

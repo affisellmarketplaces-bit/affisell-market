@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio"
+import { stockFromSource, type StockProvenance } from "@/lib/import-stock"
 
 import { canonicalAliExpressItemUrl, parseAliExpressProductId } from "@/lib/aliexpress-product-id"
 import { catalogHexForColorName } from "@/lib/color-name-hex"
@@ -332,6 +333,8 @@ export type AliExpressParseInput = {
   brand: string
   sku: string
   stock: number
+  /** Where `stock` comes from (lib/import-stock.ts): never a fallback number. */
+  stockProvenance: StockProvenance
   variants: Array<{
     name: string
     type: string
@@ -416,7 +419,7 @@ function parseAerData(aerData: Record<string, unknown>, url: string): AliExpress
         type: propName,
         image: txt(v.skuPropertyImagePath) ? hdImage(txt(v.skuPropertyImagePath)) : "",
         price: prices[0] || 0,
-        stock: 50,
+        stock: 0, // per-value quantity is not on the page (was a fixed 50)
         sku: `AE-${txt(v.propertyValueId)}`,
         attributes: { [propName]: name },
       }
@@ -441,7 +444,7 @@ function parseAerData(aerData: Record<string, unknown>, url: string): AliExpress
       .slice(0, 12),
     brand: txt(productInfo.storeName),
     sku: `AE-${itemId}`,
-    stock: num(productInfo.totalAvailQuantity) || 999,
+    ...stockFromSource(productInfo.totalAvailQuantity),
     variants,
     colors: variants
       .filter((v) => v.type.toLowerCase().includes("color"))
@@ -561,7 +564,8 @@ function parseAliExpressOpenGraph(html: string, url: string): AliExpressParseInp
     images: [...new Set(images.filter(Boolean))].slice(0, 12),
     brand: "",
     sku: `AE-${itemId}`,
-    stock: 999,
+    stock: 0,
+    stockProvenance: "not_provided",
     variants: [],
     colors: [],
     sizes: [],

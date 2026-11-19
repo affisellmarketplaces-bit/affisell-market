@@ -39,6 +39,7 @@ import { prisma } from "@/lib/prisma"
 import type { SupplierScrapedProduct } from "@/lib/supplier-import-url-handler"
 import { normalizeImportBrand } from "@/lib/url-import-apply"
 
+import { STOCK_UNCONFIRMED_KEY, stockFromSource } from "@/lib/import-stock"
 import {
   computeMarketplaceBaseSellingPriceEur,
   MARKETPLACE_IMPORT_MARKUP,
@@ -149,7 +150,10 @@ function asMarketplacePreview(
     brand: normalizeImportBrand(product.brand || "", product.title),
     category: (product.category || "").slice(0, 120),
     categoryId: meta.categoryId,
-    stock: Math.max(0, Math.min(9999, Math.round(product.stock || 99))),
+    // The source's quantity with its provenance — never a fallback (was 99).
+    ...(product.stockProvenance === "source"
+      ? stockFromSource(product.stock)
+      : { stock: 0, stockProvenance: "not_provided" as const }),
     platform: meta.platform,
     marketplaceLabel: meta.marketplaceLabel,
     method: meta.method,
@@ -331,7 +335,8 @@ export async function importMarketplaceFromUrl(rawUrl: string): Promise<Marketpl
     basePriceCents: costCents,
     ...(compareAt ? { compareAt } : {}),
     commissionRate: 15,
-    stock: persist.stock,
+    // A re-import without a source quantity never overwrites the stock an existing product has (lib/import-stock.ts).
+    ...(existingProduct && !persist.stockConfirmed ? {} : { stock: persist.stock }),
     sourceUrl: normalized.canonicalUrl,
     importSource: MARKETPLACE_URL_IMPORT_SOURCE,
     supplierTag: "marketplace-import",
@@ -371,12 +376,18 @@ export async function importMarketplaceFromUrl(rawUrl: string): Promise<Marketpl
 
   if (persist.attributes.length > 0) {
     for (const attr of persist.attributes) {
+      // The « quantity to confirm » marker is only put on a NEW product (existing data is never degraded).
+      if (existingProduct && attr.key === STOCK_UNCONFIRMED_KEY) continue
       await prisma.productAttribute.upsert({
         where: { productId_key: { productId, key: attr.key } },
         create: { productId, key: attr.key, value: attr.value, label: attr.label },
         update: { value: attr.value, label: attr.label },
       })
     }
+  }
+  // The source now reports a quantity: an older « to confirm » marker is lifted.
+  if (existingProduct && persist.stockConfirmed) {
+    await prisma.productAttribute.deleteMany({ where: { productId: productId, key: STOCK_UNCONFIRMED_KEY } })
   }
 
   if (persist.variantInputs.length > 0) {

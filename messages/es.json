@@ -1226,7 +1226,8 @@
       "variantsInvalidGeneric": "Corrige las variantes / filas SKU (campos no válidos).",
       "productRecalled": "Este producto está sujeto a una retirada de seguridad abierta por Affisell: no puede volver a ponerse a la venta por ahora. Contacta con el soporte de Affisell para saber cómo levantar la retirada.",
       "productSuspended": "Affisell ha suspendido la venta de este producto: no puede volver a ponerse a la venta por ahora. Contacta con el soporte de Affisell para conocer el motivo y cómo levantar la suspensión.",
-      "productHoldUnverifiable": "No hemos podido comprobar si este producto puede volver a ponerse a la venta. Inténtalo de nuevo en unos instantes."
+      "productHoldUnverifiable": "No hemos podido comprobar si este producto puede volver a ponerse a la venta. Inténtalo de nuevo en unos instantes.",
+      "stockUnconfirmed": "La cantidad de este producto importado nunca se confirmó: la fuente no indicaba ninguna. Indique la cantidad realmente disponible, guarde y luego publique."
     },
     "descriptionField": {
       "label": "Descripción",
@@ -9406,6 +9407,10 @@
       "no_gtin": {
         "title": "Sin código de barras",
         "why": "Opcional: un GTIN / EAN permite comprobar las alertas de seguridad europeas y detectar duplicados."
+      },
+      "stock_unconfirmed": {
+        "title": "Cantidad por confirmar",
+        "why": "Importado sin cantidad de la fuente: stock a 0 y publicación rechazada hasta que indique la cantidad realmente disponible."
       }
     }
   },
@@ -9479,7 +9484,8 @@
       "drop_refunds_up": "Los reembolsos han aumentado.",
       "drop_disputes_up": "Los litigios han aumentado.",
       "drop_other": "Su ganancia neta en este producto ha bajado.",
-      "ready_to_sell": "Se puede vender hoy y aún no está en su tienda."
+      "ready_to_sell": "Se puede vender hoy y aún no está en su tienda.",
+      "stock_unconfirmed": "La fuente de la importación no daba cantidad: la publicación espera la suya."
     }
   }
 }

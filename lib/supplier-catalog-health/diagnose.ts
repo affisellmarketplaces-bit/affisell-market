@@ -31,6 +31,7 @@ export type HealthIssueCode =
   | "commission_not_explicit"
   | "out_of_stock"
   | "safety_blocks_publication"
+  | "stock_unconfirmed"
   // anomalie
   | "stock_nominal"
   | "variant_stock_mismatch"
@@ -58,6 +59,7 @@ export const HEALTH_ISSUE_CLASS: Record<HealthIssueCode, HealthClass> = {
   commission_not_explicit: "blocage",
   out_of_stock: "blocage",
   safety_blocks_publication: "blocage",
+  stock_unconfirmed: "blocage",
   stock_nominal: "anomalie",
   variant_stock_mismatch: "anomalie",
   variant_stock_untracked: "anomalie",
@@ -96,6 +98,8 @@ export type HealthProduct = {
   hasVariants: boolean
   /** `variants.variantRows[].stock`, raw; null when the product has no SKU rows. */
   variantRowStocks: unknown[] | null
+  /** Imported without a source quantity (`stock_unconfirmed` marker, lib/import-stock.ts): publication is refused. */
+  stockUnconfirmed?: boolean
   commissionExplicit: boolean
   imageCount: number
   descriptionLength: number
@@ -192,13 +196,17 @@ export function diagnoseProduct(p: HealthProduct, ctx: HealthContext, duplicates
   const stockKnown = physical && !(p.hasVariants && rows == null) && available != null
 
   // ---- blocage -----------------------------------------------------------
+  // The import's source gave no quantity: the product can not be published until the supplier types one. Its stock is 0
+  // BECAUSE it is unknown, so « sold out » / « nominal stock » would describe the same fact wrongly — they are skipped.
+  const unconfirmed = Boolean(p.stockUnconfirmed) && physical
+  if (unconfirmed) add("stock_unconfirmed", "affisell", rows || p.hasVariants ? "edit_product" : "set_stock", { stock: p.stock })
   if (held) add("held_by_affisell", "affisell", "view_hold", { hold: p.holds![0] })
   if (p.holds == null) add("hold_unverifiable", "affisell", "none")
   if (!(p.basePriceCents > 0)) add("price_missing", "fiche", "edit_product", { priceCents: p.basePriceCents })
   // Paid but unallocated: without an explicit commission a sale produces no order (AGENTS.md, D6).
   if (published && !p.commissionExplicit) add("commission_not_explicit", "affisell", "edit_product")
   // The product page shows « sold out » at 0 — nobody can buy it.
-  if (onSale && stockKnown && available === 0) add("out_of_stock", "fiche", rows ? "edit_product" : "set_stock", { available: 0 })
+  if (onSale && stockKnown && !unconfirmed && available === 0) add("out_of_stock", "fiche", rows ? "edit_product" : "set_stock", { available: 0 })
   if (p.safetyBlocking && p.safetyBlocking.length > 0) {
     if (p.isDraft && ctx.readinessMode === "enforce") {
       add("safety_blocks_publication", "affisell", "edit_product", {
@@ -218,7 +226,7 @@ export function diagnoseProduct(p: HealthProduct, ctx: HealthContext, duplicates
   }
 
   // ---- anomalie ----------------------------------------------------------
-  if (physical && rows == null && !p.hasVariants && NOMINAL_STOCKS.has(p.stock)) {
+  if (physical && !unconfirmed && rows == null && !p.hasVariants && NOMINAL_STOCKS.has(p.stock)) {
     add("stock_nominal", "fiche", "set_stock", { stock: p.stock })
   }
   if (rows && !rowsUnreadable && rows.reduce((a, b) => a + b, 0) !== p.stock) {
@@ -248,7 +256,7 @@ export function diagnoseProduct(p: HealthProduct, ctx: HealthContext, duplicates
 
   // ---- recommandation ----------------------------------------------------
   const blockingHere = out.some((i) => i.cls === "blocage")
-  const stockOk = !physical || (stockKnown && (available ?? 0) > 0)
+  const stockOk = !physical || (!unconfirmed && stockKnown && (available ?? 0) > 0)
   if (p.isDraft && !blockingHere && p.basePriceCents > 0 && p.commissionExplicit && stockOk && p.imageCount > 0 && !(p.safetyBlocking?.length)) {
     add("draft_ready", "calcul", "edit_product")
   }

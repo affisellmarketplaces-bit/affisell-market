@@ -20,8 +20,22 @@ export function decideImportPublication(args: {
   wantLive: boolean
   attributes?: ReadinessInput["attributes"]
   mode?: ListingReadinessMode
+  /**
+   * The source gave no usable quantity (lib/import-stock.ts): the product stays a draft until the supplier (or an
+   * authorised admin) confirms one — whatever LISTING_READINESS_MODE says (founder decision 2026-11-19).
+   */
+  stockUnconfirmed?: boolean
 }): { live: boolean; downgradedToDraft: boolean } {
   if (!args.wantLive) return { live: false, downgradedToDraft: false }
+  if (args.stockUnconfirmed) {
+    console.log("[import-stock]", {
+      source: args.source,
+      supplierId: args.supplierId,
+      productId: args.productId ?? null,
+      result: "import_kept_draft_stock_unconfirmed",
+    })
+    return { live: false, downgradedToDraft: true }
+  }
   const { decision } = applyListingReadinessGate({
     source: args.source,
     supplierId: args.supplierId,

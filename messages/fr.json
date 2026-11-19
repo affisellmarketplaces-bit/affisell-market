@@ -1226,7 +1226,8 @@
       "variantsInvalidGeneric": "Corrigez les variantes / lignes SKU (champs invalides).",
       "productRecalled": "Ce produit fait l'objet d'un rappel de sécurité ouvert par Affisell : il ne peut pas être remis en vente pour le moment. Contactez le support Affisell pour connaître les étapes de levée du rappel.",
       "productSuspended": "Affisell a suspendu la vente de ce produit : il ne peut pas être remis en vente pour le moment. Contactez le support Affisell pour en connaître la raison et les étapes de levée.",
-      "productHoldUnverifiable": "Nous n'avons pas pu vérifier si ce produit peut être remis en vente. Réessayez dans quelques instants."
+      "productHoldUnverifiable": "Nous n'avons pas pu vérifier si ce produit peut être remis en vente. Réessayez dans quelques instants.",
+      "stockUnconfirmed": "La quantité de ce produit importé n'a jamais été confirmée : la source n'en donnait aucune. Indiquez la quantité réellement disponible, enregistrez, puis publiez."
     },
     "descriptionField": {
       "label": "Description",
@@ -9406,6 +9407,10 @@
       "no_gtin": {
         "title": "Pas de code-barres",
         "why": "Facultatif : un GTIN / EAN permet de vérifier les alertes de sécurité européennes et de repérer les doublons."
+      },
+      "stock_unconfirmed": {
+        "title": "Quantité à confirmer",
+        "why": "Importé sans quantité fournie par la source : stock à 0 et publication refusée tant que vous n'avez pas indiqué la quantité réellement disponible."
       }
     }
   },
@@ -9479,7 +9484,8 @@
       "drop_refunds_up": "Les remboursements ont augmenté.",
       "drop_disputes_up": "Les litiges ont augmenté.",
       "drop_other": "Votre gain net sur ce produit a baissé.",
-      "ready_to_sell": "Il est vendable aujourd'hui et pas encore dans votre boutique."
+      "ready_to_sell": "Il est vendable aujourd'hui et pas encore dans votre boutique.",
+      "stock_unconfirmed": "La source de l'import ne donnait aucune quantité : la publication attend la vôtre."
     }
   }
 }

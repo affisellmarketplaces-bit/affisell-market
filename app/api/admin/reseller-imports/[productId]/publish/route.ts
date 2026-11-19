@@ -7,7 +7,7 @@ import { publishApprovedResellerImport } from "@/lib/reseller-import/review.serv
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-const STATUS: Record<string, number> = { not_found: 404, not_approved: 409, already_live: 409, compliance_blocking: 422 }
+const STATUS: Record<string, number> = { not_found: 404, not_approved: 409, already_live: 409, compliance_blocking: 422, stock_unconfirmed: 409 }
 
 /** ADMIN: publish an APPROVED reseller import once its blocking product-safety data is complete. `{ note }` required. */
 export async function POST(req: Request, context: { params: Promise<{ productId: string }> }): Promise<Response> {

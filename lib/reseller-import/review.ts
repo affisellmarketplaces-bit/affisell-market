@@ -89,15 +89,18 @@ export function reviewableState(product: { importSource?: string | null; tags?: 
  */
 export type ImportPublicationStatus =
   | { publishable: true }
-  | { publishable: false; reason: "not_approved" | "rejected" | "compliance_blocking"; blocking: string[] }
+  | { publishable: false; reason: "not_approved" | "rejected" | "compliance_blocking" | "stock_unconfirmed"; blocking: string[] }
 
 export function importPublicationStatus(args: {
   reviewState: ImportReviewState | "legacy_unreviewed"
   compliance: { applicable: boolean; blocking: ReadonlyArray<string> }
+  /** The source gave no quantity (lib/import-stock.ts): never sellable until an admin confirms one. */
+  stockUnconfirmed?: boolean
 }): ImportPublicationStatus {
   const blocking = args.compliance.applicable ? [...args.compliance.blocking] : []
   if (args.reviewState === "rejected") return { publishable: false, reason: "rejected", blocking }
   if (args.reviewState !== "approved") return { publishable: false, reason: "not_approved", blocking }
   if (blocking.length > 0) return { publishable: false, reason: "compliance_blocking", blocking }
+  if (args.stockUnconfirmed) return { publishable: false, reason: "stock_unconfirmed", blocking }
   return { publishable: true }
 }

@@ -1,4 +1,5 @@
 import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
+import { isStockUnconfirmed, STOCK_UNCONFIRMED_KEY } from "@/lib/import-stock"
 import {
   previewResellerUrlImport,
   resellerImportPreviewJson,
@@ -302,7 +303,7 @@ export async function commitSupplierDropForgeImport(args: {
         ...(aeId ? [{ aliexpressProductId: aeId }] : []),
       ],
     },
-    select: { id: true },
+    select: { id: true, attributes: { where: { key: STOCK_UNCONFIRMED_KEY }, select: { key: true, value: true } } },
   })
 
   const productData = {
@@ -324,7 +325,8 @@ export async function commitSupplierDropForgeImport(args: {
       : {}),
     ...(persist.compareAt ? { compareAt: persist.compareAt } : {}),
     commissionRate: 15,
-    stock: persist.stock,
+    // A re-import without a source quantity never overwrites the stock an existing product has (lib/import-stock.ts).
+    ...(existingProduct && !persist.stockConfirmed ? {} : { stock: persist.stock }),
     sourceUrl: preview.sourceUrl,
     importSource: isAliExpress && aeId ? "aliexpress" : SUPPLIER_DROPFORGE_IMPORT_SOURCE,
     supplierTag: isAliExpress ? "dropforge" : "manual_fulfillment",
@@ -356,6 +358,9 @@ export async function commitSupplierDropForgeImport(args: {
     productId: existingProduct?.id ?? null,
     wantLive: publishLive,
     attributes: persist.attributes,
+    // New product: the source gave no quantity. Existing product: it still carries the « to confirm » marker.
+    stockUnconfirmed:
+      !persist.stockConfirmed && (!existingProduct || isStockUnconfirmed(existingProduct.attributes)),
   })
   const product = existingProduct
     ? await prisma.product.update({
@@ -378,6 +383,8 @@ export async function commitSupplierDropForgeImport(args: {
 
   if (persist.attributes.length > 0) {
     for (const attr of persist.attributes) {
+      // The « quantity to confirm » marker is only put on a NEW product (existing data is never degraded).
+      if (existingProduct && attr.key === STOCK_UNCONFIRMED_KEY) continue
       await prisma.productAttribute.upsert({
         where: {
           productId_key: { productId: product.id, key: attr.key },
@@ -394,6 +401,10 @@ export async function commitSupplierDropForgeImport(args: {
         },
       })
     }
+  }
+  // The source now reports a quantity: an older « to confirm » marker is lifted.
+  if (existingProduct && persist.stockConfirmed) {
+    await prisma.productAttribute.deleteMany({ where: { productId: product.id, key: STOCK_UNCONFIRMED_KEY } })
   }
 
   if (persist.variantInputs.length > 0) {

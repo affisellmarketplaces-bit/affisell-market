@@ -1226,7 +1226,8 @@
       "variantsInvalidGeneric": "请修正变体/SKU 行(字段无效)。",
       "productRecalled": "该商品正处于 Affisell 发起的安全召回中，暂时无法重新上架销售。请联系 Affisell 支持团队，了解解除召回的步骤。",
       "productSuspended": "Affisell 已暂停该商品的销售，暂时无法重新上架。请联系 Affisell 支持团队了解原因及解除暂停的步骤。",
-      "productHoldUnverifiable": "我们暂时无法确认该商品能否重新上架，请稍后再试。"
+      "productHoldUnverifiable": "我们暂时无法确认该商品能否重新上架，请稍后再试。",
+      "stockUnconfirmed": "此导入商品的数量从未确认：来源没有提供数量。请填写实际可用数量，保存后再发布。"
     },
     "descriptionField": {
       "label": "描述",
@@ -9406,6 +9407,10 @@
       "no_gtin": {
         "title": "没有条形码",
         "why": "可选：GTIN / EAN 可用于核对欧盟安全警报并发现重复商品。"
+      },
+      "stock_unconfirmed": {
+        "title": "数量待确认",
+        "why": "导入时来源未提供数量：库存为 0，在您填写实际可用数量之前无法发布。"
       }
     }
   },
@@ -9479,7 +9484,8 @@
       "drop_refunds_up": "退款增加了。",
       "drop_disputes_up": "争议增加了。",
       "drop_other": "您在该商品上的净收益下降了。",
-      "ready_to_sell": "它今天可以销售，且尚未加入您的店铺。"
+      "ready_to_sell": "它今天可以销售，且尚未加入您的店铺。",
+      "stock_unconfirmed": "导入来源未提供数量：发布需等待您填写数量。"
     }
   }
 }

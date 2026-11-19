@@ -1226,7 +1226,8 @@
       "variantsInvalidGeneric": "Corrigeer de varianten / SKU-rijen (ongeldige velden).",
       "productRecalled": "Voor dit product loopt een veiligheidsterugroeping die door Affisell is geopend: het kan voorlopig niet opnieuw te koop worden gezet. Neem contact op met de Affisell-support om te horen hoe de terugroeping kan worden opgeheven.",
       "productSuspended": "Affisell heeft de verkoop van dit product opgeschort: het kan voorlopig niet opnieuw te koop worden gezet. Neem contact op met de Affisell-support om de reden te horen en hoe de opschorting kan worden opgeheven.",
-      "productHoldUnverifiable": "We konden niet controleren of dit product opnieuw te koop mag worden gezet. Probeer het zo meteen opnieuw."
+      "productHoldUnverifiable": "We konden niet controleren of dit product opnieuw te koop mag worden gezet. Probeer het zo meteen opnieuw.",
+      "stockUnconfirmed": "De hoeveelheid van dit geïmporteerde product is nooit bevestigd: de bron gaf er geen. Vul de echt beschikbare hoeveelheid in, sla op en publiceer daarna."
     },
     "descriptionField": {
       "label": "Beschrijving",
@@ -9406,6 +9407,10 @@
       "no_gtin": {
         "title": "Geen barcode",
         "why": "Vrijblijvend: met een GTIN / EAN kunnen Europese veiligheidswaarschuwingen worden gecontroleerd en duplicaten worden gevonden."
+      },
+      "stock_unconfirmed": {
+        "title": "Hoeveelheid te bevestigen",
+        "why": "Geïmporteerd zonder hoeveelheid van de bron: voorraad 0 en publicatie geweigerd tot u de echt beschikbare hoeveelheid invult."
       }
     }
   },
@@ -9479,7 +9484,8 @@
       "drop_refunds_up": "De terugbetalingen zijn gestegen.",
       "drop_disputes_up": "De geschillen zijn gestegen.",
       "drop_other": "Uw netto-opbrengst op dit product is gedaald.",
-      "ready_to_sell": "Het is vandaag verkoopbaar en staat nog niet in uw winkel."
+      "ready_to_sell": "Het is vandaag verkoopbaar en staat nog niet in uw winkel.",
+      "stock_unconfirmed": "De importbron gaf geen hoeveelheid: de publicatie wacht op de uwe."
     }
   }
 }

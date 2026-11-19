@@ -1,6 +1,7 @@
 import { evaluateListingReadiness } from "@/lib/listing-compliance/evaluate"
 import { CANONICAL_LABELS, LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
 import { prisma } from "@/lib/prisma"
+import { isStockUnconfirmed } from "@/lib/import-stock"
 import {
   canApplyReviewDecision,
   importPublicationStatus,
@@ -134,6 +135,7 @@ export async function applyResellerImportReview(args: {
       ? importPublicationStatus({
           reviewState: "approved",
           compliance: { applicable: readiness.applicable, blocking: readiness.blocking.map((i) => i.code) },
+          stockUnconfirmed: isStockUnconfirmed(product.attributes),
         })
       : null
   const alreadyLive = product.active && !product.isDraft
@@ -194,7 +196,7 @@ export async function applyResellerImportReview(args: {
 
 export type PublishOutcome =
   | { ok: true; listedListings: number }
-  | { ok: false; error: "not_found" | "not_approved" | "already_live" | "compliance_blocking"; blocking?: string[] }
+  | { ok: false; error: "not_found" | "not_approved" | "already_live" | "compliance_blocking" | "stock_unconfirmed"; blocking?: string[] }
 
 /**
  * ADMIN: publish an APPROVED import once its sheet is complete. Compliance is re-judged strictly at this moment; the
@@ -208,11 +210,14 @@ export async function publishApprovedResellerImport(args: { productId: string; a
   const status = importPublicationStatus({
     reviewState: importReviewStateFromTags(product.tags) ?? "legacy_unreviewed",
     compliance: { applicable: readiness.applicable, blocking: readiness.blocking.map((i) => i.code) },
+    stockUnconfirmed: isStockUnconfirmed(product.attributes),
   })
   if (!status.publishable) {
     return status.reason === "compliance_blocking"
       ? { ok: false, error: "compliance_blocking", blocking: status.blocking }
-      : { ok: false, error: "not_approved" }
+      : status.reason === "stock_unconfirmed"
+        ? { ok: false, error: "stock_unconfirmed" }
+        : { ok: false, error: "not_approved" }
   }
   const listingIds = await requestedListingIds(product.id)
   return prisma.$transaction(async (tx) => {
@@ -343,6 +348,7 @@ export async function loadResellerImportDetail(productId: string): Promise<Resel
       const st = importPublicationStatus({
         reviewState: tagged ?? "legacy_unreviewed",
         compliance: { applicable: readiness.applicable, blocking: readiness.blocking.map((i) => i.code) },
+        stockUnconfirmed: isStockUnconfirmed(product.attributes),
       })
       return { publishable: st.publishable, reason: st.publishable ? null : st.reason }
     })(),

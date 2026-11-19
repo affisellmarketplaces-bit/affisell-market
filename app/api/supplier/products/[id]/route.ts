@@ -24,6 +24,12 @@ import {
 import { applyListingReadinessGate } from "@/lib/listing-compliance/gate.server"
 import { LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
 import { RETURN_WINDOW_KEY } from "@/lib/return-terms"
+import {
+  isStockUnconfirmed,
+  STOCK_UNCONFIRMED_ERROR,
+  STOCK_UNCONFIRMED_KEY,
+  stockUnconfirmedAttribute,
+} from "@/lib/import-stock"
 import { parseCompareAtDraftLax, parseCompareAtStrict } from "@/lib/supplier-product-compare-at"
 import { parseDescriptionBullets } from "@/lib/supplier-product-description-bullets"
 import {
@@ -451,6 +457,20 @@ export async function PUT(
         )
       : putLoad.attributes
 
+  // Imported quantity never confirmed (lib/import-stock.ts, founder decision 2026-11-19): the supplier saving a quantity
+  // IS the confirmation; publishing without one is refused, whatever LISTING_READINESS_MODE says.
+  const stockWasUnconfirmed = isStockUnconfirmed(putLoad.attributes)
+  const stockSubmittedNow = body.stock !== undefined && body.stock !== null && String(body.stock).trim() !== ""
+  const stockConfirmedNow = stockWasUnconfirmed && stockSubmittedNow
+  if (stockWasUnconfirmed && !stockSubmittedNow && activatingFromDraft) {
+    return Response.json({ error: STOCK_UNCONFIRMED_ERROR }, { status: 409 })
+  }
+  const attributesAfterSaveWithStock = stockConfirmedNow
+    ? attributesAfterSave.filter((a) => a.key !== STOCK_UNCONFIRMED_KEY)
+    : stockWasUnconfirmed && !attributesAfterSave.some((a) => a.key === STOCK_UNCONFIRMED_KEY)
+      ? [...attributesAfterSave, stockUnconfirmedAttribute()]
+      : attributesAfterSave
+
   if (isPublishing) {
     // Product-safety (GPSR) + identity data. Only a draft going live is ever refused (and only in enforce mode):
     // edits of listings that are already live are never blocked, so legacy listings can still be repriced / restocked.
@@ -688,13 +708,13 @@ export async function PUT(
 
     const shouldSyncProductAttributes =
       "productAttributes" in rawBody &&
-      !supplierProductAttributesEqual(putLoad.attributes, attributesAfterSave)
+      !supplierProductAttributesEqual(putLoad.attributes, attributesAfterSaveWithStock)
 
     if (shouldSyncProductAttributes) {
       await tx.productAttribute.deleteMany({ where: { productId: id } })
-      if (attributesAfterSave.length) {
+      if (attributesAfterSaveWithStock.length) {
         await tx.productAttribute.createMany({
-          data: attributesAfterSave.map((a) => ({
+          data: attributesAfterSaveWithStock.map((a) => ({
             productId: id,
             key: a.key,
             label: a.label || a.key,
@@ -702,6 +722,9 @@ export async function PUT(
           })),
         })
       }
+    }
+    if (stockConfirmedNow && !shouldSyncProductAttributes) {
+      await tx.productAttribute.deleteMany({ where: { productId: id, key: STOCK_UNCONFIRMED_KEY } })
     }
 
     if (variantPatch && !("error" in variantPatch)) {
@@ -1038,6 +1061,10 @@ export async function PATCH(
     }
     if (Object.keys(data).length) {
       await tx.product.update({ where: { id }, data })
+    }
+    // The supplier typed a quantity: an imported « quantity to confirm » marker is lifted (lib/import-stock.ts).
+    if (rawBody.stock !== undefined && rawBody.stock !== null && String(rawBody.stock).trim() !== "") {
+      await tx.productAttribute.deleteMany({ where: { productId: id, key: STOCK_UNCONFIRMED_KEY } })
     }
     await syncProductVariants(tx, id, variantPatch.hasVariants, variantPatch.variants)
   }, SUPPLIER_PRODUCT_WRITE_TX)

@@ -1226,7 +1226,8 @@
       "variantsInvalidGeneric": "Fix the variants / SKU rows (invalid fields).",
       "productRecalled": "This product is under a safety recall opened by Affisell, so it can't be put back on sale for now. Contact Affisell support to learn how the recall can be lifted.",
       "productSuspended": "Affisell has suspended sales of this product, so it can't be put back on sale for now. Contact Affisell support to learn why and how the suspension can be lifted.",
-      "productHoldUnverifiable": "We couldn't check whether this product can be put back on sale. Please try again in a moment."
+      "productHoldUnverifiable": "We couldn't check whether this product can be put back on sale. Please try again in a moment.",
+      "stockUnconfirmed": "This imported product's quantity was never confirmed: the source gave none. Enter the quantity really available, save, then publish."
     },
     "descriptionField": {
       "label": "Description",
@@ -9406,6 +9407,10 @@
       "no_gtin": {
         "title": "No barcode",
         "why": "Optional: a GTIN / EAN lets the European safety alerts be checked and duplicates spotted."
+      },
+      "stock_unconfirmed": {
+        "title": "Quantity to confirm",
+        "why": "Imported without a quantity from the source: stock is 0 and publication is refused until you enter the quantity really available."
       }
     }
   },
@@ -9479,7 +9484,8 @@
       "drop_refunds_up": "Refunds rose.",
       "drop_disputes_up": "Disputes rose.",
       "drop_other": "Your net earnings on this product fell.",
-      "ready_to_sell": "It can be sold today and is not in your shop yet."
+      "ready_to_sell": "It can be sold today and is not in your shop yet.",
+      "stock_unconfirmed": "The import's source gave no quantity: publication waits for yours."
     }
   }
 }

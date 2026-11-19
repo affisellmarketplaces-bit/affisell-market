@@ -58,6 +58,7 @@ const SUPPLIER_KIND: Partial<Record<HealthIssueCode, NextAction["kind"]>> = {
   price_missing: "fix_blocage",
   commission_not_explicit: "fix_blocage",
   safety_blocks_publication: "fix_blocage",
+  stock_unconfirmed: "resolve_availability",
   out_of_stock: "resolve_availability",
   low_stock: "resolve_availability",
   stock_nominal: "resolve_availability",

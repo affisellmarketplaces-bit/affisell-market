@@ -671,7 +671,7 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
       price: price.trim(),
       compareAt: patch?.compareAt ?? "",
       stock:
-        patch?.stock ??
+        (patch?.stock?.trim() ? patch.stock : undefined) ??
         String(
           skuVariants?.hasVariants
             ? skuVariants.variants.reduce((acc, row) => acc + Math.max(0, row.stock), 0)

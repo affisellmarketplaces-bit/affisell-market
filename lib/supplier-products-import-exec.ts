@@ -7,6 +7,7 @@ import { catalogHexForColorName } from "@/lib/color-name-hex"
 import type { ProductColorImageRow } from "@/lib/product-color-images"
 import { type ProductVariantLine, newVariantRowId } from "@/lib/product-variants"
 import { decideImportPublication } from "@/lib/listing-compliance/import-publication.server"
+import { stockUnconfirmedAttribute } from "@/lib/import-stock"
 import { prisma } from "@/lib/prisma"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
 import {
@@ -207,18 +208,25 @@ export async function executeSupplierProductsImport(args: {
       typeof p.status === "string" ? p.status.toLowerCase() : ""
     const asDraft =
       statusRaw === "draft" || p.active === false || bodyDraft
+    // The row says its source gave no quantity (URL / extension import): never a sellable number — stock 0 + marker,
+    // draft until confirmed. Rows from the supplier's own store or file carry no provenance and keep their stock.
+    const stockUnconfirmed =
+      p.stockProvenance === "not_provided" && listingKind === "PHYSICAL"
     // Same readiness gate as a hand-made sheet (enforce: an incomplete row is created as a draft, never refused).
     const active = decideImportPublication({
       source: "import_exec",
       supplierId,
       listingKind,
       wantLive: !asDraft,
+      stockUnconfirmed,
     }).live
 
-    const stockN = Math.max(
-      0,
-      Math.round(Number.isFinite(Number(p.stock)) ? Number(p.stock) : 0)
-    )
+    const stockN = stockUnconfirmed
+      ? 0
+      : Math.max(
+          0,
+          Math.round(Number.isFinite(Number(p.stock)) ? Number(p.stock) : 0)
+        )
 
     const images = parseSupplierProductImages(p)
 
@@ -515,6 +523,8 @@ export async function executeSupplierProductsImport(args: {
           }
         }
 
+        // A re-import without a source quantity never overwrites the stock the product already has.
+        if (stockUnconfirmed) delete (productData as { stock?: number }).stock
         const updated = await prisma.product.update({
           where: { id: existing.id },
           data: productData,
@@ -552,6 +562,7 @@ export async function executeSupplierProductsImport(args: {
             active,
             isDraft: !active,
             supplierTag: "import",
+            ...(stockUnconfirmed ? { attributes: { create: [stockUnconfirmedAttribute()] } } : {}),
           },
         })
         productId = created.id
@@ -567,6 +578,7 @@ export async function executeSupplierProductsImport(args: {
           active,
           isDraft: !active,
           supplierTag: "import",
+          ...(stockUnconfirmed ? { attributes: { create: [stockUnconfirmedAttribute()] } } : {}),
         },
       })
       productId = created.id

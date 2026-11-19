@@ -104,4 +104,18 @@ Quatre classes, jamais mélangées :
 1. **F6 — identité fournisseur** : libellé = nom de boutique, sinon « Fournisseur Affisell » (`lib/supplier-public-label.ts`, aussi quand le nom de boutique est une adresse e-mail). L'e-mail n'est plus lu par la requête du catalogue revendeur ; les devis (demandes de produits) n'exposent plus ni l'e-mail ni le nom de la personne, seulement le nom de boutique chargé côté serveur. **Canal interne conservé** : la demande de produit et ses devis (messages tracés en base) ; aucun contact direct n'est montré par défaut.
 2. **F4 — publication** : l'assistant Express refuse de publier sans prix et sans quantité saisis (`lib/product-availability.ts`). Modes réellement pris en charge : quantité disponible (produit physique) et « sans stock physique » (service, logiciel, abonnement, expérience). **Non pris en charge, listés comme tels** : sur commande, disponibilité permanente, précommande — aucun champ, la fiche affiche « épuisé » à 0 et le contrôle de stock refuserait. Les prendre en charge = stockage + paiement + fiche produit : décision fondateur.
 
-**Reste à décider** : les importeurs qui écrivent encore un stock nominal (99 / 999 — import par URL, import admin, démo) ne sont pas modifiés ; la santé du catalogue les signale comme « quantité à confirmer ». Les corriger à la source changerait ce que les imports publient : à valider.
+### Décisions du 2026-11-19 (13 h) et leur application
+
+3. **Imports 99 / 999 — corrigé à la source.** Chaque extracteur dit d'où vient sa quantité (`lib/import-stock.ts`). Lue chez la source (y compris 99 ou 999 réellement renvoyés) : conservée. Absente : stock 0, attribut « quantité à confirmer », brouillon jusqu'à confirmation par le fournisseur (en enregistrant une quantité) ou par un administrateur (`POST /api/admin/products/<id>/confirm-stock`, motif obligatoire, tracé). Concerne : import URL revendeur, import URL marketplace, Dropforge, import extension, enrôlement AliExpress admin, saisie admin, imports AliExpress fournisseur. Les produits existants ne sont pas modifiés. Le prix de repli 9,90 € de l'import revendeur est supprimé (import refusé comme incomplet).
+4. **Démo séparée** : les produits `demo-lab` ne sont plus proposés aux acheteurs en production ni visibles des revendeurs réels.
+5. **Sur commande / précommande — reporté** (feuille de route ci-dessous).
+6. **Confidentialité des commissions** : aucune comparaison entre fournisseurs n'est développée.
+
+## 6. Feuille de route — modes de disponibilité reportés (non implémentés)
+
+| Mode | Ce qu'il faudrait | Implications |
+|---|---|---|
+| Sur commande | délai de fabrication par produit, stock « non géré » explicite, fiche « fabriqué à la commande » | le contrôle de stock (`CHECKOUT_STOCK_MODE`) ne doit pas refuser à 0 ; délai d'expédition SLA (`enforce-supplier-ship-sla`) à adapter ; droit de rétractation (bien personnalisé = exception légale à vérifier) |
+| Disponibilité permanente | déclaration du fournisseur « illimité », jamais un grand nombre fictif | même contrôle de stock ; risque de survente porté par le fournisseur (contrat) |
+| Précommande | date de mise à disposition, encaissement immédiat ou différé | paiement (encaissement avant expédition), virements différés, remboursement si date non tenue, affichage acheteur — chantier argent à valider avec l'expert-comptable |
+
