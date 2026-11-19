@@ -9754,7 +9754,8 @@
       "drop_other": "Uw netto-opbrengst op dit product is gedaald.",
       "ready_to_sell": "Het is vandaag verkoopbaar en staat nog niet in uw winkel.",
       "stock_unconfirmed": "De importbron gaf geen hoeveelheid: de publicatie wacht op de uwe.",
-      "stock_cover_short": "In het huidige verkooptempo is de voorraad binnen twee weken op (berekening)."
+      "stock_cover_short": "In het huidige verkooptempo is de voorraad binnen twee weken op (berekening).",
+      "variant_rows_indistinct": "Sommige varianten hebben dezelfde kleur, maat en capaciteit: kopers kunnen er niet tussen kiezen."
     }
   }
 }

@@ -9754,7 +9754,8 @@
       "drop_other": "您在该商品上的净收益下降了。",
       "ready_to_sell": "它今天可以销售，且尚未加入您的店铺。",
       "stock_unconfirmed": "导入来源未提供数量：发布需等待您填写数量。",
-      "stock_cover_short": "按当前销售速度，库存将在两周内售罄（计算）。"
+      "stock_cover_short": "按当前销售速度，库存将在两周内售罄（计算）。",
+      "variant_rows_indistinct": "部分规格的颜色、尺码和容量完全相同：买家无法在它们之间选择。"
     }
   }
 }

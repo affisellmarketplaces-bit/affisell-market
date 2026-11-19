@@ -9754,7 +9754,8 @@
       "drop_other": "Il suo guadagno netto su questo prodotto è calato.",
       "ready_to_sell": "È vendibile oggi e non è ancora nel suo negozio.",
       "stock_unconfirmed": "La fonte dell'importazione non dava quantità: la pubblicazione attende la sua.",
-      "stock_cover_short": "Al ritmo attuale delle vendite, lo stock si esaurirà in meno di due settimane (calcolo)."
+      "stock_cover_short": "Al ritmo attuale delle vendite, lo stock si esaurirà in meno di due settimane (calcolo).",
+      "variant_rows_indistinct": "Alcune varianti hanno lo stesso colore, taglia e capacità: l'acquirente non può scegliere tra loro."
     }
   }
 }

@@ -9754,7 +9754,8 @@
       "drop_other": "Ihr Nettoertrag bei diesem Produkt ist gesunken.",
       "ready_to_sell": "Es ist heute verkaufbar und noch nicht in Ihrem Shop.",
       "stock_unconfirmed": "Die Importquelle gab keine Menge an: Die Veröffentlichung wartet auf Ihre.",
-      "stock_cover_short": "Beim aktuellen Verkaufstempo ist der Bestand in weniger als zwei Wochen aufgebraucht (Berechnung)."
+      "stock_cover_short": "Beim aktuellen Verkaufstempo ist der Bestand in weniger als zwei Wochen aufgebraucht (Berechnung).",
+      "variant_rows_indistinct": "Einige Varianten haben dieselbe Farbe, Größe und Kapazität: Käufer können nicht zwischen ihnen wählen."
     }
   }
 }

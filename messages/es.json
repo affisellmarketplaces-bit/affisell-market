@@ -9754,7 +9754,8 @@
       "drop_other": "Su ganancia neta en este producto ha bajado.",
       "ready_to_sell": "Se puede vender hoy y aún no está en su tienda.",
       "stock_unconfirmed": "La fuente de la importación no daba cantidad: la publicación espera la suya.",
-      "stock_cover_short": "Al ritmo actual de ventas, el stock se agotará en menos de dos semanas (cálculo)."
+      "stock_cover_short": "Al ritmo actual de ventas, el stock se agotará en menos de dos semanas (cálculo).",
+      "variant_rows_indistinct": "Varias variantes tienen el mismo color, talla y capacidad: el comprador no puede elegir entre ellas."
     }
   }
 }

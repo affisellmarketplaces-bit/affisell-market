@@ -9754,7 +9754,8 @@
       "drop_other": "Your net earnings on this product fell.",
       "ready_to_sell": "It can be sold today and is not in your shop yet.",
       "stock_unconfirmed": "The import's source gave no quantity: publication waits for yours.",
-      "stock_cover_short": "At the current sales pace, the stock runs out in less than two weeks (calculation)."
+      "stock_cover_short": "At the current sales pace, the stock runs out in less than two weeks (calculation).",
+      "variant_rows_indistinct": "Some variants share the same colour, size and capacity: buyers can not choose between them."
     }
   }
 }
