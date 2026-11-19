@@ -33,6 +33,15 @@ export function qualificationEventId(productId: string, declarationN: number, k:
   return `supplier-cost-qualification:${productId}:${declarationN}:${k}`
 }
 
+/**
+ * A VARIANT declaration has its own qualification events (its own action and ids, `n` = the variant declaration's number
+ * on the product): a product-wide qualification never qualifies a variant's figure, and the reverse.
+ */
+export const VARIANT_COST_QUALIFICATION_ACTION = "supplier.cost_qualification_variant"
+export function variantQualificationEventId(productId: string, declarationN: number, k: number): string {
+  return `supplier-cost-vq:${productId}:${declarationN}:${k}`
+}
+
 export type QualificationEvent = {
   declarationN: number
   state: Exclude<CostQualification, "unverified">

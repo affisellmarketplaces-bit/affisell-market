@@ -2239,7 +2239,21 @@
       "documentPlaceholder": "Ex. facture du grossiste n° 2026-114 du 3 novembre",
       "documentSubmit": "Signaler le justificatif",
       "documentSent": "Justificatif signalé.",
-      "newDeclarationResets": "Toute nouvelle déclaration repart au statut « non vérifiée »."
+      "newDeclarationResets": "Toute nouvelle déclaration repart au statut « non vérifiée ».",
+      "effectiveFrom": "Applicable à partir du",
+      "effectiveFromHint": "Laissez vide pour aujourd'hui. Une date passée est refusée : les commandes déjà payées gardent le coût alors en vigueur.",
+      "effectiveLater": "Cette déclaration s'appliquera à partir du {date}.",
+      "variants": {
+        "scope": "Coût déclaré pour",
+        "wholeProduct": "Tout le produit (par défaut)",
+        "wholeProductHint": "S'applique à toutes les variantes qui n'ont pas leur propre déclaration.",
+        "variantHint": "S'applique uniquement à cette variante ; jamais à une autre.",
+        "ambiguous": "Certaines variantes portent le même nom : elles ne peuvent pas recevoir de coût propre tant qu'elles ne sont pas distinguées.",
+        "tableTitle": "Coûts déclarés par variante",
+        "gone": "variante retirée",
+        "notInForce": "pas encore en vigueur",
+        "fallbackHint": "Une variante sans coût propre utilise la déclaration du produit, si elle existe."
+      }
     },
     "productJourney": {
       "title": "Parcours de commercialisation",

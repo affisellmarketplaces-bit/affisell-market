@@ -2239,7 +2239,21 @@
       "documentPlaceholder": "Np. faktura hurtowni nr 2026-114 z 3 listopada",
       "documentSubmit": "Zgłoś dokument",
       "documentSent": "Dokument zgłoszony.",
-      "newDeclarationResets": "Każda nowa deklaracja wraca do statusu „niezweryfikowana”."
+      "newDeclarationResets": "Każda nowa deklaracja wraca do statusu „niezweryfikowana”.",
+      "effectiveFrom": "Obowiązuje od",
+      "effectiveFromHint": "Zostaw puste dla dzisiejszej daty. Data z przeszłości jest odrzucana: opłacone zamówienia zachowują koszt obowiązujący w tamtym czasie.",
+      "effectiveLater": "Ta deklaracja będzie obowiązywać od {date}.",
+      "variants": {
+        "scope": "Koszt zadeklarowany dla",
+        "wholeProduct": "Cały produkt (domyślnie)",
+        "wholeProductHint": "Dotyczy każdego wariantu bez własnej deklaracji.",
+        "variantHint": "Dotyczy tylko tego wariantu; nigdy innego.",
+        "ambiguous": "Niektóre warianty mają tę samą nazwę: nie mogą otrzymać własnego kosztu, dopóki nie zostaną rozróżnione.",
+        "tableTitle": "Koszty zadeklarowane dla wariantów",
+        "gone": "wariant usunięty",
+        "notInForce": "jeszcze nie obowiązuje",
+        "fallbackHint": "Wariant bez własnego kosztu korzysta z deklaracji produktu, jeśli istnieje."
+      }
     },
     "productJourney": {
       "title": "Droga do sprzedaży",

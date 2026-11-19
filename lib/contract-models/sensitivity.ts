@@ -18,6 +18,8 @@ export type SweepLine = LineInput & {
   sourceCostKind?: "recorded_purchase" | "declared_by_supplier"
   /** For a declared cost: its qualification at simulation time (verified / document_provided / disputed / …). */
   costQualification?: "unverified" | "document_provided" | "verified" | "disputed" | "expired"
+  /** For a declared cost: the line's own variant declaration, or the product-wide one applied to it. */
+  declarationScope?: "variant" | "product"
 }
 
 export type SweepRow = {

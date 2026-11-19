@@ -42,7 +42,52 @@ export type SupplierCostDeclaration = {
   note: string
 }
 
-export type StoredDeclaration = SupplierCostDeclaration & { declaredAt: string; declaredBy: string }
+export type StoredDeclaration = SupplierCostDeclaration & {
+  declaredAt: string
+  declaredBy: string
+  /**
+   * Date from which the declaration applies (ISO). Never before `declaredAt` (no retroactive cost); may be later (a
+   * supplier announcing a cost change). Older rows have none: they apply from `declaredAt`.
+   */
+  effectiveFrom?: string
+  /** Variant the declaration is for (canonical key, variant-key.ts); null / absent = the whole product. */
+  variantKey?: string | null
+  variantLabel?: string | null
+}
+
+/**
+ * Per-variant declarations (founder rule 2026-11-19) — same fields, their own rows so a product-wide reader can never
+ * mistake one for the product's cost:
+ *   `supplier-cost-v:<productId>:<n>` (n counts every variant declaration of the product, never rewritten; no
+ *   "current" row: the current declaration of a variant is its latest row).
+ * Their qualification events use `VARIANT_COST_QUALIFICATION_ACTION` and `supplier-cost-vq:<productId>:<n>:<k>`.
+ */
+export const VARIANT_COST_ACTION = "supplier.cost_declaration_variant"
+export function variantCostHistoryId(productId: string, n: number): string {
+  return `supplier-cost-v:${productId}:${n}`
+}
+
+/** When a declaration starts to apply. */
+export function declarationEffectiveAt(d: Pick<StoredDeclaration, "declaredAt" | "effectiveFrom">): number {
+  const e = d.effectiveFrom ? Date.parse(d.effectiveFrom) : Number.NaN
+  return Number.isFinite(e) ? e : Date.parse(d.declaredAt)
+}
+
+export const MAX_EFFECTIVE_AHEAD_DAYS = 365
+
+/**
+ * The effective date a supplier asks for: absent = now; else an ISO date between now (5 minutes of clock tolerance) and
+ * one year ahead. A date in the past is REFUSED (it would rewrite the cost of orders already paid).
+ */
+export function parseEffectiveFrom(raw: unknown, now: Date): { ok: true; value: string } | { ok: false; error: "effective_from_invalid" | "effective_from_in_past" | "effective_from_too_far" } {
+  if (raw == null || raw === "") return { ok: true, value: now.toISOString() }
+  if (typeof raw !== "string") return { ok: false, error: "effective_from_invalid" }
+  const t = Date.parse(raw)
+  if (!Number.isFinite(t)) return { ok: false, error: "effective_from_invalid" }
+  if (t < now.getTime() - 5 * 60_000) return { ok: false, error: "effective_from_in_past" }
+  if (t > now.getTime() + MAX_EFFECTIVE_AHEAD_DAYS * 86_400_000) return { ok: false, error: "effective_from_too_far" }
+  return { ok: true, value: new Date(Math.max(t, now.getTime())).toISOString() }
+}
 
 const MAX_CENTS = 10_000_000 // 100 000 € per unit: anything above is a typo, refused rather than stored.
 
@@ -81,7 +126,24 @@ export function parseStoredDeclaration(payload: unknown): StoredDeclaration | nu
   if (!p || typeof p.declaredAt !== "string" || typeof p.declaredBy !== "string") return null
   const parsed = parseSupplierCostInput(p)
   if (!parsed.ok) return null
-  return { ...parsed.value, declaredAt: p.declaredAt, declaredBy: p.declaredBy }
+  const declaredAtMs = Date.parse(p.declaredAt)
+  if (!Number.isFinite(declaredAtMs)) return null
+  // An effective date before the declaration would be retroactive: such a row is not trusted as a declaration.
+  let effectiveFrom: string | undefined
+  if (p.effectiveFrom !== undefined) {
+    const e = typeof p.effectiveFrom === "string" ? Date.parse(p.effectiveFrom) : Number.NaN
+    if (!Number.isFinite(e) || e < declaredAtMs) return null
+    effectiveFrom = p.effectiveFrom as string
+  }
+  const variantKey = typeof p.variantKey === "string" && p.variantKey.length > 0 ? p.variantKey : null
+  return {
+    ...parsed.value,
+    declaredAt: p.declaredAt,
+    declaredBy: p.declaredBy,
+    ...(effectiveFrom ? { effectiveFrom } : {}),
+    variantKey,
+    variantLabel: variantKey && typeof p.variantLabel === "string" ? p.variantLabel : null,
+  }
 }
 
 /** Total cost of supplying one unit to a buyer, as declared. */
@@ -90,17 +152,62 @@ export function declaredSourceCostCents(d: SupplierCostDeclaration): number {
 }
 
 /**
- * The declaration in force at `at` (an order's payment): the latest one declared at or before it. A declaration made
- * AFTER the payment never applies to that order (no retroactive cost).
+ * The declaration in force at `at` (an order's payment): among those whose effective date is at or before `at`, the one
+ * with the latest effective date (ties: the latest declared). A declaration effective AFTER the payment never applies to
+ * that order (no retroactive cost). The caller passes ONE scope (the product's, or one variant's) — never both mixed.
  */
 export function declarationInForceAt<T extends StoredDeclaration>(history: ReadonlyArray<T>, at: Date): T | null {
   let best: T | null = null
   for (const d of history) {
-    const t = Date.parse(d.declaredAt)
+    const t = declarationEffectiveAt(d)
     if (!Number.isFinite(t) || t > at.getTime()) continue
-    if (!best || t > Date.parse(best.declaredAt)) best = d
+    if (!best) {
+      best = d
+      continue
+    }
+    const bt = declarationEffectiveAt(best)
+    if (t > bt || (t === bt && Date.parse(d.declaredAt) > Date.parse(best.declaredAt))) best = d
   }
   return best
+}
+
+export type ResolvedLineCost<T extends StoredDeclaration> =
+  | { scope: "variant"; declaration: T; note: string }
+  | { scope: "product"; declaration: T; note: string }
+  | { scope: "none"; declaration: null; note: string }
+
+/**
+ * Which declaration describes the cost of ONE order line, paid at `at`:
+ *  1. the line's OWN variant declaration in force (exact canonical key) — never another variant's;
+ *  2. else the product-wide declaration in force (the supplier's default for every variant without its own);
+ *  3. else none.
+ * A line without a variant never takes a variant's declaration.
+ */
+export function resolveDeclarationForLine<T extends StoredDeclaration>(args: {
+  productHistory: ReadonlyArray<T>
+  variantHistory: ReadonlyArray<T>
+  variantKey: string | null
+  at: Date
+}): ResolvedLineCost<T> {
+  if (args.variantKey) {
+    const own = declarationInForceAt(
+      args.variantHistory.filter((d) => d.variantKey === args.variantKey),
+      args.at
+    )
+    if (own) return { scope: "variant", declaration: own, note: "déclaration propre à la variante" }
+  }
+  const global = declarationInForceAt(
+    args.productHistory.filter((d) => !d.variantKey),
+    args.at
+  )
+  if (global) {
+    return {
+      scope: "product",
+      declaration: global,
+      note: args.variantKey ? "déclaration globale du produit (aucune déclaration propre à cette variante en vigueur)" : "déclaration globale du produit",
+    }
+  }
+  return { scope: "none", declaration: null, note: "aucune déclaration en vigueur à cette date" }
 }
 
 /** Coherence hints shown to the supplier (never blocking: the supplier knows its costs). */

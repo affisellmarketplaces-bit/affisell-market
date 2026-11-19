@@ -2239,7 +2239,21 @@
       "documentPlaceholder": "Ej. factura del mayorista n.º 2026-114 del 3 de noviembre",
       "documentSubmit": "Indicar el justificante",
       "documentSent": "Justificante indicado.",
-      "newDeclarationResets": "Toda nueva declaración vuelve al estado «no verificada»."
+      "newDeclarationResets": "Toda nueva declaración vuelve al estado «no verificada».",
+      "effectiveFrom": "Aplicable a partir del",
+      "effectiveFromHint": "Déjelo vacío para hoy. Una fecha pasada se rechaza: los pedidos ya pagados conservan el coste vigente en su momento.",
+      "effectiveLater": "Esta declaración se aplicará a partir del {date}.",
+      "variants": {
+        "scope": "Coste declarado para",
+        "wholeProduct": "Todo el producto (por defecto)",
+        "wholeProductHint": "Se aplica a todas las variantes sin declaración propia.",
+        "variantHint": "Se aplica solo a esta variante; nunca a otra.",
+        "ambiguous": "Algunas variantes tienen el mismo nombre: no pueden recibir un coste propio hasta que se distingan.",
+        "tableTitle": "Costes declarados por variante",
+        "gone": "variante retirada",
+        "notInForce": "aún no vigente",
+        "fallbackHint": "Una variante sin coste propio usa la declaración del producto, si existe."
+      }
     },
     "productJourney": {
       "title": "Camino a la venta",

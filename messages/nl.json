@@ -2239,7 +2239,21 @@
       "documentPlaceholder": "Bijv. factuur groothandel nr. 2026-114 van 3 november",
       "documentSubmit": "Bewijsstuk melden",
       "documentSent": "Bewijsstuk gemeld.",
-      "newDeclarationResets": "Elke nieuwe opgave begint weer als „niet gecontroleerd”."
+      "newDeclarationResets": "Elke nieuwe opgave begint weer als „niet gecontroleerd”.",
+      "effectiveFrom": "Geldig vanaf",
+      "effectiveFromHint": "Leeg laten voor vandaag. Een datum in het verleden wordt geweigerd: al betaalde bestellingen behouden de toen geldende kosten.",
+      "effectiveLater": "Deze opgave geldt vanaf {date}.",
+      "variants": {
+        "scope": "Kosten opgegeven voor",
+        "wholeProduct": "Het hele product (standaard)",
+        "wholeProductHint": "Geldt voor elke variant zonder eigen opgave.",
+        "variantHint": "Geldt alleen voor deze variant, nooit voor een andere.",
+        "ambiguous": "Sommige varianten hebben dezelfde naam: ze kunnen pas eigen kosten krijgen als ze te onderscheiden zijn.",
+        "tableTitle": "Opgegeven kosten per variant",
+        "gone": "variant verwijderd",
+        "notInForce": "nog niet geldig",
+        "fallbackHint": "Een variant zonder eigen kosten gebruikt de opgave van het product, als die er is."
+      }
     },
     "productJourney": {
       "title": "Weg naar verkoop",

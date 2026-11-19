@@ -56,6 +56,8 @@ export type ComparisonRow = {
     sourceCostOrigin: "recorded_purchase" | "declared_by_supplier" | null
     /** Qualification of a declared cost (null for a recorded purchase or no cost). */
     sourceCostQualification: string | null
+    /** Declared cost: the line's own variant declaration or the product-wide one. */
+    sourceCostScope: "variant" | "product" | null
     supplierFeeBps: number | null
   }
   models: Record<string, ModelOnOrder>
@@ -89,6 +91,7 @@ export function compareModelsOnOrders(models: ReadonlyArray<ContractModel>, reps
       if (needsSource(model) && line.sourceCostKind === "declared_by_supplier") {
         const q = line.costQualification ?? "unverified"
         hypotheses.push(qualificationWarning(q))
+        if (line.declarationScope === "product") hypotheses.push("coût global du produit appliqué à la ligne (pas de déclaration propre à la variante)")
         if (!mayBackCommercialTerms(q)) hypotheses.push("ne peut fonder aucun taux, engagement ou automatisme commercial")
       }
       if (model.parameters.supplierFeeBps === null && line.feeRateFromOrder === false) {
@@ -126,6 +129,7 @@ export function compareModelsOnOrders(models: ReadonlyArray<ContractModel>, reps
         sourceCostCents: line.sourceCostCents > 0 ? line.sourceCostCents : null,
         sourceCostOrigin: line.sourceCostCents > 0 ? (line.sourceCostKind ?? "recorded_purchase") : null,
         sourceCostQualification: line.sourceCostKind === "declared_by_supplier" ? (line.costQualification ?? "unverified") : null,
+        sourceCostScope: line.sourceCostKind === "declared_by_supplier" ? (line.declarationScope ?? "product") : null,
         supplierFeeBps: line.feeRateFromOrder ? line.gridSupplierFeeBps : null,
       },
       models: out,

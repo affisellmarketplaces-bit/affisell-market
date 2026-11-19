@@ -2239,7 +2239,21 @@
       "documentPlaceholder": "E.g. wholesaler invoice no. 2026-114 of 3 November",
       "documentSubmit": "Report the document",
       "documentSent": "Document reported.",
-      "newDeclarationResets": "Any new declaration starts again as “not verified”."
+      "newDeclarationResets": "Any new declaration starts again as “not verified”.",
+      "effectiveFrom": "Applies from",
+      "effectiveFromHint": "Leave empty for today. A past date is refused: orders already paid keep the cost in force at the time.",
+      "effectiveLater": "This declaration will apply from {date}.",
+      "variants": {
+        "scope": "Cost declared for",
+        "wholeProduct": "The whole product (default)",
+        "wholeProductHint": "Applies to every variant without its own declaration.",
+        "variantHint": "Applies to this variant only; never to another one.",
+        "ambiguous": "Some variants have the same name: they can not get their own cost until they are told apart.",
+        "tableTitle": "Costs declared per variant",
+        "gone": "variant removed",
+        "notInForce": "not in force yet",
+        "fallbackHint": "A variant without its own cost uses the product's declaration, if there is one."
+      }
     },
     "productJourney": {
       "title": "Path to sale",

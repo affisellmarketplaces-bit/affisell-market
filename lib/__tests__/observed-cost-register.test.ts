@@ -29,7 +29,7 @@ describe("observed-cost register — kinds never mixed", () => {
   it("an order snapshot is a STORED price, estimated, delivery excluded, VAT unknown — never a debit", () => {
     const e = entryFromOrderSnapshot({ orderId: "o1", productId: "p", paidAt: new Date("2026-11-01"), quantity: 3, aeWholesaleCents: 3_000, currency: null, variantLabel: " Bleu · L " })!
     expect(e).toMatchObject({ kind: "stored_source_price", source: "order_snapshot", reliability: "estime", amountCents: 3_000 })
-    expect(e.perimeter).toEqual({ currency: "EUR", basis: "line", includesDelivery: false, vat: "unknown", variantKey: "Bleu · L" })
+    expect(e.perimeter).toEqual({ currency: "EUR", basis: "line", includesDelivery: false, vat: "unknown", variantKey: "bleu|l" })
     expect(entryFromOrderSnapshot({ orderId: "o", productId: "p", paidAt: new Date(), quantity: 1, aeWholesaleCents: 0, currency: "EUR", variantLabel: null })).toBeNull()
   })
 

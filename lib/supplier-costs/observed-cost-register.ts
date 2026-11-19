@@ -17,6 +17,8 @@
  * come from the reconciliation report or from an admin, once storage exists (a table = migration = founder decision).
  * Nothing here touches a financial flow. Pure module.
  */
+import { variantKeyFromOrderLabel } from "./variant-key"
+
 export const OBSERVED_COST_KINDS = ["stored_source_price", "charged_amount", "fee", "evidence"] as const
 export type ObservedCostKind = (typeof OBSERVED_COST_KINDS)[number]
 
@@ -84,7 +86,8 @@ export function entryFromOrderSnapshot(o: {
       basis: "line",
       includesDelivery: false,
       vat: "unknown",
-      variantKey: o.variantLabel?.trim() ? o.variantLabel.trim() : null,
+      // Canonical key (variant-key.ts) so "Noir · M" on the order meets the "Noir / M" variant's declaration.
+      variantKey: variantKeyFromOrderLabel(o.variantLabel),
     },
     source: "order_snapshot",
     reliability: "estime",

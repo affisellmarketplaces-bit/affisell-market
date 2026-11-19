@@ -4,6 +4,7 @@ import { requireAdminSession } from "@/lib/admin/require-admin-session"
 import { assertSameSiteRequestOrigin } from "@/lib/request-origin-guard"
 import { loadAdminSupplierCostReview, recordCostQualification } from "@/lib/supplier-costs/declaration.server"
 import { checkQualificationRequest } from "@/lib/supplier-costs/qualification"
+import { parseVariantKeyField } from "@/lib/supplier-costs/variant-key"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -34,8 +35,11 @@ export async function POST(req: Request, ctx: Ctx) {
   }
   const checked = checkQualificationRequest("admin", body)
   if (!checked.ok) return NextResponse.json({ error: checked.error }, { status: 400 })
+  const variant = parseVariantKeyField(body)
+  if (!variant.ok) return NextResponse.json({ error: "variant_invalid" }, { status: 400 })
   const { id } = await ctx.params
   const result = await recordCostQualification({
+    variantKey: variant.value,
     productId: id,
     actor: "admin",
     actorId: gate.session.user.id,

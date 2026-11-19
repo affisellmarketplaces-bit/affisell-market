@@ -2239,7 +2239,21 @@
       "documentPlaceholder": "例如：批发商发票 2026-114 号，11 月 3 日",
       "documentSubmit": "告知已提供凭证",
       "documentSent": "已告知凭证。",
-      "newDeclarationResets": "每次新的申报都会重新回到“未核实”状态。"
+      "newDeclarationResets": "每次新的申报都会重新回到“未核实”状态。",
+      "effectiveFrom": "生效日期",
+      "effectiveFromHint": "留空表示今天。过去的日期会被拒绝：已付款的订单保留当时有效的成本。",
+      "effectiveLater": "此申报将从 {date} 起生效。",
+      "variants": {
+        "scope": "申报成本适用于",
+        "wholeProduct": "整个商品（默认）",
+        "wholeProductHint": "适用于所有没有单独申报的规格。",
+        "variantHint": "仅适用于此规格，绝不适用于其他规格。",
+        "ambiguous": "部分规格名称相同：在区分之前无法单独申报成本。",
+        "tableTitle": "各规格的申报成本",
+        "gone": "规格已移除",
+        "notInForce": "尚未生效",
+        "fallbackHint": "没有单独成本的规格使用商品的申报（如有）。"
+      }
     },
     "productJourney": {
       "title": "销售进程",

@@ -2239,7 +2239,21 @@
       "documentPlaceholder": "Es. fattura del grossista n. 2026-114 del 3 novembre",
       "documentSubmit": "Segnala il giustificativo",
       "documentSent": "Giustificativo segnalato.",
-      "newDeclarationResets": "Ogni nuova dichiarazione riparte come «non verificata»."
+      "newDeclarationResets": "Ogni nuova dichiarazione riparte come «non verificata».",
+      "effectiveFrom": "Applicabile dal",
+      "effectiveFromHint": "Lascia vuoto per oggi. Una data passata è rifiutata: gli ordini già pagati mantengono il costo allora in vigore.",
+      "effectiveLater": "Questa dichiarazione si applicherà dal {date}.",
+      "variants": {
+        "scope": "Costo dichiarato per",
+        "wholeProduct": "L'intero prodotto (predefinito)",
+        "wholeProductHint": "Si applica a tutte le varianti senza una dichiarazione propria.",
+        "variantHint": "Si applica solo a questa variante; mai a un'altra.",
+        "ambiguous": "Alcune varianti hanno lo stesso nome: non possono ricevere un costo proprio finché non sono distinte.",
+        "tableTitle": "Costi dichiarati per variante",
+        "gone": "variante rimossa",
+        "notInForce": "non ancora in vigore",
+        "fallbackHint": "Una variante senza costo proprio usa la dichiarazione del prodotto, se esiste."
+      }
     },
     "productJourney": {
       "title": "Percorso verso la vendita",

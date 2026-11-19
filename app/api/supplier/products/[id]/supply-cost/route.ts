@@ -1,6 +1,7 @@
 import { auth } from "@/auth"
 import { assertSameSiteRequestOrigin } from "@/lib/request-origin-guard"
-import { parseSupplierCostInput } from "@/lib/supplier-costs/declaration"
+import { parseEffectiveFrom, parseSupplierCostInput } from "@/lib/supplier-costs/declaration"
+import { parseVariantKeyField } from "@/lib/supplier-costs/variant-key"
 import { declareSupplierCost, loadSupplierCostView } from "@/lib/supplier-costs/declaration.server"
 
 export const runtime = "nodejs"
@@ -26,7 +27,10 @@ export async function GET(_req: Request, ctx: Ctx) {
   return Response.json({ ...view, qualificationEvents: view.qualificationEvents.map(({ by: _by, ...e }) => e) })
 }
 
-/** Declare / update. Never changes the price, the commission, the stock or the publication of the product. */
+/**
+ * Declare / update — for the whole product, or for one variant (`variantKey`), from `effectiveFrom` (default now, never
+ * in the past). Never changes the price, the commission, the stock or the publication of the product.
+ */
 export async function PUT(req: Request, ctx: Ctx) {
   const originBlock = assertSameSiteRequestOrigin(req)
   if (originBlock) return originBlock
@@ -40,8 +44,21 @@ export async function PUT(req: Request, ctx: Ctx) {
   }
   const parsed = parseSupplierCostInput(body)
   if (!parsed.ok) return Response.json({ error: "invalid_body", fields: parsed.errors }, { status: 400 })
+  const effective = parseEffectiveFrom((body as Record<string, unknown> | null)?.effectiveFrom, new Date())
+  if (!effective.ok) return Response.json({ error: "invalid_body", fields: [effective.error] }, { status: 400 })
+  const variant = parseVariantKeyField(body)
+  if (!variant.ok) return Response.json({ error: "invalid_body", fields: ["variant_invalid"] }, { status: 400 })
   const { id } = await ctx.params
-  const result = await declareSupplierCost({ productId: id, supplierId: who.supplierId, value: parsed.value })
-  if (!result.ok) return Response.json({ error: "Product not found" }, { status: 404 })
+  const result = await declareSupplierCost({
+    productId: id,
+    supplierId: who.supplierId,
+    value: parsed.value,
+    effectiveFrom: effective.value,
+    variantKey: variant.value,
+  })
+  if (!result.ok) {
+    if (result.error === "variant_unknown") return Response.json({ error: "variant_unknown" }, { status: 409 })
+    return Response.json({ error: "Product not found" }, { status: 404 })
+  }
   return Response.json(result)
 }

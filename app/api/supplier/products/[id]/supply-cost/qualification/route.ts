@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import { assertSameSiteRequestOrigin } from "@/lib/request-origin-guard"
 import { recordCostQualification } from "@/lib/supplier-costs/declaration.server"
 import { checkQualificationRequest } from "@/lib/supplier-costs/qualification"
+import { parseVariantKeyField } from "@/lib/supplier-costs/variant-key"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -26,8 +27,11 @@ export async function POST(req: Request, ctx: Ctx) {
   }
   const checked = checkQualificationRequest("supplier", body)
   if (!checked.ok) return Response.json({ error: checked.error }, { status: checked.error === "not_allowed_for_actor" ? 403 : 400 })
+  const variant = parseVariantKeyField(body)
+  if (!variant.ok) return Response.json({ error: "variant_invalid" }, { status: 400 })
   const { id } = await ctx.params
   const result = await recordCostQualification({
+    variantKey: variant.value,
     productId: id,
     actor: "supplier",
     actorId: session.user.id,

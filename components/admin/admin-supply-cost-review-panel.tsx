@@ -10,6 +10,12 @@ type Review = {
   qualificationEvents: Array<{ state: Qualification; note: string; at: string; role: string }>
   history: Array<{ n: number; unitCostCents: number; deliveryCostCents: number; declaredAt: string; qualification: Qualification }>
   supplierPriceCents: number
+  variants: Array<{
+    variantKey: string
+    label: string
+    stillOnProduct: boolean
+    latest: { n: number; unitCostCents: number; deliveryCostCents: number; declaredAt: string; effectiveFrom?: string; qualification: Qualification } | null
+  }>
   observed: {
     pairs: Array<{ orderId: string; paidAt: string; observedUnitCents: number; declaredUnitCents: number | null; gapCents: number | null; comparable: boolean; staleDeclaration: boolean }>
     comparable: number
@@ -47,11 +53,11 @@ export function AdminSupplyCostReviewPanel({ productId }: { productId: string })
     void load()
   }, [load])
 
-  const qualify = async (state: "verified" | "disputed" | "expired") => {
+  const qualify = async (state: "verified" | "disputed" | "expired", variantKey: string | null = null) => {
     setBusy(true)
     setMsg(null)
     try {
-      const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ state, note }) })
+      const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ state, note, variantKey }) })
       const json = (await res.json().catch(() => ({}))) as { error?: string }
       setMsg(res.ok ? `Statut enregistré : ${Q_LABEL[state]}.` : `Refusé : ${json.error ?? res.status}`)
       if (res.ok) setNote("")
@@ -104,6 +110,53 @@ export function AdminSupplyCostReviewPanel({ productId }: { productId: string })
           {msg ? <p className="text-sm">{msg}</p> : null}
         </>
       )}
+      {review.variants.length > 0 ? (
+        <div className="space-y-2 border-t border-zinc-200 pt-3 text-sm dark:border-zinc-800">
+          <p className="font-medium">Déclarations par variante (chacune qualifiée séparément)</p>
+          <p className="text-xs text-zinc-500">
+            Le coût d&apos;une variante ne s&apos;applique jamais à une autre ; une variante sans déclaration propre reprend la
+            déclaration globale. Motif obligatoire pour chaque statut.
+          </p>
+          {!review.current ? (
+            <textarea
+              className="w-full rounded-md border border-zinc-300 bg-transparent px-2 py-1.5 text-sm dark:border-zinc-700"
+              rows={2}
+              placeholder="Motif (obligatoire) : document contrôlé, écart constaté, date de validité…"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
+          ) : null}
+          <ul className="space-y-2">
+            {review.variants.map((v) => (
+              <li key={v.variantKey} className="rounded-md border border-zinc-200 p-2 dark:border-zinc-800">
+                <p>
+                  <span className="font-medium">{v.label}</span>
+                  {!v.stillOnProduct ? <span className="text-xs text-zinc-500"> (variante retirée)</span> : null}
+                  {v.latest
+                    ? ` — n° ${v.latest.n}, ${eur(v.latest.unitCostCents)} + ${eur(v.latest.deliveryCostCents)}, applicable le ${new Date(v.latest.effectiveFrom ?? v.latest.declaredAt).toLocaleDateString("fr-FR")} · ${Q_LABEL[v.latest.qualification]}`
+                    : " — aucune déclaration propre"}
+                </p>
+                {v.latest ? (
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    {(["verified", "disputed", "expired"] as const).map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        disabled={busy || note.trim().length < 3}
+                        onClick={() => void qualify(s, v.variantKey)}
+                        className="rounded-md border border-zinc-300 px-2 py-1 text-xs disabled:opacity-40 dark:border-zinc-700"
+                      >
+                        {s === "verified" ? "Vérifiée" : s === "disputed" ? "Contester" : "Expirée"}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+          {!review.current && msg ? <p className="text-sm">{msg}</p> : null}
+        </div>
+      ) : null}
       <div className="space-y-1 border-t border-zinc-200 pt-3 text-sm dark:border-zinc-800">
         <p className="font-medium">Déclaré ou constaté (jamais fusionnés)</p>
         <p className="text-xs text-zinc-500">{review.observed.caveat}</p>

@@ -1,4 +1,4 @@
-import { declarationInForceAt, type StoredDeclaration } from "@/lib/supplier-costs/declaration"
+import { declarationEffectiveAt, resolveDeclarationForLine, type StoredDeclaration } from "@/lib/supplier-costs/declaration"
 import { perimeterMismatches, type CostPerimeter, type ObservedCostEntry } from "@/lib/supplier-costs/observed-cost-register"
 
 /**
@@ -11,9 +11,10 @@ import { perimeterMismatches, type CostPerimeter, type ObservedCostEntry } from 
 export const MIN_COMPARABLE = 3
 export const STALE_DECLARATION_DAYS = 180
 
-/** A declaration states one unit's cost, in euros, excluding VAT (the form says HT), delivery apart, product-wide. */
-export function declaredUnitPerimeter(): CostPerimeter {
-  return { currency: "EUR", basis: "unit", includesDelivery: false, vat: "excluded", variantKey: null }
+/** A declaration states one unit's cost, in euros, excluding VAT (the form says HT), delivery apart — for the whole
+ *  product, or for ONE variant when it is a variant declaration. */
+export function declaredUnitPerimeter(variantKey: string | null = null): CostPerimeter {
+  return { currency: "EUR", basis: "unit", includesDelivery: false, vat: "excluded", variantKey }
 }
 
 export type PairedObservation = {
@@ -24,6 +25,8 @@ export type PairedObservation = {
   reliability: ObservedCostEntry["reliability"]
   observedUnitCents: number
   declaredUnitCents: number | null
+  /** Which declaration met the observation: the variant's own, the product-wide one, or none. */
+  declarationScope: "variant" | "product" | "none"
   comparable: boolean
   /** Why the pair is not comparable (empty when comparable). */
   reasons: string[]
@@ -57,9 +60,22 @@ export function compareDeclaredWithObserved(
     const unitPerimeter: CostPerimeter = { ...e.perimeter, basis: "unit" }
     const observedUnit = e.perimeter.basis === "line" ? Math.round(e.amountCents / qty) : e.amountCents
     const paidAt = new Date(e.observedAt)
-    const d = declarationInForceAt(declarations, paidAt)
-    const reasons = d ? perimeterMismatches(declaredUnitPerimeter(), unitPerimeter) : ["aucune déclaration en vigueur à cette date"]
-    const age = d ? Math.floor((paidAt.getTime() - Date.parse(d.declaredAt)) / 86_400_000) : null
+    const resolved = resolveDeclarationForLine({
+      productHistory: declarations.filter((x) => !x.variantKey),
+      variantHistory: declarations.filter((x) => !!x.variantKey),
+      variantKey: e.perimeter.variantKey,
+      at: paidAt,
+    })
+    const d = resolved.declaration
+    const reasons = d
+      ? perimeterMismatches(declaredUnitPerimeter(d.variantKey ?? null), unitPerimeter)
+      : ["aucune déclaration en vigueur à cette date"]
+    // A product-wide cost met with one variant's observation is a different perimeter: said in words.
+    if (d && !d.variantKey && e.perimeter.variantKey) {
+      const i = reasons.indexOf("variantes différentes ou non précisées")
+      if (i >= 0) reasons[i] = "déclaration globale du produit, observation d'une variante précise"
+    }
+    const age = d ? Math.floor((paidAt.getTime() - declarationEffectiveAt(d)) / 86_400_000) : null
     const comparable = d !== null && reasons.length === 0
     pairs.push({
       orderId: e.orderId,
@@ -69,6 +85,7 @@ export function compareDeclaredWithObserved(
       reliability: e.reliability,
       observedUnitCents: observedUnit,
       declaredUnitCents: d ? d.unitCostCents : null,
+      declarationScope: resolved.scope,
       comparable,
       reasons,
       gapCents: comparable ? observedUnit - d!.unitCostCents : null,
@@ -94,6 +111,7 @@ export function compareDeclaredWithObserved(
     blockingReasons: [...reasonCounts.entries()].map(([reason, n]) => ({ reason, pairs: n })).sort((a, b) => b.pairs - a.pairs),
     caveat:
       "Un écart n'est calculé que si les deux montants couvrent le même périmètre (devise, unité, livraison, TVA, variante). " +
+      "Le coût d'une variante n'est jamais appliqué à une autre ; une déclaration globale n'est pas comparable à l'observation d'une variante. " +
       "Prix mémorisé ≠ montant débité. Déclaré et constaté ne sont jamais fusionnés.",
   }
 }

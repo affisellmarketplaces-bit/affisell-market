@@ -1,5 +1,6 @@
 import type { SweepLine } from "@/lib/contract-models/sensitivity"
-import { declarationInForceAt, declaredSourceCostCents, type StoredDeclaration } from "@/lib/supplier-costs/declaration"
+import { declaredSourceCostCents, resolveDeclarationForLine, type StoredDeclaration } from "@/lib/supplier-costs/declaration"
+import { variantKeyFromOrderLabel } from "@/lib/supplier-costs/variant-key"
 import type { CostQualification } from "@/lib/supplier-costs/qualification"
 import { estimateStripeFeeCents } from "@/lib/marketplace-split-amounts"
 import type { EconOrder } from "@/lib/strategic-intelligence/product-economics"
@@ -12,7 +13,8 @@ import type { EconOrder } from "@/lib/strategic-intelligence/product-economics"
  *  - `sourced`: only Affisell auto-buy orders with a recorded AliExpress cost — the ONLY real source costs Affisell
  *    knows. Paths B / C are replayed on these alone: inventing a source cost for a catalogue order would be fiction.
  *  - `declared`: catalogue orders whose supplier had DECLARED its supply cost before the payment
- *    (lib/supplier-costs/declaration.ts) — labelled as a declaration, not a fact; a later declaration never applies.
+ *    (lib/supplier-costs/declaration.ts) — labelled as a declaration, not a fact; a later declaration never applies; the
+ *    line's OWN variant declaration first, else the product-wide one — never another variant's.
  * The Stripe fee is the central ESTIMATE (2.9 % + 25 c of the TTC charge); the real fee is not recorded.
  */
 export type HistoryLines = {
@@ -24,7 +26,7 @@ export type HistoryLines = {
 
 /** `defaults`: the settlement's fee rate when an order stored none (legacy rows store 0), as the cockpit does. */
 export function sweepLinesFromOrders(
-  orders: ReadonlyArray<EconOrder & { paidAt?: Date | null }>,
+  orders: ReadonlyArray<EconOrder & { paidAt?: Date | null; variantLabel?: string | null }>,
   defaults: { catalogue: number; autoBuy: number },
   declarations: ReadonlyMap<string, ReadonlyArray<StoredDeclaration & { qualification?: CostQualification }>> = new Map()
 ): HistoryLines {
@@ -60,13 +62,21 @@ export function sweepLinesFromOrders(
     const ae = o.split.usesAffisellAutoBuy ? Math.max(0, o.split.aeWholesaleCents ?? 0) : 0
     if (ae > 0) out.sourced.push({ ...line, sourceCostCents: ae, sourceCostKind: "recorded_purchase" })
     else if (!o.split.usesAffisellAutoBuy && o.paidAt) {
-      const d = declarationInForceAt(declarations.get(o.productId) ?? [], o.paidAt)
+      const all = declarations.get(o.productId) ?? []
+      const resolved = resolveDeclarationForLine({
+        productHistory: all.filter((x) => !x.variantKey),
+        variantHistory: all.filter((x) => !!x.variantKey),
+        variantKey: variantKeyFromOrderLabel(o.variantLabel),
+        at: o.paidAt,
+      })
+      const d = resolved.declaration
       if (d) {
         out.declared.push({
           ...line,
           sourceCostCents: declaredSourceCostCents(d),
           sourceCostKind: "declared_by_supplier",
           costQualification: d.qualification ?? "unverified",
+          declarationScope: resolved.scope === "variant" ? "variant" : "product",
         })
       }
     }

@@ -2239,7 +2239,21 @@
       "documentPlaceholder": "z. B. Großhändlerrechnung Nr. 2026-114 vom 3. November",
       "documentSubmit": "Nachweis melden",
       "documentSent": "Nachweis gemeldet.",
-      "newDeclarationResets": "Jede neue Angabe beginnt wieder als „nicht geprüft“."
+      "newDeclarationResets": "Jede neue Angabe beginnt wieder als „nicht geprüft“.",
+      "effectiveFrom": "Gültig ab",
+      "effectiveFromHint": "Leer lassen für heute. Ein vergangenes Datum wird abgelehnt: Bereits bezahlte Bestellungen behalten die damals geltenden Kosten.",
+      "effectiveLater": "Diese Angabe gilt ab dem {date}.",
+      "variants": {
+        "scope": "Kosten angegeben für",
+        "wholeProduct": "Das ganze Produkt (Standard)",
+        "wholeProductHint": "Gilt für alle Varianten ohne eigene Angabe.",
+        "variantHint": "Gilt nur für diese Variante, nie für eine andere.",
+        "ambiguous": "Einige Varianten tragen denselben Namen: Sie können erst eigene Kosten erhalten, wenn sie unterscheidbar sind.",
+        "tableTitle": "Angegebene Kosten pro Variante",
+        "gone": "Variante entfernt",
+        "notInForce": "noch nicht gültig",
+        "fallbackHint": "Eine Variante ohne eigene Kosten verwendet die Angabe des Produkts, falls vorhanden."
+      }
     },
     "productJourney": {
       "title": "Weg zum Verkauf",
