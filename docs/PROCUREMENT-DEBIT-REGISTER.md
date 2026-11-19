@@ -36,6 +36,19 @@ Le vocabulaire suit Stripe Issuing (docs.stripe.com/issuing/purchases/transactio
 
 **Origine des montants** (`amountOrigin`) : soit `read_from_source` (lu chez Stripe par l'import), soit `typed_from_document` (saisi d'après un relevé ou une facture, justificatif obligatoire). Un mouvement Issuing est **toujours** lu à la source : la saisie manuelle « Issuing » est refusée, par le code comme par la base. Les identifiants Stripe conservés (`ipi_`, `ic_`, `iauth_`, `txn_`) désignent des objets ; aucun ne contient de donnée de carte. Un numéro de carte est refusé partout : la base n'accepte que des identifiants de forme Stripe, et le code bloque toute suite de 13 à 19 chiffres qui passe l'algorithme de Luhn.
 
+### Transactions Issuing comptabilisées ≠ mouvements du compte bancaire externe
+
+Ce sont deux comptes différents, que le registre ne mélange jamais :
+
+| | Transaction Issuing | Mouvement du compte bancaire externe |
+|---|---|---|
+| Où l'argent bouge | Le **solde Issuing** chez Stripe : la capture le débite, le remboursement le crédite | Le **compte bancaire** de l'entreprise (relevé de banque ou de carte classique) |
+| Source dans le registre | `stripe_issuing`, lu par l'import uniquement | `bank_statement`, `card_statement`, `supplier_invoice_paid`, saisis d'après justificatif |
+| Preuve | L'objet Stripe (`ipi_`) et, quand il existe, sa transaction de solde (`txn_`) | La ligne de relevé ou la facture, citée en justificatif |
+| Ce qui ne doit **pas** y entrer | — | L'**alimentation** du solde Issuing depuis la banque : c'est un transfert interne, pas un achat. Le saisir en plus des captures compterait deux fois le même achat. |
+
+Règle de saisie : un achat payé avec une carte Issuing n'est jamais ressaisi depuis le relevé bancaire. Seuls les achats réglés hors Issuing (virement, autre carte, facture) passent par la saisie.
+
 ## 3. États d'un mouvement
 
 | État | Rapprochable ? | Effet sur le coût d'une commande |
@@ -83,9 +96,12 @@ Seule une commande rapprochée a un « coût réel » (`realFullCostCents`). Sin
 **Permission minimale.**
 
 - Une clé **restreinte** (`rk_test_` ou `rk_live_`) avec uniquement la permission « Issuing → Transactions : lecture ».
-- Une clé complète (`sk_…`) est refusée, car elle peut écrire. Une clé live est refusée hors production.
+- Une clé complète (`sk_…`) est refusée, car elle peut écrire.
+- **Phase actuelle : clé de test uniquement.** Une clé `rk_live_` est refusée partout, y compris en production (`ISSUING_LIVE_KEYS_ALLOWED = false`), jusqu'à une décision ultérieure.
 - Le lecteur est un objet figé qui n'expose qu'une seule méthode GET. Il n'utilise pas le client Stripe de l'application.
 - Variable à créer : `STRIPE_ISSUING_READ_KEY`. Elle n'existe pas aujourd'hui ; je ne l'ai ni demandée ni utilisée.
+
+**Version d'API vérifiée.** L'application n'impose aucune version (`lib/stripe.ts`) : elle utilise celle épinglée par le SDK installé, `stripe` 22.1.1, soit `2026-04-22.dahlia`. Un appel direct sans en-tête utiliserait la version par défaut du compte, qui peut différer. Le lecteur envoie donc `Stripe-Version: 2026-04-22.dahlia`. Les types lus (`capture`, `refund`) et les signes (capture négative, remboursement positif, remboursement **négatif** = remboursement inversé) sont ceux documentés pour cette version. Un test échoue dès que la version du SDK change, pour imposer une nouvelle vérification.
 
 **Événements**, si un webhook est préféré plus tard :
 
@@ -115,11 +131,11 @@ Recommandation : une tâche planifiée qui relit les transactions, plutôt qu'un
 
 **Pour l'activer** (décisions du fondateur, rien n'est fait) :
 
-1. Créer la clé restreinte, d'abord en **mode test**.
+1. Créer la clé restreinte en **mode test** (aucune clé de production dans cette phase).
 2. Appliquer la migration en préproduction.
 3. Lancer l'import à blanc, puis réel, sur la préproduction en mode test.
 4. Décider de la fréquence.
-5. Seulement ensuite : la clé live et la production.
+5. Aucun import automatique en production n'est programmé. La clé live et la production feront l'objet d'une décision distincte.
 
 ## 7. Coûts déclarés par variante
 
@@ -164,26 +180,32 @@ Recommandation : une tâche planifiée qui relit les transactions, plutôt qu'un
    - **Préféré** : revenir au code précédent. Les tables sont isolées, sans clé étrangère vers le reste du schéma ; inutilisées, elles ne gênent rien.
    - **Destructif**, sur décision seulement : `scripts/migration-rollbacks/20261119090000_procurement_debit_register.down.sql`. Il efface tous les mouvements. L'historique de migration de Prisma n'est pas modifié : pour recréer les tables, rejouer le SQL de la migration à la main (il est idempotent).
 
-## 9. Proposition : qui saisit et rapproche, et à quelle fréquence
+## 9. Processus de saisie et de rapprochement — responsabilités (personne non désignée)
 
-Je n'ai pas lu le volume réel (aucun accès à la production). La proposition dépend donc du nombre d'achats par mois, à vérifier avec `report:fee-reconciliation` en mode plan, une fois autorisé.
+Aucun responsable n'est désigné à ce stade (décision du fondateur, 19 novembre 2026). Le processus décrit les **rôles** nécessaires ; une même personne peut en tenir plusieurs, sauf le contrôle, qui doit rester indépendant de la saisie.
 
-- **Achats Issuing.** Rien à saisir : l'import les enregistre et les rapproche lui-même quand la carte désigne une seule commande. Le travail humain se limite à la **file « à examiner »**.
-- **Relevés et factures** (hors Issuing). Une seule personne responsable : le fondateur au départ, puis l'assistant comptable ou administratif. Une seconde personne relit les rapprochements manuels (`manual`) et toute annulation.
+| Rôle | Responsabilité | Ne fait pas |
+|---|---|---|
+| **Saisie** | Saisir les mouvements réglés hors Issuing (relevé bancaire, relevé d'une autre carte, facture payée), chacun avec son justificatif | Ne ressaisit jamais un achat payé par carte Issuing ; ne saisit pas l'alimentation du solde Issuing |
+| **Rapprochement** | Attribuer chaque mouvement aux commandes qu'il paie ; traiter la file « à examiner » (motif obligatoire) | Ne rapproche jamais un mouvement Issuing hors de la commande de sa carte (le système le refuse) |
+| **Contrôle** | Relire les rapprochements manuels, les annulations de mouvements et les résolutions d'examen ; suivre l'indicateur ci-dessous | Ne saisit pas lui-même ce qu'il contrôle |
+| **Supervision de l'import Issuing** | Lancer l'import (une fois activé), vérifier qu'il n'y a ni transaction signalée « modifiée chez Stripe » ni lecture refusée | Ne modifie jamais un mouvement importé : il passe par la file « à examiner » |
 
-| Volume d'achats source | Saisie des relevés | File « à examiner » | Contrôle croisé |
-|---|---|---|---|
-| Moins de 50 par mois | Mensuelle, à la clôture du relevé | Hebdomadaire | Mensuel, par le fondateur |
-| 50 à 500 par mois | Hebdomadaire | Deux fois par semaine | Mensuel, par l'expert-comptable sur échantillon |
-| Plus de 500 par mois | Import automatique du relevé bancaire (à construire), saisie manuelle en exception | Quotidienne | Mensuel, avec un indicateur « mouvements non rapprochés depuis plus de 15 jours » |
+**Fréquence** : à fixer selon le volume réel, mesurable une fois le rapport `report:fee-reconciliation` autorisé. Repères :
 
-**Indicateur à suivre dans tous les cas** : le nombre et le montant des mouvements non rapprochés ou à examiner depuis plus de 15 jours. Il devrait être proche de zéro avant toute décision commerciale fondée sur les coûts réels.
+| Achats réglés hors Issuing par mois | Saisie | File « à examiner » |
+|---|---|---|
+| Moins de 50 | Mensuelle | Hebdomadaire |
+| 50 à 500 | Hebdomadaire | Deux fois par semaine |
+| Plus de 500 | Import automatique du relevé bancaire (à construire), saisie en exception | Quotidienne |
+
+**Indicateur unique** : nombre et montant des mouvements non rapprochés ou « à examiner » depuis plus de 15 jours. Il doit être proche de zéro avant toute décision commerciale fondée sur les coûts réels.
 
 ## 10. Décisions qui restent au fondateur
 
 1. Appliquer la migration, d'abord en préproduction (§ 8).
 2. Créer la clé restreinte de lecture Issuing, d'abord en mode test, et choisir la fréquence de l'import (§ 6).
-3. Désigner la personne responsable des relevés et la fréquence de saisie (§ 9).
+3. Plus tard, quand le volume sera connu : désigner les personnes tenant les rôles du § 9 et la fréquence.
 
 ## Fichiers
 

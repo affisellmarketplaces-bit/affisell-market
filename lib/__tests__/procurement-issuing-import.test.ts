@@ -5,7 +5,13 @@ import path from "node:path"
 import { describe, expect, it, vi } from "vitest"
 
 import { nextImportStart, parseIssuingTransaction, planIssuingImport, type IssuingTransaction } from "@/lib/procurement-debits/issuing-import"
-import { createIssuingReader, IssuingKeyRefusedError } from "@/lib/procurement-debits/issuing-reader"
+import {
+  createIssuingReader,
+  ISSUING_LIVE_KEYS_ALLOWED,
+  ISSUING_READER_API_VERSION,
+  ISSUING_READER_SDK_VERSION,
+  IssuingKeyRefusedError,
+} from "@/lib/procurement-debits/issuing-reader"
 
 const raw = (o: Record<string, unknown> = {}) => ({
   object: "issuing.transaction",
@@ -127,6 +133,9 @@ describe("the reader — one GET, restricted key only", () => {
     expect(() => createIssuingReader("", { fetch: f })).toThrow(IssuingKeyRefusedError)
     expect(() => createIssuingReader("sk_test_abc", { fetch: f })).toThrow("issuing_read_key_must_be_restricted")
     expect(() => createIssuingReader("rk_live_abc", { fetch: f, env: { VERCEL_ENV: "preview" } })).toThrow()
+    // Test keys only in this phase — even in production.
+    expect(ISSUING_LIVE_KEYS_ALLOWED).toBe(false)
+    expect(() => createIssuingReader("rk_live_abc", { fetch: f, env: { VERCEL_ENV: "production" } })).toThrow("issuing_live_key_not_allowed_in_this_phase")
     expect(f).not.toHaveBeenCalled()
   })
   it("only ever sends GET /v1/issuing/transactions, and exposes nothing else", async () => {
@@ -139,6 +148,7 @@ describe("the reader — one GET, restricted key only", () => {
     const [url, init] = f.mock.calls[0] as unknown as [string, RequestInit]
     expect(url).toBe("https://api.stripe.com/v1/issuing/transactions?limit=100&created%5Bgte%5D=100&starting_after=ipi_x")
     expect(init.method).toBe("GET")
+    expect((init.headers as Record<string, string>)["Stripe-Version"]).toBe(ISSUING_READER_API_VERSION)
     expect(init.body).toBeUndefined()
   })
   it("maps access and reading failures without throwing", async () => {
@@ -148,6 +158,17 @@ describe("the reader — one GET, restricted key only", () => {
     expect(await reader(new Response("{}", { status: 200 })).listTransactions({ createdGte: 0 })).toEqual({ ok: false, reason: "unreadable" })
     expect(await reader(new Error("down")).listTransactions({ createdGte: 0 })).toEqual({ ok: false, reason: "network" })
     expect(await reader(new Response("", { status: 200 })).listTransactions({ createdGte: 0, startingAfter: "../x" })).toEqual({ ok: false, reason: "unreadable" })
+  })
+})
+
+describe("API version — the same one the app's Stripe client speaks", () => {
+  it("is re-checked whenever the installed stripe SDK changes", () => {
+    const lock = JSON.parse(readFileSync(path.resolve(__dirname, "../../package-lock.json"), "utf8")) as { packages: Record<string, { version?: string }> }
+    // stripe 22.1.1 pins 2026-04-22.dahlia; a different SDK means: re-verify the Issuing shape, then update both constants.
+    expect(lock.packages["node_modules/stripe"]?.version).toBe(ISSUING_READER_SDK_VERSION)
+    expect(ISSUING_READER_API_VERSION).toBe("2026-04-22.dahlia")
+    const app = readFileSync(path.resolve(__dirname, "../stripe.ts"), "utf8")
+    expect(app).not.toMatch(/apiVersion/)
   })
 })
 
