@@ -15,7 +15,6 @@ import {
   BLOCKED_DEMAND_OBSERVED_ACTION,
   blockedDemandAlertId,
   blockedDemandObservationId,
-  blockedDemandObservedId,
   DEFAULT_SUPPLIER_ALERT_PREFERENCE,
   digestIsObsolete,
   EPISODE_STATE_ACTION,
@@ -23,7 +22,7 @@ import {
   nextEpisode,
   parseEpisodeState,
   parseSupplierAlertPreference,
-  planSupplierDigests,
+  planSupplierNotices,
   qualifyBlockedDemand,
   rankAlerts,
   readSupplierBlockedDemandMode,
@@ -37,15 +36,20 @@ import {
   type BlockedDemandObservation,
   type EpisodeState,
   type SupplierAlertPreference,
+  qualifyFailedLines,
+  sessionBase,
   unavailabilityCause,
+  type FailedLineTrace,
+  type SupplierNotice,
   type UnavailabilityCause,
 } from "@/lib/supplier-demand-alerts/blocked-demand"
+import { isPreventiveAlert, stockoutRiskAlertId, stockoutRiskObservedId } from "@/lib/supplier-catalog-health/stockout-forecast"
+import { loadStockoutForecasts, type StockoutForecastItem } from "@/lib/supplier-catalog-health/stockout-forecast.server"
 import { UNALLOCATED_LINE_AUDIT_ACTION } from "@/lib/unallocated-line"
 
 const DAY = 86_400_000
 const MAX_PRODUCTS = 5_000
 const LOOKBACK_DAYS = 120
-const FAILED_LINE_REASONS = new Set(["insufficient_stock", "listing_inactive"])
 
 
 type ProductRow = {
@@ -140,14 +144,14 @@ function causeOf(row: ProductRow, holds: string[] | null): UnavailabilityCause |
   })
 }
 
-/** Observed demand of the unavailable products: paid orders and failed paid lines. READ-ONLY. */
+/** Observed demand of the unavailable products: paid orders and QUALIFIED failed paid lines. READ-ONLY. */
 async function demandFacts(productIds: string[], sinceOf: Map<string, Date | null>, now: Date) {
   const from = new Date(now.getTime() - LOOKBACK_DAYS * DAY)
   const [orders, last, failed] = await Promise.all([
     productIds.length
       ? prisma.order.findMany({
           where: { productId: { in: productIds }, paidAt: { gte: from } },
-          select: { productId: true, paidAt: true },
+          select: { productId: true, paidAt: true, stripeSessionId: true },
           take: 100_000,
         })
       : [],
@@ -165,8 +169,10 @@ async function demandFacts(productIds: string[], sinceOf: Map<string, Date | nul
   const set = new Set(productIds)
   const out = new Map<string, { before: number; since: number; failed: number; lastPaidAt: Date | null }>()
   for (const id of productIds) out.set(id, { before: 0, since: 0, failed: 0, lastPaidAt: null })
+  const paidOrderKeys = new Set<string>()
   for (const o of orders) {
     if (!o.productId || !o.paidAt) continue
+    if (o.stripeSessionId) paidOrderKeys.add(`${sessionBase(o.stripeSessionId)}|${o.productId}`)
     const f = out.get(o.productId)
     if (!f) continue
     const start = sinceOf.get(o.productId) ?? now
@@ -178,17 +184,27 @@ async function demandFacts(productIds: string[], sinceOf: Map<string, Date | nul
     const f = out.get(l.productId)
     if (f) f.lastPaidAt = l._max.paidAt ?? null
   }
+  const traces: FailedLineTrace[] = []
   for (const r of failed) {
-    const p = (r.payload ?? {}) as { productId?: unknown; reason?: unknown }
+    const p = (r.payload ?? {}) as Record<string, unknown>
     if (typeof p.productId !== "string" || !set.has(p.productId)) continue
-    if (typeof p.reason !== "string" || !FAILED_LINE_REASONS.has(p.reason)) continue
-    const start = sinceOf.get(p.productId) ?? new Date(now.getTime() - REFERENCE_DAYS * DAY)
-    if (r.createdAt.getTime() >= start.getTime()) out.get(p.productId)!.failed++
+    traces.push({
+      checkoutSessionId: typeof p.checkoutSessionId === "string" ? p.checkoutSessionId : null,
+      productId: p.productId,
+      reason: typeof p.reason === "string" ? p.reason : null,
+      paymentIntentId: typeof p.paymentIntentId === "string" && p.paymentIntentId.trim() ? p.paymentIntentId : null,
+      createdAt: r.createdAt,
+    })
   }
-  return out
+  const q = qualifyFailedLines(traces, {
+    paidOrderKeys,
+    startOf: (pid) => sinceOf.get(pid) ?? new Date(now.getTime() - REFERENCE_DAYS * DAY),
+  })
+  for (const [pid, n] of q.byProduct) out.get(pid)!.failed = n
+  return { facts: out, excluded: q.excluded }
 }
 
-function alertsFrom(snap: Snapshot, facts: Awaited<ReturnType<typeof demandFacts>>, sinceOf: Map<string, Date | null>, now: Date) {
+function alertsFrom(snap: Snapshot, facts: Awaited<ReturnType<typeof demandFacts>>["facts"], sinceOf: Map<string, Date | null>, now: Date) {
   const alerts: BlockedDemandAlert[] = []
   for (const p of snap.products) {
     if (p.cause === null) continue
@@ -270,6 +286,8 @@ export type SupplierBlockedDemandRun = {
   skippedPreference: number
   deferredToTomorrow: number
   obsoleteDigestsCleared: number
+  /** Preventive stock-out risks found (sellable today, cover below the lead time). */
+  riskQualifying: number
   truncated: boolean
   observation?: BlockedDemandObservation | null
 }
@@ -295,6 +313,7 @@ export async function runSupplierBlockedDemandAlerts(now = new Date()): Promise<
     skippedPreference: 0,
     deferredToTomorrow: 0,
     obsoleteDigestsCleared: 0,
+    riskQualifying: 0,
     truncated: false,
   }
   if (mode === "off") return run
@@ -339,23 +358,49 @@ export async function runSupplierBlockedDemandAlerts(now = new Date()): Promise<
 
   const unavailable = snap.products.filter((p) => p.cause !== null)
   run.unavailable = unavailable.length
-  const facts = await demandFacts(unavailable.map((p) => p.row.id), sinceOf, now)
+  const { facts, excluded } = await demandFacts(unavailable.map((p) => p.row.id), sinceOf, now)
   const alerts = alertsFrom(snap, facts, sinceOf, now)
   run.qualifying = alerts.length
 
+  // Preventive risks: products still sellable whose cover is below the lead time (blocked ones are told above).
+  const unavailableIds = new Set(unavailable.map((p) => p.row.id))
+  let risks: StockoutForecastItem[] = []
+  try {
+    risks = (await loadStockoutForecasts({ now })).items.filter((i) => isPreventiveAlert(i.forecast) && !unavailableIds.has(i.productId))
+  } catch (error) {
+    // A failed forecast read never blocks the blocked-demand alerts.
+    console.error("[supplier-blocked-demand] forecast_unreadable", error instanceof Error ? error.message : "unknown")
+  }
+  run.riskQualifying = risks.length
+
+  const notices: SupplierNotice[] = [
+    ...alerts
+      .filter((a) => a.since !== null)
+      .map((a) => ({ supplierId: a.supplierId, productId: a.productId, productName: a.productName, kind: "blocked" as const, claimId: blockedDemandAlertId(a.productId, a.since!) })),
+    ...risks.map((r) => ({
+      supplierId: r.supplierId,
+      productId: r.productId,
+      productName: r.productName,
+      kind: "risk" as const,
+      claimId: stockoutRiskAlertId(r.productId, now),
+      coverDays: r.forecast.calculation.coverDays,
+    })),
+  ]
+
   if (mode === "observe") {
-    run.observation = await recordObservation(now, run, unavailable.map((p) => p.cause!), alerts)
+    run.observation = await recordObservation(now, run, unavailable.map((p) => p.cause!), alerts, notices, excluded)
     console.log("[supplier-blocked-demand]", {
       result: "would_notify",
       qualifying: run.qualifying,
+      risks: run.riskQualifying,
       wouldNotifyNew: run.observation?.wouldNotifyNew ?? null,
-      wouldNotifySuppliers: run.observation?.wouldNotifySuppliers ?? null,
+      wouldNotifySuppliersAll: run.observation?.wouldNotifySuppliersAll ?? null,
       truncated: run.truncated,
     })
     return run
   }
-  await deliver(now, run, alerts)
-  await clearObsoleteDigests(run, new Set(alerts.map((a) => a.productId)), now)
+  await deliver(now, run, notices)
+  await clearObsoleteDigests(run, new Set(notices.map((a) => a.productId)), now)
   return run
 }
 
@@ -363,20 +408,19 @@ function isUniqueViolation(error: unknown): boolean {
   return Boolean(error && typeof error === "object" && (error as { code?: unknown }).code === "P2002")
 }
 
-async function freshAlerts(alerts: BlockedDemandAlert[], idOf: (a: BlockedDemandAlert) => string) {
-  const ids = alerts.map(idOf)
+async function freshBy<T>(items: T[], idOf: (a: T) => string): Promise<T[]> {
+  const ids = items.map(idOf)
   const existing = new Set<string>()
   for (let i = 0; i < ids.length; i += 500) {
     for (const r of await prisma.auditLog.findMany({ where: { id: { in: ids.slice(i, i + 500) } }, select: { id: true } })) existing.add(r.id)
   }
-  return alerts.filter((a, k) => !existing.has(ids[k]!))
+  return items.filter((a, k) => !existing.has(ids[k]!))
 }
 
-async function deliver(now: Date, run: SupplierBlockedDemandRun, alerts: BlockedDemandAlert[]) {
-  const withEpisode = alerts.filter((a) => a.since !== null)
-  const fresh = await freshAlerts(withEpisode, (a) => blockedDemandAlertId(a.productId, a.since!))
-  run.alreadyNotified = withEpisode.length - fresh.length
-  for (const plan of planSupplierDigests(fresh)) {
+async function deliver(now: Date, run: SupplierBlockedDemandRun, notices: SupplierNotice[]) {
+  const fresh = await freshBy(notices, (n) => n.claimId)
+  run.alreadyNotified = notices.length - fresh.length
+  for (const plan of planSupplierNotices(fresh)) {
     const pref = await loadSupplierAlertPreference(plan.supplierId)
     if (!pref.blockedDemandInApp) {
       run.skippedPreference += plan.items.length
@@ -403,12 +447,12 @@ async function deliver(now: Date, run: SupplierBlockedDemandRun, alerts: Blocked
     }
     await prisma.auditLog.createMany({
       data: plan.items.map((a) => ({
-        id: blockedDemandAlertId(a.productId, a.since!),
-        action: "supplier.blocked_demand_alerted",
+        id: a.claimId,
+        action: a.kind === "blocked" ? "supplier.blocked_demand_alerted" : "supplier.stockout_risk_alerted",
         entityType: "Product",
         entityId: a.productId,
         actorId: null,
-        payload: { cause: a.cause, why: a.why },
+        payload: { kind: a.kind },
       })),
       skipDuplicates: true,
     })
@@ -417,10 +461,15 @@ async function deliver(now: Date, run: SupplierBlockedDemandRun, alerts: Blocked
       key: string,
       values?: Record<string, string | number>
     ) => string
+    const first = plan.items[0]!
     const message =
-      plan.kind === "single"
-        ? t("bellSingle", { product: plan.items[0]!.productName.slice(0, 120) })
-        : t("bellDigest", { count: plan.items.length })
+      plan.kind === "single_blocked"
+        ? t("bellSingle", { product: first.productName.slice(0, 120) })
+        : plan.kind === "single_risk"
+          ? t("riskSingle", { product: first.productName.slice(0, 120), days: Math.max(0, Math.round(first.coverDays ?? 0)) })
+          : plan.allBlocked
+            ? t("bellDigest", { count: plan.items.length })
+            : t("attentionDigest", { count: plan.items.length })
     const notif = await prisma.notification.create({ data: { userId: plan.supplierId, type: SUPPLIER_BLOCKED_DEMAND_NOTIF, message } })
     await prisma.auditLog.update({
       where: { id: supplierDigestId(plan.supplierId, now) },
@@ -451,20 +500,24 @@ async function recordObservation(
   now: Date,
   run: SupplierBlockedDemandRun,
   causes: UnavailabilityCause[],
-  alerts: BlockedDemandAlert[]
+  alerts: BlockedDemandAlert[],
+  notices: SupplierNotice[],
+  failedLinesExcluded: Record<string, number>
 ): Promise<BlockedDemandObservation | null> {
   try {
-    const withEpisode = alerts.filter((a) => a.since !== null)
-    const fresh = await freshAlerts(withEpisode, (a) => blockedDemandObservedId(a.productId, a.since!))
+    // Observed markers have their OWN ids: observing never uses up a real alert.
+    const observedIdOf = (n: SupplierNotice) =>
+      n.kind === "blocked" ? n.claimId.replace("supplier-blocked-demand-alert:", "supplier-blocked-demand-observed:") : stockoutRiskObservedId(n.productId, now)
+    const fresh = await freshBy(notices, observedIdOf)
     if (fresh.length) {
       await prisma.auditLog.createMany({
-        data: fresh.map((a) => ({
-          id: blockedDemandObservedId(a.productId, a.since!),
+        data: fresh.map((n) => ({
+          id: observedIdOf(n),
           action: BLOCKED_DEMAND_OBSERVED_ACTION,
           entityType: "Product",
-          entityId: a.productId,
+          entityId: n.productId,
           actorId: null,
-          payload: { cause: a.cause, why: a.why },
+          payload: { kind: n.kind },
         })),
         skipDuplicates: true,
       })
@@ -473,17 +526,24 @@ async function recordObservation(
     for (const s of new Set(fresh.map((a) => a.supplierId))) {
       if (!(await loadSupplierAlertPreference(s)).blockedDemandInApp) prefOff.add(s)
     }
-    const observation = summarizeBlockedDemand({
-      now,
-      listedProducts: run.listedProducts,
-      causes,
-      qualifying: alerts,
-      newAlerts: fresh,
-      prefOff,
-      episodesOpened: run.episodesOpened,
-      episodesResolved: run.episodesResolved,
-      truncated: run.truncated,
-    })
+    const freshBlockedIds = new Set(fresh.filter((n) => n.kind === "blocked").map((n) => n.productId))
+    const observation: BlockedDemandObservation = {
+      ...summarizeBlockedDemand({
+        now,
+        listedProducts: run.listedProducts,
+        causes,
+        qualifying: alerts,
+        newAlerts: alerts.filter((a) => freshBlockedIds.has(a.productId)),
+        prefOff,
+        episodesOpened: run.episodesOpened,
+        episodesResolved: run.episodesResolved,
+        truncated: run.truncated,
+      }),
+      failedLinesExcluded,
+      riskQualifying: run.riskQualifying,
+      wouldNotifyRiskNew: fresh.filter((n) => n.kind === "risk" && !prefOff.has(n.supplierId)).length,
+      wouldNotifySuppliersAll: new Set(fresh.filter((n) => !prefOff.has(n.supplierId)).map((n) => n.supplierId)).size,
+    }
     await prisma.auditLog.createMany({
       data: [
         {

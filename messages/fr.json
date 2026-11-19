@@ -9567,7 +9567,79 @@
       "note": "Aucun nom de revendeur ni chiffre propre à un revendeur n'est affiché. Rien n'est modifié automatiquement : c'est vous qui mettez à jour votre fiche.",
       "pref": "Me prévenir dans la cloche (au plus une notification par jour)",
       "prefSaved": "Préférence enregistrée",
-      "truncated": "Lecture plafonnée : la liste peut être incomplète."
+      "truncated": "Lecture plafonnée : la liste peut être incomplète.",
+      "riskSingle": "Le stock de « {product} » pourrait s'épuiser dans environ {days} jours, avant votre réassort.",
+      "attentionDigest": "{count} de vos produits vendus par vos revendeurs demandent votre attention (indisponibles ou bientôt en rupture)."
+    },
+    "stockout": {
+      "title": "Ruptures à anticiper",
+      "subtitle": "Vos produits présents dans les boutiques de vos revendeurs dont le stock pourrait s'épuiser avant qu'un réassort n'arrive. Faits, calculs, hypothèses et limites sont séparés ; rien n'est commandé ni modifié.",
+      "empty": "Aucun produit à surveiller pour l'instant.",
+      "truncated": "Lecture plafonnée : la liste peut être incomplète.",
+      "risk": {
+        "sous_le_delai": "Rupture avant réassort, même au rythme bas",
+        "probable": "Rupture probable avant réassort",
+        "a_surveiller": "À surveiller",
+        "suffisant": "Couverture suffisante",
+        "non_evaluable": "Non évaluable"
+      },
+      "confidence": {
+        "high": "confiance élevée",
+        "medium": "confiance moyenne",
+        "low": "confiance faible"
+      },
+      "factsTitle": "Faits",
+      "calcTitle": "Calcul",
+      "declared": "Stock déclaré : {units}",
+      "declaredUnknown": "Stock déclaré inconnu (variantes non suivies)",
+      "reservedDeducted": "{units} unités réservées par des commandes payées non expédiées, déjà déduites par la plateforme",
+      "reservedNotDeducted": "{units} unités réservées par des commandes payées non expédiées, encore comprises dans le stock déclaré",
+      "sold": "{units} unités vendues en 30 jours, sur {days} jours distincts",
+      "confirmedOn": "Quantité confirmée le {date}",
+      "neverConfirmed": "Quantité jamais confirmée",
+      "sheetAge": "Fiche modifiée il y a {days} jours (ce n'est pas une confirmation du stock)",
+      "leadKnown": "Délai de réapprovisionnement déclaré : {days} jours",
+      "leadUnknown": "Délai de réapprovisionnement non déclaré",
+      "available": "Disponible après réservations : {units}",
+      "pace": "Rythme : {pace} par jour (entre {low} et {high})",
+      "cover": "Couverture estimée : {days} jours (entre {low} et {high})",
+      "coverOpen": "Couverture estimée : {days} jours (au moins {low})",
+      "comparedLead": "Comparée à votre délai déclaré de {days} jours",
+      "comparedIndicative": "Comparée à un délai indicatif de {days} jours (votre délai n'est pas déclaré)",
+      "notCalculated": "Pas de calcul : les données ne le permettent pas (voir les limites).",
+      "hypothesesTitle": "Hypothèses :",
+      "hypothesis": {
+        "pace_constant": "le rythme des 30 derniers jours se maintient",
+        "no_incoming_restock": "aucun réassort en cours n'est connu d'Affisell",
+        "lead_time_indicative": "délai de 14 jours indicatif"
+      },
+      "limitsTitle": "Limites :",
+      "limit": {
+        "too_few_sales": "moins de 5 ventes en 30 jours",
+        "sales_on_few_days": "ventes concentrées sur moins de 3 jours",
+        "declared_unknown": "stock déclaré inconnu",
+        "never_confirmed": "quantité jamais confirmée",
+        "confirmation_old": "confirmation de plus de 30 jours",
+        "confirmation_too_old": "confirmation de plus de 120 jours : quantité inutilisable",
+        "unconfirmed_marker": "quantité importée jamais confirmée",
+        "lead_time_unknown": "délai de réapprovisionnement non déclaré"
+      },
+      "action": {
+        "restock_now": "Réassortir dès maintenant",
+        "plan_restock": "Planifier un réassort",
+        "confirm_quantity": "Confirmer ou corriger la quantité",
+        "declare_lead_time": "Déclarer votre délai de réapprovisionnement"
+      },
+      "openSheet": "Ouvrir la fiche produit",
+      "confirmButton": "La quantité {units} est juste",
+      "confirmResult": {
+        "ok": "Quantité confirmée.",
+        "quantity_changed": "La quantité a changé entre-temps : rechargez la page.",
+        "unconfirmed_import": "Quantité importée : saisissez-la dans la fiche.",
+        "quantity_unknown": "Quantité inconnue : utilisez la fiche.",
+        "error": "Confirmation impossible pour le moment."
+      },
+      "note": "Un calcul, pas une certitude. Aucune commande de réassort n'est créée ni envoyée. Vos revendeurs ne voient pas ces informations."
     }
   },
   "nextActions": {

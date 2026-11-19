@@ -258,11 +258,120 @@ export function planSupplierDigests(newAlerts: ReadonlyArray<BlockedDemandAlert>
 }
 
 /**
+ * ONE bell per supplier and per day for everything that needs it: blocked demand (the product can not be bought) AND
+ * preventive stock-out risks (it soon will not). Blocked first — a lost sale outranks a risk.
+ */
+export type SupplierNotice = {
+  supplierId: string
+  productId: string
+  productName: string
+  kind: "blocked" | "risk"
+  /** Deterministic claim id (once per episode for blocked, once per 14 days for a risk). */
+  claimId: string
+  /** Risk only: estimated cover in days (central). */
+  coverDays?: number | null
+}
+
+export function planSupplierNotices(notices: ReadonlyArray<SupplierNotice>) {
+  const by = new Map<string, SupplierNotice[]>()
+  for (const n of notices) by.set(n.supplierId, [...(by.get(n.supplierId) ?? []), n])
+  return [...by.entries()]
+    .map(([supplierId, items]) => {
+      const sorted = [...items].sort((a, b) => (a.kind === b.kind ? (a.coverDays ?? 0) - (b.coverDays ?? 0) : a.kind === "blocked" ? -1 : 1))
+      const kind = sorted.length > 1 ? ("digest" as const) : sorted[0]!.kind === "blocked" ? ("single_blocked" as const) : ("single_risk" as const)
+      return { supplierId, items: sorted, kind, allBlocked: sorted.every((n) => n.kind === "blocked") }
+    })
+    .sort((a, b) => b.items.length - a.items.length || a.supplierId.localeCompare(b.supplierId))
+}
+
+/**
  * A digest already in a supplier's bell becomes OBSOLETE when none of its products is still blocked (fixed meanwhile):
  * it is then marked read rather than left as a false alarm. Pure decision.
  */
 export function digestIsObsolete(productIds: ReadonlyArray<string>, stillBlocked: ReadonlySet<string>): boolean {
   return productIds.length > 0 && productIds.every((id) => !stillBlocked.has(id))
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Paid lines that failed: what makes one REAL demand (founder brief 2026-11-19 §4).
+// ---------------------------------------------------------------------------------------------------------------
+
+/**
+ * A `payment.unallocated_line` trace is written ONLY by the fulfilment of a Checkout Session Stripe reported
+ * `payment_status: "paid"` (`ensureMarketplaceCheckoutFulfilled` returns before anything else otherwise) — an attempt
+ * or a failed payment never leaves one. On top of that, a trace counts as blocked demand only when:
+ *  - its reason is the product's unavailability, recorded AT PAYMENT by the fulfilment itself: `insufficient_stock`
+ *    (stock re-checked under lock) or `listing_inactive` (product inactive at payment) — `listing_not_found`,
+ *    `commission_not_explicit`, `order_closed_before_payment` are other failures, not unavailability;
+ *  - it carries the payment it came from (`paymentIntentId`) and a product;
+ *  - the same checkout did NOT also produce a paid order of that product (a replay that healed the line, or a cart
+ *    with the same product twice: the demand is already counted as an order — never twice);
+ *  - one checkout counts once per product (two lost lines of one cart = one buyer's demand);
+ *  - it falls inside the unavailability episode.
+ * Its refund does NOT disqualify it: a lost line's refund is the CONSEQUENCE of that very unavailability (the refund
+ * rows are tied to the line); a cancelled or disputed payment can not be tied to a line that has no order — residual,
+ * said in the documentation.
+ */
+export const UNAVAILABILITY_REASONS = new Set(["insufficient_stock", "listing_inactive"])
+
+export type FailedLineTrace = {
+  checkoutSessionId: string | null
+  productId: string | null
+  reason: string | null
+  paymentIntentId: string | null
+  createdAt: Date
+}
+
+export type FailedLineExclusion = "other_reason" | "no_payment_or_product" | "order_paid_same_checkout" | "same_checkout_twice" | "outside_episode"
+
+export function sessionBase(stripeSessionId: string): string {
+  return stripeSessionId.split(":line:")[0]!
+}
+
+export function qualifyFailedLines(
+  traces: ReadonlyArray<FailedLineTrace>,
+  ctx: {
+    /** `<checkout base>|<productId>` of every PAID order. */
+    paidOrderKeys: ReadonlySet<string>
+    /** Start of the product's unavailability episode (null = not known: the last 30 days are used). */
+    startOf: (productId: string) => Date
+  }
+): { byProduct: Map<string, number>; excluded: Record<FailedLineExclusion, number> } {
+  const excluded: Record<FailedLineExclusion, number> = {
+    other_reason: 0,
+    no_payment_or_product: 0,
+    order_paid_same_checkout: 0,
+    same_checkout_twice: 0,
+    outside_episode: 0,
+  }
+  const byProduct = new Map<string, number>()
+  const seen = new Set<string>()
+  for (const t of traces) {
+    if (!t.reason || !UNAVAILABILITY_REASONS.has(t.reason)) {
+      excluded.other_reason++
+      continue
+    }
+    if (!t.productId || !t.paymentIntentId || !t.checkoutSessionId) {
+      excluded.no_payment_or_product++
+      continue
+    }
+    const key = `${sessionBase(t.checkoutSessionId)}|${t.productId}`
+    if (ctx.paidOrderKeys.has(key)) {
+      excluded.order_paid_same_checkout++
+      continue
+    }
+    if (seen.has(key)) {
+      excluded.same_checkout_twice++
+      continue
+    }
+    if (t.createdAt.getTime() < ctx.startOf(t.productId).getTime()) {
+      excluded.outside_episode++
+      continue
+    }
+    seen.add(key)
+    byProduct.set(t.productId, (byProduct.get(t.productId) ?? 0) + 1)
+  }
+  return { byProduct, excluded }
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -311,6 +420,13 @@ export type BlockedDemandObservation = {
   episodesResolved: number
   failedPaidLines: number
   truncated: boolean
+  /** Failed paid lines NOT counted, by reason (§4 qualification). */
+  failedLinesExcluded?: Record<string, number>
+  /** Preventive stock-out risks (sellable today, cover below the lead time). */
+  riskQualifying?: number
+  wouldNotifyRiskNew?: number
+  /** Suppliers who would get a bell, blocked demand and risks together (one bell per supplier and day). */
+  wouldNotifySuppliersAll?: number
 }
 
 export function summarizeBlockedDemand(args: {

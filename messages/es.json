@@ -9567,7 +9567,79 @@
       "note": "No se muestra ningún nombre ni cifra propia de un revendedor. Nada se modifica automáticamente: usted actualiza su ficha.",
       "pref": "Avisarme en la campana (como máximo una notificación al día)",
       "prefSaved": "Preferencia guardada",
-      "truncated": "Lectura limitada: la lista puede estar incompleta."
+      "truncated": "Lectura limitada: la lista puede estar incompleta.",
+      "riskSingle": "El stock de «{product}» podría agotarse en unos {days} días, antes de su reposición.",
+      "attentionDigest": "{count} de sus productos vendidos por sus revendedores requieren su atención (no disponibles o pronto agotados)."
+    },
+    "stockout": {
+      "title": "Stock-outs to anticipate",
+      "subtitle": "Your products in your resellers' shops whose stock could run out before a restock arrives. Facts, calculations, assumptions and limits are kept apart; nothing is ordered or changed.",
+      "empty": "No product to watch for now.",
+      "truncated": "Capped read: the list may be incomplete.",
+      "risk": {
+        "sous_le_delai": "Out of stock before restock, even at the slow pace",
+        "probable": "Likely out of stock before restock",
+        "a_surveiller": "To watch",
+        "suffisant": "Enough cover",
+        "non_evaluable": "Cannot be assessed"
+      },
+      "confidence": {
+        "high": "high confidence",
+        "medium": "medium confidence",
+        "low": "low confidence"
+      },
+      "factsTitle": "Facts",
+      "calcTitle": "Calculation",
+      "declared": "Declared stock: {units}",
+      "declaredUnknown": "Declared stock unknown (variants not tracked)",
+      "reservedDeducted": "{units} units reserved by paid, unshipped orders, already deducted by the platform",
+      "reservedNotDeducted": "{units} units reserved by paid, unshipped orders, still included in the declared stock",
+      "sold": "{units} units sold in 30 days, on {days} distinct days",
+      "confirmedOn": "Quantity confirmed on {date}",
+      "neverConfirmed": "Quantity never confirmed",
+      "sheetAge": "Sheet modified {days} days ago (this is not a stock confirmation)",
+      "leadKnown": "Declared restock lead time: {days} days",
+      "leadUnknown": "Restock lead time not declared",
+      "available": "Available after reservations: {units}",
+      "pace": "Pace: {pace} a day (between {low} and {high})",
+      "cover": "Estimated cover: {days} days (between {low} and {high})",
+      "coverOpen": "Estimated cover: {days} days (at least {low})",
+      "comparedLead": "Compared with your declared lead time of {days} days",
+      "comparedIndicative": "Compared with an indicative lead time of {days} days (yours is not declared)",
+      "notCalculated": "No calculation: the data do not allow it (see the limits).",
+      "hypothesesTitle": "Assumptions:",
+      "hypothesis": {
+        "pace_constant": "the pace of the last 30 days continues",
+        "no_incoming_restock": "no incoming restock is known to Affisell",
+        "lead_time_indicative": "14-day lead time is indicative"
+      },
+      "limitsTitle": "Limits:",
+      "limit": {
+        "too_few_sales": "fewer than 5 sales in 30 days",
+        "sales_on_few_days": "sales on fewer than 3 days",
+        "declared_unknown": "declared stock unknown",
+        "never_confirmed": "quantity never confirmed",
+        "confirmation_old": "confirmation older than 30 days",
+        "confirmation_too_old": "confirmation older than 120 days: quantity not usable",
+        "unconfirmed_marker": "imported quantity never confirmed",
+        "lead_time_unknown": "restock lead time not declared"
+      },
+      "action": {
+        "restock_now": "Restock now",
+        "plan_restock": "Plan a restock",
+        "confirm_quantity": "Confirm or correct the quantity",
+        "declare_lead_time": "Declare your restock lead time"
+      },
+      "openSheet": "Open the product sheet",
+      "confirmButton": "The quantity {units} is right",
+      "confirmResult": {
+        "ok": "Quantity confirmed.",
+        "quantity_changed": "The quantity changed meanwhile: reload the page.",
+        "unconfirmed_import": "Imported quantity: type it in the sheet.",
+        "quantity_unknown": "Quantity unknown: use the sheet.",
+        "error": "Confirmation not possible right now."
+      },
+      "note": "A calculation, not a certainty. No restock order is created or sent. Your resellers do not see this information."
     }
   },
   "nextActions": {

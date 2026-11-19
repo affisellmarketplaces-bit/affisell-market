@@ -186,7 +186,7 @@ async function loadSupplierCatalogHealthDetailed(
  * Lead time the supplier DECLARED for each product (product-wide declaration in force today, supply-cost register).
  * The supplier's own confidential data, read back for the supplier only. Missing / unreadable = not declared.
  */
-async function loadDeclaredLeadTimes(ids: string[], now: Date): Promise<Map<string, number>> {
+export async function loadDeclaredLeadTimes(ids: string[], now: Date): Promise<Map<string, number>> {
   const out = new Map<string, number>()
   try {
     const histories = await loadDeclarationHistories(ids)

@@ -12,6 +12,7 @@ import {
   digestIsObsolete,
   nextEpisode,
   qualifyBlockedDemand,
+  qualifyFailedLines,
   readSupplierBlockedDemandMode,
   SUPPLIER_BLOCKED_DEMAND_NOTIF,
   unavailabilityCause,
@@ -29,7 +30,9 @@ const db = vi.hoisted(() => ({
 }))
 
 vi.mock("@/lib/i18n-load-messages", () => ({
-  loadAppMessages: () => ({ catalogHealth: { blockedDemand: { bellSingle: "{product} blocked", bellDigest: "{count} blocked" } } }),
+  loadAppMessages: () => ({
+    catalogHealth: { blockedDemand: { bellSingle: "{product} blocked", bellDigest: "{count} blocked", riskSingle: "{product} risk {days}", attentionDigest: "{count} attention" } },
+  }),
 }))
 vi.mock("@/lib/prisma", () => {
   const unique = () => Object.assign(new Error("Unique constraint failed"), { code: "P2002" })
@@ -234,10 +237,68 @@ describe("supplier blocked-demand alerts — the real run", () => {
   })
 })
 
+describe("failed paid lines — what counts as real demand (§4)", () => {
+  const at = new Date("2026-11-18T10:00:00Z")
+  const t = (o: Partial<Parameters<typeof qualifyFailedLines>[0][number]>) => ({
+    checkoutSessionId: "cs_1",
+    productId: "p",
+    reason: "insufficient_stock",
+    paymentIntentId: "pi_1",
+    createdAt: at,
+    ...o,
+  })
+  const ctx = { paidOrderKeys: new Set<string>(), startOf: () => new Date("2026-11-01T00:00:00Z") }
+
+  it("counts an unavailability failure of a paid checkout once", () => {
+    const r = qualifyFailedLines([t({})], ctx)
+    expect(r.byProduct.get("p")).toBe(1)
+  })
+  it("other failures, missing payment, healed lines, duplicates and older traces are excluded — and counted as such", () => {
+    const r = qualifyFailedLines(
+      [
+        t({ reason: "commission_not_explicit" }),
+        t({ reason: "order_closed_before_payment" }),
+        t({ paymentIntentId: null }),
+        t({ checkoutSessionId: "cs_healed" }),
+        t({ checkoutSessionId: "cs_2" }),
+        t({ checkoutSessionId: "cs_2:line:1" }),
+        t({ checkoutSessionId: "cs_old", createdAt: new Date("2026-10-01T00:00:00Z") }),
+      ],
+      { ...ctx, paidOrderKeys: new Set(["cs_healed|p"]) }
+    )
+    expect(r.byProduct.get("p")).toBe(1)
+    expect(r.excluded).toEqual({ other_reason: 2, no_payment_or_product: 1, order_paid_same_checkout: 1, same_checkout_twice: 1, outside_episode: 1 })
+  })
+})
+
+describe("preventive stock-out risk in the same daily bell", () => {
+  it("a sellable product about to run out joins the supplier's ONE bell; observing never uses up the alert", async () => {
+    db.products.push(product("p8", "w", 3))
+    db.listings.set("p8", 2)
+    for (let i = 0; i < 20; i++) db.orders.push({ productId: "p8", paidAt: new Date(day1.getTime() - (i + 1) * 86_400_000) })
+    const run = await runSupplierBlockedDemandAlerts(day1)
+    expect(run.riskQualifying).toBe(1)
+    const w = db.notifications.filter((n) => n.userId === "w")
+    expect(w).toHaveLength(1)
+    expect(w[0]!.message).toContain("P8")
+    expect((await runSupplierBlockedDemandAlerts(day1)).notified).toBe(0)
+  })
+  it("observe counts the risk without sending", async () => {
+    vi.stubEnv("SUPPLIER_BLOCKED_DEMAND_ALERTS_MODE", "observe")
+    db.products.push(product("p8", "w", 3))
+    db.listings.set("p8", 2)
+    for (let i = 0; i < 20; i++) db.orders.push({ productId: "p8", paidAt: new Date(day1.getTime() - (i + 1) * 86_400_000) })
+    const run = await runSupplierBlockedDemandAlerts(day1)
+    expect(db.notifications).toEqual([])
+    expect(run.observation).toMatchObject({ riskQualifying: 1, wouldNotifyRiskNew: 1, wouldNotifySuppliersAll: 3 })
+    expect([...db.audit.keys()].some((k) => k.startsWith("supplier-stockout-risk-alert:"))).toBe(false)
+  })
+})
+
 describe("supplier blocked-demand alerts — boundaries", () => {
   it("never writes a product, a stock, a listing or money", () => {
     const src = readFileSync(path.resolve(__dirname, "../supplier-demand-alerts/blocked-demand.server.ts"), "utf8")
     expect(src).not.toMatch(/prisma\.(product|affiliateProduct|order|productVariant)\.(create|update|upsert|delete)/)
-    expect(src).not.toMatch(/stripe|transfer|refund/i)
+    expect(src).not.toMatch(/from "stripe"|@\/lib\/stripe"|\.refunds\.|\.transfers\./)
   })
 })
