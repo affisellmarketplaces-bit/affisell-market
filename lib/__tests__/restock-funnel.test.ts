@@ -170,13 +170,26 @@ vi.mock("@/lib/marketplace-buyer-product-filter", () => ({ buyerListedAffiliateP
 vi.mock("@/lib/prisma", () => {
   const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v))
   const stage = (p: unknown) => (p as { stage?: string; state?: string } | null) ?? {}
+  type In = { in: string[] }
+  type W = {
+    action?: string
+    entityId?: In
+    id?: In
+    productId?: In
+    createdAt?: { gte: Date }
+    paidAt?: { gte: Date }
+    OR?: unknown
+    payload?: { equals?: string }
+    supplierId?: string
+    __visible?: boolean
+  }
   return {
     prisma: {
       auditLog: {
-        findMany: async ({ where }: { where: Record<string, any> }) =>
+        findMany: async ({ where }: { where: W }) =>
           [...db.audit.values()]
             .filter((r) => !where.action || r.action === where.action)
-            .filter((r) => !where.entityId?.in || where.entityId.in.includes(r.entityId))
+            .filter((r) => !where.entityId?.in || where.entityId.in.includes(r.entityId ?? ""))
             .filter((r) => !where.id?.in || where.id.in.includes(r.id))
             .filter((r) => !where.createdAt?.gte || r.createdAt >= where.createdAt.gte)
             .filter((r) => !where.OR || ["waiting", "back"].includes(String(stage(r.payload).stage)))
@@ -193,18 +206,18 @@ vi.mock("@/lib/prisma", () => {
         },
       },
       affiliateProduct: {
-        findMany: async ({ where }: { where: Record<string, any> }) =>
+        findMany: async ({ where }: { where: W }) =>
           db.listings
             .filter((l) => (where.id?.in ? where.id.in.includes(l.id) : true) && (where.productId?.in ? where.productId.in.includes(l.productId) : true))
             .filter((l) => !where.__visible || !l.hidden),
       },
       product: {
-        findMany: async ({ where }: { where: Record<string, any> }) =>
-          db.products.filter((p) => (where.id?.in ? where.id.in.includes(p.id) : true) && (where.supplierId ? p.supplierId === where.supplierId : true)).map(clone).map((p) => ({ ...p, updatedAt: new Date(p.updatedAt as string) })),
+        findMany: async ({ where }: { where: W }) =>
+          db.products.filter((p) => (where.id?.in ? where.id.in.includes(String(p.id)) : true) && (where.supplierId ? p.supplierId === where.supplierId : true)).map(clone).map((p) => ({ ...p, updatedAt: new Date(p.updatedAt as string) })),
       },
       order: {
-        findMany: async ({ where }: { where: Record<string, any> }) =>
-          db.orders.filter((o) => where.productId.in.includes(o.productId) && (o.paidAt as Date) >= where.paidAt.gte),
+        findMany: async ({ where }: { where: W }) =>
+          db.orders.filter((o) => where.productId!.in.includes(String(o.productId)) && (o.paidAt as Date) >= where.paidAt!.gte),
       },
     },
   }
