@@ -4890,10 +4890,12 @@ model InvoiceSequence {
 /// constraints, the partial unique index and the over-allocation trigger live in the migration only.
 model ProcurementDebit {
   id                 String                       @id @default(cuid())
-  /// debit | refund | fee
+  /// debit | refund | refund_reversal | fee
   kind               String
   /// stripe_issuing | card_statement | bank_statement | supplier_invoice_paid
   source             String
+  /// read_from_source | typed_from_document
+  amountOrigin       String
   sourceReference    String
   amountCents        Int
   currency           String
@@ -4903,6 +4905,10 @@ model ProcurementDebit {
   parentDebitId      String?
   parent             ProcurementDebit?            @relation("ProcurementDebitChildren", fields: [parentDebitId], references: [id], onDelete: Restrict)
   children           ProcurementDebit[]           @relation("ProcurementDebitChildren")
+  /// Stripe object ids only (ic_, iauth_, txn_) — never card data.
+  issuingCardId          String?
+  issuingAuthorizationId String?
+  balanceTransactionId   String?
   includesDelivery   Boolean?
   /// included | excluded | unknown
   vatTreatment       String                       @default("unknown")
@@ -4910,6 +4916,11 @@ model ProcurementDebit {
   note               String                       @default("")
   /// recorded | voided
   status             String                       @default("recorded")
+  /// none | needs_review | resolved
+  reviewState        String                       @default("none")
+  reviewReason       String?
+  reviewedAt         DateTime?
+  reviewedById       String?
   voidReason         String?
   voidedAt           DateTime?
   voidedById         String?
@@ -4920,6 +4931,8 @@ model ProcurementDebit {
   @@unique([source, sourceReference])
   @@index([parentDebitId])
   @@index([occurredAt])
+  @@index([issuingCardId])
+  @@index([reviewState])
 }
 
 /// One movement (or part of it) reconciled to ONE order, in settled euros. Revoked, never deleted.

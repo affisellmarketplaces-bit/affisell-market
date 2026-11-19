@@ -5,7 +5,12 @@ import { useCallback, useEffect, useState } from "react"
 type Allocation = { id: string; orderId: string; amountCents: number; status: string; basis: string; note: string; createdAt: string; revokeReason: string | null }
 type Movement = {
   id: string
-  kind: "debit" | "refund" | "fee"
+  kind: "debit" | "refund" | "refund_reversal" | "fee"
+  state: "voided" | "needs_review" | "unallocated" | "partially_allocated" | "fully_allocated" | "not_allocatable"
+  amountOrigin: "read_from_source" | "typed_from_document"
+  reviewReason: string | null
+  issuingCardId: string | null
+  balanceTransactionId: string | null
   source: string
   sourceReference: string
   status: "recorded" | "voided"
@@ -34,9 +39,17 @@ type Reconciliation = {
   originalCurrencies: string[]
 }
 
-const KIND: Record<Movement["kind"], string> = { debit: "Débit", refund: "Remboursement", fee: "Frais" }
+const KIND: Record<Movement["kind"], string> = { debit: "Débit", refund: "Remboursement", refund_reversal: "Annulation de remboursement", fee: "Frais" }
+const STATE: Record<Movement["state"], string> = {
+  voided: "annulé",
+  needs_review: "à examiner — non rapprochable",
+  unallocated: "non rapproché",
+  partially_allocated: "partiellement rapproché",
+  fully_allocated: "entièrement rapproché",
+  not_allocatable: "montant réglé en € inconnu",
+}
 const SOURCE: Record<string, string> = {
-  stripe_issuing: "Carte Stripe Issuing",
+  stripe_issuing: "Carte Stripe Issuing (importée)",
   card_statement: "Relevé de carte",
   bank_statement: "Relevé bancaire",
   supplier_invoice_paid: "Facture fournisseur payée",
@@ -59,7 +72,7 @@ export function AdminProcurementDebitsConsole() {
   const [msg, setMsg] = useState<string | null>(null)
   const [form, setForm] = useState({
     kind: "debit",
-    source: "stripe_issuing",
+    source: "card_statement",
     sourceReference: "",
     amount: "",
     currency: "EUR",
@@ -133,6 +146,17 @@ export function AdminProcurementDebitsConsole() {
     if (reason.trim().length < 3) return
     const r = await post(`/api/admin/procurement-debits/allocations/${encodeURIComponent(allocationId)}/revoke`, { reason })
     setMsg(r.ok ? "Rapprochement révoqué." : `Refusé : ${r.json.error}`)
+    await load()
+  }
+
+  const resolveReview = async (m: Movement) => {
+    const reason = window.prompt("Motif de la résolution (obligatoire)") ?? ""
+    if (reason.trim().length < 3) return
+    const needsParent = (m.kind === "refund" || m.kind === "refund_reversal") && !m.parentDebitId
+    const parentDebitId = needsParent ? (window.prompt("Identifiant du débit d'origine (même carte)") ?? "").trim() : ""
+    if (needsParent && !parentDebitId) return
+    const r = await post(`/api/admin/procurement-debits/${encodeURIComponent(m.id)}/review`, { reason, parentDebitId: parentDebitId || null })
+    setMsg(r.ok ? "Mouvement résolu (rien n'est rapproché automatiquement)." : `Refusé : ${r.json.error}`)
     await load()
   }
 
@@ -220,14 +244,17 @@ export function AdminProcurementDebitsConsole() {
           <select className={input} value={form.kind} onChange={set("kind")}>
             <option value="debit">Débit</option>
             <option value="refund">Remboursement d&apos;un débit</option>
+            <option value="refund_reversal">Annulation d&apos;un remboursement</option>
             <option value="fee">Frais</option>
           </select>
           <select className={input} value={form.source} onChange={set("source")}>
-            {Object.entries(SOURCE).map(([k, v]) => (
+            {Object.entries(SOURCE)
+              .filter(([k]) => k !== "stripe_issuing")
+              .map(([k, v]) => (
               <option key={k} value={k}>
                 {v}
               </option>
-            ))}
+              ))}
           </select>
           <input className={input} placeholder="Référence de transaction" value={form.sourceReference} onChange={set("sourceReference")} />
           <input className={input} placeholder="Montant débité (devise d'origine)" value={form.amount} onChange={set("amount")} />
@@ -277,6 +304,13 @@ export function AdminProcurementDebitsConsole() {
                 {m.currency !== "EUR" ? ` → ${m.settledAmountCents == null ? "montant réglé en € inconnu" : eur(m.settledAmountCents)}` : ""}
                 {m.status === "voided" ? <span className="text-red-700"> · annulé ({m.voidReason})</span> : null}
               </p>
+              <p className="text-xs">
+                <span className={m.state === "needs_review" ? "font-medium text-amber-700" : "text-zinc-600"}>{STATE[m.state]}</span>
+                {" · "}
+                {m.amountOrigin === "read_from_source" ? "montants lus à la source (Stripe)" : "montants saisis d'après justificatif"}
+                {m.balanceTransactionId ? ` · ${m.balanceTransactionId}` : ""}
+                {m.reviewReason ? ` · ${m.reviewReason}` : ""}
+              </p>
               <p className="text-xs text-zinc-500">
                 id {m.id}
                 {m.parentDebitId ? ` · rattaché au débit ${m.parentDebitId}` : ""} · réparti {eur(m.balance.allocatedCents)} · reste {eur(m.balance.remainingCents)}
@@ -298,7 +332,12 @@ export function AdminProcurementDebitsConsole() {
                   ))}
                 </ul>
               ) : null}
-              {m.status === "recorded" ? (
+              {m.state === "needs_review" ? (
+                <button type="button" className={input} onClick={() => void resolveReview(m)}>
+                  Résoudre l&apos;examen
+                </button>
+              ) : null}
+              {m.status === "recorded" && m.state !== "needs_review" ? (
                 <div className="flex flex-wrap gap-2">
                   <input className={input} placeholder="Commande" value={a.orderId} onChange={(e) => setAlloc({ ...alloc, [m.id]: { ...a, orderId: e.target.value } })} />
                   <input className={input} placeholder="Montant en €" value={a.amount} onChange={(e) => setAlloc({ ...alloc, [m.id]: { ...a, amount: e.target.value } })} />

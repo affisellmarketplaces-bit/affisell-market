@@ -7,6 +7,7 @@ import { isPrismaSchemaMissingError } from "@/lib/prisma-schema-error"
 import {
   checkAllocation,
   movementBalances,
+  movementState,
   reconcileOrderCost,
   type AllocationRequest,
   type AllocationRow,
@@ -24,6 +25,7 @@ import {
  */
 export const REGISTER_AUDIT = {
   recorded: "procurement_debit.recorded",
+  reviewResolved: "procurement_debit.review_resolved",
   voided: "procurement_debit.voided",
   allocated: "procurement_debit.allocated",
   revoked: "procurement_debit.allocation_revoked",
@@ -37,6 +39,8 @@ const toMovement = (r: {
   source: string
   sourceReference: string
   status: string
+  reviewState: string
+  issuingCardId: string | null
   amountCents: number
   currency: string
   settledAmountCents: number | null
@@ -50,6 +54,9 @@ const toMovement = (r: {
   source: r.source,
   sourceReference: r.sourceReference,
   status: r.status === "voided" ? "voided" : "recorded",
+  // Anything that is not a known state is treated as waiting for review (fail closed: never allocatable by mistake).
+  reviewState: r.reviewState === "none" || r.reviewState === "resolved" ? r.reviewState : "needs_review",
+  issuingCardId: r.issuingCardId,
   amountCents: r.amountCents,
   currency: r.currency,
   settledAmountCents: r.settledAmountCents,
@@ -72,6 +79,8 @@ const MOVEMENT_SELECT = {
   source: true,
   sourceReference: true,
   status: true,
+  reviewState: true,
+  issuingCardId: true,
   amountCents: true,
   currency: true,
   settledAmountCents: true,
@@ -81,6 +90,13 @@ const MOVEMENT_SELECT = {
   occurredAt: true,
 } as const
 
+/** Orders Affisell's own record ties to an Issuing card (one single-use card per auto-buy order). */
+async function ordersOfCard(tx: Tx | typeof prisma, cardId: string | null): Promise<string[]> {
+  if (!cardId) return []
+  const logs = await tx.fulfillmentLog.findMany({ where: { virtualCardId: cardId }, select: { orderId: true } })
+  return [...new Set(logs.map((l) => l.orderId))]
+}
+
 function unavailable(e: unknown): boolean {
   return isPrismaSchemaMissingError(e)
 }
@@ -88,7 +104,7 @@ function unavailable(e: unknown): boolean {
 export type RecordResult =
   | { ok: true; id: string }
   | { ok: false; error: "already_recorded"; existingId: string }
-  | { ok: false; error: "parent_not_found" | "parent_not_a_debit" | "parent_voided" | "register_unavailable" }
+  | { ok: false; error: "parent_not_found" | "parent_not_a_debit" | "parent_voided" | "parent_is_imported" | "register_unavailable" }
 
 /** Records one movement. The same (source, reference) twice = `already_recorded` with the existing id, nothing written. */
 export async function recordProcurementDebit(input: DebitInput, actorId: string): Promise<RecordResult> {
@@ -100,15 +116,19 @@ export async function recordProcurementDebit(input: DebitInput, actorId: string)
       })
       if (existing) return { ok: false as const, error: "already_recorded" as const, existingId: existing.id }
       if (input.parentDebitId) {
-        const parent = await tx.procurementDebit.findUnique({ where: { id: input.parentDebitId }, select: { kind: true, status: true } })
+        const parent = await tx.procurementDebit.findUnique({ where: { id: input.parentDebitId }, select: { kind: true, status: true, source: true } })
         if (!parent) return { ok: false as const, error: "parent_not_found" as const }
         if (parent.kind !== "debit") return { ok: false as const, error: "parent_not_a_debit" as const }
+        // A typed refund / fee belongs to a typed debit of the same kind of source: an Issuing capture is only ever
+        // refunded by an Issuing refund (imported).
+        if (parent.source === "stripe_issuing") return { ok: false as const, error: "parent_is_imported" as const }
         if (parent.status !== "recorded") return { ok: false as const, error: "parent_voided" as const }
       }
       const row = await tx.procurementDebit.create({
         data: {
           kind: input.kind,
           source: input.source,
+          amountOrigin: "typed_from_document",
           sourceReference: input.sourceReference,
           amountCents: input.amountCents,
           currency: input.currency,
@@ -190,6 +210,7 @@ export async function allocateProcurementDebit(debitId: string, request: Allocat
         allocations: allocations.map(toAllocation),
         siblings: siblings.map(toMovement),
         request,
+        cardOrderIds: await ordersOfCard(tx, movement.issuingCardId),
       })
       if (!check.ok) return { ok: false as const, error: check.error, remainingCents: check.remainingCents }
       const row = await tx.procurementDebitAllocation.create({
@@ -291,7 +312,12 @@ export async function loadOrderCostReconciliations(
     const related = debitIds.length
       ? await prisma.procurementDebit.findMany({ where: { OR: [{ id: { in: debitIds } }, { parentDebitId: { in: debitIds } }] }, select: MOVEMENT_SELECT })
       : []
-    const movements = new Map([...first, ...related].map((m) => [m.id, toMovement(m)]))
+    // Movements waiting for review on the same Issuing cards (a refund Stripe could not tie): they keep the cost open.
+    const cards = [...new Set([...first, ...related].map((m) => m.issuingCardId).filter((c): c is string => !!c))]
+    const pending = cards.length
+      ? await prisma.procurementDebit.findMany({ where: { issuingCardId: { in: cards }, reviewState: "needs_review" }, select: MOVEMENT_SELECT })
+      : []
+    const movements = new Map([...first, ...related, ...pending].map((m) => [m.id, toMovement(m)]))
     ids = [...movements.keys()]
     const allocations = ids.length
       ? (
@@ -329,7 +355,18 @@ export async function listProcurementDebits(take = 100) {
     const rows = await prisma.procurementDebit.findMany({
       orderBy: { occurredAt: "desc" },
       take: Math.min(Math.max(take, 1), 500),
-      select: { ...MOVEMENT_SELECT, note: true, evidence: true, recordedById: true, createdAt: true, voidReason: true },
+      select: {
+        ...MOVEMENT_SELECT,
+        amountOrigin: true,
+        issuingAuthorizationId: true,
+        balanceTransactionId: true,
+        reviewReason: true,
+        note: true,
+        evidence: true,
+        recordedById: true,
+        createdAt: true,
+        voidReason: true,
+      },
     })
     const allocations = rows.length
       ? await prisma.procurementDebitAllocation.findMany({
@@ -347,12 +384,70 @@ export async function listProcurementDebits(take = 100) {
         evidence: r.evidence,
         voidReason: r.voidReason,
         recordedAt: r.createdAt.toISOString(),
+        amountOrigin: r.amountOrigin,
+        issuingAuthorizationId: r.issuingAuthorizationId,
+        balanceTransactionId: r.balanceTransactionId,
+        reviewReason: r.reviewReason,
+        state: movementState(toMovement(r), allocations.map(toAllocation)),
         balance: balances.get(r.id)!,
         allocations: allocations.filter((a) => a.debitId === r.id).map((a) => ({ ...a, createdAt: a.createdAt.toISOString() })),
       })),
     }
   } catch (e) {
     if (unavailable(e)) return { available: false as const, movements: [] }
+    throw e
+  }
+}
+
+/**
+ * A person resolves a movement kept apart (`needs_review`), with a reason. For a refund / reversal waiting for its
+ * debit, `parentDebitId` names it: a recorded DEBIT of the same source and, for Issuing, of the SAME card — never
+ * another card's purchase. Resolution never allocates anything by itself.
+ */
+export async function resolveProcurementReview(
+  id: string,
+  args: { reason: string; parentDebitId: string | null },
+  actorId: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const head = await tx.procurementDebit.findUnique({ where: { id }, select: { id: true } })
+      if (!head) return { ok: false as const, error: "not_found" }
+      if (args.parentDebitId) await lockMovement(tx, args.parentDebitId)
+      await lockMovement(tx, id)
+      const m = await tx.procurementDebit.findUnique({
+        where: { id },
+        select: { kind: true, source: true, status: true, reviewState: true, reviewReason: true, parentDebitId: true, issuingCardId: true },
+      })
+      if (!m) return { ok: false as const, error: "not_found" }
+      if (m.status !== "recorded") return { ok: false as const, error: "movement_voided" }
+      if (m.reviewState !== "needs_review") return { ok: false as const, error: "not_waiting_for_review" }
+      const needsParent = (m.kind === "refund" || m.kind === "refund_reversal") && !m.parentDebitId
+      if (needsParent && !args.parentDebitId) return { ok: false as const, error: "parent_required" }
+      if (args.parentDebitId) {
+        if (!(m.kind === "refund" || m.kind === "refund_reversal") || m.parentDebitId) return { ok: false as const, error: "parent_not_expected" }
+        const p = await tx.procurementDebit.findUnique({ where: { id: args.parentDebitId }, select: { kind: true, status: true, source: true, issuingCardId: true } })
+        if (!p || p.kind !== "debit" || p.status !== "recorded") return { ok: false as const, error: "parent_not_a_recorded_debit" }
+        if (p.source !== m.source) return { ok: false as const, error: "parent_other_source" }
+        if (m.issuingCardId && p.issuingCardId !== m.issuingCardId) return { ok: false as const, error: "parent_other_card" }
+      }
+      await tx.procurementDebit.update({
+        where: { id },
+        data: {
+          reviewState: "resolved",
+          reviewReason: `${m.reviewReason ?? ""} — résolu : ${args.reason}`.slice(0, 1000),
+          reviewedAt: new Date(),
+          reviewedById: actorId,
+          ...(args.parentDebitId ? { parentDebitId: args.parentDebitId } : {}),
+        },
+      })
+      await tx.auditLog.create({
+        data: { action: REGISTER_AUDIT.reviewResolved, entityType: "ProcurementDebit", entityId: id, actorId, payload: { reason: args.reason, parentDebitId: args.parentDebitId } },
+      })
+      return { ok: true as const }
+    })
+  } catch (e) {
+    if (unavailable(e)) return { ok: false, error: "register_unavailable" }
     throw e
   }
 }

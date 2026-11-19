@@ -11,6 +11,18 @@
  * An order's DEBITED amount and FULL COST are its REAL cost only when its reconciliation is COMPLETE
  * (`reconcileOrderCost`: status `reconciled`). Otherwise the figures are shown as provisional, never as the cost.
  *
+ * What is a movement and what is not (Stripe Issuing vocabulary, docs.stripe.com/issuing/purchases/transactions):
+ *  - an AUTHORIZATION is a hold, not money: it is never a movement (a reversed / expired one leaves nothing behind);
+ *  - a CAPTURE moved money out (`issuing.transaction` type `capture`, negative amount) → kind `debit`;
+ *  - a REFUND moved money back (type `refund`, positive amount) → kind `refund`;
+ *  - a REFUND REVERSAL took a refund back (type `refund`, NEGATIVE amount — rare) → kind `refund_reversal`, counted as
+ *    money out again;
+ *  - a FEE is charged on top (card / FX / customs invoices) → kind `fee`;
+ *  - an order cancelled at the source AFTER capture comes back as a refund; before capture it is only a released hold.
+ * Where the figures come from (`amountOrigin`): `read_from_source` (an Issuing transaction imported by the server —
+ * the only way an Issuing movement exists) or `typed_from_document` (statement / invoice, with its evidence). A
+ * movement the importer could not tie with certainty is kept APART (`reviewState: needs_review`): visible, never
+ * allocatable until a person resolves it.
  * Reconciliation = allocating a movement (or part of it) to an order. One movement can cover several orders (grouped
  * purchase: `grouped_split`), one order can be paid by several movements (`partial_payment`), a refund gives back part
  * of ONE debit and is allocated to orders that debit covered, a fee may follow a debit or stand alone.
@@ -22,11 +34,19 @@
  */
 import type { ObservedCostEntry } from "@/lib/supplier-costs/observed-cost-register"
 
-export const DEBIT_KINDS = ["debit", "refund", "fee"] as const
+export const DEBIT_KINDS = ["debit", "refund", "refund_reversal", "fee"] as const
 export type DebitKind = (typeof DEBIT_KINDS)[number]
 
 export const DEBIT_SOURCES = ["stripe_issuing", "card_statement", "bank_statement", "supplier_invoice_paid"] as const
 export type DebitSource = (typeof DEBIT_SOURCES)[number]
+/** Sources a PERSON may type from a document. Issuing movements are only ever imported from Stripe. */
+export const TYPED_SOURCES = ["card_statement", "bank_statement", "supplier_invoice_paid"] as const
+
+export const AMOUNT_ORIGINS = ["read_from_source", "typed_from_document"] as const
+export type AmountOrigin = (typeof AMOUNT_ORIGINS)[number]
+
+export const REVIEW_STATES = ["none", "needs_review", "resolved"] as const
+export type ReviewState = (typeof REVIEW_STATES)[number]
 
 export const ALLOCATION_BASES = ["single_order", "grouped_split", "partial_payment", "manual"] as const
 export type AllocationBasis = (typeof ALLOCATION_BASES)[number]
@@ -118,6 +138,8 @@ export function parseDebitInput(body: unknown, now: Date): { ok: true; value: De
   if (!kind) errors.push("kind_invalid")
   const source = oneOf(DEBIT_SOURCES, b.source)
   if (!source) errors.push("source_invalid")
+  // A person never types an Issuing movement: it is read from Stripe by the importer (verifiable figures).
+  else if (source === "stripe_issuing") errors.push("issuing_is_imported_not_typed")
   const ref = str(b.sourceReference, 200) ?? ""
   if (ref.length < 1) errors.push("reference_required")
   else if (looksLikeCardNumber(ref)) errors.push("reference_looks_like_card_number")
@@ -139,7 +161,7 @@ export function parseDebitInput(body: unknown, now: Date): { ok: true; value: De
   if (!Number.isFinite(occurred) || occurred < EARLIEST) errors.push("occurred_at_invalid")
   else if (occurred > now.getTime() + 86_400_000) errors.push("occurred_at_in_future")
   const parent = typeof b.parentDebitId === "string" && b.parentDebitId.trim() ? b.parentDebitId.trim().slice(0, 64) : null
-  if (kind === "refund" && !parent) errors.push("refund_needs_its_debit")
+  if ((kind === "refund" || kind === "refund_reversal") && !parent) errors.push("refund_needs_its_debit")
   if (kind === "debit" && parent) errors.push("debit_has_no_parent")
   const includesDelivery = typeof b.includesDelivery === "boolean" ? b.includesDelivery : null
   const vat = b.vatTreatment == null ? "unknown" : oneOf(VAT_TREATMENTS, b.vatTreatment)
@@ -147,7 +169,7 @@ export function parseDebitInput(body: unknown, now: Date): { ok: true; value: De
   const evidence = parseEvidence(b.evidence)
   if (!evidence.ok) errors.push(evidence.error)
   // A movement typed from a statement or an invoice needs the document it was read from.
-  if (evidence.ok && source && source !== "stripe_issuing" && evidence.value.length === 0) errors.push("evidence_required")
+  if (evidence.ok && source && evidence.value.length === 0) errors.push("evidence_required")
   const note = str(b.note, 1000) ?? ""
   if (looksLikeCardNumber(note)) errors.push("note_looks_like_card_number")
   if (errors.length > 0) return { ok: false, errors }
@@ -194,6 +216,8 @@ export type MovementRow = {
   source: string
   sourceReference: string
   status: "recorded" | "voided"
+  reviewState?: ReviewState
+  issuingCardId?: string | null
   amountCents: number
   currency: string
   settledAmountCents: number | null
@@ -210,11 +234,15 @@ export type AllocationCheck =
       ok: false
       error:
         | "movement_voided"
+        | "movement_needs_review"
+        | "refund_without_its_debit"
+        | "order_not_linked_to_card"
         | "settled_amount_unknown"
         | "already_allocated_to_order"
         | "over_allocated"
         | "parent_not_allocated_to_order"
         | "refund_exceeds_order_share"
+        | "reversal_exceeds_order_refunds"
       remainingCents?: number
     }
 
@@ -228,9 +256,17 @@ export function checkAllocation(args: {
   allocations: ReadonlyArray<AllocationRow>
   siblings: ReadonlyArray<MovementRow>
   request: AllocationRequest
+  /**
+   * For an Issuing movement: the orders Affisell's own record ties to its card (`FulfillmentLog.virtualCardId`). An
+   * Issuing movement can only be allocated to one of them — never to an order chosen by hand.
+   */
+  cardOrderIds?: ReadonlyArray<string>
 }): AllocationCheck {
   const { movement: m, request: r } = args
   if (m.status !== "recorded") return { ok: false, error: "movement_voided" }
+  if (m.reviewState === "needs_review") return { ok: false, error: "movement_needs_review" }
+  if ((m.kind === "refund" || m.kind === "refund_reversal") && !m.parentDebitId) return { ok: false, error: "refund_without_its_debit" }
+  if (m.source === "stripe_issuing" && !(args.cardOrderIds ?? []).includes(r.orderId)) return { ok: false, error: "order_not_linked_to_card" }
   if (m.settledAmountCents == null) return { ok: false, error: "settled_amount_unknown" }
   const active = args.allocations.filter((a) => a.status === "active")
   const own = active.filter((a) => a.debitId === m.id)
@@ -241,14 +277,41 @@ export function checkAllocation(args: {
   if (m.parentDebitId && args.parent) {
     const parentShare = active.filter((a) => a.debitId === args.parent!.id && a.orderId === r.orderId).reduce((s, a) => s + a.amountCents, 0)
     if (parentShare === 0) return { ok: false, error: "parent_not_allocated_to_order" }
+    const sumOf = (kind: DebitKind) => {
+      const ids = new Set(args.siblings.filter((s) => s.kind === kind && s.status === "recorded" && s.id !== m.id).map((s) => s.id))
+      return active.filter((a) => ids.has(a.debitId) && a.orderId === r.orderId).reduce((s, a) => s + a.amountCents, 0)
+    }
+    // Net refunded to this order = refunds − reversals already allocated (all movements of the same debit).
+    const refunded = sumOf("refund")
+    const reversed = sumOf("refund_reversal")
     if (m.kind === "refund") {
-      // Refunds of the same debit already given to this order count against its share: never refund more than was paid.
-      const refundIds = new Set(args.siblings.filter((s) => s.kind === "refund" && s.status === "recorded" && s.id !== m.id).map((s) => s.id))
-      const alreadyRefunded = active.filter((a) => refundIds.has(a.debitId) && a.orderId === r.orderId).reduce((s, a) => s + a.amountCents, 0)
-      if (alreadyRefunded + r.amountCents > parentShare) return { ok: false, error: "refund_exceeds_order_share", remainingCents: parentShare - alreadyRefunded }
+      // Never refund more than was paid for this order.
+      const room = parentShare - (refunded - reversed)
+      if (r.amountCents > room) return { ok: false, error: "refund_exceeds_order_share", remainingCents: room }
+    }
+    if (m.kind === "refund_reversal") {
+      // A reversal only takes back a refund this order received.
+      const room = refunded - reversed
+      if (r.amountCents > room) return { ok: false, error: "reversal_exceeds_order_refunds", remainingCents: Math.max(0, room) }
     }
   }
   return { ok: true, remainingAfterCents: remaining - r.amountCents }
+}
+
+function kindLabel(k: DebitKind): string {
+  return k === "refund" ? "remboursement" : k === "refund_reversal" ? "annulation de remboursement" : k === "fee" ? "frais" : "débit"
+}
+
+/** Where a movement stands — unreconciled movements are a state of their own, never mixed with allocated ones. */
+export type MovementState = "voided" | "needs_review" | "unallocated" | "partially_allocated" | "fully_allocated" | "not_allocatable"
+
+export function movementState(m: MovementRow, allocations: ReadonlyArray<AllocationRow>): MovementState {
+  if (m.status === "voided") return "voided"
+  if (m.reviewState === "needs_review") return "needs_review"
+  if (m.settledAmountCents == null) return "not_allocatable"
+  const used = allocations.filter((a) => a.status === "active" && a.debitId === m.id).reduce((s, a) => s + a.amountCents, 0)
+  if (used === 0) return "unallocated"
+  return used >= m.settledAmountCents ? "fully_allocated" : "partially_allocated"
 }
 
 export type ReconciliationStatus = "not_reconciled" | "incomplete" | "reconciled"
@@ -309,7 +372,7 @@ export function reconcileOrderCost(args: {
   const allocatedTotal = (id: string) => active.filter((a) => a.debitId === id).reduce((s, a) => s + a.amountCents, 0)
   const mine = active.filter((a) => a.orderId === args.orderId)
   const sumKind = (k: DebitKind) => mine.filter((a) => byId.get(a.debitId)!.kind === k).reduce((s, a) => s + a.amountCents, 0)
-  const debited = sumKind("debit")
+  const debited = sumKind("debit") + sumKind("refund_reversal")
   const refunded = sumKind("refund")
   const fees = sumKind("fee")
   const reasons: string[] = []
@@ -324,18 +387,27 @@ export function reconcileOrderCost(args: {
       reasons.push(
         m.kind === "debit"
           ? `débit ${m.sourceReference} réparti en partie seulement (${rest} c non attribués) : la part de cette commande n'est pas établie`
-          : `${m.kind === "refund" ? "remboursement" : "frais"} ${m.sourceReference} réparti en partie seulement`
+          : `${kindLabel(m.kind)} ${m.sourceReference} réparti en partie seulement`
       )
     }
   }
   // Refunds / fees of this order's debits that are not shared out at all: the order's cost is not settled yet.
   for (const d of myDebits) {
     for (const child of recorded.filter((c) => c.parentDebitId === d.id)) {
-      if (involved.has(child.id)) continue
+      if (involved.has(child.id) || child.reviewState === "needs_review") continue
       const rest = (child.settledAmountCents ?? 0) - allocatedTotal(child.id)
-      if (child.settledAmountCents == null) reasons.push(`${child.kind === "refund" ? "remboursement" : "frais"} ${child.sourceReference} sans montant réglé en euros`)
-      else if (rest > 0) reasons.push(`${child.kind === "refund" ? "remboursement" : "frais"} ${child.sourceReference} du débit ${d.sourceReference} non réparti`)
+      if (child.settledAmountCents == null) reasons.push(`${kindLabel(child.kind)} ${child.sourceReference} sans montant réglé en euros`)
+      else if (rest > 0) reasons.push(`${kindLabel(child.kind)} ${child.sourceReference} du débit ${d.sourceReference} non réparti`)
     }
+  }
+  // Movements waiting for a person that touch this order's purchases (same debit, or same Issuing card): its cost is
+  // not settled while they are not resolved.
+  const myCards = new Set(myDebits.map((d) => d.issuingCardId).filter((c): c is string => !!c))
+  for (const m of recorded) {
+    if (m.reviewState !== "needs_review" || involved.has(m.id)) continue
+    const sameDebit = m.parentDebitId != null && myDebits.some((d) => d.id === m.parentDebitId)
+    const sameCard = !!m.issuingCardId && myCards.has(m.issuingCardId)
+    if (sameDebit || sameCard) reasons.push(`mouvement ${m.sourceReference} à examiner (rattachement incertain)`)
   }
   const net = debited - refunded
   if (net < 0) reasons.push("remboursements supérieurs aux débits rapprochés")

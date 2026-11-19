@@ -8,6 +8,7 @@ import {
   entriesFromReconciliation,
   looksLikeCardNumber,
   movementBalances,
+  movementState,
   parseAllocationInput,
   parseDebitInput,
   reconcileOrderCost,
@@ -18,13 +19,14 @@ import { compareDeclaredWithObserved } from "@/lib/supplier-costs/declared-vs-ob
 import { validateObservedCostEntry } from "@/lib/supplier-costs/observed-cost-register"
 
 const now = new Date("2026-11-19T10:00:00.000Z")
-const base = { kind: "debit", source: "stripe_issuing", sourceReference: "ipi_1", amountCents: 1300, currency: "USD", settledAmountCents: 1200, occurredAt: "2026-11-10T00:00:00.000Z" }
+const ev = [{ type: "statement_line", reference: "relevé novembre", description: "ligne 12" }]
+const base = { kind: "debit", source: "card_statement", sourceReference: "L-1", amountCents: 1300, currency: "USD", settledAmountCents: 1200, occurredAt: "2026-11-10T00:00:00.000Z", evidence: ev }
 
 const D: MovementRow = {
   id: "d1",
   kind: "debit",
-  source: "stripe_issuing",
-  sourceReference: "ipi_1",
+  source: "card_statement",
+  sourceReference: "L-1",
   status: "recorded",
   amountCents: 1300,
   currency: "USD",
@@ -54,12 +56,14 @@ describe("recording a movement", () => {
     expect(looksLikeCardNumber("ref 4111111111111111 x")).toBe(true)
     expect(looksLikeCardNumber("1731990000002")).toBe(false) // a 13-digit timestamp-like id that fails Luhn is kept
     expect(parseDebitInput({ ...base, sourceReference: "4242-4242-4242-4242" }, now)).toMatchObject({ ok: false, errors: ["reference_looks_like_card_number"] })
-    expect(parseDebitInput({ ...base, source: "bank_statement" }, now)).toMatchObject({ ok: false, errors: ["evidence_required"] })
+    expect(parseDebitInput({ ...base, source: "bank_statement", evidence: [] }, now)).toMatchObject({ ok: false, errors: ["evidence_required"] })
+    expect(parseDebitInput({ ...base, source: "stripe_issuing" }, now)).toMatchObject({ ok: false, errors: ["issuing_is_imported_not_typed"] })
     expect(parseDebitInput({ ...base, source: "bank_statement", evidence: [{ type: "statement_line", description: "relevé 4242424242424242" }] }, now)).toMatchObject({
       ok: false,
       errors: ["evidence_looks_like_card_number"],
     })
     expect(parseDebitInput({ ...base, kind: "refund" }, now)).toMatchObject({ ok: false, errors: ["refund_needs_its_debit"] })
+    expect(parseDebitInput({ ...base, kind: "refund_reversal" }, now)).toMatchObject({ ok: false, errors: ["refund_needs_its_debit"] })
     expect(parseDebitInput({ ...base, parentDebitId: "x" }, now)).toMatchObject({ ok: false, errors: ["debit_has_no_parent"] })
     expect(parseDebitInput({ ...base, occurredAt: "2027-01-01" }, now)).toMatchObject({ ok: false, errors: ["occurred_at_in_future"] })
   })
@@ -90,6 +94,45 @@ describe("allocation — no double counting", () => {
   })
   it("balances flag an over-allocation that could only come from a bypassing write", () => {
     expect(movementBalances([D], [al("a1", "d1", "o1", 1000), al("a2", "d1", "o2", 300)])[0]).toMatchObject({ allocatedCents: 1300, remainingCents: -100, overAllocated: true })
+  })
+})
+
+describe("lifecycle — review, Issuing card link, refund reversals", () => {
+  const req = (orderId: string, amountCents: number) => ({ orderId, amountCents, basis: "single_order" as const, note: "" })
+  const I: MovementRow = { ...D, source: "stripe_issuing", sourceReference: "ipi_c1", issuingCardId: "ic_k1", reviewState: "none" }
+  it("an Issuing movement goes only to an order Affisell's own record ties to its card", () => {
+    expect(checkAllocation({ movement: I, parent: null, allocations: [], siblings: [], request: req("o9", 100), cardOrderIds: ["o1"] })).toEqual({ ok: false, error: "order_not_linked_to_card" })
+    expect(checkAllocation({ movement: I, parent: null, allocations: [], siblings: [], request: req("o1", 100) })).toEqual({ ok: false, error: "order_not_linked_to_card" })
+    expect(checkAllocation({ movement: I, parent: null, allocations: [], siblings: [], request: req("o1", 100), cardOrderIds: ["o1"] }).ok).toBe(true)
+  })
+  it("a movement kept apart for review, or a refund without its debit, is never allocatable", () => {
+    expect(checkAllocation({ movement: { ...D, reviewState: "needs_review" }, parent: null, allocations: [], siblings: [], request: req("o1", 1) })).toEqual({ ok: false, error: "movement_needs_review" })
+    expect(checkAllocation({ movement: { ...R, parentDebitId: null }, parent: null, allocations: [], siblings: [], request: req("o1", 1) })).toEqual({ ok: false, error: "refund_without_its_debit" })
+  })
+  it("a reversal only takes back a refund the order received, and counts as money out again", () => {
+    const V: MovementRow = { ...R, id: "v1", kind: "refund_reversal", sourceReference: "ipv_1", settledAmountCents: 100 }
+    const a = [al("a1", "d1", "o1", 1200), al("b1", "r1", "o1", 180)]
+    expect(checkAllocation({ movement: V, parent: D, allocations: a, siblings: [R, V], request: req("o1", 181) })).toEqual({ ok: false, error: "reversal_exceeds_order_refunds", remainingCents: 180 })
+    expect(checkAllocation({ movement: V, parent: D, allocations: a, siblings: [R, V], request: req("o1", 100) }).ok).toBe(true)
+    const rec = reconcileOrderCost({ orderId: "o1", storedSourcePriceCents: null, movements: [D, R, V], allocations: [...a, al("c1", "v1", "o1", 100)] })
+    expect(rec).toMatchObject({ status: "reconciled", debitedCents: 1300, refundedCents: 180, realDebitedCents: 1120 })
+    // After a reversal the room for refunds grows back accordingly.
+    const R2: MovementRow = { ...R, id: "r2", sourceReference: "ipr_2", settledAmountCents: 1200 }
+    expect(checkAllocation({ movement: R2, parent: D, allocations: [...a, al("c1", "v1", "o1", 100)], siblings: [R, V, R2], request: req("o1", 1121) })).toMatchObject({ ok: false, error: "refund_exceeds_order_share", remainingCents: 1120 })
+  })
+  it("a movement waiting for review on the same card keeps the order's cost provisional", () => {
+    const pending: MovementRow = { ...I, id: "rp", kind: "refund", sourceReference: "ipi_r9", parentDebitId: null, reviewState: "needs_review", settledAmountCents: 300 }
+    const rec = reconcileOrderCost({ orderId: "o1", storedSourcePriceCents: null, movements: [I, pending], allocations: [al("a1", "d1", "o1", 1200)] })
+    expect(rec.status).toBe("incomplete")
+    expect(rec.reasons[0]).toMatch(/ipi_r9 à examiner/)
+  })
+  it("states are distinct: voided, needs review, unallocated, partial, full, not allocatable", () => {
+    expect(movementState({ ...D, status: "voided" }, [])).toBe("voided")
+    expect(movementState({ ...D, reviewState: "needs_review" }, [])).toBe("needs_review")
+    expect(movementState({ ...D, settledAmountCents: null }, [])).toBe("not_allocatable")
+    expect(movementState(D, [])).toBe("unallocated")
+    expect(movementState(D, [al("a", "d1", "o1", 100)])).toBe("partially_allocated")
+    expect(movementState(D, [al("a", "d1", "o1", 1200)])).toBe("fully_allocated")
   })
 })
 
@@ -163,6 +206,8 @@ describe("isolation", () => {
   it("the migration guards against double counting in the database itself", () => {
     const sql = readFileSync(path.resolve(__dirname, "../../prisma/migrations/20261119090000_procurement_debit_register/migration.sql"), "utf8")
     expect(sql).toMatch(/ProcurementDebit_source_sourceReference_key/)
+    expect(sql).toMatch(/ProcurementDebit_issuing_check/)
+    expect(sql).toMatch(/"reviewState" <> 'needs_review'/)
     expect(sql).toMatch(/WHERE "status" = 'active'/)
     expect(sql).toMatch(/procurement_debit_over_allocated/)
     expect(sql).toMatch(/FOR UPDATE/)

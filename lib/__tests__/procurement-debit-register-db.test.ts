@@ -103,7 +103,18 @@ describe.skipIf(!RUN_DB)("procurement debit register — real database", { timeo
 
   const record = async (over: Record<string, unknown>) => {
     const parsed = pure.parseDebitInput(
-      { kind: "debit", source: "stripe_issuing", amountCents: 1300, currency: "USD", settledAmountCents: 1200, occurredAt: now.toISOString(), includesDelivery: true, vatTreatment: "included", ...over },
+      {
+        kind: "debit",
+        source: "card_statement",
+        amountCents: 1300,
+        currency: "USD",
+        settledAmountCents: 1200,
+        occurredAt: now.toISOString(),
+        includesDelivery: true,
+        vatTreatment: "included",
+        evidence: [{ type: "statement_line", reference: "relevé", description: "ligne" }],
+        ...over,
+      },
       new Date()
     )
     if (!parsed.ok) throw new Error(parsed.errors.join(","))
@@ -121,14 +132,25 @@ describe.skipIf(!RUN_DB)("procurement debit register — real database", { timeo
   it("the database refuses a refund without its debit and a euro amount with a different settled figure", async () => {
     await expect(
       prisma.$executeRawUnsafe(
-        `INSERT INTO "ProcurementDebit" ("id","kind","source","sourceReference","amountCents","currency","occurredAt","recordedById") VALUES ('x_${stamp}','refund','bank_statement','r_${stamp}',10,'EUR',now(),'a')`
+        `INSERT INTO "ProcurementDebit" ("id","kind","source","amountOrigin","sourceReference","amountCents","currency","settledAmountCents","settledCurrency","occurredAt","recordedById") VALUES ('x_${stamp}','refund','bank_statement','typed_from_document','r_${stamp}',10,'EUR',10,'EUR',now(),'a')`
       )
-    ).rejects.toThrow(/ProcurementDebit_parent_check|ProcurementDebit_eur_settled_check/)
+    ).rejects.toThrow(/ProcurementDebit_parent_check/)
     await expect(
       prisma.$executeRawUnsafe(
-        `INSERT INTO "ProcurementDebit" ("id","kind","source","sourceReference","amountCents","currency","settledAmountCents","settledCurrency","occurredAt","recordedById") VALUES ('y_${stamp}','debit','bank_statement','e_${stamp}',1000,'EUR',900,'EUR',now(),'a')`
+        `INSERT INTO "ProcurementDebit" ("id","kind","source","amountOrigin","sourceReference","amountCents","currency","settledAmountCents","settledCurrency","occurredAt","recordedById") VALUES ('y_${stamp}','debit','bank_statement','typed_from_document','e_${stamp}',1000,'EUR',900,'EUR',now(),'a')`
       )
     ).rejects.toThrow(/ProcurementDebit_eur_settled_check/)
+    // An Issuing movement can not be typed by a person, nor carry anything but Stripe ids.
+    await expect(
+      prisma.$executeRawUnsafe(
+        `INSERT INTO "ProcurementDebit" ("id","kind","source","amountOrigin","sourceReference","amountCents","currency","settledAmountCents","settledCurrency","occurredAt","issuingCardId","recordedById") VALUES ('z_${stamp}','debit','stripe_issuing','typed_from_document','ipi_z${stamp}',1000,'EUR',1000,'EUR',now(),'ic_k','a')`
+      )
+    ).rejects.toThrow(/ProcurementDebit_issuing_check|ProcurementDebit_typed_check/)
+    await expect(
+      prisma.$executeRawUnsafe(
+        `INSERT INTO "ProcurementDebit" ("id","kind","source","amountOrigin","sourceReference","amountCents","currency","settledAmountCents","settledCurrency","occurredAt","issuingCardId","recordedById") VALUES ('w_${stamp}','debit','stripe_issuing','read_from_source','ipi_w${stamp}',1000,'EUR',1000,'EUR',now(),'4242424242424242','a')`
+      )
+    ).rejects.toThrow(/ProcurementDebit_issuing_check|ProcurementDebit_stripe_ids_check/)
   })
 
   it("a grouped debit is shared out; over-allocation is refused by the code AND by the trigger, even concurrently", async () => {
@@ -181,5 +203,86 @@ describe.skipIf(!RUN_DB)("procurement debit register — real database", { timeo
     expect(await reg.voidProcurementDebit(full.id, "saisie en double", "admin-test")).toMatchObject({ ok: true, revokedAllocations: 1 })
     expect(await prisma.procurementDebit.findUnique({ where: { id: full.id }, select: { status: true } })).toEqual({ status: "voided" })
     expect(await reg.allocateProcurementDebit(full.id, { orderId: ids.orders[2]!, amountCents: 1, basis: "single_order", note: "" }, "admin-test")).toMatchObject({ ok: false, error: "movement_voided" })
+  })
+
+  it("Issuing import: reads through the injected GET reader only, ties by card, keeps uncertain refunds apart, is idempotent", async () => {
+    const imp = await import("@/lib/procurement-debits/issuing-import.server")
+    const [o1, o2] = ids.orders as [string, string]
+    const card1 = `ic_k1${stamp}`
+    const card2 = `ic_k2${stamp}`
+    await prisma.fulfillmentLog.create({ data: { orderId: o1, orderItemId: o1, virtualCardId: card1 } })
+    await prisma.fulfillmentLog.create({ data: { orderId: o2, orderItemId: o2, virtualCardId: card2 } })
+    const t = (o: Record<string, unknown>) => ({
+      object: "issuing.transaction",
+      type: "capture",
+      currency: "eur",
+      merchant_currency: "eur",
+      authorization: null,
+      balance_transaction: null,
+      created: Math.floor(now.getTime() / 1000),
+      livemode: false,
+      ...o,
+    })
+    const data = [
+      t({ id: `ipi_c1${stamp}`, amount: -900, merchant_amount: -900, card: card1, authorization: `iauth_a1${stamp}` }),
+      t({ id: `ipi_r1${stamp}`, type: "refund", amount: 200, merchant_amount: 200, card: card1 }),
+      t({ id: `ipi_c2${stamp}`, amount: -500, merchant_amount: -500, card: card2, authorization: `iauth_a2${stamp}` }),
+      t({ id: `ipi_c3${stamp}`, amount: -300, merchant_amount: -300, card: card2, authorization: `iauth_a3${stamp}` }),
+      t({ id: `ipi_r2${stamp}`, type: "refund", amount: 100, merchant_amount: 100, card: card2 }),
+    ]
+    const calls: string[] = []
+    const reader = Object.freeze({
+      async listTransactions(args: { createdGte: number; startingAfter?: string }) {
+        calls.push(`GET created>=${args.createdGte}`)
+        return { ok: true as const, data, hasMore: false }
+      },
+    })
+    const dry = await imp.importIssuingTransactions({ reader, livemode: false, since: 0 })
+    expect(dry).toMatchObject({ ok: true, applied: false, recorded: 0 })
+    expect(await prisma.procurementDebit.count({ where: { sourceReference: { contains: stamp }, source: "stripe_issuing" } })).toBe(0)
+
+    const run = await imp.importIssuingTransactions({ reader, livemode: false, since: 0, apply: true })
+    expect(run).toMatchObject({ ok: true, applied: true, recorded: 5 })
+    const r2 = await prisma.procurementDebit.findUniqueOrThrow({ where: { source_sourceReference: { source: "stripe_issuing", sourceReference: `ipi_r2${stamp}` } } })
+    expect(r2).toMatchObject({ reviewState: "needs_review", parentDebitId: null, amountOrigin: "read_from_source" })
+    const r1 = await prisma.procurementDebit.findUniqueOrThrow({ where: { source_sourceReference: { source: "stripe_issuing", sourceReference: `ipi_r1${stamp}` } }, select: { parentDebitId: true, reviewState: true } })
+    expect(r1.reviewState).toBe("none")
+    expect(r1.parentDebitId).not.toBeNull()
+    const view = (await reg.loadOrderCostReconciliations([{ id: o1, storedSourcePriceCents: null }, { id: o2, storedSourcePriceCents: null }])) as {
+      available: true
+      byOrder: Map<string, { status: string; realDebitedCents: number | null; debitedCents: number }>
+    }
+    // o1: capture 900 auto-allocated, its refund 200 auto-allocated (but o1 also holds earlier test movements).
+    expect(view.byOrder.get(o2)).toMatchObject({ status: "incomplete" })
+
+    // A second run records nothing new.
+    const again = await imp.importIssuingTransactions({ reader, livemode: false, since: 0, apply: true })
+    expect(again).toMatchObject({ ok: true, recorded: 0 })
+    expect((again as { plan: { alreadyRecorded: string[] } }).plan.alreadyRecorded).toHaveLength(5)
+    expect(calls.every((c) => c.startsWith("GET"))).toBe(true)
+
+    // A person ties the uncertain refund to one of the card's purchases — never to another card's.
+    const c1 = await prisma.procurementDebit.findUniqueOrThrow({ where: { source_sourceReference: { source: "stripe_issuing", sourceReference: `ipi_c1${stamp}` } }, select: { id: true } })
+    const c3 = await prisma.procurementDebit.findUniqueOrThrow({ where: { source_sourceReference: { source: "stripe_issuing", sourceReference: `ipi_c3${stamp}` } }, select: { id: true } })
+    expect(await reg.resolveProcurementReview(r2.id, { reason: "lu sur le reçu", parentDebitId: c1.id }, "admin-test")).toEqual({ ok: false, error: "parent_other_card" })
+    expect(await reg.resolveProcurementReview(r2.id, { reason: "lu sur le reçu", parentDebitId: c3.id }, "admin-test")).toEqual({ ok: true })
+    // An Issuing movement can not go to an order its card is not tied to.
+    expect(await reg.allocateProcurementDebit(c3.id, { orderId: o1, amountCents: 1, basis: "manual", note: "essai" }, "admin-test")).toMatchObject({ ok: false, error: "order_not_linked_to_card" })
+    await prisma.fulfillmentLog.deleteMany({ where: { orderId: { in: [o1, o2] } } })
+  })
+
+  it("rollback script removes the register cleanly and the migration re-applies", async () => {
+    const down = statements(readFileSync(path.join(process.cwd(), "scripts/migration-rollbacks/20261119090000_procurement_debit_register.down.sql"), "utf8"))
+    const keep = await prisma.$queryRawUnsafe<Array<{ n: bigint }>>(`SELECT count(*)::bigint AS n FROM "Order" WHERE "id" = ANY($1)`, ids.orders)
+    for (const st of down) await prisma.$executeRawUnsafe(st)
+    const left = await prisma.$queryRawUnsafe<Array<{ t: string | null }>>(`SELECT to_regclass('"ProcurementDebit"')::text AS t`)
+    expect(left[0]?.t).toBeNull()
+    const fn = await prisma.$queryRawUnsafe<Array<{ n: bigint }>>(`SELECT count(*)::bigint AS n FROM pg_proc WHERE proname = 'affisell_procurement_allocation_within_debit'`)
+    expect(Number(fn[0]!.n)).toBe(0)
+    // Nothing outside the register was touched.
+    const still = await prisma.$queryRawUnsafe<Array<{ n: bigint }>>(`SELECT count(*)::bigint AS n FROM "Order" WHERE "id" = ANY($1)`, ids.orders)
+    expect(still[0]!.n).toBe(keep[0]!.n)
+    for (const st of statements(readFileSync(MIGRATION, "utf8"))) await prisma.$executeRawUnsafe(st)
+    expect(await prisma.procurementDebit.count()).toBe(0)
   })
 })

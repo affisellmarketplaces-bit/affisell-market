@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest"
 
 import { sweepLinesFromOrders } from "@/lib/contract-models/history-lines"
 import {
+  declarationEffectiveAt,
   declarationInForceAt,
   parseEffectiveFrom,
   parseStoredDeclaration,
@@ -12,6 +13,7 @@ import {
   type StoredDeclaration,
 } from "@/lib/supplier-costs/declaration"
 import { compareDeclaredWithObserved } from "@/lib/supplier-costs/declared-vs-observed"
+import { currentQualification, parseQualificationEvent, type QualificationEvent } from "@/lib/supplier-costs/qualification"
 import { entryFromOrderSnapshot } from "@/lib/supplier-costs/observed-cost-register"
 import {
   listVariantOptions,
@@ -117,6 +119,82 @@ describe("per-variant resolution — a variant's cost never serves another", () 
       ["a", 800, "variant"],
       ["b", 500, "product"],
     ])
+  })
+})
+
+describe("no historical order ever gets a declaration made or effective after its payment (exhaustive grid)", () => {
+  const day = (n: number) => new Date(Date.UTC(2026, 9, 1) + n * 86_400_000)
+  it("product-wide and per-variant histories, every payment day", () => {
+    // Declarations made on days 0..20, each effective the same day or up to 10 days later, for the product and 2 variants.
+    const history: StoredDeclaration[] = []
+    let k = 0
+    for (let d = 0; d <= 20; d += 2) {
+      for (const lag of [0, 3, 10]) {
+        for (const variantKey of [null, "noir|m", "noir|l"]) {
+          k += 1
+          history.push(
+            decl({
+              unitCostCents: 100 + k,
+              declaredAt: day(d).toISOString(),
+              effectiveFrom: day(d + lag).toISOString(),
+              variantKey,
+              variantLabel: variantKey,
+            })
+          )
+        }
+      }
+    }
+    let checked = 0
+    for (let p = -2; p <= 40; p++) {
+      const paidAt = new Date(day(p).getTime() + 12 * 3_600_000)
+      for (const variantKey of [null, "noir|m", "noir|l", "rouge|s"]) {
+        const r = resolveDeclarationForLine({
+          productHistory: history.filter((h) => !h.variantKey),
+          variantHistory: history.filter((h) => !!h.variantKey),
+          variantKey,
+          at: paidAt,
+        })
+        checked += 1
+        if (!r.declaration) continue
+        expect(Date.parse(r.declaration.declaredAt)).toBeLessThanOrEqual(paidAt.getTime())
+        expect(declarationEffectiveAt(r.declaration)).toBeLessThanOrEqual(paidAt.getTime())
+        // Never another variant's figure.
+        if (r.scope === "variant") expect(r.declaration.variantKey).toBe(variantKey)
+        else expect(r.declaration.variantKey ?? null).toBeNull()
+        // And it is the LATEST one already effective for that scope.
+        const pool = history.filter((h) => (r.scope === "variant" ? h.variantKey === variantKey : !h.variantKey) && declarationEffectiveAt(h) <= paidAt.getTime())
+        const best = Math.max(...pool.map((h) => declarationEffectiveAt(h)))
+        expect(declarationEffectiveAt(r.declaration)).toBe(best)
+      }
+    }
+    expect(checked).toBe(43 * 4)
+  })
+
+  it("a declaration recorded today with a past effective date can not exist (refused at input, distrusted when stored)", () => {
+    const now = new Date("2026-11-19T10:00:00.000Z")
+    expect(parseEffectiveFrom("2026-11-19T09:00:00.000Z", now)).toEqual({ ok: false, error: "effective_from_in_past" })
+    // Within the 5-minute clock tolerance it is clamped to now — never earlier.
+    expect(parseEffectiveFrom("2026-11-19T09:58:00.000Z", now)).toEqual({ ok: true, value: now.toISOString() })
+  })
+})
+
+describe("qualification changes are per declaration and per scope", () => {
+  const ev = (o: Partial<QualificationEvent>): QualificationEvent => ({ declarationN: 1, state: "verified", by: "adm", role: "admin", note: "ok", at: "2026-10-10T00:00:00.000Z", ...o })
+  it("latest event of THIS declaration wins; another version's events never count", () => {
+    const events = [ev({ state: "verified" }), ev({ state: "disputed", at: "2026-10-12T00:00:00.000Z" }), ev({ declarationN: 2, state: "verified", at: "2026-10-13T00:00:00.000Z" })]
+    expect(currentQualification(events, 1)).toBe("disputed")
+    expect(currentQualification(events, 2)).toBe("verified")
+    expect(currentQualification(events, 3)).toBe("unverified")
+  })
+  it("a product-wide event list and a variant event list are separate inputs: one never qualifies the other", () => {
+    const productEvents = [ev({ declarationN: 1, state: "verified" })]
+    const variantEvents: QualificationEvent[] = []
+    expect(currentQualification(productEvents, 1)).toBe("verified")
+    expect(currentQualification(variantEvents, 1)).toBe("unverified")
+  })
+  it("a supplier can not mark verified; an admin can not mark a document provided", () => {
+    expect(parseQualificationEvent({ declarationN: 1, state: "verified", by: "s", role: "supplier", note: "", at: "x" })).toBeNull()
+    expect(parseQualificationEvent({ declarationN: 1, state: "document_provided", by: "a", role: "admin", note: "", at: "x" })).toBeNull()
   })
 })
 
