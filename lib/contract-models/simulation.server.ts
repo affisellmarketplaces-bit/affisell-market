@@ -7,6 +7,7 @@ import { SWEEPABLE_PARAMETERS, sweepUndecidedParameter, type SweepResult } from 
 import { simulateModelOnOrders, type SimulationResult } from "@/lib/contract-models/simulate"
 import { DEFAULT_SUPPLIER_FEE_BPS_AUTO_BUY, resolveSupplierFeeBps } from "@/lib/marketplace-phase1-fees"
 import { loadOrderFacts, MAX_ORDER_FACTS } from "@/lib/strategic-intelligence/mature-orders.server"
+import { loadDeclarationHistories } from "@/lib/supplier-costs/declaration.server"
 
 /**
  * READ-ONLY replay of the draft contract models on the last `days` days of paid orders (ADMIN cockpit / API).
@@ -16,22 +17,32 @@ import { loadOrderFacts, MAX_ORDER_FACTS } from "@/lib/strategic-intelligence/ma
 export type ContractSimulationReport = {
   window: { from: string; to: string }
   truncated: boolean
-  pools: { catalogue: number; sourced: number; excluded: { noPrice: number; noWholesale: number; refundedOrDisputed: number } }
-  models: Array<{ simulation: SimulationResult; sweeps: SweepResult[]; pool: "catalogue" | "sourced" }>
+  pools: { catalogue: number; sourced: number; declared: number; excluded: { noPrice: number; noWholesale: number; refundedOrDisputed: number } }
+  models: Array<{ simulation: SimulationResult; sweeps: SweepResult[]; pool: "catalogue" | "sourced" | "declared" }>
   /**
    * The four models side by side on REAL representative orders: on catalogue orders (B / C not computable — no source
    * cost recorded) and on auto-buy orders with a recorded source cost (all four computable).
    */
-  representative: { catalogue: ComparisonRow[]; sourced: ComparisonRow[] }
+  representative: { catalogue: ComparisonRow[]; sourced: ComparisonRow[]; declared: ComparisonRow[] }
 }
 
 export async function runContractSimulation(days: number, now = new Date()): Promise<ContractSimulationReport> {
   const span = Math.min(365, Math.max(7, Math.round(days)))
   const from = new Date(now.getTime() - span * 86_400_000)
   const orders = await loadOrderFacts({ from, to: now })
-  const lines = sweepLinesFromOrders(orders, { catalogue: resolveSupplierFeeBps(null), autoBuy: DEFAULT_SUPPLIER_FEE_BPS_AUTO_BUY })
-  const models = DRAFT_CONTRACT_MODELS.map((model) => {
-    const pool = model.path === "A_catalogue" ? ("catalogue" as const) : ("sourced" as const)
+  // Supply costs DECLARED by catalogue suppliers (unverified, labelled), for orders not bought by Affisell.
+  const catalogueProductIds = [...new Set(orders.filter((o) => !o.split.usesAffisellAutoBuy).map((o) => o.productId))]
+  const declarations = await loadDeclarationHistories(catalogueProductIds)
+  const lines = sweepLinesFromOrders(
+    orders,
+    { catalogue: resolveSupplierFeeBps(null), autoBuy: DEFAULT_SUPPLIER_FEE_BPS_AUTO_BUY },
+    declarations
+  )
+  // Paths B / C are replayed twice, never mixed: on RECORDED purchase costs, and on supplier DECLARATIONS.
+  const runs = DRAFT_CONTRACT_MODELS.flatMap((model) =>
+    model.path === "A_catalogue" ? [{ model, pool: "catalogue" as const }] : [{ model, pool: "sourced" as const }, { model, pool: "declared" as const }]
+  )
+  const models = runs.map(({ model, pool }) => {
     const poolLines = lines[pool]
     const simulation = simulateModelOnOrders(
       model,
@@ -45,11 +56,12 @@ export async function runContractSimulation(days: number, now = new Date()): Pro
   return {
     window: { from: from.toISOString(), to: now.toISOString() },
     truncated: orders.length >= MAX_ORDER_FACTS,
-    pools: { catalogue: lines.catalogue.length, sourced: lines.sourced.length, excluded: lines.excluded },
+    pools: { catalogue: lines.catalogue.length, sourced: lines.sourced.length, declared: lines.declared.length, excluded: lines.excluded },
     models,
     representative: {
       catalogue: compareModelsOnOrders(DRAFT_CONTRACT_MODELS, pickRepresentativeOrders(lines.catalogue)),
       sourced: compareModelsOnOrders(DRAFT_CONTRACT_MODELS, pickRepresentativeOrders(lines.sourced)),
+      declared: compareModelsOnOrders(DRAFT_CONTRACT_MODELS, pickRepresentativeOrders(lines.declared)),
     },
   }
 }

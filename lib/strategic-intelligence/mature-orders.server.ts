@@ -24,7 +24,7 @@ import { QUALITY_COHORT_FROM_DAYS, QUALITY_COHORT_TO_DAYS, QUALITY_RETURN_REASON
 export const MAX_ORDER_FACTS = 50_000
 const CHUNK = 2000
 
-export type MatureOrder = QualityCohortOrder & EconOrder & { autoCancelled: boolean; supplierId: string }
+export type MatureOrder = QualityCohortOrder & EconOrder & { autoCancelled: boolean; supplierId: string; paidAt: Date | null }
 
 export function matureCohortWindow(now: Date): { from: Date; to: Date } {
   return {
@@ -43,6 +43,7 @@ export async function loadOrderFacts(args: { from: Date; to: Date; productId?: s
       supplierId: true,
       stripeSessionId: true,
       autoCancelledAt: true,
+      paidAt: true,
       status: true,
       totalCents: true,
       subtotalCents: true,
@@ -94,6 +95,7 @@ export async function loadOrderFacts(args: { from: Date; to: Date; productId?: s
     supplierId: o.supplierId,
     stripeSessionId: o.stripeSessionId,
     autoCancelled: o.autoCancelledAt != null,
+    paidAt: o.paidAt,
     returnReasons: reasons.get(o.id) ?? [],
     disputed: disputed.has(o.id) || String(o.status ?? "").toLowerCase() === "disputed",
     totalCents: o.totalCents,

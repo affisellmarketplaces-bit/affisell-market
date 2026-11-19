@@ -46,7 +46,15 @@ export type ComparisonRow = {
   orderId: string
   band: RepresentativeOrder["band"]
   bandSize: number
-  recorded: { priceHtCents: number; wholesaleCents: number; commissionBps: number; sourceCostCents: number | null; supplierFeeBps: number | null }
+  recorded: {
+    priceHtCents: number
+    wholesaleCents: number
+    commissionBps: number
+    sourceCostCents: number | null
+    /** recorded_purchase = a real purchase; declared_by_supplier = the supplier's own unverified figure. */
+    sourceCostOrigin: "recorded_purchase" | "declared_by_supplier" | null
+    supplierFeeBps: number | null
+  }
   models: Record<string, ModelOnOrder>
 }
 
@@ -72,6 +80,9 @@ export function compareModelsOnOrders(models: ReadonlyArray<ContractModel>, reps
         "frais Stripe estimés (2,9 % + 0,25 €), le montant réel n'est pas enregistré",
         "volume de ventes supposé inchangé",
       ]
+      if (needsSource(model) && line.sourceCostKind === "declared_by_supplier") {
+        hypotheses.push("coût d'achat déclaré par le fournisseur, non vérifié par Affisell")
+      }
       if (model.parameters.supplierFeeBps === null && line.feeRateFromOrder === false) {
         hypotheses.push("taux de frais fournisseur absent de la commande : taux par défaut de la plateforme")
       }
@@ -102,6 +113,7 @@ export function compareModelsOnOrders(models: ReadonlyArray<ContractModel>, reps
         wholesaleCents: line.wholesaleCents,
         commissionBps: line.commissionBps,
         sourceCostCents: line.sourceCostCents > 0 ? line.sourceCostCents : null,
+        sourceCostOrigin: line.sourceCostCents > 0 ? (line.sourceCostKind ?? "recorded_purchase") : null,
         supplierFeeBps: line.feeRateFromOrder ? line.gridSupplierFeeBps : null,
       },
       models: out,

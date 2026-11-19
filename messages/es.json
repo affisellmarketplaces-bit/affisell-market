@@ -2203,6 +2203,29 @@
       "optionDays": "{days} días",
       "hint": "Cuántos días después de la entrega puede el comprador devolver este producto. 14 días es el mínimo legal para todo comprador; ofrecer más puede ayudar a vender.",
       "cost": "Las devoluciones aceptadas en este plazo corren por su cuenta, igual que dentro de los 14 días legales: se reembolsa al comprador y se recupera su parte de la venta. El plazo queda fijado en el momento de la compra: acortarlo después nunca afecta a los pedidos ya realizados."
+    },
+    "supplyCost": {
+      "title": "Costes de aprovisionamiento (confidencial)",
+      "confidential": "Visible solo para ti y para Affisell. Estos importes no cambian tu precio, la comisión ni la ficha: sirven para comprobar que una futura forma de venta siga siendo rentable para ti.",
+      "unitCost": "Coste de compra o fabricación de una unidad, sin IVA (€)",
+      "deliveryCost": "Coste de entrega de una unidad al comprador, sin IVA (€)",
+      "source": "Procedencia del producto",
+      "sources": {
+        "own_stock": "Mi propio stock",
+        "manufacturer": "Lo fabrico o lo compro al fabricante",
+        "wholesaler": "Mayorista",
+        "dropship_source": "Proveedor de dropshipping",
+        "other": "Otro"
+      },
+      "leadTime": "Plazo antes del envío (días, opcional)",
+      "minimumOrder": "Cantidad mínima en tu proveedor (opcional)",
+      "note": "Nota para Affisell (opcional)",
+      "save": "Guardar mis costes",
+      "saved": "Costes guardados.",
+      "invalid": "Importe no válido: indica un número en euros, por ejemplo 12,50.",
+      "error": "No se pudo guardar. Inténtalo de nuevo.",
+      "warnAbovePrice": "Tus costes declarados superan tu precio de proveedor: revisa los importes.",
+      "lastDeclared": "Última declaración: {date}"
     }
   },
   "affiliate": {

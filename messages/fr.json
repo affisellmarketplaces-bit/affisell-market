@@ -2203,6 +2203,29 @@
       "optionDays": "{days} jours",
       "hint": "Pendant combien de jours après la livraison l'acheteur peut retourner ce produit. 14 jours est le minimum légal pour tout acheteur ; en offrir plus peut aider à vendre.",
       "cost": "Les retours acceptés dans ce délai sont à votre charge, comme dans le délai légal de 14 jours : l'acheteur est remboursé et votre part de la vente est reprise. Le délai est figé à l'achat : le raccourcir plus tard n'affecte jamais les commandes déjà passées."
+    },
+    "supplyCost": {
+      "title": "Coûts d'approvisionnement (confidentiel)",
+      "confidential": "Visible uniquement par vous et par Affisell. Ces montants ne changent ni votre prix, ni la commission, ni la fiche : ils servent à vérifier qu'un futur mode de vente reste rentable pour vous.",
+      "unitCost": "Coût d'achat ou de fabrication d'une unité, HT (€)",
+      "deliveryCost": "Coût de livraison d'une unité jusqu'à l'acheteur, HT (€)",
+      "source": "D'où vient le produit",
+      "sources": {
+        "own_stock": "Mon propre stock",
+        "manufacturer": "Je le fabrique ou l'achète au fabricant",
+        "wholesaler": "Grossiste",
+        "dropship_source": "Fournisseur en livraison directe",
+        "other": "Autre"
+      },
+      "leadTime": "Délai avant expédition (jours, facultatif)",
+      "minimumOrder": "Quantité minimale chez votre source (facultatif)",
+      "note": "Précision pour Affisell (facultatif)",
+      "save": "Enregistrer mes coûts",
+      "saved": "Coûts enregistrés.",
+      "invalid": "Montant invalide : indiquez un nombre en euros, par exemple 12,50.",
+      "error": "L'enregistrement a échoué. Réessayez.",
+      "warnAbovePrice": "Vos coûts déclarés dépassent votre prix fournisseur : vérifiez les montants.",
+      "lastDeclared": "Dernière déclaration : {date}"
     }
   },
   "affiliate": {

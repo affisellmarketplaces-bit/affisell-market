@@ -38,3 +38,21 @@ aucun fournisseur n'est rattaché à un modèle. Consultation : `GET /api/admin/
 
 Les valeurs de `resellerFeeBps` (B), `procurementServiceFeeBps` (C1, C2), le plafond et la garantie d'avance (C2), le
 propriétaire et le fournisseur contractuel (B, C2), puis le rattachement d'un fournisseur à un modèle validé (migration).
+
+## Coûts déclarés par les fournisseurs du catalogue (ajouté le 19 novembre)
+
+Pour qu'un modèle B ou C puisse un jour être évalué sur les commandes d'un fournisseur du catalogue, ce fournisseur
+peut désormais **déclarer** ses coûts d'approvisionnement, produit par produit, dans le formulaire de sa fiche (section
+« Coûts d'approvisionnement (confidentiel) », visible une fois le produit enregistré) :
+
+- coût d'achat ou de fabrication d'une unité, coût de livraison jusqu'à l'acheteur, provenance, délai, quantité minimale ;
+- **distinct** du prix fournisseur, du prix de vente, de la commission et des frais Affisell : enregistrer ces coûts ne
+  modifie rien sur la fiche ni sur l'offre ;
+- **confidentiel** : lisible par le fournisseur propriétaire du produit et par l'administration Affisell seulement ;
+- **historisé** : chaque déclaration est conservée ; une commande n'est simulée qu'avec la déclaration en vigueur à son
+  paiement, jamais avec une déclaration postérieure ;
+- **non vérifié** : dans la simulation, ces commandes forment un groupe à part (« coûts déclarés »), jamais mélangé avec
+  les achats réellement enregistrés, et chaque résultat porte l'hypothèse « coût déclaré par le fournisseur, non vérifié ».
+
+Stockage sans migration (journal d'audit). Inviter les fournisseurs à déclarer leurs coûts, et décider si une
+déclaration doit un jour être vérifiée (facture, contrôle), relèvent du fondateur.

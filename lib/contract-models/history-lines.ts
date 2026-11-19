@@ -1,4 +1,5 @@
 import type { SweepLine } from "@/lib/contract-models/sensitivity"
+import { declarationInForceAt, declaredSourceCostCents, type StoredDeclaration } from "@/lib/supplier-costs/declaration"
 import { estimateStripeFeeCents } from "@/lib/marketplace-split-amounts"
 import type { EconOrder } from "@/lib/strategic-intelligence/product-economics"
 
@@ -9,20 +10,24 @@ import type { EconOrder } from "@/lib/strategic-intelligence/product-economics"
  *  - `catalogue`: every usable order (path A — the supplier ships its own stock, no source cost);
  *  - `sourced`: only Affisell auto-buy orders with a recorded AliExpress cost — the ONLY real source costs Affisell
  *    knows. Paths B / C are replayed on these alone: inventing a source cost for a catalogue order would be fiction.
+ *  - `declared`: catalogue orders whose supplier had DECLARED its supply cost before the payment
+ *    (lib/supplier-costs/declaration.ts) — labelled as a declaration, not a fact; a later declaration never applies.
  * The Stripe fee is the central ESTIMATE (2.9 % + 25 c of the TTC charge); the real fee is not recorded.
  */
 export type HistoryLines = {
   catalogue: SweepLine[]
   sourced: SweepLine[]
+  declared: SweepLine[]
   excluded: { noPrice: number; noWholesale: number; refundedOrDisputed: number }
 }
 
 /** `defaults`: the settlement's fee rate when an order stored none (legacy rows store 0), as the cockpit does. */
 export function sweepLinesFromOrders(
-  orders: ReadonlyArray<EconOrder>,
-  defaults: { catalogue: number; autoBuy: number }
+  orders: ReadonlyArray<EconOrder & { paidAt?: Date | null }>,
+  defaults: { catalogue: number; autoBuy: number },
+  declarations: ReadonlyMap<string, ReadonlyArray<StoredDeclaration>> = new Map()
 ): HistoryLines {
-  const out: HistoryLines = { catalogue: [], sourced: [], excluded: { noPrice: 0, noWholesale: 0, refundedOrDisputed: 0 } }
+  const out: HistoryLines = { catalogue: [], sourced: [], declared: [], excluded: { noPrice: 0, noWholesale: 0, refundedOrDisputed: 0 } }
   for (const o of orders) {
     const P = o.split.sellingPriceCents
     const W = o.split.supplierPriceCents > 0 ? o.split.supplierPriceCents : o.split.basePriceCents
@@ -52,7 +57,11 @@ export function sweepLinesFromOrders(
     }
     out.catalogue.push(line)
     const ae = o.split.usesAffisellAutoBuy ? Math.max(0, o.split.aeWholesaleCents ?? 0) : 0
-    if (ae > 0) out.sourced.push({ ...line, sourceCostCents: ae })
+    if (ae > 0) out.sourced.push({ ...line, sourceCostCents: ae, sourceCostKind: "recorded_purchase" })
+    else if (!o.split.usesAffisellAutoBuy && o.paidAt) {
+      const d = declarationInForceAt(declarations.get(o.productId) ?? [], o.paidAt)
+      if (d) out.declared.push({ ...line, sourceCostCents: declaredSourceCostCents(d), sourceCostKind: "declared_by_supplier" })
+    }
   }
   return out
 }

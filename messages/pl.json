@@ -2203,6 +2203,29 @@
       "optionDays": "{days} dni",
       "hint": "Przez ile dni po dostawie kupujący może zwrócić ten produkt. 14 dni to ustawowe minimum dla każdego kupującego; zaoferowanie więcej może pomóc w sprzedaży.",
       "cost": "Zwroty przyjmowane w tym terminie idą na Twój koszt, tak jak w ustawowych 14 dniach: kupujący otrzymuje zwrot, a Twoja część sprzedaży zostaje odzyskana. Termin jest utrwalany w chwili zakupu – późniejsze skrócenie nigdy nie wpływa na złożone już zamówienia."
+    },
+    "supplyCost": {
+      "title": "Koszty zaopatrzenia (poufne)",
+      "confidential": "Widoczne tylko dla Ciebie i Affisell. Te kwoty nie zmieniają Twojej ceny, prowizji ani oferty: służą do sprawdzenia, czy przyszły sposób sprzedaży pozostanie dla Ciebie opłacalny.",
+      "unitCost": "Koszt zakupu lub wytworzenia jednej sztuki, netto (€)",
+      "deliveryCost": "Koszt dostawy jednej sztuki do kupującego, netto (€)",
+      "source": "Pochodzenie produktu",
+      "sources": {
+        "own_stock": "Mój własny magazyn",
+        "manufacturer": "Produkuję lub kupuję od producenta",
+        "wholesaler": "Hurtownia",
+        "dropship_source": "Dostawca dropshippingowy",
+        "other": "Inne"
+      },
+      "leadTime": "Czas do wysyłki (dni, opcjonalnie)",
+      "minimumOrder": "Minimalna ilość u Twojego źródła (opcjonalnie)",
+      "note": "Uwaga dla Affisell (opcjonalnie)",
+      "save": "Zapisz moje koszty",
+      "saved": "Koszty zapisane.",
+      "invalid": "Nieprawidłowa kwota: podaj liczbę w euro, np. 12,50.",
+      "error": "Zapis nie powiódł się. Spróbuj ponownie.",
+      "warnAbovePrice": "Zadeklarowane koszty przekraczają Twoją cenę dostawcy: sprawdź kwoty.",
+      "lastDeclared": "Ostatnia deklaracja: {date}"
     }
   },
   "affiliate": {

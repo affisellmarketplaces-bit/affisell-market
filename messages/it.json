@@ -2203,6 +2203,29 @@
       "optionDays": "{days} giorni",
       "hint": "Per quanti giorni dopo la consegna l'acquirente può restituire questo prodotto. 14 giorni è il minimo di legge per ogni acquirente; offrirne di più può aiutare a vendere.",
       "cost": "I resi accettati in questo termine sono a tuo carico, come entro i 14 giorni di legge: l'acquirente viene rimborsato e la tua quota della vendita viene recuperata. Il termine viene fissato al momento dell'acquisto: ridurlo in seguito non influisce mai sugli ordini già effettuati."
+    },
+    "supplyCost": {
+      "title": "Costi di approvvigionamento (riservato)",
+      "confidential": "Visibile solo a te e ad Affisell. Questi importi non modificano il tuo prezzo, la commissione o la scheda: servono a verificare che una futura modalità di vendita resti redditizia per te.",
+      "unitCost": "Costo di acquisto o produzione di un'unità, IVA esclusa (€)",
+      "deliveryCost": "Costo di consegna di un'unità all'acquirente, IVA esclusa (€)",
+      "source": "Provenienza del prodotto",
+      "sources": {
+        "own_stock": "Il mio magazzino",
+        "manufacturer": "Lo produco o lo compro dal produttore",
+        "wholesaler": "Grossista",
+        "dropship_source": "Fornitore in dropshipping",
+        "other": "Altro"
+      },
+      "leadTime": "Tempo prima della spedizione (giorni, facoltativo)",
+      "minimumOrder": "Quantità minima presso la tua fonte (facoltativo)",
+      "note": "Nota per Affisell (facoltativo)",
+      "save": "Salva i miei costi",
+      "saved": "Costi salvati.",
+      "invalid": "Importo non valido: indica un numero in euro, ad esempio 12,50.",
+      "error": "Salvataggio non riuscito. Riprova.",
+      "warnAbovePrice": "I costi dichiarati superano il tuo prezzo fornitore: controlla gli importi.",
+      "lastDeclared": "Ultima dichiarazione: {date}"
     }
   },
   "affiliate": {

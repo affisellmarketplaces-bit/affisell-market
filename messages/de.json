@@ -2203,6 +2203,29 @@
       "optionDays": "{days} Tage",
       "hint": "Wie lange nach der Lieferung Käufer dieses Produkt zurückgeben können. 14 Tage sind für alle Käufer das gesetzliche Minimum; mehr anzubieten kann den Verkauf fördern.",
       "cost": "Rückgaben innerhalb dieser Frist gehen auf Ihre Kosten, wie innerhalb der gesetzlichen 14 Tage: Der Käufer wird erstattet und Ihr Anteil am Verkauf wird zurückgebucht. Die Frist wird beim Kauf festgeschrieben – eine spätere Verkürzung wirkt sich nie auf bereits aufgegebene Bestellungen aus."
+    },
+    "supplyCost": {
+      "title": "Beschaffungskosten (vertraulich)",
+      "confidential": "Nur für Sie und Affisell sichtbar. Diese Beträge ändern weder Ihren Preis noch die Provision noch das Angebot: Sie dienen dazu zu prüfen, ob eine künftige Verkaufsform für Sie rentabel bleibt.",
+      "unitCost": "Einkaufs- oder Herstellungskosten pro Einheit, netto (€)",
+      "deliveryCost": "Lieferkosten pro Einheit bis zum Käufer, netto (€)",
+      "source": "Herkunft des Produkts",
+      "sources": {
+        "own_stock": "Eigener Lagerbestand",
+        "manufacturer": "Eigene Herstellung oder direkt vom Hersteller",
+        "wholesaler": "Großhändler",
+        "dropship_source": "Dropshipping-Lieferant",
+        "other": "Sonstiges"
+      },
+      "leadTime": "Zeit bis zum Versand (Tage, optional)",
+      "minimumOrder": "Mindestmenge bei Ihrer Bezugsquelle (optional)",
+      "note": "Hinweis für Affisell (optional)",
+      "save": "Kosten speichern",
+      "saved": "Kosten gespeichert.",
+      "invalid": "Ungültiger Betrag: Geben Sie eine Zahl in Euro ein, z. B. 12,50.",
+      "error": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
+      "warnAbovePrice": "Ihre angegebenen Kosten liegen über Ihrem Lieferantenpreis: Bitte prüfen Sie die Beträge.",
+      "lastDeclared": "Zuletzt angegeben: {date}"
     }
   },
   "affiliate": {

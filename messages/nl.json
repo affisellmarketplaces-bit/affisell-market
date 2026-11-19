@@ -2203,6 +2203,29 @@
       "optionDays": "{days} dagen",
       "hint": "Hoeveel dagen na levering de koper dit product kan retourneren. 14 dagen is het wettelijke minimum voor elke koper; meer aanbieden kan helpen bij het verkopen.",
       "cost": "Retouren die binnen deze termijn worden geaccepteerd komen voor uw rekening, net als binnen de wettelijke 14 dagen: de koper krijgt zijn geld terug en uw deel van de verkoop wordt teruggenomen. De termijn wordt bij aankoop vastgelegd: later inkorten raakt nooit bestellingen die al zijn geplaatst."
+    },
+    "supplyCost": {
+      "title": "Inkoopkosten (vertrouwelijk)",
+      "confidential": "Alleen zichtbaar voor jou en Affisell. Deze bedragen veranderen je prijs, de commissie en de productpagina niet: ze dienen om te controleren of een toekomstige verkoopvorm voor jou rendabel blijft.",
+      "unitCost": "Inkoop- of productiekosten per stuk, excl. btw (€)",
+      "deliveryCost": "Leveringskosten per stuk tot de koper, excl. btw (€)",
+      "source": "Herkomst van het product",
+      "sources": {
+        "own_stock": "Mijn eigen voorraad",
+        "manufacturer": "Ik maak het of koop bij de fabrikant",
+        "wholesaler": "Groothandel",
+        "dropship_source": "Dropshipping-leverancier",
+        "other": "Anders"
+      },
+      "leadTime": "Tijd tot verzending (dagen, optioneel)",
+      "minimumOrder": "Minimale hoeveelheid bij je bron (optioneel)",
+      "note": "Opmerking voor Affisell (optioneel)",
+      "save": "Mijn kosten opslaan",
+      "saved": "Kosten opgeslagen.",
+      "invalid": "Ongeldig bedrag: vul een getal in euro in, bijvoorbeeld 12,50.",
+      "error": "Opslaan mislukt. Probeer het opnieuw.",
+      "warnAbovePrice": "Je opgegeven kosten liggen boven je leveranciersprijs: controleer de bedragen.",
+      "lastDeclared": "Laatst opgegeven: {date}"
     }
   },
   "affiliate": {

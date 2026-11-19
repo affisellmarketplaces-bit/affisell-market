@@ -14,6 +14,8 @@ export type SweepLine = LineInput & {
   estimatedStripeFeeCents?: number
   /** False when the order stored no supplier fee and the settlement default was used (a hypothesis, said as such). */
   feeRateFromOrder?: boolean
+  /** Where `sourceCostCents` comes from: a RECORDED purchase (AliExpress) or the supplier's DECLARATION (unverified). */
+  sourceCostKind?: "recorded_purchase" | "declared_by_supplier"
 }
 
 export type SweepRow = {
