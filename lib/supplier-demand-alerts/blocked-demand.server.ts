@@ -328,7 +328,8 @@ export async function runSupplierBlockedDemandAlerts(now = new Date()): Promise<
       take: 10_000,
     })
     for (const o of open) {
-      if (listedIds.has(o.entityId)) continue
+      // `entityId` is nullable in the schema; an episode row is always written with its product id, so a null one is not ours to close.
+      if (o.entityId === null || listedIds.has(o.entityId)) continue
       const st = parseEpisodeState(o.payload)
       if (!st) continue
       await prisma.auditLog.update({ where: { id: o.id }, data: { payload: { ...st, open: false, resolvedAt: now.toISOString() } } })
