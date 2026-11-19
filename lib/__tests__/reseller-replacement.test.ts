@@ -193,7 +193,7 @@ describe("replacing an unsellable product (founder brief 2026-11-19)", () => {
     // observe: the item is measured, then the loop moves on BEFORE any claim or bell notification.
     const observeBranch = server.indexOf('if (mode === "observe") {')
     expect(observeBranch).toBeGreaterThan(0)
-    expect(server.slice(observeBranch, observeBranch + 200)).toContain("continue")
+    expect(server.slice(observeBranch, observeBranch + 600)).toContain("return run")
     expect(observeBranch).toBeLessThan(server.indexOf("notification.create"))
     expect(server.slice(server.indexOf("async function recordObservation"))).not.toContain("notification.")
     expect(server).not.toMatch(/affiliateProduct\.(update|delete)/)

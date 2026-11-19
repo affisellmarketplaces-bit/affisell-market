@@ -3181,7 +3181,12 @@
       "partialHint": "Completare ritira solo il vecchio prodotto dal negozio. Nulla viene aggiunto due volte, nulla viene eliminato.",
       "finishCta": "Completa la sostituzione",
       "partialUnnamed": "l'alternativa scelta",
-      "partialNow": "L'alternativa è stata aggiunta, ma il vecchio prodotto non è stato ritirato. Completa la sostituzione qui sotto."
+      "partialNow": "L'alternativa è stata aggiunta, ma il vecchio prodotto non è stato ritirato. Completa la sostituzione qui sotto.",
+      "digestMessage": "{count, plural, one {# prodotto del tuo negozio non può più essere venduto} other {# prodotti del tuo negozio non possono più essere venduti}}: guarda l'elenco per ritirarli o sostituirli.",
+      "listTitle": "Prodotti invendibili nel tuo negozio",
+      "listSubtitle": "{count, plural, =0 {Nessun prodotto interessato.} one {# prodotto non può essere acquistato oggi.} other {# prodotti non possono essere acquistati oggi.}}",
+      "listEmpty": "Tutti i prodotti del tuo negozio possono essere acquistati.",
+      "listCta": "Ritira o sostituisci"
     }
   },
   "marketplace": {
@@ -9168,7 +9173,8 @@
     "viewInvitation": "Vedi l'invito",
     "viewAffiliateInvites": "Vedi gli inviti rivenditore",
     "viewProfitAlert": "Vedi l'avviso",
-    "viewReplacement": "Ritira o sostituisci"
+    "viewReplacement": "Ritira o sostituisci",
+    "viewUnsellableList": "Vedi l'elenco"
   },
   "aiConnect": {
     "title": "Collega un'IA",

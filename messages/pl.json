@@ -3181,7 +3181,12 @@
       "partialHint": "Dokończenie wycofuje tylko stary produkt ze sklepu. Nic nie jest dodawane drugi raz, nic nie jest usuwane.",
       "finishCta": "Dokończ zamianę",
       "partialUnnamed": "wybrana alternatywa",
-      "partialNow": "Alternatywę dodano, ale nie udało się wycofać starego produktu. Dokończ zamianę poniżej."
+      "partialNow": "Alternatywę dodano, ale nie udało się wycofać starego produktu. Dokończ zamianę poniżej.",
+      "digestMessage": "{count, plural, one {# produkt z Twojego sklepu nie może być już sprzedawany} few {# produkty z Twojego sklepu nie mogą być już sprzedawane} many {# produktów z Twojego sklepu nie może być już sprzedawanych} other {# produktów z Twojego sklepu nie może być już sprzedawanych}}: zobacz listę, aby je wycofać lub zastąpić.",
+      "listTitle": "Niesprzedawalne produkty w Twoim sklepie",
+      "listSubtitle": "{count, plural, =0 {Brak takich produktów.} one {# produktu nie można dziś kupić.} other {# produktów nie można dziś kupić.}}",
+      "listEmpty": "Wszystkie produkty w Twoim sklepie można kupić.",
+      "listCta": "Wycofaj lub zastąp"
     }
   },
   "marketplace": {
@@ -9168,7 +9173,8 @@
     "viewInvitation": "Zobacz zaproszenie",
     "viewAffiliateInvites": "Zobacz zaproszenia resellerów",
     "viewProfitAlert": "Zobacz alert",
-    "viewReplacement": "Wycofaj lub zastąp"
+    "viewReplacement": "Wycofaj lub zastąp",
+    "viewUnsellableList": "Zobacz listę"
   },
   "aiConnect": {
     "title": "Połącz AI",

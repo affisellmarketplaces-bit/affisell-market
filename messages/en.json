@@ -3181,7 +3181,12 @@
       "partialHint": "Finishing only withdraws the old product from your shop. Nothing is added twice, nothing is deleted.",
       "finishCta": "Finish the replacement",
       "partialUnnamed": "the chosen alternative",
-      "partialNow": "The alternative was added, but the old product could not be withdrawn. Finish the replacement below."
+      "partialNow": "The alternative was added, but the old product could not be withdrawn. Finish the replacement below.",
+      "digestMessage": "{count, plural, one {# product in your shop can no longer be sold} other {# products in your shop can no longer be sold}}: see the list to withdraw or replace them.",
+      "listTitle": "Unsellable products in your shop",
+      "listSubtitle": "{count, plural, =0 {No product affected.} one {# product can't be bought today.} other {# products can't be bought today.}}",
+      "listEmpty": "Every product in your shop can be bought.",
+      "listCta": "Withdraw or replace"
     }
   },
   "marketplace": {
@@ -9168,7 +9173,8 @@
     "viewInvitation": "View the invitation",
     "viewAffiliateInvites": "View reseller invitations",
     "viewProfitAlert": "View alert",
-    "viewReplacement": "Withdraw or replace"
+    "viewReplacement": "Withdraw or replace",
+    "viewUnsellableList": "See the list"
   },
   "aiConnect": {
     "title": "Connect an AI",

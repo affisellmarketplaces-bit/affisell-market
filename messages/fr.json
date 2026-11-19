@@ -3181,7 +3181,12 @@
       "partialHint": "Terminer retire seulement l'ancien produit de la boutique. Rien n'est ajouté une seconde fois, rien n'est supprimé.",
       "finishCta": "Terminer le remplacement",
       "partialUnnamed": "l'alternative choisie",
-      "partialNow": "L'alternative a été ajoutée, mais l'ancien produit n'a pas pu être retiré. Terminez le remplacement ci-dessous."
+      "partialNow": "L'alternative a été ajoutée, mais l'ancien produit n'a pas pu être retiré. Terminez le remplacement ci-dessous.",
+      "digestMessage": "{count, plural, one {# produit de votre boutique ne peut plus être vendu} other {# produits de votre boutique ne peuvent plus être vendus}} : voyez la liste pour les retirer ou les remplacer.",
+      "listTitle": "Produits invendables dans votre boutique",
+      "listSubtitle": "{count, plural, =0 {Aucun produit concerné.} one {# produit ne peut pas être acheté aujourd'hui.} other {# produits ne peuvent pas être achetés aujourd'hui.}}",
+      "listEmpty": "Tous les produits de votre boutique peuvent être achetés.",
+      "listCta": "Retirer ou remplacer"
     }
   },
   "marketplace": {
@@ -9168,7 +9173,8 @@
     "viewInvitation": "Voir l'invitation",
     "viewAffiliateInvites": "Voir les invitations revendeur",
     "viewProfitAlert": "Voir l'alerte",
-    "viewReplacement": "Retirer ou remplacer"
+    "viewReplacement": "Retirer ou remplacer",
+    "viewUnsellableList": "Voir la liste"
   },
   "aiConnect": {
     "title": "Connecter une IA",

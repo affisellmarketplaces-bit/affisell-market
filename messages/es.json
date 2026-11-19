@@ -3181,7 +3181,12 @@
       "partialHint": "Terminar solo retira el producto antiguo de la tienda. Nada se añade dos veces y nada se elimina.",
       "finishCta": "Terminar la sustitución",
       "partialUnnamed": "la alternativa elegida",
-      "partialNow": "La alternativa se añadió, pero el producto antiguo no se pudo retirar. Termina la sustitución abajo."
+      "partialNow": "La alternativa se añadió, pero el producto antiguo no se pudo retirar. Termina la sustitución abajo.",
+      "digestMessage": "{count, plural, one {# producto de tu tienda ya no se puede vender} other {# productos de tu tienda ya no se pueden vender}}: consulta la lista para retirarlos o sustituirlos.",
+      "listTitle": "Productos no vendibles en tu tienda",
+      "listSubtitle": "{count, plural, =0 {Ningún producto afectado.} one {# producto no se puede comprar hoy.} other {# productos no se pueden comprar hoy.}}",
+      "listEmpty": "Todos los productos de tu tienda se pueden comprar.",
+      "listCta": "Retirar o sustituir"
     }
   },
   "marketplace": {
@@ -9168,7 +9173,8 @@
     "viewInvitation": "Ver la invitación",
     "viewAffiliateInvites": "Ver invitaciones de revendedores",
     "viewProfitAlert": "Ver la alerta",
-    "viewReplacement": "Retirar o sustituir"
+    "viewReplacement": "Retirar o sustituir",
+    "viewUnsellableList": "Ver la lista"
   },
   "aiConnect": {
     "title": "Conectar una IA",

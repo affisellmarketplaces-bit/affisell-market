@@ -438,3 +438,40 @@ export async function withdrawListing(affiliateId: string, listingId: string): P
   })
   return { ok: res > 0 }
 }
+
+/**
+ * READ-ONLY: every LIVE listing of this reseller whose product can not be bought today (same rule as the action card,
+ * the replace page and the daily notice) — the page the daily summary links to. Own listings only, ≤ 500.
+ */
+export async function loadUnsellableListings(
+  affiliateId: string,
+): Promise<Array<{ listingId: string; productName: string; problem: NonNullable<ReturnType<typeof listingProblem>> }>> {
+  const rows = await prisma.affiliateProduct.findMany({
+    where: { affiliateId, isListed: true },
+    orderBy: { createdAt: "desc" },
+    take: 500,
+    select: {
+      id: true,
+      product: {
+        select: {
+          name: true,
+          active: true,
+          isDraft: true,
+          tags: true,
+          stock: true,
+          hasVariants: true,
+          variants: true,
+          listingKind: true,
+          commissionRate: true,
+          offerMode: true,
+        },
+      },
+    },
+  })
+  const out: Array<{ listingId: string; productName: string; problem: NonNullable<ReturnType<typeof listingProblem>> }> = []
+  for (const r of rows) {
+    const problem = listingProblem({ ...r.product, commissionRate: Number(r.product.commissionRate) || 0 })
+    if (problem) out.push({ listingId: r.id, productName: r.product.name, problem })
+  }
+  return out
+}

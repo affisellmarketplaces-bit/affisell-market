@@ -3181,7 +3181,12 @@
       "partialHint": "Abschließen entfernt nur das alte Produkt aus dem Shop. Nichts wird doppelt hinzugefügt, nichts wird gelöscht.",
       "finishCta": "Ersatz abschließen",
       "partialUnnamed": "die gewählte Alternative",
-      "partialNow": "Die Alternative wurde hinzugefügt, aber das alte Produkt konnte nicht entfernt werden. Schließen Sie den Ersatz unten ab."
+      "partialNow": "Die Alternative wurde hinzugefügt, aber das alte Produkt konnte nicht entfernt werden. Schließen Sie den Ersatz unten ab.",
+      "digestMessage": "{count, plural, one {# Produkt Ihres Shops kann nicht mehr verkauft werden} other {# Produkte Ihres Shops können nicht mehr verkauft werden}}: Sehen Sie die Liste, um sie zurückzuziehen oder zu ersetzen.",
+      "listTitle": "Unverkäufliche Produkte in Ihrem Shop",
+      "listSubtitle": "{count, plural, =0 {Kein Produkt betroffen.} one {# Produkt kann heute nicht gekauft werden.} other {# Produkte können heute nicht gekauft werden.}}",
+      "listEmpty": "Alle Produkte Ihres Shops können gekauft werden.",
+      "listCta": "Zurückziehen oder ersetzen"
     }
   },
   "marketplace": {
@@ -9168,7 +9173,8 @@
     "viewInvitation": "Einladung ansehen",
     "viewAffiliateInvites": "Wiederverkäufer-Einladungen ansehen",
     "viewProfitAlert": "Warnung ansehen",
-    "viewReplacement": "Entfernen oder ersetzen"
+    "viewReplacement": "Entfernen oder ersetzen",
+    "viewUnsellableList": "Liste ansehen"
   },
   "aiConnect": {
     "title": "KI verbinden",

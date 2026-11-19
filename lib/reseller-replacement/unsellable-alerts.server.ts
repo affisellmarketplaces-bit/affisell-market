@@ -1,6 +1,5 @@
 import "server-only"
 
-import { Prisma } from "@prisma/client"
 import { createTranslator } from "next-intl"
 
 import { loadAppMessages } from "@/lib/i18n-load-messages"
@@ -8,10 +7,13 @@ import { loadAlertPreference } from "@/lib/intelligence/profit-alerts.server"
 import { prisma } from "@/lib/prisma"
 import { listingProblem } from "@/lib/reseller-replacement/listing-state"
 import {
+  planDigests,
   readUnsellableAlertsMode,
+  UNSELLABLE_DIGEST_NOTIF,
   UNSELLABLE_LISTING_NOTIF,
   unsellableAlertBucket,
   unsellableAlertId,
+  unsellableDigestId,
 } from "@/lib/reseller-replacement/unsellable-alerts"
 import {
   OBSERVATION_ACTION,
@@ -33,9 +35,14 @@ export type UnsellableAlertsRun = {
   mode: "off" | "observe" | "enforce"
   scanned: number
   unsellable: number
+  /** Bell notifications sent (at most one per reseller and per day). */
   notified: number
+  /** Of those, summaries covering several products. */
+  digests: number
   alreadyNotified: number
   skippedPreference: number
+  /** New listings of resellers already told today: not claimed, told tomorrow. */
+  deferredToTomorrow: number
   truncated: boolean
   /** `observe` only: the day's measurement (null when it could not be recorded — the run itself still succeeds). */
   observation?: UnsellableObservation | null
@@ -43,15 +50,26 @@ export type UnsellableAlertsRun = {
 
 /**
  * Daily scan of LIVE listings whose product can not be bought (same rule as the action card and the replacement page).
- * `observe` sends nothing and records only the measurement (`recordObservation`); `enforce` claims the alert (deterministic `AuditLog` id = at most once per listing, problem
- * and 14-day window, concurrent runs included) then puts it in the reseller's bell, gated by its in-app preference.
+ * `observe` sends nothing and records only the measurement (`recordObservation`); `enforce` sends AT MOST ONE bell per
+ * reseller and per day (`deliverDigests`): the listing's own notice when one product is new, one summary otherwise —
+ * each listing still told at most once per problem and 14-day window, gated by the reseller's in-app preference.
  */
 export async function runUnsellableListingAlerts(now = new Date()): Promise<UnsellableAlertsRun> {
   const mode = readUnsellableAlertsMode()
-  const run: UnsellableAlertsRun = { mode, scanned: 0, unsellable: 0, notified: 0, alreadyNotified: 0, skippedPreference: 0, truncated: false }
+  const run: UnsellableAlertsRun = {
+    mode,
+    scanned: 0,
+    unsellable: 0,
+    notified: 0,
+    digests: 0,
+    alreadyNotified: 0,
+    skippedPreference: 0,
+    deferredToTomorrow: 0,
+    truncated: false,
+  }
   if (mode === "off") return run
 
-  const observed: ObservedItem[] = []
+  const found: Array<ObservedItem & { productName: string }> = []
   let cursor: string | undefined
   while (run.scanned < MAX_LISTINGS) {
     const rows = await prisma.affiliateProduct.findMany({
@@ -85,63 +103,108 @@ export async function runUnsellableListingAlerts(now = new Date()): Promise<Unse
       const problem = listingProblem({ ...r.product, commissionRate: Number(r.product.commissionRate) || 0 })
       if (!problem) continue
       run.unsellable++
-      if (mode === "observe") {
-        observed.push({ affiliateId: r.affiliateId, listingId: r.id, problem })
-        continue
-      }
-      const pref = await loadAlertPreference(r.affiliateId)
-      if (!pref.inApp) {
-        run.skippedPreference++
-        continue
-      }
-      try {
-        await prisma.auditLog.create({
-          data: {
-            id: unsellableAlertId(r.id, problem, now),
-            action: "affiliate.listing_unsellable_alerted",
-            entityType: "AffiliateProduct",
-            entityId: r.id,
-            actorId: null,
-            payload: { problem },
-          },
-        })
-      } catch (error) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-          run.alreadyNotified++
-          continue
-        }
-        throw error
-      }
-      const t = createTranslator({
-        locale: pref.locale,
-        messages: loadAppMessages(pref.locale),
-        namespace: "affiliate.replacement",
-      }) as unknown as (key: string, values?: Record<string, string>) => string
-      await prisma.notification.create({
-        data: {
-          userId: r.affiliateId,
-          type: UNSELLABLE_LISTING_NOTIF,
-          message: t("bellMessage", { product: r.product.name.slice(0, 120) }),
-          // the bell builds the link to /dashboard/affiliate/products/<listingId>/replace from this id
-          orderId: r.id,
-        },
-      })
-      run.notified++
+      found.push({ affiliateId: r.affiliateId, listingId: r.id, problem, productName: r.product.name })
     }
     if (rows.length < BATCH) break
   }
   run.truncated = run.scanned >= MAX_LISTINGS
+
   if (mode === "observe") {
-    run.observation = await recordObservation(now, run, observed)
+    run.observation = await recordObservation(now, run, found)
     console.log("[unsellable-alerts]", {
       result: "would_notify",
       count: run.unsellable,
       wouldNotifyNew: run.observation?.wouldNotifyNew ?? null,
+      wouldNotifyResellers: run.observation?.wouldNotifyResellers ?? null,
       scanned: run.scanned,
       truncated: run.truncated,
     })
+    return run
   }
+  await deliverDigests(now, run, found)
   return run
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  return Boolean(error && typeof error === "object" && (error as { code?: unknown }).code === "P2002")
+}
+
+/**
+ * `enforce`: per reseller, the listings not yet told in this 14-day window → claim the reseller's day → claim those
+ * listings → ONE bell. Already told today = nothing claimed, the listings wait for tomorrow (never lost, never doubled).
+ */
+async function deliverDigests(now: Date, run: UnsellableAlertsRun, found: Array<ObservedItem & { productName: string }>) {
+  const fresh: typeof found = []
+  for (let i = 0; i < found.length; i += 500) {
+    const chunk = found.slice(i, i + 500)
+    const ids = chunk.map((it) => unsellableAlertId(it.listingId, it.problem, now))
+    const existing = new Set((await prisma.auditLog.findMany({ where: { id: { in: ids } }, select: { id: true } })).map((r) => r.id))
+    chunk.forEach((it, k) => (existing.has(ids[k]!) ? run.alreadyNotified++ : fresh.push(it)))
+  }
+  for (const plan of planDigests(fresh)) {
+    const pref = await loadAlertPreference(plan.affiliateId)
+    if (!pref.inApp) {
+      run.skippedPreference += plan.items.length
+      continue
+    }
+    try {
+      await prisma.auditLog.create({
+        data: {
+          id: unsellableDigestId(plan.affiliateId, now),
+          action: "affiliate.listing_unsellable_digest",
+          entityType: "User",
+          entityId: plan.affiliateId,
+          actorId: null,
+          payload: { count: plan.items.length },
+        },
+      })
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        run.deferredToTomorrow += plan.items.length
+        continue
+      }
+      throw error
+    }
+    const claimed = await prisma.auditLog.createMany({
+      data: plan.items.map((it) => ({
+        id: unsellableAlertId(it.listingId, it.problem, now),
+        action: "affiliate.listing_unsellable_alerted",
+        entityType: "AffiliateProduct",
+        entityId: it.listingId,
+        actorId: null,
+        payload: { problem: it.problem, digest: plan.kind === "digest" },
+      })),
+      skipDuplicates: true,
+    })
+    if (claimed.count === 0) continue
+    const t = createTranslator({
+      locale: pref.locale,
+      messages: loadAppMessages(pref.locale),
+      namespace: "affiliate.replacement",
+    }) as unknown as (key: string, values?: Record<string, string | number>) => string
+    if (plan.kind === "single") {
+      const it = plan.items[0]!
+      await prisma.notification.create({
+        data: {
+          userId: plan.affiliateId,
+          type: UNSELLABLE_LISTING_NOTIF,
+          message: t("bellMessage", { product: it.productName.slice(0, 120) }),
+          // the bell builds the link to /dashboard/affiliate/products/<listingId>/replace from this id
+          orderId: it.listingId,
+        },
+      })
+    } else {
+      await prisma.notification.create({
+        data: {
+          userId: plan.affiliateId,
+          type: UNSELLABLE_DIGEST_NOTIF,
+          message: t("digestMessage", { count: plan.items.length }),
+        },
+      })
+      run.digests++
+    }
+    run.notified++
+  }
 }
 
 const MARKER_CHUNK = 500

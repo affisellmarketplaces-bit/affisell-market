@@ -3181,7 +3181,12 @@
       "partialHint": "完成操作只会将旧商品从店铺下架。不会重复添加，也不会删除任何内容。",
       "finishCta": "完成替换",
       "partialUnnamed": "所选替代商品",
-      "partialNow": "替代商品已添加，但旧商品未能下架。请在下方完成替换。"
+      "partialNow": "替代商品已添加，但旧商品未能下架。请在下方完成替换。",
+      "digestMessage": "您店铺中有 {count} 件商品已无法销售：查看列表以下架或替换。",
+      "listTitle": "店铺中无法销售的商品",
+      "listSubtitle": "{count, plural, =0 {没有受影响的商品。} other {今天有 # 件商品无法购买。}}",
+      "listEmpty": "您店铺中的所有商品均可购买。",
+      "listCta": "下架或替换"
     }
   },
   "marketplace": {
@@ -9168,7 +9173,8 @@
     "viewInvitation": "查看邀请",
     "viewAffiliateInvites": "查看分销商邀请",
     "viewProfitAlert": "查看提醒",
-    "viewReplacement": "下架或替换"
+    "viewReplacement": "下架或替换",
+    "viewUnsellableList": "查看列表"
   },
   "aiConnect": {
     "title": "连接 AI",

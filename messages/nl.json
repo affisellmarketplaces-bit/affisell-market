@@ -3181,7 +3181,12 @@
       "partialHint": "Voltooien trekt alleen het oude product uit je winkel terug. Niets wordt dubbel toegevoegd, niets wordt verwijderd.",
       "finishCta": "Vervanging voltooien",
       "partialUnnamed": "het gekozen alternatief",
-      "partialNow": "Het alternatief is toegevoegd, maar het oude product kon niet worden teruggetrokken. Voltooi de vervanging hieronder."
+      "partialNow": "Het alternatief is toegevoegd, maar het oude product kon niet worden teruggetrokken. Voltooi de vervanging hieronder.",
+      "digestMessage": "{count, plural, one {# product in je winkel kan niet meer verkocht worden} other {# producten in je winkel kunnen niet meer verkocht worden}}: bekijk de lijst om ze terug te trekken of te vervangen.",
+      "listTitle": "Onverkoopbare producten in je winkel",
+      "listSubtitle": "{count, plural, =0 {Geen product betrokken.} one {# product kan vandaag niet gekocht worden.} other {# producten kunnen vandaag niet gekocht worden.}}",
+      "listEmpty": "Alle producten in je winkel kunnen gekocht worden.",
+      "listCta": "Terugtrekken of vervangen"
     }
   },
   "marketplace": {
@@ -9168,7 +9173,8 @@
     "viewInvitation": "Uitnodiging bekijken",
     "viewAffiliateInvites": "Wederverkopersuitnodigingen bekijken",
     "viewProfitAlert": "Melding bekijken",
-    "viewReplacement": "Verwijderen of vervangen"
+    "viewReplacement": "Verwijderen of vervangen",
+    "viewUnsellableList": "Lijst bekijken"
   },
   "aiConnect": {
     "title": "Een AI koppelen",

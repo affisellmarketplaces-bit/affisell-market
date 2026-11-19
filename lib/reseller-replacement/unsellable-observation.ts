@@ -56,6 +56,11 @@ export type UnsellableObservation = {
   wouldNotifyNew: number
   /** Of those, notices that the reseller's in-app preference would have blocked. */
   wouldSkipPreference: number
+  /**
+   * Bell notifications `enforce` would really send with the daily digest: ONE per reseller with something new and the
+   * in-app preference on. Null on rows recorded before the digest existed.
+   */
+  wouldNotifyResellers: number | null
 }
 
 export function summarizeObservation(input: {
@@ -85,6 +90,7 @@ export function summarizeObservation(input: {
     maxPerReseller: counts.length > 0 ? Math.max(...counts) : 0,
     wouldNotifyNew: input.newItems.length,
     wouldSkipPreference: input.newItems.filter((it) => input.inAppOff.has(it.affiliateId)).length,
+    wouldNotifyResellers: new Set(input.newItems.filter((it) => !input.inAppOff.has(it.affiliateId)).map((it) => it.affiliateId)).size,
   }
 }
 
@@ -97,6 +103,8 @@ export type ObservationTrend = {
   meanWouldNotifyNew: number | null
   /** Highest daily number of new notices: the bell volume `enforce` would have produced on its worst day. */
   peakWouldNotifyNew: number
+  /** Highest daily number of bell notifications WITH the digest (one per reseller); null without such rows. */
+  peakWouldNotifyResellers: number | null
   /** Plain reading, never a forecast. */
   reading: "no_data" | "too_few_days" | "observed"
 }
@@ -105,7 +113,16 @@ export type ObservationTrend = {
 export function summarizeObservations(rows: ReadonlyArray<UnsellableObservation>): ObservationTrend {
   const sorted = [...rows].sort((a, b) => (a.day < b.day ? 1 : -1))
   if (sorted.length === 0) {
-    return { days: 0, truncatedDays: 0, latest: null, meanUnsellable: null, meanWouldNotifyNew: null, peakWouldNotifyNew: 0, reading: "no_data" }
+    return {
+      days: 0,
+      truncatedDays: 0,
+      latest: null,
+      meanUnsellable: null,
+      meanWouldNotifyNew: null,
+      peakWouldNotifyNew: 0,
+      peakWouldNotifyResellers: null,
+      reading: "no_data",
+    }
   }
   const mean = (f: (o: UnsellableObservation) => number) => Math.round((sorted.reduce((s, o) => s + f(o), 0) / sorted.length) * 10) / 10
   return {
@@ -115,6 +132,9 @@ export function summarizeObservations(rows: ReadonlyArray<UnsellableObservation>
     meanUnsellable: mean((o) => o.unsellable),
     meanWouldNotifyNew: mean((o) => o.wouldNotifyNew),
     peakWouldNotifyNew: Math.max(...sorted.map((o) => o.wouldNotifyNew)),
+    peakWouldNotifyResellers: sorted.some((o) => o.wouldNotifyResellers != null)
+      ? Math.max(...sorted.map((o) => o.wouldNotifyResellers ?? 0))
+      : null,
     reading: sorted.length < 7 ? "too_few_days" : "observed",
   }
 }
@@ -143,5 +163,6 @@ export function parseObservation(payload: unknown): UnsellableObservation | null
     maxPerReseller: num("maxPerReseller")!,
     wouldNotifyNew: num("wouldNotifyNew")!,
     wouldSkipPreference: num("wouldSkipPreference")!,
+    wouldNotifyResellers: num("wouldNotifyResellers"),
   }
 }
