@@ -125,7 +125,7 @@ afterEach(() => vi.unstubAllEnvs())
 
 describe("supplier blocked-demand alerts — pure rules", () => {
   it("defaults to observe; only enforce sends", () => {
-    expect(readSupplierBlockedDemandMode(undefined)).toBe("observe")
+    expect(readSupplierBlockedDemandMode(null)).toBe("observe")
     expect(readSupplierBlockedDemandMode("enforce")).toBe("enforce")
     expect(readSupplierBlockedDemandMode("off")).toBe("off")
   })
