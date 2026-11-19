@@ -3,7 +3,13 @@ import path from "node:path"
 
 import { describe, expect, it } from "vitest"
 
-import { detectCatalogOpportunities, rootOfCategory, type CategoryStats } from "@/lib/strategic-intelligence/catalog-opportunities"
+import {
+  catalogOpportunitySignals,
+  detectCatalogOpportunities,
+  rootOfCategory,
+  type CategoryStats,
+} from "@/lib/strategic-intelligence/catalog-opportunities"
+import { metricForSignal, signalFamily, SUPPLY_ATTRIBUTION_CAVEAT, verdictFor } from "@/lib/strategic-intelligence/journal"
 
 const stat = (over: Partial<CategoryStats> = {}): CategoryStats => ({
   rootId: "r1",
@@ -57,5 +63,36 @@ describe("supply ↔ demand opportunities (admin, aggregates only)", () => {
     expect(page).toContain('role !== "ADMIN"')
     const server = readFileSync(path.join(root, "lib/strategic-intelligence/catalog-opportunities.server.ts"), "utf8")
     expect(server).not.toMatch(/\.(create|update|delete|upsert)(Many)?\(/)
+  })
+})
+
+describe("opportunities → decision journal", () => {
+  const ctx = { observedAt: "2026-11-19T06:00:00.000Z", window: { from: "2026-10-20T06:00:00.000Z", to: "2026-11-19T06:00:00.000Z" } }
+  const opps = detectCatalogOpportunities([
+    stat({ rootId: "r1", orders30d: 25, sellingResellers: 3, sellableProducts: 2, sellableSuppliers: 1 }),
+    stat({ rootId: "r2", label: "Jardin", orders30d: 20, ordersOnUnsellable30d: 8, sellableProducts: 50, sellableSuppliers: 5 }),
+    stat({ rootId: "r3", label: "Sport", orders30d: 6, sellableProducts: 20, sellableSuppliers: 4, sellableNotListed: 15 }),
+  ])
+
+  it("each finding is a cockpit signal of its own family, measured on a supply STATE of its category", () => {
+    const signals = catalogOpportunitySignals(opps, ctx)
+    expect(signals.map((s) => s.id).sort()).toEqual(["discovery:demand-unavailable:r2", "discovery:supply-gap:r1", "discovery:supply-undistributed:r3"])
+    expect(new Set(signals.map((s) => signalFamily(s.id))).size).toBe(3)
+    expect(metricForSignal("discovery:supply-gap:r1")).toMatchObject({ metric: "sellable_suppliers", scope: "root:r1", direction: "up" })
+    expect(metricForSignal("discovery:demand-unavailable:r2")).toMatchObject({ metric: "sellable_products", scope: "root:r2" })
+    expect(metricForSignal("discovery:supply-undistributed:r3")).toMatchObject({ metric: "listed_sellable_share_bps", scope: "root:r3" })
+    for (const s of signals) expect(s.confidenceReason).toMatch(/jamais une taille de marché ni une croissance acquise/)
+  })
+
+  it("a supply evolution is reported as a correlation, never an attributable result", () => {
+    const small = verdictFor("sellable_suppliers", "up", { value: 1, count: 1, base: null }, { value: 3, count: 3, base: null })
+    expect(small.verdict).toBe("inconclusive")
+    expect(small.reason).toContain("1 → 3")
+    expect(small.reason).toContain(SUPPLY_ATTRIBUTION_CAVEAT)
+    const big = verdictFor("sellable_products", "up", { value: 10, count: 10, base: null }, { value: 40, count: 40, base: null })
+    expect(big.verdict).toBe("improved")
+    expect(big.reason).toContain(SUPPLY_ATTRIBUTION_CAVEAT)
+    const share = verdictFor("listed_sellable_share_bps", "up", { value: 2500, count: 25, base: 100 }, { value: 6000, count: 60, base: 100 })
+    expect(share.verdict).toBe("improved")
   })
 })

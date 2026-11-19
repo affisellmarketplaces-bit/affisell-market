@@ -52,6 +52,8 @@ import { buildSupplierReliability, type SupplierReliabilityResult } from "@/lib/
 import { representativeInput, simulateLevers, type UnitEconomicsInput } from "@/lib/strategic-intelligence/lever-simulation"
 import { findSourcingOpportunities, sourcingSignals, type SourcingCoverage, type SourcingOpportunity } from "@/lib/strategic-intelligence/sourcing-opportunities"
 import { loadSourcingProducts } from "@/lib/strategic-intelligence/sourcing-opportunities.server"
+import { catalogOpportunitySignals } from "@/lib/strategic-intelligence/catalog-opportunities"
+import { loadCatalogOpportunities } from "@/lib/strategic-intelligence/catalog-opportunities.server"
 import { priceGapRequests, unansweredRequests, unmetDemandSignals, unmetSearches, UNMET_WINDOW_DAYS } from "@/lib/strategic-intelligence/unmet-demand"
 import { loadJournal } from "@/lib/strategic-intelligence/journal.server"
 import { adjustScenario, chooseElasticity, summarizePool, type ElasticityPool } from "@/lib/strategic-intelligence/demand-adjusted-simulation"
@@ -601,6 +603,12 @@ export async function loadIntelligenceCockpit(now = new Date()): Promise<Cockpit
         { searches: unmetSearches(searches), unanswered: unansweredRequests(reqRows, now), priceGaps: priceGapRequests(reqRows), searchRowsRead: searches.length },
         { observedAt, window: { from: since.toISOString(), to: observedAt } }
       )
+    }, report),
+
+    guarded("discovery.catalog_opportunities", async () => {
+      const r = await loadCatalogOpportunities(now)
+      if (r.truncated) throw new Error("echantillon_tronque")
+      return catalogOpportunitySignals(r.opportunities, { observedAt, window: { from: d(30).toISOString(), to: observedAt } })
     }, report),
 
     guarded("risk.dispute_activity", async () => {

@@ -22,14 +22,41 @@ export const DECISION_LABELS: Record<DecisionKind, string> = {
   dismiss: "Écarter",
 }
 
-export const METRICS = ["paid_orders", "dispute_activity_bps", "valid_gtin_share_bps", "affisell_net_cents_per_order"] as const
+export const METRICS = [
+  "paid_orders",
+  "dispute_activity_bps",
+  "valid_gtin_share_bps",
+  "affisell_net_cents_per_order",
+  "sellable_suppliers",
+  "sellable_products",
+  "listed_sellable_share_bps",
+] as const
 export type JournalMetric = (typeof METRICS)[number]
 export const METRIC_LABELS: Record<JournalMetric, string> = {
   paid_orders: "Commandes payées sur la période",
   dispute_activity_bps: "Activité de litiges (‱ des paiements)",
   valid_gtin_share_bps: "Part des produits actifs avec un GTIN valide (‱)",
   affisell_net_cents_per_order: "Marge nette Affisell par commande (centimes, commandes mûres)",
+  sellable_suppliers: "Fournisseurs avec au moins un produit vendable dans la catégorie (état)",
+  sellable_products: "Produits vendables dans la catégorie (état)",
+  listed_sellable_share_bps: "Part des produits vendables de la catégorie proposés par au moins un revendeur (‱, état)",
 }
+
+/** STATE metrics: measured at the moment of the measurement (the window only says when). */
+export const STATE_METRICS: ReadonlySet<JournalMetric> = new Set([
+  "valid_gtin_share_bps",
+  "sellable_suppliers",
+  "sellable_products",
+  "listed_sellable_share_bps",
+])
+/** Plain-count metrics, judged like paid orders (Poisson, minimum events). */
+export const COUNT_METRICS: ReadonlySet<JournalMetric> = new Set(["paid_orders", "sellable_suppliers", "sellable_products"])
+
+export const SUPPLY_METRICS: ReadonlySet<JournalMetric> = new Set(["sellable_suppliers", "sellable_products", "listed_sellable_share_bps"])
+
+/** Supply decisions (catalogue opportunities): an evolution is OBSERVED, never attributed to the decision. */
+export const SUPPLY_ATTRIBUTION_CAVEAT =
+  "Corrélation observée, pas un résultat attribuable : des fournisseurs, produits ou revendeurs ont pu arriver pour d'autres raisons."
 
 export type MetricPlan = {
   metric: JournalMetric
@@ -57,6 +84,12 @@ export function metricForSignal(signalId: string): MetricPlan | null {
   if (m) return { metric: "paid_orders", scope: `product:${m[1]}`, direction: "up", defaultDays: 30 }
   m = signalId.match(/^(?:commercial:economics:(?:populaire_non_rentable|a_abandonner|marge_ameliorable_sourcing)|commercial:sourcing):(.+)$/)
   if (m) return { metric: "affisell_net_cents_per_order", scope: `product:${m[1]}`, direction: "up", defaultDays: 30, maturityDays: MARGIN_MATURITY_DAYS }
+  m = signalId.match(/^discovery:supply-gap:(.+)$/)
+  if (m) return { metric: "sellable_suppliers", scope: `root:${m[1]}`, direction: "up", defaultDays: 60 }
+  m = signalId.match(/^discovery:demand-unavailable:(.+)$/)
+  if (m) return { metric: "sellable_products", scope: `root:${m[1]}`, direction: "up", defaultDays: 30 }
+  m = signalId.match(/^discovery:supply-undistributed:(.+)$/)
+  if (m) return { metric: "listed_sellable_share_bps", scope: `root:${m[1]}`, direction: "up", defaultDays: 30 }
   if (/^risk:dispute-activity:/.test(signalId)) return { metric: "dispute_activity_bps", scope: "all", direction: "down", defaultDays: 30 }
   if (/^risk:safety-gate:coverage:/.test(signalId)) return { metric: "valid_gtin_share_bps", scope: "all", direction: "up", defaultDays: 30 }
   return null
@@ -112,9 +145,11 @@ export function verdictFor(
     if (signed <= -VERDICT_Z) return { verdict: "worsened", z, reason: `Dégradation nette, ${zTxt} écarts-types : ${change}. ${caveat}` }
     return { verdict: "inconclusive", z, reason: `Écart de ${zTxt} écart-type(s), dans la marge du hasard : ${change}.` }
   }
-  if (metric === "paid_orders") {
+  if (COUNT_METRICS.has(metric)) {
     if (baseline.count + observed.count < MIN_COUNT_EVENTS) {
-      return { verdict: "inconclusive", z: null, reason: `Moins de ${MIN_COUNT_EVENTS} commandes sur les deux périodes : trop peu pour conclure.` }
+      const what = metric === "paid_orders" ? "commandes" : "unités comptées"
+      const tail = SUPPLY_METRICS.has(metric) ? ` ${baseline.value} → ${observed.value}. ${SUPPLY_ATTRIBUTION_CAVEAT}` : ""
+      return { verdict: "inconclusive", z: null, reason: `Moins de ${MIN_COUNT_EVENTS} ${what} sur les deux périodes : trop peu pour conclure.${tail}` }
     }
     z = twoPeriodZ(baseline.count, observed.count)
   } else {
@@ -125,9 +160,10 @@ export function verdictFor(
   }
   const signed = direction === "up" ? z : -z
   const zTxt = Math.abs(z).toFixed(1).replace(".", ",")
-  if (signed >= VERDICT_Z) return { verdict: "improved", z, reason: `Évolution favorable de ${zTxt} écarts-types (seuil ${VERDICT_Z}).` }
-  if (signed <= -VERDICT_Z) return { verdict: "worsened", z, reason: `Évolution défavorable de ${zTxt} écarts-types (seuil ${VERDICT_Z}).` }
-  return { verdict: "inconclusive", z, reason: `Écart de ${zTxt} écart-type(s), dans la marge du hasard (seuil ${VERDICT_Z}).` }
+  const caveat = SUPPLY_METRICS.has(metric) ? ` ${baseline.value} → ${observed.value}. ${SUPPLY_ATTRIBUTION_CAVEAT}` : ""
+  if (signed >= VERDICT_Z) return { verdict: "improved", z, reason: `Évolution favorable de ${zTxt} écarts-types (seuil ${VERDICT_Z}).${caveat}` }
+  if (signed <= -VERDICT_Z) return { verdict: "worsened", z, reason: `Évolution défavorable de ${zTxt} écarts-types (seuil ${VERDICT_Z}).${caveat}` }
+  return { verdict: "inconclusive", z, reason: `Écart de ${zTxt} écart-type(s), dans la marge du hasard (seuil ${VERDICT_Z}).${caveat}` }
 }
 
 export function validateDecisionInput(body: unknown):

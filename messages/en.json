@@ -9179,7 +9179,8 @@
     "viewAffiliateInvites": "View reseller invitations",
     "viewProfitAlert": "View alert",
     "viewReplacement": "Withdraw or replace",
-    "viewUnsellableList": "See the list"
+    "viewUnsellableList": "See the list",
+    "viewBlockedDemand": "See blocked products"
   },
   "aiConnect": {
     "title": "Connect an AI",
@@ -9536,6 +9537,37 @@
       "restockExplain": "Detail: {needed} units needed ({sold} sold in 30 days, scaled to {lead} + {target} days) − {available} units available.",
       "restockLeadNotDeclared": "Restock lead time not declared: the calculation counts 0 days. Declare it under « Supply costs » in the product sheet for a better calculation.",
       "restockReservedNote": "The {reserved} reserved units (paid, unshipped, not deducted by Affisell) are taken out of the declared stock in this calculation, to be safe."
+    },
+    "blockedDemand": {
+      "title": "Demand blocked by unavailability",
+      "subtitle": "Your products that resellers offer, that were selling or that buyers paid for, and that can no longer be bought today. Only observed facts are counted — never a visit or mere interest.",
+      "empty": "No blocked demand on your products right now.",
+      "bellSingle": "Buyers can no longer order “{product}”: it is unavailable in your resellers' shops.",
+      "bellDigest": "{count} of your products sold by your resellers can no longer be ordered.",
+      "cause": {
+        "out_of_stock": "Sold out: the available quantity is 0.",
+        "stock_unconfirmed": "Quantity never confirmed: the product cannot be sold until it is.",
+        "paused_by_supplier": "Paused or unpublished from your product sheet.",
+        "no_commission": "No explicit reseller commission: a sale could not be recorded."
+      },
+      "fix": {
+        "update_stock": "Update the quantity",
+        "confirm_stock": "Confirm the quantity",
+        "reactivate": "Put back on sale",
+        "set_commission": "Set the commission"
+      },
+      "ordersBefore": "{count, plural, one {# paid order} other {# paid orders}} in the 30 days before the unavailability (observed)",
+      "ordersSince": "{count, plural, one {# paid order} other {# paid orders}} since (observed)",
+      "failedLines": "{count, plural, one {# payment received could not become an order} other {# payments received could not become orders}} because of the unavailability (observed; buyers refunded or to be refunded)",
+      "shops": "In {count, plural, one {# reseller shop} other {# reseller shops}}",
+      "lastSale": "Last paid order on {date}",
+      "since": "Unavailable since {date} at the latest ({days, plural, =0 {today} one {# day} other {# days}})",
+      "sinceUnknown": "Start date not yet recorded by the daily monitor.",
+      "estimate": "Estimate: at the pace of the previous 30 days, about {orders} orders (between {low} and {high}) over this period. This is not an observed loss.",
+      "note": "No reseller name or reseller-specific figure is shown. Nothing is changed automatically: you update your product sheet.",
+      "pref": "Notify me in the bell (at most one notification a day)",
+      "prefSaved": "Preference saved",
+      "truncated": "Capped read: the list may be incomplete."
     }
   },
   "nextActions": {

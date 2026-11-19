@@ -21,6 +21,7 @@ name: Scheduled crons
 #   scheduled   unallocated-buyer-notices every 30 min  buyer notice for paid lines with no order; OFF unless UNALLOCATED_LINE_BUYER_EMAIL=true; e-mail only, never money.
 #   scheduled   reseller-profit-alerts daily         idempotent (DB unique keys); writes alerts/notifications only, never money.
 #   scheduled   reseller-unsellable-alerts daily     observe by default (logs only); enforce = one bell note per listing/problem/14 d; never money.
+#   scheduled   supplier-blocked-demand-alerts daily observe by default (measures only); enforce = one bell per supplier/day; never stock or money.
 #   scheduled   intelligence-daily     daily         founder cockpit run: signal log, due decision measurements, one digest; never money.
 #   NOT         review-invites         deprecated alias of review-reminder, which is scheduled: both would double the work.
 #   scheduled   sync-auto-buy-tracking every 3 h     read-only AliExpress lookups (G4); writes only orders still awaiting shipment.
@@ -145,6 +146,7 @@ jobs:
             "/api/cron/merchant-kyc-reminder" \
             "/api/cron/reseller-profit-alerts" \
             "/api/cron/reseller-unsellable-alerts" \
+            "/api/cron/supplier-blocked-demand-alerts" \
             "/api/cron/intelligence-daily"
 
   # Payout reconciliation + the "paid order without a handled webhook" monitor (a monitor that fails silently is blind): STRICT.

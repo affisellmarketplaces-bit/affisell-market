@@ -1,3 +1,4 @@
+import { BlockedDemandSection } from "@/components/supplier/blocked-demand-section"
 import { CatalogHealthPanel } from "@/components/supplier/catalog-health-panel"
 import { NextActionsCard } from "@/components/next-best-action/next-actions-card"
 import { requireSupplierSession } from "@/lib/dashboard-session"
@@ -10,6 +11,7 @@ export default async function SupplierCatalogHealthPage() {
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-8">
       <NextActionsCard role="supplier" />
+      <BlockedDemandSection />
       <CatalogHealthPanel />
     </main>
   )

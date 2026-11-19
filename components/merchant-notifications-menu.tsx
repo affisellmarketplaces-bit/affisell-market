@@ -18,6 +18,7 @@ import { SUPPLIER_AFFILIATE_INVITE_NOTIF } from "@/lib/supplier-affiliate-invite
 import { SUPPLIER_PRICE_CHANGE_NOTIF } from "@/lib/affiliate-wholesale-change-notif-constants"
 import { PROFIT_ALERT_NOTIF } from "@/lib/intelligence/profit-alert-types"
 import { UNSELLABLE_DIGEST_NOTIF, UNSELLABLE_LIST_PATH, UNSELLABLE_LISTING_NOTIF } from "@/lib/reseller-replacement/unsellable-alerts"
+import { SUPPLIER_BLOCKED_DEMAND_NOTIF, SUPPLIER_BLOCKED_DEMAND_PATH } from "@/lib/supplier-demand-alerts/blocked-demand"
 import type { MerchantNotificationOrderSummary } from "@/lib/merchant-notification-order-summary-types"
 import { computeAnchoredPanelPosition, type AnchoredPanelPosition } from "@/lib/anchored-panel-position"
 import { cn } from "@/lib/utils"
@@ -152,6 +153,10 @@ function resolveNotificationLink(
 
   if (role === "AFFILIATE" && n.type === SUPPLIER_INVITE_NOTIF.REGISTERED) {
     return { href: "/dashboard/affiliate/invite-supplier", label: t("viewInvitation") }
+  }
+
+  if (role === "SUPPLIER" && n.type === SUPPLIER_BLOCKED_DEMAND_NOTIF) {
+    return { href: SUPPLIER_BLOCKED_DEMAND_PATH, label: t("viewBlockedDemand") }
   }
 
   if (

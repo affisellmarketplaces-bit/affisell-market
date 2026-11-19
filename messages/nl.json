@@ -9179,7 +9179,8 @@
     "viewAffiliateInvites": "Wederverkopersuitnodigingen bekijken",
     "viewProfitAlert": "Melding bekijken",
     "viewReplacement": "Verwijderen of vervangen",
-    "viewUnsellableList": "Lijst bekijken"
+    "viewUnsellableList": "Lijst bekijken",
+    "viewBlockedDemand": "Geblokkeerde producten bekijken"
   },
   "aiConnect": {
     "title": "Een AI koppelen",
@@ -9536,6 +9537,37 @@
       "restockExplain": "Detail: {needed} stuks nodig ({sold} verkocht in 30 dagen, omgerekend naar {lead} + {target} dagen) − {available} stuks beschikbaar.",
       "restockLeadNotDeclared": "Aanvultermijn niet opgegeven: de berekening telt 0 dagen. Geef hem op onder « Inkoopkosten » in de productfiche.",
       "restockReservedNote": "De {reserved} gereserveerde stuks (betaald, niet verzonden, niet afgetrokken door Affisell) worden in deze berekening voorzichtigheidshalve van de opgegeven voorraad afgetrokken."
+    },
+    "blockedDemand": {
+      "title": "Vraag geblokkeerd door onbeschikbaarheid",
+      "subtitle": "Uw producten die wederverkopers aanbieden, die verkochten of die kopers betaalden, en die vandaag niet meer te koop zijn. Alleen vastgestelde feiten tellen – nooit een bezoek of louter interesse.",
+      "empty": "Momenteel geen geblokkeerde vraag op uw producten.",
+      "bellSingle": "Kopers kunnen „{product}” niet meer bestellen: het is niet beschikbaar in de winkels van uw wederverkopers.",
+      "bellDigest": "{count} van uw producten die uw wederverkopers verkopen, kunnen niet meer worden besteld.",
+      "cause": {
+        "out_of_stock": "Uitverkocht: beschikbare hoeveelheid is 0.",
+        "stock_unconfirmed": "Hoeveelheid nooit bevestigd: het product kan pas daarna verkocht worden.",
+        "paused_by_supplier": "Gepauzeerd of niet gepubliceerd via uw productfiche.",
+        "no_commission": "Geen expliciete wederverkoperscommissie: een verkoop zou niet kunnen worden geregistreerd."
+      },
+      "fix": {
+        "update_stock": "Hoeveelheid bijwerken",
+        "confirm_stock": "Hoeveelheid bevestigen",
+        "reactivate": "Weer te koop zetten",
+        "set_commission": "Commissie instellen"
+      },
+      "ordersBefore": "{count, plural, one {# betaalde bestelling} other {# betaalde bestellingen}} in de 30 dagen vóór de onbeschikbaarheid (vastgesteld)",
+      "ordersSince": "{count, plural, one {# betaalde bestelling} other {# betaalde bestellingen}} sindsdien (vastgesteld)",
+      "failedLines": "{count, plural, one {# ontvangen betaling kon geen bestelling worden} other {# ontvangen betalingen konden geen bestellingen worden}} door onbeschikbaarheid (vastgesteld; kopers terugbetaald of terug te betalen)",
+      "shops": "In {count, plural, one {# winkel van een wederverkoper} other {# winkels van wederverkopers}}",
+      "lastSale": "Laatste betaalde bestelling op {date}",
+      "since": "Uiterlijk sinds {date} niet beschikbaar ({days, plural, =0 {vandaag} one {# dag} other {# dagen}})",
+      "sinceUnknown": "Begindatum nog niet vastgelegd door de dagelijkse controle.",
+      "estimate": "Schatting: in het tempo van de vorige 30 dagen ongeveer {orders} bestellingen (tussen {low} en {high}) in deze periode. Geen vastgesteld verlies.",
+      "note": "Er wordt geen naam of eigen cijfer van een wederverkoper getoond. Niets wordt automatisch gewijzigd: u werkt uw productfiche bij.",
+      "pref": "Waarschuw mij via de bel (hoogstens één melding per dag)",
+      "prefSaved": "Voorkeur opgeslagen",
+      "truncated": "Beperkte lezing: de lijst kan onvolledig zijn."
     }
   },
   "nextActions": {

@@ -21,6 +21,8 @@
  * appear only when ≥ 2 (k-anonymity floor). Nothing is shown to suppliers or resellers.
  */
 
+import type { StrategicSignal } from "@/lib/strategic-intelligence/types"
+
 export const OPP_UNDER_SUPPLIED_MIN_ORDERS = 10
 export const OPP_MIN_RESELLERS = 2
 export const OPP_THIN_SUPPLY_PRODUCTS = 3
@@ -120,4 +122,58 @@ export function rootOfCategory(categoryId: string | null, parentOf: ReadonlyMap<
   let guard = 0
   while (cur && parentOf.get(cur) && guard++ < 20) cur = parentOf.get(cur) ?? null
   return cur
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Cockpit signals → decision journal (founder brief 2026-11-19 §4).
+// ---------------------------------------------------------------------------------------------------------------
+
+/**
+ * Signal id prefix per finding: one FAMILY each (the journal's track record is per family), the taxonomy root as the
+ * object. Each maps to a supply metric the journal measures by itself (`journal.ts` `metricForSignal`):
+ *  - supply gap        → suppliers with a sellable product in the category (« fournisseurs recrutés » — observed,
+ *                        not attributed: a supplier may have joined for another reason);
+ *  - demand on unavailable → sellable products in the category (« produits devenus disponibles »);
+ *  - undistributed     → share of the sellable products listed by ≥ 1 reseller (« distribution »).
+ * Paid orders of the category stay readable on the page; they are NOT the decision's metric (an order rise after a
+ * recruitment decision is a correlation, never an acquired growth).
+ */
+export const OPPORTUNITY_SIGNAL_PREFIX: Record<OpportunityKind, string> = {
+  under_supplied: "discovery:supply-gap",
+  demand_on_unavailable: "discovery:demand-unavailable",
+  under_distributed: "discovery:supply-undistributed",
+}
+
+const TITLE: Record<OpportunityKind, (o: CatalogOpportunity) => string> = {
+  under_supplied: (o) => `Offre insuffisante en « ${o.label} » : ${o.evidence.orders30d} commandes en 30 j, ${o.evidence.sellableProducts} produit(s) vendable(s), ${o.evidence.sellableSuppliers} fournisseur(s)`,
+  demand_on_unavailable: (o) => `Demande sur des produits indisponibles en « ${o.label} » : ${o.evidence.ordersOnUnsellable30d} commandes (${o.evidence.sharePct} %) portaient sur des produits invendables aujourd'hui`,
+  under_distributed: (o) => `Offre peu distribuée en « ${o.label} » : ${o.evidence.unlistedPct} % des produits vendables proposés par aucun revendeur`,
+}
+const ACTION: Record<OpportunityKind, string> = {
+  under_supplied: "Recruter des fournisseurs dans cette catégorie. Le journal mesurera le nombre de fournisseurs avec un produit vendable — une évolution observée, pas la preuve que le recrutement en est la cause.",
+  demand_on_unavailable: "Faire réassortir les fournisseurs concernés (ils sont avertis par l'alerte « demande bloquée ») ou trouver une source équivalente. Le journal mesurera le nombre de produits vendables.",
+  under_distributed: "Recruter ou activer des revendeurs sur cette offre. Le journal mesurera la part des produits vendables distribués.",
+}
+
+export function catalogOpportunitySignals(
+  opportunities: ReadonlyArray<CatalogOpportunity>,
+  ctx: { observedAt: string; window: { from: string; to: string } }
+): StrategicSignal[] {
+  return opportunities.slice(0, 15).map((o) => ({
+    id: `${OPPORTUNITY_SIGNAL_PREFIX[o.kind]}:${o.rootId}`,
+    domain: o.kind === "under_distributed" ? "product_discovery" : "supplier",
+    priority: o.confidence === "medium" ? "important" : "study",
+    kind: "fact",
+    title: TITLE[o.kind](o),
+    evidence: Object.entries(o.evidence)
+      .filter(([k, v]) => !(k === "resellers" && v === 0))
+      .map(([label, v]) => ({ label, value: String(v) })),
+    source: { id: "affisell.catalog_opportunities", query: "Commandes payées 30 j × offre vendable aujourd'hui × annonces revendeurs, par catégorie racine (agrégats)" },
+    observedAt: ctx.observedAt,
+    window: ctx.window,
+    confidence: o.confidence,
+    confidenceReason: "Comptages internes au-dessus de seuils minimaux ; une piste à vérifier, jamais une taille de marché ni une croissance acquise.",
+    recommendedAction: ACTION[o.kind],
+    link: "/admin/catalog-opportunities",
+  }))
 }

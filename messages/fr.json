@@ -9179,7 +9179,8 @@
     "viewAffiliateInvites": "Voir les invitations revendeur",
     "viewProfitAlert": "Voir l'alerte",
     "viewReplacement": "Retirer ou remplacer",
-    "viewUnsellableList": "Voir la liste"
+    "viewUnsellableList": "Voir la liste",
+    "viewBlockedDemand": "Voir les produits bloqués"
   },
   "aiConnect": {
     "title": "Connecter une IA",
@@ -9536,6 +9537,37 @@
       "restockExplain": "Détail : {needed} unités nécessaires ({sold} vendues en 30 jours, ramenées à {lead} + {target} jours) − {available} unités disponibles.",
       "restockLeadNotDeclared": "Délai de réassort non déclaré : le calcul compte 0 jour. Déclarez-le dans « Coûts d'approvisionnement » de la fiche pour un calcul plus juste.",
       "restockReservedNote": "Les {reserved} unités réservées (payées, non expédiées, non déduites par Affisell) sont retirées du stock déclaré dans ce calcul, par prudence."
+    },
+    "blockedDemand": {
+      "title": "Demande bloquée par une indisponibilité",
+      "subtitle": "Vos produits que des revendeurs proposent, qui se vendaient ou que des acheteurs ont payés, et qui ne peuvent plus être achetés aujourd'hui. Seuls des faits constatés sont comptés : jamais une visite ni un simple intérêt.",
+      "empty": "Aucune demande bloquée sur vos produits en ce moment.",
+      "bellSingle": "Des acheteurs ne peuvent plus commander « {product} » : il est indisponible dans les boutiques de vos revendeurs.",
+      "bellDigest": "{count} de vos produits vendus par vos revendeurs ne peuvent plus être commandés.",
+      "cause": {
+        "out_of_stock": "En rupture : la quantité disponible est à 0.",
+        "stock_unconfirmed": "Quantité jamais confirmée : le produit ne peut pas être vendu tant qu'elle ne l'est pas.",
+        "paused_by_supplier": "Mis en pause ou dépublié depuis votre fiche.",
+        "no_commission": "Aucune commission revendeur explicite : une vente ne pourrait pas être enregistrée."
+      },
+      "fix": {
+        "update_stock": "Mettre à jour la quantité",
+        "confirm_stock": "Confirmer la quantité",
+        "reactivate": "Remettre en vente",
+        "set_commission": "Définir la commission"
+      },
+      "ordersBefore": "{count, plural, one {# commande payée} other {# commandes payées}} dans les 30 jours précédant l'indisponibilité (constaté)",
+      "ordersSince": "{count, plural, one {# commande payée} other {# commandes payées}} depuis (constaté)",
+      "failedLines": "{count, plural, one {# paiement reçu n'a pas pu devenir une commande} other {# paiements reçus n'ont pas pu devenir des commandes}} faute de disponibilité (constaté, acheteurs remboursés ou à rembourser)",
+      "shops": "Présent dans {count, plural, one {# boutique de revendeur} other {# boutiques de revendeurs}}",
+      "lastSale": "Dernière commande payée le {date}",
+      "since": "Indisponibilité constatée depuis le {date} ({days, plural, =0 {aujourd'hui} one {# jour} other {# jours}})",
+      "sinceUnknown": "Date de début pas encore constatée par la surveillance quotidienne.",
+      "estimate": "Estimation : au rythme des 30 jours précédents, environ {orders} commandes (entre {low} et {high}) sur cette période. Ce n'est pas une perte constatée.",
+      "note": "Aucun nom de revendeur ni chiffre propre à un revendeur n'est affiché. Rien n'est modifié automatiquement : c'est vous qui mettez à jour votre fiche.",
+      "pref": "Me prévenir dans la cloche (au plus une notification par jour)",
+      "prefSaved": "Préférence enregistrée",
+      "truncated": "Lecture plafonnée : la liste peut être incomplète."
     }
   },
   "nextActions": {

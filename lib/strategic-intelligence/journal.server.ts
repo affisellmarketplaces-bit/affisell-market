@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client"
 import { DAY_MS } from "@/lib/intelligence/order-aggregates"
 import { IDENTITY_KEYS } from "@/lib/listing-compliance/keys"
 import { prisma } from "@/lib/prisma"
+import { measureCategorySupply } from "@/lib/strategic-intelligence/catalog-opportunities.server"
 import { gtin14 } from "@/lib/strategic-intelligence/external/safety-gate"
 import { loadOrderFacts } from "@/lib/strategic-intelligence/mature-orders.server"
 import { orderEconomics } from "@/lib/strategic-intelligence/product-economics"
@@ -12,6 +13,7 @@ import {
   familyTrackRecords,
   metricForSignal,
   signalSnapshot,
+  STATE_METRICS,
   summarizeLearning,
   verdictFor,
   type DecisionKind,
@@ -64,6 +66,16 @@ export async function measureMetric(metric: JournalMetric, scope: string, from: 
     const disputes = new Set(ledger.map((r) => r.id.split(":")[1] || r.id)).size
     const payments = Number(rows[0]?.n ?? 0)
     return { value: payments > 0 ? Math.round((disputes / payments) * 10_000) : 0, count: disputes, base: payments }
+  }
+  if (metric === "sellable_suppliers" || metric === "sellable_products" || metric === "listed_sellable_share_bps") {
+    // STATES of one taxonomy root, measured now (same rule as the opportunities page).
+    if (!scope.startsWith("root:")) throw new Error("journal_bad_scope")
+    const c = await measureCategorySupply(scope.slice("root:".length))
+    const sellable = c?.sellableProducts ?? 0
+    if (metric === "sellable_suppliers") return { value: c?.sellableSuppliers ?? 0, count: c?.sellableSuppliers ?? 0, base: null }
+    if (metric === "sellable_products") return { value: sellable, count: sellable, base: null }
+    const listed = sellable - (c?.sellableNotListed ?? 0)
+    return { value: sellable > 0 ? Math.round((listed / sellable) * 10_000) : 0, count: listed, base: sellable }
   }
   // valid_gtin_share_bps — a STATE: measured now, whatever the window.
   const [active, rows] = await Promise.all([
@@ -180,7 +192,7 @@ export async function measureDecision(
             observedCount: observed.count,
             observedBase: observed.base,
             windowFrom,
-            windowTo: metric === "valid_gtin_share_bps" ? (now > windowFrom ? now : windowTo) : windowTo,
+            windowTo: STATE_METRICS.has(metric) ? (now > windowFrom ? now : windowTo) : windowTo,
             zScore: result.z,
             verdict: result.verdict,
             method: result.reason,

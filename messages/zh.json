@@ -9179,7 +9179,8 @@
     "viewAffiliateInvites": "查看分销商邀请",
     "viewProfitAlert": "查看提醒",
     "viewReplacement": "下架或替换",
-    "viewUnsellableList": "查看列表"
+    "viewUnsellableList": "查看列表",
+    "viewBlockedDemand": "查看受阻产品"
   },
   "aiConnect": {
     "title": "连接 AI",
@@ -9536,6 +9537,37 @@
       "restockExplain": "明细：需 {needed} 件（30 天售出 {sold} 件，按 {lead} + {target} 天折算）− 可用 {available} 件。",
       "restockLeadNotDeclared": "未申报补货周期：计算按 0 天计。可在商品页「采购成本」中申报，以获得更准确的计算。",
       "restockReservedNote": "出于谨慎，本计算已从申报库存中减去 {reserved} 件预留（已付款、未发货、Affisell 未扣除）。"
+    },
+    "blockedDemand": {
+      "title": "因缺货而受阻的需求",
+      "subtitle": "分销商正在展示、此前有销量或买家已付款，但今天无法购买的您的产品。只统计已确认的事实，绝不把浏览或兴趣算在内。",
+      "empty": "目前您的产品没有受阻需求。",
+      "bellSingle": "买家已无法订购「{product}」：它在您的分销商店铺中不可购买。",
+      "bellDigest": "您有 {count} 个由分销商销售的产品已无法订购。",
+      "cause": {
+        "out_of_stock": "缺货：可售数量为 0。",
+        "stock_unconfirmed": "数量从未确认：确认之前无法销售。",
+        "paused_by_supplier": "已在您的商品页暂停或取消发布。",
+        "no_commission": "没有明确的分销佣金：销售无法被记录。"
+      },
+      "fix": {
+        "update_stock": "更新数量",
+        "confirm_stock": "确认数量",
+        "reactivate": "重新上架",
+        "set_commission": "设置佣金"
+      },
+      "ordersBefore": "缺货前 30 天内有 {count} 笔已付款订单（已确认）",
+      "ordersSince": "此后有 {count} 笔已付款订单（已确认）",
+      "failedLines": "{count} 笔已收款项因缺货未能成为订单（已确认；买家已退款或待退款）",
+      "shops": "出现在 {count} 家分销商店铺中",
+      "lastSale": "最近一笔已付款订单：{date}",
+      "since": "最迟自 {date} 起不可购买（{days, plural, =0 {今天} other {# 天}}）",
+      "sinceUnknown": "每日监控尚未记录开始日期。",
+      "estimate": "估算：按前 30 天的节奏，此期间约 {orders} 笔订单（{low} 至 {high}）。这不是已确认的损失。",
+      "note": "不会显示任何分销商名称或其个人数据。不会自动修改任何内容：由您更新商品页。",
+      "pref": "通过铃铛通知我（每天最多一次）",
+      "prefSaved": "偏好已保存",
+      "truncated": "读取受限：列表可能不完整。"
     }
   },
   "nextActions": {

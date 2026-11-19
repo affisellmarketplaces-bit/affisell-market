@@ -9179,7 +9179,8 @@
     "viewAffiliateInvites": "Zobacz zaproszenia resellerów",
     "viewProfitAlert": "Zobacz alert",
     "viewReplacement": "Wycofaj lub zastąp",
-    "viewUnsellableList": "Zobacz listę"
+    "viewUnsellableList": "Zobacz listę",
+    "viewBlockedDemand": "Zobacz zablokowane produkty"
   },
   "aiConnect": {
     "title": "Połącz AI",
@@ -9536,6 +9537,37 @@
       "restockExplain": "Szczegóły: potrzeba {needed} szt. ({sold} sprzedanych w 30 dni, przeliczone na {lead} + {target} dni) − {available} szt. dostępnych.",
       "restockLeadNotDeclared": "Czas uzupełnienia niezadeklarowany: obliczenie liczy 0 dni. Zadeklaruj go w « Koszty zaopatrzenia » na karcie produktu.",
       "restockReservedNote": "{reserved} zarezerwowanych szt. (opłaconych, niewysłanych, nieodjętych przez Affisell) odjęto w tym obliczeniu od zadeklarowanego zapasu, dla ostrożności."
+    },
+    "blockedDemand": {
+      "title": "Popyt zablokowany przez niedostępność",
+      "subtitle": "Twoje produkty oferowane przez sprzedawców, które się sprzedawały lub za które kupujący zapłacili, a których dziś nie można kupić. Liczą się tylko stwierdzone fakty – nigdy wizyta ani samo zainteresowanie.",
+      "empty": "Obecnie brak zablokowanego popytu na Twoje produkty.",
+      "bellSingle": "Kupujący nie mogą już zamówić „{product}”: jest niedostępny w sklepach Twoich sprzedawców.",
+      "bellDigest": "{count} Twoich produktów sprzedawanych przez Twoich sprzedawców nie można już zamówić.",
+      "cause": {
+        "out_of_stock": "Wyprzedane: dostępna ilość wynosi 0.",
+        "stock_unconfirmed": "Ilość nigdy nie potwierdzona: produkt nie może być sprzedawany, dopóki nie zostanie potwierdzona.",
+        "paused_by_supplier": "Wstrzymany lub niepublikowany w Twojej karcie produktu.",
+        "no_commission": "Brak wyraźnej prowizji sprzedawcy: sprzedaży nie można by zarejestrować."
+      },
+      "fix": {
+        "update_stock": "Zaktualizuj ilość",
+        "confirm_stock": "Potwierdź ilość",
+        "reactivate": "Przywróć do sprzedaży",
+        "set_commission": "Ustaw prowizję"
+      },
+      "ordersBefore": "{count, plural, one {# opłacone zamówienie} few {# opłacone zamówienia} many {# opłaconych zamówień} other {# opłaconego zamówienia}} w 30 dniach przed niedostępnością (stwierdzone)",
+      "ordersSince": "{count, plural, one {# opłacone zamówienie} few {# opłacone zamówienia} many {# opłaconych zamówień} other {# opłaconego zamówienia}} od tego czasu (stwierdzone)",
+      "failedLines": "{count, plural, one {# otrzymana płatność nie mogła stać się zamówieniem} few {# otrzymane płatności nie mogły stać się zamówieniami} many {# otrzymanych płatności nie mogło stać się zamówieniami} other {# otrzymanej płatności nie mogło stać się zamówieniami}} z powodu niedostępności (stwierdzone; kupujący otrzymali lub otrzymają zwrot)",
+      "shops": "W {count, plural, one {# sklepie sprzedawcy} other {# sklepach sprzedawców}}",
+      "lastSale": "Ostatnie opłacone zamówienie: {date}",
+      "since": "Niedostępny najpóźniej od {date} ({days, plural, =0 {dziś} one {# dzień} other {# dni}})",
+      "sinceUnknown": "Data rozpoczęcia nie została jeszcze zarejestrowana przez codzienny monitoring.",
+      "estimate": "Szacunek: w tempie poprzednich 30 dni około {orders} zamówień (od {low} do {high}) w tym okresie. To nie jest stwierdzona strata.",
+      "note": "Nie jest wyświetlana żadna nazwa ani dane konkretnego sprzedawcy. Nic nie jest zmieniane automatycznie: to Ty aktualizujesz kartę produktu.",
+      "pref": "Powiadamiaj mnie dzwonkiem (najwyżej jedno powiadomienie dziennie)",
+      "prefSaved": "Preferencja zapisana",
+      "truncated": "Odczyt ograniczony: lista może być niepełna."
     }
   },
   "nextActions": {

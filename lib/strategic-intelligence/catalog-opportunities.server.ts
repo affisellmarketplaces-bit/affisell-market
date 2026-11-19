@@ -31,8 +31,58 @@ export type CatalogOpportunityReport = {
  * orders) returns no ranking (`truncated`), never a partial one presented as complete.
  */
 export async function loadCatalogOpportunities(now = new Date()): Promise<CatalogOpportunityReport> {
+  const [stats, requests] = await Promise.all([
+    loadCategoryStats(now),
+    prisma.productRequest.findMany({
+      where: { createdAt: { gte: new Date(now.getTime() - 90 * DAY) } },
+      select: {
+        resellerId: true,
+        title: true,
+        category: true,
+        quotesCount: true,
+        targetPrice: true,
+        createdAt: true,
+        status: true,
+        quotes: { select: { price: true } },
+      },
+      take: 5_000,
+    }),
+  ])
+  const reqRows = requests.map((r) => ({
+    resellerId: r.resellerId,
+    title: r.title,
+    category: r.category,
+    quotesCount: r.quotesCount,
+    targetPriceEur: r.targetPrice ?? null,
+    createdAt: r.createdAt,
+    status: r.status,
+    quotePricesEur: r.quotes.map((q) => q.price).filter((p) => Number.isFinite(p) && p > 0),
+  }))
+  const base = {
+    generatedAt: now.toISOString(),
+    window: { days: 30 as const },
+    unansweredRequests: unansweredRequests(reqRows, now),
+    priceGaps: priceGapRequests(reqRows),
+  }
+  if (stats.truncated) return { ...base, opportunities: [], categoriesJudged: 0, truncated: true }
+  return { ...base, opportunities: detectCatalogOpportunities(stats.rows), categoriesJudged: stats.rows.length, truncated: false }
+}
+
+/**
+ * Supply state of ONE taxonomy root, now — what the decision journal measures for an opportunity decision (sellable
+ * products, suppliers with a sellable product, sellable products listed by ≥ 1 reseller). A capped read throws (the
+ * journal then records no measurement rather than a partial one).
+ */
+export async function measureCategorySupply(rootId: string, now = new Date()): Promise<CategoryStats | null> {
+  const stats = await loadCategoryStats(now)
+  if (stats.truncated) throw new Error("journal_truncated_read")
+  return stats.rows.find((r) => r.rootId === rootId) ?? null
+}
+
+/** Per-root demand / supply aggregates. READ-ONLY, bounded; `truncated` = a cap was reached. */
+export async function loadCategoryStats(now = new Date()): Promise<{ rows: CategoryStats[]; truncated: boolean }> {
   const since = new Date(now.getTime() - 30 * DAY)
-  const [cats, products, orders, listings, requests] = await Promise.all([
+  const [cats, products, orders, listings] = await Promise.all([
     prisma.category.findMany({ select: { id: true, parentId: true, name: true }, take: 50_000 }),
     prisma.product.findMany({
       where: { isDraft: false },
@@ -58,39 +108,9 @@ export async function loadCatalogOpportunities(now = new Date()): Promise<Catalo
       take: MAX_ORDERS + 1,
     }),
     prisma.affiliateProduct.groupBy({ by: ["productId"], where: { isListed: true }, _count: { _all: true } }),
-    prisma.productRequest.findMany({
-      where: { createdAt: { gte: new Date(now.getTime() - 90 * DAY) } },
-      select: {
-        resellerId: true,
-        title: true,
-        category: true,
-        quotesCount: true,
-        targetPrice: true,
-        createdAt: true,
-        status: true,
-        quotes: { select: { price: true } },
-      },
-      take: 5_000,
-    }),
   ])
   const truncated = products.length > MAX_PRODUCTS || orders.length > MAX_ORDERS || cats.length >= 50_000
-  const reqRows = requests.map((r) => ({
-    resellerId: r.resellerId,
-    title: r.title,
-    category: r.category,
-    quotesCount: r.quotesCount,
-    targetPriceEur: r.targetPrice ?? null,
-    createdAt: r.createdAt,
-    status: r.status,
-    quotePricesEur: r.quotes.map((q) => q.price).filter((p) => Number.isFinite(p) && p > 0),
-  }))
-  const base = {
-    generatedAt: now.toISOString(),
-    window: { days: 30 as const },
-    unansweredRequests: unansweredRequests(reqRows, now),
-    priceGaps: priceGapRequests(reqRows),
-  }
-  if (truncated) return { ...base, opportunities: [], categoriesJudged: 0, truncated: true }
+  if (truncated) return { rows: [], truncated: true }
 
   const parentOf = new Map(cats.map((c) => [c.id, c.parentId]))
   const nameOf = new Map(cats.map((c) => [c.id, c.name]))
@@ -145,5 +165,5 @@ export async function loadCatalogOpportunities(now = new Date()): Promise<Catalo
     sellableSuppliers: suppliers.size,
     sellingResellers: resellers.size,
   }))
-  return { ...base, opportunities: detectCatalogOpportunities(rows), categoriesJudged: rows.length, truncated: false }
+  return { rows, truncated: false }
 }

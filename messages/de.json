@@ -9179,7 +9179,8 @@
     "viewAffiliateInvites": "Wiederverkäufer-Einladungen ansehen",
     "viewProfitAlert": "Warnung ansehen",
     "viewReplacement": "Entfernen oder ersetzen",
-    "viewUnsellableList": "Liste ansehen"
+    "viewUnsellableList": "Liste ansehen",
+    "viewBlockedDemand": "Blockierte Produkte ansehen"
   },
   "aiConnect": {
     "title": "KI verbinden",
@@ -9536,6 +9537,37 @@
       "restockExplain": "Detail: {needed} benötigte Einheiten ({sold} in 30 Tagen verkauft, auf {lead} + {target} Tage umgerechnet) − {available} verfügbare Einheiten.",
       "restockLeadNotDeclared": "Nachschubzeit nicht gemeldet: Die Berechnung zählt 0 Tage. Melden Sie sie unter « Beschaffungskosten » im Produktblatt.",
       "restockReservedNote": "Die {reserved} reservierten Einheiten (bezahlt, nicht versandt, von Affisell nicht abgezogen) werden in dieser Berechnung vorsichtshalber vom gemeldeten Bestand abgezogen."
+    },
+    "blockedDemand": {
+      "title": "Durch Nichtverfügbarkeit blockierte Nachfrage",
+      "subtitle": "Ihre Produkte, die Wiederverkäufer anbieten, die sich verkauften oder die Käufer bezahlt haben und die heute nicht mehr gekauft werden können. Gezählt werden nur festgestellte Tatsachen – nie ein Besuch oder bloßes Interesse.",
+      "empty": "Derzeit keine blockierte Nachfrage bei Ihren Produkten.",
+      "bellSingle": "Käufer können „{product}“ nicht mehr bestellen: In den Shops Ihrer Wiederverkäufer ist es nicht verfügbar.",
+      "bellDigest": "{count} Ihrer von Wiederverkäufern verkauften Produkte können nicht mehr bestellt werden.",
+      "cause": {
+        "out_of_stock": "Ausverkauft: verfügbare Menge 0.",
+        "stock_unconfirmed": "Menge nie bestätigt: Das Produkt kann erst danach verkauft werden.",
+        "paused_by_supplier": "In Ihrem Produktblatt pausiert oder nicht veröffentlicht.",
+        "no_commission": "Keine ausdrückliche Provision: Ein Verkauf könnte nicht erfasst werden."
+      },
+      "fix": {
+        "update_stock": "Menge aktualisieren",
+        "confirm_stock": "Menge bestätigen",
+        "reactivate": "Wieder in den Verkauf",
+        "set_commission": "Provision festlegen"
+      },
+      "ordersBefore": "{count, plural, one {# bezahlte Bestellung} other {# bezahlte Bestellungen}} in den 30 Tagen vor der Nichtverfügbarkeit (festgestellt)",
+      "ordersSince": "{count, plural, one {# bezahlte Bestellung} other {# bezahlte Bestellungen}} seitdem (festgestellt)",
+      "failedLines": "{count, plural, one {# erhaltene Zahlung konnte keine Bestellung werden} other {# erhaltene Zahlungen konnten keine Bestellungen werden}} wegen Nichtverfügbarkeit (festgestellt; Käufer erstattet oder zu erstatten)",
+      "shops": "In {count, plural, one {# Wiederverkäufer-Shop} other {# Wiederverkäufer-Shops}}",
+      "lastSale": "Letzte bezahlte Bestellung am {date}",
+      "since": "Spätestens seit {date} nicht verfügbar ({days, plural, =0 {heute} one {# Tag} other {# Tage}})",
+      "sinceUnknown": "Beginn von der täglichen Überwachung noch nicht erfasst.",
+      "estimate": "Schätzung: Beim Tempo der vorangegangenen 30 Tage etwa {orders} Bestellungen (zwischen {low} und {high}) in diesem Zeitraum. Kein festgestellter Verlust.",
+      "note": "Kein Name und keine Einzelzahlen eines Wiederverkäufers werden angezeigt. Nichts wird automatisch geändert: Sie aktualisieren Ihr Produktblatt.",
+      "pref": "Mich über die Glocke benachrichtigen (höchstens einmal täglich)",
+      "prefSaved": "Einstellung gespeichert",
+      "truncated": "Begrenzte Abfrage: Die Liste kann unvollständig sein."
     }
   },
   "nextActions": {
