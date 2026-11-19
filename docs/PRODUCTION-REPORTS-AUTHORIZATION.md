@@ -65,6 +65,13 @@ npm run report:checkout-stock -- --confirm-endpoint=<endpoint>
 Tu peux les lancer toi-même ; ils ne demandent aucune clé Stripe ni AliExpress. Le rapprochement des frais
 (`report:fee-reconciliation`) a ses propres règles (mode plan par défaut, clé restreinte) et n'est pas concerné ici.
 
+## 5 bis. Vérification sur une base non productive (19 novembre)
+
+Les trois rapports sont exécutés à chaque intégration continue sur une base PostgreSQL jetable, exactement comme ils
+le seraient sur la production : même transaction en lecture seule, même client qui refuse les écritures. Le test
+(`read-only-reports-db.test.ts`) crée des produits connus, vérifie que chaque rapport les compte correctement, puis que
+rien de ce qu'il a lu n'a changé.
+
 ## 6. Procédure d'exécution, pas à pas (préparée le 19 novembre)
 
 1. **Repérer la cible, sans connexion** : lancer les trois commandes `--target` du §1, sur la machine qui contient
