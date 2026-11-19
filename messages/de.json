@@ -872,7 +872,9 @@
     "stock": {
       "outOfStock": "Dieses Produkt ist nicht auf Lager.",
       "insufficient": "Nur noch {count} auf Lager.",
-      "priceUpdating": "Der Preis dieses Produkts wird gerade aktualisiert. Bitte versuchen Sie es in ein paar Minuten erneut."
+      "priceUpdating": "Der Preis dieses Produkts wird gerade aktualisiert. Bitte versuchen Sie es in ein paar Minuten erneut.",
+      "variantUnavailable": "Die gewählte Option (Größe oder Farbe) gibt es für dieses Produkt nicht mehr: Wählen Sie auf der Produktseite eine andere.",
+      "variantUnavailableWith": "Die gewählte Option gibt es für dieses Produkt nicht mehr. Noch verfügbar: {options}."
     },
     "title": "Warenkorb",
     "loading": "Warenkorb wird geladen…",

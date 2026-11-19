@@ -16,6 +16,7 @@ import {
   resolveResellerListingCommerce,
 } from "@/lib/boutique/reseller-listing-commerce.server"
 import { normalizeCartVariantSignature } from "@/lib/cart-variant"
+import { evaluateCheckoutStockGate } from "@/lib/checkout-stock"
 import { resolveStripeCheckoutAllowedCountries } from "@/lib/checkout-country-rollout"
 import { buildVariantOptionLabel } from "@/lib/marketplace-purchase-quantity"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
@@ -154,6 +155,7 @@ export async function createResellerOrder(
           basePriceCents: true,
           stock: true,
           variants: true,
+          hasVariants: true,
           colors: true,
           customColumns: true,
           listingKind: true,
@@ -270,6 +272,24 @@ export async function createResellerOrder(
     variantParts.color,
     variantParts.size
   )
+
+  // Same check as every other checkout, before any order or payment session exists (founder brief 2026-11-19 §2):
+  // the variant asked for must be one the product has, and its row must have stock. `CHECKOUT_STOCK_MODE` decides
+  // (`warn` by default: logged only). The atomic decrement at payment is unchanged (`reserveStockInTransaction`).
+  const stockGate = evaluateCheckoutStockGate([
+    {
+      productId: listing.product.id,
+      productName: listing.product.name,
+      listingKind: listing.product.listingKind,
+      stock: listing.product.stock,
+      variants: listing.product.variants,
+      hasVariants: listing.product.hasVariants,
+      variantSignature: checkoutVariantSignature,
+      qty: 1,
+    },
+  ])
+  if (stockGate.refuseVariant) return { success: false, error: "variant_unavailable" }
+  if (stockGate.refuse) return { success: false, error: "out_of_stock" }
 
   const [affisellCommissionRateBps, supplierCommissionRateBps] = await Promise.all([
     resolveAffisellCommissionRateBpsForProductId(listing.product.id),

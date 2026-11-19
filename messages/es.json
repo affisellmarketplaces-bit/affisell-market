@@ -872,7 +872,9 @@
     "stock": {
       "outOfStock": "Este producto está agotado.",
       "insufficient": "Solo quedan {count} en stock.",
-      "priceUpdating": "El precio de este producto se está actualizando. Inténtalo de nuevo en unos minutos."
+      "priceUpdating": "El precio de este producto se está actualizando. Inténtalo de nuevo en unos minutos.",
+      "variantUnavailable": "La opción elegida (talla o color) ya no existe para este producto: elija otra en su ficha.",
+      "variantUnavailableWith": "La opción elegida ya no existe para este producto. Aún disponibles: {options}."
     },
     "title": "Carrito",
     "loading": "Cargando carrito…",

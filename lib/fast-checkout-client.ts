@@ -37,6 +37,8 @@ export type FastCheckoutNoStock = {
   status: "no_stock"
   code: CheckoutStockRefusalCode
   availableQty: number | null
+  /** VARIANT_UNAVAILABLE only: the options still on sale (named to the shopper, never chosen for them). */
+  availableVariants?: string[]
 }
 export type FastCheckoutFailure = {
   ok: false
@@ -112,7 +114,13 @@ export async function startFastCheckout(
 
     const stockRefusal = res.status === 409 ? parseCheckoutStockRefusal(data) : null
     if (stockRefusal) {
-      return { ok: false, status: "no_stock", code: stockRefusal.code, availableQty: stockRefusal.availableQty }
+      return {
+        ok: false,
+        status: "no_stock",
+        code: stockRefusal.code,
+        availableQty: stockRefusal.availableQty,
+        ...(stockRefusal.availableVariants ? { availableVariants: stockRefusal.availableVariants } : {}),
+      }
     }
 
     if (res.status === 409 && data.error === "FLASH_EXPIRED") {

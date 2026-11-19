@@ -872,7 +872,9 @@
     "stock": {
       "outOfStock": "This product is out of stock.",
       "insufficient": "Only {count} left in stock.",
-      "priceUpdating": "This product's price is being updated. Please try again in a few minutes."
+      "priceUpdating": "This product's price is being updated. Please try again in a few minutes.",
+      "variantUnavailable": "The option you chose (size or colour) no longer exists for this product: pick another one on its page.",
+      "variantUnavailableWith": "The option you chose no longer exists for this product. Still available: {options}."
     },
     "title": "Cart",
     "loading": "Loading cart…",

@@ -74,7 +74,7 @@ async function loadAgentListing(productId: string) {
 
 export type AgentCheckoutResult =
   | { checkoutUrl: string; listingId: string; productId: string; name: string; priceCents: number }
-  | { checkoutUrl: null; reason: "out_of_stock" | "price_updating"; name: string }
+  | { checkoutUrl: null; reason: "out_of_stock" | "price_updating" | "variant_choice_required"; name: string }
 
 export async function createCheckoutSession(productId: string, userId?: string): Promise<AgentCheckoutResult | null> {
   const stripe = getStripeClient()
@@ -100,6 +100,8 @@ export async function createCheckoutSession(productId: string, userId?: string):
       qty: 1,
     },
   ])
+  // The assistant buys one unit WITHOUT a size / colour: a product with several variants needs the buyer's choice.
+  if (stockGate.refuseVariant) return { checkoutUrl: null, reason: "variant_choice_required", name }
   if (stockGate.refuse) return { checkoutUrl: null, reason: "out_of_stock", name }
 
   // Single external-purchase switch: a product only an external purchase can deliver (warn by default, see the module).

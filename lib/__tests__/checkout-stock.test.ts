@@ -1,12 +1,14 @@
 import { describe, expect, it, vi } from "vitest"
 
 import {
+  availableVariantLabels,
   evaluateCheckoutStockGate,
   findCheckoutStockShortfall,
   isCheckoutStockGuardEnabled,
   isStockManagedForLine,
   planStockMovement,
   resolveCheckoutStockMode,
+  variantSelectionProblem,
 } from "@/lib/checkout-stock"
 
 const rows = (...r: Array<{ name: string; stock: number } & Record<string, unknown>>) => ({
@@ -288,7 +290,7 @@ describe("evaluateCheckoutStockGate — the check before the payment session", (
   it("warn (default): logs would-refuse and lets the buyer through; enforce refuses; off does nothing", () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => undefined)
     const warn = evaluateCheckoutStockGate(sold, env({}))
-    expect(warn).toEqual({ mode: "warn", refuse: null })
+    expect(warn).toEqual({ mode: "warn", refuse: null, refuseVariant: null })
     expect(log.mock.calls.some((c) => (c[1] as { result?: string }).result === "would_refuse_insufficient_stock")).toBe(true)
 
     const enforce = evaluateCheckoutStockGate(sold, env({ CHECKOUT_STOCK_MODE: "enforce" }))
@@ -296,15 +298,15 @@ describe("evaluateCheckoutStockGate — the check before the payment session", (
     expect(enforce.refuse).toMatchObject({ productId: "p1", available: 0, requested: 1 })
 
     log.mockClear()
-    expect(evaluateCheckoutStockGate(sold, env({ CHECKOUT_STOCK_MODE: "off" }))).toEqual({ mode: "off", refuse: null })
-    expect(evaluateCheckoutStockGate(sold, env({ CHECKOUT_STOCK_MODE: "enforce", CHECKOUT_STOCK_GUARD: "off" }))).toEqual({ mode: "off", refuse: null })
+    expect(evaluateCheckoutStockGate(sold, env({ CHECKOUT_STOCK_MODE: "off" }))).toEqual({ mode: "off", refuse: null, refuseVariant: null })
+    expect(evaluateCheckoutStockGate(sold, env({ CHECKOUT_STOCK_MODE: "enforce", CHECKOUT_STOCK_GUARD: "off" }))).toEqual({ mode: "off", refuse: null, refuseVariant: null })
     expect(log).not.toHaveBeenCalled()
     log.mockRestore()
   })
 
   it("nothing to report when the cart can be served, whatever the mode", () => {
     const ok = [{ ...sold[0]!, stock: 3 }]
-    expect(evaluateCheckoutStockGate(ok, env({ CHECKOUT_STOCK_MODE: "enforce" }))).toEqual({ mode: "enforce", refuse: null })
+    expect(evaluateCheckoutStockGate(ok, env({ CHECKOUT_STOCK_MODE: "enforce" }))).toEqual({ mode: "enforce", refuse: null, refuseVariant: null })
   })
 })
 
@@ -316,5 +318,44 @@ describe("isStockManagedForLine — judged without reading the live stock", () =
     expect(isStockManagedForLine({ listingKind: "SOFTWARE", variants: null, variantSignature: "" })).toBe(false)
     expect(isStockManagedForLine({ listingKind: "PHYSICAL", hasVariants: true, variants: null, variantSignature: "c:Rouge" })).toBe(false)
     expect(isStockManagedForLine({ listingKind: "PHYSICAL", variants: rowsJson, variantSignature: "c:Rouge" })).toBe(false)
+  })
+})
+
+describe("variant choice — the product must REALLY have it (founder brief 2026-11-19 §2)", () => {
+  const v = rows({ name: "Noir / M", stock: 0 }, { name: "Noir / L", stock: 4 }, { name: "Blanc / M", stock: 2 })
+  const line = (sig: string, variants: unknown = v) => ({ listingKind: "PHYSICAL", variants, variantSignature: sig })
+
+  it("an existing variant passes — even sold out (that is the stock check's job, not this one)", () => {
+    expect(variantSelectionProblem(line("c:Noir|s:M"))).toBeNull()
+    expect(variantSelectionProblem(line("c:noir|s:l"))).toBeNull()
+  })
+
+  it("a size or colour the product does not have is refused; no choice on a multi-variant product too", () => {
+    expect(variantSelectionProblem(line("c:Rouge|s:M"))).toBe("variant_unknown")
+    expect(variantSelectionProblem(line("c:Noir|s:XXL"))).toBe("variant_unknown")
+    expect(variantSelectionProblem(line(""))).toBe("variant_required")
+  })
+
+  it("only certain cases: a choice a row extends, a colour or a size alone that rows carry, two rows of one name", () => {
+    expect(variantSelectionProblem(line("c:Noir|s:M", rows({ name: "Noir / M / 128 Go", stock: 1 }, { name: "Noir / M / 256 Go", stock: 1 })))).toBeNull()
+    expect(variantSelectionProblem(line("c:Noir"))).toBeNull()
+    expect(variantSelectionProblem(line("c:Noir|s:M", rows({ name: "Noir / M", stock: 1 }, { name: "Noir / M", stock: 2 })))).toBeNull()
+  })
+
+  it("never flags products without rows, table-only variants, a single row, or non-physical goods", () => {
+    expect(variantSelectionProblem(line("c:Rouge|s:M", null))).toBeNull()
+    expect(variantSelectionProblem(line("", rows({ name: "Unique", stock: 3 })))).toBeNull()
+    expect(variantSelectionProblem({ ...line("c:Rouge|s:M"), listingKind: "SOFTWARE" })).toBeNull()
+  })
+
+  it("the gate: warn logs only; enforce refuses BEFORE the stock check; the options still on sale are listed", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined)
+    const cart = [{ productId: "p", productName: "Tee", listingKind: "PHYSICAL", stock: 6, variants: v, variantSignature: "c:Rouge|s:M", qty: 1 }]
+    expect(evaluateCheckoutStockGate(cart, {}).refuseVariant).toBeNull()
+    expect(log.mock.calls.some((c) => (c[1] as { result?: string }).result === "would_refuse_variant_unknown")).toBe(true)
+    expect(evaluateCheckoutStockGate(cart, { CHECKOUT_STOCK_MODE: "enforce" }).refuseVariant).toMatchObject({ productId: "p", problem: "variant_unknown" })
+    expect(evaluateCheckoutStockGate(cart, { CHECKOUT_STOCK_MODE: "off" }).refuseVariant).toBeNull()
+    expect(availableVariantLabels(v)).toEqual(["Noir / L", "Blanc / M"])
+    log.mockRestore()
   })
 })

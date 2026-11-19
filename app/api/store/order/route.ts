@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     const status =
       result.error === "listing_not_found"
         ? 404
-        : result.error === "out_of_stock"
+        : result.error === "out_of_stock" || result.error === "variant_unavailable"
           ? 409
           : result.error === AFFILIATE_COMMISSION_REQUIRED_ERROR
             ? 409

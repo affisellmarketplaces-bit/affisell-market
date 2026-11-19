@@ -7,7 +7,7 @@ import {
 } from "@/lib/affiliate-listing-display"
 import { auth } from "@/auth"
 import { assertGhostStockForCheckout } from "@/lib/ghost/checkout-gate"
-import { evaluateCheckoutStockGate, type StockCheckLine } from "@/lib/checkout-stock"
+import { availableVariantLabels, evaluateCheckoutStockGate, type StockCheckLine } from "@/lib/checkout-stock"
 import { evaluateExternalPurchaseCheckoutGate } from "@/lib/procurement/external-purchase-checkout.server"
 import { getSimilarInStockProducts } from "@/lib/ghost/similar-products"
 import { ensureGhostStockSchema } from "@/lib/ghost/ensure-ghost-schema"
@@ -319,7 +319,20 @@ function guardExplicitSupplierCommission(args: {
  * refusal of the Ghost gate, whose modal says "we just checked with our supplier" — not true for our own counter.
  */
 async function checkoutStockGate(lines: StockCheckLine[]): Promise<NextResponse | null> {
-  const { refuse: shortfall } = evaluateCheckoutStockGate(lines)
+  const { refuse: shortfall, refuseVariant } = evaluateCheckoutStockGate(lines)
+  if (refuseVariant) {
+    // The size / colour asked for does not exist on the product: the buyer keeps the product and picks another option.
+    const line = lines[refuseVariant.lineIndex]
+    return NextResponse.json(
+      {
+        error: "VARIANT_UNAVAILABLE",
+        problem: refuseVariant.problem,
+        productName: refuseVariant.productName,
+        availableVariants: line ? availableVariantLabels(line.variants) : [],
+      },
+      { status: 409 }
+    )
+  }
   if (!shortfall) return null
   const soldOut = shortfall.available <= 0
   const alternatives = soldOut

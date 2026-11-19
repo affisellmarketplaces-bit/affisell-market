@@ -872,7 +872,9 @@
     "stock": {
       "outOfStock": "该商品已售罄。",
       "insufficient": "库存仅剩 {count} 件。",
-      "priceUpdating": "该商品价格正在更新，请几分钟后重试。"
+      "priceUpdating": "该商品价格正在更新，请几分钟后重试。",
+      "variantUnavailable": "您选择的选项（尺码或颜色）该商品已不再提供：请在商品页面选择其他选项。",
+      "variantUnavailableWith": "您选择的选项该商品已不再提供。仍可选择：{options}。"
     },
     "title": "购物车",
     "loading": "正在加载购物车…",

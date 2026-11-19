@@ -377,6 +377,25 @@ export function useListingDetailController(props: ListingDetailProps) {
     return `${(cut > 200 ? slice.slice(0, cut) : slice).trimEnd()}…`
   }, [description])
 
+  /**
+   * Stock of each size for the CURRENT colour / capacity — the same row lookup as the purchase (`activeVariantRow`), so
+   * a sold-out size is shown and disabled instead of being discovered at payment. Only for products whose variants are
+   * held as rows (`variantRows`); otherwise sizes are not marked (no figure is invented by splitting the total).
+   */
+  const hasVariantRows = (variants?.variantRows?.length ?? 0) > 0
+  const sizeOptionStock = useCallback(
+    (size: string): number => {
+      const row = findVariantRowForShopperSelection({
+        variants,
+        customColumns: safeCustomColumns,
+        selection: { selectedPrimary: selectedColor, selectedStorage, selectedSize: size },
+      })
+      if (row) return Math.max(0, Math.round(row.stock) || 0)
+      return resolveListingAvailableStock({ productStock: stock, variants, selectedColor, selectedSize: size })
+    },
+    [variants, safeCustomColumns, selectedColor, selectedStorage, stock]
+  )
+
   const availableStock = useMemo(() => {
     if (activeVariantRow) return Math.max(0, Math.round(activeVariantRow.stock) || 0)
     return resolveListingAvailableStock({
@@ -662,6 +681,7 @@ export function useListingDetailController(props: ListingDetailProps) {
   return {
     audience,
     brand,
+    sizeOptionStock: hasVariantRows ? sizeOptionStock : undefined,
     tryOnVariant,
     tryOnReady,
     messages,

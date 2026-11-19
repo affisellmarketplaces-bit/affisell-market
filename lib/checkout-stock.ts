@@ -323,6 +323,73 @@ export type CheckoutStockGateDecision = {
   mode: CheckoutStockMode
   /** Set only in `enforce` mode: the checkout must be refused (409) with this shortfall. */
   refuse: StockShortfall | null
+  /** Set only in `enforce` mode: a line asks for a variant the product does not have (409 `VARIANT_UNAVAILABLE`). */
+  refuseVariant: VariantSelectionRefusal | null
+}
+
+export type VariantSelectionProblem = "variant_unknown" | "variant_required"
+
+export type VariantSelectionRefusal = {
+  lineIndex: number
+  productId: string
+  productName: string | null
+  problem: VariantSelectionProblem
+}
+
+/**
+ * Does the buyer's choice name a variant the product REALLY has (founder brief 2026-11-19 §2)? Same rows and same
+ * matching as the decrement (`resolveRowIndex`) — one definition. A line the decrement can not tie to a row is
+ * otherwise "unmanaged": it passes every check and, once paid, takes nothing from any row — so a size or colour that
+ * does not exist (an old link, a renamed row, a forged request) could be sold. Flagged only when it is CERTAIN:
+ *  - `variant_unknown`: a choice was made and no row can be it (none equal, none extending it — "Noir / M" is kept
+ *    when a row reads "Noir / M / 128 Go", a colour alone when a row starts with it, a size alone when a row ends with it);
+ *  - `variant_required`: no choice at all while the product has two rows or more.
+ * Two rows with the SAME name are the supplier's data problem, not the buyer's: never flagged here. Products without
+ * rows (or whose variants live only in the variant table) and non-physical goods are never flagged. Pure.
+ */
+export function variantSelectionProblem(input: {
+  listingKind: string | null | undefined
+  variants: unknown
+  variantSignature: string | null | undefined
+}): VariantSelectionProblem | null {
+  if (parseListingKind(input.listingKind) !== "PHYSICAL") return null
+  const rows = rawVariantRows(input.variants)
+  if (rows.length === 0) return null
+  const { color, size } = parseCartVariantSignature(input.variantSignature ?? "")
+  const c = normLabel(color?.trim() ?? "")
+  const s = normLabel(size?.trim() ?? "")
+  if (!c && !s) return rows.length >= 2 ? "variant_required" : null
+  if (resolveRowIndex(rows, input.variantSignature) != null) return null
+  const label = c && s ? `${c} / ${s}` : c || s
+  const names = rows.map((r) => normLabel(rawRowName(r))).filter(Boolean)
+  const plausible = names.some(
+    (n) =>
+      n === label ||
+      n.startsWith(`${label} /`) ||
+      n.startsWith(`${label}/`) ||
+      (c && !s && (n.startsWith(`${c} /`) || n.startsWith(`${c}/`))) ||
+      (!c && s && (n.endsWith(`/ ${s}`) || n.endsWith(`/${s}`)))
+  )
+  return plausible ? null : "variant_unknown"
+}
+
+/** Names of the rows the buyer can still choose (stock > 0) — what a refusal offers instead. Public on the PDP already. */
+export function availableVariantLabels(variants: unknown, max = 12): string[] {
+  return rawVariantRows(variants)
+    .filter((r) => rawRowStock(r) > 0)
+    .map(rawRowName)
+    .filter(Boolean)
+    .slice(0, max)
+}
+
+/** First line of a cart whose variant choice is not a variant of the product (see `variantSelectionProblem`). */
+export function findVariantSelectionRefusal(lines: StockCheckLine[]): VariantSelectionRefusal | null {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]!
+    const problem = variantSelectionProblem(line)
+    if (problem) return { lineIndex: i, productId: line.productId, productName: line.productName ?? null, problem }
+  }
+  return null
 }
 
 /**
@@ -334,9 +401,18 @@ export function evaluateCheckoutStockGate(
   env: Record<string, string | undefined> = process.env
 ): CheckoutStockGateDecision {
   const mode = resolveCheckoutStockMode(env)
-  if (mode === "off") return { mode, refuse: null }
+  if (mode === "off") return { mode, refuse: null, refuseVariant: null }
+  const variant = findVariantSelectionRefusal(lines)
+  if (variant) {
+    console.log("[checkout]", {
+      result: mode === "enforce" ? variant.problem : `would_refuse_${variant.problem}`,
+      mode,
+      productId: variant.productId,
+    })
+    if (mode === "enforce") return { mode, refuse: null, refuseVariant: variant }
+  }
   const shortfall = findCheckoutStockShortfall(lines)
-  if (!shortfall) return { mode, refuse: null }
+  if (!shortfall) return { mode, refuse: null, refuseVariant: null }
   console.log("[checkout]", {
     result: mode === "enforce" ? "insufficient_stock" : "would_refuse_insufficient_stock",
     mode,
@@ -345,5 +421,5 @@ export function evaluateCheckoutStockGate(
     available: shortfall.available,
     requested: shortfall.requested,
   })
-  return { mode, refuse: mode === "enforce" ? shortfall : null }
+  return { mode, refuse: mode === "enforce" ? shortfall : null, refuseVariant: null }
 }

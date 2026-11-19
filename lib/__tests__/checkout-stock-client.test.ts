@@ -12,8 +12,19 @@ import { checkoutStockMessage, parseCheckoutStockRefusal } from "@/lib/checkout-
 const LOCALES = ["de", "en", "es", "fr", "it", "nl", "pl", "zh"] as const
 
 describe("parseCheckoutStockRefusal / checkoutStockMessage", () => {
-  const t = (key: "outOfStock" | "insufficient" | "priceUpdating", values?: { count: number }) =>
-    key === "insufficient" ? `only ${values!.count}` : key === "priceUpdating" ? "price updating" : "sold out"
+  const t = (
+    key: "outOfStock" | "insufficient" | "priceUpdating" | "variantUnavailable" | "variantUnavailableWith",
+    values?: { count?: number; options?: string }
+  ) =>
+    key === "insufficient"
+      ? `only ${values!.count}`
+      : key === "priceUpdating"
+        ? "price updating"
+        : key === "variantUnavailableWith"
+          ? `pick: ${values!.options}`
+          : key === "variantUnavailable"
+            ? "pick another"
+            : "sold out"
 
   it("recognises our two codes and nothing else (the supplier-probe code keeps its own modal)", () => {
     expect(parseCheckoutStockRefusal({ error: "OUT_OF_STOCK", availableQty: 0 })).toEqual({ code: "OUT_OF_STOCK", availableQty: 0 })
@@ -43,6 +54,13 @@ describe("parseCheckoutStockRefusal / checkoutStockMessage", () => {
       availableQty: null,
     })
     expect(checkoutStockMessage({ code: "PRICE_BELOW_SUPPLIER_PRICE", availableQty: null }, t)).toBe("price updating")
+  })
+
+  it("a variant that does not exist: the options still on sale are named, the shopper chooses (§2)", () => {
+    const r = parseCheckoutStockRefusal({ error: "VARIANT_UNAVAILABLE", availableVariants: ["Noir / L", 3, "", "Blanc / M"] })
+    expect(r).toEqual({ code: "VARIANT_UNAVAILABLE", availableQty: null, availableVariants: ["Noir / L", "Blanc / M"] })
+    expect(checkoutStockMessage(r!, t)).toBe("pick: Noir / L, Blanc / M")
+    expect(checkoutStockMessage({ code: "VARIANT_UNAVAILABLE", availableQty: null, availableVariants: [] }, t)).toBe("pick another")
   })
 })
 

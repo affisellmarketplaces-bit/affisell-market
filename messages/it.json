@@ -872,7 +872,9 @@
     "stock": {
       "outOfStock": "Questo prodotto non è disponibile.",
       "insufficient": "Ne restano solo {count} in magazzino.",
-      "priceUpdating": "Il prezzo di questo prodotto è in aggiornamento. Riprova tra qualche minuto."
+      "priceUpdating": "Il prezzo di questo prodotto è in aggiornamento. Riprova tra qualche minuto.",
+      "variantUnavailable": "L'opzione scelta (taglia o colore) non esiste più per questo prodotto: scegline un'altra nella sua scheda.",
+      "variantUnavailableWith": "L'opzione scelta non esiste più per questo prodotto. Ancora disponibili: {options}."
     },
     "title": "Carrello",
     "loading": "Caricamento del carrello…",

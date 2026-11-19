@@ -1,6 +1,7 @@
 "use client"
 
 import { ArrowRight, Loader2, Package, ShieldCheck, Truck } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useCallback, useMemo, useState } from "react"
 import { toast } from "sonner"
 
@@ -47,6 +48,7 @@ type CreateResellerOrderResponse = {
 
 const ORDER_ERROR_HINTS: Record<string, string> = {
   out_of_stock: "Ce produit est en rupture de stock.",
+  variant_unavailable: "Cette taille ou couleur n'est plus disponible : choisissez-en une autre.",
   affiliate_commission_required: "Commission fournisseur manquante — contactez le support.",
   stripe_minimum_not_met: "Montant trop faible pour Stripe (min. 0,50 €).",
   delivery_destination_unavailable: "Livraison indisponible pour ce produit.",
@@ -124,6 +126,7 @@ function pickFirstInStockSize(args: {
 }
 
 export function ResellerBoutiqueProductDetailPanel({ storeSlug, product }: Props) {
+  const router = useRouter()
   const images = useMemo(
     () => product.gallery.filter((url): url is string => typeof url === "string" && Boolean(url.trim())),
     [product.gallery]
@@ -296,6 +299,9 @@ export function ResellerBoutiqueProductDetailPanel({ storeSlug, product }: Props
             (data.error && ORDER_ERROR_HINTS[data.error]) ||
             "Réessayez dans un instant.",
         })
+        // Availability changed since the page loaded: reload it so the options show what is really left. The buyer's
+        // choice stays selected (component state survives the refresh) — nothing is swapped for them.
+        if (data.error === "out_of_stock" || data.error === "variant_unavailable") router.refresh()
         return
       }
 
@@ -305,7 +311,7 @@ export function ResellerBoutiqueProductDetailPanel({ storeSlug, product }: Props
     } finally {
       setLoading(false)
     }
-  }, [isOutOfStock, product.listingId, selectedColor, selectedSize, selectedStorage, storeSlug])
+  }, [isOutOfStock, product.listingId, router, selectedColor, selectedSize, selectedStorage, storeSlug])
 
   const hasVariantPickers =
     product.variantSummary.hasMultipleOptions ||

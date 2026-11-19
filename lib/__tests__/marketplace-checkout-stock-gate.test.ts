@@ -156,6 +156,23 @@ describe("cart checkout", () => {
     expect(await res.json()).toMatchObject({ error: "OUT_OF_STOCK", availableQty: 0 })
   })
 
+  it("a size that does not exist on the product is refused before any order, with the options still on sale", async () => {
+    listings.a = listing("a", {
+      stock: 9,
+      variants: {
+        variantRows: [
+          { id: "r1", name: "Rouge / S", sku: "", priceCents: 0, stock: 0, commission: 20, sales: 0 },
+          { id: "r2", name: "Rouge / M", sku: "", priceCents: 0, stock: 9, commission: 20, sales: 0 },
+        ],
+      },
+    })
+    const res = await checkout({ items: [{ productId: "a", qty: 1, selectedColor: "Rouge", selectedSize: "XXL" }] })
+    expect(res.status).toBe(409)
+    expect(await res.json()).toMatchObject({ error: "VARIANT_UNAVAILABLE", problem: "variant_unknown", availableVariants: ["Rouge / M"] })
+    expect(m.orderCreate).not.toHaveBeenCalled()
+    expect(m.sessionsCreate).not.toHaveBeenCalled()
+  })
+
   it("enough stock: the checkout goes on to Stripe as before", async () => {
     listings.a = listing("a", { stock: 5 })
     const res = await checkout({ items: [{ productId: "a", qty: 5 }] })

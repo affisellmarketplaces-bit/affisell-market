@@ -72,7 +72,14 @@ export async function buyNowWithoutLogin(
   }
 
   if (!result.ok && result.status === "no_stock") {
-    return { kind: "no_stock", refusal: { code: result.code, availableQty: result.availableQty } }
+    return {
+      kind: "no_stock",
+      refusal: {
+        code: result.code,
+        availableQty: result.availableQty,
+        ...(result.availableVariants ? { availableVariants: result.availableVariants } : {}),
+      },
+    }
   }
 
   const cart = await fallbackToCart()

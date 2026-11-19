@@ -120,6 +120,7 @@ export function ListingSidebarColumn({
     selectedSize,
     setSelectedSize,
     sizeOptions,
+    sizeOptionStock,
     isShoeProduct,
     sizeTip,
     shopperSelection,
@@ -303,6 +304,11 @@ export function ListingSidebarColumn({
             productName={name}
             sizeTip={sizeTip}
             brandedChipSelected={brand.chipSelected}
+            getOptionStock={sizeOptionStock}
+            outOfStockLabel={productT.outOfStock}
+            showStockLegend={Boolean(sizeOptionStock)}
+            inStockLegendLabel={productT.inStock}
+            outOfStockLegendLabel={productT.outOfStock}
           />
         </div>
 
