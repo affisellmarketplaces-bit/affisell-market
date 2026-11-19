@@ -48,6 +48,9 @@ export function SupplyCostSection({ productId }: { productId: string }) {
   const [docState, setDocState] = useState<"idle" | "sending" | "sent" | "error">("idle")
   const [scope, setScope] = useState<string>(PRODUCT_SCOPE)
   const [effectiveFrom, setEffectiveFrom] = useState("")
+  // Read once, in the initialiser: `Date.now()` in the render body is impure (react-hooks/purity) and would make the
+  // "takes effect later" notice flip between two renders of the same data.
+  const [nowMs] = useState(() => Date.now())
 
   const url = `/api/supplier/products/${encodeURIComponent(productId)}/supply-cost`
   const load = useCallback(async () => {
@@ -194,7 +197,7 @@ export function SupplyCostSection({ productId }: { productId: string }) {
             <span className="text-zinc-500">{t("qualification.label")} : </span>
             <span className="font-medium">{t(`qualification.${selectedQualification}`)}</span>
           </p>
-          {Date.parse(selected.effectiveFrom ?? selected.declaredAt) > Date.now() ? (
+          {Date.parse(selected.effectiveFrom ?? selected.declaredAt) > nowMs ? (
             <p className="text-xs text-zinc-500">{t("effectiveLater", { date: effectiveText(selected) })}</p>
           ) : null}
           {latestAdminNote && selectedQualification === latestAdminNote.state ? (
