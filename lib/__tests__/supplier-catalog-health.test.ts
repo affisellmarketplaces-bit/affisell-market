@@ -83,6 +83,9 @@ describe("supplier catalogue health — classes are what they claim", () => {
     expect(codes(product({ variantRowStocks: [2, 3], stock: 9 }))).toContain("variant_stock_mismatch")
     expect(codes(product({ variantRowStocks: [2, 3], stock: 5 }))).not.toContain("variant_stock_mismatch")
     expect(codes(product({ hasVariants: true, variantRowStocks: null }))).toContain("variant_stock_untracked")
+    // Rows the pickers can not tell apart (shared rule, lib/variant-selection.ts) — an anomaly with the names concerned.
+    expect(codes(product({ indistinctVariants: { rows: 2, labels: ["Noir / M"] } }))).toContain("variant_rows_indistinct")
+    expect(codes(product({ indistinctVariants: { rows: 0, labels: [] } }))).not.toContain("variant_rows_indistinct")
     expect(codes(product({ variantRowStocks: [0, 0], stock: 0 }))).toContain("out_of_stock")
   })
 

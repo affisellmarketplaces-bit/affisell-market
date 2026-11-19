@@ -2,6 +2,7 @@ import "server-only"
 
 import { isStockUnconfirmed, STOCK_UNCONFIRMED_KEY } from "@/lib/import-stock"
 import { evaluateListingReadiness } from "@/lib/listing-compliance/evaluate"
+import { indistinctVariantRows } from "@/lib/variant-selection"
 import { IDENTITY_KEYS, LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
 import { readListingReadinessMode } from "@/lib/listing-compliance/mode"
 import { resolveCheckoutStockMode } from "@/lib/checkout-stock"
@@ -59,6 +60,7 @@ async function loadSupplierCatalogHealthDetailed(
       stock: true,
       hasVariants: true,
       variants: true,
+      customColumns: true,
       commissionRate: true,
       offerMode: true,
       deliveryMin: true,
@@ -140,6 +142,7 @@ async function loadSupplierCatalogHealthDetailed(
       hasVariants: p.hasVariants,
       stockUnconfirmed: isStockUnconfirmed(p.attributes),
       variantRowStocks: Array.isArray(rowsRaw) && rowsRaw.length > 0 ? rowsRaw.map((r) => r?.stock) : null,
+      indistinctVariants: indistinctVariantRows(p.variants, p.customColumns),
       commissionExplicit: productHasExplicitSupplierCommission({
         commissionRate: p.commissionRate,
         variants: p.variants,

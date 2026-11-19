@@ -9503,6 +9503,10 @@
       "stock_cover_short": {
         "title": "Szybkie wyczerpanie przy obecnym tempie",
         "why": "Zadeklarowany zapas: {available} szt. Przy tempie z ostatnich 30 dni ({units30d, plural, one {# sprzedana sztuka} few {# sprzedane sztuki} many {# sprzedanych sztuk} other {# sprzedanych sztuk}}) wystarczy na około {days, plural, =0 {mniej niż dzień} one {# dzień} other {# dni}}, poniżej orientacyjnego progu {threshold} dni{leadKnown, select, 1 { (Twój zadeklarowany czas uzupełnienia: {leadTimeDays} dni)} other {}}.{reservedNotDeducted, select, 1 { Jeśli {reserved} szt. z opłaconych, niewysłanych zamówień nadal liczy się w tym zapasie, wystarczy tylko na {daysIfReserved} dni.} other {}}{stale, select, 1 { Karta nie była zmieniana od {sheetAgeDays} dni: sprawdź, czy zadeklarowana ilość jest aktualna.} other {}} Obliczenie orientacyjne, nie prognoza."
+      },
+      "variant_rows_indistinct": {
+        "title": "Warianty nie do odróżnienia",
+        "why": "Warianty ({rows}: {labels}) mają ten sam kolor, rozmiar i pojemność: kupujący nie może wybrać między nimi, a ich zapas nigdy nie jest odejmowany. Nadaj im różne nazwy."
       }
     },
     "availability": {

@@ -9503,6 +9503,10 @@
       "stock_cover_short": {
         "title": "按当前速度即将断货",
         "why": "申报库存：{available} 件。按过去 30 天的速度（已售 {units30d} 件），约可维持 {days, plural, =0 {不到一天} other {# 天}}，低于 {threshold} 天的参考阈值{leadKnown, select, 1 {（您申报的补货周期：{leadTimeDays} 天）} other {}}。{reservedNotDeducted, select, 1 {如果已付款未发货订单的 {reserved} 件仍计入该库存，则只能维持 {daysIfReserved} 天。} other {}}{stale, select, 1 {商品页已 {sheetAgeDays} 天未修改：请确认申报数量是否最新。} other {}}这是参考计算，并非预测。"
+      },
+      "variant_rows_indistinct": {
+        "title": "无法区分的规格",
+        "why": "{rows} 个规格（{labels}）颜色、尺码和容量完全相同：买家无法在它们之间选择，其库存也从不扣减。请为它们设置不同的名称。"
       }
     },
     "availability": {

@@ -9503,6 +9503,10 @@
       "stock_cover_short": {
         "title": "Esaurimento vicino al ritmo attuale",
         "why": "Stock dichiarato: {available} unità. Al ritmo degli ultimi 30 giorni ({units30d, plural, one {# unità venduta} other {# unità vendute}}), copre circa {days, plural, =0 {meno di un giorno} one {# giorno} other {# giorni}}, sotto la soglia indicativa di {threshold} giorni{leadKnown, select, 1 { (il tuo tempo di riassortimento dichiarato: {leadTimeDays} giorni)} other {}}.{reservedNotDeducted, select, 1 { Se le {reserved} unità di ordini pagati non spediti sono ancora contate in questo stock, copre solo {daysIfReserved} giorni.} other {}}{stale, select, 1 { La scheda non viene modificata da {sheetAgeDays} giorni: verifica che la quantità dichiarata sia aggiornata.} other {}} Calcolo indicativo, non una previsione."
+      },
+      "variant_rows_indistinct": {
+        "title": "Varianti impossibili da distinguere",
+        "why": "{rows} varianti ({labels}) hanno lo stesso colore, taglia e capacità: l'acquirente non può scegliere tra loro e il loro stock non viene mai scalato. Date loro nomi distinti."
       }
     },
     "availability": {

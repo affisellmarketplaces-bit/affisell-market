@@ -9503,6 +9503,10 @@
       "stock_cover_short": {
         "title": "Bijna uitverkocht in het huidige tempo",
         "why": "Opgegeven voorraad: {available} stuks. In het tempo van de afgelopen 30 dagen ({units30d, plural, one {# stuk verkocht} other {# stuks verkocht}}) dekt hij ongeveer {days, plural, =0 {minder dan een dag} one {# dag} other {# dagen}}, onder de indicatieve drempel van {threshold} dagen{leadKnown, select, 1 { (je opgegeven aanvultermijn: {leadTimeDays} dagen)} other {}}.{reservedNotDeducted, select, 1 { Als de {reserved} stuks van betaalde, niet verzonden bestellingen nog in deze voorraad zitten, dekt hij maar {daysIfReserved} dagen.} other {}}{stale, select, 1 { De productfiche is al {sheetAgeDays} dagen niet gewijzigd: controleer of de opgegeven hoeveelheid klopt.} other {}} Een indicatieve berekening, geen voorspelling."
+      },
+      "variant_rows_indistinct": {
+        "title": "Varianten die niet te onderscheiden zijn",
+        "why": "{rows} varianten ({labels}) hebben dezelfde kleur, maat en capaciteit: kopers kunnen er niet tussen kiezen en hun voorraad wordt nooit afgeboekt. Geef ze verschillende namen."
       }
     },
     "availability": {

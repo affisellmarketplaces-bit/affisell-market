@@ -9503,6 +9503,10 @@
       "stock_cover_short": {
         "title": "Agotamiento próximo al ritmo actual",
         "why": "Stock declarado: {available} unidades. Al ritmo de los últimos 30 días ({units30d, plural, one {# unidad vendida} other {# unidades vendidas}}), cubre unos {days, plural, =0 {menos de un día} one {# día} other {# días}}, por debajo del umbral indicativo de {threshold} días{leadKnown, select, 1 { (tu plazo de reposición declarado: {leadTimeDays} días)} other {}}.{reservedNotDeducted, select, 1 { Si las {reserved} unidades de pedidos pagados no enviados siguen contadas en este stock, solo cubre {daysIfReserved} días.} other {}}{stale, select, 1 { La ficha no se modifica desde hace {sheetAgeDays} días: comprueba que la cantidad declarada esté al día.} other {}} Cálculo indicativo, no una previsión."
+      },
+      "variant_rows_indistinct": {
+        "title": "Variantes imposibles de distinguir",
+        "why": "{rows} variantes ({labels}) tienen el mismo color, talla y capacidad: el comprador no puede elegir entre ellas y su stock nunca se descuenta. Deles nombres distintos."
       }
     },
     "availability": {

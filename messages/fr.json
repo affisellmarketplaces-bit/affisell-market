@@ -9503,6 +9503,10 @@
       "stock_cover_short": {
         "title": "Rupture proche au rythme actuel",
         "why": "Stock déclaré : {available} unités. Au rythme des 30 derniers jours ({units30d, plural, one {# unité vendue} other {# unités vendues}}), il couvre environ {days, plural, =0 {moins d'un jour} one {# jour} other {# jours}}, sous le seuil indicatif de {threshold} jours{leadKnown, select, 1 { (votre délai de réassort déclaré : {leadTimeDays} jours)} other {}}.{reservedNotDeducted, select, 1 { Si les {reserved} unités de commandes payées non expédiées sont encore comptées dans ce stock, il ne couvre que {daysIfReserved} jours.} other {}}{stale, select, 1 { La fiche n'a pas été modifiée depuis {sheetAgeDays} jours : vérifiez que la quantité déclarée est à jour.} other {}} Calcul indicatif, pas une prévision."
+      },
+      "variant_rows_indistinct": {
+        "title": "Déclinaisons impossibles à distinguer",
+        "why": "{rows} déclinaisons ({labels}) ont la même couleur, la même taille et la même capacité : l'acheteur ne peut pas choisir entre elles et leur stock n'est jamais déduit. Donnez-leur des noms distincts."
       }
     },
     "availability": {

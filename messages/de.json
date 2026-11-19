@@ -9503,6 +9503,10 @@
       "stock_cover_short": {
         "title": "Bald ausverkauft beim aktuellen Tempo",
         "why": "Gemeldeter Bestand: {available} Einheiten. Beim Tempo der letzten 30 Tage ({units30d, plural, one {# Einheit verkauft} other {# Einheiten verkauft}}) reicht er etwa {days, plural, =0 {weniger als einen Tag} one {# Tag} other {# Tage}}, unter der Richtschwelle von {threshold} Tagen{leadKnown, select, 1 { (Ihre gemeldete Nachschubzeit: {leadTimeDays} Tage)} other {}}.{reservedNotDeducted, select, 1 { Falls die {reserved} Einheiten bezahlter, nicht versandter Bestellungen noch in diesem Bestand enthalten sind, reicht er nur {daysIfReserved} Tage.} other {}}{stale, select, 1 { Das Produktblatt wurde seit {sheetAgeDays} Tagen nicht geändert: Prüfen Sie, ob die gemeldete Menge aktuell ist.} other {}} Eine Richtberechnung, keine Prognose."
+      },
+      "variant_rows_indistinct": {
+        "title": "Nicht unterscheidbare Varianten",
+        "why": "{rows} Varianten ({labels}) haben dieselbe Farbe, Größe und Kapazität: Käufer können nicht zwischen ihnen wählen und ihr Bestand wird nie abgezogen. Geben Sie ihnen unterschiedliche Namen."
       }
     },
     "availability": {

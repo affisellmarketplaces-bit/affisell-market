@@ -38,6 +38,7 @@ export type HealthIssueCode =
   | "stock_nominal"
   | "variant_stock_mismatch"
   | "variant_stock_untracked"
+  | "variant_rows_indistinct"
   | "delivery_window_inverted"
   | "duplicate_name"
   // avertissement
@@ -66,6 +67,7 @@ export const HEALTH_ISSUE_CLASS: Record<HealthIssueCode, HealthClass> = {
   stock_nominal: "anomalie",
   variant_stock_mismatch: "anomalie",
   variant_stock_untracked: "anomalie",
+  variant_rows_indistinct: "anomalie",
   delivery_window_inverted: "anomalie",
   duplicate_name: "anomalie",
   hold_unverifiable: "avertissement",
@@ -102,6 +104,8 @@ export type HealthProduct = {
   hasVariants: boolean
   /** `variants.variantRows[].stock`, raw; null when the product has no SKU rows. */
   variantRowStocks: unknown[] | null
+  /** Rows a buyer can not tell apart (`indistinctVariantRows`, shared variant rule): count and a few names. */
+  indistinctVariants?: { rows: number; labels: string[] } | null
   /** Imported without a source quantity (`stock_unconfirmed` marker, lib/import-stock.ts): publication is refused. */
   stockUnconfirmed?: boolean
   commissionExplicit: boolean
@@ -248,6 +252,10 @@ export function diagnoseProduct(p: HealthProduct, ctx: HealthContext, duplicates
     add("variant_stock_mismatch", "calcul", "edit_product", { productStock: p.stock, rowsTotal: rows.reduce((a, b) => a + b, 0) })
   }
   if (physical && p.hasVariants && rows == null) add("variant_stock_untracked", "fiche", "edit_product")
+  // Rows identical for the pickers (lib/variant-selection.ts): never decremented, never bought precisely.
+  if (physical && p.indistinctVariants && p.indistinctVariants.rows > 1) {
+    add("variant_rows_indistinct", "fiche", "edit_product", { rows: p.indistinctVariants.rows, labels: p.indistinctVariants.labels.join(", ") })
+  }
   if (p.deliveryMin != null && p.deliveryMax != null && p.deliveryMin > p.deliveryMax) {
     add("delivery_window_inverted", "fiche", "edit_product", { min: p.deliveryMin, max: p.deliveryMax })
   }

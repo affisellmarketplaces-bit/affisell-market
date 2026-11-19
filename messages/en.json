@@ -9503,6 +9503,10 @@
       "stock_cover_short": {
         "title": "Running out at the current pace",
         "why": "Declared stock: {available} units. At the pace of the last 30 days ({units30d, plural, one {# unit sold} other {# units sold}}), it covers about {days, plural, =0 {less than a day} one {# day} other {# days}}, below the indicative threshold of {threshold} days{leadKnown, select, 1 { (your declared restock lead time: {leadTimeDays} days)} other {}}.{reservedNotDeducted, select, 1 { If the {reserved} units of paid, unshipped orders are still counted in this stock, it covers only {daysIfReserved} days.} other {}}{stale, select, 1 { The sheet has not been changed for {sheetAgeDays} days: check that the declared quantity is up to date.} other {}} An indicative calculation, not a forecast."
+      },
+      "variant_rows_indistinct": {
+        "title": "Variants that can not be told apart",
+        "why": "{rows} variants ({labels}) share the same colour, size and capacity: buyers can not choose between them and their stock is never deducted. Give them distinct names."
       }
     },
     "availability": {

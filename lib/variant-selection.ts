@@ -172,3 +172,20 @@ export function optionStockForChoice(variants: unknown, choice: VariantChoice, c
   const idx = r.kind === "resolved" ? [r.index] : r.candidates
   return idx.reduce((sum, i) => sum + (rows[i]?.stock ?? 0), 0)
 }
+
+/**
+ * Rows a buyer can NOT tell apart with the pickers: same colour, size and capacity (a duplicated line, or rows that
+ * differ only by an unnamed third name part). Those rows are never decremented and can not be bought precisely — the
+ * supplier's sheet must name them differently. Returns how many rows are concerned and a few of their names. Pure.
+ */
+export function indistinctVariantRows(variants: unknown, customColumns?: unknown): { rows: number; labels: string[] } {
+  const dims = variantRowDimensions(variants, customColumns)
+  const names = rawRows(variants).map((r) => r.name.trim())
+  const groups = new Map<string, number[]>()
+  dims.forEach((d, i) => {
+    const key = `${d.color}\u0001${d.size}\u0001${d.storage}`
+    groups.set(key, [...(groups.get(key) ?? []), i])
+  })
+  const involved = [...groups.values()].filter((g) => g.length > 1).flat()
+  return { rows: involved.length, labels: [...new Set(involved.map((i) => names[i] || "—"))].slice(0, 3) }
+}

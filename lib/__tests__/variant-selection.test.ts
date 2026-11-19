@@ -9,7 +9,7 @@ import { evaluateCheckoutStockGate, isStockManagedForLine, planStockMovement, va
 import { summarizeReservationExposure } from "@/lib/stock-exposure"
 import { stripVariantOptionTypePrefix } from "@/lib/supplier-sku-builder"
 import { hasVariantChoice, listingRequiresVariantChoice, variantChoicePageHref } from "@/lib/variant-choice-client"
-import { optionStockForChoice, requiresVariantChoice, resolveVariantChoice } from "@/lib/variant-selection"
+import { indistinctVariantRows, optionStockForChoice, requiresVariantChoice, resolveVariantChoice } from "@/lib/variant-selection"
 
 const rows = (...r: Array<{ name: string; stock: number; attrs?: Record<string, string> }>) => ({
   variantRows: r.map((x, i) => ({ id: `r${i}`, sku: "", priceCents: 0, commission: 20, sales: 0, ...x })),
@@ -209,5 +209,17 @@ describe("paid orders not shipped — the two readings, never merged (§3)", () 
       owedBeyondDeclared: 0,
       unitsShownButAlreadySold: 0,
     })
+  })
+})
+
+describe("rows a buyer can not tell apart (catalogue health)", () => {
+  it("duplicated rows and rows differing only by an unnamed part are counted; distinct rows are not", () => {
+    expect(indistinctVariantRows(tee)).toEqual({ rows: 0, labels: [] })
+    expect(indistinctVariantRows(phone)).toEqual({ rows: 0, labels: [] }) // the capacity tells them apart
+    expect(indistinctVariantRows(rows({ name: "Noir / M", stock: 1 }, { name: "Noir / M", stock: 2 }, { name: "Noir / L", stock: 1 }))).toEqual({
+      rows: 2,
+      labels: ["Noir / M"],
+    })
+    expect(indistinctVariantRows(rows({ name: "Noir / M / Coton", stock: 1 }, { name: "Noir / M / Lin", stock: 1 })).rows).toBe(2)
   })
 })
