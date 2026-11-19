@@ -87,8 +87,10 @@ jobs:
       - name: Money-path tests (real database, Stripe mocked)
         env:
           RUN_DB_TESTS: "1"
+        # One shared database: files run one after another, so a test that measures a before / after difference
+        # (read-only-reports-db) never sees rows another file is seeding at the same moment.
         run: >-
-          npx vitest run
+          npx vitest run --no-file-parallelism
           lib/__tests__/money-state-db.test.ts
           lib/__tests__/money-e2e-db.test.ts
           lib/__tests__/build-write-guard-db.test.ts
