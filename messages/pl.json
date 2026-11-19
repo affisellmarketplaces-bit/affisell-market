@@ -9569,7 +9569,9 @@
       "prefSaved": "Preferencja zapisana",
       "truncated": "Odczyt ograniczony: lista może być niepełna.",
       "riskSingle": "Zapas „{product}” może się wyczerpać za około {days} dni, przed uzupełnieniem.",
-      "attentionDigest": "{count} Twoich produktów sprzedawanych przez sprzedawców wymaga uwagi (niedostępne lub wkrótce wyprzedane)."
+      "attentionDigest": "{count} Twoich produktów sprzedawanych przez sprzedawców wymaga uwagi (niedostępne, wyprzedane w niektórych rozmiarach lub kolorach albo wkrótce wyprzedane).",
+      "variantSoldOutSingle": "„{product}”: {count, plural, one {wariant {labels} jest wyprzedany} few {# warianty są wyprzedane ({labels})} many {# wariantów jest wyprzedanych ({labels})} other {# wariantu jest wyprzedane ({labels})}}, choć kupujący go zamawiali; {available, plural, =0 {żaden inny nie jest w sprzedaży} one {# inny jest nadal w sprzedaży} few {# inne są nadal w sprzedaży} many {# innych jest nadal w sprzedaży} other {# innego jest nadal w sprzedaży}}.",
+      "variantRiskSingle": "„{product}”: {count, plural, one {wariant {labels} może się wyczerpać} few {# warianty mogą się wyczerpać ({labels})} many {# wariantów może się wyczerpać ({labels})} other {# wariantu może się wyczerpać ({labels})}} przed uzupełnieniem zapasu."
     },
     "stockout": {
       "title": "Braki do przewidzenia",

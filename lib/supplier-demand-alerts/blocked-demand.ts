@@ -265,20 +265,41 @@ export type SupplierNotice = {
   supplierId: string
   productId: string
   productName: string
-  kind: "blocked" | "risk"
-  /** Deterministic claim id (once per episode for blocked, once per 14 days for a risk). */
+  kind: "blocked" | "risk" | "variant"
+  /** Deterministic claim id (once per episode for blocked, once per 14 days for a risk or a variant situation). */
   claimId: string
+  /** Separate marker used by `observe` (observing never uses up a real notice). */
+  observedId?: string
   /** Risk only: estimated cover in days (central). */
   coverDays?: number | null
+  /** Variant only: what the bell quotes (sold-out labels first, then at risk) and how many variants still sell. */
+  variant?: { soldOut: string[]; atRisk: string[]; more: number; soldOutCount: number; atRiskCount: number; stillAvailable: number }
 }
+
+/** Order inside one bell: a lost sale (blocked) → a whole product running out (risk) → part of a product (variant). */
+const NOTICE_RANK: Record<SupplierNotice["kind"], number> = { blocked: 0, risk: 1, variant: 2 }
 
 export function planSupplierNotices(notices: ReadonlyArray<SupplierNotice>) {
   const by = new Map<string, SupplierNotice[]>()
   for (const n of notices) by.set(n.supplierId, [...(by.get(n.supplierId) ?? []), n])
   return [...by.entries()]
     .map(([supplierId, items]) => {
-      const sorted = [...items].sort((a, b) => (a.kind === b.kind ? (a.coverDays ?? 0) - (b.coverDays ?? 0) : a.kind === "blocked" ? -1 : 1))
-      const kind = sorted.length > 1 ? ("digest" as const) : sorted[0]!.kind === "blocked" ? ("single_blocked" as const) : ("single_risk" as const)
+      const sorted = [...items].sort((a, b) =>
+        a.kind === b.kind
+          ? a.kind === "variant"
+            ? (b.variant?.soldOutCount ?? 0) - (a.variant?.soldOutCount ?? 0) || a.productId.localeCompare(b.productId)
+            : (a.coverDays ?? 0) - (b.coverDays ?? 0)
+          : NOTICE_RANK[a.kind] - NOTICE_RANK[b.kind]
+      )
+      const head = sorted[0]!.kind
+      const kind =
+        sorted.length > 1
+          ? ("digest" as const)
+          : head === "blocked"
+            ? ("single_blocked" as const)
+            : head === "risk"
+              ? ("single_risk" as const)
+              : ("single_variant" as const)
       return { supplierId, items: sorted, kind, allBlocked: sorted.every((n) => n.kind === "blocked") }
     })
     .sort((a, b) => b.items.length - a.items.length || a.supplierId.localeCompare(b.supplierId))
@@ -425,8 +446,11 @@ export type BlockedDemandObservation = {
   /** Preventive stock-out risks (sellable today, cover below the lead time). */
   riskQualifying?: number
   wouldNotifyRiskNew?: number
-  /** Suppliers who would get a bell, blocked demand and risks together (one bell per supplier and day). */
+  /** Suppliers who would get a bell, blocked demand, risks and variants together (one bell per supplier and day). */
   wouldNotifySuppliersAll?: number
+  /** Products with a sold-out variant that sold, or a variant at risk, not already rung as a whole. */
+  variantQualifying?: number
+  wouldNotifyVariantNew?: number
 }
 
 export function summarizeBlockedDemand(args: {

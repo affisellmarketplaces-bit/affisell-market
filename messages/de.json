@@ -9569,7 +9569,9 @@
       "prefSaved": "Einstellung gespeichert",
       "truncated": "Begrenzte Abfrage: Die Liste kann unvollständig sein.",
       "riskSingle": "Der Bestand von „{product}“ könnte in etwa {days} Tagen ausgehen, vor Ihrer Nachlieferung.",
-      "attentionDigest": "{count} Ihrer von Wiederverkäufern verkauften Produkte brauchen Ihre Aufmerksamkeit (nicht verfügbar oder bald ausverkauft)."
+      "attentionDigest": "{count} Ihrer von Ihren Wiederverkäufern verkauften Produkte brauchen Ihre Aufmerksamkeit (nicht verfügbar, in einigen Größen oder Farben ausverkauft oder bald ausverkauft).",
+      "variantSoldOutSingle": "„{product}“: {count, plural, one {die Variante {labels} ist ausverkauft} other {# Varianten sind ausverkauft ({labels})}}, obwohl Käufer sie bestellt haben; {available, plural, =0 {keine andere ist im Verkauf} one {# andere ist noch im Verkauf} other {# andere sind noch im Verkauf}}.",
+      "variantRiskSingle": "„{product}“: {count, plural, one {die Variante {labels} könnte ausgehen} other {# Varianten könnten ausgehen ({labels})}}, bevor Sie nachliefern."
     },
     "stockout": {
       "title": "Absehbare Lieferengpässe",

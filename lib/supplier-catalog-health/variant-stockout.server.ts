@@ -16,27 +16,43 @@ import { availableUnits } from "@/lib/reseller-replacement/listing-state"
 
 const DAY = 86_400_000
 const MAX_PRODUCTS = 1_000
+const MAX_PRODUCTS_ALL = 5_000
 
 /**
  * SUPPLIER, READ-ONLY: per-variant stock of its OWN products shown in resellers' shops (≤ 1 000). Only what is worth
  * showing is returned (partial stock-outs, variants at risk, sold products whose variants Affisell can not track).
  */
 export async function loadSupplierVariantStock(supplierId: string, now = new Date()): Promise<{ items: VariantProductVerdict[]; truncated: boolean }> {
+  const { items, truncated } = await loadVariantStock({ supplierId, now })
+  return { items: items.map(({ supplierId: _s, ...v }) => v), truncated }
+}
+
+export type VariantStockItem = VariantProductVerdict & { supplierId: string }
+
+/**
+ * Same computation for the daily bell, over EVERY supplier (`supplierId: null`, ≤ 5 000 listed products). Each item
+ * carries its supplier so the caller groups per supplier — nothing of one supplier is ever put in another's bell.
+ */
+export async function loadVariantStock(args: { supplierId: string | null; now?: Date }): Promise<{ items: VariantStockItem[]; truncated: boolean }> {
+  const now = args.now ?? new Date()
+  const supplierId = args.supplierId
+  const max = supplierId ? MAX_PRODUCTS : MAX_PRODUCTS_ALL
   const listed = await prisma.affiliateProduct.groupBy({
     by: ["productId"],
-    where: { isListed: true, product: { supplierId } },
+    where: { isListed: true, ...(supplierId ? { product: { supplierId } } : {}) },
     _count: { _all: true },
   })
-  const truncated = listed.length > MAX_PRODUCTS
-  const listings = new Map(listed.slice(0, MAX_PRODUCTS).map((l) => [l.productId, l._count._all]))
+  const truncated = listed.length > max
+  const listings = new Map(listed.slice(0, max).map((l) => [l.productId, l._count._all]))
   const ids = [...listings.keys()]
   if (ids.length === 0) return { items: [], truncated }
   const deducts = resolveCheckoutStockMode() === "enforce"
   const [products, orders, pending, confirmations, adminConfirmations, leadTimes] = await Promise.all([
     prisma.product.findMany({
-      where: { id: { in: ids }, supplierId, isDraft: false },
+      where: { id: { in: ids }, ...(supplierId ? { supplierId } : {}), isDraft: false },
       select: {
         id: true,
+        supplierId: true,
         name: true,
         stock: true,
         hasVariants: true,
@@ -47,12 +63,12 @@ export async function loadSupplierVariantStock(supplierId: string, now = new Dat
       },
     }),
     prisma.order.findMany({
-      where: { productId: { in: ids }, supplierId, paidAt: { gte: new Date(now.getTime() - VARIANT_SHARE_WINDOW_DAYS * DAY) } },
+      where: { productId: { in: ids }, ...(supplierId ? { supplierId } : {}), paidAt: { gte: new Date(now.getTime() - VARIANT_SHARE_WINDOW_DAYS * DAY) } },
       select: { productId: true, paidAt: true, quantity: true, variantLabel: true, affiliateId: true },
       take: 100_000,
     }),
     prisma.order.findMany({
-      where: { productId: { in: ids }, supplierId, paidAt: { not: null }, shippedAt: null, trackingNumber: null },
+      where: { productId: { in: ids }, ...(supplierId ? { supplierId } : {}), paidAt: { not: null }, shippedAt: null, trackingNumber: null },
       select: { productId: true, quantity: true, variantLabel: true, status: true, paymentSettlementStatus: true },
       take: 20_000,
     }),
@@ -86,7 +102,7 @@ export async function loadSupplierVariantStock(supplierId: string, now = new Dat
     const units = (a.payload as { stock?: unknown } | null)?.stock
     adminBy.set(a.entityId, { at: a.createdAt, units: typeof units === "number" ? units : null })
   }
-  const items: VariantProductVerdict[] = []
+  const items: VariantStockItem[] = []
   for (const p of products) {
     if ((p.listingKind ?? "PHYSICAL").toUpperCase() !== "PHYSICAL") continue
     // Same confirmation rule as the product forecast, on the sheet's total.
@@ -114,7 +130,7 @@ export async function loadSupplierVariantStock(supplierId: string, now = new Dat
       leadTimeDays: leadTimes.get(p.id) ?? null,
       now,
     })
-    if (variantStockWorthShowing(v)) items.push(v)
+    if (variantStockWorthShowing(v) && p.supplierId) items.push({ ...v, supplierId: p.supplierId })
   }
   items.sort((a, b) => Number(b.partialStockout) - Number(a.partialStockout) || b.blockedVariants - a.blockedVariants || b.variantsAtRisk - a.variantsAtRisk)
   return { items, truncated }

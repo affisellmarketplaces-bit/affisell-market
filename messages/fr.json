@@ -9569,7 +9569,9 @@
       "prefSaved": "Préférence enregistrée",
       "truncated": "Lecture plafonnée : la liste peut être incomplète.",
       "riskSingle": "Le stock de « {product} » pourrait s'épuiser dans environ {days} jours, avant votre réassort.",
-      "attentionDigest": "{count} de vos produits vendus par vos revendeurs demandent votre attention (indisponibles ou bientôt en rupture)."
+      "attentionDigest": "{count} de vos produits vendus par vos revendeurs demandent votre attention (indisponibles, épuisés dans certaines tailles ou couleurs, ou bientôt en rupture).",
+      "variantSoldOutSingle": "« {product} » : {count, plural, one {la déclinaison {labels} est épuisée} other {# déclinaisons sont épuisées ({labels})}} alors que des acheteurs la commandaient ; {available, plural, =0 {aucune autre n'est en vente} one {# autre reste en vente} other {# autres restent en vente}}.",
+      "variantRiskSingle": "« {product} » : {count, plural, one {la déclinaison {labels} pourrait s'épuiser} other {# déclinaisons pourraient s'épuiser ({labels})}} avant votre réassort."
     },
     "stockout": {
       "title": "Ruptures à anticiper",

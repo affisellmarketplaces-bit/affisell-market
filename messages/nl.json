@@ -9569,7 +9569,9 @@
       "prefSaved": "Voorkeur opgeslagen",
       "truncated": "Beperkte lezing: de lijst kan onvolledig zijn.",
       "riskSingle": "De voorraad van „{product}” kan over ongeveer {days} dagen op zijn, vóór uw aanvulling.",
-      "attentionDigest": "{count} van uw producten die uw wederverkopers verkopen, vragen uw aandacht (niet beschikbaar of binnenkort uitverkocht)."
+      "attentionDigest": "{count} van uw producten die uw wederverkopers verkopen hebben uw aandacht nodig (niet beschikbaar, in sommige maten of kleuren uitverkocht, of binnenkort uitverkocht).",
+      "variantSoldOutSingle": "“{product}”: {count, plural, one {de variant {labels} is uitverkocht} other {# varianten zijn uitverkocht ({labels})}} terwijl kopers hem bestelden; {available, plural, =0 {geen andere is te koop} one {# andere is nog te koop} other {# andere zijn nog te koop}}.",
+      "variantRiskSingle": "“{product}”: {count, plural, one {de variant {labels} kan opraken} other {# varianten kunnen opraken ({labels})}} vóór uw aanvulling."
     },
     "stockout": {
       "title": "Te verwachten voorraadtekorten",

@@ -9569,7 +9569,9 @@
       "prefSaved": "Preference saved",
       "truncated": "Capped read: the list may be incomplete.",
       "riskSingle": "The stock of “{product}” could run out in about {days} days, before your restock.",
-      "attentionDigest": "{count} of your products sold by your resellers need your attention (unavailable or soon out of stock)."
+      "attentionDigest": "{count} of your products sold by your resellers need your attention (unavailable, sold out in some sizes or colours, or soon out of stock).",
+      "variantSoldOutSingle": "“{product}”: {count, plural, one {the {labels} variant is sold out} other {# variants are sold out ({labels})}} although buyers were ordering it; {available, plural, =0 {no other variant is on sale} one {# other is still on sale} other {# others are still on sale}}.",
+      "variantRiskSingle": "“{product}”: {count, plural, one {the {labels} variant could run out} other {# variants could run out ({labels})}} before your restock."
     },
     "stockout": {
       "title": "Stock-outs to anticipate",

@@ -9569,7 +9569,9 @@
       "prefSaved": "Preferencia guardada",
       "truncated": "Lectura limitada: la lista puede estar incompleta.",
       "riskSingle": "El stock de «{product}» podría agotarse en unos {days} días, antes de su reposición.",
-      "attentionDigest": "{count} de sus productos vendidos por sus revendedores requieren su atención (no disponibles o pronto agotados)."
+      "attentionDigest": "{count} de sus productos vendidos por sus revendedores requieren su atención (no disponibles, agotados en algunas tallas o colores, o a punto de agotarse).",
+      "variantSoldOutSingle": "«{product}»: {count, plural, one {la variante {labels} está agotada} other {# variantes están agotadas ({labels})}} aunque los compradores la pedían; {available, plural, =0 {ninguna otra está a la venta} one {# otra sigue a la venta} other {# otras siguen a la venta}}.",
+      "variantRiskSingle": "«{product}»: {count, plural, one {la variante {labels} podría agotarse} other {# variantes podrían agotarse ({labels})}} antes de su reposición."
     },
     "stockout": {
       "title": "Roturas de stock por anticipar",

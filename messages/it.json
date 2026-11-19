@@ -9569,7 +9569,9 @@
       "prefSaved": "Preferenza salvata",
       "truncated": "Lettura limitata: l'elenco può essere incompleto.",
       "riskSingle": "Lo stock di «{product}» potrebbe esaurirsi in circa {days} giorni, prima del tuo riassortimento.",
-      "attentionDigest": "{count} dei tuoi prodotti venduti dai rivenditori richiedono attenzione (non disponibili o presto esauriti)."
+      "attentionDigest": "{count} dei suoi prodotti venduti dai suoi rivenditori richiedono la sua attenzione (non disponibili, esauriti in alcune taglie o colori, o presto esauriti).",
+      "variantSoldOutSingle": "«{product}»: {count, plural, one {la variante {labels} è esaurita} other {# varianti sono esaurite ({labels})}} anche se gli acquirenti la ordinavano; {available, plural, =0 {nessun'altra è in vendita} one {# altra è ancora in vendita} other {# altre sono ancora in vendita}}.",
+      "variantRiskSingle": "«{product}»: {count, plural, one {la variante {labels} potrebbe esaurirsi} other {# varianti potrebbero esaurirsi ({labels})}} prima del suo riassortimento."
     },
     "stockout": {
       "title": "Rotture di stock da anticipare",

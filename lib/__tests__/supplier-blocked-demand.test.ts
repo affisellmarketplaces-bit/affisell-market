@@ -31,7 +31,7 @@ const db = vi.hoisted(() => ({
 
 vi.mock("@/lib/i18n-load-messages", () => ({
   loadAppMessages: () => ({
-    catalogHealth: { blockedDemand: { bellSingle: "{product} blocked", bellDigest: "{count} blocked", riskSingle: "{product} risk {days}", attentionDigest: "{count} attention" } },
+    catalogHealth: { blockedDemand: { bellSingle: "{product} blocked", bellDigest: "{count} blocked", riskSingle: "{product} risk {days}", attentionDigest: "{count} attention", variantSoldOutSingle: "{product} variant {count} {labels} {available}", variantRiskSingle: "{product} variant risk {count} {labels}" } },
   }),
 }))
 vi.mock("@/lib/prisma", () => {
@@ -292,6 +292,50 @@ describe("preventive stock-out risk in the same daily bell", () => {
     expect(db.notifications).toEqual([])
     expect(run.observation).toMatchObject({ riskQualifying: 1, wouldNotifyRiskNew: 1, wouldNotifySuppliersAll: 3 })
     expect([...db.audit.keys()].some((k) => k.startsWith("supplier-stockout-risk-alert:"))).toBe(false)
+  })
+})
+
+describe("variants in the same daily bell (§1)", () => {
+  const tee = () =>
+    product("p7", "v", 5, {
+      hasVariants: true,
+      variants: { variantRows: [{ name: "Noir / M", stock: 0 }, { name: "Noir / L", stock: 5 }] },
+    })
+  const sales = () =>
+    Array.from({ length: 3 }, (_, i) => ({ productId: "p7", paidAt: new Date(day1.getTime() - (i + 1) * DAY), variantLabel: "Noir · M", quantity: 1, affiliateId: "a" }))
+
+  it("a size sold out while the rest sells joins the supplier's ONE bell, quoting it and what is still on sale", async () => {
+    db.products = [tee()]
+    db.listings = new Map([["p7", 2]])
+    db.orders = sales()
+    const run = await runSupplierBlockedDemandAlerts(day1)
+    expect(run.variantQualifying).toBe(1)
+    expect(db.notifications).toHaveLength(1)
+    expect(db.notifications[0]!.userId).toBe("v")
+    expect(db.notifications[0]!.message).toContain("Noir / M")
+    // Same situation the next day: never rung twice.
+    db.now = day2
+    await runSupplierBlockedDemandAlerts(day2)
+    expect(db.notifications).toHaveLength(1)
+  })
+
+  it("a product already rung as blocked as a whole is not rung again for its variants", async () => {
+    db.products = [{ ...tee(), active: false }]
+    db.listings = new Map([["p7", 2]])
+    db.orders = sales()
+    const run = await runSupplierBlockedDemandAlerts(day1)
+    expect(run.variantQualifying).toBe(0)
+  })
+
+  it("observe: counted, nothing sent, the real notice is not used up", async () => {
+    vi.stubEnv("SUPPLIER_BLOCKED_DEMAND_ALERTS_MODE", "observe")
+    db.products = [tee()]
+    db.listings = new Map([["p7", 2]])
+    db.orders = sales()
+    const run = await runSupplierBlockedDemandAlerts(day1)
+    expect(db.notifications).toHaveLength(0)
+    expect(run.observation?.wouldNotifyVariantNew).toBe(1)
+    expect([...db.audit.keys()].some((k) => k.startsWith("supplier-variant-stock-alert:"))).toBe(false)
   })
 })
 

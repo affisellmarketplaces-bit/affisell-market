@@ -9569,7 +9569,9 @@
       "prefSaved": "偏好已保存",
       "truncated": "读取受限：列表可能不完整。",
       "riskSingle": "「{product}」的库存可能在约 {days} 天内售罄，早于您的补货。",
-      "attentionDigest": "您有 {count} 个由分销商销售的产品需要关注（不可购买或即将缺货）。"
+      "attentionDigest": "您的转售商销售的 {count} 件商品需要您关注（不可购买、部分尺码或颜色已售罄，或即将缺货）。",
+      "variantSoldOutSingle": "“{product}”：{count, plural, other {# 个规格已售罄（{labels}）}}，而买家此前一直在订购；{available, plural, =0 {没有其他规格在售} other {仍有 # 个规格在售}}。",
+      "variantRiskSingle": "“{product}”：{count, plural, other {# 个规格（{labels}）}}可能在您补货前售罄。"
     },
     "stockout": {
       "title": "需预判的缺货",

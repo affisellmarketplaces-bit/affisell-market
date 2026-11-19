@@ -207,3 +207,74 @@ export function variantStockWorthShowing(v: VariantProductVerdict): boolean {
   // A product whose variants Affisell does not track is shown only when it sells: the limit then matters.
   return v.mode === "variants_not_tracked" ? v.unattributedUnits90d > 0 : v.partialStockout || v.variantsAtRisk > 0
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// Daily bell (founder brief 2026-11-19 §1): partial stock-outs and variants at risk join the supplier's ONE bell.
+// ---------------------------------------------------------------------------------------------------------------
+
+/** Same window as the product-level preventive alert: one notice per product and per 14 days at most. */
+export const VARIANT_ALERT_WINDOW_DAYS = 14
+/** Labels quoted in a bell (the page lists them all). */
+export const VARIANT_ALERT_MAX_LABELS = 3
+
+export type VariantNotice = {
+  /** Sold-out variants that sold in the last 90 days (observed) — a size nobody ever bought is shown on the page, never rung. */
+  soldOut: VariantVerdict[]
+  /** Still-available variants whose cover is below the lead time (estimate). */
+  atRisk: VariantVerdict[]
+  /** Variants still on sale — the supplier must see what is still available, not only what is missing. */
+  stillAvailable: number
+}
+
+/**
+ * Is this product worth a bell for its VARIANTS? Only variants Affisell really holds (`mode: rows`), and only when it
+ * says something the supplier can act on: a variant that SOLD is sold out while others still sell (partial stock-out),
+ * or a still-available variant runs out before the lead time. A product already rung as blocked or at risk as a whole
+ * is excluded by the caller (one product = one line of the bell).
+ */
+export function variantNoticeFor(v: VariantProductVerdict): VariantNotice | null {
+  if (v.mode !== "rows") return null
+  const judged = v.variants.filter((x) => !x.ambiguous && x.declaredUnits !== null)
+  const stillAvailable = judged.filter((x) => x.available)
+  const soldOut = v.partialStockout ? judged.filter((x) => !x.available && x.units90d > 0) : []
+  const atRisk = stillAvailable.filter((x) => x.forecast && (x.forecast.risk === "sous_le_delai" || x.forecast.risk === "probable"))
+  if (soldOut.length === 0 && atRisk.length === 0) return null
+  return { soldOut, atRisk, stillAvailable: stillAvailable.length }
+}
+
+/** Small stable hash (FNV-1a, 32 bits) — keeps the id short whatever the variant names. */
+function shortHash(s: string): string {
+  let h = 0x811c9dc5
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i)
+    h = Math.imul(h, 0x01000193) >>> 0
+  }
+  return h.toString(36)
+}
+
+/**
+ * Claim id: once per product, per SET of sold-out variants and per 14-day window. A NEW variant selling out is new
+ * information (new id); the same situation is never rung twice in the window; risk-only notices share one id per
+ * window (a cover estimate moving a little is not news).
+ */
+function variantNoticeSuffix(productId: string, n: VariantNotice, now: Date): string {
+  const keys = n.soldOut.map((x) => x.key ?? "").filter(Boolean).sort()
+  const set = keys.length ? shortHash(keys.join("\u0001")) : "risk"
+  return `${productId}:${set}:${Math.floor(now.getTime() / (VARIANT_ALERT_WINDOW_DAYS * DAY))}`
+}
+export function variantAlertId(productId: string, n: VariantNotice, now: Date): string {
+  return `supplier-variant-stock-alert:${variantNoticeSuffix(productId, n, now)}`
+}
+export function variantObservedId(productId: string, n: VariantNotice, now: Date): string {
+  return `supplier-variant-stock-observed:${variantNoticeSuffix(productId, n, now)}`
+}
+
+/** The labels a bell quotes: sold-out first (what is lost now), then at risk; capped, each shortened. */
+export function variantNoticeLabels(n: VariantNotice): { soldOut: string[]; atRisk: string[]; more: number } {
+  const cut = (l: string) => (l.length > 40 ? `${l.slice(0, 39)}…` : l)
+  const so = n.soldOut.map((x) => cut(x.label))
+  const ar = n.atRisk.map((x) => cut(x.label))
+  const soldOut = so.slice(0, VARIANT_ALERT_MAX_LABELS)
+  const atRisk = ar.slice(0, Math.max(0, VARIANT_ALERT_MAX_LABELS - soldOut.length))
+  return { soldOut, atRisk, more: so.length + ar.length - soldOut.length - atRisk.length }
+}

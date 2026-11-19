@@ -44,6 +44,8 @@ import {
   type UnavailabilityCause,
 } from "@/lib/supplier-demand-alerts/blocked-demand"
 import { isPreventiveAlert, stockoutRiskAlertId, stockoutRiskObservedId } from "@/lib/supplier-catalog-health/stockout-forecast"
+import { loadVariantStock } from "@/lib/supplier-catalog-health/variant-stockout.server"
+import { variantAlertId, variantNoticeFor, variantNoticeLabels, variantObservedId } from "@/lib/supplier-catalog-health/variant-stockout"
 import { loadStockoutForecasts, type StockoutForecastItem } from "@/lib/supplier-catalog-health/stockout-forecast.server"
 import { UNALLOCATED_LINE_AUDIT_ACTION } from "@/lib/unallocated-line"
 
@@ -288,6 +290,8 @@ export type SupplierBlockedDemandRun = {
   obsoleteDigestsCleared: number
   /** Preventive stock-out risks found (sellable today, cover below the lead time). */
   riskQualifying: number
+  /** Products with a sold-out variant that sold, or a variant at risk (not already rung as a whole). */
+  variantQualifying: number
   truncated: boolean
   observation?: BlockedDemandObservation | null
 }
@@ -314,6 +318,7 @@ export async function runSupplierBlockedDemandAlerts(now = new Date()): Promise<
     deferredToTomorrow: 0,
     obsoleteDigestsCleared: 0,
     riskQualifying: 0,
+    variantQualifying: 0,
     truncated: false,
   }
   if (mode === "off") return run
@@ -373,6 +378,31 @@ export async function runSupplierBlockedDemandAlerts(now = new Date()): Promise<
   }
   run.riskQualifying = risks.length
 
+  // Variants: part of a product sold out while the rest sells, or a variant running out before the lead time. A
+  // product already rung as blocked or at risk as a whole is left out (one product = one line of the bell).
+  const wholeProduct = new Set([...unavailableIds, ...risks.map((r) => r.productId)])
+  const variantNotices: SupplierNotice[] = []
+  try {
+    for (const item of (await loadVariantStock({ supplierId: null, now })).items) {
+      if (wholeProduct.has(item.productId)) continue
+      const n = variantNoticeFor(item)
+      if (!n) continue
+      variantNotices.push({
+        supplierId: item.supplierId,
+        productId: item.productId,
+        productName: item.productName,
+        kind: "variant",
+        claimId: variantAlertId(item.productId, n, now),
+        observedId: variantObservedId(item.productId, n, now),
+        variant: { ...variantNoticeLabels(n), soldOutCount: n.soldOut.length, atRiskCount: n.atRisk.length, stillAvailable: n.stillAvailable },
+      })
+    }
+  } catch (error) {
+    // A failed variant read never blocks the other alerts.
+    console.error("[supplier-blocked-demand] variant_stock_unreadable", error instanceof Error ? error.message : "unknown")
+  }
+  run.variantQualifying = variantNotices.length
+
   const notices: SupplierNotice[] = [
     ...alerts
       .filter((a) => a.since !== null)
@@ -385,6 +415,7 @@ export async function runSupplierBlockedDemandAlerts(now = new Date()): Promise<
       claimId: stockoutRiskAlertId(r.productId, now),
       coverDays: r.forecast.calculation.coverDays,
     })),
+    ...variantNotices,
   ]
 
   if (mode === "observe") {
@@ -393,6 +424,7 @@ export async function runSupplierBlockedDemandAlerts(now = new Date()): Promise<
       result: "would_notify",
       qualifying: run.qualifying,
       risks: run.riskQualifying,
+      variants: run.variantQualifying,
       wouldNotifyNew: run.observation?.wouldNotifyNew ?? null,
       wouldNotifySuppliersAll: run.observation?.wouldNotifySuppliersAll ?? null,
       truncated: run.truncated,
@@ -448,11 +480,16 @@ async function deliver(now: Date, run: SupplierBlockedDemandRun, notices: Suppli
     await prisma.auditLog.createMany({
       data: plan.items.map((a) => ({
         id: a.claimId,
-        action: a.kind === "blocked" ? "supplier.blocked_demand_alerted" : "supplier.stockout_risk_alerted",
+        action:
+          a.kind === "blocked"
+            ? "supplier.blocked_demand_alerted"
+            : a.kind === "risk"
+              ? "supplier.stockout_risk_alerted"
+              : "supplier.variant_stock_alerted",
         entityType: "Product",
         entityId: a.productId,
         actorId: null,
-        payload: { kind: a.kind },
+        payload: a.variant ? { kind: a.kind, soldOut: a.variant.soldOutCount, atRisk: a.variant.atRiskCount } : { kind: a.kind },
       })),
       skipDuplicates: true,
     })
@@ -467,7 +504,9 @@ async function deliver(now: Date, run: SupplierBlockedDemandRun, notices: Suppli
         ? t("bellSingle", { product: first.productName.slice(0, 120) })
         : plan.kind === "single_risk"
           ? t("riskSingle", { product: first.productName.slice(0, 120), days: Math.max(0, Math.round(first.coverDays ?? 0)) })
-          : plan.allBlocked
+          : plan.kind === "single_variant"
+            ? variantMessage(t, first)
+            : plan.allBlocked
             ? t("bellDigest", { count: plan.items.length })
             : t("attentionDigest", { count: plan.items.length })
     const notif = await prisma.notification.create({ data: { userId: plan.supplierId, type: SUPPLIER_BLOCKED_DEMAND_NOTIF, message } })
@@ -478,6 +517,19 @@ async function deliver(now: Date, run: SupplierBlockedDemandRun, notices: Suppli
     run.notified++
     if (plan.kind === "digest") run.digests++
   }
+}
+
+/**
+ * One variant notice in words: what is sold out (quoted), what is at risk, and how many variants still sell — so the
+ * supplier sees at once what is missing AND what is still on sale. Labels are the supplier's own variant names.
+ */
+function variantMessage(t: (key: string, values?: Record<string, string | number>) => string, n: SupplierNotice): string {
+  const v = n.variant!
+  const product = n.productName.slice(0, 120)
+  const labels = [...v.soldOut, ...v.atRisk].join(", ") + (v.more > 0 ? ` (+${v.more})` : "")
+  return v.soldOutCount > 0
+    ? t("variantSoldOutSingle", { product, count: v.soldOutCount, labels, available: v.stillAvailable })
+    : t("variantRiskSingle", { product, count: v.atRiskCount, labels })
 }
 
 /** A bell still unread whose products are ALL available again is marked read: it would be a false alarm. */
@@ -507,7 +559,8 @@ async function recordObservation(
   try {
     // Observed markers have their OWN ids: observing never uses up a real alert.
     const observedIdOf = (n: SupplierNotice) =>
-      n.kind === "blocked" ? n.claimId.replace("supplier-blocked-demand-alert:", "supplier-blocked-demand-observed:") : stockoutRiskObservedId(n.productId, now)
+      n.observedId ??
+      (n.kind === "blocked" ? n.claimId.replace("supplier-blocked-demand-alert:", "supplier-blocked-demand-observed:") : stockoutRiskObservedId(n.productId, now))
     const fresh = await freshBy(notices, observedIdOf)
     if (fresh.length) {
       await prisma.auditLog.createMany({
@@ -543,6 +596,8 @@ async function recordObservation(
       riskQualifying: run.riskQualifying,
       wouldNotifyRiskNew: fresh.filter((n) => n.kind === "risk" && !prefOff.has(n.supplierId)).length,
       wouldNotifySuppliersAll: new Set(fresh.filter((n) => !prefOff.has(n.supplierId)).map((n) => n.supplierId)).size,
+      variantQualifying: run.variantQualifying,
+      wouldNotifyVariantNew: fresh.filter((n) => n.kind === "variant" && !prefOff.has(n.supplierId)).length,
     }
     await prisma.auditLog.createMany({
       data: [
