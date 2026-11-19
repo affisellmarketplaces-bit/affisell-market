@@ -136,7 +136,8 @@ afterEach(() => vi.unstubAllEnvs())
 
 describe("pure rules", () => {
   it("mode is off unless observe / enforce is written", () => {
-    expect(readRestockWatchMode(undefined)).toBe("off")
+    expect(readRestockWatchMode("")).toBe("off")
+    expect(readRestockWatchMode(null)).toBe("off")
     expect(readRestockWatchMode("yes")).toBe("off")
     expect(readRestockWatchMode(" Observe ")).toBe("observe")
     expect(readRestockWatchMode("enforce")).toBe("enforce")
