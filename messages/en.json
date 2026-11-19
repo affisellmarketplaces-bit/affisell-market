@@ -9640,6 +9640,36 @@
         "error": "Confirmation not possible right now."
       },
       "note": "A calculation, not a certainty. No restock order is created or sent. Your resellers do not see this information."
+    },
+    "variantStock": {
+      "title": "Stock per variant",
+      "subtitle": "A sufficient total can hide a size or colour that has run out. Each variant is judged on its own stock, sales and reservations; the total is never split across variants.",
+      "empty": "No variant sold out or at risk on your products in shops.",
+      "truncated": "Capped read: the list may be incomplete.",
+      "shops": "{count, plural, one {# reseller shop} other {# reseller shops}}",
+      "notTracked": "This product's variants are not tracked one by one (no stock per row): it is impossible to tell which one runs out. Cannot be assessed.",
+      "partial": "{count, plural, one {# variant sold out} other {# variants sold out}} while others are still on sale",
+      "col": {
+        "variant": "Variant",
+        "declared": "Declared stock",
+        "sold": "Observed sales (90 d)",
+        "cover": "Estimated cover",
+        "state": "State"
+      },
+      "unknown": "unknown",
+      "soldValue": "{units} ({pct}% of sales)",
+      "noSale": "no observed sale",
+      "resellers": "sold by {count} resellers",
+      "resellersFew": "sold by fewer than 2 resellers",
+      "coverValue": "{days} d (at least {low})",
+      "ambiguous": "ambiguous: name shared by two rows",
+      "notEvaluable": "cannot be assessed",
+      "soldOut": "sold out",
+      "unattributed": "{units} units sold without a recognised variant: counted apart, never spread.",
+      "confirmationScope": "The quantity confirmation covers the whole sheet.",
+      "fixTrack": "Track stock per variant in the sheet",
+      "fixRows": "Update the variant's quantity",
+      "note": "Observed sales and calculations are kept apart. A sold-out variant is not presented as lost sales: no missed sale is tied to a variant in Affisell's data. No reseller name is shown."
     }
   },
   "nextActions": {

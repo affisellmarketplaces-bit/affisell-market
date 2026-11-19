@@ -9640,6 +9640,36 @@
         "error": "Confirmation impossible pour le moment."
       },
       "note": "Un calcul, pas une certitude. Aucune commande de réassort n'est créée ni envoyée. Vos revendeurs ne voient pas ces informations."
+    },
+    "variantStock": {
+      "title": "Stock par déclinaison",
+      "subtitle": "Une quantité totale suffisante peut cacher une taille ou une couleur épuisée. Chaque déclinaison est jugée avec son propre stock, ses propres ventes et ses réservations ; le stock total n'est jamais réparti entre les déclinaisons.",
+      "empty": "Aucune déclinaison épuisée ou à risque sur vos produits en boutique.",
+      "truncated": "Lecture plafonnée : la liste peut être incomplète.",
+      "shops": "{count, plural, one {# boutique de revendeur} other {# boutiques de revendeurs}}",
+      "notTracked": "Les déclinaisons de ce produit ne sont pas suivies une par une (pas de stock par ligne) : impossible de dire laquelle s'épuise. Non évaluable.",
+      "partial": "{count, plural, one {# déclinaison épuisée} other {# déclinaisons épuisées}} alors que d'autres restent en vente",
+      "col": {
+        "variant": "Déclinaison",
+        "declared": "Stock déclaré",
+        "sold": "Ventes constatées (90 j)",
+        "cover": "Couverture estimée",
+        "state": "État"
+      },
+      "unknown": "inconnu",
+      "soldValue": "{units} ({pct} % des ventes)",
+      "noSale": "aucune vente constatée",
+      "resellers": "{count} revendeurs l'ont vendue",
+      "resellersFew": "vendue par moins de 2 revendeurs",
+      "coverValue": "{days} j (au moins {low})",
+      "ambiguous": "ambiguë : nom partagé par deux lignes",
+      "notEvaluable": "non évaluable",
+      "soldOut": "épuisée",
+      "unattributed": "{units} unités vendues sans déclinaison reconnue : comptées à part, jamais réparties.",
+      "confirmationScope": "La confirmation de quantité porte sur la fiche entière.",
+      "fixTrack": "Suivre le stock par déclinaison dans la fiche",
+      "fixRows": "Mettre à jour la quantité de la déclinaison",
+      "note": "Ventes constatées et calculs sont distincts. Une déclinaison épuisée n'est pas présentée comme des ventes perdues : aucune vente manquée n'est rattachée à une déclinaison dans les données d'Affisell. Aucun nom de revendeur n'est affiché."
     }
   },
   "nextActions": {
