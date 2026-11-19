@@ -126,6 +126,34 @@ describe("selection — ranking and separation", () => {
     expect(r.blocked.map((b) => b.productId)).toEqual(["blocked"])
     expect(r).toMatchObject({ considered: 7, alreadyInShop: 1 })
   })
+
+  it("a product rising on Affisell (tested) comes first among the ready ones, labelled observed, never a forecast", () => {
+    const r = buildSelection(
+      [
+        cand({ productId: "high", basePriceCents: 5000 }),
+        cand({ productId: "rising", basePriceCents: 1000, rising: { recent14d: 9, prior42d: 3 } }),
+        cand({ productId: "rising-check", basePriceCents: 1000, stockKnown: false, rising: { recent14d: 9, prior42d: 3 } }),
+      ],
+      { affiliateFeeBps: null, limit: 10 }
+    )
+    expect(r.selection.map((s) => s.productId)).toEqual(["rising", "high", "rising-check"])
+    const item = r.selection[0]!
+    expect(item.trend).toEqual({ rising: true, recent14d: 9, prior42d: 3, qualification: "observe" })
+    expect(item.reasons.find((x) => x.code === "rising_on_affisell")?.qualification).toBe("observe")
+    expect(r.selection[1]!.trend.rising).toBe(false)
+  })
+
+  it("the trend reuses the cockpit's own test, needs two resellers, and never blocks the selection", () => {
+    const server = readFileSync(path.join(path.resolve(__dirname, "../.."), "lib/reseller-copilot/selection.server.ts"), "utf8")
+    expect(server).toContain("detectEmerging(")
+    expect(server).toContain("RISING_MIN_SELLING_RESELLERS = 2")
+    expect(server).toContain("rising_unreadable")
+    for (const loc of ["fr", "en", "de", "es", "it", "nl", "pl", "zh"]) {
+      const m = JSON.parse(readFileSync(path.join(path.resolve(__dirname, "../.."), `messages/${loc}.json`), "utf8"))
+      expect(m.affiliate.copilot.rising, loc).toContain("{recent")
+      expect(m.affiliate.copilot.reasons.rising_on_affisell, loc).toBeTruthy()
+    }
+  })
   it("caps the selection", () => {
     const many = Array.from({ length: 80 }, (_, i) => cand({ productId: `p${i}` }))
     expect(buildSelection(many, { affiliateFeeBps: null, limit: 500 }).selection).toHaveLength(50)

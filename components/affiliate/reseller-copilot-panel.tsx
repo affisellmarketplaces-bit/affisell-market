@@ -115,6 +115,11 @@ export function ResellerCopilotPanel({ onAdded }: { onAdded?: () => void }) {
               ) : null}
               <div className="min-w-0 flex-1 text-sm">
                 <p className="truncate font-medium text-zinc-900 dark:text-zinc-100">{s.name}</p>
+                {s.trend?.rising ? (
+                  <p className="mt-0.5 inline-block rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-semibold text-violet-800 dark:bg-violet-950 dark:text-violet-200">
+                    {t("rising", { recent: s.trend.recent14d })}
+                  </p>
+                ) : null}
                 <p className="mt-0.5 text-emerald-800 dark:text-emerald-300">
                   <span className="font-bold">{money(s.net.netCents)}</span> {t("netPerSale")}
                 </p>

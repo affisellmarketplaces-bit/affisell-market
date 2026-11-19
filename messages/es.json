@@ -3108,8 +3108,10 @@
         "out_of_stock": "agotado",
         "stock_unknown": "stock no verificable",
         "low_stock": "muy pocas unidades",
-        "low_net_per_sale": "ganancia por venta baja"
-      }
+        "low_net_per_sale": "ganancia por venta baja",
+        "rising_on_affisell": "Un producto cuyos pedidos se aceleran claramente más rápido que Affisell en conjunto, en al menos dos revendedores (prueba estadística sobre ventas observadas, no una previsión)."
+      },
+      "rising": "En fuerte crecimiento en Affisell · {recent, plural, one {# pedido} other {# pedidos}} en 14 días, muy por encima del marketplace"
     },
     "supplierAffisell": "Proveedor Affisell",
     "replacement": {

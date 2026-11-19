@@ -40,6 +40,12 @@ export type SelectionCandidate = {
   inMyShop: boolean
   /** A reseller URL import not yet reviewed by Affisell — can not be listed. */
   awaitingReview: boolean
+  /**
+   * Demand clearly ACCELERATING on Affisell (`detectEmerging`: exact binomial test against the marketplace's own
+   * growth, Bonferroni, size floors) AND carried by ≥ 2 resellers (one reseller's own campaign is not a trend).
+   * Absent = not tested / not rising.
+   */
+  rising?: { recent14d: number; prior42d: number } | null
 }
 
 export type Reason = { code: string; qualification: Qualification }
@@ -53,6 +59,8 @@ export type SelectionItem = {
   suggestedPriceHtCents: number
   net: ResellerNet
   demand: { paidOrders30d: number; resellersListing: number; qualification: "observe" }
+  /** Observed acceleration (statistically tested), never a forecast. */
+  trend: { rising: boolean; recent14d: number; prior42d: number; qualification: "observe" }
   returnWindowDays: number
 }
 
@@ -88,6 +96,7 @@ export function assessCandidate(c: SelectionCandidate, affiliateFeeBps: number |
   if (blocked.length === 0 && net.netCents < LOW_NET_CENTS) check.push({ code: "low_net_per_sale", qualification: "calcul" })
   if (net.feeIsDefault) info.push({ code: "standard_affisell_fee", qualification: "catalogue" })
   if (c.returnWindowDays > 14) info.push({ code: "extended_returns", qualification: "catalogue" })
+  if (c.rising) info.push({ code: "rising_on_affisell", qualification: "observe" })
   if (c.paidOrders30d > 0) info.push({ code: "already_selling", qualification: "observe" })
   else info.push({ code: "no_sales_observed", qualification: "observe" })
   return {
@@ -99,6 +108,12 @@ export function assessCandidate(c: SelectionCandidate, affiliateFeeBps: number |
     suggestedPriceHtCents: price,
     net,
     demand: { paidOrders30d: Math.max(0, c.paidOrders30d), resellersListing: Math.max(0, c.resellersListing), qualification: "observe" },
+    trend: {
+      rising: Boolean(c.rising),
+      recent14d: Math.max(0, c.rising?.recent14d ?? 0),
+      prior42d: Math.max(0, c.rising?.prior42d ?? 0),
+      qualification: "observe",
+    },
     returnWindowDays: c.returnWindowDays,
   }
 }
@@ -106,8 +121,9 @@ export function assessCandidate(c: SelectionCandidate, affiliateFeeBps: number |
 const RANK = { pret: 0, a_verifier: 1, bloque: 2 } as const
 
 /**
- * The selection: products not yet in the reseller's shop, ready first, then to check; within each, the highest real
- * net per sale first, then the most observed demand. Blocked products are returned apart (with their reasons) so the
+ * The selection: products not yet in the reseller's shop, ready first, then to check; within each, products whose
+ * demand is clearly accelerating on Affisell first (tested, see `rising`), then the highest real net per sale, then the
+ * most observed demand. Blocked products are returned apart (with their reasons) so the
  * reseller understands why a product is missing — never mixed into the selection.
  */
 export function buildSelection(
@@ -121,6 +137,7 @@ export function buildSelection(
     .sort(
       (a, b) =>
         RANK[a.readiness] - RANK[b.readiness] ||
+        Number(b.trend.rising) - Number(a.trend.rising) ||
         b.net.netCents - a.net.netCents ||
         b.demand.paidOrders30d - a.demand.paidOrders30d ||
         a.productId.localeCompare(b.productId)

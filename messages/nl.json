@@ -3108,8 +3108,10 @@
         "out_of_stock": "niet op voorraad",
         "stock_unknown": "voorraad niet controleerbaar",
         "low_stock": "zeer weinig voorraad",
-        "low_net_per_sale": "lage winst per verkoop"
-      }
+        "low_net_per_sale": "lage winst per verkoop",
+        "rising_on_affisell": "Een product waarvan de bestellingen duidelijk sneller groeien dan Affisell als geheel, bij minstens twee wederverkopers (statistische test op waargenomen verkopen, geen voorspelling)."
+      },
+      "rising": "Sterk groeiend op Affisell · {recent, plural, one {# bestelling} other {# bestellingen}} in 14 dagen, duidelijk meer dan de marktplaats"
     },
     "supplierAffisell": "Affisell-leverancier",
     "replacement": {

@@ -3108,8 +3108,10 @@
         "out_of_stock": "缺货",
         "stock_unknown": "库存无法核实",
         "low_stock": "库存极少",
-        "low_net_per_sale": "每笔收益较低"
-      }
+        "low_net_per_sale": "每笔收益较低",
+        "rising_on_affisell": "该商品的订单增速明显快于 Affisell 整体，且至少有两家分销商在售（基于实际销售的统计检验，并非预测）。"
+      },
+      "rising": "在 Affisell 上快速增长 · 14 天内 {recent} 笔订单，明显高于整个市场"
     },
     "supplierAffisell": "Affisell 供应商",
     "replacement": {

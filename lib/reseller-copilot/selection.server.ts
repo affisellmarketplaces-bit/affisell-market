@@ -1,5 +1,7 @@
 import "server-only"
 
+import { detectEmerging, EMERGING_PRIOR_DAYS, EMERGING_RECENT_DAYS } from "@/lib/strategic-intelligence/emerging"
+
 import { buildAffiliateCatalogProductWhere } from "@/lib/affiliate-catalog-query"
 import { quickAddAffiliateListing } from "@/lib/affiliate-quick-add-listing.server"
 import { primaryProductImage } from "@/lib/product-images"
@@ -65,6 +67,7 @@ async function loadCandidates(affiliateId: string, onlyIds?: ReadonlyArray<strin
         prisma.affiliateProduct.groupBy({ by: ["productId"], where: { productId: { in: ids }, isListed: true }, _count: { id: true } }),
       ])
     : [[], []]
+  const rising = ids.length ? await loadRising(ids, now) : new Map<string, { recent14d: number; prior42d: number }>()
   const paidBy = new Map(paid.map((r) => [r.productId, r._count.id]))
   const listedBy = new Map(listed.map((r) => [r.productId, r._count.id]))
   const candidates: SelectionCandidate[] = rows.map((r) => {
@@ -83,9 +86,53 @@ async function loadCandidates(affiliateId: string, onlyIds?: ReadonlyArray<strin
       resellersListing: listedBy.get(r.id) ?? 0,
       inMyShop: r.affiliateProducts.length > 0,
       awaitingReview: !mayListOnProduct({ active: r.active, isDraft: r.isDraft, tags: r.tags }),
+      rising: rising.get(r.id) ?? null,
     }
   })
   return { candidates, truncated: rows.length >= SELECTION_MAX_CANDIDATES }
+}
+
+/**
+ * Products whose paid orders accelerate clearly MORE than the marketplace (the cockpit's own `detectEmerging` test —
+ * one definition), and carried by ≥ 2 resellers (a single reseller's campaign is not a marketplace trend). Read-only;
+ * counts only; a failed read = no trend (never blocks the selection).
+ */
+export const RISING_MIN_SELLING_RESELLERS = 2
+
+async function loadRising(ids: string[], now: Date): Promise<Map<string, { recent14d: number; prior42d: number }>> {
+  try {
+    const recentFrom = new Date(now.getTime() - EMERGING_RECENT_DAYS * DAY)
+    const priorFrom = new Date(recentFrom.getTime() - EMERGING_PRIOR_DAYS * DAY)
+    const [recent, prior, sellers, marketRecent, marketPrior] = await Promise.all([
+      prisma.order.groupBy({ by: ["productId"], where: { productId: { in: ids }, paidAt: { gte: recentFrom } }, _count: { id: true } }),
+      prisma.order.groupBy({ by: ["productId"], where: { productId: { in: ids }, paidAt: { gte: priorFrom, lt: recentFrom } }, _count: { id: true } }),
+      prisma.order.groupBy({ by: ["productId", "affiliateId"], where: { productId: { in: ids }, paidAt: { gte: priorFrom } }, _count: { id: true } }),
+      prisma.order.count({ where: { paidAt: { gte: recentFrom } } }),
+      prisma.order.count({ where: { paidAt: { gte: priorFrom, lt: recentFrom } } }),
+    ])
+    const recentBy = new Map(recent.map((r) => [r.productId as string, r._count.id]))
+    const priorBy = new Map(prior.map((r) => [r.productId as string, r._count.id]))
+    const sellersBy = new Map<string, number>()
+    for (const s of sellers) sellersBy.set(s.productId as string, (sellersBy.get(s.productId as string) ?? 0) + 1)
+    const findings = detectEmerging(
+      ids.map((id) => ({
+        productId: id,
+        name: "",
+        recent: recentBy.get(id) ?? 0,
+        prior: priorBy.get(id) ?? 0,
+        sellingResellers: sellersBy.get(id) ?? 0,
+      })),
+      { recent: marketRecent, prior: marketPrior },
+    )
+    const out = new Map<string, { recent14d: number; prior42d: number }>()
+    for (const f of findings) {
+      if (f.sellingResellers >= RISING_MIN_SELLING_RESELLERS) out.set(f.productId, { recent14d: f.recent, prior42d: f.prior })
+    }
+    return out
+  } catch (error) {
+    console.error("[copilot] rising_unreadable", error instanceof Error ? error.message : "unknown")
+    return new Map()
+  }
 }
 
 async function feeBpsOf(affiliateId: string): Promise<number | null> {
