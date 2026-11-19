@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process"
 import { readFileSync } from "node:fs"
 import path from "node:path"
 
@@ -158,7 +159,6 @@ describe("isolation", () => {
       expect(src).not.toMatch(/refunds\.create|transfers\.create|payouts\.create|method: "POST"/)
     }
     const root = path.resolve(__dirname, "../..")
-    const { execSync } = require("node:child_process") as typeof import("node:child_process")
     const users = execSync(`grep -rl "issuing-import.server" app lib --include=*.ts --include=*.tsx || true`, { cwd: root }).toString().trim().split("\n").filter(Boolean)
     expect(users.filter((u) => !u.includes("__tests__"))).toEqual([])
   })

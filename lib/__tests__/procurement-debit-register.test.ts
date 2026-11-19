@@ -212,5 +212,7 @@ describe("isolation", () => {
     expect(sql).toMatch(/procurement_debit_over_allocated/)
     expect(sql).toMatch(/FOR UPDATE/)
     expect(sql).not.toMatch(/ALTER TABLE "Order"|DROP TABLE/)
+    // A comment line ending with ";" splits a statement in two for the statement-by-statement runners.
+    expect(sql).not.toMatch(/^\s*--.*;\s*$/m)
   })
 })

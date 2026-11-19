@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS "ProcurementDebit" (
     ),
     -- An amount charged in euros IS its settled amount: no room for a second figure.
     CONSTRAINT "ProcurementDebit_eur_settled_check" CHECK ("currency" <> 'EUR' OR ("settledAmountCents" IS NOT NULL AND "settledAmountCents" = "amountCents")),
-    -- A refund (or its reversal) belongs to the debit it gives back — or waits for a person to say which (needs_review);
+    -- A refund (or its reversal) belongs to the debit it gives back, or waits for a person to say which (needs_review):
     -- a debit is never a child.
     CONSTRAINT "ProcurementDebit_parent_check" CHECK (
         ("kind" = 'debit' AND "parentDebitId" IS NULL)
