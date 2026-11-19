@@ -874,7 +874,9 @@
       "insufficient": "Il n'en reste que {count} en stock.",
       "priceUpdating": "Le prix de ce produit est en cours de mise à jour. Réessayez dans quelques minutes.",
       "variantUnavailable": "L'option choisie (taille ou couleur) n'existe plus pour ce produit : choisissez-en une autre sur sa fiche.",
-      "variantUnavailableWith": "L'option choisie n'existe plus pour ce produit. Encore disponibles : {options}."
+      "variantUnavailableWith": "L'option choisie n'existe plus pour ce produit. Encore disponibles : {options}.",
+      "chooseOptions": "Choisissez toutes les options (couleur, taille, capacité…) avant de continuer.",
+      "chooseOnPage": "Ce produit existe en plusieurs tailles ou couleurs : choisissez la vôtre sur sa fiche."
     },
     "title": "Panier",
     "loading": "Chargement du panier…",

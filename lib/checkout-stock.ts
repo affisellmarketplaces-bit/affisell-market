@@ -21,6 +21,7 @@
 
 import { parseListingKind } from "@/lib/supplier-commission"
 import { parseCartVariantSignature } from "@/lib/cart-variant"
+import { resolveVariantChoice, type VariantChoiceResolution, type VariantDimension } from "@/lib/variant-selection"
 
 /**
  * Rollout switch `CHECKOUT_STOCK_MODE` = `off` | `warn` (DEFAULT) | `enforce`, read per request (flip it on Vercel, no code
@@ -95,32 +96,13 @@ function rawRowStock(row: Record<string, unknown>): number {
 }
 
 /** Index (in `rows`) of the ONE row the cart selection points at, or `null` when it is missing or ambiguous. */
-function resolveRowIndex(rows: Array<Record<string, unknown>>, variantSignature: string | null | undefined): number | null {
-  const { color, size } = parseCartVariantSignature(variantSignature ?? "")
-  const c = color?.trim() ?? ""
-  const s = size?.trim() ?? ""
-  const label = c && s ? `${c} / ${s}` : c || s
-  if (!label) return null
-
-  const exact: number[] = []
-  rows.forEach((r, i) => {
-    const name = rawRowName(r)
-    if (name && normLabel(name) === normLabel(label)) exact.push(i)
-  })
-  if (exact.length === 1) return exact[0]!
-  if (exact.length > 1) return null
-
-  // Colour only (no size picked): accept it when the product has exactly one row of that colour.
-  if (c && !s) {
-    const want = normLabel(c)
-    const sameColor: number[] = []
-    rows.forEach((r, i) => {
-      const n = normLabel(rawRowName(r))
-      if (n === want || n.startsWith(`${want} /`) || n.startsWith(`${want}/`)) sameColor.push(i)
-    })
-    if (sameColor.length === 1) return sameColor[0]!
-  }
-  return null
+/**
+ * The row a line draws from — the SHARED rule of `lib/variant-selection.ts` (same as the product pages and the check
+ * before payment). `null` = no single row can be told: the line is not managed (never decremented, never guessed).
+ */
+function resolveVariantLine(variants: unknown, variantSignature: string | null | undefined): VariantChoiceResolution {
+  const { color, size, storage } = parseCartVariantSignature(variantSignature ?? "")
+  return resolveVariantChoice(variants, { color, size, storage })
 }
 
 /**
@@ -155,8 +137,9 @@ export function planStockMovement(input: {
     }
   }
 
-  const index = resolveRowIndex(rows, input.variantSignature)
-  if (index == null) return { kind: "unmanaged", reason: "variant_unresolved" }
+  const resolution = resolveVariantLine(input.variants, input.variantSignature)
+  if (resolution.kind !== "resolved") return { kind: "unmanaged", reason: "variant_unresolved" }
+  const index = resolution.index
 
   const row = rows[index]!
   const rowStock = rawRowStock(row)
@@ -269,8 +252,11 @@ export type StockShortfall = {
 /** Identity of the stock a line draws from: the whole product, or one variant selection of it. */
 function stockScopeKey(line: StockCheckLine, scope: StockScope): string {
   if (scope === "product") return `${line.productId}|*`
-  const { color, size } = parseCartVariantSignature(line.variantSignature ?? "")
-  return `${line.productId}|${normLabel(color ?? "")}/${normLabel(size ?? "")}`
+  // The row itself: two spellings of one variant (« Noir · 128 Go » in the size slot or as storage) share its stock.
+  const r = resolveVariantLine(line.variants, line.variantSignature)
+  if (r.kind === "resolved") return `${line.productId}|row:${r.index}`
+  const { color, size, storage } = parseCartVariantSignature(line.variantSignature ?? "")
+  return `${line.productId}|${normLabel(color ?? "")}/${normLabel(size ?? "")}/${normLabel(storage ?? "")}`
 }
 
 /**
@@ -327,50 +313,40 @@ export type CheckoutStockGateDecision = {
   refuseVariant: VariantSelectionRefusal | null
 }
 
-export type VariantSelectionProblem = "variant_unknown" | "variant_required"
+export type VariantSelectionProblem = "variant_unknown" | "variant_incomplete" | "variant_required"
 
 export type VariantSelectionRefusal = {
   lineIndex: number
   productId: string
   productName: string | null
   problem: VariantSelectionProblem
+  /** `variant_incomplete` / `variant_required`: the dimensions the buyer still has to choose. */
+  missing?: VariantDimension[]
 }
 
 /**
- * Does the buyer's choice name a variant the product REALLY has (founder brief 2026-11-19 §2)? Same rows and same
- * matching as the decrement (`resolveRowIndex`) — one definition. A line the decrement can not tie to a row is
- * otherwise "unmanaged": it passes every check and, once paid, takes nothing from any row — so a size or colour that
- * does not exist (an old link, a renamed row, a forged request) could be sold. Flagged only when it is CERTAIN:
- *  - `variant_unknown`: a choice was made and no row can be it (none equal, none extending it — "Noir / M" is kept
- *    when a row reads "Noir / M / 128 Go", a colour alone when a row starts with it, a size alone when a row ends with it);
- *  - `variant_required`: no choice at all while the product has two rows or more.
- * Two rows with the SAME name are the supplier's data problem, not the buyer's: never flagged here. Products without
- * rows (or whose variants live only in the variant table) and non-physical goods are never flagged. Pure.
+ * Does the buyer's choice name ONE variant the product really has (founder briefs 2026-11-19)? The shared rule of
+ * `lib/variant-selection.ts` — the same one the decrement uses, so a line passing this check is a line the decrement
+ * can tie to its row:
+ *  - `variant_unknown`: the combination does not exist (a size of another colour, a renamed row, a forged request);
+ *  - `variant_incomplete`: a choice that leaves several rows (a colour alone on a product sold in several sizes);
+ *  - `variant_required`: no choice at all while the product has several variants.
+ * Never flagged: products without rows (no variants, or variants only in the `ProductVariant` table — their stock is
+ * not held per variant), a product with a single row, rows identical on every dimension (the supplier's data), and
+ * non-physical goods. Pure.
  */
 export function variantSelectionProblem(input: {
   listingKind: string | null | undefined
   variants: unknown
   variantSignature: string | null | undefined
-}): VariantSelectionProblem | null {
+}): { problem: VariantSelectionProblem; missing?: VariantDimension[] } | null {
   if (parseListingKind(input.listingKind) !== "PHYSICAL") return null
-  const rows = rawVariantRows(input.variants)
-  if (rows.length === 0) return null
-  const { color, size } = parseCartVariantSignature(input.variantSignature ?? "")
-  const c = normLabel(color?.trim() ?? "")
-  const s = normLabel(size?.trim() ?? "")
-  if (!c && !s) return rows.length >= 2 ? "variant_required" : null
-  if (resolveRowIndex(rows, input.variantSignature) != null) return null
-  const label = c && s ? `${c} / ${s}` : c || s
-  const names = rows.map((r) => normLabel(rawRowName(r))).filter(Boolean)
-  const plausible = names.some(
-    (n) =>
-      n === label ||
-      n.startsWith(`${label} /`) ||
-      n.startsWith(`${label}/`) ||
-      (c && !s && (n.startsWith(`${c} /`) || n.startsWith(`${c}/`))) ||
-      (!c && s && (n.endsWith(`/ ${s}`) || n.endsWith(`/${s}`)))
-  )
-  return plausible ? null : "variant_unknown"
+  const r = resolveVariantLine(input.variants, input.variantSignature)
+  if (r.kind === "unknown") return { problem: "variant_unknown" }
+  if (r.kind !== "incomplete") return null
+  const { color, size, storage } = parseCartVariantSignature(input.variantSignature ?? "")
+  const chose = Boolean(color?.trim() || size?.trim() || storage?.trim())
+  return { problem: chose ? "variant_incomplete" : "variant_required", missing: r.missing }
 }
 
 /** Names of the rows the buyer can still choose (stock > 0) — what a refusal offers instead. Public on the PDP already. */
@@ -386,8 +362,16 @@ export function availableVariantLabels(variants: unknown, max = 12): string[] {
 export function findVariantSelectionRefusal(lines: StockCheckLine[]): VariantSelectionRefusal | null {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!
-    const problem = variantSelectionProblem(line)
-    if (problem) return { lineIndex: i, productId: line.productId, productName: line.productName ?? null, problem }
+    const found = variantSelectionProblem(line)
+    if (found) {
+      return {
+        lineIndex: i,
+        productId: line.productId,
+        productName: line.productName ?? null,
+        problem: found.problem,
+        ...(found.missing ? { missing: found.missing } : {}),
+      }
+    }
   }
   return null
 }
@@ -408,6 +392,7 @@ export function evaluateCheckoutStockGate(
       result: mode === "enforce" ? variant.problem : `would_refuse_${variant.problem}`,
       mode,
       productId: variant.productId,
+      missing: variant.missing ?? null,
     })
     if (mode === "enforce") return { mode, refuse: null, refuseVariant: variant }
   }

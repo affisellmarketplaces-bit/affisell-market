@@ -1,5 +1,6 @@
 "use client"
 
+import { hasVariantChoice, listingRequiresVariantChoice, variantChoicePageHref } from "@/lib/variant-choice-client"
 import { buyerHaptic } from "@/lib/buyer-haptics"
 import { addGuestCartItem, type CartAddedEventDetail, type GuestCartItem } from "@/lib/guest-cart"
 import { dispatchCartUpdated } from "@/lib/buyer-cart-count-client"
@@ -13,6 +14,12 @@ export type AddToBuyerCartInput = {
   sellerName?: string
   selectedColor?: string | null
   selectedSize?: string | null
+  /** Capacity, only for a product with a size AND a storage dimension (guest carts do not keep it yet). */
+  selectedStorage?: string | null
+  /** The product page to send the shopper to when a choice is needed (default: the marketplace page). */
+  detailHref?: string | null
+  /** The caller (a product page) already checked the choice with the shared rule: no extra request. */
+  variantChoiceChecked?: boolean
 }
 
 export type AddToBuyerCartResult =
@@ -33,6 +40,12 @@ export async function addToBuyerCart(input: AddToBuyerCartInput): Promise<AddToB
   const productId = input.productId.trim()
   if (!productId) return { ok: false, error: "Missing product" }
 
+  // A card adds with no size / colour: a product that needs one is chosen on its page, never added undetermined.
+  if (!input.variantChoiceChecked && !hasVariantChoice(input) && (await listingRequiresVariantChoice(productId))) {
+    if (typeof window !== "undefined") window.location.assign(variantChoicePageHref(productId, input.detailHref))
+    return { ok: false, error: "variant_choice_required" }
+  }
+
   const qty = Math.max(1, Math.min(99, Math.round(Number(input.qty)) || 1))
   const variantSignature = [input.selectedColor, input.selectedSize].filter(Boolean).join("|")
 
@@ -45,6 +58,7 @@ export async function addToBuyerCart(input: AddToBuyerCartInput): Promise<AddToB
       quantity: qty,
       selectedColor: input.selectedColor ?? undefined,
       selectedSize: input.selectedSize ?? undefined,
+      selectedStorage: input.selectedStorage ?? undefined,
     }),
     credentials: "include",
   })

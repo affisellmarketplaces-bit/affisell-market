@@ -36,13 +36,20 @@ function print(report: Awaited<ReturnType<typeof collectCheckoutStockReport>>) {
   console.log("  Placeholder-looking stocks (value : products):")
   for (const [value, n] of Object.entries(report.placeholderStockCounts)) console.log(`    ${value.padStart(5)} : ${n}`)
   console.log(`  Variant products              : ${report.variantProducts} (table-only, left unmanaged: ${report.tableOnlyVariantProducts})`)
+  console.log(`  Variant products that need a choice before buying : ${report.variantProductsNeedingChoice}`)
+  console.log(`  Variant products with duplicated rows (never decremented) : ${report.variantProductsWithDuplicateRows}`)
+  console.log(`  Variant products differing only by an unnamed dimension : ${report.variantProductsWithUnnamedDimension}`)
+  const po = report.pendingOrders
+  console.log(`  Paid, not shipped : ${po.pendingUnits} units on ${po.productsWithPendingOrders} products`)
+  console.log("    IF the declared stock still counts them (warn: nothing is taken at payment):")
+  console.log(`      shown in stock but all owed : ${po.shownInStockButAllOwed} products · owed beyond declared : ${po.owedBeyondDeclared} · units shown but sold : ${po.unitsShownButAlreadySold}`)
   console.log("  Suppliers with most empty-stock products:")
   for (const s of report.topSuppliersWithEmptyStock) console.log(`    ${s.supplierId}  ${s.products}`)
   console.log(`\n  ${report.note}\n`)
 }
 
 runReadOnlyReport(
-  { tables: ["Product"], purpose: "stocks des produits en ligne (CHECKOUT_STOCK_MODE)" },
+  { tables: ["Product", "Order"], purpose: "stocks des produits en ligne et commandes payées non expédiées (CHECKOUT_STOCK_MODE)" },
   (tx) => collectCheckoutStockReport(tx, { limit: LIMIT }),
   print
 ).catch((e) => {

@@ -874,7 +874,9 @@
       "insufficient": "库存仅剩 {count} 件。",
       "priceUpdating": "该商品价格正在更新，请几分钟后重试。",
       "variantUnavailable": "您选择的选项（尺码或颜色）该商品已不再提供：请在商品页面选择其他选项。",
-      "variantUnavailableWith": "您选择的选项该商品已不再提供。仍可选择：{options}。"
+      "variantUnavailableWith": "您选择的选项该商品已不再提供。仍可选择：{options}。",
+      "chooseOptions": "请先选择所有选项（颜色、尺码、容量等）再继续。",
+      "chooseOnPage": "该商品有多种尺码或颜色：请在商品页面选择您需要的规格。"
     },
     "title": "购物车",
     "loading": "正在加载购物车…",

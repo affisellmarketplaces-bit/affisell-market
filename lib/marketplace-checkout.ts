@@ -120,13 +120,20 @@ type CartLineInput = {
   selectedSize?: string | null
 }
 
-function resolveCheckoutVariantLabel(row: CartLineInput): string {
-  const explicit = formatCartVariantLabel(row.selectedColor, row.selectedSize)
-  if (explicit) return explicit
+/** The capacity, when the signature carries it beside a size (`g:`), is part of what the supplier must send. */
+function withStorage(label: string, storage: string | null | undefined): string {
+  const g = typeof storage === "string" ? storage.trim() : ""
+  if (!g || label.toLowerCase().includes(g.toLowerCase())) return label
+  return label ? `${label} · ${g}` : g
+}
+
+function resolveCheckoutVariantLabel(row: CartLineInput & { selectedStorage?: string | null }): string {
   const raw = typeof row.variantSignature === "string" ? row.variantSignature.trim() : ""
+  const parsed = raw ? parseCartVariantSignature(raw) : {}
+  const explicit = formatCartVariantLabel(row.selectedColor, row.selectedSize)
+  if (explicit) return withStorage(explicit, row.selectedStorage ?? parsed.storage)
   if (!raw) return ""
-  const p = parseCartVariantSignature(raw)
-  return formatCartVariantLabel(p.color, p.size)
+  return withStorage(formatCartVariantLabel(parsed.color, parsed.size), parsed.storage)
 }
 
 function checkoutOptionName(row: CartLineInput): string | null {
@@ -327,6 +334,7 @@ async function checkoutStockGate(lines: StockCheckLine[]): Promise<NextResponse 
       {
         error: "VARIANT_UNAVAILABLE",
         problem: refuseVariant.problem,
+        missing: refuseVariant.missing ?? [],
         productName: refuseVariant.productName,
         availableVariants: line ? availableVariantLabels(line.variants) : [],
       },
@@ -680,6 +688,8 @@ export async function marketplaceCheckoutPOST(
     useRewardCents?: number
     selectedColor?: string | null
     selectedSize?: string | null
+    /** Capacity, sent only when the product has a size AND a storage dimension (`normalizeCartVariantSignature`). */
+    selectedStorage?: string | null
     bookingSlotId?: string | null
     bookingSeatLabels?: string[]
     /** Pulse Battle flash — server-validated; ?flash= URL alone is ignored. */
@@ -733,7 +743,7 @@ export async function marketplaceCheckoutPOST(
       stock: product.stock,
       variants: product.variants,
       hasVariants: product.hasVariants,
-      variantSignature: normalizeCartVariantSignature(body.selectedColor, body.selectedSize),
+      variantSignature: normalizeCartVariantSignature(body.selectedColor, body.selectedSize, body.selectedStorage),
       qty: checkoutQty,
     },
   ])
@@ -904,8 +914,9 @@ export async function marketplaceCheckoutPOST(
   const oneShotVariantLabel = resolveCheckoutVariantLabel({
     selectedColor: body.selectedColor,
     selectedSize: body.selectedSize,
+    selectedStorage: body.selectedSize ? body.selectedStorage : null,
   })
-  const oneShotVariantSignature = normalizeCartVariantSignature(body.selectedColor, body.selectedSize)
+  const oneShotVariantSignature = normalizeCartVariantSignature(body.selectedColor, body.selectedSize, body.selectedStorage)
   pushLineItemsForPaidTotal(stripeLineItems, listing, paidLineCents[0]!, checkoutQty, oneShotVariantLabel)
 
   const unitSupplierCents = marketplaceWholesaleCentsForOption({

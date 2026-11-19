@@ -77,4 +77,25 @@ describe("agent checkout stock gate", () => {
     process.env.CHECKOUT_STOCK_GUARD = "off"
     expect(await createCheckoutSession("ap1")).toMatchObject({ checkoutUrl: expect.any(String) })
   })
+
+  it("a product sold in several sizes is never bought undetermined — in every mode; its page is given to choose", async () => {
+    const tee = listing({
+      stock: 9,
+      variants: { variantRows: [{ name: "Noir / M", stock: 4 }, { name: "Noir / L", stock: 5 }] },
+    })
+    for (const mode of ["warn", "enforce", "off"]) {
+      process.env.CHECKOUT_STOCK_MODE = mode
+      m.findFirst.mockResolvedValue(tee)
+      expect(await createCheckoutSession("ap1")).toEqual({
+        checkoutUrl: null,
+        reason: "variant_choice_required",
+        name: "Lamp",
+        productPath: "/marketplace/ap1",
+      })
+    }
+    expect(m.sessionsCreate).not.toHaveBeenCalled()
+    // A single variant row is not a choice: bought as before.
+    m.findFirst.mockResolvedValue(listing({ stock: 2, variants: { variantRows: [{ name: "Unique", stock: 2 }] } }))
+    expect(await createCheckoutSession("ap1")).toMatchObject({ checkoutUrl: expect.any(String) })
+  })
 })

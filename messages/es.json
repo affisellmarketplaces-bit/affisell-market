@@ -874,7 +874,9 @@
       "insufficient": "Solo quedan {count} en stock.",
       "priceUpdating": "El precio de este producto se está actualizando. Inténtalo de nuevo en unos minutos.",
       "variantUnavailable": "La opción elegida (talla o color) ya no existe para este producto: elija otra en su ficha.",
-      "variantUnavailableWith": "La opción elegida ya no existe para este producto. Aún disponibles: {options}."
+      "variantUnavailableWith": "La opción elegida ya no existe para este producto. Aún disponibles: {options}.",
+      "chooseOptions": "Elija todas las opciones (color, talla, capacidad…) antes de continuar.",
+      "chooseOnPage": "Este producto existe en varias tallas o colores: elija la suya en su ficha."
     },
     "title": "Carrito",
     "loading": "Cargando carrito…",

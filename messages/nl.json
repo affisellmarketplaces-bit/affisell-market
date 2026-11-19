@@ -874,7 +874,9 @@
       "insufficient": "Nog maar {count} op voorraad.",
       "priceUpdating": "De prijs van dit product wordt bijgewerkt. Probeer het over een paar minuten opnieuw.",
       "variantUnavailable": "De gekozen optie (maat of kleur) bestaat niet meer voor dit product: kies een andere op de productpagina.",
-      "variantUnavailableWith": "De gekozen optie bestaat niet meer voor dit product. Nog beschikbaar: {options}."
+      "variantUnavailableWith": "De gekozen optie bestaat niet meer voor dit product. Nog beschikbaar: {options}.",
+      "chooseOptions": "Kies alle opties (kleur, maat, capaciteit…) voordat u verdergaat.",
+      "chooseOnPage": "Dit product bestaat in meerdere maten of kleuren: kies de uwe op de productpagina."
     },
     "title": "Winkelwagen",
     "loading": "Winkelwagen wordt geladen…",

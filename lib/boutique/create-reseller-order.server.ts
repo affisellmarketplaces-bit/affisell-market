@@ -268,10 +268,19 @@ export async function createResellerOrder(
   const variantParts = checkoutVariantLabel
     ? splitVariantLineName(checkoutVariantLabel)
     : { color: "", size: null as string | null }
+  // The capacity is a dimension of its own (a row attribute, not part of the row name): it must travel with the choice,
+  // otherwise two rows « Noir » that differ only by capacity can not be told apart (shared rule, lib/variant-selection.ts).
   const checkoutVariantSignature = normalizeCartVariantSignature(
     variantParts.color,
-    variantParts.size
+    variantParts.size,
+    commerce.selectedStorage
   )
+  // What the supplier must send: the row's name plus its capacity when the capacity is not already in it.
+  const storageChosen = commerce.selectedStorage?.trim() || ""
+  const orderVariantLabel =
+    checkoutVariantLabel && storageChosen && !checkoutVariantLabel.toLowerCase().includes(storageChosen.toLowerCase())
+      ? `${checkoutVariantLabel} · ${storageChosen}`
+      : checkoutVariantLabel
 
   // Same check as every other checkout, before any order or payment session exists (founder brief 2026-11-19 §2):
   // the variant asked for must be one the product has, and its row must have stock. `CHECKOUT_STOCK_MODE` decides
@@ -318,7 +327,7 @@ export async function createResellerOrder(
       commissionCents: 0,
       marginCents,
       affiliatePayoutCents: 0,
-      variantLabel: checkoutVariantLabel,
+      variantLabel: orderVariantLabel,
       supplierPriceCents: wholesalePriceCents,
       supplierCommissionRateBps,
       affiliateMarginCents: marginCents,
@@ -357,7 +366,7 @@ export async function createResellerOrder(
       customImages: listing.customImages,
       productImages: listing.product.images ?? [],
       sellingPriceCents,
-      variantLabel: checkoutVariantLabel,
+      variantLabel: orderVariantLabel,
     }),
   ]
 
@@ -396,7 +405,7 @@ export async function createResellerOrder(
         sellerId: listing.product.supplierId,
         affiliateId: listing.affiliate.id,
         checkoutQty: "1",
-        checkoutVariantLabel: checkoutVariantLabel ?? "",
+        checkoutVariantLabel: orderVariantLabel ?? "",
         checkoutVariantSignature,
         linePaids: JSON.stringify([sellingPriceCents]),
         locale: "fr",

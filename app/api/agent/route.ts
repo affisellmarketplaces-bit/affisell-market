@@ -146,7 +146,9 @@ export async function POST(req: Request) {
       return Response.json({ error: `${checkout.name} n'est plus en stock. Voulez-vous voir des alternatives ?` })
     }
     if (checkout && checkout.checkoutUrl === null && checkout.reason === "variant_choice_required") {
-      return Response.json({ error: `${checkout.name} existe en plusieurs tailles ou couleurs : ouvrez sa fiche pour choisir la vôtre.` })
+      return Response.json({
+        error: `${checkout.name} existe en plusieurs tailles ou couleurs : choisissez la vôtre sur sa fiche (${checkout.productPath}).`,
+      })
     }
     if (checkout && checkout.checkoutUrl === null && checkout.reason === "price_updating") {
       return Response.json({ error: `Le prix de ${checkout.name} est en cours de mise à jour. Réessayez dans quelques minutes.` })

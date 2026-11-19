@@ -9,6 +9,8 @@ export type FastCheckoutBody = {
   useRewardCents?: number
   selectedColor?: string | null
   selectedSize?: string | null
+  /** Capacity, only for a product with a size AND a storage dimension. */
+  selectedStorage?: string | null
   successPath?: string
   cancelPath?: string
   items?: unknown[]

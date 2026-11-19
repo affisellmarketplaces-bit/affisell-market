@@ -874,7 +874,9 @@
       "insufficient": "Zostało tylko {count} sztuk w magazynie.",
       "priceUpdating": "Cena tego produktu jest aktualizowana. Spróbuj ponownie za kilka minut.",
       "variantUnavailable": "Wybrana opcja (rozmiar lub kolor) nie istnieje już dla tego produktu: wybierz inną na jego stronie.",
-      "variantUnavailableWith": "Wybrana opcja nie istnieje już dla tego produktu. Nadal dostępne: {options}."
+      "variantUnavailableWith": "Wybrana opcja nie istnieje już dla tego produktu. Nadal dostępne: {options}.",
+      "chooseOptions": "Wybierz wszystkie opcje (kolor, rozmiar, pojemność…), zanim przejdziesz dalej.",
+      "chooseOnPage": "Ten produkt występuje w kilku rozmiarach lub kolorach: wybierz swój na jego stronie."
     },
     "title": "Koszyk",
     "loading": "Ładowanie koszyka…",

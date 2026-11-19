@@ -138,12 +138,14 @@ describe("planStockMovement — variant rows", () => {
 
   it("never guesses: no selection / ambiguous colour / unknown option are left unmanaged", () => {
     const variants = rows({ name: "Rouge / S", stock: 0 }, { name: "Rouge / M", stock: 0 })
-    for (const sig of ["", "c:Rouge", "c:Vert|s:S", "s:S"]) {
+    for (const sig of ["", "c:Rouge", "c:Vert|s:S", "s:XL"]) {
       expect(planStockMovement({ ...kind, stock: 0, variants, variantSignature: sig, qty: 1 })).toEqual({
         kind: "unmanaged",
         reason: "variant_unresolved",
       })
     }
+    // a size alone names its row when only one colour has it (shared rule, lib/variant-selection.ts)
+    expect(planStockMovement({ ...kind, stock: 0, variants, variantSignature: "s:S", qty: 1 })).toMatchObject({ kind: "insufficient", scope: "variant" })
     // two rows with the same label: ambiguous too
     const dup = rows({ name: "Rouge / S", stock: 1 }, { name: "Rouge / S", stock: 1 })
     expect(planStockMovement({ ...kind, stock: 2, variants: dup, variantSignature: "c:Rouge|s:S", qty: 1 }).kind).toBe(
@@ -331,14 +333,17 @@ describe("variant choice — the product must REALLY have it (founder brief 2026
   })
 
   it("a size or colour the product does not have is refused; no choice on a multi-variant product too", () => {
-    expect(variantSelectionProblem(line("c:Rouge|s:M"))).toBe("variant_unknown")
-    expect(variantSelectionProblem(line("c:Noir|s:XXL"))).toBe("variant_unknown")
-    expect(variantSelectionProblem(line(""))).toBe("variant_required")
+    expect(variantSelectionProblem(line("c:Rouge|s:M"))?.problem).toBe("variant_unknown")
+    expect(variantSelectionProblem(line("c:Noir|s:XXL"))?.problem).toBe("variant_unknown")
+    expect(variantSelectionProblem(line(""))?.problem).toBe("variant_required")
   })
 
-  it("only certain cases: a choice a row extends, a colour or a size alone that rows carry, two rows of one name", () => {
-    expect(variantSelectionProblem(line("c:Noir|s:M", rows({ name: "Noir / M / 128 Go", stock: 1 }, { name: "Noir / M / 256 Go", stock: 1 })))).toBeNull()
-    expect(variantSelectionProblem(line("c:Noir"))).toBeNull()
+  it("a choice that leaves several rows is incomplete (shared rule, lib/variant-selection.ts); duplicated rows are the supplier's", () => {
+    expect(variantSelectionProblem(line("c:Noir"))).toEqual({ problem: "variant_incomplete", missing: ["size"] })
+    expect(variantSelectionProblem(line("c:Noir|s:M", rows({ name: "Noir / M / 128 Go", stock: 1 }, { name: "Noir / M / 256 Go", stock: 1 })))).toEqual({
+      problem: "variant_incomplete",
+      missing: ["other"],
+    })
     expect(variantSelectionProblem(line("c:Noir|s:M", rows({ name: "Noir / M", stock: 1 }, { name: "Noir / M", stock: 2 })))).toBeNull()
   })
 

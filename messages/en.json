@@ -874,7 +874,9 @@
       "insufficient": "Only {count} left in stock.",
       "priceUpdating": "This product's price is being updated. Please try again in a few minutes.",
       "variantUnavailable": "The option you chose (size or colour) no longer exists for this product: pick another one on its page.",
-      "variantUnavailableWith": "The option you chose no longer exists for this product. Still available: {options}."
+      "variantUnavailableWith": "The option you chose no longer exists for this product. Still available: {options}.",
+      "chooseOptions": "Choose every option (colour, size, capacity…) before continuing.",
+      "chooseOnPage": "This product comes in several sizes or colours: choose yours on its page."
     },
     "title": "Cart",
     "loading": "Loading cart…",

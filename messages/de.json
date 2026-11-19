@@ -874,7 +874,9 @@
       "insufficient": "Nur noch {count} auf Lager.",
       "priceUpdating": "Der Preis dieses Produkts wird gerade aktualisiert. Bitte versuchen Sie es in ein paar Minuten erneut.",
       "variantUnavailable": "Die gewählte Option (Größe oder Farbe) gibt es für dieses Produkt nicht mehr: Wählen Sie auf der Produktseite eine andere.",
-      "variantUnavailableWith": "Die gewählte Option gibt es für dieses Produkt nicht mehr. Noch verfügbar: {options}."
+      "variantUnavailableWith": "Die gewählte Option gibt es für dieses Produkt nicht mehr. Noch verfügbar: {options}.",
+      "chooseOptions": "Wählen Sie alle Optionen (Farbe, Größe, Kapazität…), bevor Sie fortfahren.",
+      "chooseOnPage": "Dieses Produkt gibt es in mehreren Größen oder Farben: Wählen Sie Ihre auf der Produktseite."
     },
     "title": "Warenkorb",
     "loading": "Warenkorb wird geladen…",

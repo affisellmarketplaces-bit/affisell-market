@@ -1,6 +1,7 @@
 import { isPricedBelowSupplierPrice } from "@/lib/checkout-price-guard"
 import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing-display"
 import { evaluateCheckoutStockGate } from "@/lib/checkout-stock"
+import { requiresVariantChoice } from "@/lib/variant-selection"
 import { evaluateExternalPurchaseCheckoutGate } from "@/lib/procurement/external-purchase-checkout.server"
 import { ensureGhostStockSchema } from "@/lib/ghost/ensure-ghost-schema"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
@@ -29,6 +30,7 @@ const agentListingSelect = {
       stock: true,
       variants: true,
       hasVariants: true,
+      customColumns: true,
       listingKind: true,
       basePriceCents: true,
       supplierId: true,
@@ -74,7 +76,8 @@ async function loadAgentListing(productId: string) {
 
 export type AgentCheckoutResult =
   | { checkoutUrl: string; listingId: string; productId: string; name: string; priceCents: number }
-  | { checkoutUrl: null; reason: "out_of_stock" | "price_updating" | "variant_choice_required"; name: string }
+  | { checkoutUrl: null; reason: "out_of_stock" | "price_updating"; name: string }
+  | { checkoutUrl: null; reason: "variant_choice_required"; name: string; productPath: string }
 
 export async function createCheckoutSession(productId: string, userId?: string): Promise<AgentCheckoutResult | null> {
   const stripe = getStripeClient()
@@ -86,6 +89,17 @@ export async function createCheckoutSession(productId: string, userId?: string):
   if (!listing) return null
 
   const name = listingDisplayTitle(listing.customTitle, listing.product.name)
+
+  // The assistant buys one unit WITHOUT a size / colour. A product that needs one is never bought undetermined — in
+  // every mode, like the card buttons (it is a missing choice, not a stock refusal): the shopper gets its page to
+  // choose (shared rule, lib/variant-selection.ts). Variants kept only in the variant table are not counted here
+  // (no count is read): the stock gate below and the page still apply to them.
+  if (
+    (listing.product.listingKind ?? "PHYSICAL").trim().toUpperCase() === "PHYSICAL" &&
+    requiresVariantChoice({ variants: listing.product.variants, customColumns: listing.product.customColumns })
+  ) {
+    return { checkoutUrl: null, reason: "variant_choice_required", name, productPath: `/marketplace/${encodeURIComponent(listing.id)}` }
+  }
 
   // One unit, no variant selection: a product the stock can not serve never gets a payment session (enforce mode).
   const stockGate = evaluateCheckoutStockGate([
@@ -100,8 +114,9 @@ export async function createCheckoutSession(productId: string, userId?: string):
       qty: 1,
     },
   ])
-  // The assistant buys one unit WITHOUT a size / colour: a product with several variants needs the buyer's choice.
-  if (stockGate.refuseVariant) return { checkoutUrl: null, reason: "variant_choice_required", name }
+  if (stockGate.refuseVariant) {
+    return { checkoutUrl: null, reason: "variant_choice_required", name, productPath: `/marketplace/${encodeURIComponent(listing.id)}` }
+  }
   if (stockGate.refuse) return { checkoutUrl: null, reason: "out_of_stock", name }
 
   // Single external-purchase switch: a product only an external purchase can deliver (warn by default, see the module).

@@ -17,6 +17,7 @@ import {
   type BuyNowWithoutLoginMeta,
 } from "@/lib/guest-buy-now-client"
 import type { FastCheckoutBody } from "@/lib/fast-checkout-client"
+import { hasVariantChoice, listingRequiresVariantChoice, variantChoicePageHref } from "@/lib/variant-choice-client"
 
 type PendingBuyNow = {
   body: FastCheckoutBody
@@ -50,7 +51,17 @@ export function useBuyNowWithIdentity() {
     async (
       body: FastCheckoutBody,
       meta: BuyNowWithoutLoginMeta
-    ): Promise<BuyNowOutcome | "needs_identity"> => {
+    ): Promise<BuyNowOutcome | "needs_identity" | "needs_variant_choice"> => {
+      // A card buys with no size / colour: a product that needs one is chosen on its page first (nothing is picked
+      // for the shopper, and no payment is prepared for an undetermined variant).
+      const listingId = (body.productId ?? body.affiliateProductId ?? "").trim()
+      if (listingId && !body.items && !hasVariantChoice(body) && (await listingRequiresVariantChoice(listingId))) {
+        // The caller's return page is the product page only when it names this listing (a card); Pulse / discover
+        // return to their feed, so the shopper is sent to the product page instead.
+        const page = body.cancelPath && body.cancelPath.includes(listingId) ? body.cancelPath : null
+        window.location.assign(variantChoicePageHref(listingId, page))
+        return "needs_variant_choice"
+      }
       const session = await fetchBuyerSessionSnapshot()
       if (!session.isCustomerBuyer) {
         pendingRef.current = { body, meta }

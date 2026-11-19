@@ -32,6 +32,7 @@ import {
   resolveColorHeroImageUrl,
 } from "@/lib/product-color-images"
 import { resolveUsableProductImageUrl } from "@/lib/product-image-url"
+import { optionStockForChoice } from "@/lib/variant-selection"
 
 type Props = {
   storeSlug: string
@@ -77,16 +78,13 @@ function resolveSizeStockForSelection(args: {
   storage: string | null
   product: ResellerBoutiqueProductDetail
 }): number {
-  const row = findVariantRowForShopperSelection({
-    variants: args.product.variants,
-    customColumns: args.product.customColumns,
-    selection: {
-      selectedPrimary: args.color,
-      selectedStorage: args.storage,
-      selectedSize: args.size,
-    },
-  })
-  if (row) return Math.max(0, Math.round(row.stock) || 0)
+  // Same rule as the purchase (lib/variant-selection.ts): a size that does not exist for the chosen colour is sold out.
+  const units = optionStockForChoice(
+    args.product.variants,
+    { color: args.color, size: args.size, storage: args.storage },
+    args.product.customColumns
+  )
+  if (units !== null) return units
   return resolveListingAvailableStock({
     productStock: args.product.catalogStock,
     variants: args.product.variants,
