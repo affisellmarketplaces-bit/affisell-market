@@ -2,7 +2,13 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { rateLimitClientKey, rateLimitResponseAsync } from "@/lib/api-rate-limit"
-import { loadReplacementProposal, replaceListing, withdrawListing } from "@/lib/reseller-replacement/replace.server"
+import {
+  finishReplacement,
+  loadPendingReplacement,
+  loadReplacementProposal,
+  replaceListing,
+  withdrawListing,
+} from "@/lib/reseller-replacement/replace.server"
 import { assertSameSiteRequestOrigin } from "@/lib/request-origin-guard"
 
 export const runtime = "nodejs"
@@ -24,11 +30,14 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
   const { id } = await context.params
   const loaded = await loadReplacementProposal(who.id, id)
   if (!loaded.ok) return NextResponse.json({ error: "not_found" }, { status: 404 })
-  return NextResponse.json({ ...loaded.proposal, listingIsListed: loaded.listingIsListed })
+  const pendingReplacement = await loadPendingReplacement(who.id, id, loaded.listingIsListed)
+  return NextResponse.json({ ...loaded.proposal, listingIsListed: loaded.listingIsListed, pendingReplacement })
 }
 
 /**
- * RESELLER confirms: `{ action: "replace", productId, confirm: true }` or `{ action: "withdraw", confirm: true }`.
+ * RESELLER confirms: `{ action: "replace", productId, confirm: true }`, `{ action: "withdraw", confirm: true }` or
+ * `{ action: "finish", productId, confirm: true }` (a replacement whose alternative was added but whose old listing is
+ * still in the shop: withdraws the old listing only, never re-adds).
  * Nothing is deleted; the old listing keeps its history, statistics and orders.
  */
 export async function POST(req: Request, context: { params: Promise<{ id: string }> }) {
@@ -45,12 +54,20 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     const r = await withdrawListing(who.id, id)
     return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: "not_found" }, { status: 404 })
   }
+  if (body.action === "finish") {
+    if (typeof body.productId !== "string" || !body.productId.trim()) {
+      return NextResponse.json({ error: "invalid_body" }, { status: 400 })
+    }
+    const f = await finishReplacement({ affiliateId: who.id, listingId: id, productId: body.productId.trim(), confirm: true })
+    if (!f.ok) return NextResponse.json(f, { status: f.error === "not_found" ? 404 : 409 })
+    return NextResponse.json(f)
+  }
   if (body.action !== "replace" || typeof body.productId !== "string" || !body.productId.trim()) {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 })
   }
   const r = await replaceListing({ affiliateId: who.id, listingId: id, productId: body.productId.trim(), confirm: true })
   if (!r.ok) {
-    const status = r.error === "not_found" ? 404 : r.error === "alternative_not_offered" ? 409 : r.error === "add_failed" ? 409 : 400
+    const status = r.error === "not_found" ? 404 : r.error === "alternative_not_offered" ? 409 : r.error === "add_failed" || r.error === "replacement_pending" ? 409 : 400
     return NextResponse.json(r, { status })
   }
   return NextResponse.json(r)

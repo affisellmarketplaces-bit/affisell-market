@@ -3168,12 +3168,17 @@
       "withdrawYes": "Ja, verwijderen",
       "doneReplaced": "Klaar: het alternatief is te koop in uw winkel.",
       "doneReplacedPending": "Het alternatief is aan uw winkel toegevoegd; het gaat in de verkoop zodra de controle van uw account klaar is.",
-      "doneOldKept": "Het oude product kon niet automatisch worden verwijderd: haal het weg via uw producten.",
       "doneWithdrawn": "Het product is uit uw winkel gehaald.",
       "historyKept": "Er wordt niets verwijderd: geschiedenis, statistieken en eerdere bestellingen blijven intact.",
       "backToShop": "Terug naar mijn omgeving",
       "honesty": "Netto = commissie + marge − Affisell-kosten, berekend zoals uw uitbetalingen. Prijzen excl. btw; alleen de barcode bewijst dat het hetzelfde product is.",
-      "bellMessage": "« {product} » kan niet meer worden gekocht in uw winkel. Haal het weg of vervang het door een gelijkwaardig product."
+      "bellMessage": "« {product} » kan niet meer worden gekocht in uw winkel. Haal het weg of vervang het door een gelijkwaardig product.",
+      "partialTitle": "Vervanging deels voltooid",
+      "partialBody": "‘{alternative}’ is aan je winkel toegevoegd, maar ‘{product}’ kon niet worden teruggetrokken: beide zijn nu te koop.",
+      "partialHint": "Voltooien trekt alleen het oude product uit je winkel terug. Niets wordt dubbel toegevoegd, niets wordt verwijderd.",
+      "finishCta": "Vervanging voltooien",
+      "partialUnnamed": "het gekozen alternatief",
+      "partialNow": "Het alternatief is toegevoegd, maar het oude product kon niet worden teruggetrokken. Voltooi de vervanging hieronder."
     }
   },
   "marketplace": {

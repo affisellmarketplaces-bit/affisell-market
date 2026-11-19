@@ -3168,12 +3168,17 @@
       "withdrawYes": "是，下架",
       "doneReplaced": "完成：替代商品已在您的店铺上架销售。",
       "doneReplacedPending": "替代商品已加入您的店铺；账户审核完成后即开始销售。",
-      "doneOldKept": "旧商品未能自动下架：请在您的商品中将其下架。",
       "doneWithdrawn": "该商品已从您的店铺下架。",
       "historyKept": "不会删除任何内容：历史、统计和过往订单都保持不变。",
       "backToShop": "返回我的空间",
       "honesty": "净收益 = 佣金 + 加价 − Affisell 费用，计算方式与您的结算相同。价格不含税；只有条形码能证明是同一商品。",
-      "bellMessage": "「{product}」已无法在您的店铺购买。请将其下架或替换为同等商品。"
+      "bellMessage": "「{product}」已无法在您的店铺购买。请将其下架或替换为同等商品。",
+      "partialTitle": "替换已部分完成",
+      "partialBody": "“{alternative}”已加入您的店铺，但“{product}”未能下架：两者目前都在销售。",
+      "partialHint": "完成操作只会将旧商品从店铺下架。不会重复添加，也不会删除任何内容。",
+      "finishCta": "完成替换",
+      "partialUnnamed": "所选替代商品",
+      "partialNow": "替代商品已添加，但旧商品未能下架。请在下方完成替换。"
     }
   },
   "marketplace": {

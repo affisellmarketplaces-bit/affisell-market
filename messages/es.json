@@ -3168,12 +3168,17 @@
       "withdrawYes": "Sí, retirar",
       "doneReplaced": "Hecho: la alternativa está a la venta en su tienda.",
       "doneReplacedPending": "La alternativa se añadió a su tienda; se pondrá a la venta cuando termine la verificación de su cuenta.",
-      "doneOldKept": "El producto anterior no se pudo retirar automáticamente: retírelo desde sus productos.",
       "doneWithdrawn": "El producto se retiró de su tienda.",
       "historyKept": "No se elimina nada: el historial, las estadísticas y los pedidos pasados quedan intactos.",
       "backToShop": "Volver a mi espacio",
       "honesty": "Neto = comisión + margen − tarifa de Affisell, calculado como sus pagos. Precios sin IVA; solo el código de barras prueba que es el mismo producto.",
-      "bellMessage": "« {product} » ya no se puede comprar en su tienda. Retírelo o sustitúyalo por un producto equivalente."
+      "bellMessage": "« {product} » ya no se puede comprar en su tienda. Retírelo o sustitúyalo por un producto equivalente.",
+      "partialTitle": "Sustitución completada en parte",
+      "partialBody": "«{alternative}» se añadió a tu tienda, pero «{product}» no se pudo retirar: ambos están a la venta ahora mismo.",
+      "partialHint": "Terminar solo retira el producto antiguo de la tienda. Nada se añade dos veces y nada se elimina.",
+      "finishCta": "Terminar la sustitución",
+      "partialUnnamed": "la alternativa elegida",
+      "partialNow": "La alternativa se añadió, pero el producto antiguo no se pudo retirar. Termina la sustitución abajo."
     }
   },
   "marketplace": {

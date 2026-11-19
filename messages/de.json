@@ -3168,12 +3168,17 @@
       "withdrawYes": "Ja, entfernen",
       "doneReplaced": "Erledigt: Die Alternative ist in Ihrem Shop im Verkauf.",
       "doneReplacedPending": "Die Alternative wurde Ihrem Shop hinzugefügt; sie geht in den Verkauf, sobald die Prüfung Ihres Kontos abgeschlossen ist.",
-      "doneOldKept": "Das alte Produkt konnte nicht automatisch entfernt werden: Entfernen Sie es über Ihre Produkte.",
       "doneWithdrawn": "Das Produkt wurde aus Ihrem Shop genommen.",
       "historyKept": "Nichts wird gelöscht: Historie, Statistiken und frühere Bestellungen bleiben unverändert.",
       "backToShop": "Zurück zu meinem Bereich",
       "honesty": "Netto = Provision + Aufschlag − Affisell-Gebühr, berechnet wie Ihre Auszahlungen. Preise ohne MwSt.; nur der Barcode belegt, dass es dasselbe Produkt ist.",
-      "bellMessage": "« {product} » kann in Ihrem Shop nicht mehr gekauft werden. Entfernen Sie es oder ersetzen Sie es durch ein gleichwertiges Produkt."
+      "bellMessage": "« {product} » kann in Ihrem Shop nicht mehr gekauft werden. Entfernen Sie es oder ersetzen Sie es durch ein gleichwertiges Produkt.",
+      "partialTitle": "Ersatz teilweise abgeschlossen",
+      "partialBody": "„{alternative}“ wurde Ihrem Shop hinzugefügt, aber „{product}“ konnte nicht entfernt werden: Beide sind gerade im Verkauf.",
+      "partialHint": "Abschließen entfernt nur das alte Produkt aus dem Shop. Nichts wird doppelt hinzugefügt, nichts wird gelöscht.",
+      "finishCta": "Ersatz abschließen",
+      "partialUnnamed": "die gewählte Alternative",
+      "partialNow": "Die Alternative wurde hinzugefügt, aber das alte Produkt konnte nicht entfernt werden. Schließen Sie den Ersatz unten ab."
     }
   },
   "marketplace": {

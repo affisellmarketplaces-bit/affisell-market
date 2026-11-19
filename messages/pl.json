@@ -3168,12 +3168,17 @@
       "withdrawYes": "Tak, wycofaj",
       "doneReplaced": "Gotowe: alternatywa jest w sprzedaży w Twoim sklepie.",
       "doneReplacedPending": "Alternatywa została dodana do sklepu; trafi do sprzedaży po zakończeniu weryfikacji konta.",
-      "doneOldKept": "Starego produktu nie udało się wycofać automatycznie: wycofaj go w swoich produktach.",
       "doneWithdrawn": "Produkt został wycofany z Twojego sklepu.",
       "historyKept": "Nic nie jest usuwane: historia, statystyki i wcześniejsze zamówienia pozostają nienaruszone.",
       "backToShop": "Wróć do mojego panelu",
       "honesty": "Netto = prowizja + marża − opłata Affisell, liczone jak Twoje wypłaty. Ceny bez VAT; tylko kod kreskowy dowodzi, że to ten sam produkt.",
-      "bellMessage": "« {product} » nie można już kupić w Twoim sklepie. Wycofaj go lub zastąp równoważnym produktem."
+      "bellMessage": "« {product} » nie można już kupić w Twoim sklepie. Wycofaj go lub zastąp równoważnym produktem.",
+      "partialTitle": "Zamiana zakończona częściowo",
+      "partialBody": "„{alternative}” dodano do Twojego sklepu, ale nie udało się wycofać „{product}”: oba produkty są teraz w sprzedaży.",
+      "partialHint": "Dokończenie wycofuje tylko stary produkt ze sklepu. Nic nie jest dodawane drugi raz, nic nie jest usuwane.",
+      "finishCta": "Dokończ zamianę",
+      "partialUnnamed": "wybrana alternatywa",
+      "partialNow": "Alternatywę dodano, ale nie udało się wycofać starego produktu. Dokończ zamianę poniżej."
     }
   },
   "marketplace": {

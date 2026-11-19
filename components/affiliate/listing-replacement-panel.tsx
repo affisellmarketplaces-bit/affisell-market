@@ -7,8 +7,14 @@ import { useCallback, useEffect, useState } from "react"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import type { Alternative, Difference, ReplacementProposal } from "@/lib/reseller-replacement/match"
 
-type Payload = ReplacementProposal & { listingIsListed: boolean }
-type Done = { kind: "replaced"; live: boolean; withdrawn: boolean } | { kind: "withdrawn" }
+type PendingReplacement = {
+  toProductId: string
+  newListingId: string
+  newListingLive: boolean
+  toProductName: string | null
+}
+type Payload = ReplacementProposal & { listingIsListed: boolean; pendingReplacement?: PendingReplacement | null }
+type Done = { kind: "replaced"; live: boolean } | { kind: "withdrawn" }
 
 const money = (c: number) => formatStoreCurrencyFromCents(c, { maximumFractionDigits: 2 })
 const MONEY_FIELDS = new Set<Difference["field"]>(["selling_price", "net_per_sale", "supplier_price"])
@@ -53,20 +59,24 @@ export function ListingReplacementPanel({ listingId }: { listingId: string }) {
       body: JSON.stringify({ ...body, confirm: true }),
     }).catch(() => null)
     const json = (await res?.json().catch(() => null)) as
-      | { ok?: boolean; newListingLive?: boolean; previousListingWithdrawn?: boolean; error?: string }
+      | { ok?: boolean; status?: string; newListingLive?: boolean; previousListingWithdrawn?: boolean; error?: string }
       | null
     setPending(null)
     if (!res?.ok || !json) {
-      setMsg(t(json?.error === "alternative_not_offered" ? "errorChanged" : "error"))
+      const changed = json?.error === "alternative_not_offered" || json?.error === "replacement_pending" || json?.error === "nothing_to_finish"
+      setMsg(t(changed ? "errorChanged" : "error"))
       setState("ready")
-      if (json?.error === "alternative_not_offered") void load()
+      if (changed) void load()
       return
     }
-    setDone(
-      body.action === "withdraw"
-        ? { kind: "withdrawn" }
-        : { kind: "replaced", live: Boolean(json.newListingLive), withdrawn: Boolean(json.previousListingWithdrawn) }
-    )
+    if (json.status === "partial") {
+      // The alternative is in the shop but the old product could not be withdrawn: said, and the page reloads into
+      // the « finish » state (never a second add).
+      setMsg(t("partialNow"))
+      void load()
+      return
+    }
+    setDone(body.action === "withdraw" ? { kind: "withdrawn" } : { kind: "replaced", live: Boolean(json.newListingLive) })
     setState("ready")
   }
 
@@ -88,7 +98,6 @@ export function ListingReplacementPanel({ listingId }: { listingId: string }) {
         <p className="font-semibold">
           {done.kind === "withdrawn" ? t("doneWithdrawn") : done.live ? t("doneReplaced") : t("doneReplacedPending")}
         </p>
-        {done.kind === "replaced" && !done.withdrawn ? <p>{t("doneOldKept")}</p> : null}
         <p className="text-xs">{t("historyKept")}</p>
         <Link href="/dashboard/affiliate" className="inline-block font-medium underline">
           {t("backToShop")}
@@ -98,6 +107,28 @@ export function ListingReplacementPanel({ listingId }: { listingId: string }) {
   }
 
   const o = data.original
+  const partial = data.pendingReplacement ?? null
+  if (partial) {
+    return (
+      <section className="space-y-4" aria-labelledby="replace-partial-title">
+        <div className="space-y-2 rounded-2xl border border-amber-300 bg-amber-50 p-5 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100" role="status">
+          <h1 id="replace-partial-title" className="text-base font-semibold">{t("partialTitle")}</h1>
+          <p>{t("partialBody", { alternative: partial.toProductName ?? t("partialUnnamed"), product: o.name })}</p>
+          <p className="text-xs">{t("partialHint")}</p>
+          <button
+            type="button"
+            disabled={state === "busy"}
+            onClick={() => void act({ action: "finish", productId: partial.toProductId })}
+            className="mt-1 rounded-md bg-amber-700 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+          >
+            {state === "busy" ? t("working") : t("finishCta")}
+          </button>
+        </div>
+        {msg ? <p className="text-sm text-red-700" role="alert">{msg}</p> : null}
+        <p className="text-xs text-zinc-500">{t("historyKept")}</p>
+      </section>
+    )
+  }
   return (
     <section className="space-y-5" aria-labelledby="replace-title">
       <header className="space-y-1">

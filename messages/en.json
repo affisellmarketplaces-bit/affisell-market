@@ -3168,12 +3168,17 @@
       "withdrawYes": "Yes, withdraw",
       "doneReplaced": "Done: the alternative is on sale in your shop.",
       "doneReplacedPending": "The alternative was added to your shop; it goes on sale once your account check is complete.",
-      "doneOldKept": "The old product could not be withdrawn automatically: withdraw it from your products.",
       "doneWithdrawn": "The product was withdrawn from your shop.",
       "historyKept": "Nothing is deleted: history, statistics and past orders stay intact.",
       "backToShop": "Back to my space",
       "honesty": "Net = commission + markup − Affisell's fee, computed like your payouts. Prices exclude VAT; only the barcode proves it is the same product.",
-      "bellMessage": "« {product} » can no longer be bought in your shop. Withdraw it or replace it with an equivalent product."
+      "bellMessage": "« {product} » can no longer be bought in your shop. Withdraw it or replace it with an equivalent product.",
+      "partialTitle": "Replacement partly done",
+      "partialBody": "“{alternative}” was added to your shop, but “{product}” could not be withdrawn from it: both are on sale right now.",
+      "partialHint": "Finishing only withdraws the old product from your shop. Nothing is added twice, nothing is deleted.",
+      "finishCta": "Finish the replacement",
+      "partialUnnamed": "the chosen alternative",
+      "partialNow": "The alternative was added, but the old product could not be withdrawn. Finish the replacement below."
     }
   },
   "marketplace": {
