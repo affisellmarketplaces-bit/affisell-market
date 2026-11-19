@@ -3111,7 +3111,69 @@
         "low_net_per_sale": "lage winst per verkoop"
       }
     },
-    "supplierAffisell": "Affisell-leverancier"
+    "supplierAffisell": "Affisell-leverancier",
+    "replacement": {
+      "title": "Wat te doen met « {product} »?",
+      "loading": "Betrouwbare alternatieven worden gezocht…",
+      "error": "De alternatieven konden niet worden geladen.",
+      "errorChanged": "Dit alternatief is niet meer beschikbaar: de lijst is vernieuwd.",
+      "retry": "Opnieuw proberen",
+      "problem": {
+        "out_of_stock": "De leverancier heeft geen voorraad meer: uw kopers zien het uitverkocht en kunnen het niet kopen.",
+        "product_unavailable": "De leverancier heeft het ingetrokken of gepauzeerd: het is niet meer te koop.",
+        "awaiting_review": "Dit product wacht op validatie door Affisell: het kan nog niet worden verkocht.",
+        "no_commission": "De leverancier heeft geen commissie ingesteld: een verkoop kan niet aan u worden toegekend.",
+        "none": "Dit product is vandaag verkoopbaar. U kunt toch alternatieven vergelijken."
+      },
+      "currentLine": "Vandaag: verkoopprijs {price} excl. btw · u verdient {net} netto per verkoop.",
+      "none": {
+        "no_sellable_candidate": "Vandaag is geen enkel alternatief in uw catalogus verkoopbaar.",
+        "no_reliable_match": "Geen alternatief lijkt genoeg: we stellen liever niets voor dan een ander product."
+      },
+      "noneHint": "U kunt dit product uit uw winkel halen; het kan terugkomen als de leverancier het probleem oplost en u het weer te koop zet.",
+      "match": {
+        "identique": "Hetzelfde product (zelfde barcode)",
+        "similaire": "Vergelijkbaar product"
+      },
+      "identity": {
+        "same_gtin": "Zelfde barcode",
+        "similar": "Vergelijkbaar"
+      },
+      "availableLine": "{n} op voorraad · {supplier}",
+      "netLine": "U verdient {net} netto per verkoop (verkoopprijs {price} excl. btw)",
+      "col": {
+        "what": "Kenmerk",
+        "before": "Huidig",
+        "after": "Alternatief"
+      },
+      "field": {
+        "selling_price": "Verkoopprijs excl. btw",
+        "net_per_sale": "Uw netto per verkoop",
+        "supplier_price": "Leveranciersprijs",
+        "commission": "Commissie",
+        "delivery": "Maximale levertijd",
+        "return_window": "Retouren geaccepteerd",
+        "variants_missing": "Opties niet aangeboden",
+        "brand": "Merk",
+        "supplier": "Leverancier"
+      },
+      "days": "{n, plural, one {# dag} other {# dagen}}",
+      "replaceCta": "Vervangen door dit product",
+      "confirmQuestion": "Vervangen? Het oude product verlaat uw winkel; de geschiedenis en bestellingen blijven bewaard.",
+      "confirmYes": "Ja, vervangen",
+      "working": "Bezig met vervangen…",
+      "cancel": "Annuleren",
+      "withdrawOnly": "Dit product alleen uit mijn winkel halen",
+      "withdrawConfirm": "Dit product uit uw winkel halen?",
+      "withdrawYes": "Ja, verwijderen",
+      "doneReplaced": "Klaar: het alternatief is te koop in uw winkel.",
+      "doneReplacedPending": "Het alternatief is aan uw winkel toegevoegd; het gaat in de verkoop zodra de controle van uw account klaar is.",
+      "doneOldKept": "Het oude product kon niet automatisch worden verwijderd: haal het weg via uw producten.",
+      "doneWithdrawn": "Het product is uit uw winkel gehaald.",
+      "historyKept": "Er wordt niets verwijderd: geschiedenis, statistieken en eerdere bestellingen blijven intact.",
+      "backToShop": "Terug naar mijn omgeving",
+      "honesty": "Netto = commissie + marge − Affisell-kosten, berekend zoals uw uitbetalingen. Prijzen excl. btw; alleen de barcode bewijst dat het hetzelfde product is."
+    }
   },
   "marketplace": {
     "title": "Marktplaats",
@@ -9439,7 +9501,7 @@
       "promote_to_resellers": "Wederverkopers uitnodigen",
       "publish_draft": "Concept openen",
       "complete_sheet": "Product openen",
-      "fix_shop_listing": "Product openen",
+      "fix_shop_listing": "Verwijderen of vervangen",
       "review_profit_drop": "Analyse bekijken",
       "add_ready_product": "In de catalogus bekijken"
     },

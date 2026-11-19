@@ -119,3 +119,9 @@ Quatre classes, jamais mélangées :
 | Disponibilité permanente | déclaration du fournisseur « illimité », jamais un grand nombre fictif | même contrôle de stock ; risque de survente porté par le fournisseur (contrat) |
 | Précommande | date de mise à disposition, encaissement immédiat ou différé | paiement (encaissement avant expédition), virements différés, remboursement si date non tenue, affichage acheteur — chantier argent à valider avec l'expert-comptable |
 
+## 7. Innovation 4 — retirer ou remplacer un produit invendable (développée, 2026-11-19)
+
+**Tâche supprimée** : chercher à la main un produit équivalent quand un produit de sa boutique devient invendable.
+
+Le revendeur ouvre l'action « Retirer ou remplacer » : le problème en une phrase, jusqu'à trois alternatives réellement équivalentes (même code-barres, ou même catégorie + nom très proche + options proposées), son gain net réel avant / après et les différences (prix, net, commission, délai, retours, options manquantes, marque), puis une confirmation explicite. Sans alternative fiable, l'écran le dit et propose seulement de retirer le produit. Rien n'est supprimé, aucune commande n'est modifiée. Détails techniques : `AGENTS.md` (« Reseller — withdraw or replace »).
+

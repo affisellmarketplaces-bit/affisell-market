@@ -3111,7 +3111,69 @@
         "low_net_per_sale": "low gain per sale"
       }
     },
-    "supplierAffisell": "Affisell supplier"
+    "supplierAffisell": "Affisell supplier",
+    "replacement": {
+      "title": "What to do with « {product} »?",
+      "loading": "Looking for reliable alternatives…",
+      "error": "The alternatives could not be loaded.",
+      "errorChanged": "That alternative is no longer available: the list was refreshed.",
+      "retry": "Retry",
+      "problem": {
+        "out_of_stock": "The supplier is out of stock: your buyers see it sold out and can not buy it.",
+        "product_unavailable": "The supplier withdrew or paused it: it can no longer be bought.",
+        "awaiting_review": "This product is awaiting Affisell's validation: it can not be sold yet.",
+        "no_commission": "The supplier set no commission: a sale could not be credited to you.",
+        "none": "This product can be sold today. You can still compare alternatives."
+      },
+      "currentLine": "Today: selling price {price} excl. VAT · you earn {net} net per sale.",
+      "none": {
+        "no_sellable_candidate": "No alternative can be sold today in your catalogue.",
+        "no_reliable_match": "No alternative is close enough: we would rather propose nothing than a different product."
+      },
+      "noneHint": "You can withdraw this product from your shop; it can come back if the supplier fixes the problem and you put it on sale again.",
+      "match": {
+        "identique": "Same product (same barcode)",
+        "similaire": "Similar product"
+      },
+      "identity": {
+        "same_gtin": "Same barcode",
+        "similar": "Similar"
+      },
+      "availableLine": "{n} in stock · {supplier}",
+      "netLine": "You earn {net} net per sale (selling price {price} excl. VAT)",
+      "col": {
+        "what": "Item",
+        "before": "Current",
+        "after": "Alternative"
+      },
+      "field": {
+        "selling_price": "Selling price excl. VAT",
+        "net_per_sale": "Your net per sale",
+        "supplier_price": "Supplier price",
+        "commission": "Commission",
+        "delivery": "Maximum delivery",
+        "return_window": "Returns accepted",
+        "variants_missing": "Options not offered",
+        "brand": "Brand",
+        "supplier": "Supplier"
+      },
+      "days": "{n, plural, one {# day} other {# days}}",
+      "replaceCta": "Replace with this product",
+      "confirmQuestion": "Replace? The old product leaves your shop; its history and orders are kept.",
+      "confirmYes": "Yes, replace",
+      "working": "Replacing…",
+      "cancel": "Cancel",
+      "withdrawOnly": "Only withdraw this product from my shop",
+      "withdrawConfirm": "Withdraw this product from your shop?",
+      "withdrawYes": "Yes, withdraw",
+      "doneReplaced": "Done: the alternative is on sale in your shop.",
+      "doneReplacedPending": "The alternative was added to your shop; it goes on sale once your account check is complete.",
+      "doneOldKept": "The old product could not be withdrawn automatically: withdraw it from your products.",
+      "doneWithdrawn": "The product was withdrawn from your shop.",
+      "historyKept": "Nothing is deleted: history, statistics and past orders stay intact.",
+      "backToShop": "Back to my space",
+      "honesty": "Net = commission + markup − Affisell's fee, computed like your payouts. Prices exclude VAT; only the barcode proves it is the same product."
+    }
   },
   "marketplace": {
     "title": "Marketplace",
@@ -9439,7 +9501,7 @@
       "promote_to_resellers": "Invite resellers",
       "publish_draft": "Open the draft",
       "complete_sheet": "Open the product",
-      "fix_shop_listing": "Open the product",
+      "fix_shop_listing": "Withdraw or replace",
       "review_profit_drop": "See the analysis",
       "add_ready_product": "See it in the catalogue"
     },

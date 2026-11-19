@@ -198,7 +198,7 @@ export function resellerNextActions(
         paidOrders30d: { value: l.paidOrders30d, qualification: "observe" },
       },
       impact: { qualification: "potentiel", paidOrders30d: l.paidOrders30d },
-      href: `/dashboard/affiliate/products/${encodeURIComponent(l.listingId)}/edit`,
+      href: `/dashboard/affiliate/products/${encodeURIComponent(l.listingId)}/replace`,
       // a listing buyers see but can not buy is fixed first; weighted by what it used to sell
       score: 3000 + 100 * l.paidOrders30d,
     })

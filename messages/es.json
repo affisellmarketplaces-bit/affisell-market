@@ -3111,7 +3111,69 @@
         "low_net_per_sale": "ganancia por venta baja"
       }
     },
-    "supplierAffisell": "Proveedor Affisell"
+    "supplierAffisell": "Proveedor Affisell",
+    "replacement": {
+      "title": "¿Qué hacer con « {product} »?",
+      "loading": "Buscando alternativas fiables…",
+      "error": "No se pudieron cargar las alternativas.",
+      "errorChanged": "Esa alternativa ya no está disponible: la lista se ha actualizado.",
+      "retry": "Reintentar",
+      "problem": {
+        "out_of_stock": "El proveedor no tiene stock: sus compradores lo ven agotado y no pueden comprarlo.",
+        "product_unavailable": "El proveedor lo retiró o lo pausó: ya no se puede comprar.",
+        "awaiting_review": "Este producto espera la validación de Affisell: aún no se puede vender.",
+        "no_commission": "El proveedor no fijó comisión: una venta no se le podría atribuir.",
+        "none": "Este producto se puede vender hoy. Aun así puede comparar alternativas."
+      },
+      "currentLine": "Hoy: precio de venta {price} sin IVA · gana {net} neto por venta.",
+      "none": {
+        "no_sellable_candidate": "Ninguna alternativa se puede vender hoy en su catálogo.",
+        "no_reliable_match": "Ninguna alternativa es lo bastante parecida: preferimos no proponer nada antes que un producto diferente."
+      },
+      "noneHint": "Puede retirar este producto de su tienda; podrá volver si el proveedor resuelve el problema y usted lo vuelve a poner a la venta.",
+      "match": {
+        "identique": "Mismo producto (mismo código de barras)",
+        "similaire": "Producto similar"
+      },
+      "identity": {
+        "same_gtin": "Mismo código de barras",
+        "similar": "Similar"
+      },
+      "availableLine": "{n} en stock · {supplier}",
+      "netLine": "Gana {net} neto por venta (precio de venta {price} sin IVA)",
+      "col": {
+        "what": "Criterio",
+        "before": "Actual",
+        "after": "Alternativa"
+      },
+      "field": {
+        "selling_price": "Precio de venta sin IVA",
+        "net_per_sale": "Su neto por venta",
+        "supplier_price": "Precio del proveedor",
+        "commission": "Comisión",
+        "delivery": "Entrega máxima",
+        "return_window": "Devoluciones aceptadas",
+        "variants_missing": "Opciones no ofrecidas",
+        "brand": "Marca",
+        "supplier": "Proveedor"
+      },
+      "days": "{n, plural, one {# día} other {# días}}",
+      "replaceCta": "Sustituir por este producto",
+      "confirmQuestion": "¿Sustituir? El producto anterior sale de su tienda; su historial y pedidos se conservan.",
+      "confirmYes": "Sí, sustituir",
+      "working": "Sustituyendo…",
+      "cancel": "Cancelar",
+      "withdrawOnly": "Solo retirar este producto de mi tienda",
+      "withdrawConfirm": "¿Retirar este producto de su tienda?",
+      "withdrawYes": "Sí, retirar",
+      "doneReplaced": "Hecho: la alternativa está a la venta en su tienda.",
+      "doneReplacedPending": "La alternativa se añadió a su tienda; se pondrá a la venta cuando termine la verificación de su cuenta.",
+      "doneOldKept": "El producto anterior no se pudo retirar automáticamente: retírelo desde sus productos.",
+      "doneWithdrawn": "El producto se retiró de su tienda.",
+      "historyKept": "No se elimina nada: el historial, las estadísticas y los pedidos pasados quedan intactos.",
+      "backToShop": "Volver a mi espacio",
+      "honesty": "Neto = comisión + margen − tarifa de Affisell, calculado como sus pagos. Precios sin IVA; solo el código de barras prueba que es el mismo producto."
+    }
   },
   "marketplace": {
     "title": "Mercado",
@@ -9439,7 +9501,7 @@
       "promote_to_resellers": "Invitar a revendedores",
       "publish_draft": "Abrir el borrador",
       "complete_sheet": "Abrir el producto",
-      "fix_shop_listing": "Abrir el producto",
+      "fix_shop_listing": "Retirar o sustituir",
       "review_profit_drop": "Ver el análisis",
       "add_ready_product": "Ver en el catálogo"
     },

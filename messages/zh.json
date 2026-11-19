@@ -3111,7 +3111,69 @@
         "low_net_per_sale": "每笔收益较低"
       }
     },
-    "supplierAffisell": "Affisell 供应商"
+    "supplierAffisell": "Affisell 供应商",
+    "replacement": {
+      "title": "如何处理「{product}」？",
+      "loading": "正在寻找可靠的替代商品…",
+      "error": "无法加载替代商品。",
+      "errorChanged": "该替代商品已不可用：列表已刷新。",
+      "retry": "重试",
+      "problem": {
+        "out_of_stock": "供应商已无库存：您的买家看到它已售罄，无法购买。",
+        "product_unavailable": "供应商已撤下或暂停它：无法再购买。",
+        "awaiting_review": "该商品正在等待 Affisell 审核：暂时无法销售。",
+        "no_commission": "供应商未设置佣金：销售无法归属于您。",
+        "none": "该商品今天可以销售。您仍然可以比较替代商品。"
+      },
+      "currentLine": "当前：售价 {price}（不含税）· 每笔销售净得 {net}。",
+      "none": {
+        "no_sellable_candidate": "您的目录中今天没有可销售的替代商品。",
+        "no_reliable_match": "没有足够接近的替代商品：我们宁可不推荐，也不推荐一个不同的商品。"
+      },
+      "noneHint": "您可以将该商品从店铺下架；如果供应商解决了问题并且您重新上架，它可以回来。",
+      "match": {
+        "identique": "同一商品（相同条形码）",
+        "similaire": "相似商品"
+      },
+      "identity": {
+        "same_gtin": "相同条形码",
+        "similar": "相似"
+      },
+      "availableLine": "库存 {n} 件 · {supplier}",
+      "netLine": "每笔销售净得 {net}（售价 {price}，不含税）",
+      "col": {
+        "what": "项目",
+        "before": "当前",
+        "after": "替代商品"
+      },
+      "field": {
+        "selling_price": "售价（不含税）",
+        "net_per_sale": "您每笔销售的净收益",
+        "supplier_price": "供应商价格",
+        "commission": "佣金",
+        "delivery": "最长配送时间",
+        "return_window": "接受退货",
+        "variants_missing": "未提供的选项",
+        "brand": "品牌",
+        "supplier": "供应商"
+      },
+      "days": "{n, plural, other {# 天}}",
+      "replaceCta": "替换为此商品",
+      "confirmQuestion": "确认替换？旧商品将离开您的店铺，其历史和订单都会保留。",
+      "confirmYes": "是，替换",
+      "working": "正在替换…",
+      "cancel": "取消",
+      "withdrawOnly": "仅将此商品从我的店铺下架",
+      "withdrawConfirm": "将此商品从您的店铺下架？",
+      "withdrawYes": "是，下架",
+      "doneReplaced": "完成：替代商品已在您的店铺上架销售。",
+      "doneReplacedPending": "替代商品已加入您的店铺；账户审核完成后即开始销售。",
+      "doneOldKept": "旧商品未能自动下架：请在您的商品中将其下架。",
+      "doneWithdrawn": "该商品已从您的店铺下架。",
+      "historyKept": "不会删除任何内容：历史、统计和过往订单都保持不变。",
+      "backToShop": "返回我的空间",
+      "honesty": "净收益 = 佣金 + 加价 − Affisell 费用，计算方式与您的结算相同。价格不含税；只有条形码能证明是同一商品。"
+    }
   },
   "marketplace": {
     "title": "市场",
@@ -9439,7 +9501,7 @@
       "promote_to_resellers": "邀请分销商",
       "publish_draft": "打开草稿",
       "complete_sheet": "打开商品",
-      "fix_shop_listing": "打开商品",
+      "fix_shop_listing": "下架或替换",
       "review_profit_drop": "查看分析",
       "add_ready_product": "在目录中查看"
     },

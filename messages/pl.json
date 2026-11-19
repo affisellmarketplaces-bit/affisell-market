@@ -3111,7 +3111,69 @@
         "low_net_per_sale": "niski zysk ze sprzedaży"
       }
     },
-    "supplierAffisell": "Dostawca Affisell"
+    "supplierAffisell": "Dostawca Affisell",
+    "replacement": {
+      "title": "Co zrobić z « {product} »?",
+      "loading": "Szukamy wiarygodnych alternatyw…",
+      "error": "Nie udało się wczytać alternatyw.",
+      "errorChanged": "Ta alternatywa nie jest już dostępna: lista została odświeżona.",
+      "retry": "Spróbuj ponownie",
+      "problem": {
+        "out_of_stock": "Dostawca nie ma już zapasu: Twoi kupujący widzą go jako wyprzedany i nie mogą go kupić.",
+        "product_unavailable": "Dostawca go wycofał lub wstrzymał: nie można go już kupić.",
+        "awaiting_review": "Ten produkt czeka na zatwierdzenie przez Affisell: nie można go jeszcze sprzedawać.",
+        "no_commission": "Dostawca nie ustalił prowizji: sprzedaż nie mogłaby zostać Ci przypisana.",
+        "none": "Ten produkt można dziś sprzedawać. Mimo to możesz porównać alternatywy."
+      },
+      "currentLine": "Dziś: cena sprzedaży {price} netto · zarabiasz {net} netto na sprzedaży.",
+      "none": {
+        "no_sellable_candidate": "Żadnej alternatywy nie można dziś sprzedać w Twoim katalogu.",
+        "no_reliable_match": "Żadna alternatywa nie jest wystarczająco podobna: wolimy nic nie proponować niż inny produkt."
+      },
+      "noneHint": "Możesz wycofać ten produkt ze sklepu; może wrócić, jeśli dostawca rozwiąże problem, a Ty ponownie wystawisz go na sprzedaż.",
+      "match": {
+        "identique": "Ten sam produkt (ten sam kod kreskowy)",
+        "similaire": "Podobny produkt"
+      },
+      "identity": {
+        "same_gtin": "Ten sam kod kreskowy",
+        "similar": "Podobny"
+      },
+      "availableLine": "{n} w magazynie · {supplier}",
+      "netLine": "Zarabiasz {net} netto na sprzedaży (cena sprzedaży {price} netto)",
+      "col": {
+        "what": "Cecha",
+        "before": "Obecnie",
+        "after": "Alternatywa"
+      },
+      "field": {
+        "selling_price": "Cena sprzedaży netto",
+        "net_per_sale": "Twój zysk netto na sprzedaży",
+        "supplier_price": "Cena dostawcy",
+        "commission": "Prowizja",
+        "delivery": "Maksymalna dostawa",
+        "return_window": "Zwroty przyjmowane",
+        "variants_missing": "Nieoferowane opcje",
+        "brand": "Marka",
+        "supplier": "Dostawca"
+      },
+      "days": "{n, plural, one {# dzień} other {# dni}}",
+      "replaceCta": "Zastąp tym produktem",
+      "confirmQuestion": "Zastąpić? Stary produkt opuszcza Twój sklep; jego historia i zamówienia zostają zachowane.",
+      "confirmYes": "Tak, zastąp",
+      "working": "Zastępowanie…",
+      "cancel": "Anuluj",
+      "withdrawOnly": "Tylko wycofaj ten produkt z mojego sklepu",
+      "withdrawConfirm": "Wycofać ten produkt ze sklepu?",
+      "withdrawYes": "Tak, wycofaj",
+      "doneReplaced": "Gotowe: alternatywa jest w sprzedaży w Twoim sklepie.",
+      "doneReplacedPending": "Alternatywa została dodana do sklepu; trafi do sprzedaży po zakończeniu weryfikacji konta.",
+      "doneOldKept": "Starego produktu nie udało się wycofać automatycznie: wycofaj go w swoich produktach.",
+      "doneWithdrawn": "Produkt został wycofany z Twojego sklepu.",
+      "historyKept": "Nic nie jest usuwane: historia, statystyki i wcześniejsze zamówienia pozostają nienaruszone.",
+      "backToShop": "Wróć do mojego panelu",
+      "honesty": "Netto = prowizja + marża − opłata Affisell, liczone jak Twoje wypłaty. Ceny bez VAT; tylko kod kreskowy dowodzi, że to ten sam produkt."
+    }
   },
   "marketplace": {
     "title": "Rynek",
@@ -9439,7 +9501,7 @@
       "promote_to_resellers": "Zaproś sprzedawców",
       "publish_draft": "Otwórz szkic",
       "complete_sheet": "Otwórz produkt",
-      "fix_shop_listing": "Otwórz produkt",
+      "fix_shop_listing": "Wycofaj lub zastąp",
       "review_profit_drop": "Zobacz analizę",
       "add_ready_product": "Zobacz w katalogu"
     },

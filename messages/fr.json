@@ -3111,7 +3111,69 @@
         "low_net_per_sale": "gain par vente faible"
       }
     },
-    "supplierAffisell": "Fournisseur Affisell"
+    "supplierAffisell": "Fournisseur Affisell",
+    "replacement": {
+      "title": "Que faire de « {product} » ?",
+      "loading": "Recherche d'alternatives fiables…",
+      "error": "Impossible de charger les alternatives.",
+      "errorChanged": "Cette alternative n'est plus disponible : la liste a été actualisée.",
+      "retry": "Réessayer",
+      "problem": {
+        "out_of_stock": "Le fournisseur n'a plus de stock : vos acheteurs le voient épuisé et ne peuvent pas l'acheter.",
+        "product_unavailable": "Le fournisseur l'a retiré ou mis en pause : il ne peut plus être acheté.",
+        "awaiting_review": "Ce produit attend la validation d'Affisell : il ne peut pas encore être vendu.",
+        "no_commission": "Le fournisseur n'a pas fixé de commission : une vente ne pourrait pas vous être attribuée.",
+        "none": "Ce produit peut être vendu aujourd'hui. Vous pouvez quand même comparer des alternatives."
+      },
+      "currentLine": "Aujourd'hui : prix de vente {price} HT · vous gagnez {net} net par vente.",
+      "none": {
+        "no_sellable_candidate": "Aucune alternative vendable aujourd'hui dans votre catalogue.",
+        "no_reliable_match": "Aucune alternative suffisamment proche : nous préférons ne rien vous proposer plutôt qu'un produit différent."
+      },
+      "noneHint": "Vous pouvez retirer ce produit de votre boutique ; il reviendra si le fournisseur règle le problème et que vous le remettez en vente.",
+      "match": {
+        "identique": "Même produit (même code-barres)",
+        "similaire": "Produit similaire"
+      },
+      "identity": {
+        "same_gtin": "Même code-barres",
+        "similar": "Similaire"
+      },
+      "availableLine": "{n} en stock · {supplier}",
+      "netLine": "Vous gagnez {net} net par vente (prix de vente {price} HT)",
+      "col": {
+        "what": "Critère",
+        "before": "Actuel",
+        "after": "Alternative"
+      },
+      "field": {
+        "selling_price": "Prix de vente HT",
+        "net_per_sale": "Votre gain net par vente",
+        "supplier_price": "Prix fournisseur",
+        "commission": "Commission",
+        "delivery": "Livraison maximale",
+        "return_window": "Retours acceptés",
+        "variants_missing": "Options non proposées",
+        "brand": "Marque",
+        "supplier": "Fournisseur"
+      },
+      "days": "{n, plural, one {# jour} other {# jours}}",
+      "replaceCta": "Remplacer par ce produit",
+      "confirmQuestion": "Remplacer ? L'ancien produit quitte votre boutique, son historique et ses commandes sont conservés.",
+      "confirmYes": "Oui, remplacer",
+      "working": "Remplacement…",
+      "cancel": "Annuler",
+      "withdrawOnly": "Retirer seulement ce produit de ma boutique",
+      "withdrawConfirm": "Retirer ce produit de votre boutique ?",
+      "withdrawYes": "Oui, retirer",
+      "doneReplaced": "C'est fait : l'alternative est en vente dans votre boutique.",
+      "doneReplacedPending": "L'alternative est ajoutée à votre boutique ; elle sera en vente dès la fin de la vérification de votre compte.",
+      "doneOldKept": "L'ancien produit n'a pas pu être retiré automatiquement : retirez-le depuis vos produits.",
+      "doneWithdrawn": "Le produit a été retiré de votre boutique.",
+      "historyKept": "Rien n'est supprimé : l'historique, les statistiques et les commandes passées restent intacts.",
+      "backToShop": "Retour à mon espace",
+      "honesty": "Gain net = commission + marge − frais Affisell, calculé comme vos versements. Les prix sont hors taxes ; seul le code-barres prouve qu'il s'agit du même produit."
+    }
   },
   "marketplace": {
     "title": "Marketplace",
@@ -9439,7 +9501,7 @@
       "promote_to_resellers": "Inviter des revendeurs",
       "publish_draft": "Ouvrir le brouillon",
       "complete_sheet": "Ouvrir la fiche",
-      "fix_shop_listing": "Ouvrir le produit",
+      "fix_shop_listing": "Retirer ou remplacer",
       "review_profit_drop": "Voir l'analyse",
       "add_ready_product": "Voir dans le catalogue"
     },

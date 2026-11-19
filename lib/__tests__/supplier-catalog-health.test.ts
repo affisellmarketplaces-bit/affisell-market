@@ -156,7 +156,7 @@ describe("next best action", () => {
       ready: [{ productId: "w", name: "W", netPerSaleCents: 850, paidOrders30d: 4, resellersListing: 1 }],
     })
     expect(actions.map((a) => a.kind)).toEqual(["fix_shop_listing", "review_profit_drop", "add_ready_product"])
-    expect(actions[0]).toMatchObject({ reason: "shop_out_of_stock", href: "/dashboard/affiliate/products/l2/edit" })
+    expect(actions[0]).toMatchObject({ reason: "shop_out_of_stock", href: "/dashboard/affiliate/products/l2/replace" })
     expect(actions[1]).toMatchObject({ reason: "drop_supplier_price_up", priority: "haute" })
   })
 

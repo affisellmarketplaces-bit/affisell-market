@@ -3111,7 +3111,69 @@
         "low_net_per_sale": "geringer Gewinn pro Verkauf"
       }
     },
-    "supplierAffisell": "Affisell-Lieferant"
+    "supplierAffisell": "Affisell-Lieferant",
+    "replacement": {
+      "title": "Was tun mit « {product} »?",
+      "loading": "Zuverlässige Alternativen werden gesucht…",
+      "error": "Die Alternativen konnten nicht geladen werden.",
+      "errorChanged": "Diese Alternative ist nicht mehr verfügbar: Die Liste wurde aktualisiert.",
+      "retry": "Erneut versuchen",
+      "problem": {
+        "out_of_stock": "Der Lieferant hat keinen Bestand mehr: Ihre Käufer sehen es ausverkauft und können es nicht kaufen.",
+        "product_unavailable": "Der Lieferant hat es zurückgezogen oder pausiert: Es ist nicht mehr kaufbar.",
+        "awaiting_review": "Dieses Produkt wartet auf die Freigabe durch Affisell: Es kann noch nicht verkauft werden.",
+        "no_commission": "Der Lieferant hat keine Provision festgelegt: Ein Verkauf könnte Ihnen nicht gutgeschrieben werden.",
+        "none": "Dieses Produkt ist heute verkaufbar. Sie können trotzdem Alternativen vergleichen."
+      },
+      "currentLine": "Heute: Verkaufspreis {price} netto · Sie verdienen {net} netto pro Verkauf.",
+      "none": {
+        "no_sellable_candidate": "Heute ist in Ihrem Katalog keine Alternative verkaufbar.",
+        "no_reliable_match": "Keine Alternative ist ähnlich genug: Wir schlagen lieber nichts vor als ein anderes Produkt."
+      },
+      "noneHint": "Sie können dieses Produkt aus Ihrem Shop nehmen; es kann zurückkommen, wenn der Lieferant das Problem behebt und Sie es wieder anbieten.",
+      "match": {
+        "identique": "Gleiches Produkt (gleicher Barcode)",
+        "similaire": "Ähnliches Produkt"
+      },
+      "identity": {
+        "same_gtin": "Gleicher Barcode",
+        "similar": "Ähnlich"
+      },
+      "availableLine": "{n} auf Lager · {supplier}",
+      "netLine": "Sie verdienen {net} netto pro Verkauf (Verkaufspreis {price} netto)",
+      "col": {
+        "what": "Merkmal",
+        "before": "Aktuell",
+        "after": "Alternative"
+      },
+      "field": {
+        "selling_price": "Verkaufspreis netto",
+        "net_per_sale": "Ihr Netto pro Verkauf",
+        "supplier_price": "Lieferantenpreis",
+        "commission": "Provision",
+        "delivery": "Maximale Lieferzeit",
+        "return_window": "Rückgaben akzeptiert",
+        "variants_missing": "Nicht angebotene Optionen",
+        "brand": "Marke",
+        "supplier": "Lieferant"
+      },
+      "days": "{n, plural, one {# Tag} other {# Tage}}",
+      "replaceCta": "Durch dieses Produkt ersetzen",
+      "confirmQuestion": "Ersetzen? Das alte Produkt verlässt Ihren Shop; seine Historie und Bestellungen bleiben erhalten.",
+      "confirmYes": "Ja, ersetzen",
+      "working": "Wird ersetzt…",
+      "cancel": "Abbrechen",
+      "withdrawOnly": "Dieses Produkt nur aus meinem Shop nehmen",
+      "withdrawConfirm": "Dieses Produkt aus Ihrem Shop nehmen?",
+      "withdrawYes": "Ja, entfernen",
+      "doneReplaced": "Erledigt: Die Alternative ist in Ihrem Shop im Verkauf.",
+      "doneReplacedPending": "Die Alternative wurde Ihrem Shop hinzugefügt; sie geht in den Verkauf, sobald die Prüfung Ihres Kontos abgeschlossen ist.",
+      "doneOldKept": "Das alte Produkt konnte nicht automatisch entfernt werden: Entfernen Sie es über Ihre Produkte.",
+      "doneWithdrawn": "Das Produkt wurde aus Ihrem Shop genommen.",
+      "historyKept": "Nichts wird gelöscht: Historie, Statistiken und frühere Bestellungen bleiben unverändert.",
+      "backToShop": "Zurück zu meinem Bereich",
+      "honesty": "Netto = Provision + Aufschlag − Affisell-Gebühr, berechnet wie Ihre Auszahlungen. Preise ohne MwSt.; nur der Barcode belegt, dass es dasselbe Produkt ist."
+    }
   },
   "marketplace": {
     "title": "Marktplatz",
@@ -9439,7 +9501,7 @@
       "promote_to_resellers": "Wiederverkäufer einladen",
       "publish_draft": "Entwurf öffnen",
       "complete_sheet": "Produkt öffnen",
-      "fix_shop_listing": "Produkt öffnen",
+      "fix_shop_listing": "Entfernen oder ersetzen",
       "review_profit_drop": "Analyse ansehen",
       "add_ready_product": "Im Katalog ansehen"
     },
