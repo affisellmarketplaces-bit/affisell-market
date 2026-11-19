@@ -70,7 +70,7 @@ export async function collectCheckoutStockReport(prisma: Prisma.TransactionClien
 
   // Paid orders not shipped yet vs the declared stock (lib/stock-exposure.ts): both readings, never merged.
   const pendingRows = await prisma.order.findMany({
-    where: { paidAt: { not: null }, shippedAt: null, trackingNumber: null, productId: { not: null } },
+    where: { paidAt: { not: null }, shippedAt: null, trackingNumber: null },
     select: { productId: true, quantity: true, status: true, paymentSettlementStatus: true },
     take: LIMIT,
   })
