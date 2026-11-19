@@ -43,6 +43,7 @@ export type HealthIssueCode =
   | "safety_data_missing"
   | "paused_but_listed"
   | "low_stock"
+  | "stock_cover_short"
   | "no_photo"
   | "no_category"
   | "no_reseller"
@@ -69,6 +70,7 @@ export const HEALTH_ISSUE_CLASS: Record<HealthIssueCode, HealthClass> = {
   safety_data_missing: "avertissement",
   paused_but_listed: "avertissement",
   low_stock: "avertissement",
+  stock_cover_short: "avertissement",
   no_photo: "avertissement",
   no_category: "avertissement",
   no_reseller: "avertissement",
@@ -113,6 +115,8 @@ export type HealthProduct = {
   /** Affisell holds; null = could not be read (fails closed: never "no hold"). */
   holds: Array<"product_recalled" | "product_suspended"> | null
   paidOrders30d: number
+  /** Units sold on paid orders in the last 30 days (optional: absent = the stock-cover rule is not judged). */
+  units30d?: number
   resellersListing: number
   createdAt: Date
 }
@@ -152,6 +156,19 @@ const NON_PHYSICAL = new Set(["SOFTWARE", "SUBSCRIPTION", "SERVICE", "EXPERIENCE
 /** Values written by importers / assistants when the source gave no inventory (99, 999 …) — see AGENTS.md (G1). */
 const NOMINAL_STOCKS = new Set([99, 999, 9_999, 99_999])
 const LOW_STOCK_MAX = 3 // same threshold as the reseller copilot's « à vérifier »
+/**
+ * Stock cover: at the pace of the last 30 days, the units left last fewer than STOCK_COVER_DAYS days. A CALCULATION
+ * (labelled so), not a forecast: judged only with ≥ STOCK_COVER_MIN_UNITS units sold (below, one order moves the pace
+ * too much to say anything). 14 days ≈ the time a supplier needs to restock and a reseller to notice.
+ */
+export const STOCK_COVER_DAYS = 14
+export const STOCK_COVER_MIN_UNITS = 5
+
+/** Whole days of stock left at the 30-day pace; null when the pace is too thin to judge. */
+export function stockCoverDays(available: number, units30d: number | undefined): number | null {
+  if (units30d == null || units30d < STOCK_COVER_MIN_UNITS || available <= 0) return null
+  return Math.floor(available / (units30d / 30))
+}
 const NO_RESELLER_AFTER_DAYS = 14 // a fresh product has not had time to be picked
 const NO_SALES_AFTER_DAYS = 30 // the order window is 30 days
 const SHORT_DESCRIPTION = 200 // under ~2 sentences a buyer has little to read
@@ -244,6 +261,11 @@ export function diagnoseProduct(p: HealthProduct, ctx: HealthContext, duplicates
   }
   if (onSale && stockKnown && available != null && available > 0 && available <= LOW_STOCK_MAX) {
     add("low_stock", "fiche", rows ? "edit_product" : "set_stock", { available, paidOrders30d: p.paidOrders30d })
+  } else if (onSale && stockKnown && available != null && available > LOW_STOCK_MAX) {
+    const cover = stockCoverDays(available, p.units30d)
+    if (cover != null && cover < STOCK_COVER_DAYS) {
+      add("stock_cover_short", "calcul", rows ? "edit_product" : "set_stock", { days: cover, available, units30d: p.units30d ?? 0 })
+    }
   }
   if (p.imageCount === 0) add("no_photo", "fiche", "edit_product")
   if (!p.categoryId) add("no_category", "fiche", "edit_product")

@@ -9480,6 +9480,10 @@
       "stock_unconfirmed": {
         "title": "Ilość do potwierdzenia",
         "why": "Zaimportowano bez ilości ze źródła: stan 0 i publikacja odrzucana, dopóki nie podasz rzeczywiście dostępnej ilości."
+      },
+      "stock_cover_short": {
+        "title": "Szybkie wyczerpanie przy obecnym tempie",
+        "why": "Przy tempie z ostatnich 30 dni ({units30d, plural, one {# sprzedana sztuka} few {# sprzedane sztuki} many {# sprzedanych sztuk} other {# sprzedanych sztuk}}) pozostałe {available} sztuk wystarczy na około {days, plural, =0 {mniej niż dzień} one {# dzień} other {# dni}}. To obliczenie, nie prognoza: uzupełnij zapas, zanim Twoi sprzedawcy przestaną sprzedawać."
       }
     },
     "availability": {
@@ -9583,7 +9587,8 @@
       "drop_disputes_up": "Spory wzrosły.",
       "drop_other": "Twój zysk netto na tym produkcie spadł.",
       "ready_to_sell": "Można go dziś sprzedawać i nie ma go jeszcze w Twoim sklepie.",
-      "stock_unconfirmed": "Źródło importu nie podało ilości: publikacja czeka na Twoją."
+      "stock_unconfirmed": "Źródło importu nie podało ilości: publikacja czeka na Twoją.",
+      "stock_cover_short": "Przy obecnym tempie sprzedaży zapas wyczerpie się w mniej niż dwa tygodnie (obliczenie)."
     }
   }
 }

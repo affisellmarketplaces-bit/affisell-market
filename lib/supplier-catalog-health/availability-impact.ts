@@ -19,6 +19,7 @@ export const AVAILABILITY_CODES = [
   "paused_but_listed",
   "variant_stock_untracked",
   "low_stock",
+  "stock_cover_short",
 ] as const satisfies ReadonlyArray<HealthIssueCode>
 
 export type AvailabilityCode = (typeof AVAILABILITY_CODES)[number]
@@ -31,6 +32,7 @@ export const AVAILABILITY_SEVERITY: Record<AvailabilityCode, "blocked" | "at_ris
   paused_but_listed: "blocked",
   variant_stock_untracked: "at_risk",
   low_stock: "at_risk",
+  stock_cover_short: "at_risk",
 }
 
 /** What the supplier can do from the panel. `reactivate` = lift its own pause (`PATCH /api/products/<id> {active}`). */

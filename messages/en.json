@@ -9480,6 +9480,10 @@
       "stock_unconfirmed": {
         "title": "Quantity to confirm",
         "why": "Imported without a quantity from the source: stock is 0 and publication is refused until you enter the quantity really available."
+      },
+      "stock_cover_short": {
+        "title": "Running out at the current pace",
+        "why": "At the pace of the last 30 days ({units30d, plural, one {# unit sold} other {# units sold}}), the {available} units left cover about {days, plural, =0 {less than a day} one {# day} other {# days}}. A calculation, not a forecast: restock before your resellers can no longer sell."
       }
     },
     "availability": {
@@ -9583,7 +9587,8 @@
       "drop_disputes_up": "Disputes rose.",
       "drop_other": "Your net earnings on this product fell.",
       "ready_to_sell": "It can be sold today and is not in your shop yet.",
-      "stock_unconfirmed": "The import's source gave no quantity: publication waits for yours."
+      "stock_unconfirmed": "The import's source gave no quantity: publication waits for yours.",
+      "stock_cover_short": "At the current sales pace, the stock runs out in less than two weeks (calculation)."
     }
   }
 }

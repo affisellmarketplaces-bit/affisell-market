@@ -9480,6 +9480,10 @@
       "stock_unconfirmed": {
         "title": "Quantité à confirmer",
         "why": "Importé sans quantité fournie par la source : stock à 0 et publication refusée tant que vous n'avez pas indiqué la quantité réellement disponible."
+      },
+      "stock_cover_short": {
+        "title": "Rupture proche au rythme actuel",
+        "why": "Au rythme des 30 derniers jours ({units30d, plural, one {# unité vendue} other {# unités vendues}}), les {available} unités restantes couvrent environ {days, plural, =0 {moins d'un jour} one {# jour} other {# jours}}. Calcul, pas une prévision : pensez au réassort avant que vos revendeurs ne puissent plus vendre."
       }
     },
     "availability": {
@@ -9583,7 +9587,8 @@
       "drop_disputes_up": "Les litiges ont augmenté.",
       "drop_other": "Votre gain net sur ce produit a baissé.",
       "ready_to_sell": "Il est vendable aujourd'hui et pas encore dans votre boutique.",
-      "stock_unconfirmed": "La source de l'import ne donnait aucune quantité : la publication attend la vôtre."
+      "stock_unconfirmed": "La source de l'import ne donnait aucune quantité : la publication attend la vôtre.",
+      "stock_cover_short": "Au rythme actuel des ventes, le stock sera épuisé dans moins de deux semaines (calcul)."
     }
   }
 }

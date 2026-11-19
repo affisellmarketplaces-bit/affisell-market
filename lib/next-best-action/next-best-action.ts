@@ -61,6 +61,7 @@ const SUPPLIER_KIND: Partial<Record<HealthIssueCode, NextAction["kind"]>> = {
   stock_unconfirmed: "resolve_availability",
   out_of_stock: "resolve_availability",
   low_stock: "resolve_availability",
+  stock_cover_short: "resolve_availability",
   stock_nominal: "resolve_availability",
   variant_stock_mismatch: "resolve_availability",
   variant_stock_untracked: "resolve_availability",

@@ -92,6 +92,7 @@ async function loadSupplierCatalogHealthDetailed(
     loadHolds(ids),
   ])
   const ordersBy = new Map(orders.map((o) => [o.productId as string, o._count._all]))
+  const unitsBy = new Map(orders.map((o) => [o.productId as string, o._sum.quantity ?? 0]))
   const lastPaidBy = new Map(lastPaid.map((o) => [o.productId as string, o._max.paidAt ?? null]))
   const ordersRowBy = new Map(orders.map((o) => [o.productId as string, o]))
   const sales = new Map<string, ProductSales>()
@@ -135,6 +136,7 @@ async function loadSupplierCatalogHealthDetailed(
       safetyBlocking: readiness.applicable ? readiness.blocking.map((i) => i.code) : null,
       holds: holds === null ? null : holds.get(p.id) ?? [],
       paidOrders30d: ordersBy.get(p.id) ?? 0,
+      units30d: unitsBy.get(p.id) ?? 0,
       resellersListing: listingsBy.get(p.id) ?? 0,
       createdAt: p.createdAt,
     }

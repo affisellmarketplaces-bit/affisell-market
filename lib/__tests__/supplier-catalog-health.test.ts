@@ -12,6 +12,7 @@ import {
 } from "@/lib/supplier-catalog-health/diagnose"
 import { resellerNextActions, supplierNextActions } from "@/lib/next-best-action/next-best-action"
 import { buildAvailabilityImpact, type ProductSales } from "@/lib/supplier-catalog-health/availability-impact"
+import { stockCoverDays } from "@/lib/supplier-catalog-health/diagnose"
 
 const now = new Date("2026-11-19T12:00:00Z")
 const ctx = { now, readinessMode: "warn" as const }
@@ -268,5 +269,22 @@ describe("availability impact in the resellers' shops (founder brief 2026-11-19)
       }
       expect(m.catalogHealth.availability.refused.stock_unconfirmed, loc).toBeTruthy()
     }
+  })
+
+  it("stock cover: a calculation at the 30-day pace, only with enough sales, never stacked on « low stock »", () => {
+    expect(stockCoverDays(10, 30)).toBe(10)
+    expect(stockCoverDays(10, 4)).toBeNull() // too few units sold to judge a pace
+    expect(stockCoverDays(10, undefined)).toBeNull()
+    expect(codes(product({ stock: 10, units30d: 30 }))).toContain("stock_cover_short")
+    expect(codes(product({ stock: 100, units30d: 30 }))).not.toContain("stock_cover_short")
+    expect(codes(product({ stock: 10, units30d: 3 }))).not.toContain("stock_cover_short")
+    expect(codes(product({ stock: 2, units30d: 30 }))).toEqual(expect.arrayContaining(["low_stock"]))
+    expect(codes(product({ stock: 2, units30d: 30 }))).not.toContain("stock_cover_short")
+    expect(codes(product({ stock: 10, units30d: 30, active: false }))).not.toContain("stock_cover_short")
+    const report = buildHealthReport([product({ id: "c", stock: 10, units30d: 30, resellersListing: 4 })], ctx)
+    const issue = report.issues.find((i) => i.code === "stock_cover_short")!
+    expect(issue).toMatchObject({ cls: "avertissement", source: "calcul", fix: "set_stock", evidence: { days: 10, available: 10, units30d: 30 } })
+    const [item] = buildAvailabilityImpact(report.issues, new Map(), now).items
+    expect(item).toMatchObject({ code: "stock_cover_short", severity: "at_risk", shops: 4 })
   })
 })

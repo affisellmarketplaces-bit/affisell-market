@@ -9480,6 +9480,10 @@
       "stock_unconfirmed": {
         "title": "数量待确认",
         "why": "导入时来源未提供数量：库存为 0，在您填写实际可用数量之前无法发布。"
+      },
+      "stock_cover_short": {
+        "title": "按当前速度即将断货",
+        "why": "按过去 30 天的销售速度（已售 {units30d} 件），剩余 {available} 件约可维持 {days, plural, =0 {不到一天} other {# 天}}。这是计算而非预测：请在分销商无法销售之前补货。"
       }
     },
     "availability": {
@@ -9583,7 +9587,8 @@
       "drop_disputes_up": "争议增加了。",
       "drop_other": "您在该商品上的净收益下降了。",
       "ready_to_sell": "它今天可以销售，且尚未加入您的店铺。",
-      "stock_unconfirmed": "导入来源未提供数量：发布需等待您填写数量。"
+      "stock_unconfirmed": "导入来源未提供数量：发布需等待您填写数量。",
+      "stock_cover_short": "按当前销售速度，库存将在两周内售罄（计算）。"
     }
   }
 }

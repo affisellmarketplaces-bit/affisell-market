@@ -9480,6 +9480,10 @@
       "stock_unconfirmed": {
         "title": "Hoeveelheid te bevestigen",
         "why": "Geïmporteerd zonder hoeveelheid van de bron: voorraad 0 en publicatie geweigerd tot u de echt beschikbare hoeveelheid invult."
+      },
+      "stock_cover_short": {
+        "title": "Bijna uitverkocht in het huidige tempo",
+        "why": "In het tempo van de afgelopen 30 dagen ({units30d, plural, one {# stuk verkocht} other {# stuks verkocht}}) dekken de {available} resterende stuks ongeveer {days, plural, =0 {minder dan een dag} one {# dag} other {# dagen}}. Een berekening, geen voorspelling: vul aan voordat je wederverkopers niet meer kunnen verkopen."
       }
     },
     "availability": {
@@ -9583,7 +9587,8 @@
       "drop_disputes_up": "De geschillen zijn gestegen.",
       "drop_other": "Uw netto-opbrengst op dit product is gedaald.",
       "ready_to_sell": "Het is vandaag verkoopbaar en staat nog niet in uw winkel.",
-      "stock_unconfirmed": "De importbron gaf geen hoeveelheid: de publicatie wacht op de uwe."
+      "stock_unconfirmed": "De importbron gaf geen hoeveelheid: de publicatie wacht op de uwe.",
+      "stock_cover_short": "In het huidige verkooptempo is de voorraad binnen twee weken op (berekening)."
     }
   }
 }
