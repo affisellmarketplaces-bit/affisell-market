@@ -2,6 +2,7 @@ import "server-only"
 
 import { prisma } from "@/lib/prisma"
 import { compareDeclaredWithObserved } from "@/lib/supplier-costs/declared-vs-observed"
+import { entryFromOrderSnapshot } from "@/lib/supplier-costs/observed-cost-register"
 import {
   COST_QUALIFICATION_ACTION,
   currentQualification,
@@ -193,15 +194,25 @@ export async function loadAdminSupplierCostReview(productId: string) {
   const since = new Date(Date.now() - 365 * 86_400_000)
   const orders = await prisma.order.findMany({
     where: { productId, usesAffisellAutoBuy: true, aeWholesaleCents: { gt: 0 }, paidAt: { gte: since } },
-    select: { id: true, paidAt: true, quantity: true, aeWholesaleCents: true },
+    select: { id: true, paidAt: true, quantity: true, aeWholesaleCents: true, currency: true, variantLabel: true },
     orderBy: { paidAt: "desc" },
     take: 500,
   })
-  const comparison = compareDeclaredWithObserved(
-    view.history,
-    orders
-      .filter((o) => o.paidAt && o.aeWholesaleCents)
-      .map((o) => ({ orderId: o.id, paidAt: o.paidAt!, quantity: o.quantity, observedTotalCents: o.aeWholesaleCents!, kind: "order_snapshot" as const }))
-  )
+  const entries = orders
+    .map((o) =>
+      o.paidAt
+        ? entryFromOrderSnapshot({
+            orderId: o.id,
+            productId,
+            paidAt: o.paidAt,
+            quantity: o.quantity,
+            aeWholesaleCents: o.aeWholesaleCents,
+            currency: o.currency,
+            variantLabel: o.variantLabel,
+          })
+        : null
+    )
+    .filter((e): e is NonNullable<typeof e> => e !== null)
+  const comparison = compareDeclaredWithObserved(view.history, entries)
   return { ...view, observed: comparison, observedTruncated: orders.length >= 500 }
 }

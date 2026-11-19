@@ -11,10 +11,12 @@ type Review = {
   history: Array<{ n: number; unitCostCents: number; deliveryCostCents: number; declaredAt: string; qualification: Qualification }>
   supplierPriceCents: number
   observed: {
-    pairs: Array<{ orderId: string; paidAt: string; observedUnitCents: number; declaredUnitCents: number | null; gapCents: number | null }>
+    pairs: Array<{ orderId: string; paidAt: string; observedUnitCents: number; declaredUnitCents: number | null; gapCents: number | null; comparable: boolean; staleDeclaration: boolean }>
     comparable: number
+    notComparable: number
     withoutDeclaration: number
     medianGapCents: number | null
+    blockingReasons: Array<{ reason: string; pairs: number }>
     caveat: string
   }
   observedTruncated: boolean
@@ -106,13 +108,24 @@ export function AdminSupplyCostReviewPanel({ productId }: { productId: string })
         <p className="font-medium">Déclaré ou constaté (jamais fusionnés)</p>
         <p className="text-xs text-zinc-500">{review.observed.caveat}</p>
         <p>
-          {review.observed.comparable} commande(s) comparable(s)
-          {review.observed.withoutDeclaration > 0 ? `, ${review.observed.withoutDeclaration} sans déclaration en vigueur` : ""}
+          {review.observed.comparable} commande(s) comparable(s), {review.observed.notComparable} non comparable(s)
           {review.observedTruncated ? " (lecture tronquée)" : ""}.{" "}
           {review.observed.medianGapCents == null
-            ? "Écart médian : trop peu de commandes pour conclure."
+            ? "Écart médian : non calculé (trop peu de commandes réellement comparables)."
             : `Écart médian (constaté − déclaré, par unité) : ${eur(review.observed.medianGapCents)}.`}
         </p>
+        {review.observed.blockingReasons.length > 0 ? (
+          <ul className="list-disc pl-5 text-xs text-zinc-600 dark:text-zinc-400">
+            {review.observed.blockingReasons.map((r) => (
+              <li key={r.reason}>
+                {r.reason} : {r.pairs} commande(s)
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {review.observed.pairs.some((p) => p.staleDeclaration) ? (
+          <p className="text-xs text-amber-700">Certaines commandes ont été comparées à une déclaration de plus de 180 jours.</p>
+        ) : null}
       </div>
       {review.history.length > 1 ? (
         <ol className="space-y-1 border-t border-zinc-200 pt-3 text-xs text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">

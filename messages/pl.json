@@ -2240,6 +2240,52 @@
       "documentSubmit": "Zgłoś dokument",
       "documentSent": "Dokument zgłoszony.",
       "newDeclarationResets": "Każda nowa deklaracja wraca do statusu „niezweryfikowana”."
+    },
+    "productJourney": {
+      "title": "Droga do sprzedaży",
+      "next": "Następny krok: {step}",
+      "allDone": "Wszystko gotowe: Twój produkt może być sprzedawany.",
+      "steps": {
+        "sheet": "Karta produktu",
+        "safety": "Bezpieczeństwo produktu",
+        "stock": "Stan magazynowy",
+        "commission": "Prowizja sprzedawcy",
+        "publication": "Publikacja",
+        "resellers": "Wybór przez sprzedawców",
+        "sales": "Sprzedaż (30 dni)",
+        "costs": "Koszty zaopatrzenia"
+      },
+      "status": {
+        "done": "gotowe",
+        "todo": "do zrobienia",
+        "blocked": "zablokowane przez Affisell",
+        "waiting": "oczekuje",
+        "optional": "opcjonalne"
+      },
+      "missing": {
+        "name": "nazwa",
+        "photo": "zdjęcie",
+        "category": "kategoria"
+      },
+      "safetyMissing": "{count, plural, one {# brakująca informacja} few {# brakujące informacje} many {# brakujących informacji} other {# brakujących informacji}}",
+      "units": "{count, plural, =0 {brak dostępnych sztuk} one {# sztuka} few {# sztuki} many {# sztuk} other {# sztuk}}",
+      "publication": {
+        "draft": "wersja robocza",
+        "paused": "wstrzymane",
+        "product_recalled": "trwa wycofanie z powodów bezpieczeństwa",
+        "product_suspended": "sprzedaż zawieszona przez Affisell",
+        "product_hold_unverifiable": "chwilowo nie można sprawdzić"
+      },
+      "resellers": "{count, plural, =0 {brak sprzedawców} one {# sprzedawca} few {# sprzedawców} many {# sprzedawców} other {# sprzedawców}}",
+      "sales": "{count, plural, =0 {brak zamówień} one {# zamówienie} few {# zamówienia} many {# zamówień} other {# zamówień}}",
+      "costs": {
+        "unverified": "zadeklarowane, niezweryfikowane",
+        "document_provided": "zgłoszono dokument",
+        "verified": "zweryfikowane przez Affisell",
+        "disputed": "zakwestionowane przez Affisell",
+        "expired": "wygasłe"
+      },
+      "costsNote": "Koszty zaopatrzenia są opcjonalne i poufne: nie warunkują publikacji, ceny ani prowizji."
     }
   },
   "affiliate": {

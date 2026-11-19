@@ -8,6 +8,7 @@ import { DRAFT_CONTRACT_MODELS } from "@/lib/contract-models/drafts"
 import type { SweepLine } from "@/lib/contract-models/sensitivity"
 import type { StoredDeclaration } from "@/lib/supplier-costs/declaration"
 import { compareDeclaredWithObserved } from "@/lib/supplier-costs/declared-vs-observed"
+import { entryFromOrderSnapshot, type ObservedCostEntry } from "@/lib/supplier-costs/observed-cost-register"
 import {
   checkQualificationRequest,
   currentQualification,
@@ -84,7 +85,7 @@ describe("simulations carry the qualification as a warning", () => {
   })
 })
 
-describe("declared vs observed — compared, never merged", () => {
+describe("declared vs observed — only the same perimeter is comparable", () => {
   const decl = (at: string, unit: number): StoredDeclaration => ({
     unitCostCents: unit,
     deliveryCostCents: 300,
@@ -95,28 +96,62 @@ describe("declared vs observed — compared, never merged", () => {
     declaredAt: at,
     declaredBy: "s",
   })
-  const obs = (id: string, at: string, total: number, qty = 1) => ({ orderId: id, paidAt: new Date(at), quantity: qty, observedTotalCents: total, kind: "order_snapshot" as const })
+  const entry = (id: string, at: string, amount: number, o: Partial<ObservedCostEntry> & { perimeter?: Partial<ObservedCostEntry["perimeter"]> } = {}): ObservedCostEntry => ({
+    kind: "charged_amount",
+    orderId: id,
+    productId: "p",
+    quantity: 1,
+    amountCents: amount,
+    source: "supplier_invoice",
+    reliability: "constate",
+    observedAt: new Date(at).toISOString(),
+    note: "",
+    ...o,
+    perimeter: { currency: "EUR", basis: "line", includesDelivery: false, vat: "excluded", variantKey: null, ...(o.perimeter ?? {}) },
+  })
 
-  it("each observation meets the declaration in force at its payment; unit cost against unit cost", () => {
+  it("a stored source price from an order snapshot is NOT comparable today: VAT treatment unknown", () => {
+    const snap = entryFromOrderSnapshot({ orderId: "o", productId: "p", paidAt: new Date("2026-10-15"), quantity: 2, aeWholesaleCents: 2_200, currency: "EUR", variantLabel: null })!
+    expect(snap.perimeter).toEqual({ currency: "EUR", basis: "line", includesDelivery: false, vat: "unknown", variantKey: null })
+    const r = compareDeclaredWithObserved([decl("2026-10-01T00:00:00Z", 1_000)], [snap])
+    expect(r.pairs[0]).toMatchObject({ observedUnitCents: 1_100, comparable: false, gapCents: null })
+    expect(r.pairs[0].reasons).toContain("traitement de la TVA inconnu")
+    expect(r.medianGapCents).toBeNull()
+  })
+
+  it("variants, currency, VAT and delivery differences each block the comparison and are named", () => {
+    const d = [decl("2026-10-01T00:00:00Z", 1_000)]
+    const reasonsOf = (e: ObservedCostEntry) => compareDeclaredWithObserved(d, [e]).pairs[0].reasons
+    expect(reasonsOf(entry("a", "2026-10-02", 900, { perimeter: { variantKey: "Rouge · M" } }))).toEqual(["variantes différentes ou non précisées"])
+    expect(reasonsOf(entry("b", "2026-10-02", 900, { perimeter: { currency: "USD" } }))).toEqual(["devises différentes"])
+    expect(reasonsOf(entry("c", "2026-10-02", 900, { perimeter: { vat: "included" } }))).toEqual(["HT d'un côté, TTC de l'autre"])
+    expect(reasonsOf(entry("d", "2026-10-02", 900, { perimeter: { includesDelivery: true } }))).toEqual(["livraison incluse d'un côté seulement"])
+  })
+
+  it("same perimeter: the declaration in force at payment, line total divided by quantity, median from 3 pairs", () => {
     const r = compareDeclaredWithObserved(
       [decl("2026-10-01T00:00:00Z", 1_000), decl("2026-11-01T00:00:00Z", 1_200)],
-      [obs("a", "2026-09-15T00:00:00Z", 900), obs("b", "2026-10-15T00:00:00Z", 2_200, 2), obs("c", "2026-11-05T00:00:00Z", 1_300), obs("d", "2026-11-06T00:00:00Z", 0)]
+      [
+        entry("before", "2026-09-15", 900),
+        entry("a", "2026-10-02", 1_800, { quantity: 2 }),
+        entry("b", "2026-10-03", 1_100),
+        entry("c", "2026-11-05", 1_500),
+      ]
     )
     expect(r.pairs.map((p) => [p.orderId, p.declaredUnitCents, p.observedUnitCents, p.gapCents])).toEqual([
-      ["a", null, 900, null],
+      ["before", null, 900, null],
+      ["a", 1_000, 900, -100],
       ["b", 1_000, 1_100, 100],
-      ["c", 1_200, 1_300, 100],
+      ["c", 1_200, 1_500, 300],
     ])
-    expect(r.withoutDeclaration).toBe(1)
-    expect(r.medianGapCents).toBeNull() // fewer than 3 comparable
-    expect(r.caveat).toMatch(/jamais fusionnés/)
-  })
-  it("median shown from three comparable observations", () => {
-    const r = compareDeclaredWithObserved([decl("2026-10-01T00:00:00Z", 1_000)], [
-      obs("a", "2026-10-02T00:00:00Z", 900),
-      obs("b", "2026-10-03T00:00:00Z", 1_100),
-      obs("c", "2026-10-04T00:00:00Z", 1_500),
-    ])
+    expect(r.comparable).toBe(3)
     expect(r.medianGapCents).toBe(100)
+    expect(r.blockingReasons).toEqual([{ reason: "aucune déclaration en vigueur à cette date", pairs: 1 }])
+  })
+
+  it("an old declaration is flagged, not hidden", () => {
+    const r = compareDeclaredWithObserved([decl("2026-01-01T00:00:00Z", 1_000)], [entry("a", "2026-10-02", 1_000)])
+    expect(r.pairs[0].staleDeclaration).toBe(true)
+    expect(r.pairs[0].comparable).toBe(true)
   })
 })

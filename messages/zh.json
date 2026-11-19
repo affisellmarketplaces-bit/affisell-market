@@ -2240,6 +2240,52 @@
       "documentSubmit": "告知已提供凭证",
       "documentSent": "已告知凭证。",
       "newDeclarationResets": "每次新的申报都会重新回到“未核实”状态。"
+    },
+    "productJourney": {
+      "title": "销售进程",
+      "next": "下一步：{step}",
+      "allDone": "一切就绪：您的商品可以销售了。",
+      "steps": {
+        "sheet": "商品资料",
+        "safety": "商品安全",
+        "stock": "库存",
+        "commission": "分销商佣金",
+        "publication": "发布",
+        "resellers": "分销商选品",
+        "sales": "销量（30 天）",
+        "costs": "供货成本"
+      },
+      "status": {
+        "done": "已完成",
+        "todo": "待完成",
+        "blocked": "已被 Affisell 冻结",
+        "waiting": "等待中",
+        "optional": "可选"
+      },
+      "missing": {
+        "name": "名称",
+        "photo": "图片",
+        "category": "类目"
+      },
+      "safetyMissing": "{count, plural, other {缺少 # 项信息}}",
+      "units": "{count, plural, =0 {无可用库存} other {# 件}}",
+      "publication": {
+        "draft": "草稿",
+        "paused": "已暂停",
+        "product_recalled": "安全召回进行中",
+        "product_suspended": "Affisell 已暂停销售",
+        "product_hold_unverifiable": "暂时无法核实"
+      },
+      "resellers": "{count, plural, =0 {暂无分销商} other {# 位分销商}}",
+      "sales": "{count, plural, =0 {暂无订单} other {# 笔订单}}",
+      "costs": {
+        "unverified": "已申报，未核实",
+        "document_provided": "已告知提供凭证",
+        "verified": "已由 Affisell 核实",
+        "disputed": "Affisell 有异议",
+        "expired": "已过期"
+      },
+      "costsNote": "供货成本为可选且保密信息：不影响发布、价格或佣金。"
     }
   },
   "affiliate": {

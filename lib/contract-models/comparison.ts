@@ -83,6 +83,9 @@ export function compareModelsOnOrders(models: ReadonlyArray<ContractModel>, reps
         "frais Stripe estimés (2,9 % + 0,25 €), le montant réel n'est pas enregistré",
         "volume de ventes supposé inchangé",
       ]
+      if (needsSource(model) && line.sourceCostKind !== "declared_by_supplier") {
+        hypotheses.push("coût d'achat = prix mémorisé par Affisell (hors livraison, TVA non connue), pas le montant réellement débité")
+      }
       if (needsSource(model) && line.sourceCostKind === "declared_by_supplier") {
         const q = line.costQualification ?? "unverified"
         hypotheses.push(qualificationWarning(q))

@@ -90,6 +90,7 @@ import { SupplierShippingCarriersPicker } from "@/components/supplier/supplier-s
 import { SupplierShippingIncludedNotice } from "@/components/supplier/shipping-included-notice"
 import { ReturnWindowField } from "@/components/supplier/return-window-field"
 import { SupplyCostSection } from "@/components/supplier/supply-cost-section"
+import { ProductJourneyPanel } from "@/components/supplier/product-journey-panel"
 import { variantStockBaselineFromRows } from "@/lib/stock/partner-stock"
 import { CANONICAL_RETURN_WINDOW_LABEL, parseReturnWindowDays, RETURN_WINDOW_KEY } from "@/lib/return-terms"
 import { shippingMethodsFromCarrierIds } from "@/lib/shipping/supplier-carrier-offers-shared"
@@ -407,6 +408,7 @@ export function SupplierAddProductForm({
   const tShippingIncluded = useTranslations("supplier.shippingIncluded")
   const tReturnTerms = useTranslations("supplier.returnTerms")
   const tSupplyCost = useTranslations("supplier.supplyCost")
+  const tJourney = useTranslations("supplier.productJourney")
   const tCompliance = useTranslations("supplier.compliance")
   const tVariantComposer = useTranslations("supplier.variantComposer")
   const locale = useLocale() as "fr" | "en"
@@ -4069,6 +4071,12 @@ export function SupplierAddProductForm({
                     onChange={(next) => setSpecValues((prev) => ({ ...prev, [RETURN_WINDOW_KEY]: next }))}
                   />
                 </SectionCard>
+
+                {editId ? (
+                  <SectionCard id="add-product-journey" icon={ChevronRight} title={tJourney("title")}>
+                    <ProductJourneyPanel productId={editId} />
+                  </SectionCard>
+                ) : null}
 
                 {editId ? (
                   <SectionCard id="add-product-supply-cost" icon={Lock} title={tSupplyCost("title")}>

@@ -1,79 +1,99 @@
 import { declarationInForceAt, type StoredDeclaration } from "@/lib/supplier-costs/declaration"
+import { perimeterMismatches, type CostPerimeter, type ObservedCostEntry } from "@/lib/supplier-costs/observed-cost-register"
 
 /**
- * Preparing the comparison of a DECLARED cost with a cost Affisell has OBSERVED itself — two kinds of figure that are
- * never merged, averaged together or substituted for one another.
- *
- * What counts as "observed" today, and its limit (said on every result):
- *  - `order_snapshot`: `Order.aeWholesaleCents` on an Affisell auto-buy order = the AliExpress price STORED on the
- *    supplier link × quantity, frozen at payment, delivery excluded. It is what Affisell's own record says the source
- *    cost, NOT what the card was really charged (that amount is recorded nowhere yet — see `report:fee-reconciliation`).
- * A future observed kind (the real Issuing capture, a supplier invoice checked by Affisell) can be added to
- * `OBSERVED_KINDS` without changing the comparison.
- *
- * The comparison pairs each observation with the declaration IN FORCE at its payment (never a later one) and compares
- * like with like: the declared UNIT cost against the observed per-unit cost (delivery is not in the snapshot). Pure.
+ * Comparing a DECLARED cost with a cost Affisell OBSERVED (observed-cost-register.ts) — never merged, and only called
+ * "comparable" when both amounts cover EXACTLY the same perimeter: same currency, both per unit, delivery treated the
+ * same way, VAT known and treated the same way, same variant. Any difference or unknown keeps the pair visible with its
+ * reasons and OUT of the median. Dates: each observation meets the declaration in force at its payment (never a later
+ * one); a declaration older than `STALE_DECLARATION_DAYS` at that date is flagged, not hidden. Pure.
  */
-export const OBSERVED_KINDS = ["order_snapshot"] as const
-export type ObservedKind = (typeof OBSERVED_KINDS)[number]
+export const MIN_COMPARABLE = 3
+export const STALE_DECLARATION_DAYS = 180
 
-export type CostObservation = { orderId: string; paidAt: Date; quantity: number; observedTotalCents: number; kind: ObservedKind }
+/** A declaration states one unit's cost, in euros, excluding VAT (the form says HT), delivery apart, product-wide. */
+export function declaredUnitPerimeter(): CostPerimeter {
+  return { currency: "EUR", basis: "unit", includesDelivery: false, vat: "excluded", variantKey: null }
+}
 
 export type PairedObservation = {
   orderId: string
   paidAt: string
-  kind: ObservedKind
+  kind: ObservedCostEntry["kind"]
+  source: ObservedCostEntry["source"]
+  reliability: ObservedCostEntry["reliability"]
   observedUnitCents: number
   declaredUnitCents: number | null
-  /** observed − declared, per unit (null when no declaration was in force at that payment). */
+  comparable: boolean
+  /** Why the pair is not comparable (empty when comparable). */
+  reasons: string[]
+  /** observed − declared per unit — only for a comparable pair. */
   gapCents: number | null
+  declarationAgeDays: number | null
+  staleDeclaration: boolean
 }
 
 export type DeclaredVsObserved = {
   pairs: PairedObservation[]
   comparable: number
+  notComparable: number
   withoutDeclaration: number
-  /** Median of the per-unit gaps (observed − declared). Shown only with ≥ 3 comparable observations. */
   medianGapCents: number | null
-  /** Plain statement of what the numbers are and are not. */
+  /** The reasons that kept pairs out of the comparison, with their counts — what to fix to compare. */
+  blockingReasons: Array<{ reason: string; pairs: number }>
   caveat: string
 }
 
-export const MIN_COMPARABLE = 3
-
 export function compareDeclaredWithObserved(
   declarations: ReadonlyArray<StoredDeclaration>,
-  observations: ReadonlyArray<CostObservation>
+  entries: ReadonlyArray<ObservedCostEntry>
 ): DeclaredVsObserved {
   const pairs: PairedObservation[] = []
-  for (const o of observations) {
-    const qty = Math.max(1, Math.round(o.quantity))
-    if (!(o.observedTotalCents > 0)) continue // an unknown observed cost is not an observation
-    const observedUnit = Math.round(o.observedTotalCents / qty)
-    const d = declarationInForceAt(declarations, o.paidAt)
+  for (const e of entries) {
+    if (e.kind !== "stored_source_price" && e.kind !== "charged_amount") continue // fees and evidence are not a unit cost
+    if (e.amountCents == null || e.amountCents <= 0) continue
+    const qty = Math.max(1, e.quantity)
+    // A line total becomes a unit cost by dividing by the quantity — the only conversion made, and it is exact.
+    const unitPerimeter: CostPerimeter = { ...e.perimeter, basis: "unit" }
+    const observedUnit = e.perimeter.basis === "line" ? Math.round(e.amountCents / qty) : e.amountCents
+    const paidAt = new Date(e.observedAt)
+    const d = declarationInForceAt(declarations, paidAt)
+    const reasons = d ? perimeterMismatches(declaredUnitPerimeter(), unitPerimeter) : ["aucune déclaration en vigueur à cette date"]
+    const age = d ? Math.floor((paidAt.getTime() - Date.parse(d.declaredAt)) / 86_400_000) : null
+    const comparable = d !== null && reasons.length === 0
     pairs.push({
-      orderId: o.orderId,
-      paidAt: o.paidAt.toISOString(),
-      kind: o.kind,
+      orderId: e.orderId,
+      paidAt: e.observedAt,
+      kind: e.kind,
+      source: e.source,
+      reliability: e.reliability,
       observedUnitCents: observedUnit,
       declaredUnitCents: d ? d.unitCostCents : null,
-      gapCents: d ? observedUnit - d.unitCostCents : null,
+      comparable,
+      reasons,
+      gapCents: comparable ? observedUnit - d!.unitCostCents : null,
+      declarationAgeDays: age,
+      staleDeclaration: age !== null && age > STALE_DECLARATION_DAYS,
     })
   }
-  const gaps = pairs.map((p) => p.gapCents).filter((g): g is number => g !== null).sort((a, b) => a - b)
+  const gaps = pairs.filter((p) => p.comparable).map((p) => p.gapCents as number).sort((a, b) => a - b)
   const median =
     gaps.length < MIN_COMPARABLE
       ? null
       : gaps.length % 2 === 1
         ? gaps[(gaps.length - 1) / 2]
         : Math.round((gaps[gaps.length / 2 - 1] + gaps[gaps.length / 2]) / 2)
+  const reasonCounts = new Map<string, number>()
+  for (const p of pairs) for (const r of p.reasons) reasonCounts.set(r, (reasonCounts.get(r) ?? 0) + 1)
   return {
     pairs,
     comparable: gaps.length,
-    withoutDeclaration: pairs.length - gaps.length,
+    notComparable: pairs.filter((p) => !p.comparable).length,
+    withoutDeclaration: pairs.filter((p) => p.declaredUnitCents === null).length,
     medianGapCents: median,
+    blockingReasons: [...reasonCounts.entries()].map(([reason, n]) => ({ reason, pairs: n })).sort((a, b) => b.pairs - a.pairs),
     caveat:
-      "Coût observé = prix d'achat mémorisé par Affisell sur la commande (hors livraison), pas le montant réellement débité. " +
-      "Coût déclaré = chiffre du fournisseur en vigueur au paiement. Les deux sont comparés, jamais fusionnés.",
+      "Un écart n'est calculé que si les deux montants couvrent le même périmètre (devise, unité, livraison, TVA, variante). " +
+      "Prix mémorisé ≠ montant débité. Déclaré et constaté ne sont jamais fusionnés.",
   }
 }
