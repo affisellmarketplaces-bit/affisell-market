@@ -51,6 +51,8 @@ describe("recording a movement", () => {
   it("refuses a card number anywhere, a statement without evidence, a refund without its debit, a future date", () => {
     expect(looksLikeCardNumber("4242 4242 4242 4242")).toBe(true)
     expect(looksLikeCardNumber("ipi_1Q2w3E")).toBe(false)
+    expect(looksLikeCardNumber("ref 4111111111111111 x")).toBe(true)
+    expect(looksLikeCardNumber("1731990000002")).toBe(false) // a 13-digit timestamp-like id that fails Luhn is kept
     expect(parseDebitInput({ ...base, sourceReference: "4242-4242-4242-4242" }, now)).toMatchObject({ ok: false, errors: ["reference_looks_like_card_number"] })
     expect(parseDebitInput({ ...base, source: "bank_statement" }, now)).toMatchObject({ ok: false, errors: ["evidence_required"] })
     expect(parseDebitInput({ ...base, source: "bank_statement", evidence: [{ type: "statement_line", description: "relevé 4242424242424242" }] }, now)).toMatchObject({

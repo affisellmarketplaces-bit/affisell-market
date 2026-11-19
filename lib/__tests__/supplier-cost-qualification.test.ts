@@ -122,7 +122,7 @@ describe("declared vs observed — only the same perimeter is comparable", () =>
   it("variants, currency, VAT and delivery differences each block the comparison and are named", () => {
     const d = [decl("2026-10-01T00:00:00Z", 1_000)]
     const reasonsOf = (e: ObservedCostEntry) => compareDeclaredWithObserved(d, [e]).pairs[0].reasons
-    expect(reasonsOf(entry("a", "2026-10-02", 900, { perimeter: { variantKey: "Rouge · M" } }))).toEqual(["variantes différentes ou non précisées"])
+    expect(reasonsOf(entry("a", "2026-10-02", 900, { perimeter: { variantKey: "Rouge · M" } }))).toEqual(["déclaration globale du produit, observation d'une variante précise"])
     expect(reasonsOf(entry("b", "2026-10-02", 900, { perimeter: { currency: "USD" } }))).toEqual(["devises différentes"])
     expect(reasonsOf(entry("c", "2026-10-02", 900, { perimeter: { vat: "included" } }))).toEqual(["HT d'un côté, TTC de l'autre"])
     expect(reasonsOf(entry("d", "2026-10-02", 900, { perimeter: { includesDelivery: true } }))).toEqual(["livraison incluse d'un côté seulement"])

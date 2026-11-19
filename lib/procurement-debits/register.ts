@@ -57,9 +57,33 @@ export type DebitInput = {
 const MAX_CENTS = 100_000_000 // 1 000 000 € for one movement: above is a typo, refused.
 const EARLIEST = Date.parse("2020-01-01T00:00:00.000Z")
 
-/** 13–19 digits in a row (spaces / dashes ignored): the shape of a card number. Fails closed. */
+function luhnValid(digits: string): boolean {
+  let sum = 0
+  for (let i = 0; i < digits.length; i++) {
+    let d = Number(digits[digits.length - 1 - i])
+    if (i % 2 === 1) {
+      d *= 2
+      if (d > 9) d -= 9
+    }
+    sum += d
+  }
+  return sum % 10 === 0
+}
+
+/**
+ * A run of 13–19 digits (spaces / dashes ignored) that passes the Luhn check card numbers carry — every window of the
+ * run is tested, so a card number hidden in a longer reference is caught. Long digit references that are NOT card
+ * numbers (bank transaction ids, timestamps) mostly fail Luhn and are kept; about 1 in 10 would be refused — the admin
+ * then types the reference with a separator or the last digits only. Fails closed on doubt.
+ */
 export function looksLikeCardNumber(text: string): boolean {
-  return /\d{13,19}/.test(text.replace(/[\s-]/g, ""))
+  const compact = text.replace(/[\s-]/g, "")
+  for (const run of compact.match(/\d{13,}/g) ?? []) {
+    for (let len = 13; len <= 19; len++) {
+      for (let i = 0; i + len <= run.length; i++) if (luhnValid(run.slice(i, i + len))) return true
+    }
+  }
+  return false
 }
 
 const str = (v: unknown, max: number): string | null => (typeof v === "string" ? v.trim().slice(0, max) : null)

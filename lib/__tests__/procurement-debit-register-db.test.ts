@@ -37,7 +37,7 @@ function statements(sql: string): string[] {
 }
 
 const MIGRATION = path.join(process.cwd(), "prisma/migrations/20261119090000_procurement_debit_register/migration.sql")
-const stamp = `${Date.now()}${Math.random().toString(36).slice(2, 7)}`
+const stamp = `t${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`
 const now = new Date()
 
 describe.skipIf(!RUN_DB)("procurement debit register — real database", { timeout: 120_000 }, () => {
