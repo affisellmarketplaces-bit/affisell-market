@@ -9680,7 +9680,16 @@
       "confirmationScope": "The quantity confirmation covers the whole sheet.",
       "fixTrack": "Track stock per variant in the sheet",
       "fixRows": "Update the variant's quantity",
-      "note": "Observed sales and calculations are kept apart. A sold-out variant is not presented as lost sales: no missed sale is tied to a variant in Affisell's data. No reseller name is shown."
+      "note": "Observed sales and calculations are kept apart. A sold-out variant is not presented as lost sales: no missed sale is tied to a variant in Affisell's data. No reseller name is shown.",
+      "waitingBuyers": "{count, plural, one {# buyer waiting for it} other {# buyers waiting for it}}"
+    },
+    "restockDemand": {
+      "title": "Buyers waiting for a restock",
+      "subtitle": "Sold-out variants for which at least {min} distinct buyers asked to be told when they are back.",
+      "buyers": "{count, plural, one {# buyer is} other {# buyers are}} waiting for it",
+      "fix": "Update the quantity",
+      "truncated": "Very large catalogue: only part of the products was examined.",
+      "disclaimer": "Explicit buyer requests, counted once per buyer and per variant. An indication of real demand, not a sales forecast: a notified buyer may not buy."
     }
   },
   "nextActions": {

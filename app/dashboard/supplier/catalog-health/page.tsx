@@ -1,4 +1,5 @@
 import { BlockedDemandSection } from "@/components/supplier/blocked-demand-section"
+import { RestockDemandSection } from "@/components/supplier/restock-demand-section"
 import { CatalogHealthPanel } from "@/components/supplier/catalog-health-panel"
 import { StockoutForecastSection } from "@/components/supplier/stockout-forecast-section"
 import { VariantStockSection } from "@/components/supplier/variant-stock-section"
@@ -15,6 +16,7 @@ export default async function SupplierCatalogHealthPage() {
       <NextActionsCard role="supplier" />
       <BlockedDemandSection />
       <StockoutForecastSection />
+      <RestockDemandSection />
       <VariantStockSection />
       <CatalogHealthPanel />
     </main>

@@ -255,9 +255,10 @@ describe("variants kept in the separate ProductVariant table (§2)", () => {
     }
   }
 
-  it("the table is read with the SAME rule; a size alone keeps its size slot; advanced rows win when present", () => {
+  it("the table is read with the SAME rule and the SAME names as the product page; advanced rows win when present", () => {
     expect(resolveVariantChoice(variantsFromTable(table), { color: "Noir", size: "L" })).toMatchObject({ kind: "resolved", index: 1 })
-    expect(resolveVariantChoice(variantsFromTable([{ size: "M", stock: 1 }, { size: "L", stock: 1 }]), { size: "L" })).toMatchObject({ kind: "resolved", index: 1 })
+    // A size-only table row is named « L » on the product page, which sends it as the first option.
+    expect(resolveVariantChoice(variantsFromTable([{ size: "M", stock: 1 }, { size: "L", stock: 1 }]), { color: "L" })).toMatchObject({ kind: "resolved", index: 1 })
     expect(resolveVariantChoice(variantsFromTable(phoneTable), { color: "Noir", size: "256 Go" })).toMatchObject({ kind: "resolved", index: 1 })
     expect(rowsForChoice(tee, table)).toBe(tee)
     expect(variantsFromTable([])).toBeNull()

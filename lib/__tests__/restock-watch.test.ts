@@ -263,10 +263,17 @@ describe("notification run", () => {
     vi.stubEnv("RESTOCK_WATCH_MODE", "observe")
     setStock({ noirM: 4, noirL: 3 })
     const run = await runRestockWatchNotify(later)
-    expect(run).toMatchObject({ mode: "observe", wouldNotify: 1, notified: 0 })
+    expect(run).toMatchObject({ mode: "observe", wouldNotify: 1, wouldNotifyNew: 1, notified: 0, activeBuyers: 1, activeVariants: 1 })
+    // Seen again on the next run: still « would notify », but no NEW theoretical push (enforce sends once per request).
+    expect(await runRestockWatchNotify(later)).toMatchObject({ wouldNotify: 1, wouldNotifyNew: 0, notified: 0 })
     expect(db.sent).toEqual([])
     expect((await listRestockWatches("u1"))[0]!.state).toBe("active")
     expect([...db.audit.keys()].some((k) => k.startsWith("restock-watch-observation:"))).toBe(true)
+    // Observing never uses up the real send claim: switching to enforce still sends it, exactly once.
+    vi.stubEnv("RESTOCK_WATCH_MODE", "enforce")
+    await runRestockWatchNotify(later)
+    await runRestockWatchNotify(later)
+    expect(db.sent).toHaveLength(1)
   })
 
   it("a buyer with no push subscription left gets nothing and the request keeps waiting", async () => {

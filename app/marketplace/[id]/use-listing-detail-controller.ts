@@ -304,6 +304,20 @@ export function useListingDetailController(props: ListingDetailProps) {
     )
     return r.kind !== "incomplete" && r.kind !== "unknown"
   }, [variants, selectedColor, cartSelectedSize, cartSelectedStorage, safeCustomColumns])
+  /**
+   * Stock of the ONE variant the choice names (shared rule), or null when it names none / several. The restock request
+   * is offered only for a sold-out variant found this way — never an unknown or available one shown as sold out.
+   */
+  const exactVariantStock = useMemo(() => {
+    const r = resolveVariantChoice(
+      variants,
+      { color: selectedColor, size: cartSelectedSize ?? null, storage: cartSelectedStorage ?? null },
+      safeCustomColumns
+    )
+    if (r.kind !== "resolved") return null
+    const n = Number(variants?.variantRows?.[r.index]?.stock)
+    return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0
+  }, [variants, selectedColor, cartSelectedSize, cartSelectedStorage, safeCustomColumns])
 
   const safeImageIndex = Math.min(Math.max(0, selectedImage), Math.max(0, images.length - 1))
 
@@ -807,7 +821,7 @@ export function useListingDetailController(props: ListingDetailProps) {
     safeCustomColumns,
     // « Prévenez-moi au retour » — offered only for ONE exact variant (held as rows) that is sold out right now.
     restockWatch:
-      hasVariantRows && variantChoiceComplete && availableStock <= 0
+      hasVariantRows && exactVariantStock === 0
         ? { listingId, color: selectedColor ?? null, size: cartSelectedSize ?? null, storage: cartSelectedStorage ?? null }
         : null,
   }

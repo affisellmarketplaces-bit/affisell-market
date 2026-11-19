@@ -9680,7 +9680,16 @@
       "confirmationScope": "De bevestiging van de hoeveelheid geldt voor de hele fiche.",
       "fixTrack": "Voorraad per variant volgen in de fiche",
       "fixRows": "Hoeveelheid van de variant bijwerken",
-      "note": "Vastgestelde verkopen en berekeningen staan apart. Een uitverkochte variant wordt niet voorgesteld als verloren verkopen: in de gegevens van Affisell is geen gemiste verkoop aan een variant gekoppeld. Er wordt geen naam van een wederverkoper getoond."
+      "note": "Vastgestelde verkopen en berekeningen staan apart. Een uitverkochte variant wordt niet voorgesteld als verloren verkopen: in de gegevens van Affisell is geen gemiste verkoop aan een variant gekoppeld. Er wordt geen naam van een wederverkoper getoond.",
+      "waitingBuyers": "{count, plural, one {# koper wacht erop} other {# kopers wachten erop}}"
+    },
+    "restockDemand": {
+      "title": "Kopers die wachten op aanvulling",
+      "subtitle": "Uitverkochte varianten waarvoor minstens {min} verschillende kopers een melding bij terugkeer vroegen.",
+      "buyers": "{count, plural, one {# koper wacht} other {# kopers wachten}} erop",
+      "fix": "Hoeveelheid bijwerken",
+      "truncated": "Zeer grote catalogus: slechts een deel van de producten is bekeken.",
+      "disclaimer": "Uitdrukkelijke verzoeken van kopers, één keer geteld per koper en variant. Een aanwijzing van echte vraag, geen verkoopprognose: een gewaarschuwde koper koopt niet altijd."
     }
   },
   "nextActions": {

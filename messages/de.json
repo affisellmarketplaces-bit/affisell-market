@@ -9680,7 +9680,16 @@
       "confirmationScope": "Die Mengenbestätigung gilt für das gesamte Produktblatt.",
       "fixTrack": "Bestand je Variante im Produktblatt erfassen",
       "fixRows": "Menge der Variante aktualisieren",
-      "note": "Festgestellte Verkäufe und Berechnungen sind getrennt. Eine ausverkaufte Variante wird nicht als verlorene Verkäufe dargestellt: In den Daten von Affisell ist kein verpasster Verkauf einer Variante zugeordnet. Es wird kein Wiederverkäufername angezeigt."
+      "note": "Festgestellte Verkäufe und Berechnungen sind getrennt. Eine ausverkaufte Variante wird nicht als verlorene Verkäufe dargestellt: In den Daten von Affisell ist kein verpasster Verkauf einer Variante zugeordnet. Es wird kein Wiederverkäufername angezeigt.",
+      "waitingBuyers": "{count, plural, one {# Käufer wartet darauf} other {# Käufer warten darauf}}"
+    },
+    "restockDemand": {
+      "title": "Käufer, die auf Nachschub warten",
+      "subtitle": "Ausverkaufte Varianten, für die mindestens {min} verschiedene Käufer benachrichtigt werden möchten.",
+      "buyers": "{count, plural, one {# Käufer wartet} other {# Käufer warten}} darauf",
+      "fix": "Menge aktualisieren",
+      "truncated": "Sehr großer Katalog: nur ein Teil der Produkte wurde geprüft.",
+      "disclaimer": "Ausdrückliche Käuferanfragen, einmal pro Käufer und Variante gezählt. Ein Hinweis auf echte Nachfrage, keine Verkaufsprognose: ein benachrichtigter Käufer kauft nicht unbedingt."
     }
   },
   "nextActions": {

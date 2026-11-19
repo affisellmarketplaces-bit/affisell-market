@@ -9680,7 +9680,16 @@
       "confirmationScope": "Potwierdzenie ilości dotyczy całej karty.",
       "fixTrack": "Śledź zapas według wariantu w karcie",
       "fixRows": "Zaktualizuj ilość wariantu",
-      "note": "Stwierdzona sprzedaż i obliczenia są oddzielone. Wyczerpany wariant nie jest przedstawiany jako utracona sprzedaż: w danych Affisell żadna nieudana sprzedaż nie jest przypisana do wariantu. Nie jest wyświetlana żadna nazwa sprzedawcy."
+      "note": "Stwierdzona sprzedaż i obliczenia są oddzielone. Wyczerpany wariant nie jest przedstawiany jako utracona sprzedaż: w danych Affisell żadna nieudana sprzedaż nie jest przypisana do wariantu. Nie jest wyświetlana żadna nazwa sprzedawcy.",
+      "waitingBuyers": "{count, plural, one {# kupujący czeka na powrót} few {# kupujących czeka na powrót} many {# kupujących czeka na powrót} other {# kupującego czeka na powrót}}"
+    },
+    "restockDemand": {
+      "title": "Kupujący czekający na uzupełnienie",
+      "subtitle": "Wyprzedane warianty, dla których co najmniej {min} różnych kupujących poprosiło o powiadomienie o powrocie.",
+      "buyers": "{count, plural, one {# kupujący czeka} few {# kupujących czeka} many {# kupujących czeka} other {# kupującego czeka}} na powrót",
+      "fix": "Zaktualizuj ilość",
+      "truncated": "Bardzo duży katalog: sprawdzono tylko część produktów.",
+      "disclaimer": "Wyraźne prośby kupujących, liczone raz na kupującego i wariant. To wskazówka rzeczywistego popytu, nie prognoza sprzedaży: powiadomiony kupujący może nie kupić."
     }
   },
   "nextActions": {

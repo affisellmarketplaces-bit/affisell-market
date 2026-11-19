@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 
+import type { RestockDemandProduct } from "@/lib/restock-watch/restock-demand"
 import type { VariantProductVerdict } from "@/lib/supplier-catalog-health/variant-stockout"
 
 /**
@@ -15,12 +16,22 @@ export function VariantStockSection() {
   const t = useTranslations("catalogHealth.variantStock")
   const tRisk = useTranslations("catalogHealth.stockout.risk")
   const [data, setData] = useState<{ items: VariantProductVerdict[]; truncated: boolean } | null>(null)
+  // Explicit « Prévenez-moi au retour » demand (≥ 3 distinct buyers), shown beside the sold-out variant it concerns.
+  const [waiting, setWaiting] = useState<Map<string, number>>(new Map())
 
   useEffect(() => {
     void fetch("/api/supplier/variant-stock", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => setData(d && Array.isArray(d.items) ? d : { items: [], truncated: false }))
       .catch(() => setData({ items: [], truncated: false }))
+    void fetch("/api/supplier/restock-demand", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { products?: RestockDemandProduct[] } | null) => {
+        const m = new Map<string, number>()
+        for (const p of d?.products ?? []) for (const v of p.variants) m.set(`${p.productId}\u0000${v.variantLabel.trim().toLowerCase()}`, v.buyers)
+        setWaiting(m)
+      })
+      .catch(() => undefined)
   }, [])
 
   if (!data) return null
@@ -59,7 +70,14 @@ export function VariantStockSection() {
                     <tbody>
                       {p.variants.map((v, i) => (
                         <tr key={`${v.label}:${i}`} className="border-t border-zinc-100 align-top">
-                          <td className="py-1 pr-2 font-medium">{v.label}</td>
+                          <td className="py-1 pr-2 font-medium">
+                            {v.label}
+                            {waiting.get(`${p.productId}\u0000${v.label.trim().toLowerCase()}`) ? (
+                              <div className="font-normal text-sky-700">
+                                {t("waitingBuyers", { count: waiting.get(`${p.productId}\u0000${v.label.trim().toLowerCase()}`) ?? 0 })}
+                              </div>
+                            ) : null}
+                          </td>
                           <td className="py-1 pr-2">{v.declaredUnits === null ? t("unknown") : v.declaredUnits}</td>
                           <td className="py-1 pr-2">
                             {v.ambiguous

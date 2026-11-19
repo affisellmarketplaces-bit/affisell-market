@@ -222,6 +222,7 @@ export function variantsFromTable(table: ReadonlyArray<TableVariant> | null | un
   skuCustomColumns: Array<{ key: string; label: string }>
 } | null {
   if (!table || table.length === 0) return null
+  const storageCol = asColumns(customColumns).find((c) => isStorageCustomColumn(c))?.key ?? null
   const variantRows = table.map((v) => {
     const color = (v.color ?? "").trim()
     const size = (v.size ?? "").trim()
@@ -232,7 +233,13 @@ export function variantsFromTable(table: ReadonlyArray<TableVariant> | null | un
       }
     }
     const stock = Number(v.stock)
-    return { name: size ? `${color} / ${size}` : color, stock: Number.isFinite(stock) ? Math.max(0, Math.round(stock)) : 0, attrs }
+    // SAME naming as the product page and the reseller boutique (`variantsWithProductVariantRows`): « colour / size »,
+    // else the one value present, else the capacity, else « Default ». A size-only variant is therefore named « M »
+    // there, and the shopper's choice arrives as that name — judging it under another name made a valid choice
+    // « unknown » at checkout and for « Prévenez-moi au retour » (parity pinned by `variant-table-parity.test.ts`).
+    const storageVal = storageCol ? (attrs[storageCol] ?? "") : ""
+    const name = (color && size ? `${color} / ${size}` : color || size) || storageVal || "Default"
+    return { name, stock: Number.isFinite(stock) ? Math.max(0, Math.round(stock)) : 0, attrs }
   })
   return { variantRows, skuCustomColumns: asColumns(customColumns) }
 }

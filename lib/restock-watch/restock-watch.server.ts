@@ -17,6 +17,10 @@ import {
   RESTOCK_WATCH_ACTION,
   RESTOCK_WATCH_MAX_ACTIVE,
   RESTOCK_WATCH_OBSERVATION_ACTION,
+  RESTOCK_WATCH_OBSERVED_ACTION,
+  restockWatchObservedId,
+  summarizeRestockObservations,
+  type RestockObservationReport,
   RESTOCK_WATCH_SENT_ACTION,
   restockWatchId,
   restockWatchObservationId,
@@ -194,7 +198,10 @@ export async function runRestockWatchNotify(now = new Date()): Promise<RestockWa
     day: now.toISOString().slice(0, 10),
     mode,
     active: 0,
+    activeBuyers: 0,
+    activeVariants: 0,
     wouldNotify: 0,
+    wouldNotifyNew: 0,
     notified: 0,
     noChannel: 0,
     raced: 0,
@@ -215,6 +222,8 @@ export async function runRestockWatchNotify(now = new Date()): Promise<RestockWa
     .map((r) => ({ id: r.id, watch: parseRestockWatch(r.payload) }))
     .filter((r): r is { id: string; watch: RestockWatch } => r.watch !== null)
   run.active = watches.length
+  run.activeBuyers = new Set(watches.map((w) => w.watch.userId)).size
+  run.activeVariants = new Set(watches.map((w) => `${w.watch.listingId}\u0000${w.watch.variantKey}`)).size
   if (watches.length === 0) return run
 
   const listingIds = [...new Set(watches.map((w) => w.watch.listingId))]
@@ -246,7 +255,27 @@ export async function runRestockWatchNotify(now = new Date()): Promise<RestockWa
     }
     if (decision.action !== "notify") continue
     run.wouldNotify++
-    if (mode !== "enforce") continue
+    if (mode !== "enforce") {
+      try {
+        const marked = await prisma.auditLog.createMany({
+          data: [
+            {
+              id: restockWatchObservedId(id, watch.episode),
+              action: RESTOCK_WATCH_OBSERVED_ACTION,
+              entityType: "AffiliateProduct",
+              entityId: watch.listingId,
+              actorId: null,
+              payload: { episode: watch.episode },
+            },
+          ],
+          skipDuplicates: true,
+        })
+        run.wouldNotifyNew += marked.count
+      } catch (error) {
+        console.error("[restock-watch] observed_marker_failed", error instanceof Error ? error.message : "unknown")
+      }
+      continue
+    }
     if ((await prisma.pushSubscription.count({ where: { userId: watch.userId } })) === 0) {
       run.noChannel++
       continue
@@ -272,6 +301,7 @@ export async function runRestockWatchNotify(now = new Date()): Promise<RestockWa
       skipDuplicates: true,
     })
     if (claimed.count === 1) {
+      run.wouldNotifyNew++
       const locale = isAppLocale(watch.locale) ? watch.locale : "fr"
       const t = createTranslator({ locale, messages: loadAppMessages(locale), namespace: "restockWatch", timeZone: "Europe/Paris" }) as unknown as (
         key: string,
@@ -315,3 +345,23 @@ export async function runRestockWatchNotify(now = new Date()): Promise<RestockWa
 }
 
 export type { RestockWatchMode }
+
+/** ADMIN read: daily snapshots + theoretical (observed markers) and real (send claims) counts, apart. Counts only. */
+export async function loadRestockWatchObservations(days = 30, now = new Date()): Promise<RestockObservationReport & { mode: RestockWatchMode }> {
+  const span = Math.min(Math.max(1, Math.round(days)), 90)
+  const since = new Date(now.getTime() - span * 86_400_000)
+  const dayOf = (d: Date) => d.toISOString().slice(0, 10)
+  const [snapshots, observed, sent] = await Promise.all([
+    prisma.auditLog.findMany({ where: { action: RESTOCK_WATCH_OBSERVATION_ACTION, createdAt: { gte: since } }, select: { entityId: true, payload: true }, take: 200 }),
+    prisma.auditLog.findMany({ where: { action: RESTOCK_WATCH_OBSERVED_ACTION, createdAt: { gte: since } }, select: { createdAt: true }, take: 50_000 }),
+    prisma.auditLog.findMany({ where: { action: RESTOCK_WATCH_SENT_ACTION, createdAt: { gte: since } }, select: { createdAt: true }, take: 50_000 }),
+  ])
+  return {
+    mode: readRestockWatchMode(),
+    ...summarizeRestockObservations({
+      snapshots: snapshots.map((s) => ({ day: s.entityId ?? "", payload: s.payload })).filter((s) => s.day),
+      observedMarkerDays: observed.map((o) => dayOf(o.createdAt)),
+      sentClaimDays: sent.map((o) => dayOf(o.createdAt)),
+    }),
+  }
+}

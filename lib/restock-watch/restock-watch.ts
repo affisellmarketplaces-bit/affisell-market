@@ -55,6 +55,16 @@ export function restockWatchSentId(watchId: string, episode: number): string {
   return `${watchId}:sent:${episode}`
 }
 
+/**
+ * Observe mode: one marker per request episode the FIRST time it would have been sent — a DIFFERENT id from the real
+ * send claim, so observing never uses up a future notification. The markers created on a day = exactly the pushes
+ * `enforce` would have sent that day (theoretical, never a sent notification).
+ */
+export function restockWatchObservedId(watchId: string, episode: number): string {
+  return `${watchId}:observed:${episode}`
+}
+export const RESTOCK_WATCH_OBSERVED_ACTION = "buyer.restock_watch_observed"
+
 export function restockWatchObservationId(now: Date): string {
   return `restock-watch-observation:${now.toISOString().slice(0, 10)}`
 }
@@ -149,11 +159,65 @@ export function decideRestockWatch(args: {
 export type RestockWatchObservation = {
   day: string
   mode: RestockWatchMode
+  /** Active requests read by this run, distinct buyers among them, distinct exact variants (listing × variant). */
   active: number
+  activeBuyers: number
+  activeVariants: number
+  /** Requests whose variant is really back at this run (theoretical: not a sent notification). */
   wouldNotify: number
+  /** Of them, first time seen back (observe: observed markers created) = what `enforce` would have sent now. */
+  wouldNotifyNew: number
+  /** Pushes REALLY handed to Web Push by this run (enforce only; always 0 otherwise). */
   notified: number
+  /** Would notify, but the buyer has no push subscription left: nothing could be sent. */
   noChannel: number
   raced: number
   closed: Record<string, number>
   kept: Record<string, number>
+}
+
+export type RestockObservationDay = {
+  day: string
+  /** Snapshot of the day's first run (counts only), or null when no run recorded that day. */
+  snapshot: Pick<RestockWatchObservation, "mode" | "active" | "activeBuyers" | "activeVariants"> | null
+  /** Theoretical: requests seen back for the first time that day (observe markers). */
+  wouldNotifyNew: number
+  /** Real: send claims taken that day (enforce). Never added to the theoretical count. */
+  sent: number
+}
+
+export type RestockObservationReport = {
+  days: RestockObservationDay[]
+  totals: { wouldNotifyNew: number; sent: number }
+  reading: "no_data" | "too_few_days" | "observed"
+}
+
+/** Admin reading of the measurements. Theoretical and real counts are two separate columns, never summed. */
+export function summarizeRestockObservations(args: {
+  snapshots: ReadonlyArray<{ day: string; payload: unknown }>
+  observedMarkerDays: ReadonlyArray<string>
+  sentClaimDays: ReadonlyArray<string>
+}): RestockObservationReport {
+  const byDay = new Map<string, RestockObservationDay>()
+  const day = (d: string) => {
+    const cur = byDay.get(d) ?? { day: d, snapshot: null, wouldNotifyNew: 0, sent: 0 }
+    byDay.set(d, cur)
+    return cur
+  }
+  for (const s of args.snapshots) {
+    const p = (s.payload ?? {}) as Partial<RestockWatchObservation>
+    const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0)
+    day(s.day).snapshot = {
+      mode: p.mode === "observe" || p.mode === "enforce" ? p.mode : "off",
+      active: n(p.active),
+      activeBuyers: n(p.activeBuyers),
+      activeVariants: n(p.activeVariants),
+    }
+  }
+  for (const d of args.observedMarkerDays) day(d).wouldNotifyNew++
+  for (const d of args.sentClaimDays) day(d).sent++
+  const days = [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day))
+  const totals = days.reduce((t, d) => ({ wouldNotifyNew: t.wouldNotifyNew + d.wouldNotifyNew, sent: t.sent + d.sent }), { wouldNotifyNew: 0, sent: 0 })
+  const recorded = days.filter((d) => d.snapshot !== null).length
+  return { days, totals, reading: recorded === 0 ? "no_data" : recorded < 7 ? "too_few_days" : "observed" }
 }

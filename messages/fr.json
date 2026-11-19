@@ -9680,7 +9680,16 @@
       "confirmationScope": "La confirmation de quantité porte sur la fiche entière.",
       "fixTrack": "Suivre le stock par déclinaison dans la fiche",
       "fixRows": "Mettre à jour la quantité de la déclinaison",
-      "note": "Ventes constatées et calculs sont distincts. Une déclinaison épuisée n'est pas présentée comme des ventes perdues : aucune vente manquée n'est rattachée à une déclinaison dans les données d'Affisell. Aucun nom de revendeur n'est affiché."
+      "note": "Ventes constatées et calculs sont distincts. Une déclinaison épuisée n'est pas présentée comme des ventes perdues : aucune vente manquée n'est rattachée à une déclinaison dans les données d'Affisell. Aucun nom de revendeur n'est affiché.",
+      "waitingBuyers": "{count, plural, one {# acheteur attend son retour} other {# acheteurs attendent son retour}}"
+    },
+    "restockDemand": {
+      "title": "Acheteurs qui attendent un retour en stock",
+      "subtitle": "Déclinaisons épuisées pour lesquelles au moins {min} acheteurs distincts ont demandé à être prévenus de leur retour.",
+      "buyers": "{count, plural, one {# acheteur attend} other {# acheteurs attendent}} son retour",
+      "fix": "Mettre à jour la quantité",
+      "truncated": "Catalogue très large : seule une partie des produits a été examinée.",
+      "disclaimer": "Demandes explicites d'acheteurs, comptées une fois par acheteur et par déclinaison. C'est une indication de demande réelle, pas une prévision de ventes : un acheteur prévenu peut ne pas acheter."
     }
   },
   "nextActions": {

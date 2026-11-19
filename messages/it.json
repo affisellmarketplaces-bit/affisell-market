@@ -9680,7 +9680,16 @@
       "confirmationScope": "La conferma della quantità riguarda l'intera scheda.",
       "fixTrack": "Traccia lo stock per variante nella scheda",
       "fixRows": "Aggiorna la quantità della variante",
-      "note": "Vendite constatate e calcoli sono separati. Una variante esaurita non è presentata come vendite perse: nessuna vendita mancata è collegata a una variante nei dati di Affisell. Non viene mostrato alcun nome di rivenditore."
+      "note": "Vendite constatate e calcoli sono separati. Una variante esaurita non è presentata come vendite perse: nessuna vendita mancata è collegata a una variante nei dati di Affisell. Non viene mostrato alcun nome di rivenditore.",
+      "waitingBuyers": "{count, plural, one {# acquirente attende il rientro} other {# acquirenti attendono il rientro}}"
+    },
+    "restockDemand": {
+      "title": "Acquirenti in attesa di un riassortimento",
+      "subtitle": "Varianti esaurite per cui almeno {min} acquirenti distinti hanno chiesto di essere avvisati del rientro.",
+      "buyers": "{count, plural, one {# acquirente attende} other {# acquirenti attendono}} il rientro",
+      "fix": "Aggiorna la quantità",
+      "truncated": "Catalogo molto ampio: è stata esaminata solo una parte dei prodotti.",
+      "disclaimer": "Richieste esplicite di acquirenti, contate una volta per acquirente e variante. Un'indicazione di domanda reale, non una previsione di vendite: un acquirente avvisato può non acquistare."
     }
   },
   "nextActions": {

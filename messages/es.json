@@ -9680,7 +9680,16 @@
       "confirmationScope": "La confirmación de cantidad cubre toda la ficha.",
       "fixTrack": "Seguir el stock por variante en la ficha",
       "fixRows": "Actualizar la cantidad de la variante",
-      "note": "Las ventas constatadas y los cálculos están separados. Una variante agotada no se presenta como ventas perdidas: ninguna venta fallida está ligada a una variante en los datos de Affisell. No se muestra ningún nombre de revendedor."
+      "note": "Las ventas constatadas y los cálculos están separados. Una variante agotada no se presenta como ventas perdidas: ninguna venta fallida está ligada a una variante en los datos de Affisell. No se muestra ningún nombre de revendedor.",
+      "waitingBuyers": "{count, plural, one {# comprador espera su vuelta} other {# compradores esperan su vuelta}}"
+    },
+    "restockDemand": {
+      "title": "Compradores que esperan una reposición",
+      "subtitle": "Variantes agotadas para las que al menos {min} compradores distintos pidieron un aviso de vuelta.",
+      "buyers": "{count, plural, one {# comprador espera} other {# compradores esperan}} su vuelta",
+      "fix": "Actualizar la cantidad",
+      "truncated": "Catálogo muy amplio: solo se examinó una parte de los productos.",
+      "disclaimer": "Solicitudes explícitas de compradores, contadas una vez por comprador y variante. Una indicación de demanda real, no una previsión de ventas: un comprador avisado puede no comprar."
     }
   },
   "nextActions": {
