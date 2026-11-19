@@ -221,7 +221,7 @@ describe("supplier blocked-demand alerts — the real run", () => {
   it("a paid line that failed for lack of stock is real demand, even without earlier orders", async () => {
     db.products.push(product("p7", "v", 0))
     db.listings.set("p7", 1)
-    db.audit.set("trace", { id: "trace", action: "payment.unallocated_line", payload: { productId: "p7", reason: "insufficient_stock" }, createdAt: day1 })
+    db.audit.set("trace", { id: "trace", action: "payment.unallocated_line", payload: { productId: "p7", reason: "insufficient_stock", checkoutSessionId: "cs_7", paymentIntentId: "pi_7" }, createdAt: day1 })
     await runSupplierBlockedDemandAlerts(day1)
     const view = await loadSupplierBlockedDemand("v", day1)
     expect(view.items).toHaveLength(1)

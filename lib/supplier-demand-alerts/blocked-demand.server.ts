@@ -239,7 +239,7 @@ export async function loadSupplierBlockedDemand(supplierId: string, now = new Da
     const st = snap.states.get(episodeStateId(p.row.id))
     sinceOf.set(p.row.id, st?.open ? new Date(st.since) : null)
   }
-  const facts = await demandFacts(unavailable.map((p) => p.row.id), sinceOf, now)
+  const { facts } = await demandFacts(unavailable.map((p) => p.row.id), sinceOf, now)
   return { items: alertsFrom(snap, facts, sinceOf, now), truncated: snap.truncated }
 }
 
