@@ -9481,6 +9481,35 @@
         "title": "Hoeveelheid te bevestigen",
         "why": "Geïmporteerd zonder hoeveelheid van de bron: voorraad 0 en publicatie geweigerd tot u de echt beschikbare hoeveelheid invult."
       }
+    },
+    "availability": {
+      "title": "Beschikbaarheid in de winkels van je wederverkopers",
+      "none": "Geen van je producten die wederverkopers aanbieden heeft een beschikbaarheidsprobleem.",
+      "summaryBlocked": "{products, plural, one {# product kan niet gekocht worden} other {# producten kunnen niet gekocht worden}} in {shops, plural, one {# winkel van een wederverkoper} other {# winkels van wederverkopers}}. De afgelopen 30 dagen hadden deze producten {orders, plural, =0 {geen betaalde bestelling} one {# betaalde bestelling} other {# betaalde bestellingen}} ({amount} voor jou).",
+      "summaryAtRisk": "{products, plural, one {# product dat nog te koop is, kan} other {# producten die nog te koop zijn, kunnen}} binnenkort niet meer verkocht worden ({shops, plural, one {# winkel} other {# winkels}}).",
+      "shopsBlocked": "Onverkoopbaar in {shops, plural, one {# winkel van een wederverkoper} other {# winkels van wederverkopers}}.",
+      "shopsAtRisk": "Te koop in {shops, plural, one {# winkel van een wederverkoper} other {# winkels van wederverkopers}}, maar met risico.",
+      "observed": "Afgelopen 30 dagen: {orders, plural, =0 {geen betaalde bestelling} one {# betaalde bestelling} other {# betaalde bestellingen}}, {units, plural, =0 {geen stuks} one {# stuk} other {# stuks}}, {amount} voor jou (vóór terugbetalingen).",
+      "lastSale": "Laatste verkoop {days, plural, =0 {minder dan een dag geleden} one {# dag geleden} other {# dagen geleden}}.",
+      "neverSold": "Nooit verkocht.",
+      "cause": "Oorzaak:",
+      "also": "Ook:",
+      "severity": {
+        "blocked": "Onverkoopbaar",
+        "at_risk": "Risico"
+      },
+      "reactivate": "Weer te koop zetten",
+      "reactivating": "Bezig…",
+      "reactivated": "Product weer te koop.",
+      "reactivateError": "Weer te koop zetten is niet gelukt.",
+      "refused": {
+        "product_recalled": "Geweigerd: er loopt een veiligheidsterugroeping.",
+        "product_suspended": "Geweigerd: Affisell heeft dit product geschorst.",
+        "stock_unconfirmed": "Geweigerd: vul eerst in de productfiche de echt beschikbare hoeveelheid in."
+      },
+      "showAll": "Alle {count} producten tonen",
+      "showLess": "Minder tonen",
+      "method": "Vastgesteld op je betaalde bestellingen en de winkels van je wederverkopers; bedragen vóór terugbetalingen. Wat deze producten deden, geen verliesprognose."
     }
   },
   "nextActions": {

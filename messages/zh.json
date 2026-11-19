@@ -9481,6 +9481,35 @@
         "title": "数量待确认",
         "why": "导入时来源未提供数量：库存为 0，在您填写实际可用数量之前无法发布。"
       }
+    },
+    "availability": {
+      "title": "分销商店铺中的可售情况",
+      "none": "分销商在售的您的商品均无可售问题。",
+      "summaryBlocked": "{products} 件商品在 {shops} 家分销商店铺中无法购买。过去 30 天，这些商品共有 {orders} 笔已付款订单（您可得 {amount}）。",
+      "summaryAtRisk": "{products} 件仍在销售的商品可能很快无法销售（{shops} 家店铺）。",
+      "shopsBlocked": "在 {shops} 家分销商店铺中无法销售。",
+      "shopsAtRisk": "在 {shops} 家分销商店铺中销售，但存在风险。",
+      "observed": "过去 30 天：{orders} 笔已付款订单，{units} 件，您可得 {amount}（退款前）。",
+      "lastSale": "上次销售：{days, plural, =0 {不到一天前} other {# 天前}}。",
+      "neverSold": "从未售出。",
+      "cause": "原因：",
+      "also": "另外：",
+      "severity": {
+        "blocked": "无法销售",
+        "at_risk": "有风险"
+      },
+      "reactivate": "重新上架",
+      "reactivating": "正在重新上架…",
+      "reactivated": "商品已重新上架。",
+      "reactivateError": "重新上架未成功。",
+      "refused": {
+        "product_recalled": "已拒绝：存在进行中的安全召回。",
+        "product_suspended": "已拒绝：Affisell 已暂停该商品。",
+        "stock_unconfirmed": "已拒绝：请先在商品页填写实际可售数量。"
+      },
+      "showAll": "查看全部 {count} 件商品",
+      "showLess": "收起",
+      "method": "基于您的已付款订单和分销商店铺的实际数据；金额为退款前。这是这些商品过去的表现，而非损失预测。"
     }
   },
   "nextActions": {

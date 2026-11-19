@@ -147,3 +147,15 @@ Lecture : `GET /api/admin/reseller-unsellable-observations?days=30` (administrat
 | `truncated` | le scan a atteint 5 000 fiches : les chiffres sont un minimum | — |
 
 Critères proposés (à valider) avant de demander `enforce` : au moins 7 jours d'observation (`reading: "observed"`) ; un pic `peakWouldNotifyNew` compatible avec le support ; `resellersWithMany` examiné (un revendeur à 20 avis le même jour appellerait un regroupement en un seul avis) ; aucun jour `truncated`. Ces seuils sont des propositions, pas des décisions.
+
+## 9. Fournisseur — impact d'un problème de disponibilité chez les revendeurs (développé, 2026-11-19)
+
+**Statut** : développé, tests écrits (CI). Réellement actif : non (aucun déploiement).
+
+En haut de « Santé du catalogue », une section « Disponibilité chez vos revendeurs » répond en une lecture à trois questions :
+
+1. **Combien ça coûte ?** — pour chaque produit présent dans au moins une boutique de revendeur et touché par un problème de disponibilité : nombre de boutiques où il est invendable (ou à risque), commandes payées, unités et montant fournisseur des 30 derniers jours, date de la dernière vente. Tout est **constaté** (commandes payées, avant remboursements) ; aucune perte n'est prévue ni promise.
+2. **Pourquoi ?** — la cause en une phrase, reprise du diagnostic de santé (une seule définition), plus les autres problèmes du même produit.
+3. **Comment corriger ?** — sur place : quantité réelle (produit simple), « Remettre en vente » (lève la pause du fournisseur lui-même par la route existante, qui refuse toujours un rappel, une suspension Affisell ou une quantité non confirmée et le dit en mots), ouverture de la fiche (déclinaisons), ou explication d'un retrait Affisell (aucune action proposée que le fournisseur ne peut pas faire).
+
+Ordre : invendable avant « à risque », puis ce que le produit faisait réellement (commandes, montant), puis le nombre de boutiques. Lecture seule ; aucun chiffre d'un autre fournisseur.

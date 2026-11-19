@@ -7,6 +7,11 @@ import { readListingReadinessMode } from "@/lib/listing-compliance/mode"
 import { prisma } from "@/lib/prisma"
 import { commercialHolds, parseSuspensionState, suspensionStateId } from "@/lib/products/affisell-suspension"
 import { productHasExplicitSupplierCommission } from "@/lib/supplier-explicit-commission"
+import {
+  buildAvailabilityImpact,
+  type AvailabilityImpact,
+  type ProductSales,
+} from "@/lib/supplier-catalog-health/availability-impact"
 import { buildHealthReport, type HealthProduct, type HealthReport } from "@/lib/supplier-catalog-health/diagnose"
 
 /** Newest products first; beyond that the report says it is truncated. */
@@ -18,6 +23,21 @@ const DAY = 86_400_000
  * query filters on it, nothing is written. Other suppliers' products are never read.
  */
 export async function loadSupplierCatalogHealth(supplierId: string, now = new Date()): Promise<HealthReport> {
+  return (await loadSupplierCatalogHealthDetailed(supplierId, now)).report
+}
+
+export type CatalogHealthWithImpact = HealthReport & { availability: AvailabilityImpact }
+
+/** The health report + what each availability problem costs in the resellers' shops (same reads, read-only). */
+export async function loadSupplierCatalogHealthWithImpact(supplierId: string, now = new Date()): Promise<CatalogHealthWithImpact> {
+  const { report, sales } = await loadSupplierCatalogHealthDetailed(supplierId, now)
+  return { ...report, availability: buildAvailabilityImpact(report.issues, sales, now) }
+}
+
+async function loadSupplierCatalogHealthDetailed(
+  supplierId: string,
+  now: Date,
+): Promise<{ report: HealthReport; sales: Map<string, ProductSales> }> {
   const rows = await prisma.product.findMany({
     where: { supplierId },
     orderBy: { createdAt: "desc" },
@@ -49,14 +69,20 @@ export async function loadSupplierCatalogHealth(supplierId: string, now = new Da
   const truncated = rows.length > HEALTH_MAX_PRODUCTS
   const products = rows.slice(0, HEALTH_MAX_PRODUCTS)
   const ids = products.map((p) => p.id)
-  if (ids.length === 0) return buildHealthReport([], { now, readinessMode: readListingReadinessMode() })
+  if (ids.length === 0) return { report: buildHealthReport([], { now, readinessMode: readListingReadinessMode() }), sales: new Map() }
 
   const since = new Date(now.getTime() - 30 * DAY)
-  const [orders, listings, holds] = await Promise.all([
+  const [orders, lastPaid, listings, holds] = await Promise.all([
     prisma.order.groupBy({
       by: ["productId"],
       where: { productId: { in: ids }, supplierId, paidAt: { gte: since } },
       _count: { _all: true },
+      _sum: { quantity: true, supplierPayoutCents: true },
+    }),
+    prisma.order.groupBy({
+      by: ["productId"],
+      where: { productId: { in: ids }, supplierId, paidAt: { not: null } },
+      _max: { paidAt: true },
     }),
     prisma.affiliateProduct.groupBy({
       by: ["productId"],
@@ -66,6 +92,18 @@ export async function loadSupplierCatalogHealth(supplierId: string, now = new Da
     loadHolds(ids),
   ])
   const ordersBy = new Map(orders.map((o) => [o.productId as string, o._count._all]))
+  const lastPaidBy = new Map(lastPaid.map((o) => [o.productId as string, o._max.paidAt ?? null]))
+  const ordersRowBy = new Map(orders.map((o) => [o.productId as string, o]))
+  const sales = new Map<string, ProductSales>()
+  for (const id of ids) {
+    const o = ordersRowBy.get(id)
+    sales.set(id, {
+      paidOrders30d: o?._count._all ?? 0,
+      units30d: o?._sum.quantity ?? 0,
+      supplierAmount30dCents: o?._sum.supplierPayoutCents ?? 0,
+      lastPaidAt: lastPaidBy.get(id) ?? null,
+    })
+  }
   const listingsBy = new Map(listings.map((l) => [l.productId, l._count._all]))
 
   const input: HealthProduct[] = products.map((p) => {
@@ -101,7 +139,7 @@ export async function loadSupplierCatalogHealth(supplierId: string, now = new Da
       createdAt: p.createdAt,
     }
   })
-  return buildHealthReport(input, { now, readinessMode: readListingReadinessMode() }, { truncated })
+  return { report: buildHealthReport(input, { now, readinessMode: readListingReadinessMode() }, { truncated }), sales }
 }
 
 /** Recalls + Affisell suspensions in two queries. Null = unreadable (each product then says « not verifiable »). */

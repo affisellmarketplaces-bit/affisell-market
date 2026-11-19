@@ -9481,6 +9481,35 @@
         "title": "Menge zu bestätigen",
         "why": "Ohne Mengenangabe der Quelle importiert: Bestand 0, Veröffentlichung abgelehnt, bis Sie die tatsächlich verfügbare Menge angeben."
       }
+    },
+    "availability": {
+      "title": "Verfügbarkeit in den Shops Ihrer Wiederverkäufer",
+      "none": "Keines Ihrer von Wiederverkäufern angebotenen Produkte hat ein Verfügbarkeitsproblem.",
+      "summaryBlocked": "{products, plural, one {# Produkt kann nicht gekauft werden} other {# Produkte können nicht gekauft werden}} – in {shops, plural, one {# Wiederverkäufer-Shop} other {# Wiederverkäufer-Shops}}. In den letzten 30 Tagen hatten diese Produkte {orders, plural, =0 {keine bezahlte Bestellung} one {# bezahlte Bestellung} other {# bezahlte Bestellungen}} ({amount} für Sie).",
+      "summaryAtRisk": "{products, plural, one {# noch verkauftes Produkt könnte} other {# noch verkaufte Produkte könnten}} bald nicht mehr verfügbar sein ({shops, plural, one {# Shop} other {# Shops}}).",
+      "shopsBlocked": "Unverkäuflich in {shops, plural, one {# Wiederverkäufer-Shop} other {# Wiederverkäufer-Shops}}.",
+      "shopsAtRisk": "Im Verkauf in {shops, plural, one {# Wiederverkäufer-Shop} other {# Wiederverkäufer-Shops}}, aber gefährdet.",
+      "observed": "Letzte 30 Tage: {orders, plural, =0 {keine bezahlte Bestellung} one {# bezahlte Bestellung} other {# bezahlte Bestellungen}}, {units, plural, =0 {keine Einheit} one {# Einheit} other {# Einheiten}}, {amount} für Sie (vor Erstattungen).",
+      "lastSale": "Letzter Verkauf vor {days, plural, =0 {weniger als einem Tag} one {# Tag} other {# Tagen}}.",
+      "neverSold": "Nie verkauft.",
+      "cause": "Ursache:",
+      "also": "Außerdem:",
+      "severity": {
+        "blocked": "Unverkäuflich",
+        "at_risk": "Gefährdet"
+      },
+      "reactivate": "Wieder in den Verkauf",
+      "reactivating": "Wird reaktiviert…",
+      "reactivated": "Produkt wieder im Verkauf.",
+      "reactivateError": "Die Reaktivierung hat nicht funktioniert.",
+      "refused": {
+        "product_recalled": "Abgelehnt: Ein Sicherheitsrückruf läuft.",
+        "product_suspended": "Abgelehnt: Affisell hat dieses Produkt gesperrt.",
+        "stock_unconfirmed": "Abgelehnt: Geben Sie zuerst die tatsächlich verfügbare Menge im Produktblatt an."
+      },
+      "showAll": "Alle {count} Produkte anzeigen",
+      "showLess": "Weniger anzeigen",
+      "method": "Beobachtet an Ihren bezahlten Bestellungen und den Shops Ihrer Wiederverkäufer; Beträge vor Erstattungen. Was diese Produkte erzielten, keine Verlustprognose."
     }
   },
   "nextActions": {

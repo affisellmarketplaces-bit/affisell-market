@@ -9481,6 +9481,35 @@
         "title": "Quantité à confirmer",
         "why": "Importé sans quantité fournie par la source : stock à 0 et publication refusée tant que vous n'avez pas indiqué la quantité réellement disponible."
       }
+    },
+    "availability": {
+      "title": "Disponibilité chez vos revendeurs",
+      "none": "Aucun de vos produits proposés par des revendeurs n'a de problème de disponibilité.",
+      "summaryBlocked": "{products, plural, one {# produit ne peut pas être acheté} other {# produits ne peuvent pas être achetés}} dans {shops, plural, one {# boutique de revendeur} other {# boutiques de revendeurs}}. Sur les 30 derniers jours, ces produits ont fait {orders, plural, =0 {aucune commande payée} one {# commande payée} other {# commandes payées}} ({amount} pour vous).",
+      "summaryAtRisk": "{products, plural, one {# produit encore en vente risque} other {# produits encore en vente risquent}} de ne plus l'être bientôt ({shops, plural, one {# boutique} other {# boutiques}}).",
+      "shopsBlocked": "Invendable dans {shops, plural, one {# boutique de revendeur} other {# boutiques de revendeurs}}.",
+      "shopsAtRisk": "En vente dans {shops, plural, one {# boutique de revendeur} other {# boutiques de revendeurs}}, mais à risque.",
+      "observed": "30 derniers jours : {orders, plural, =0 {aucune commande payée} one {# commande payée} other {# commandes payées}}, {units, plural, =0 {aucune unité} one {# unité} other {# unités}}, {amount} pour vous (avant remboursements).",
+      "lastSale": "Dernière vente il y a {days, plural, =0 {moins d'un jour} one {# jour} other {# jours}}.",
+      "neverSold": "Jamais vendu.",
+      "cause": "Cause :",
+      "also": "Aussi :",
+      "severity": {
+        "blocked": "Invendable",
+        "at_risk": "À risque"
+      },
+      "reactivate": "Remettre en vente",
+      "reactivating": "Remise en vente…",
+      "reactivated": "Produit remis en vente.",
+      "reactivateError": "La remise en vente n'a pas abouti.",
+      "refused": {
+        "product_recalled": "Refusé : un rappel de sécurité est en cours.",
+        "product_suspended": "Refusé : Affisell a suspendu ce produit.",
+        "stock_unconfirmed": "Refusé : indiquez d'abord la quantité réellement disponible dans la fiche."
+      },
+      "showAll": "Voir les {count} produits",
+      "showLess": "Réduire",
+      "method": "Constaté sur vos commandes payées et les boutiques de vos revendeurs ; montants avant remboursements. Ce que ces produits faisaient, pas une prévision de perte."
     }
   },
   "nextActions": {

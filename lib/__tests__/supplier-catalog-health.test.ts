@@ -11,6 +11,7 @@ import {
   type HealthProduct,
 } from "@/lib/supplier-catalog-health/diagnose"
 import { resellerNextActions, supplierNextActions } from "@/lib/next-best-action/next-best-action"
+import { buildAvailabilityImpact, type ProductSales } from "@/lib/supplier-catalog-health/availability-impact"
 
 const now = new Date("2026-11-19T12:00:00Z")
 const ctx = { now, readinessMode: "warn" as const }
@@ -201,5 +202,71 @@ describe("wiring", () => {
     expect(loader).toContain("where: { supplierId }")
     expect(loader).not.toMatch(/\.(create|update|upsert|delete)(Many)?\(/)
     expect(read("lib/next-best-action/next-best-action.server.ts")).not.toMatch(/\.(create|update|upsert|delete)(Many)?\(/)
+  })
+})
+
+describe("availability impact in the resellers' shops (founder brief 2026-11-19)", () => {
+  const read = (f: string) => readFileSync(path.join(path.resolve(__dirname, "../.."), f), "utf8")
+  const sales = (over: Partial<ProductSales> = {}): ProductSales => ({
+    paidOrders30d: 0,
+    units30d: 0,
+    supplierAmount30dCents: 0,
+    lastPaidAt: null,
+    ...over,
+  })
+
+  it("lists only products in reseller shops, blocked first, ranked by what they were really doing", () => {
+    const report = buildHealthReport(
+      [
+        product({ id: "sold-out", name: "A", stock: 0, paidOrders30d: 4, resellersListing: 3 }),
+        product({ id: "paused", name: "B", active: false, paidOrders30d: 9, resellersListing: 2 }),
+        product({ id: "low", name: "C", stock: 2, paidOrders30d: 20, resellersListing: 5 }),
+        product({ id: "no-shop", name: "D", stock: 0, paidOrders30d: 0, resellersListing: 0 }),
+      ],
+      ctx,
+    )
+    const map = new Map<string, ProductSales>([
+      ["sold-out", sales({ paidOrders30d: 4, units30d: 5, supplierAmount30dCents: 8_000, lastPaidAt: daysAgo(3) })],
+      ["paused", sales({ paidOrders30d: 9, units30d: 9, supplierAmount30dCents: 20_000, lastPaidAt: daysAgo(10) })],
+      ["low", sales({ paidOrders30d: 20, units30d: 22, supplierAmount30dCents: 40_000, lastPaidAt: daysAgo(1) })],
+    ])
+    const impact = buildAvailabilityImpact(report.issues, map, now)
+    expect(impact.items.map((i) => i.productId)).toEqual(["paused", "sold-out", "low"])
+    expect(impact.items.find((i) => i.productId === "paused")).toMatchObject({ code: "paused_but_listed", fix: "reactivate", severity: "blocked", shops: 2 })
+    expect(impact.items.find((i) => i.productId === "sold-out")).toMatchObject({ code: "out_of_stock", fix: "set_stock", daysSinceLastSale: 3, units30d: 5 })
+    expect(impact.items.find((i) => i.productId === "low")).toMatchObject({ severity: "at_risk", fix: "set_stock" })
+    expect(impact.totals).toEqual({
+      blockedProducts: 2,
+      blockedShops: 5,
+      atRiskProducts: 1,
+      atRiskShops: 5,
+      blockedOrders30d: 13,
+      blockedSupplierAmount30dCents: 28_000,
+    })
+  })
+
+  it("an Affisell hold names the cause and offers no fix the supplier can not make", () => {
+    const report = buildHealthReport([product({ id: "h", holds: ["product_recalled"], active: false, resellersListing: 1 })], ctx)
+    const [item] = buildAvailabilityImpact(report.issues, new Map(), now).items
+    expect(item).toMatchObject({ code: "held_by_affisell", fix: "view_hold", daysSinceLastSale: null })
+    expect(item!.alsoCodes).not.toContain("held_by_affisell")
+  })
+
+  it("is served by the supplier's own route and shown with its fixes", () => {
+    const route = read("app/api/supplier/catalog-health/route.ts")
+    expect(route).toContain("loadSupplierCatalogHealthWithImpact")
+    expect(route).toContain('session.user.role !== "SUPPLIER"')
+    const server = read("lib/supplier-catalog-health/diagnose.server.ts")
+    expect(server).not.toMatch(/\.(create|update|delete|upsert)(Many)?\(/)
+    const panel = read("components/supplier/catalog-health-panel.tsx")
+    expect(panel).toContain("AvailabilityImpactSection")
+    expect(panel).toContain("JSON.stringify({ active: true })")
+    for (const loc of ["fr", "en", "de", "es", "it", "nl", "pl", "zh"]) {
+      const m = JSON.parse(read(`messages/${loc}.json`))
+      for (const k of ["title", "none", "summaryBlocked", "observed", "method", "reactivate"]) {
+        expect(m.catalogHealth.availability[k], `${loc}.${k}`).toBeTruthy()
+      }
+      expect(m.catalogHealth.availability.refused.stock_unconfirmed, loc).toBeTruthy()
+    }
   })
 })

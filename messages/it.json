@@ -9481,6 +9481,35 @@
         "title": "Quantità da confermare",
         "why": "Importato senza quantità dalla fonte: stock a 0 e pubblicazione rifiutata finché non indica la quantità realmente disponibile."
       }
+    },
+    "availability": {
+      "title": "Disponibilità nei negozi dei tuoi rivenditori",
+      "none": "Nessuno dei tuoi prodotti proposti dai rivenditori ha un problema di disponibilità.",
+      "summaryBlocked": "{products, plural, one {# prodotto non può essere acquistato} other {# prodotti non possono essere acquistati}} in {shops, plural, one {# negozio di rivenditore} other {# negozi di rivenditori}}. Negli ultimi 30 giorni questi prodotti hanno avuto {orders, plural, =0 {nessun ordine pagato} one {# ordine pagato} other {# ordini pagati}} ({amount} per te).",
+      "summaryAtRisk": "{products, plural, one {# prodotto ancora in vendita potrebbe} other {# prodotti ancora in vendita potrebbero}} presto non esserlo più ({shops, plural, one {# negozio} other {# negozi}}).",
+      "shopsBlocked": "Invendibile in {shops, plural, one {# negozio di rivenditore} other {# negozi di rivenditori}}.",
+      "shopsAtRisk": "In vendita in {shops, plural, one {# negozio di rivenditore} other {# negozi di rivenditori}}, ma a rischio.",
+      "observed": "Ultimi 30 giorni: {orders, plural, =0 {nessun ordine pagato} one {# ordine pagato} other {# ordini pagati}}, {units, plural, =0 {nessuna unità} one {# unità} other {# unità}}, {amount} per te (prima dei rimborsi).",
+      "lastSale": "Ultima vendita {days, plural, =0 {meno di un giorno fa} one {# giorno fa} other {# giorni fa}}.",
+      "neverSold": "Mai venduto.",
+      "cause": "Causa:",
+      "also": "Anche:",
+      "severity": {
+        "blocked": "Invendibile",
+        "at_risk": "A rischio"
+      },
+      "reactivate": "Rimetti in vendita",
+      "reactivating": "Riattivazione…",
+      "reactivated": "Prodotto di nuovo in vendita.",
+      "reactivateError": "La rimessa in vendita non è riuscita.",
+      "refused": {
+        "product_recalled": "Rifiutato: è in corso un richiamo di sicurezza.",
+        "product_suspended": "Rifiutato: Affisell ha sospeso questo prodotto.",
+        "stock_unconfirmed": "Rifiutato: indica prima nella scheda la quantità realmente disponibile."
+      },
+      "showAll": "Vedi tutti i {count} prodotti",
+      "showLess": "Riduci",
+      "method": "Osservato sui tuoi ordini pagati e sui negozi dei tuoi rivenditori; importi prima dei rimborsi. Ciò che questi prodotti facevano, non una previsione di perdita."
     }
   },
   "nextActions": {

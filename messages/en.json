@@ -9481,6 +9481,35 @@
         "title": "Quantity to confirm",
         "why": "Imported without a quantity from the source: stock is 0 and publication is refused until you enter the quantity really available."
       }
+    },
+    "availability": {
+      "title": "Availability in your resellers' shops",
+      "none": "None of your products offered by resellers has an availability problem.",
+      "summaryBlocked": "{products, plural, one {# product can't be bought} other {# products can't be bought}} in {shops, plural, one {# reseller shop} other {# reseller shops}}. Over the last 30 days these products made {orders, plural, =0 {no paid order} one {# paid order} other {# paid orders}} ({amount} for you).",
+      "summaryAtRisk": "{products, plural, one {# product still on sale} other {# products still on sale}} may soon stop being available ({shops, plural, one {# shop} other {# shops}}).",
+      "shopsBlocked": "Unsellable in {shops, plural, one {# reseller shop} other {# reseller shops}}.",
+      "shopsAtRisk": "On sale in {shops, plural, one {# reseller shop} other {# reseller shops}}, but at risk.",
+      "observed": "Last 30 days: {orders, plural, =0 {no paid order} one {# paid order} other {# paid orders}}, {units, plural, =0 {no unit} one {# unit} other {# units}}, {amount} for you (before refunds).",
+      "lastSale": "Last sale {days, plural, =0 {less than a day ago} one {# day ago} other {# days ago}}.",
+      "neverSold": "Never sold.",
+      "cause": "Cause:",
+      "also": "Also:",
+      "severity": {
+        "blocked": "Unsellable",
+        "at_risk": "At risk"
+      },
+      "reactivate": "Put back on sale",
+      "reactivating": "Putting back on sale…",
+      "reactivated": "Product back on sale.",
+      "reactivateError": "Putting it back on sale did not work.",
+      "refused": {
+        "product_recalled": "Refused: a safety recall is open.",
+        "product_suspended": "Refused: Affisell suspended this product.",
+        "stock_unconfirmed": "Refused: first enter the quantity really available in the product sheet."
+      },
+      "showAll": "See all {count} products",
+      "showLess": "Show less",
+      "method": "Observed on your paid orders and your resellers' shops; amounts before refunds. What these products were doing, not a loss forecast."
     }
   },
   "nextActions": {

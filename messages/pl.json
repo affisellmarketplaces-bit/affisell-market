@@ -9481,6 +9481,35 @@
         "title": "Ilość do potwierdzenia",
         "why": "Zaimportowano bez ilości ze źródła: stan 0 i publikacja odrzucana, dopóki nie podasz rzeczywiście dostępnej ilości."
       }
+    },
+    "availability": {
+      "title": "Dostępność w sklepach Twoich sprzedawców",
+      "none": "Żaden z Twoich produktów oferowanych przez sprzedawców nie ma problemu z dostępnością.",
+      "summaryBlocked": "{products, plural, one {# produktu nie można kupić} few {# produktów nie można kupić} many {# produktów nie można kupić} other {# produktów nie można kupić}} w {shops, plural, one {# sklepie sprzedawcy} other {# sklepach sprzedawców}}. W ostatnich 30 dniach te produkty miały {orders, plural, =0 {zero opłaconych zamówień} one {# opłacone zamówienie} few {# opłacone zamówienia} many {# opłaconych zamówień} other {# opłaconych zamówień}} ({amount} dla Ciebie).",
+      "summaryAtRisk": "{products, plural, one {# produkt nadal w sprzedaży może} few {# produkty nadal w sprzedaży mogą} many {# produktów nadal w sprzedaży może} other {# produktów nadal w sprzedaży może}} wkrótce przestać być dostępny ({shops, plural, one {# sklep} few {# sklepy} many {# sklepów} other {# sklepów}}).",
+      "shopsBlocked": "Niedostępny do sprzedaży w {shops, plural, one {# sklepie sprzedawcy} other {# sklepach sprzedawców}}.",
+      "shopsAtRisk": "W sprzedaży w {shops, plural, one {# sklepie sprzedawcy} other {# sklepach sprzedawców}}, ale zagrożony.",
+      "observed": "Ostatnie 30 dni: {orders, plural, =0 {zero opłaconych zamówień} one {# opłacone zamówienie} few {# opłacone zamówienia} many {# opłaconych zamówień} other {# opłaconych zamówień}}, {units, plural, =0 {zero sztuk} one {# sztuka} few {# sztuki} many {# sztuk} other {# sztuk}}, {amount} dla Ciebie (przed zwrotami).",
+      "lastSale": "Ostatnia sprzedaż {days, plural, =0 {mniej niż dzień temu} one {# dzień temu} other {# dni temu}}.",
+      "neverSold": "Nigdy nie sprzedany.",
+      "cause": "Przyczyna:",
+      "also": "Również:",
+      "severity": {
+        "blocked": "Niesprzedawalny",
+        "at_risk": "Zagrożony"
+      },
+      "reactivate": "Przywróć do sprzedaży",
+      "reactivating": "Przywracanie…",
+      "reactivated": "Produkt znów w sprzedaży.",
+      "reactivateError": "Nie udało się przywrócić do sprzedaży.",
+      "refused": {
+        "product_recalled": "Odmowa: trwa wycofanie ze względów bezpieczeństwa.",
+        "product_suspended": "Odmowa: Affisell zawiesił ten produkt.",
+        "stock_unconfirmed": "Odmowa: najpierw podaj w karcie produktu faktycznie dostępną ilość."
+      },
+      "showAll": "Pokaż wszystkie produkty ({count})",
+      "showLess": "Pokaż mniej",
+      "method": "Ustalone na podstawie Twoich opłaconych zamówień i sklepów Twoich sprzedawców; kwoty przed zwrotami. To, co te produkty sprzedawały, a nie prognoza straty."
     }
   },
   "nextActions": {
