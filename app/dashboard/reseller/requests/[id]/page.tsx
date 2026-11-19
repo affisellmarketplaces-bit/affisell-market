@@ -13,6 +13,7 @@ import {
   serializeProductQuote,
 } from "@/lib/product-request-types"
 import { prisma } from "@/lib/prisma"
+import { loadSupplierStoreNames } from "@/lib/product-request-store-names.server"
 
 export const dynamic = "force-dynamic"
 
@@ -46,6 +47,8 @@ export default async function ResellerRequestDetailPage({ params }: PageProps) {
     where: { requestId: id },
     orderBy: { price: "asc" },
   })
+  // Store name or « Fournisseur Affisell » — never the supplier's e-mail (founder decision 2026-11-19).
+  const quoteStoreNames = await loadSupplierStoreNames(quotes.map((q) => q.supplierId))
 
   const acceptedQuote = quotes.find((q) => q.status === "accepted")
   const existingReview = acceptedQuote
@@ -129,7 +132,7 @@ export default async function ResellerRequestDetailPage({ params }: PageProps) {
           requestId={request.id}
           requestStatus={request.status}
           requestCountries={countries}
-          quotes={quotes.map(serializeProductQuote)}
+          quotes={quotes.map((q) => serializeProductQuote(q, quoteStoreNames))}
           winningListingId={listing?.id ?? null}
           alreadyReviewedQuoteId={existingReview?.quoteId ?? null}
         />

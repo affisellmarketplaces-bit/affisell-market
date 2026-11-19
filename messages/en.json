@@ -9267,5 +9267,219 @@
       "errNotInspected": "Inspect the goods first.",
       "errAlreadyRestocked": "Already restocked."
     }
+  },
+  "catalogHealth": {
+    "title": "Your catalogue health",
+    "subtitle": "What stops your products from selling, ranked by observed commercial impact. Each point names the data it rests on.",
+    "summary": "{checked, plural, one {# product checked} other {# products checked}} · {blocked, plural, =0 {none blocked} one {# blocked} other {# blocked}} · {healthy, plural, =0 {none on sale without issues} one {# on sale without issues} other {# on sale without issues}}",
+    "truncated": "Only your 1,000 most recent products are analysed.",
+    "loading": "Analysing your catalogue…",
+    "error": "The analysis could not be loaded.",
+    "retry": "Retry",
+    "filterLabel": "Filter by type",
+    "filterAll": "All ({count})",
+    "emptyCatalogue": "You have no products yet.",
+    "nothingHere": "Nothing to report in this category.",
+    "showMore": "Show {count} more",
+    "openLink": "See the full catalogue health",
+    "demandLine": "{orders, plural, =0 {no paid order} one {# paid order} other {# paid orders}} in 30 days · {resellers, plural, =0 {no reseller} one {# reseller lists it} other {# resellers list it}}",
+    "method": "Ranking: issues on products that sell or that resellers list come first (paid orders over 30 days and resellers observed). This is not a forecast. Recommendations are optional.",
+    "class": {
+      "blocage": {
+        "label": "Blocker",
+        "definition": "Really prevents an operation today (buying, publishing or allocating the sale)."
+      },
+      "anomalie": {
+        "label": "Anomaly",
+        "definition": "Incoherent or probably wrong data — it may be right: you confirm."
+      },
+      "avertissement": {
+        "label": "Warning",
+        "definition": "A risk or a fact that deserves attention. Nothing is blocked."
+      },
+      "recommandation": {
+        "label": "Recommendation",
+        "definition": "Optional improvement. Nothing is mandatory."
+      }
+    },
+    "source": {
+      "fiche": "Source: your product sheet",
+      "observe": "Source: observed orders and resellers",
+      "affisell": "Source: an Affisell rule or decision",
+      "calcul": "Source: calculated from your data"
+    },
+    "fix": {
+      "edit": "Open the product",
+      "hold": "Affisell took this product off sale: you cannot put it back on sale yourself. Details are on the product page; the conversation goes through Affisell support.",
+      "stockLabel": "Quantity really available",
+      "stockSave": "Save",
+      "saving": "Saving…",
+      "stockSaved": "Quantity saved.",
+      "stockError": "The quantity could not be saved.",
+      "stockInvalid": "Enter a whole number."
+    },
+    "issues": {
+      "held_by_affisell": {
+        "title": "Taken off sale by Affisell",
+        "why": "{hold, select, product_recalled {A safety recall is open on this product.} other {Affisell suspended this product.}} Nobody can buy it until this is lifted."
+      },
+      "price_missing": {
+        "title": "Missing price",
+        "why": "The catalogue price is empty or zero: the product cannot be sold."
+      },
+      "commission_not_explicit": {
+        "title": "No reseller commission set",
+        "why": "Without an explicit commission a paid sale cannot become an order: it is set aside and must be refunded."
+      },
+      "out_of_stock": {
+        "title": "Sold out",
+        "why": "Quantity available: 0. The product page shows « sold out », nobody can buy it."
+      },
+      "safety_blocks_publication": {
+        "title": "Publication refused: product safety",
+        "why": "{missingCount, plural, one {# product-safety detail is missing} other {# product-safety details are missing}} (manufacturer, address, EU responsible person…). The check is enforced: publication is refused."
+      },
+      "stock_nominal": {
+        "title": "Quantity to confirm",
+        "why": "Quantity {stock}: a value typically written by an import or an assistant, not necessarily your real inventory."
+      },
+      "variant_stock_mismatch": {
+        "title": "Stock does not add up",
+        "why": "The product stock ({productStock}) does not match the sum of its variants ({rowsTotal})."
+      },
+      "variant_stock_untracked": {
+        "title": "Variant stock unknown",
+        "why": "The variants' quantities are not in the table read at purchase: real availability is unknown."
+      },
+      "delivery_window_inverted": {
+        "title": "Delivery time does not add up",
+        "why": "The minimum time ({min} d) is longer than the maximum ({max} d)."
+      },
+      "duplicate_name": {
+        "title": "Possible duplicate",
+        "why": "{others, plural, one {# other product of yours has} other {# other products of yours have}} the same name: a duplicate, or names to tell apart for resellers."
+      },
+      "hold_unverifiable": {
+        "title": "Status cannot be checked",
+        "why": "The recall or suspension status could not be read. Try again later."
+      },
+      "safety_data_missing": {
+        "title": "Product-safety details missing",
+        "why": "{missingCount, plural, one {# detail is missing} other {# details are missing}}. Not refused today (check in observation mode{live, select, 1 {, product already published} other {}}), but a new publication may be once the check is enforced."
+      },
+      "paused_but_listed": {
+        "title": "Paused while resellers list it",
+        "why": "You paused it; {resellers, plural, one {# reseller lists it} other {# resellers list it}} without being able to sell it."
+      },
+      "low_stock": {
+        "title": "Low stock",
+        "why": "Only {available, plural, one {# unit} other {# units}} left ({paidOrders30d, plural, =0 {no paid order} one {# paid order} other {# paid orders}} in 30 days)."
+      },
+      "no_photo": {
+        "title": "No photo",
+        "why": "Without a photo the product is hardly visible and hard for resellers to present."
+      },
+      "no_category": {
+        "title": "No category",
+        "why": "Resellers cannot find it through the catalogue's category filters."
+      },
+      "no_reseller": {
+        "title": "No reseller lists it",
+        "why": "On sale for {ageDays} days, no shop offers it: it is sold nowhere."
+      },
+      "listed_no_sales": {
+        "title": "Listed but not sold",
+        "why": "{resellers, plural, one {# reseller lists it} other {# resellers list it}}, no paid order over {days} days. Price, photos or description may be the cause — a lead, not a finding."
+      },
+      "draft_ready": {
+        "title": "Draft ready to publish",
+        "why": "Price, quantity, commission and photo are filled in. Publish it if you wish."
+      },
+      "few_photos": {
+        "title": "Few photos",
+        "why": "{photos, plural, one {# photo} other {# photos}}. Optional: several views help resellers present it."
+      },
+      "short_description": {
+        "title": "Short description",
+        "why": "{characters} characters. Optional: a fuller description helps the buyer decide."
+      },
+      "no_gtin": {
+        "title": "No barcode",
+        "why": "Optional: a GTIN / EAN lets the European safety alerts be checked and duplicates spotted."
+      }
+    }
+  },
+  "nextActions": {
+    "title": "Your next actions",
+    "subtitle": "One to three actions drawn from your own data.",
+    "honesty": "Potential impact: what was observed on this product over the last 30 days, not a promised result.",
+    "priority": {
+      "haute": "High priority",
+      "moyenne": "Medium priority",
+      "basse": "Low priority"
+    },
+    "kind": {
+      "fix_blocage": "Unblock « {product} »",
+      "resolve_availability": "Sort out the availability of « {product} »",
+      "promote_to_resellers": "Make « {product} » known to resellers",
+      "publish_draft": "Publish « {product} »",
+      "complete_sheet": "Improve the « {product} » sheet",
+      "fix_shop_listing": "Fix « {product} » in your shop",
+      "review_profit_drop": "Look into the drop on « {product} »",
+      "add_ready_product": "Add « {product} » to your shop"
+    },
+    "cta": {
+      "fix_blocage": "Open the product",
+      "resolve_availability": "Open the product",
+      "promote_to_resellers": "Invite resellers",
+      "publish_draft": "Open the draft",
+      "complete_sheet": "Open the product",
+      "fix_shop_listing": "Open the product",
+      "review_profit_drop": "See the analysis",
+      "add_ready_product": "See it in the catalogue"
+    },
+    "impact": {
+      "label": "Potential impact:",
+      "orders": "{count, plural, =0 {no paid order in 30 d} one {# paid order in 30 d} other {# paid orders in 30 d}}",
+      "resellers": "{count, plural, =0 {no reseller} one {# reseller} other {# resellers}}",
+      "netPerSale": "{amount} net per sale (calculated)",
+      "netChange": "{amount} less net earnings (observed)"
+    },
+    "reason": {
+      "price_missing": "The price is missing: the product cannot be sold.",
+      "commission_not_explicit": "No reseller commission is set: a sale cannot be allocated.",
+      "safety_blocks_publication": "Product-safety details are missing and publication is refused.",
+      "out_of_stock": "Quantity is 0: the product page shows « sold out ».",
+      "low_stock": "Very few units left on a product that sells.",
+      "stock_nominal": "The quantity looks like an import value, not your inventory.",
+      "variant_stock_mismatch": "Product stock and variant stock do not match.",
+      "variant_stock_untracked": "Variant stock is not known at purchase.",
+      "no_reseller": "It is on sale but no shop offers it.",
+      "draft_ready": "The draft is complete.",
+      "no_photo": "It has no photo.",
+      "no_category": "It has no category: resellers cannot find it.",
+      "duplicate_name": "Another product of yours has the same name.",
+      "delivery_window_inverted": "The minimum delivery time exceeds the maximum.",
+      "safety_data_missing": "Product-safety details are missing.",
+      "paused_but_listed": "It is paused while resellers list it.",
+      "listed_no_sales": "Resellers list it but it does not sell.",
+      "few_photos": "It has few photos although it has demand.",
+      "short_description": "Its description is short although it has demand.",
+      "no_gtin": "It has no barcode although it has demand.",
+      "shop_out_of_stock": "The supplier is out of stock: your buyers see it sold out.",
+      "shop_product_unavailable": "The supplier withdrew or paused it: it can no longer be bought.",
+      "shop_awaiting_review": "The product is awaiting Affisell's validation.",
+      "shop_no_commission": "The supplier set no commission: a sale could not be allocated.",
+      "drop_volume_down": "Your sales of this product fell.",
+      "drop_your_price_down": "You lowered your price.",
+      "drop_collected_price_down": "The price collected fell.",
+      "drop_supplier_price_up": "The supplier price rose.",
+      "drop_commission_down": "The commission fell.",
+      "drop_fees_up": "Fees rose.",
+      "drop_refunds_up": "Refunds rose.",
+      "drop_disputes_up": "Disputes rose.",
+      "drop_other": "Your net earnings on this product fell.",
+      "ready_to_sell": "It can be sold today and is not in your shop yet."
+    }
   }
 }

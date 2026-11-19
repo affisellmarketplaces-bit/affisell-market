@@ -9267,5 +9267,219 @@
       "errNotInspected": "Inspectez d'abord la marchandise.",
       "errAlreadyRestocked": "Déjà remis en stock."
     }
+  },
+  "catalogHealth": {
+    "title": "Santé de votre catalogue",
+    "subtitle": "Ce qui empêche vos produits de se vendre, classé par impact commercial constaté. Chaque point indique la donnée sur laquelle il repose.",
+    "summary": "{checked, plural, one {# produit vérifié} other {# produits vérifiés}} · {blocked, plural, =0 {aucun bloqué} one {# bloqué} other {# bloqués}} · {healthy, plural, =0 {aucun en vente sans problème} one {# en vente sans problème} other {# en vente sans problème}}",
+    "truncated": "Seuls vos 1 000 produits les plus récents sont analysés.",
+    "loading": "Analyse de votre catalogue…",
+    "error": "L'analyse n'a pas pu être chargée.",
+    "retry": "Réessayer",
+    "filterLabel": "Filtrer par type",
+    "filterAll": "Tout ({count})",
+    "emptyCatalogue": "Vous n'avez encore aucun produit.",
+    "nothingHere": "Rien à signaler dans cette catégorie.",
+    "showMore": "Afficher {count} de plus",
+    "openLink": "Voir la santé complète du catalogue",
+    "demandLine": "{orders, plural, =0 {aucune commande payée} one {# commande payée} other {# commandes payées}} en 30 jours · {resellers, plural, =0 {aucun revendeur} one {# revendeur le propose} other {# revendeurs le proposent}}",
+    "method": "Classement : les problèmes des produits qui se vendent ou que des revendeurs proposent passent en premier (commandes payées sur 30 jours et revendeurs constatés). Ce n'est pas une prévision. Les recommandations sont facultatives.",
+    "class": {
+      "blocage": {
+        "label": "Blocage",
+        "definition": "Empêche réellement une opération aujourd'hui (achat, publication ou attribution de la vente)."
+      },
+      "anomalie": {
+        "label": "Anomalie",
+        "definition": "Donnée incohérente ou probablement erronée — elle peut être juste : à vous de confirmer."
+      },
+      "avertissement": {
+        "label": "Avertissement",
+        "definition": "Un risque ou une information qui mérite votre attention. Rien n'est bloqué."
+      },
+      "recommandation": {
+        "label": "Recommandation",
+        "definition": "Amélioration facultative. Rien n'est obligatoire."
+      }
+    },
+    "source": {
+      "fiche": "Source : votre fiche produit",
+      "observe": "Source : commandes et revendeurs constatés",
+      "affisell": "Source : règle ou décision Affisell",
+      "calcul": "Source : calculé à partir de vos données"
+    },
+    "fix": {
+      "edit": "Ouvrir la fiche",
+      "hold": "Affisell a retiré ce produit de la vente : vous ne pouvez pas le remettre en vente vous-même. Le détail figure sur la fiche ; l'échange passe par le support Affisell.",
+      "stockLabel": "Quantité réellement disponible",
+      "stockSave": "Enregistrer",
+      "saving": "Enregistrement…",
+      "stockSaved": "Quantité enregistrée.",
+      "stockError": "La quantité n'a pas pu être enregistrée.",
+      "stockInvalid": "Indiquez un nombre entier."
+    },
+    "issues": {
+      "held_by_affisell": {
+        "title": "Retiré de la vente par Affisell",
+        "why": "{hold, select, product_recalled {Un rappel de sécurité est en cours sur ce produit.} other {Affisell a suspendu ce produit.}} Personne ne peut l'acheter tant que ce n'est pas levé."
+      },
+      "price_missing": {
+        "title": "Prix manquant",
+        "why": "Le prix catalogue est vide ou à zéro : le produit ne peut pas être vendu."
+      },
+      "commission_not_explicit": {
+        "title": "Commission revendeur non fixée",
+        "why": "Sans commission explicite, une vente payée ne peut pas devenir une commande : elle est mise de côté et doit être remboursée."
+      },
+      "out_of_stock": {
+        "title": "Épuisé",
+        "why": "Quantité disponible : 0. La fiche s'affiche « épuisé », personne ne peut l'acheter."
+      },
+      "safety_blocks_publication": {
+        "title": "Publication refusée : sécurité produit",
+        "why": "{missingCount, plural, one {# information de sécurité produit manque} other {# informations de sécurité produit manquent}} (fabricant, adresse, responsable UE…). Le contrôle est appliqué : la publication est refusée."
+      },
+      "stock_nominal": {
+        "title": "Quantité à confirmer",
+        "why": "Quantité {stock} : valeur typique d'un import ou d'un assistant, pas forcément votre inventaire réel."
+      },
+      "variant_stock_mismatch": {
+        "title": "Stocks incohérents",
+        "why": "Le stock du produit ({productStock}) ne correspond pas à la somme des déclinaisons ({rowsTotal})."
+      },
+      "variant_stock_untracked": {
+        "title": "Stock des déclinaisons inconnu",
+        "why": "Les quantités des déclinaisons ne sont pas dans le tableau lu au moment de l'achat : la disponibilité réelle n'est pas connue."
+      },
+      "delivery_window_inverted": {
+        "title": "Délai de livraison incohérent",
+        "why": "Le délai minimal ({min} j) est supérieur au délai maximal ({max} j)."
+      },
+      "duplicate_name": {
+        "title": "Doublon possible",
+        "why": "{others, plural, one {# autre de vos produits porte} other {# autres de vos produits portent}} le même nom : doublon, ou noms à distinguer pour les revendeurs."
+      },
+      "hold_unverifiable": {
+        "title": "Statut non vérifiable",
+        "why": "Le statut de rappel ou de suspension n'a pas pu être lu. Réessayez plus tard."
+      },
+      "safety_data_missing": {
+        "title": "Informations de sécurité produit manquantes",
+        "why": "{missingCount, plural, one {# information manque} other {# informations manquent}}. Ce n'est pas refusé aujourd'hui (contrôle en observation{live, select, 1 {, produit déjà publié} other {}}), mais une nouvelle publication pourra l'être quand le contrôle sera appliqué."
+      },
+      "paused_but_listed": {
+        "title": "En pause alors que des revendeurs le proposent",
+        "why": "Vous l'avez mis en pause ; {resellers, plural, one {# revendeur le propose} other {# revendeurs le proposent}} sans pouvoir le vendre."
+      },
+      "low_stock": {
+        "title": "Stock faible",
+        "why": "Plus que {available, plural, one {# unité} other {# unités}} ({paidOrders30d, plural, =0 {aucune commande payée} one {# commande payée} other {# commandes payées}} en 30 jours)."
+      },
+      "no_photo": {
+        "title": "Aucune photo",
+        "why": "Sans photo, le produit est peu visible et difficile à présenter pour les revendeurs."
+      },
+      "no_category": {
+        "title": "Aucune catégorie",
+        "why": "Les revendeurs ne le trouvent pas par les filtres de catégorie du catalogue."
+      },
+      "no_reseller": {
+        "title": "Aucun revendeur ne le propose",
+        "why": "En vente depuis {ageDays} jours, il n'est proposé par aucune boutique : il n'est vendu nulle part."
+      },
+      "listed_no_sales": {
+        "title": "Proposé mais pas vendu",
+        "why": "{resellers, plural, one {# revendeur le propose} other {# revendeurs le proposent}}, aucune commande payée sur {days} jours. Prix, photos ou description peuvent être en cause — c'est une piste, pas un constat."
+      },
+      "draft_ready": {
+        "title": "Brouillon prêt à publier",
+        "why": "Prix, quantité, commission et photo sont renseignés. Publiez-le si vous le souhaitez."
+      },
+      "few_photos": {
+        "title": "Peu de photos",
+        "why": "{photos, plural, one {# photo} other {# photos}}. Facultatif : plusieurs vues aident les revendeurs à le présenter."
+      },
+      "short_description": {
+        "title": "Description courte",
+        "why": "{characters} caractères. Facultatif : une description plus complète aide l'acheteur à se décider."
+      },
+      "no_gtin": {
+        "title": "Pas de code-barres",
+        "why": "Facultatif : un GTIN / EAN permet de vérifier les alertes de sécurité européennes et de repérer les doublons."
+      }
+    }
+  },
+  "nextActions": {
+    "title": "Vos prochaines actions",
+    "subtitle": "Une à trois actions tirées de vos propres données.",
+    "honesty": "Impact potentiel : ce qui a été constaté sur ce produit ces 30 derniers jours, pas une promesse de résultat.",
+    "priority": {
+      "haute": "Priorité haute",
+      "moyenne": "Priorité moyenne",
+      "basse": "Priorité basse"
+    },
+    "kind": {
+      "fix_blocage": "Débloquer « {product} »",
+      "resolve_availability": "Régler la disponibilité de « {product} »",
+      "promote_to_resellers": "Faire connaître « {product} » aux revendeurs",
+      "publish_draft": "Publier « {product} »",
+      "complete_sheet": "Améliorer la fiche « {product} »",
+      "fix_shop_listing": "Régler « {product} » dans votre boutique",
+      "review_profit_drop": "Examiner la baisse sur « {product} »",
+      "add_ready_product": "Ajouter « {product} » à votre boutique"
+    },
+    "cta": {
+      "fix_blocage": "Ouvrir la fiche",
+      "resolve_availability": "Ouvrir la fiche",
+      "promote_to_resellers": "Inviter des revendeurs",
+      "publish_draft": "Ouvrir le brouillon",
+      "complete_sheet": "Ouvrir la fiche",
+      "fix_shop_listing": "Ouvrir le produit",
+      "review_profit_drop": "Voir l'analyse",
+      "add_ready_product": "Voir dans le catalogue"
+    },
+    "impact": {
+      "label": "Impact potentiel :",
+      "orders": "{count, plural, =0 {aucune commande payée en 30 j} one {# commande payée en 30 j} other {# commandes payées en 30 j}}",
+      "resellers": "{count, plural, =0 {aucun revendeur} one {# revendeur} other {# revendeurs}}",
+      "netPerSale": "{amount} net par vente (calcul)",
+      "netChange": "{amount} de gain net en moins (constaté)"
+    },
+    "reason": {
+      "price_missing": "Le prix est manquant : le produit ne peut pas être vendu.",
+      "commission_not_explicit": "Aucune commission revendeur n'est fixée : une vente ne peut pas être attribuée.",
+      "safety_blocks_publication": "Des informations de sécurité produit manquent et la publication est refusée.",
+      "out_of_stock": "Quantité à 0 : la fiche s'affiche « épuisé ».",
+      "low_stock": "Il reste très peu d'unités sur un produit qui se vend.",
+      "stock_nominal": "La quantité ressemble à une valeur d'import, pas à votre inventaire.",
+      "variant_stock_mismatch": "Le stock du produit et celui des déclinaisons ne concordent pas.",
+      "variant_stock_untracked": "Le stock des déclinaisons n'est pas connu au moment de l'achat.",
+      "no_reseller": "Il est en vente mais aucune boutique ne le propose.",
+      "draft_ready": "Le brouillon est complet.",
+      "no_photo": "Il n'a aucune photo.",
+      "no_category": "Il n'a pas de catégorie : les revendeurs ne le trouvent pas.",
+      "duplicate_name": "Un autre de vos produits porte le même nom.",
+      "delivery_window_inverted": "Le délai de livraison minimal dépasse le maximal.",
+      "safety_data_missing": "Des informations de sécurité produit manquent.",
+      "paused_but_listed": "Il est en pause alors que des revendeurs le proposent.",
+      "listed_no_sales": "Des revendeurs le proposent mais il ne se vend pas.",
+      "few_photos": "Il a peu de photos alors qu'il a de la demande.",
+      "short_description": "Sa description est courte alors qu'il a de la demande.",
+      "no_gtin": "Il n'a pas de code-barres alors qu'il a de la demande.",
+      "shop_out_of_stock": "Le fournisseur n'a plus de stock : vos acheteurs le voient épuisé.",
+      "shop_product_unavailable": "Le fournisseur l'a retiré ou mis en pause : il n'est plus achetable.",
+      "shop_awaiting_review": "Le produit attend la validation d'Affisell.",
+      "shop_no_commission": "Le fournisseur n'a pas fixé de commission : une vente ne pourrait pas être attribuée.",
+      "drop_volume_down": "Vos ventes de ce produit ont baissé.",
+      "drop_your_price_down": "Vous avez baissé votre prix.",
+      "drop_collected_price_down": "Le prix encaissé a baissé.",
+      "drop_supplier_price_up": "Le prix fournisseur a augmenté.",
+      "drop_commission_down": "La commission a baissé.",
+      "drop_fees_up": "Les frais ont augmenté.",
+      "drop_refunds_up": "Les remboursements ont augmenté.",
+      "drop_disputes_up": "Les litiges ont augmenté.",
+      "drop_other": "Votre gain net sur ce produit a baissé.",
+      "ready_to_sell": "Il est vendable aujourd'hui et pas encore dans votre boutique."
+    }
   }
 }

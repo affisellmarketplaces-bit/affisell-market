@@ -9267,5 +9267,219 @@
       "errNotInspected": "请先检验商品。",
       "errAlreadyRestocked": "已重新入库。"
     }
+  },
+  "catalogHealth": {
+    "title": "您的商品目录健康度",
+    "subtitle": "哪些问题阻碍了您的商品销售，按观察到的商业影响排序。每一项都注明所依据的数据。",
+    "summary": "已检查 {checked} 件商品 · {blocked, plural, =0 {无受阻商品} other {# 件受阻}} · {healthy, plural, =0 {无无问题在售商品} other {# 件在售且无问题}}",
+    "truncated": "仅分析您最新的 1000 件商品。",
+    "loading": "正在分析您的商品目录…",
+    "error": "无法加载分析结果。",
+    "retry": "重试",
+    "filterLabel": "按类型筛选",
+    "filterAll": "全部（{count}）",
+    "emptyCatalogue": "您还没有商品。",
+    "nothingHere": "此类别下没有需要提示的问题。",
+    "showMore": "再显示 {count} 项",
+    "openLink": "查看完整的目录健康度",
+    "demandLine": "30 天内 {orders, plural, =0 {无已付款订单} other {# 笔已付款订单}} · {resellers, plural, =0 {无分销商} other {# 位分销商在售}}",
+    "method": "排序：在售或有分销商上架的商品的问题优先（30 天已付款订单和观察到的分销商）。这不是预测。建议均为可选。",
+    "class": {
+      "blocage": {
+        "label": "阻断",
+        "definition": "今天确实阻止了某项操作（购买、发布或订单归属）。"
+      },
+      "anomalie": {
+        "label": "异常",
+        "definition": "数据不一致或可能有误——也可能是对的：请您确认。"
+      },
+      "avertissement": {
+        "label": "提醒",
+        "definition": "值得关注的风险或信息。没有任何操作被阻止。"
+      },
+      "recommandation": {
+        "label": "建议",
+        "definition": "可选的改进。没有强制要求。"
+      }
+    },
+    "source": {
+      "fiche": "来源：您的商品信息",
+      "observe": "来源：观察到的订单和分销商",
+      "affisell": "来源：Affisell 的规则或决定",
+      "calcul": "来源：根据您的数据计算"
+    },
+    "fix": {
+      "edit": "打开商品",
+      "hold": "Affisell 已将此商品下架：您无法自行重新上架。详情见商品页面；沟通通过 Affisell 客服进行。",
+      "stockLabel": "实际可用数量",
+      "stockSave": "保存",
+      "saving": "正在保存…",
+      "stockSaved": "数量已保存。",
+      "stockError": "无法保存数量。",
+      "stockInvalid": "请输入整数。"
+    },
+    "issues": {
+      "held_by_affisell": {
+        "title": "已被 Affisell 下架",
+        "why": "{hold, select, product_recalled {此商品正在进行安全召回。} other {Affisell 已暂停此商品。}}在解除之前，任何人都无法购买。"
+      },
+      "price_missing": {
+        "title": "缺少价格",
+        "why": "目录价格为空或为零：商品无法销售。"
+      },
+      "commission_not_explicit": {
+        "title": "未设置分销佣金",
+        "why": "没有明确的佣金，已付款的销售无法生成订单：它会被搁置并需要退款。"
+      },
+      "out_of_stock": {
+        "title": "已售罄",
+        "why": "可用数量：0。商品页面显示「售罄」，无人能购买。"
+      },
+      "safety_blocks_publication": {
+        "title": "发布被拒：产品安全",
+        "why": "缺少 {missingCount} 项产品安全信息（制造商、地址、欧盟负责人…）。检查已启用：发布被拒绝。"
+      },
+      "stock_nominal": {
+        "title": "数量待确认",
+        "why": "数量 {stock}：这是导入或助手常写入的数值，不一定是您的真实库存。"
+      },
+      "variant_stock_mismatch": {
+        "title": "库存不一致",
+        "why": "商品库存（{productStock}）与各规格之和（{rowsTotal}）不符。"
+      },
+      "variant_stock_untracked": {
+        "title": "规格库存未知",
+        "why": "各规格的数量不在购买时读取的表格中：实际可售情况未知。"
+      },
+      "delivery_window_inverted": {
+        "title": "配送时间不一致",
+        "why": "最短时间（{min} 天）长于最长时间（{max} 天）。"
+      },
+      "duplicate_name": {
+        "title": "可能重复",
+        "why": "您还有 {others} 件商品使用相同名称：可能重复，或需要为分销商区分名称。"
+      },
+      "hold_unverifiable": {
+        "title": "状态无法核实",
+        "why": "无法读取召回或暂停状态。请稍后重试。"
+      },
+      "safety_data_missing": {
+        "title": "缺少产品安全信息",
+        "why": "缺少 {missingCount} 项信息。目前不会被拒绝（检查处于观察模式{live, select, 1 {，商品已发布} other {}}），但检查启用后，新的发布可能会被拒绝。"
+      },
+      "paused_but_listed": {
+        "title": "已暂停，但分销商仍在上架",
+        "why": "您已暂停此商品；{resellers} 位分销商上架了它却无法销售。"
+      },
+      "low_stock": {
+        "title": "库存偏低",
+        "why": "仅剩 {available} 件（30 天内 {paidOrders30d} 笔已付款订单）。"
+      },
+      "no_photo": {
+        "title": "没有图片",
+        "why": "没有图片，商品很难被看到，分销商也难以展示。"
+      },
+      "no_category": {
+        "title": "没有类目",
+        "why": "分销商无法通过目录的类目筛选找到它。"
+      },
+      "no_reseller": {
+        "title": "没有分销商上架",
+        "why": "已在售 {ageDays} 天，没有任何店铺上架：它在任何地方都没有销售。"
+      },
+      "listed_no_sales": {
+        "title": "已上架但未售出",
+        "why": "{resellers} 位分销商上架了它，{days} 天内没有已付款订单。价格、图片或描述可能是原因——这是线索，不是结论。"
+      },
+      "draft_ready": {
+        "title": "草稿可发布",
+        "why": "价格、数量、佣金和图片均已填写。如您愿意可以发布。"
+      },
+      "few_photos": {
+        "title": "图片较少",
+        "why": "{photos} 张图片。可选：多角度图片有助于分销商展示。"
+      },
+      "short_description": {
+        "title": "描述较短",
+        "why": "{characters} 个字符。可选：更完整的描述有助于买家做决定。"
+      },
+      "no_gtin": {
+        "title": "没有条形码",
+        "why": "可选：GTIN / EAN 可用于核对欧盟安全警报并发现重复商品。"
+      }
+    }
+  },
+  "nextActions": {
+    "title": "您的下一步行动",
+    "subtitle": "根据您自己的数据给出一到三项行动。",
+    "honesty": "潜在影响：这是该商品过去 30 天观察到的情况，并非承诺的结果。",
+    "priority": {
+      "haute": "高优先级",
+      "moyenne": "中优先级",
+      "basse": "低优先级"
+    },
+    "kind": {
+      "fix_blocage": "解除「{product}」的阻断",
+      "resolve_availability": "处理「{product}」的可售情况",
+      "promote_to_resellers": "让分销商了解「{product}」",
+      "publish_draft": "发布「{product}」",
+      "complete_sheet": "完善「{product}」的商品信息",
+      "fix_shop_listing": "处理您店铺中的「{product}」",
+      "review_profit_drop": "查看「{product}」的下降原因",
+      "add_ready_product": "将「{product}」加入您的店铺"
+    },
+    "cta": {
+      "fix_blocage": "打开商品",
+      "resolve_availability": "打开商品",
+      "promote_to_resellers": "邀请分销商",
+      "publish_draft": "打开草稿",
+      "complete_sheet": "打开商品",
+      "fix_shop_listing": "打开商品",
+      "review_profit_drop": "查看分析",
+      "add_ready_product": "在目录中查看"
+    },
+    "impact": {
+      "label": "潜在影响：",
+      "orders": "{count, plural, =0 {30 天内无已付款订单} other {30 天内 # 笔已付款订单}}",
+      "resellers": "{count, plural, =0 {无分销商} other {# 位分销商}}",
+      "netPerSale": "每笔销售净得 {amount}（计算）",
+      "netChange": "净收益减少 {amount}（观察）"
+    },
+    "reason": {
+      "price_missing": "缺少价格：商品无法销售。",
+      "commission_not_explicit": "未设置分销佣金：销售无法归属。",
+      "safety_blocks_publication": "缺少产品安全信息，发布被拒绝。",
+      "out_of_stock": "数量为 0：商品页面显示「售罄」。",
+      "low_stock": "一件畅销商品的库存所剩无几。",
+      "stock_nominal": "数量看起来像导入值，而不是您的库存。",
+      "variant_stock_mismatch": "商品库存与规格库存不一致。",
+      "variant_stock_untracked": "购买时无法得知规格库存。",
+      "no_reseller": "它在售，但没有店铺上架。",
+      "draft_ready": "草稿已完整。",
+      "no_photo": "它没有图片。",
+      "no_category": "它没有类目：分销商找不到它。",
+      "duplicate_name": "您的另一件商品使用了相同名称。",
+      "delivery_window_inverted": "最短配送时间超过了最长时间。",
+      "safety_data_missing": "缺少产品安全信息。",
+      "paused_but_listed": "它已暂停，但分销商仍在上架。",
+      "listed_no_sales": "分销商已上架，但没有卖出。",
+      "few_photos": "有需求，但图片较少。",
+      "short_description": "有需求，但描述较短。",
+      "no_gtin": "有需求，但没有条形码。",
+      "shop_out_of_stock": "供应商已无库存：您的买家看到它已售罄。",
+      "shop_product_unavailable": "供应商已撤下或暂停它：无法再购买。",
+      "shop_awaiting_review": "该商品正在等待 Affisell 审核。",
+      "shop_no_commission": "供应商未设置佣金：销售将无法归属。",
+      "drop_volume_down": "您该商品的销量下降了。",
+      "drop_your_price_down": "您降低了价格。",
+      "drop_collected_price_down": "实收价格下降了。",
+      "drop_supplier_price_up": "供应商价格上涨了。",
+      "drop_commission_down": "佣金下降了。",
+      "drop_fees_up": "费用上涨了。",
+      "drop_refunds_up": "退款增加了。",
+      "drop_disputes_up": "争议增加了。",
+      "drop_other": "您在该商品上的净收益下降了。",
+      "ready_to_sell": "它今天可以销售，且尚未加入您的店铺。"
+    }
   }
 }

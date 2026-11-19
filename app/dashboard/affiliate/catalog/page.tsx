@@ -3,6 +3,7 @@ import { Suspense } from "react"
 
 import { AffiliateCatalogExperience } from "@/components/affiliate/affiliate-catalog-experience"
 import { ResellerCopilotPanel } from "@/components/affiliate/reseller-copilot-panel"
+import { NextActionsCard } from "@/components/next-best-action/next-actions-card"
 import {
   RadarCatalogArbitragePanel,
   type RadarDraftArbitrageRow,
@@ -136,6 +137,7 @@ export default async function AffiliateCatalogPage({ searchParams }: PageProps) 
         }
       >
         <div className="px-4 md:px-8">
+          <NextActionsCard role="affiliate" />
           <ResellerCopilotPanel />
         </div>
         <AffiliateCatalogExperience

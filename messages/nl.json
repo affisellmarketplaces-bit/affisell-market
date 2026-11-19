@@ -9267,5 +9267,219 @@
       "errNotInspected": "Inspecteer eerst de goederen.",
       "errAlreadyRestocked": "Al teruggeplaatst."
     }
+  },
+  "catalogHealth": {
+    "title": "Gezondheid van uw catalogus",
+    "subtitle": "Wat de verkoop van uw producten tegenhoudt, gerangschikt naar waargenomen commerciële impact. Elk punt noemt de gegevens waarop het berust.",
+    "summary": "{checked, plural, one {# product gecontroleerd} other {# producten gecontroleerd}} · {blocked, plural, =0 {geen geblokkeerd} one {# geblokkeerd} other {# geblokkeerd}} · {healthy, plural, =0 {geen zonder problemen te koop} one {# zonder problemen te koop} other {# zonder problemen te koop}}",
+    "truncated": "Alleen uw 1.000 nieuwste producten worden geanalyseerd.",
+    "loading": "Uw catalogus wordt geanalyseerd…",
+    "error": "De analyse kon niet worden geladen.",
+    "retry": "Opnieuw proberen",
+    "filterLabel": "Filteren op type",
+    "filterAll": "Alles ({count})",
+    "emptyCatalogue": "U heeft nog geen producten.",
+    "nothingHere": "Niets te melden in deze categorie.",
+    "showMore": "Nog {count} tonen",
+    "openLink": "Volledige cataloguscontrole bekijken",
+    "demandLine": "{orders, plural, =0 {geen betaalde bestelling} one {# betaalde bestelling} other {# betaalde bestellingen}} in 30 dagen · {resellers, plural, =0 {geen wederverkoper} one {# wederverkoper biedt het aan} other {# wederverkopers bieden het aan}}",
+    "method": "Volgorde: problemen van producten die verkopen of die wederverkopers aanbieden komen eerst (betaalde bestellingen in 30 dagen en waargenomen wederverkopers). Geen voorspelling. Aanbevelingen zijn vrijblijvend.",
+    "class": {
+      "blocage": {
+        "label": "Blokkade",
+        "definition": "Verhindert vandaag echt een handeling (kopen, publiceren of de verkoop toewijzen)."
+      },
+      "anomalie": {
+        "label": "Afwijking",
+        "definition": "Tegenstrijdige of waarschijnlijk foute gegevens — ze kunnen kloppen: u bevestigt."
+      },
+      "avertissement": {
+        "label": "Waarschuwing",
+        "definition": "Een risico of informatie die aandacht verdient. Niets is geblokkeerd."
+      },
+      "recommandation": {
+        "label": "Aanbeveling",
+        "definition": "Vrijblijvende verbetering. Niets is verplicht."
+      }
+    },
+    "source": {
+      "fiche": "Bron: uw productfiche",
+      "observe": "Bron: waargenomen bestellingen en wederverkopers",
+      "affisell": "Bron: een regel of beslissing van Affisell",
+      "calcul": "Bron: berekend uit uw gegevens"
+    },
+    "fix": {
+      "edit": "Product openen",
+      "hold": "Affisell heeft dit product uit de verkoop gehaald: u kunt het niet zelf weer te koop zetten. De details staan op de productpagina; het contact loopt via de Affisell-support.",
+      "stockLabel": "Echt beschikbare hoeveelheid",
+      "stockSave": "Opslaan",
+      "saving": "Opslaan…",
+      "stockSaved": "Hoeveelheid opgeslagen.",
+      "stockError": "De hoeveelheid kon niet worden opgeslagen.",
+      "stockInvalid": "Vul een geheel getal in."
+    },
+    "issues": {
+      "held_by_affisell": {
+        "title": "Door Affisell uit de verkoop gehaald",
+        "why": "{hold, select, product_recalled {Er loopt een veiligheidsterugroeping voor dit product.} other {Affisell heeft dit product geschorst.}} Niemand kan het kopen zolang dat niet is opgeheven."
+      },
+      "price_missing": {
+        "title": "Prijs ontbreekt",
+        "why": "De catalogusprijs is leeg of nul: het product kan niet worden verkocht."
+      },
+      "commission_not_explicit": {
+        "title": "Geen commissie voor wederverkopers",
+        "why": "Zonder expliciete commissie kan een betaalde verkoop geen bestelling worden: hij wordt apart gezet en moet worden terugbetaald."
+      },
+      "out_of_stock": {
+        "title": "Uitverkocht",
+        "why": "Beschikbare hoeveelheid: 0. De productpagina toont « uitverkocht », niemand kan het kopen."
+      },
+      "safety_blocks_publication": {
+        "title": "Publicatie geweigerd: productveiligheid",
+        "why": "{missingCount, plural, one {# gegeven over productveiligheid ontbreekt} other {# gegevens over productveiligheid ontbreken}} (fabrikant, adres, EU-verantwoordelijke…). De controle is actief: de publicatie wordt geweigerd."
+      },
+      "stock_nominal": {
+        "title": "Hoeveelheid te bevestigen",
+        "why": "Hoeveelheid {stock}: een typische waarde van een import of assistent, niet per se uw echte voorraad."
+      },
+      "variant_stock_mismatch": {
+        "title": "Voorraden kloppen niet",
+        "why": "De productvoorraad ({productStock}) komt niet overeen met de som van de varianten ({rowsTotal})."
+      },
+      "variant_stock_untracked": {
+        "title": "Voorraad van varianten onbekend",
+        "why": "De hoeveelheden van de varianten staan niet in de tabel die bij aankoop wordt gelezen: de echte beschikbaarheid is onbekend."
+      },
+      "delivery_window_inverted": {
+        "title": "Levertijd klopt niet",
+        "why": "De minimale levertijd ({min} d) is langer dan de maximale ({max} d)."
+      },
+      "duplicate_name": {
+        "title": "Mogelijk duplicaat",
+        "why": "{others, plural, one {# ander product van u heeft} other {# andere producten van u hebben}} dezelfde naam: een duplicaat, of namen die voor wederverkopers te onderscheiden zijn."
+      },
+      "hold_unverifiable": {
+        "title": "Status niet te controleren",
+        "why": "De terugroep- of schorsingsstatus kon niet worden gelezen. Probeer het later opnieuw."
+      },
+      "safety_data_missing": {
+        "title": "Gegevens over productveiligheid ontbreken",
+        "why": "{missingCount, plural, one {# gegeven ontbreekt} other {# gegevens ontbreken}}. Vandaag niet geweigerd (controle in observatie{live, select, 1 {, product al gepubliceerd} other {}}), maar een nieuwe publicatie kan dat worden zodra de controle actief is."
+      },
+      "paused_but_listed": {
+        "title": "Gepauzeerd terwijl wederverkopers het aanbieden",
+        "why": "U heeft het gepauzeerd; {resellers, plural, one {# wederverkoper biedt het aan} other {# wederverkopers bieden het aan}} zonder het te kunnen verkopen."
+      },
+      "low_stock": {
+        "title": "Lage voorraad",
+        "why": "Nog maar {available, plural, one {# stuk} other {# stuks}} ({paidOrders30d, plural, =0 {geen betaalde bestelling} one {# betaalde bestelling} other {# betaalde bestellingen}} in 30 dagen)."
+      },
+      "no_photo": {
+        "title": "Geen foto",
+        "why": "Zonder foto is het product nauwelijks zichtbaar en lastig te presenteren voor wederverkopers."
+      },
+      "no_category": {
+        "title": "Geen categorie",
+        "why": "Wederverkopers vinden het niet via de categoriefilters van de catalogus."
+      },
+      "no_reseller": {
+        "title": "Geen wederverkoper biedt het aan",
+        "why": "Al {ageDays} dagen te koop, geen enkele winkel biedt het aan: het wordt nergens verkocht."
+      },
+      "listed_no_sales": {
+        "title": "Aangeboden maar niet verkocht",
+        "why": "{resellers, plural, one {# wederverkoper biedt het aan} other {# wederverkopers bieden het aan}}, geen betaalde bestelling in {days} dagen. Prijs, foto's of beschrijving kunnen de oorzaak zijn — een spoor, geen vaststelling."
+      },
+      "draft_ready": {
+        "title": "Concept klaar om te publiceren",
+        "why": "Prijs, hoeveelheid, commissie en foto zijn ingevuld. Publiceer het als u wilt."
+      },
+      "few_photos": {
+        "title": "Weinig foto's",
+        "why": "{photos, plural, one {# foto} other {# foto's}}. Vrijblijvend: meerdere aanzichten helpen wederverkopers het te presenteren."
+      },
+      "short_description": {
+        "title": "Korte beschrijving",
+        "why": "{characters} tekens. Vrijblijvend: een vollediger beschrijving helpt de koper te beslissen."
+      },
+      "no_gtin": {
+        "title": "Geen barcode",
+        "why": "Vrijblijvend: met een GTIN / EAN kunnen Europese veiligheidswaarschuwingen worden gecontroleerd en duplicaten worden gevonden."
+      }
+    }
+  },
+  "nextActions": {
+    "title": "Uw volgende acties",
+    "subtitle": "Een tot drie acties uit uw eigen gegevens.",
+    "honesty": "Mogelijke impact: wat bij dit product de afgelopen 30 dagen is waargenomen, geen beloofd resultaat.",
+    "priority": {
+      "haute": "Hoge prioriteit",
+      "moyenne": "Gemiddelde prioriteit",
+      "basse": "Lage prioriteit"
+    },
+    "kind": {
+      "fix_blocage": "« {product} » deblokkeren",
+      "resolve_availability": "Beschikbaarheid van « {product} » regelen",
+      "promote_to_resellers": "« {product} » bekendmaken bij wederverkopers",
+      "publish_draft": "« {product} » publiceren",
+      "complete_sheet": "Productfiche « {product} » verbeteren",
+      "fix_shop_listing": "« {product} » in uw winkel regelen",
+      "review_profit_drop": "Daling bij « {product} » bekijken",
+      "add_ready_product": "« {product} » aan uw winkel toevoegen"
+    },
+    "cta": {
+      "fix_blocage": "Product openen",
+      "resolve_availability": "Product openen",
+      "promote_to_resellers": "Wederverkopers uitnodigen",
+      "publish_draft": "Concept openen",
+      "complete_sheet": "Product openen",
+      "fix_shop_listing": "Product openen",
+      "review_profit_drop": "Analyse bekijken",
+      "add_ready_product": "In de catalogus bekijken"
+    },
+    "impact": {
+      "label": "Mogelijke impact:",
+      "orders": "{count, plural, =0 {geen betaalde bestelling in 30 d} one {# betaalde bestelling in 30 d} other {# betaalde bestellingen in 30 d}}",
+      "resellers": "{count, plural, =0 {geen wederverkoper} one {# wederverkoper} other {# wederverkopers}}",
+      "netPerSale": "{amount} netto per verkoop (berekend)",
+      "netChange": "{amount} minder netto-opbrengst (waargenomen)"
+    },
+    "reason": {
+      "price_missing": "De prijs ontbreekt: het product kan niet worden verkocht.",
+      "commission_not_explicit": "Geen commissie voor wederverkopers: een verkoop kan niet worden toegewezen.",
+      "safety_blocks_publication": "Gegevens over productveiligheid ontbreken en de publicatie wordt geweigerd.",
+      "out_of_stock": "Hoeveelheid 0: de productpagina toont « uitverkocht ».",
+      "low_stock": "Zeer weinig stuks over van een product dat verkoopt.",
+      "stock_nominal": "De hoeveelheid lijkt een importwaarde, niet uw voorraad.",
+      "variant_stock_mismatch": "Product- en variantvoorraad komen niet overeen.",
+      "variant_stock_untracked": "De variantvoorraad is bij aankoop niet bekend.",
+      "no_reseller": "Het is te koop maar geen winkel biedt het aan.",
+      "draft_ready": "Het concept is volledig.",
+      "no_photo": "Het heeft geen foto.",
+      "no_category": "Het heeft geen categorie: wederverkopers vinden het niet.",
+      "duplicate_name": "Een ander product van u heeft dezelfde naam.",
+      "delivery_window_inverted": "De minimale levertijd is langer dan de maximale.",
+      "safety_data_missing": "Gegevens over productveiligheid ontbreken.",
+      "paused_but_listed": "Het is gepauzeerd terwijl wederverkopers het aanbieden.",
+      "listed_no_sales": "Wederverkopers bieden het aan maar het verkoopt niet.",
+      "few_photos": "Het heeft weinig foto's terwijl er vraag naar is.",
+      "short_description": "De beschrijving is kort terwijl er vraag naar is.",
+      "no_gtin": "Het heeft geen barcode terwijl er vraag naar is.",
+      "shop_out_of_stock": "De leverancier heeft geen voorraad meer: uw kopers zien het uitverkocht.",
+      "shop_product_unavailable": "De leverancier heeft het ingetrokken of gepauzeerd: het is niet meer te koop.",
+      "shop_awaiting_review": "Het product wacht op validatie door Affisell.",
+      "shop_no_commission": "De leverancier heeft geen commissie ingesteld: een verkoop kan niet worden toegewezen.",
+      "drop_volume_down": "Uw verkoop van dit product is gedaald.",
+      "drop_your_price_down": "U heeft uw prijs verlaagd.",
+      "drop_collected_price_down": "De ontvangen prijs is gedaald.",
+      "drop_supplier_price_up": "De leveranciersprijs is gestegen.",
+      "drop_commission_down": "De commissie is gedaald.",
+      "drop_fees_up": "De kosten zijn gestegen.",
+      "drop_refunds_up": "De terugbetalingen zijn gestegen.",
+      "drop_disputes_up": "De geschillen zijn gestegen.",
+      "drop_other": "Uw netto-opbrengst op dit product is gedaald.",
+      "ready_to_sell": "Het is vandaag verkoopbaar en staat nog niet in uw winkel."
+    }
   }
 }

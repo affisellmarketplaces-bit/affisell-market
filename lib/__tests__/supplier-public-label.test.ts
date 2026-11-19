@@ -53,7 +53,12 @@ describe("supplier identity shown to resellers (founder decision 2026-11-19)", (
   })
 
   it("quote routes never pass serializeProductQuote straight to map() (the index would be read as the store map)", () => {
-    for (const f of ["app/api/requests/[id]/quotes/route.ts", "app/api/requests/[id]/quotes/[quoteId]/accept/route.ts"]) {
+    for (const f of [
+      "app/api/requests/[id]/quotes/route.ts",
+      "app/api/requests/[id]/quotes/[quoteId]/accept/route.ts",
+      "app/dashboard/reseller/requests/[id]/page.tsx",
+      "app/dashboard/supplier/requests/[id]/page.tsx",
+    ]) {
       expect(read(f)).not.toMatch(/\.map\(serializeProductQuote\)/)
     }
   })

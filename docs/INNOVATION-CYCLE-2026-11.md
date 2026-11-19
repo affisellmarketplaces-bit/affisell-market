@@ -51,42 +51,36 @@ Elles sont choisies pour les tâches qu'elles suppriment et leur potentiel comme
   - l'ajout passe par l'ajout rapide existant (`quickAddAffiliateListing`) : mêmes règles et mêmes contrôles de publication qu'un ajout manuel, rien de nouveau n'est écrit.
 - **Panneau** en tête du catalogue revendeur, traduit en 8 langues.
 
-### Innovation 2 — Copilote fournisseur : santé du catalogue (prochaine)
+### Innovation 2 — Copilote fournisseur : santé du catalogue (développée)
 
-**Tâches supprimées** : chercher produit par produit ce qui bloque, ou rend douteuses, les ventes.
+**Tâche supprimée** : chercher produit par produit ce qui bloque, ou rend douteuses, les ventes.
 
-**Conception** : un seul écran qui passe tout le catalogue du fournisseur en revue (F4, F5).
+**Construit** : `lib/supplier-catalog-health/diagnose.ts` (pur) + `.server.ts` (lecture seule, limitée au fournisseur connecté, ≤ 1 000 produits), `GET /api/supplier/catalog-health` (FOURNISSEUR), page `/dashboard/supplier/catalog-health`, lien depuis le tableau de bord.
 
-- **Ce qui empêche de vendre** :
-  - absence de commission explicite ;
-  - rupture de stock alors que des revendeurs listent le produit ;
-  - données de sécurité produit manquantes, si le mode `enforce` est activé ;
-  - suspension ou rappel par Affisell (« bloqué », pas une tâche du fournisseur).
-- **Ce qui rend les données douteuses** :
-  - stock « rond » jamais modifié (99, 999) ;
-  - prix par défaut ;
-  - absence de photo ou de GTIN ;
-  - doublons chez le même fournisseur.
-- **Ce qui freine la commercialisation** :
-  - aucun revendeur ne le liste ;
-  - commission nettement sous la médiane de sa catégorie (chiffre observé).
-- **Tri par impact commercial observé** : ventes payées sur 30 jours, revendeurs qui listent le produit.
-- **Action** : chaque ligne ouvre le bon champ du formulaire existant.
+Quatre classes, jamais mélangées :
 
-Les briques existantes sont réutilisées : `evaluateListingReadiness`, `checkSupplierMayActivate`, `product-journey`, `duplicate-check`.
+| Classe | Règle | Diagnostics |
+|---|---|---|
+| Blocage | empêche réellement une opération aujourd'hui | prix manquant ; commission non explicite (une vente payée deviendrait une ligne non attribuée) ; épuisé (la fiche affiche « épuisé ») ; retiré par Affisell (rappel ou suspension — non corrigeable par le fournisseur) ; données de sécurité manquantes sur un brouillon **seulement si** `LISTING_READINESS_MODE=enforce` |
+| Anomalie | donnée incohérente ou probablement fausse | stock nominal (99, 999, 9 999, 99 999) ; stock produit ≠ somme des déclinaisons ; stock des déclinaisons absent du tableau lu au paiement ; délai min > max ; doublon de nom chez le même fournisseur |
+| Avertissement | risque, rien n'est bloqué | statut rappel/suspension illisible (jamais lu comme « aucun ») ; sécurité produit manquante hors `enforce` ; en pause alors que des revendeurs le proposent ; ≤ 3 unités ; aucune photo ; aucune catégorie ; aucun revendeur après 14 jours ; proposé mais aucune vente en 30 jours (dit « piste, pas constat ») |
+| Recommandation | facultative, présentée comme telle | brouillon complet prêt à publier ; < 3 photos ; description < 200 caractères ; pas de GTIN |
 
-### Innovation 3 — Assistant contextuel : la prochaine meilleure action
+- **Classement** : `classe × (1 + 3 × commandes payées 30 j + revendeurs qui le proposent)` — demande **constatée**, pas une prévision.
+- **Chaque ligne** affiche sa source (fiche / constaté / règle Affisell / calcul) et les chiffres sur lesquels elle repose.
+- **Correction directe** : quantité saisissable en ligne pour un produit simple (le `PATCH` fournisseur existant avec `stockBaseline` : aucune unité vendue entre-temps n'est ressuscitée) ; sinon lien vers la fiche.
+- **Non fait, volontairement** : commission « sous la médiane de la catégorie » (comparer aux autres fournisseurs = donnée d'autrui, décision fondateur).
+
+### Innovation 3 — Prochaine meilleure action (développée)
 
 **Tâche supprimée** : se demander quoi faire en ouvrant son tableau de bord.
 
-**Conception** : une ou trois actions maximum, déduites de la situation réelle et sans aucune action automatique.
+**Construit** : `lib/next-best-action/next-best-action.ts` (pur) + `.server.ts`, `GET /api/supplier/next-actions` et `GET /api/affiliate/next-actions` (chacun son rôle, lecture seule), carte `NextActionsCard` sur le tableau de bord fournisseur, la page santé et le catalogue revendeur.
 
-- **Côté fournisseur** : le premier point de la santé du catalogue.
-- **Côté revendeur**, par ordre de priorité :
-  1. une alerte de rentabilité active (le module existant `profit-alerts`) ;
-  2. une fiche de sa boutique devenue invendable (rupture, retrait) ;
-  3. sinon, la sélection du copilote.
-- **Chaque action** dit pourquoi elle est proposée et sur quelle donnée elle repose.
+- **Une à trois actions**, de types distincts, sur des produits distincts quand c'est possible. Chacune : action, justification (le code du diagnostic), données (avec leur qualification), **impact potentiel** (ce qui a été constaté sur ce produit en 30 jours — jamais garanti), priorité.
+- **Fournisseur** : tirées de la santé du catalogue. Jamais une action qu'il ne peut pas faire (produit retenu par Affisell). Les améliorations facultatives ne deviennent une action que si le produit a de la demande — sinon c'est du bruit.
+- **Revendeur** : 1) une fiche de sa boutique invendable (épuisé, retiré, en attente de validation, sans commission) ; 2) une alerte de rentabilité ouverte (module `profit-alerts`) ; 3) un produit prêt à vendre du copilote, avec son net réel par vente.
+- **Aucune action automatique** : chaque carte ouvre l'écran existant.
 
 ## 3. Cohérence des trois moteurs
 
@@ -100,10 +94,14 @@ Les briques existantes sont réutilisées : `evaluateListingReadiness`, `checkSu
 |---|---|---|---|
 | Net réel par vente, cartes du catalogue corrigées | Oui | Oui (grille contre le règlement) | Non (branche, pas déployé) |
 | Sélection prête à vendre + ajout groupé | Oui | Oui | Non |
-| Santé du catalogue fournisseur | Conception (§ 2) | — | — |
-| Prochaine meilleure action | Conception (§ 2) | — | — |
+| Décision A : ni prix ni quantité inventés à la publication (assistant Express) | Oui | Oui (unitaires) | Non |
+| Décision B : « Fournisseur Affisell », plus d'e-mail fournisseur côté revendeur | Oui | Oui (unitaires + garde-fous de code) | Non |
+| Santé du catalogue fournisseur | Oui | Oui (règles par classe, classement) | Non |
+| Prochaine meilleure action (fournisseur et revendeur) | Oui | Oui | Non |
 
-## 5. Points soumis au fondateur
+## 5. Décisions du fondateur (2026-11-19) et leur application
 
-1. **F6** : afficher l'e-mail du fournisseur aux revendeurs, ou un libellé neutre ?
-2. **F4** : faut-il refuser la publication par l'assistant v2 sans prix ni stock saisis, au lieu de 10 € et 99 unités ? Je le recommande.
+1. **F6 — identité fournisseur** : libellé = nom de boutique, sinon « Fournisseur Affisell » (`lib/supplier-public-label.ts`, aussi quand le nom de boutique est une adresse e-mail). L'e-mail n'est plus lu par la requête du catalogue revendeur ; les devis (demandes de produits) n'exposent plus ni l'e-mail ni le nom de la personne, seulement le nom de boutique chargé côté serveur. **Canal interne conservé** : la demande de produit et ses devis (messages tracés en base) ; aucun contact direct n'est montré par défaut.
+2. **F4 — publication** : l'assistant Express refuse de publier sans prix et sans quantité saisis (`lib/product-availability.ts`). Modes réellement pris en charge : quantité disponible (produit physique) et « sans stock physique » (service, logiciel, abonnement, expérience). **Non pris en charge, listés comme tels** : sur commande, disponibilité permanente, précommande — aucun champ, la fiche affiche « épuisé » à 0 et le contrôle de stock refuserait. Les prendre en charge = stockage + paiement + fiche produit : décision fondateur.
+
+**Reste à décider** : les importeurs qui écrivent encore un stock nominal (99 / 999 — import par URL, import admin, démo) ne sont pas modifiés ; la santé du catalogue les signale comme « quantité à confirmer ». Les corriger à la source changerait ce que les imports publient : à valider.

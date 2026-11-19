@@ -81,7 +81,7 @@ type CatalogProduct = {
   hasVariants?: boolean
   productVariants?: Array<{ color: string | null; size: string | null; stock: number }>
   affiliateProducts?: { id: string; isListed: boolean }[]
-  supplier: { email: string; store?: { name: string; slug: string } | null }
+  supplier: { store?: { name: string; slug: string } | null }
 }
 
 const ADDED_WINDOW_OPTIONS: CatalogAddedWindow[] = ["all", "7d", "30d", "90d"]
