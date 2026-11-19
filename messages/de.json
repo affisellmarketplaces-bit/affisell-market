@@ -2495,7 +2495,11 @@
       "estimatedRevenue": "Geschätzte Reseller-Einnahmen",
       "estimatedRevenueHint": "Provision + Marge bei {markupPct}% empfohlenem Aufschlag",
       "sortRevenueDesc": "Reseller-Einnahmen · hoch → niedrig",
-      "supplierSheetAria": "Lieferanten-Produktseite"
+      "supplierSheetAria": "Lieferanten-Produktseite",
+      "netShort": "Netto",
+      "netRevenue": "Ihr Nettogewinn pro Verkauf",
+      "netBreakdown": "{gross} Provision + Marge − {fee} Affisell-Gebühr ({feePct} %)",
+      "priceIsHt": "Preise ohne MwSt.: Der Käufer zahlt die MwSt. zusätzlich."
     },
     "catalogFilters": {
       "groupAria": "Storefront- und Hinzufügedatum-Filter",
@@ -3065,6 +3069,36 @@
         "saving": "Wird gespeichert…",
         "saved": "Gespeichert",
         "error": "Speichern fehlgeschlagen"
+      }
+    },
+    "copilot": {
+      "title": "Reseller-Copilot — Ihre verkaufsbereite Auswahl",
+      "subtitle": "Katalogprodukte, die Sie wirklich verkaufen können, geordnet nach dem, was ein Verkauf Ihnen nach der Affisell-Gebühr wirklich einbringt. Markieren Sie, was Sie behalten, und fügen Sie es in einem Schritt hinzu.",
+      "addCta": "Auswahl hinzufügen ({count})",
+      "adding": "Wird hinzugefügt…",
+      "added": "{added} Produkt(e) zu Ihrem Shop hinzugefügt.",
+      "addedPartial": "{added} hinzugefügt, {refused} abgelehnt: ihre Lage hat sich seit dem Laden geändert.",
+      "addError": "Hinzufügen fehlgeschlagen. Bitte erneut versuchen.",
+      "loading": "Katalog wird analysiert…",
+      "empty": "Derzeit kein neues verkaufbares Produkt.",
+      "pick": "{name} behalten",
+      "netPerSale": "netto pro Verkauf, nach Affisell-Gebühr",
+      "priceLine": "Vorgeschlagener Preis {price} netto · der Käufer zahlt ca. {ttc} brutto",
+      "demandSeen": "{orders} bezahlte Bestellung(en) auf dem Marktplatz in 30 Tagen",
+      "demandNone": "Noch kein Verkauf beobachtet",
+      "resellers": "{count, plural, =0 {kein Reseller verkauft es} one {# Reseller verkauft es} other {# Reseller verkaufen es}}",
+      "feeDefault": "Berechnet mit der Standardgebühr von Affisell (20 % Ihrer Provision und Marge).",
+      "feeNegotiated": "Berechnet mit Ihrem Affisell-Gebührensatz ({pct} %).",
+      "honesty": "Der Nettobetrag ist eine Berechnung aus den Konditionen des Lieferanten, kein Verkaufsversprechen. Gezeigte Verkäufe sind auf Affisell beobachtet, keine Prognose.",
+      "blockedToggle": "{count} Produkt(e) ausgeschlossen: warum",
+      "reasons": {
+        "awaiting_affisell_review": "wartet auf Prüfung durch Affisell",
+        "no_explicit_commission": "keine Provision festgelegt: ein Verkauf könnte nicht erfasst werden",
+        "no_supplier_price": "kein Lieferantenpreis",
+        "out_of_stock": "nicht vorrätig",
+        "stock_unknown": "Bestand nicht prüfbar",
+        "low_stock": "sehr geringer Bestand",
+        "low_net_per_sale": "geringer Gewinn pro Verkauf"
       }
     }
   },

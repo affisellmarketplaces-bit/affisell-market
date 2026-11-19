@@ -2495,7 +2495,11 @@
       "estimatedRevenue": "预估分销商收益",
       "estimatedRevenueHint": "佣金 + 利润（按建议加价 {markupPct}% 计算）",
       "sortRevenueDesc": "分销收益 · 从高到低",
-      "supplierSheetAria": "供应商商品页"
+      "supplierSheetAria": "供应商商品页",
+      "netShort": "净",
+      "netRevenue": "每笔销售的净收益",
+      "netBreakdown": "{gross} 佣金 + 利润 − {fee} Affisell 费用（{feePct}%）",
+      "priceIsHt": "价格不含增值税：买家另付增值税。"
     },
     "catalogFilters": {
       "groupAria": "店面与添加日期筛选条件",
@@ -3065,6 +3069,36 @@
         "saving": "正在保存…",
         "saved": "已保存",
         "error": "保存失败"
+      }
+    },
+    "copilot": {
+      "title": "分销商助手 — 可直接销售的选品",
+      "subtitle": "目录中您真正可以销售的商品，按扣除 Affisell 费用后每笔销售的实际收益排序。勾选要保留的商品，一次性添加。",
+      "addCta": "添加所选（{count}）",
+      "adding": "添加中…",
+      "added": "已向您的店铺添加 {added} 个商品。",
+      "addedPartial": "已添加 {added} 个，拒绝 {refused} 个：页面加载后其状态已变化。",
+      "addError": "添加失败，请重试。",
+      "loading": "正在分析目录…",
+      "empty": "目前没有新的可售商品。",
+      "pick": "保留 {name}",
+      "netPerSale": "每笔销售净收益（扣除 Affisell 费用后）",
+      "priceLine": "建议售价 {price}（不含税）· 买家约支付 {ttc}（含税）",
+      "demandSeen": "近 30 天平台已付款订单 {orders} 笔",
+      "demandNone": "尚未观察到销售",
+      "resellers": "{count, plural, =0 {尚无分销商销售} other {# 个分销商在销售}}",
+      "feeDefault": "按 Affisell 标准费用计算（佣金和利润的 20%）。",
+      "feeNegotiated": "按您的 Affisell 费率计算（{pct}%）。",
+      "honesty": "净收益是根据供应商公布条件的计算，并非销售承诺。显示的销量为 Affisell 实际观察，并非预测。",
+      "blockedToggle": "已排除 {count} 个商品：查看原因",
+      "reasons": {
+        "awaiting_affisell_review": "等待 Affisell 审核",
+        "no_explicit_commission": "未设置佣金：销售将无法记录",
+        "no_supplier_price": "缺少供应商价格",
+        "out_of_stock": "缺货",
+        "stock_unknown": "库存无法核实",
+        "low_stock": "库存极少",
+        "low_net_per_sale": "每笔收益较低"
       }
     }
   },

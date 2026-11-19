@@ -2495,7 +2495,11 @@
       "estimatedRevenue": "Szacowane zarobki resellera",
       "estimatedRevenueHint": "Prowizja + marża przy sugerowanej marży {markupPct}%",
       "sortRevenueDesc": "Zarobki resellera · od najwyższych",
-      "supplierSheetAria": "Strona produktu dostawcy"
+      "supplierSheetAria": "Strona produktu dostawcy",
+      "netShort": "Netto",
+      "netRevenue": "Twój zysk netto na sprzedaży",
+      "netBreakdown": "{gross} prowizja + marża − {fee} opłata Affisell ({feePct}%)",
+      "priceIsHt": "Ceny bez VAT: kupujący płaci VAT dodatkowo."
     },
     "catalogFilters": {
       "groupAria": "Filtry sklepu i daty dodania",
@@ -3065,6 +3069,36 @@
         "saving": "Zapisywanie…",
         "saved": "Zapisano",
         "error": "Nie udało się zapisać"
+      }
+    },
+    "copilot": {
+      "title": "Copilot sprzedawcy — Twój wybór gotowy do sprzedaży",
+      "subtitle": "Produkty z katalogu, które naprawdę możesz sprzedać, uszeregowane według tego, ile naprawdę przynosi jedna sprzedaż po opłacie Affisell. Zaznacz te, które zostawiasz, i dodaj je za jednym razem.",
+      "addCta": "Dodaj wybór ({count})",
+      "adding": "Dodawanie…",
+      "added": "Dodano {added} produkt(ów) do sklepu.",
+      "addedPartial": "Dodano {added}, odrzucono {refused}: ich sytuacja zmieniła się od załadowania.",
+      "addError": "Dodawanie nie powiodło się. Spróbuj ponownie.",
+      "loading": "Analiza katalogu…",
+      "empty": "Obecnie brak nowych produktów do sprzedaży.",
+      "pick": "Zostaw {name}",
+      "netPerSale": "netto na sprzedaży, po opłacie Affisell",
+      "priceLine": "Proponowana cena {price} netto · kupujący płaci ok. {ttc} brutto",
+      "demandSeen": "{orders} opłacone zamówienie(a) na marketplace w 30 dni",
+      "demandNone": "Brak zaobserwowanej sprzedaży",
+      "resellers": "{count, plural, =0 {żaden sprzedawca go nie sprzedaje} one {# sprzedawca go sprzedaje} few {# sprzedawców go sprzedaje} many {# sprzedawców go sprzedaje} other {# sprzedawców go sprzedaje}}",
+      "feeDefault": "Wyliczone ze standardową opłatą Affisell (20% prowizji i marży).",
+      "feeNegotiated": "Wyliczone z Twoją stawką Affisell ({pct}%).",
+      "honesty": "Kwota netto to wyliczenie z warunków dostawcy, nie obietnica sprzedaży. Pokazana sprzedaż jest obserwowana w Affisell, nie jest prognozą.",
+      "blockedToggle": "Pominięto {count} produkt(ów): zobacz dlaczego",
+      "reasons": {
+        "awaiting_affisell_review": "oczekuje na weryfikację Affisell",
+        "no_explicit_commission": "brak prowizji: sprzedaż nie mogłaby zostać zarejestrowana",
+        "no_supplier_price": "brak ceny dostawcy",
+        "out_of_stock": "brak w magazynie",
+        "stock_unknown": "stanu nie da się sprawdzić",
+        "low_stock": "bardzo mało sztuk",
+        "low_net_per_sale": "niski zysk ze sprzedaży"
       }
     }
   },

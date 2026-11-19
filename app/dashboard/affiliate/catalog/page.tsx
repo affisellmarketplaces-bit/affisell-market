@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Suspense } from "react"
 
 import { AffiliateCatalogExperience } from "@/components/affiliate/affiliate-catalog-experience"
+import { ResellerCopilotPanel } from "@/components/affiliate/reseller-copilot-panel"
 import {
   RadarCatalogArbitragePanel,
   type RadarDraftArbitrageRow,
@@ -94,7 +95,7 @@ export default async function AffiliateCatalogPage({ searchParams }: PageProps) 
     highMargin: [],
   }
 
-  const [stats, highlights, opportunityPicks, radarDrafts] = await Promise.all([
+  const [stats, highlights, opportunityPicks, radarDrafts, feeRow] = await Promise.all([
     loadHomeMarketplaceStatsSafe().catch((err) => {
       console.error("[affiliate/catalog] stats failed:", err)
       return {
@@ -116,6 +117,8 @@ export default async function AffiliateCatalogPage({ searchParams }: PageProps) 
       console.error("[affiliate/catalog] radar drafts failed:", err)
       return [] as RadarDraftArbitrageRow[]
     }),
+    // The reseller's negotiated Affisell fee: the catalogue shows what a sale REALLY pays (null = platform default).
+    prisma.user.findUnique({ where: { id: session.user.id }, select: { affiliatePlatformFeeBps: true } }).catch(() => null),
   ])
 
   return (
@@ -132,10 +135,14 @@ export default async function AffiliateCatalogPage({ searchParams }: PageProps) 
           </div>
         }
       >
+        <div className="px-4 md:px-8">
+          <ResellerCopilotPanel />
+        </div>
         <AffiliateCatalogExperience
           stats={stats}
           initialHighlights={highlights}
           initialOpportunityPicks={opportunityPicks}
+          affiliateFeeBps={feeRow?.affiliatePlatformFeeBps ?? null}
         />
       </Suspense>
     </main>

@@ -43,7 +43,7 @@ export function AffiliateCatalogEconomicsPanel({
           {money(economics.commissionCents, { maximumFractionDigits: 0 })} ({economics.commissionRatePct}%)
         </EconomicsChip>
         <EconomicsChip tone={tone} accent="revenue">
-          ≈{money(economics.totalPartnerGainCents, { maximumFractionDigits: 0 })}
+          {t("netShort")} ≈{money(economics.netPartnerGainCents, { maximumFractionDigits: 0 })}
         </EconomicsChip>
       </div>
     )
@@ -150,15 +150,28 @@ export function AffiliateCatalogEconomicsPanel({
             isDark ? "text-emerald-200/90" : "text-emerald-800 dark:text-emerald-200"
           )}
         >
-          {t("estimatedRevenue")}
+          {t("netRevenue")}
         </p>
         <p
           className={cn(
             "text-lg font-black tabular-nums",
             isDark ? "text-white" : "text-emerald-900 dark:text-emerald-100"
           )}
+          data-testid="affiliate-catalog-net"
         >
-          {money(economics.totalPartnerGainCents, { maximumFractionDigits: 0 })}
+          {money(economics.netPartnerGainCents, { maximumFractionDigits: 0 })}
+        </p>
+        <p
+          className={cn(
+            "mt-0.5 text-[10px] tabular-nums",
+            isDark ? "text-zinc-300" : "text-emerald-900/80 dark:text-emerald-100/80"
+          )}
+        >
+          {t("netBreakdown", {
+            gross: money(economics.totalPartnerGainCents),
+            fee: money(economics.affisellFeeCents),
+            feePct: Math.round(economics.feeBps / 100),
+          })}
         </p>
         <p
           className={cn(
@@ -168,7 +181,8 @@ export function AffiliateCatalogEconomicsPanel({
         >
           {t("estimatedRevenueHint", {
             markupPct: Math.round(economics.suggestedMarkupRate * 100),
-          })}
+          })}{" "}
+          {t("priceIsHt")}
         </p>
       </div>
     </div>

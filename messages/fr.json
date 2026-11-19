@@ -2495,7 +2495,11 @@
       "estimatedRevenue": "Revenu revendeur estimé",
       "estimatedRevenueHint": "Commission + marge à {markupPct}% markup suggéré",
       "sortRevenueDesc": "Revenu revendeur · haut → bas",
-      "supplierSheetAria": "Fiche fournisseur"
+      "supplierSheetAria": "Fiche fournisseur",
+      "netShort": "Net",
+      "netRevenue": "Votre gain net par vente",
+      "netBreakdown": "{gross} commission + marge − {fee} frais Affisell ({feePct} %)",
+      "priceIsHt": "Prix hors taxes : l'acheteur paie la TVA en plus."
     },
     "catalogFilters": {
       "groupAria": "Filtres boutique et date d'ajout",
@@ -3065,6 +3069,36 @@
         "saving": "Enregistrement…",
         "saved": "Enregistré",
         "error": "Échec de l'enregistrement"
+      }
+    },
+    "copilot": {
+      "title": "Copilote revendeur — votre sélection prête à vendre",
+      "subtitle": "Les produits du catalogue que vous pouvez réellement vendre, classés par ce qu'une vente vous rapporte vraiment après les frais Affisell. Cochez ceux que vous gardez et ajoutez-les en une fois.",
+      "addCta": "Ajouter la sélection ({count})",
+      "adding": "Ajout…",
+      "added": "{added} produit(s) ajouté(s) à votre boutique.",
+      "addedPartial": "{added} ajouté(s), {refused} refusé(s) : leur situation a changé depuis l'affichage.",
+      "addError": "L'ajout n'a pas abouti. Réessayez.",
+      "loading": "Analyse du catalogue…",
+      "empty": "Aucun nouveau produit vendable pour l'instant : tout ce qui peut être vendu est déjà dans votre boutique, ou rien n'est disponible.",
+      "pick": "Garder {name}",
+      "netPerSale": "net par vente, après frais Affisell",
+      "priceLine": "Prix de vente proposé {price} HT · l'acheteur paie environ {ttc} TTC",
+      "demandSeen": "{orders} commande(s) payée(s) sur la marketplace en 30 jours",
+      "demandNone": "Pas encore de vente observée",
+      "resellers": "{count, plural, =0 {aucun revendeur ne le vend} one {# revendeur le vend} other {# revendeurs le vendent}}",
+      "feeDefault": "Calcul avec les frais Affisell standard (20 % de votre commission et de votre marge).",
+      "feeNegotiated": "Calcul avec votre taux de frais Affisell ({pct} %).",
+      "honesty": "Le net est un calcul fondé sur les conditions publiées par le fournisseur, pas une promesse de ventes. Les ventes affichées sont observées sur Affisell, pas une prévision.",
+      "blockedToggle": "{count} produit(s) écarté(s) : voir pourquoi",
+      "reasons": {
+        "awaiting_affisell_review": "en attente de validation Affisell",
+        "no_explicit_commission": "aucune commission définie : une vente ne pourrait pas être enregistrée",
+        "no_supplier_price": "prix fournisseur absent",
+        "out_of_stock": "rupture de stock",
+        "stock_unknown": "stock non vérifiable",
+        "low_stock": "très peu d'unités en stock",
+        "low_net_per_sale": "gain par vente faible"
       }
     }
   },

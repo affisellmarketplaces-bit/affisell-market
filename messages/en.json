@@ -2495,7 +2495,11 @@
       "estimatedRevenue": "Estimated reseller earnings",
       "estimatedRevenueHint": "Commission + margin at {markupPct}% suggested markup",
       "sortRevenueDesc": "Reseller earnings · high → low",
-      "supplierSheetAria": "Supplier product page"
+      "supplierSheetAria": "Supplier product page",
+      "netShort": "Net",
+      "netRevenue": "Your net gain per sale",
+      "netBreakdown": "{gross} commission + margin − {fee} Affisell fee ({feePct}%)",
+      "priceIsHt": "Prices exclude VAT: the buyer pays VAT on top."
     },
     "catalogFilters": {
       "groupAria": "Storefront and date-added filters",
@@ -3065,6 +3069,36 @@
         "saving": "Saving…",
         "saved": "Saved",
         "error": "Could not save"
+      }
+    },
+    "copilot": {
+      "title": "Reseller copilot — your ready-to-sell selection",
+      "subtitle": "Catalogue products you can really sell, ranked by what one sale really pays you after Affisell's fee. Tick the ones you keep and add them in one go.",
+      "addCta": "Add the selection ({count})",
+      "adding": "Adding…",
+      "added": "{added} product(s) added to your shop.",
+      "addedPartial": "{added} added, {refused} refused: their situation changed since the page loaded.",
+      "addError": "Adding failed. Try again.",
+      "loading": "Analysing the catalogue…",
+      "empty": "No new sellable product right now: everything sellable is already in your shop, or nothing is available.",
+      "pick": "Keep {name}",
+      "netPerSale": "net per sale, after Affisell's fee",
+      "priceLine": "Suggested price {price} excl. VAT · the buyer pays about {ttc} incl. VAT",
+      "demandSeen": "{orders} paid order(s) on the marketplace in 30 days",
+      "demandNone": "No sale observed yet",
+      "resellers": "{count, plural, =0 {no reseller sells it} one {# reseller sells it} other {# resellers sell it}}",
+      "feeDefault": "Computed with Affisell's standard fee (20% of your commission and margin).",
+      "feeNegotiated": "Computed with your Affisell fee rate ({pct}%).",
+      "honesty": "The net is computed from the supplier's published terms, not a promise of sales. Sales shown are observed on Affisell, not a forecast.",
+      "blockedToggle": "{count} product(s) left out: see why",
+      "reasons": {
+        "awaiting_affisell_review": "awaiting Affisell review",
+        "no_explicit_commission": "no commission set: a sale could not be recorded",
+        "no_supplier_price": "no supplier price",
+        "out_of_stock": "out of stock",
+        "stock_unknown": "stock can not be checked",
+        "low_stock": "very few units in stock",
+        "low_net_per_sale": "low gain per sale"
       }
     }
   },

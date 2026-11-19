@@ -2495,7 +2495,11 @@
       "estimatedRevenue": "Geschatte reseller-inkomsten",
       "estimatedRevenueHint": "Commissie + marge bij {markupPct}% aanbevolen opslag",
       "sortRevenueDesc": "Reseller-inkomsten · hoog → laag",
-      "supplierSheetAria": "Leveranciersproductpagina"
+      "supplierSheetAria": "Leveranciersproductpagina",
+      "netShort": "Netto",
+      "netRevenue": "Uw nettowinst per verkoop",
+      "netBreakdown": "{gross} commissie + marge − {fee} Affisell-vergoeding ({feePct}%)",
+      "priceIsHt": "Prijzen exclusief btw: de koper betaalt de btw erbovenop."
     },
     "catalogFilters": {
       "groupAria": "Storefront- en toevoegdatumfilters",
@@ -3065,6 +3069,36 @@
         "saving": "Opslaan…",
         "saved": "Opgeslagen",
         "error": "Opslaan mislukt"
+      }
+    },
+    "copilot": {
+      "title": "Reseller-copiloot — uw verkoopklare selectie",
+      "subtitle": "Catalogusproducten die u echt kunt verkopen, gerangschikt naar wat één verkoop u na de Affisell-vergoeding echt oplevert. Vink aan wat u houdt en voeg alles in één keer toe.",
+      "addCta": "Selectie toevoegen ({count})",
+      "adding": "Toevoegen…",
+      "added": "{added} product(en) aan uw winkel toegevoegd.",
+      "addedPartial": "{added} toegevoegd, {refused} geweigerd: hun situatie veranderde sinds het laden.",
+      "addError": "Toevoegen mislukt. Probeer opnieuw.",
+      "loading": "Catalogus wordt geanalyseerd…",
+      "empty": "Momenteel geen nieuw verkoopbaar product.",
+      "pick": "{name} houden",
+      "netPerSale": "netto per verkoop, na Affisell-vergoeding",
+      "priceLine": "Voorgestelde prijs {price} excl. btw · de koper betaalt ongeveer {ttc} incl. btw",
+      "demandSeen": "{orders} betaalde bestelling(en) op de marktplaats in 30 dagen",
+      "demandNone": "Nog geen verkoop waargenomen",
+      "resellers": "{count, plural, =0 {geen reseller verkoopt het} one {# reseller verkoopt het} other {# resellers verkopen het}}",
+      "feeDefault": "Berekend met de standaardvergoeding van Affisell (20% van uw commissie en marge).",
+      "feeNegotiated": "Berekend met uw Affisell-tarief ({pct}%).",
+      "honesty": "Het netto is een berekening op basis van de voorwaarden van de leverancier, geen verkoopbelofte. Getoonde verkopen zijn waargenomen op Affisell, geen prognose.",
+      "blockedToggle": "{count} product(en) weggelaten: bekijk waarom",
+      "reasons": {
+        "awaiting_affisell_review": "wacht op controle door Affisell",
+        "no_explicit_commission": "geen commissie ingesteld: een verkoop kan niet worden geregistreerd",
+        "no_supplier_price": "geen leveranciersprijs",
+        "out_of_stock": "niet op voorraad",
+        "stock_unknown": "voorraad niet controleerbaar",
+        "low_stock": "zeer weinig voorraad",
+        "low_net_per_sale": "lage winst per verkoop"
       }
     }
   },

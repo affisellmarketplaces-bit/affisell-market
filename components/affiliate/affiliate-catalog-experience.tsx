@@ -138,6 +138,8 @@ type Props = {
   stats: HomeMarketplaceStats
   initialHighlights: HighlightsData
   initialOpportunityPicks?: AffiliateOpportunityPulseCard[]
+  /** The reseller's negotiated Affisell fee (`User.affiliatePlatformFeeBps`); null = platform default. */
+  affiliateFeeBps?: number | null
 }
 
 function supplierLabel(p: AffiliateCatalogProduct) {
@@ -150,6 +152,7 @@ export function AffiliateCatalogExperience({
   stats,
   initialHighlights,
   initialOpportunityPicks = [],
+  affiliateFeeBps = null,
 }: Props) {
   const tOpportunity = useTranslations("affiliate.opportunityPulse")
   const tCatalog = useTranslations("affiliate.catalogEconomics")
@@ -763,7 +766,7 @@ export function AffiliateCatalogExperience({
                     const isHidden = listingState.kind === "hidden"
                     const listingId = listingState.kind !== "none" ? listingState.listingId : undefined
                     const thumb = primaryProductImage(p.images) || "/placeholder-product.jpg"
-                    const economics = buildAffiliateCatalogCardEconomicsFromProduct(p)
+                    const economics = buildAffiliateCatalogCardEconomicsFromProduct(p, affiliateFeeBps)
                     const supplierHref = p.supplier.store?.slug
                       ? `/store/supplier/${encodeURIComponent(p.supplier.store.slug)}`
                       : null

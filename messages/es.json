@@ -2495,7 +2495,11 @@
       "estimatedRevenue": "Ganancias estimadas del reseller",
       "estimatedRevenueHint": "Comisión + margen con {markupPct}% de margen sugerido",
       "sortRevenueDesc": "Ganancias de reseller · alto → bajo",
-      "supplierSheetAria": "Página de producto del proveedor"
+      "supplierSheetAria": "Página de producto del proveedor",
+      "netShort": "Neto",
+      "netRevenue": "Su ganancia neta por venta",
+      "netBreakdown": "{gross} comisión + margen − {fee} tarifa Affisell ({feePct} %)",
+      "priceIsHt": "Precios sin IVA: el comprador paga el IVA aparte."
     },
     "catalogFilters": {
       "groupAria": "Filtros de tienda y fecha de adición",
@@ -3065,6 +3069,36 @@
         "saving": "Guardando…",
         "saved": "Guardado",
         "error": "No se pudo guardar"
+      }
+    },
+    "copilot": {
+      "title": "Copiloto revendedor — su selección lista para vender",
+      "subtitle": "Los productos del catálogo que realmente puede vender, ordenados por lo que una venta le aporta tras la tarifa de Affisell. Marque los que conserva y añádalos de una vez.",
+      "addCta": "Añadir la selección ({count})",
+      "adding": "Añadiendo…",
+      "added": "{added} producto(s) añadido(s) a su tienda.",
+      "addedPartial": "{added} añadido(s), {refused} rechazado(s): su situación cambió desde la carga.",
+      "addError": "No se pudo añadir. Inténtelo de nuevo.",
+      "loading": "Analizando el catálogo…",
+      "empty": "Ningún producto vendible nuevo por ahora.",
+      "pick": "Conservar {name}",
+      "netPerSale": "neto por venta, tras la tarifa de Affisell",
+      "priceLine": "Precio propuesto {price} sin IVA · el comprador paga unos {ttc} con IVA",
+      "demandSeen": "{orders} pedido(s) pagado(s) en el marketplace en 30 días",
+      "demandNone": "Aún sin ventas observadas",
+      "resellers": "{count, plural, =0 {ningún revendedor lo vende} one {# revendedor lo vende} other {# revendedores lo venden}}",
+      "feeDefault": "Calculado con la tarifa estándar de Affisell (20 % de su comisión y margen).",
+      "feeNegotiated": "Calculado con su tarifa Affisell ({pct} %).",
+      "honesty": "El neto es un cálculo basado en las condiciones publicadas por el proveedor, no una promesa de ventas. Las ventas mostradas son observadas en Affisell, no una previsión.",
+      "blockedToggle": "{count} producto(s) descartado(s): ver por qué",
+      "reasons": {
+        "awaiting_affisell_review": "pendiente de validación de Affisell",
+        "no_explicit_commission": "sin comisión definida: una venta no podría registrarse",
+        "no_supplier_price": "sin precio de proveedor",
+        "out_of_stock": "agotado",
+        "stock_unknown": "stock no verificable",
+        "low_stock": "muy pocas unidades",
+        "low_net_per_sale": "ganancia por venta baja"
       }
     }
   },
