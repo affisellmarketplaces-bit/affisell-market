@@ -125,7 +125,7 @@ export async function addSelection(affiliateId: string, productIds: ReadonlyArra
       continue
     }
     const r = await quickAddAffiliateListing({ affiliateId, productId })
-    out.push(r.ok ? { productId, ok: true, created: r.created, listed: r.listing.isListed, publishBlocked: r.publishBlocked } : { productId, ok: false, error: r.error })
+    out.push(r.ok ? { productId, ok: true, created: r.created, listed: r.listing.isListed, publishBlocked: r.publishBlocked ?? null } : { productId, ok: false, error: r.error })
   }
   return out
 }
