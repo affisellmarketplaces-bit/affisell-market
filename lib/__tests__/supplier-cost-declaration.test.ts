@@ -119,6 +119,8 @@ describe("confidentiality and separation", () => {
       "lib/supplier-costs/declared-vs-observed.ts",
       "app/api/supplier/products/[id]/supply-cost/qualification/route.ts",
       "app/api/admin/products/[id]/supply-cost/route.ts",
+      // The supplier's own journey reads only its declaration status (own product).
+      "lib/supplier-journey/product-journey.server.ts",
     ])
     const found: string[] = []
     const walk = (dir: string) => {
