@@ -2225,7 +2225,21 @@
       "invalid": "Ungültiger Betrag: Geben Sie eine Zahl in Euro ein, z. B. 12,50.",
       "error": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
       "warnAbovePrice": "Ihre angegebenen Kosten liegen über Ihrem Lieferantenpreis: Bitte prüfen Sie die Beträge.",
-      "lastDeclared": "Zuletzt angegeben: {date}"
+      "lastDeclared": "Zuletzt angegeben: {date}",
+      "qualification": {
+        "label": "Status der Angabe",
+        "unverified": "Nicht geprüft",
+        "document_provided": "Nachweis angekündigt",
+        "verified": "Von Affisell geprüft",
+        "disputed": "Von Affisell beanstandet",
+        "expired": "Abgelaufen"
+      },
+      "documentTitle": "Haben Sie einen Nachweis (Rechnung, Lieferantenpreisliste)?",
+      "documentHint": "Beschreiben Sie das an Affisell gesendete Dokument (Art, Datum, Nummer). Affisell prüft es; dieser Status ist keine Prüfung.",
+      "documentPlaceholder": "z. B. Großhändlerrechnung Nr. 2026-114 vom 3. November",
+      "documentSubmit": "Nachweis melden",
+      "documentSent": "Nachweis gemeldet.",
+      "newDeclarationResets": "Jede neue Angabe beginnt wieder als „nicht geprüft“."
     }
   },
   "affiliate": {

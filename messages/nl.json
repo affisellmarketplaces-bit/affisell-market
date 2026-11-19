@@ -2225,7 +2225,21 @@
       "invalid": "Ongeldig bedrag: vul een getal in euro in, bijvoorbeeld 12,50.",
       "error": "Opslaan mislukt. Probeer het opnieuw.",
       "warnAbovePrice": "Je opgegeven kosten liggen boven je leveranciersprijs: controleer de bedragen.",
-      "lastDeclared": "Laatst opgegeven: {date}"
+      "lastDeclared": "Laatst opgegeven: {date}",
+      "qualification": {
+        "label": "Status van de opgave",
+        "unverified": "Niet gecontroleerd",
+        "document_provided": "Bewijsstuk aangekondigd",
+        "verified": "Gecontroleerd door Affisell",
+        "disputed": "Betwist door Affisell",
+        "expired": "Verlopen"
+      },
+      "documentTitle": "Heb je een bewijsstuk (factuur, prijslijst van de leverancier)?",
+      "documentHint": "Beschrijf het document dat je naar Affisell stuurde (soort, datum, nummer). Affisell controleert het; deze status is geen controle.",
+      "documentPlaceholder": "Bijv. factuur groothandel nr. 2026-114 van 3 november",
+      "documentSubmit": "Bewijsstuk melden",
+      "documentSent": "Bewijsstuk gemeld.",
+      "newDeclarationResets": "Elke nieuwe opgave begint weer als „niet gecontroleerd”."
     }
   },
   "affiliate": {

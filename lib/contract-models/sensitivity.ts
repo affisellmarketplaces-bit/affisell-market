@@ -16,6 +16,8 @@ export type SweepLine = LineInput & {
   feeRateFromOrder?: boolean
   /** Where `sourceCostCents` comes from: a RECORDED purchase (AliExpress) or the supplier's DECLARATION (unverified). */
   sourceCostKind?: "recorded_purchase" | "declared_by_supplier"
+  /** For a declared cost: its qualification at simulation time (verified / document_provided / disputed / …). */
+  costQualification?: "unverified" | "document_provided" | "verified" | "disputed" | "expired"
 }
 
 export type SweepRow = {

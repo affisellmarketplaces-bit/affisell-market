@@ -2225,7 +2225,21 @@
       "invalid": "Nieprawidłowa kwota: podaj liczbę w euro, np. 12,50.",
       "error": "Zapis nie powiódł się. Spróbuj ponownie.",
       "warnAbovePrice": "Zadeklarowane koszty przekraczają Twoją cenę dostawcy: sprawdź kwoty.",
-      "lastDeclared": "Ostatnia deklaracja: {date}"
+      "lastDeclared": "Ostatnia deklaracja: {date}",
+      "qualification": {
+        "label": "Status deklaracji",
+        "unverified": "Niezweryfikowana",
+        "document_provided": "Zgłoszono dokument",
+        "verified": "Zweryfikowana przez Affisell",
+        "disputed": "Zakwestionowana przez Affisell",
+        "expired": "Wygasła"
+      },
+      "documentTitle": "Masz dokument potwierdzający (fakturę, cennik dostawcy)?",
+      "documentHint": "Opisz dokument przesłany do Affisell (rodzaj, data, numer). Affisell go sprawdzi; ten status nie oznacza weryfikacji.",
+      "documentPlaceholder": "Np. faktura hurtowni nr 2026-114 z 3 listopada",
+      "documentSubmit": "Zgłoś dokument",
+      "documentSent": "Dokument zgłoszony.",
+      "newDeclarationResets": "Każda nowa deklaracja wraca do statusu „niezweryfikowana”."
     }
   },
   "affiliate": {

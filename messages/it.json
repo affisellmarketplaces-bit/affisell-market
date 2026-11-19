@@ -2225,7 +2225,21 @@
       "invalid": "Importo non valido: indica un numero in euro, ad esempio 12,50.",
       "error": "Salvataggio non riuscito. Riprova.",
       "warnAbovePrice": "I costi dichiarati superano il tuo prezzo fornitore: controlla gli importi.",
-      "lastDeclared": "Ultima dichiarazione: {date}"
+      "lastDeclared": "Ultima dichiarazione: {date}",
+      "qualification": {
+        "label": "Stato della dichiarazione",
+        "unverified": "Non verificata",
+        "document_provided": "Giustificativo annunciato",
+        "verified": "Verificata da Affisell",
+        "disputed": "Contestata da Affisell",
+        "expired": "Scaduta"
+      },
+      "documentTitle": "Hai un giustificativo (fattura, listino del fornitore)?",
+      "documentHint": "Descrivi il documento inviato ad Affisell (tipo, data, numero). Affisell lo verificherà; questo stato non vale come verifica.",
+      "documentPlaceholder": "Es. fattura del grossista n. 2026-114 del 3 novembre",
+      "documentSubmit": "Segnala il giustificativo",
+      "documentSent": "Giustificativo segnalato.",
+      "newDeclarationResets": "Ogni nuova dichiarazione riparte come «non verificata»."
     }
   },
   "affiliate": {

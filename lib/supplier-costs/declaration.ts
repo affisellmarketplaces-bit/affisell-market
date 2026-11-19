@@ -93,8 +93,8 @@ export function declaredSourceCostCents(d: SupplierCostDeclaration): number {
  * The declaration in force at `at` (an order's payment): the latest one declared at or before it. A declaration made
  * AFTER the payment never applies to that order (no retroactive cost).
  */
-export function declarationInForceAt(history: ReadonlyArray<StoredDeclaration>, at: Date): StoredDeclaration | null {
-  let best: StoredDeclaration | null = null
+export function declarationInForceAt<T extends StoredDeclaration>(history: ReadonlyArray<T>, at: Date): T | null {
+  let best: T | null = null
   for (const d of history) {
     const t = Date.parse(d.declaredAt)
     if (!Number.isFinite(t) || t > at.getTime()) continue

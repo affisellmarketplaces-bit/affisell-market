@@ -2225,7 +2225,21 @@
       "invalid": "Invalid amount: enter a number in euros, for example 12.50.",
       "error": "Saving failed. Please try again.",
       "warnAbovePrice": "Your declared costs are above your supplier price: please check the amounts.",
-      "lastDeclared": "Last declared: {date}"
+      "lastDeclared": "Last declared: {date}",
+      "qualification": {
+        "label": "Declaration status",
+        "unverified": "Not verified",
+        "document_provided": "Supporting document announced",
+        "verified": "Verified by Affisell",
+        "disputed": "Disputed by Affisell",
+        "expired": "Expired"
+      },
+      "documentTitle": "Do you have a supporting document (invoice, supplier price list)?",
+      "documentHint": "Describe the document sent to Affisell (type, date, number). Affisell will check it; this status is not a verification.",
+      "documentPlaceholder": "E.g. wholesaler invoice no. 2026-114 of 3 November",
+      "documentSubmit": "Report the document",
+      "documentSent": "Document reported.",
+      "newDeclarationResets": "Any new declaration starts again as “not verified”."
     }
   },
   "affiliate": {

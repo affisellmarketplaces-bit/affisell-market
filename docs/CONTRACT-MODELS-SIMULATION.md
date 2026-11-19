@@ -56,3 +56,14 @@ peut désormais **déclarer** ses coûts d'approvisionnement, produit par produi
 
 Stockage sans migration (journal d'audit). Inviter les fournisseurs à déclarer leurs coûts, et décider si une
 déclaration doit un jour être vérifiée (facture, contrôle), relèvent du fondateur.
+
+## Qualification des déclarations et comparaison avec les coûts constatés (19 novembre)
+
+- Cinq statuts, jamais attribués automatiquement : non vérifiée, justificatif annoncé (par le fournisseur), vérifiée,
+  contestée, expirée (par Affisell, motif obligatoire). Chaque statut vise une version précise de la déclaration.
+- Dans les simulations, chaque coût déclaré porte son statut. Tant qu'il n'est pas vérifié, il porte aussi la mention
+  « ne peut fonder aucun taux, engagement ou automatisme commercial ». Contesté ou expiré : résultat signalé non fiable.
+- Comparaison déclaré / constaté (page produit de l'administration) : coût unitaire déclaré en vigueur au paiement
+  contre coût unitaire enregistré par Affisell sur ses commandes en achat automatique du même produit. Le coût
+  « constaté » est aujourd'hui le prix d'achat mémorisé par Affisell, pas le montant réellement débité ; le
+  rapprochement avec le montant réel reste à construire (décision déjà notée : enregistrer le montant débité).

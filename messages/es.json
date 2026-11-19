@@ -2225,7 +2225,21 @@
       "invalid": "Importe no válido: indica un número en euros, por ejemplo 12,50.",
       "error": "No se pudo guardar. Inténtalo de nuevo.",
       "warnAbovePrice": "Tus costes declarados superan tu precio de proveedor: revisa los importes.",
-      "lastDeclared": "Última declaración: {date}"
+      "lastDeclared": "Última declaración: {date}",
+      "qualification": {
+        "label": "Estado de la declaración",
+        "unverified": "No verificada",
+        "document_provided": "Justificante anunciado",
+        "verified": "Verificada por Affisell",
+        "disputed": "Impugnada por Affisell",
+        "expired": "Caducada"
+      },
+      "documentTitle": "¿Tienes un justificante (factura, tarifa del proveedor)?",
+      "documentHint": "Describe el documento enviado a Affisell (tipo, fecha, número). Affisell lo verificará; este estado no equivale a una verificación.",
+      "documentPlaceholder": "Ej. factura del mayorista n.º 2026-114 del 3 de noviembre",
+      "documentSubmit": "Indicar el justificante",
+      "documentSent": "Justificante indicado.",
+      "newDeclarationResets": "Toda nueva declaración vuelve al estado «no verificada»."
     }
   },
   "affiliate": {

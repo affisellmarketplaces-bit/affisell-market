@@ -1,5 +1,6 @@
 import type { SweepLine } from "@/lib/contract-models/sensitivity"
 import { declarationInForceAt, declaredSourceCostCents, type StoredDeclaration } from "@/lib/supplier-costs/declaration"
+import type { CostQualification } from "@/lib/supplier-costs/qualification"
 import { estimateStripeFeeCents } from "@/lib/marketplace-split-amounts"
 import type { EconOrder } from "@/lib/strategic-intelligence/product-economics"
 
@@ -25,7 +26,7 @@ export type HistoryLines = {
 export function sweepLinesFromOrders(
   orders: ReadonlyArray<EconOrder & { paidAt?: Date | null }>,
   defaults: { catalogue: number; autoBuy: number },
-  declarations: ReadonlyMap<string, ReadonlyArray<StoredDeclaration>> = new Map()
+  declarations: ReadonlyMap<string, ReadonlyArray<StoredDeclaration & { qualification?: CostQualification }>> = new Map()
 ): HistoryLines {
   const out: HistoryLines = { catalogue: [], sourced: [], declared: [], excluded: { noPrice: 0, noWholesale: 0, refundedOrDisputed: 0 } }
   for (const o of orders) {
@@ -60,7 +61,14 @@ export function sweepLinesFromOrders(
     if (ae > 0) out.sourced.push({ ...line, sourceCostCents: ae, sourceCostKind: "recorded_purchase" })
     else if (!o.split.usesAffisellAutoBuy && o.paidAt) {
       const d = declarationInForceAt(declarations.get(o.productId) ?? [], o.paidAt)
-      if (d) out.declared.push({ ...line, sourceCostCents: declaredSourceCostCents(d), sourceCostKind: "declared_by_supplier" })
+      if (d) {
+        out.declared.push({
+          ...line,
+          sourceCostCents: declaredSourceCostCents(d),
+          sourceCostKind: "declared_by_supplier",
+          costQualification: d.qualification ?? "unverified",
+        })
+      }
     }
   }
   return out

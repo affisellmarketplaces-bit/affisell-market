@@ -116,6 +116,9 @@ describe("confidentiality and separation", () => {
       "lib/contract-models/history-lines.ts",
       "lib/contract-models/simulation.server.ts",
       "lib/supplier-costs/declaration.server.ts",
+      "lib/supplier-costs/declared-vs-observed.ts",
+      "app/api/supplier/products/[id]/supply-cost/qualification/route.ts",
+      "app/api/admin/products/[id]/supply-cost/route.ts",
     ])
     const found: string[] = []
     const walk = (dir: string) => {

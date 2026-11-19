@@ -22,7 +22,8 @@ export async function GET(_req: Request, ctx: Ctx) {
   const { id } = await ctx.params
   const view = await loadSupplierCostView(id, who.supplierId)
   if (!view) return Response.json({ error: "Product not found" }, { status: 404 })
-  return Response.json(view)
+  // The supplier sees what was decided and why, not which Affisell account decided it.
+  return Response.json({ ...view, qualificationEvents: view.qualificationEvents.map(({ by: _by, ...e }) => e) })
 }
 
 /** Declare / update. Never changes the price, the commission, the stock or the publication of the product. */

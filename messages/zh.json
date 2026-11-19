@@ -2225,7 +2225,21 @@
       "invalid": "金额无效：请输入欧元数字，例如 12.50。",
       "error": "保存失败，请重试。",
       "warnAbovePrice": "您申报的成本高于您的供货价：请核对金额。",
-      "lastDeclared": "最近一次申报：{date}"
+      "lastDeclared": "最近一次申报：{date}",
+      "qualification": {
+        "label": "申报状态",
+        "unverified": "未核实",
+        "document_provided": "已告知提供凭证",
+        "verified": "已由 Affisell 核实",
+        "disputed": "Affisell 有异议",
+        "expired": "已过期"
+      },
+      "documentTitle": "您有证明文件（发票、供应商价目表）吗？",
+      "documentHint": "请描述已发送给 Affisell 的文件（类型、日期、编号）。Affisell 会进行核实；此状态不代表已核实。",
+      "documentPlaceholder": "例如：批发商发票 2026-114 号，11 月 3 日",
+      "documentSubmit": "告知已提供凭证",
+      "documentSent": "已告知凭证。",
+      "newDeclarationResets": "每次新的申报都会重新回到“未核实”状态。"
     }
   },
   "affiliate": {

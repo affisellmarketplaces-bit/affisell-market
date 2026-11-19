@@ -1,5 +1,6 @@
 import { splitLine, validateContractModel, type ContractModel } from "@/lib/contract-models/model"
 import type { SweepLine } from "@/lib/contract-models/sensitivity"
+import { mayBackCommercialTerms, qualificationWarning } from "@/lib/supplier-costs/qualification"
 
 /**
  * Comparing the models on REPRESENTATIVE orders without inventing a cost.
@@ -53,6 +54,8 @@ export type ComparisonRow = {
     sourceCostCents: number | null
     /** recorded_purchase = a real purchase; declared_by_supplier = the supplier's own unverified figure. */
     sourceCostOrigin: "recorded_purchase" | "declared_by_supplier" | null
+    /** Qualification of a declared cost (null for a recorded purchase or no cost). */
+    sourceCostQualification: string | null
     supplierFeeBps: number | null
   }
   models: Record<string, ModelOnOrder>
@@ -81,7 +84,9 @@ export function compareModelsOnOrders(models: ReadonlyArray<ContractModel>, reps
         "volume de ventes supposé inchangé",
       ]
       if (needsSource(model) && line.sourceCostKind === "declared_by_supplier") {
-        hypotheses.push("coût d'achat déclaré par le fournisseur, non vérifié par Affisell")
+        const q = line.costQualification ?? "unverified"
+        hypotheses.push(qualificationWarning(q))
+        if (!mayBackCommercialTerms(q)) hypotheses.push("ne peut fonder aucun taux, engagement ou automatisme commercial")
       }
       if (model.parameters.supplierFeeBps === null && line.feeRateFromOrder === false) {
         hypotheses.push("taux de frais fournisseur absent de la commande : taux par défaut de la plateforme")
@@ -91,6 +96,9 @@ export function compareModelsOnOrders(models: ReadonlyArray<ContractModel>, reps
       if (s.supplierTransferCents < 0) risks.push("la part du fournisseur serait négative")
       if (s.uncoveredAdvanceCents > 0) risks.push("avance non couverte par la part du fournisseur")
       if (s.affisellPaysSourceCents > 0) risks.push("Affisell avance la trésorerie de l'achat")
+      if (needsSource(model) && (line.costQualification === "disputed" || line.costQualification === "expired")) {
+        risks.push("coût déclaré contesté ou expiré : résultat non fiable")
+      }
       out[model.id] = {
         computable: true,
         computed: {
@@ -114,6 +122,7 @@ export function compareModelsOnOrders(models: ReadonlyArray<ContractModel>, reps
         commissionBps: line.commissionBps,
         sourceCostCents: line.sourceCostCents > 0 ? line.sourceCostCents : null,
         sourceCostOrigin: line.sourceCostCents > 0 ? (line.sourceCostKind ?? "recorded_purchase") : null,
+        sourceCostQualification: line.sourceCostKind === "declared_by_supplier" ? (line.costQualification ?? "unverified") : null,
         supplierFeeBps: line.feeRateFromOrder ? line.gridSupplierFeeBps : null,
       },
       models: out,

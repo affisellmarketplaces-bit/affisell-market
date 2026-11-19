@@ -2225,7 +2225,21 @@
       "invalid": "Montant invalide : indiquez un nombre en euros, par exemple 12,50.",
       "error": "L'enregistrement a échoué. Réessayez.",
       "warnAbovePrice": "Vos coûts déclarés dépassent votre prix fournisseur : vérifiez les montants.",
-      "lastDeclared": "Dernière déclaration : {date}"
+      "lastDeclared": "Dernière déclaration : {date}",
+      "qualification": {
+        "label": "Statut de la déclaration",
+        "unverified": "Non vérifiée",
+        "document_provided": "Justificatif annoncé",
+        "verified": "Vérifiée par Affisell",
+        "disputed": "Contestée par Affisell",
+        "expired": "Expirée"
+      },
+      "documentTitle": "Vous avez un justificatif (facture, tarif fournisseur) ?",
+      "documentHint": "Décrivez le document transmis à Affisell (nature, date, numéro). Affisell le vérifiera ; ce statut ne vaut pas vérification.",
+      "documentPlaceholder": "Ex. facture du grossiste n° 2026-114 du 3 novembre",
+      "documentSubmit": "Signaler le justificatif",
+      "documentSent": "Justificatif signalé.",
+      "newDeclarationResets": "Toute nouvelle déclaration repart au statut « non vérifiée »."
     }
   },
   "affiliate": {
