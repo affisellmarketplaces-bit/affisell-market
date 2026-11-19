@@ -1,5 +1,6 @@
 import "server-only"
 
+import { compareModelsOnOrders, pickRepresentativeOrders, type ComparisonRow } from "@/lib/contract-models/comparison"
 import { DRAFT_CONTRACT_MODELS } from "@/lib/contract-models/drafts"
 import { sweepLinesFromOrders } from "@/lib/contract-models/history-lines"
 import { SWEEPABLE_PARAMETERS, sweepUndecidedParameter, type SweepResult } from "@/lib/contract-models/sensitivity"
@@ -17,6 +18,11 @@ export type ContractSimulationReport = {
   truncated: boolean
   pools: { catalogue: number; sourced: number; excluded: { noPrice: number; noWholesale: number; refundedOrDisputed: number } }
   models: Array<{ simulation: SimulationResult; sweeps: SweepResult[]; pool: "catalogue" | "sourced" }>
+  /**
+   * The four models side by side on REAL representative orders: on catalogue orders (B / C not computable — no source
+   * cost recorded) and on auto-buy orders with a recorded source cost (all four computable).
+   */
+  representative: { catalogue: ComparisonRow[]; sourced: ComparisonRow[] }
 }
 
 export async function runContractSimulation(days: number, now = new Date()): Promise<ContractSimulationReport> {
@@ -41,5 +47,9 @@ export async function runContractSimulation(days: number, now = new Date()): Pro
     truncated: orders.length >= MAX_ORDER_FACTS,
     pools: { catalogue: lines.catalogue.length, sourced: lines.sourced.length, excluded: lines.excluded },
     models,
+    representative: {
+      catalogue: compareModelsOnOrders(DRAFT_CONTRACT_MODELS, pickRepresentativeOrders(lines.catalogue)),
+      sourced: compareModelsOnOrders(DRAFT_CONTRACT_MODELS, pickRepresentativeOrders(lines.sourced)),
+    },
   }
 }

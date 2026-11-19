@@ -9,7 +9,12 @@ import { splitLine, validateContractModel, type ContractModel, type LineInput } 
 export const SWEEPABLE_PARAMETERS = ["resellerFeeBps", "procurementServiceFeeBps", "supplierFeeBps"] as const
 export type SweepableParameter = (typeof SWEEPABLE_PARAMETERS)[number]
 
-export type SweepLine = LineInput & { orderId: string; estimatedStripeFeeCents?: number }
+export type SweepLine = LineInput & {
+  orderId: string
+  estimatedStripeFeeCents?: number
+  /** False when the order stored no supplier fee and the settlement default was used (a hypothesis, said as such). */
+  feeRateFromOrder?: boolean
+}
 
 export type SweepRow = {
   value: number

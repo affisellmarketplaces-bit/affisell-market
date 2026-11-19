@@ -48,6 +48,7 @@ export function sweepLinesFromOrders(
       sourceCostCents: 0,
       gridSupplierFeeBps: fee > 0 ? Math.round((fee * 10_000) / W) : o.split.usesAffisellAutoBuy ? defaults.autoBuy : defaults.catalogue,
       estimatedStripeFeeCents: estimateStripeFeeCents(Math.max(1, o.totalCents ?? P)),
+      feeRateFromOrder: fee > 0,
     }
     out.catalogue.push(line)
     const ae = o.split.usesAffisellAutoBuy ? Math.max(0, o.split.aeWholesaleCents ?? 0) : 0
