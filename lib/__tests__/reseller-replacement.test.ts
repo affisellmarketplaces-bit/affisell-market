@@ -8,6 +8,13 @@ import { computeResellerNetPerSale } from "@/lib/reseller-copilot/net-per-sale"
 import { availableUnits, listingProblem } from "@/lib/reseller-replacement/listing-state"
 import { readUnsellableAlertsMode, unsellableAlertId } from "@/lib/reseller-replacement/unsellable-alerts"
 import {
+  observationId,
+  observedMarkerId,
+  parseObservation,
+  summarizeObservation,
+  summarizeObservations,
+} from "@/lib/reseller-replacement/unsellable-observation"
+import {
   buildReplacementProposal,
   gtin14,
   nameSimilarity,
@@ -154,7 +161,9 @@ describe("replacing an unsellable product (founder brief 2026-11-19)", () => {
     const src = read("lib/reseller-replacement/replace.server.ts")
     expect(src).not.toMatch(/\.delete(Many)?\(/)
     expect(src).not.toMatch(/order\.(update|create|delete)/)
-    expect(src.indexOf("quickAddAffiliateListing({")).toBeLessThan(src.indexOf("data: { isListed: false }"))
+    const body = src.slice(src.indexOf("export async function replaceListing("), src.indexOf("export async function finishReplacement("))
+    expect(body.indexOf("quickAddAffiliateListing({")).toBeGreaterThan(0)
+    expect(body.indexOf("quickAddAffiliateListing({")).toBeLessThan(body.indexOf("withdrawReplacedListing({"))
     expect(src).toContain('"affiliate.listing_replaced"')
     const route = read("app/api/affiliate/listings/[id]/replacement/route.ts")
     expect(route).toContain('session.user.role !== "AFFILIATE"')
@@ -180,7 +189,12 @@ describe("replacing an unsellable product (founder brief 2026-11-19)", () => {
     expect(unsellableAlertId("l1", "out_of_stock", d1)).toBe(unsellableAlertId("l1", "out_of_stock", d2))
     expect(unsellableAlertId("l1", "out_of_stock", d1)).not.toBe(unsellableAlertId("l1", "no_commission", d1))
     const server = read("lib/reseller-replacement/unsellable-alerts.server.ts")
-    expect(server).toMatch(/if \(mode === "observe"\) continue/)
+    // observe: the item is measured, then the loop moves on BEFORE any claim or bell notification.
+    const observeBranch = server.indexOf('if (mode === "observe") {')
+    expect(observeBranch).toBeGreaterThan(0)
+    expect(server.slice(observeBranch, observeBranch + 200)).toContain("continue")
+    expect(observeBranch).toBeLessThan(server.indexOf("notification.create"))
+    expect(server.slice(server.indexOf("async function recordObservation"))).not.toContain("notification.")
     expect(server).not.toMatch(/affiliateProduct\.(update|delete)/)
     expect(read(".github/workflows/scheduled-crons.yml")).toContain('"/api/cron/reseller-unsellable-alerts"')
     for (const loc of ["fr", "en", "de", "es", "it", "nl", "pl", "zh"]) {
@@ -188,5 +202,33 @@ describe("replacing an unsellable product (founder brief 2026-11-19)", () => {
       expect(m.affiliate.replacement.bellMessage, loc).toContain("{product}")
       expect(m.merchantNotifications.viewReplacement, loc).toBeTruthy()
     }
+  })
+
+  it("observation: counts only, new notices measured apart from the real claim, malformed rows ignored", () => {
+    const now = new Date("2026-11-19T06:00:00Z")
+    const items = [
+      { affiliateId: "a1", listingId: "l1", problem: "out_of_stock" as const },
+      { affiliateId: "a1", listingId: "l2", problem: "no_commission" as const },
+      { affiliateId: "a2", listingId: "l3", problem: "out_of_stock" as const },
+    ]
+    const o = summarizeObservation({ now, scanned: 30, truncated: false, items, newItems: items.slice(0, 2), inAppOff: new Set(["a1"]) })
+    expect(o).toMatchObject({
+      day: "2026-11-19",
+      unsellable: 3,
+      unsellableShare: 0.1,
+      resellersAffected: 2,
+      maxPerReseller: 2,
+      wouldNotifyNew: 2,
+      wouldSkipPreference: 2,
+    })
+    expect(o.byProblem).toEqual({ out_of_stock: 2, product_unavailable: 0, awaiting_review: 0, no_commission: 1 })
+    expect(JSON.stringify(o)).not.toMatch(/l1|a1/)
+    expect(observationId(now)).toBe("unsellable-alerts-observation:2026-11-19")
+    expect(observedMarkerId("l1", "out_of_stock", 42)).not.toBe(unsellableAlertId("l1", "out_of_stock", now))
+    expect(parseObservation(JSON.parse(JSON.stringify(o)))).toEqual(o)
+    expect(parseObservation({ day: "x" })).toBeNull()
+    const trend = summarizeObservations([o, { ...o, day: "2026-11-18", wouldNotifyNew: 5 }])
+    expect(trend).toMatchObject({ days: 2, peakWouldNotifyNew: 5, reading: "too_few_days" })
+    expect(summarizeObservations([]).reading).toBe("no_data")
   })
 })

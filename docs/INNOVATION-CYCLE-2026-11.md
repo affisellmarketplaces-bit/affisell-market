@@ -125,3 +125,25 @@ Quatre classes, jamais mélangées :
 
 Le revendeur ouvre l'action « Retirer ou remplacer » : le problème en une phrase, jusqu'à trois alternatives réellement équivalentes (même code-barres, ou même catégorie + nom très proche + options proposées), son gain net réel avant / après et les différences (prix, net, commission, délai, retours, options manquantes, marque), puis une confirmation explicite. Sans alternative fiable, l'écran le dit et propose seulement de retirer le produit. Rien n'est supprimé, aucune commande n'est modifiée. Détails techniques : `AGENTS.md` (« Reseller — withdraw or replace »).
 
+
+## 8. Avis « produit invendable » — mesures en observation (mode `observe`, inchangé)
+
+**Statut** : développé et testé (CI). **Réellement actif : non** — aucune exécution de production observée à ce jour (hébergement suspendu, aucune donnée réelle lue). Le passage à `enforce` reste une décision du fondateur.
+
+Chaque exécution quotidienne en `observe` n'envoie rien et enregistre :
+
+- un marqueur interne par couple (fiche, problème, fenêtre de 14 jours) — distinct de la vraie réservation d'avis, donc l'observation ne « consomme » aucun futur avis ; le nombre de marqueurs **créés** un jour donné = le nombre exact de notifications que `enforce` aurait envoyées ce jour-là ;
+- un agrégat du jour (comptages seulement, aucun identifiant de revendeur, de fiche ou de produit).
+
+Lecture : `GET /api/admin/reseller-unsellable-observations?days=30` (administrateur, lecture seule).
+
+| Indicateur | Ce qu'il dit | Qualification |
+|---|---|---|
+| `unsellable`, `unsellableShare` | fiches en ligne qu'un acheteur ne peut pas acheter, et leur part | constaté |
+| `byProblem` | rupture / produit indisponible / en attente de validation / commission absente | constaté |
+| `resellersAffected`, `resellersWithMany`, `maxPerReseller` | combien de revendeurs seraient prévenus, et si certains recevraient beaucoup d'avis le même jour | constaté |
+| `wouldNotifyNew` | avis que `enforce` aurait envoyés ce jour (déduplication de 14 jours incluse) | mesuré (simulation exacte de la règle) |
+| `wouldSkipPreference` | parmi eux, ceux que la préférence « alertes dans l'application » du revendeur aurait bloqués | constaté |
+| `truncated` | le scan a atteint 5 000 fiches : les chiffres sont un minimum | — |
+
+Critères proposés (à valider) avant de demander `enforce` : au moins 7 jours d'observation (`reading: "observed"`) ; un pic `peakWouldNotifyNew` compatible avec le support ; `resellersWithMany` examiné (un revendeur à 20 avis le même jour appellerait un regroupement en un seul avis) ; aucun jour `truncated`. Ces seuils sont des propositions, pas des décisions.
