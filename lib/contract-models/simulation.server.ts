@@ -39,8 +39,10 @@ export async function runContractSimulation(days: number, now = new Date()): Pro
     declarations
   )
   // Paths B / C are replayed twice, never mixed: on RECORDED purchase costs, and on supplier DECLARATIONS.
-  const runs = DRAFT_CONTRACT_MODELS.flatMap((model) =>
-    model.path === "A_catalogue" ? [{ model, pool: "catalogue" as const }] : [{ model, pool: "sourced" as const }, { model, pool: "declared" as const }]
+  // Explicit return type: without it TypeScript infers a union of array types and `flatMap` loses the element type.
+  type Pool = ContractSimulationReport["models"][number]["pool"]
+  const runs = DRAFT_CONTRACT_MODELS.flatMap((model): Array<{ model: typeof model; pool: Pool }> =>
+    model.path === "A_catalogue" ? [{ model, pool: "catalogue" }] : [{ model, pool: "sourced" }, { model, pool: "declared" }]
   )
   const models = runs.map(({ model, pool }) => {
     const poolLines = lines[pool]
