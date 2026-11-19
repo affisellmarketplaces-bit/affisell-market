@@ -143,6 +143,21 @@ describe("selection — ranking and separation", () => {
     expect(r.selection[1]!.trend.rising).toBe(false)
   })
 
+  it("popularity never replaces profitability: a rising product below the median net keeps its badge but not a lift", () => {
+    const r = buildSelection(
+      [
+        cand({ productId: "a", basePriceCents: 6000 }),
+        cand({ productId: "b", basePriceCents: 5000 }),
+        cand({ productId: "c", basePriceCents: 4000 }),
+        cand({ productId: "weak-rising", basePriceCents: 500, rising: { recent14d: 20, prior42d: 2 } }),
+      ],
+      { affiliateFeeBps: null, limit: 10 }
+    )
+    expect(r.selection.map((s) => s.productId)).toEqual(["a", "b", "c", "weak-rising"])
+    expect(r.selection[3]!.trend.rising).toBe(true)
+    expect(readFileSync(path.join(path.resolve(__dirname, "../.."), "lib/reseller-copilot/selection.server.ts"), "utf8")).toContain("RISING_MIN_DISTINCT_DAYS = 3")
+  })
+
   it("the trend reuses the cockpit's own test, needs two resellers, and never blocks the selection", () => {
     const server = readFileSync(path.join(path.resolve(__dirname, "../.."), "lib/reseller-copilot/selection.server.ts"), "utf8")
     expect(server).toContain("detectEmerging(")

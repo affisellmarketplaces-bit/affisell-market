@@ -117,7 +117,7 @@ export function ResellerCopilotPanel({ onAdded }: { onAdded?: () => void }) {
                 <p className="truncate font-medium text-zinc-900 dark:text-zinc-100">{s.name}</p>
                 {s.trend?.rising ? (
                   <p className="mt-0.5 inline-block rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-semibold text-violet-800 dark:bg-violet-950 dark:text-violet-200">
-                    {t("rising", { recent: s.trend.recent14d })}
+                    {t("rising", { recent: s.trend.recent14d, prior: s.trend.prior42d })}
                   </p>
                 ) : null}
                 <p className="mt-0.5 text-emerald-800 dark:text-emerald-300">
@@ -148,6 +148,7 @@ export function ResellerCopilotPanel({ onAdded }: { onAdded?: () => void }) {
         <footer className="mt-3 space-y-1 text-xs text-zinc-500">
           <p>{data.affiliateFeeBps == null ? t("feeDefault") : t("feeNegotiated", { pct: Math.round(data.affiliateFeeBps / 100) })}</p>
           <p>{t("honesty")}</p>
+          {data.selection.some((s) => s.trend?.rising) ? <p>{t("risingNature")}</p> : null}
           {data.blocked.length > 0 ? (
             <button type="button" className="underline" onClick={() => setShowBlocked((v) => !v)}>
               {t("blockedToggle", { count: data.blocked.length })}

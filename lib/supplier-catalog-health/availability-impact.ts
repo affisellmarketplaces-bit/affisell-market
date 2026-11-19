@@ -10,6 +10,7 @@
  * Only products that are in at least one reseller shop are listed: that is the commercial impact asked for.
  */
 import type { HealthFix, HealthIssue, HealthIssueCode } from "@/lib/supplier-catalog-health/diagnose"
+import { restockCalculation, type RestockCalculation, type StockPositionInput } from "@/lib/supplier-catalog-health/stock-cover"
 
 /** Codes that are about availability, most severe first (the first one present names the product's cause). */
 export const AVAILABILITY_CODES = [
@@ -45,6 +46,8 @@ export type ProductSales = {
   supplierAmount30dCents: number
   /** Last paid order of the product, any date; null = never sold. */
   lastPaidAt: Date | null
+  /** Declared / confirmed / reserved stock and declared lead time — feeds the restock calculation (optional). */
+  position?: Omit<StockPositionInput, "now">
 }
 
 export type AvailabilityImpactItem = {
@@ -63,6 +66,10 @@ export type AvailabilityImpactItem = {
   /** Whole days since the last paid order (null = never sold). */
   daysSinceLastSale: number | null
   fix: AvailabilityFix
+  /** Stock position shown beside the cause (declared / confirmed / reserved), when known. */
+  stock: { declared: number | null; confirmed: boolean; reserved: number; reservedDeducted: boolean; leadTimeDays: number | null } | null
+  /** Restock calculation to READ (never pre-filled, never applied); null when not judged. */
+  restock: RestockCalculation | null
 }
 
 export type AvailabilityImpact = {
@@ -80,6 +87,7 @@ export type AvailabilityImpact = {
 }
 
 const DAY = 86_400_000
+const RESTOCK_CODES = new Set<AvailabilityCode>(["out_of_stock", "low_stock", "stock_cover_short"])
 
 function fixFor(issue: HealthIssue, code: AvailabilityCode): AvailabilityFix {
   if (code === "paused_but_listed") return "reactivate"
@@ -121,6 +129,18 @@ export function buildAvailabilityImpact(
       lastPaidAt: last ? last.toISOString() : null,
       daysSinceLastSale: last ? Math.max(0, Math.floor((now.getTime() - last.getTime()) / DAY)) : null,
       fix: fixFor(main, code),
+      stock: s?.position
+        ? {
+            declared: s.position.declaredUnits,
+            confirmed: s.position.confirmed,
+            reserved: s.position.pendingUnits,
+            reservedDeducted: s.position.pendingDeductedByPlatform,
+            leadTimeDays: s.position.leadTimeDays,
+          }
+        : null,
+      // A restock figure only makes sense for a quantity problem the supplier can act on.
+      restock:
+        s?.position && RESTOCK_CODES.has(code) ? restockCalculation({ ...s.position, now }) : null,
     })
   }
 

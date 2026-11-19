@@ -45,7 +45,7 @@ export type SelectionCandidate = {
    * growth, Bonferroni, size floors) AND carried by ≥ 2 resellers (one reseller's own campaign is not a trend).
    * Absent = not tested / not rising.
    */
-  rising?: { recent14d: number; prior42d: number } | null
+  rising?: { recent14d: number; prior42d: number; distinctDays?: number } | null
 }
 
 export type Reason = { code: string; qualification: Qualification }
@@ -120,10 +120,23 @@ export function assessCandidate(c: SelectionCandidate, affiliateFeeBps: number |
 
 const RANK = { pret: 0, a_verifier: 1, bloque: 2 } as const
 
+function medianNet(items: ReadonlyArray<SelectionItem>): number {
+  if (items.length === 0) return 0
+  const v = items.map((i) => i.net.netCents).sort((a, b) => a - b)
+  const mid = Math.floor(v.length / 2)
+  return v.length % 2 ? v[mid]! : Math.round((v[mid - 1]! + v[mid]!) / 2)
+}
+
+/** A rising product is lifted only when it is at least as profitable per sale as the typical selectable product. */
+export function risingLifts(item: Pick<SelectionItem, "trend" | "net">, medianNetCents: number): boolean {
+  return item.trend.rising && item.net.netCents >= medianNetCents
+}
+
 /**
- * The selection: products not yet in the reseller's shop, ready first, then to check; within each, products whose
- * demand is clearly accelerating on Affisell first (tested, see `rising`), then the highest real net per sale, then the
- * most observed demand. Blocked products are returned apart (with their reasons) so the
+ * The selection: products not yet in the reseller's shop, ready first, then to check; within each, the highest real net
+ * per sale, then the most observed demand. Popularity never replaces profitability (founder rule 2026-11-19): a product
+ * rising on Affisell is lifted ONLY when its own net per sale is at least the median net of the selectable products
+ * (`risingLifts`) — a rising product with a weaker net keeps its badge but its place by net. Blocked products are returned apart (with their reasons) so the
  * reseller understands why a product is missing — never mixed into the selection.
  */
 export function buildSelection(
@@ -132,12 +145,14 @@ export function buildSelection(
 ): { selection: SelectionItem[]; blocked: SelectionItem[]; considered: number; alreadyInShop: number } {
   const fresh = candidates.filter((c) => !c.inMyShop)
   const assessed = fresh.map((c) => assessCandidate(c, opts.affiliateFeeBps))
-  const ok = assessed
-    .filter((a) => a.readiness !== "bloque")
+  const selectable = assessed.filter((a) => a.readiness !== "bloque")
+  const median = medianNet(selectable)
+  const lifted = (a: SelectionItem) => (risingLifts(a, median) ? 1 : 0)
+  const ok = selectable
     .sort(
       (a, b) =>
         RANK[a.readiness] - RANK[b.readiness] ||
-        Number(b.trend.rising) - Number(a.trend.rising) ||
+        lifted(b) - lifted(a) ||
         b.net.netCents - a.net.netCents ||
         b.demand.paidOrders30d - a.demand.paidOrders30d ||
         a.productId.localeCompare(b.productId)

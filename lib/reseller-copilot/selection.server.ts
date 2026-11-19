@@ -67,7 +67,7 @@ async function loadCandidates(affiliateId: string, onlyIds?: ReadonlyArray<strin
         prisma.affiliateProduct.groupBy({ by: ["productId"], where: { productId: { in: ids }, isListed: true }, _count: { id: true } }),
       ])
     : [[], []]
-  const rising = ids.length ? await loadRising(ids, now) : new Map<string, { recent14d: number; prior42d: number }>()
+  const rising = ids.length ? await loadRising(ids, now) : new Map<string, { recent14d: number; prior42d: number; distinctDays: number }>()
   const paidBy = new Map(paid.map((r) => [r.productId, r._count.id]))
   const listedBy = new Map(listed.map((r) => [r.productId, r._count.id]))
   const candidates: SelectionCandidate[] = rows.map((r) => {
@@ -94,22 +94,37 @@ async function loadCandidates(affiliateId: string, onlyIds?: ReadonlyArray<strin
 
 /**
  * Products whose paid orders accelerate clearly MORE than the marketplace (the cockpit's own `detectEmerging` test —
- * one definition), and carried by ≥ 2 resellers (a single reseller's campaign is not a marketplace trend). Read-only;
+ * one definition), carried by ≥ 2 resellers (a single reseller's campaign is not a marketplace trend) and spread over
+ * ≥ 3 distinct days in the recent window (one bulk day is a one-off, not a trend). Read-only;
  * counts only; a failed read = no trend (never blocks the selection).
  */
 export const RISING_MIN_SELLING_RESELLERS = 2
+/** Recent orders spread over at least this many distinct days: one bulk day (a single event) is not a trend. */
+export const RISING_MIN_DISTINCT_DAYS = 3
 
-async function loadRising(ids: string[], now: Date): Promise<Map<string, { recent14d: number; prior42d: number }>> {
+async function loadRising(ids: string[], now: Date): Promise<Map<string, { recent14d: number; prior42d: number; distinctDays: number }>> {
   try {
     const recentFrom = new Date(now.getTime() - EMERGING_RECENT_DAYS * DAY)
     const priorFrom = new Date(recentFrom.getTime() - EMERGING_PRIOR_DAYS * DAY)
-    const [recent, prior, sellers, marketRecent, marketPrior] = await Promise.all([
+    const [recent, prior, sellers, marketRecent, marketPrior, recentDates] = await Promise.all([
       prisma.order.groupBy({ by: ["productId"], where: { productId: { in: ids }, paidAt: { gte: recentFrom } }, _count: { id: true } }),
       prisma.order.groupBy({ by: ["productId"], where: { productId: { in: ids }, paidAt: { gte: priorFrom, lt: recentFrom } }, _count: { id: true } }),
       prisma.order.groupBy({ by: ["productId", "affiliateId"], where: { productId: { in: ids }, paidAt: { gte: priorFrom } }, _count: { id: true } }),
       prisma.order.count({ where: { paidAt: { gte: recentFrom } } }),
       prisma.order.count({ where: { paidAt: { gte: priorFrom, lt: recentFrom } } }),
+      prisma.order.findMany({
+        where: { productId: { in: ids }, paidAt: { gte: recentFrom } },
+        select: { productId: true, paidAt: true },
+        take: 20_000,
+      }),
     ])
+    const daysBy = new Map<string, Set<string>>()
+    for (const o of recentDates) {
+      if (!o.productId || !o.paidAt) continue
+      const set = daysBy.get(o.productId) ?? new Set<string>()
+      set.add(o.paidAt.toISOString().slice(0, 10))
+      daysBy.set(o.productId, set)
+    }
     const recentBy = new Map(recent.map((r) => [r.productId as string, r._count.id]))
     const priorBy = new Map(prior.map((r) => [r.productId as string, r._count.id]))
     const sellersBy = new Map<string, number>()
@@ -124,9 +139,12 @@ async function loadRising(ids: string[], now: Date): Promise<Map<string, { recen
       })),
       { recent: marketRecent, prior: marketPrior },
     )
-    const out = new Map<string, { recent14d: number; prior42d: number }>()
+    const out = new Map<string, { recent14d: number; prior42d: number; distinctDays: number }>()
     for (const f of findings) {
-      if (f.sellingResellers >= RISING_MIN_SELLING_RESELLERS) out.set(f.productId, { recent14d: f.recent, prior42d: f.prior })
+      const distinctDays = daysBy.get(f.productId)?.size ?? 0
+      if (f.sellingResellers >= RISING_MIN_SELLING_RESELLERS && distinctDays >= RISING_MIN_DISTINCT_DAYS) {
+        out.set(f.productId, { recent14d: f.recent, prior42d: f.prior, distinctDays })
+      }
     }
     return out
   } catch (error) {

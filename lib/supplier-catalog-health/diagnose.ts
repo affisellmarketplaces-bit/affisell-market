@@ -19,6 +19,8 @@
  * Thresholds and their reasons are next to each rule. Pure, client-safe.
  */
 
+import { stockCover } from "@/lib/supplier-catalog-health/stock-cover"
+
 export type HealthClass = "blocage" | "anomalie" | "avertissement" | "recommandation"
 export type HealthSource = "fiche" | "observe" | "affisell" | "calcul"
 /** What the supplier can do from the panel: an inline quantity, or open the sheet / the hold detail. */
@@ -117,6 +119,14 @@ export type HealthProduct = {
   paidOrders30d: number
   /** Units sold on paid orders in the last 30 days (optional: absent = the stock-cover rule is not judged). */
   units30d?: number
+  /** Units of paid, not shipped, not closed orders (RESERVED). */
+  pendingUnits?: number
+  /** The platform deducted reserved units at payment (`CHECKOUT_STOCK_MODE=enforce`). */
+  pendingDeducted?: boolean
+  /** Lead time the supplier DECLARED (supply-cost declaration in force); null / absent = not declared. */
+  leadTimeDays?: number | null
+  /** Last modification of the sheet (any field — not a stock-confirmation date). */
+  sheetUpdatedAt?: Date | null
   resellersListing: number
   createdAt: Date
 }
@@ -156,19 +166,7 @@ const NON_PHYSICAL = new Set(["SOFTWARE", "SUBSCRIPTION", "SERVICE", "EXPERIENCE
 /** Values written by importers / assistants when the source gave no inventory (99, 999 …) — see AGENTS.md (G1). */
 const NOMINAL_STOCKS = new Set([99, 999, 9_999, 99_999])
 const LOW_STOCK_MAX = 3 // same threshold as the reseller copilot's « à vérifier »
-/**
- * Stock cover: at the pace of the last 30 days, the units left last fewer than STOCK_COVER_DAYS days. A CALCULATION
- * (labelled so), not a forecast: judged only with ≥ STOCK_COVER_MIN_UNITS units sold (below, one order moves the pace
- * too much to say anything). 14 days ≈ the time a supplier needs to restock and a reseller to notice.
- */
-export const STOCK_COVER_DAYS = 14
-export const STOCK_COVER_MIN_UNITS = 5
-
-/** Whole days of stock left at the 30-day pace; null when the pace is too thin to judge. */
-export function stockCoverDays(available: number, units30d: number | undefined): number | null {
-  if (units30d == null || units30d < STOCK_COVER_MIN_UNITS || available <= 0) return null
-  return Math.floor(available / (units30d / 30))
-}
+export { STOCK_COVER_DAYS, STOCK_COVER_MIN_UNITS, stockCoverDays } from "@/lib/supplier-catalog-health/stock-cover"
 const NO_RESELLER_AFTER_DAYS = 14 // a fresh product has not had time to be picked
 const NO_SALES_AFTER_DAYS = 30 // the order window is 30 days
 const SHORT_DESCRIPTION = 200 // under ~2 sentences a buyer has little to read
@@ -261,10 +259,31 @@ export function diagnoseProduct(p: HealthProduct, ctx: HealthContext, duplicates
   }
   if (onSale && stockKnown && available != null && available > 0 && available <= LOW_STOCK_MAX) {
     add("low_stock", "fiche", rows ? "edit_product" : "set_stock", { available, paidOrders30d: p.paidOrders30d })
-  } else if (onSale && stockKnown && available != null && available > LOW_STOCK_MAX) {
-    const cover = stockCoverDays(available, p.units30d)
-    if (cover != null && cover < STOCK_COVER_DAYS) {
-      add("stock_cover_short", "calcul", rows ? "edit_product" : "set_stock", { days: cover, available, units30d: p.units30d ?? 0 })
+  } else if (onSale && stockKnown && available != null && available > LOW_STOCK_MAX && p.units30d != null) {
+    const cover = stockCover({
+      declaredUnits: available,
+      confirmed: !unconfirmed,
+      pendingUnits: p.pendingUnits ?? 0,
+      pendingDeductedByPlatform: Boolean(p.pendingDeducted),
+      units30d: p.units30d,
+      leadTimeDays: p.leadTimeDays ?? null,
+      sheetUpdatedAt: p.sheetUpdatedAt ?? null,
+      now: ctx.now,
+    })
+    if (cover.judged && cover.short && cover.daysOnDeclared != null) {
+      add("stock_cover_short", "calcul", rows ? "edit_product" : "set_stock", {
+        days: cover.daysOnDeclared,
+        available,
+        units30d: p.units30d,
+        threshold: cover.thresholdDays,
+        leadKnown: p.leadTimeDays != null,
+        leadTimeDays: p.leadTimeDays ?? 0,
+        reservedNotDeducted: cover.daysIfReservedNotDeducted != null,
+        daysIfReserved: cover.daysIfReservedNotDeducted ?? 0,
+        reserved: p.pendingUnits ?? 0,
+        stale: cover.stale,
+        sheetAgeDays: cover.sheetAgeDays ?? 0,
+      })
     }
   }
   if (p.imageCount === 0) add("no_photo", "fiche", "edit_product")

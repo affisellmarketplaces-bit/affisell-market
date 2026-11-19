@@ -3111,7 +3111,8 @@
         "low_net_per_sale": "niski zysk ze sprzedaży",
         "rising_on_affisell": "Produkt, którego zamówienia rosną wyraźnie szybciej niż cały Affisell, u co najmniej dwóch sprzedawców (test statystyczny na zaobserwowanej sprzedaży, nie prognoza)."
       },
-      "rising": "Szybko rośnie na Affisell · {recent, plural, one {# zamówienie} few {# zamówienia} many {# zamówień} other {# zamówień}} w 14 dni, wyraźnie więcej niż marketplace"
+      "rising": "Szybko rośnie na Affisell · {recent, plural, one {# opłacone zamówienie} few {# opłacone zamówienia} many {# opłaconych zamówień} other {# opłaconych zamówień}} w ostatnich 14 dniach wobec {prior} w poprzednich 42 dniach — wyraźnie więcej niż marketplace",
+      "risingNature": "Sygnał zaobserwowany (test statystyczny na opłaconych zamówieniach, kilku sprzedawców i kilka dni), nie prognoza. Podnosi produkt tylko wtedy, gdy jego zysk netto na sprzedaży jest co najmniej równy medianie wyboru."
     },
     "supplierAffisell": "Dostawca Affisell",
     "replacement": {
@@ -9485,7 +9486,7 @@
       },
       "stock_cover_short": {
         "title": "Szybkie wyczerpanie przy obecnym tempie",
-        "why": "Przy tempie z ostatnich 30 dni ({units30d, plural, one {# sprzedana sztuka} few {# sprzedane sztuki} many {# sprzedanych sztuk} other {# sprzedanych sztuk}}) pozostałe {available} sztuk wystarczy na około {days, plural, =0 {mniej niż dzień} one {# dzień} other {# dni}}. To obliczenie, nie prognoza: uzupełnij zapas, zanim Twoi sprzedawcy przestaną sprzedawać."
+        "why": "Zadeklarowany zapas: {available} szt. Przy tempie z ostatnich 30 dni ({units30d, plural, one {# sprzedana sztuka} few {# sprzedane sztuki} many {# sprzedanych sztuk} other {# sprzedanych sztuk}}) wystarczy na około {days, plural, =0 {mniej niż dzień} one {# dzień} other {# dni}}, poniżej orientacyjnego progu {threshold} dni{leadKnown, select, 1 { (Twój zadeklarowany czas uzupełnienia: {leadTimeDays} dni)} other {}}.{reservedNotDeducted, select, 1 { Jeśli {reserved} szt. z opłaconych, niewysłanych zamówień nadal liczy się w tym zapasie, wystarczy tylko na {daysIfReserved} dni.} other {}}{stale, select, 1 { Karta nie była zmieniana od {sheetAgeDays} dni: sprawdź, czy zadeklarowana ilość jest aktualna.} other {}} Obliczenie orientacyjne, nie prognoza."
       }
     },
     "availability": {
@@ -9515,7 +9516,15 @@
       },
       "showAll": "Pokaż wszystkie produkty ({count})",
       "showLess": "Pokaż mniej",
-      "method": "Ustalone na podstawie Twoich opłaconych zamówień i sklepów Twoich sprzedawców; kwoty przed zwrotami. To, co te produkty sprzedawały, a nie prognoza straty."
+      "method": "Ustalone na podstawie Twoich opłaconych zamówień i sklepów Twoich sprzedawców; kwoty przed zwrotami. To, co te produkty sprzedawały, a nie prognoza straty.",
+      "stockLine": "Zadeklarowany zapas: {declared} {confirmed, select, 1 {(potwierdzony przez Ciebie)} other {(niepotwierdzony)}} · zarezerwowane (opłacone, niewysłane zamówienia): {reserved} {deducted, select, 1 {(już odjęte od zapasu)} other {(nieodjęte przez Affisell)}}",
+      "declaredUnknown": "Zadeklarowany zapas: nieznany (ilości wariantów nieczytelne)",
+      "restockTitle": "Obliczenie uzupełnienia — do przeczytania, nic nie jest wpisywane ani stosowane",
+      "restockMain": "Aby pokryć {target} dni po czasie uzupełnienia {lead} dni, przy zaobserwowanym tempie: około {units} szt. (od {low} do {high} zależnie od zmienności sprzedaży).",
+      "restockZero": "Przy zaobserwowanym tempie dostępny zapas już pokrywa {target} dni po czasie uzupełnienia.",
+      "restockExplain": "Szczegóły: potrzeba {needed} szt. ({sold} sprzedanych w 30 dni, przeliczone na {lead} + {target} dni) − {available} szt. dostępnych.",
+      "restockLeadNotDeclared": "Czas uzupełnienia niezadeklarowany: obliczenie liczy 0 dni. Zadeklaruj go w « Koszty zaopatrzenia » na karcie produktu.",
+      "restockReservedNote": "{reserved} zarezerwowanych szt. (opłaconych, niewysłanych, nieodjętych przez Affisell) odjęto w tym obliczeniu od zadeklarowanego zapasu, dla ostrożności."
     }
   },
   "nextActions": {

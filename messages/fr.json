@@ -3111,7 +3111,8 @@
         "low_net_per_sale": "gain par vente faible",
         "rising_on_affisell": "Produit dont les commandes accélèrent nettement plus vite que l'ensemble d'Affisell, chez au moins deux revendeurs (test statistique sur les ventes observées, pas une prévision)."
       },
-      "rising": "En forte progression sur Affisell · {recent, plural, one {# commande} other {# commandes}} en 14 jours, nettement plus que la marketplace"
+      "rising": "En forte progression sur Affisell · {recent, plural, one {# commande payée} other {# commandes payées}} sur les 14 derniers jours, contre {prior} sur les 42 jours précédents — nettement plus que l'ensemble de la marketplace",
+      "risingNature": "Signal observé (test statistique sur les commandes payées, plusieurs revendeurs et plusieurs jours), pas une prévision. Il ne fait remonter un produit que si son gain net par vente est au moins égal au gain médian de la sélection."
     },
     "supplierAffisell": "Fournisseur Affisell",
     "replacement": {
@@ -9485,7 +9486,7 @@
       },
       "stock_cover_short": {
         "title": "Rupture proche au rythme actuel",
-        "why": "Au rythme des 30 derniers jours ({units30d, plural, one {# unité vendue} other {# unités vendues}}), les {available} unités restantes couvrent environ {days, plural, =0 {moins d'un jour} one {# jour} other {# jours}}. Calcul, pas une prévision : pensez au réassort avant que vos revendeurs ne puissent plus vendre."
+        "why": "Stock déclaré : {available} unités. Au rythme des 30 derniers jours ({units30d, plural, one {# unité vendue} other {# unités vendues}}), il couvre environ {days, plural, =0 {moins d'un jour} one {# jour} other {# jours}}, sous le seuil indicatif de {threshold} jours{leadKnown, select, 1 { (votre délai de réassort déclaré : {leadTimeDays} jours)} other {}}.{reservedNotDeducted, select, 1 { Si les {reserved} unités de commandes payées non expédiées sont encore comptées dans ce stock, il ne couvre que {daysIfReserved} jours.} other {}}{stale, select, 1 { La fiche n'a pas été modifiée depuis {sheetAgeDays} jours : vérifiez que la quantité déclarée est à jour.} other {}} Calcul indicatif, pas une prévision."
       }
     },
     "availability": {
@@ -9515,7 +9516,15 @@
       },
       "showAll": "Voir les {count} produits",
       "showLess": "Réduire",
-      "method": "Constaté sur vos commandes payées et les boutiques de vos revendeurs ; montants avant remboursements. Ce que ces produits faisaient, pas une prévision de perte."
+      "method": "Constaté sur vos commandes payées et les boutiques de vos revendeurs ; montants avant remboursements. Ce que ces produits faisaient, pas une prévision de perte.",
+      "stockLine": "Stock déclaré : {declared} {confirmed, select, 1 {(confirmé par vous)} other {(non confirmé)}} · réservé (commandes payées non expédiées) : {reserved} {deducted, select, 1 {(déjà déduit du stock)} other {(non déduit par Affisell)}}",
+      "declaredUnknown": "Stock déclaré : inconnu (quantités par déclinaison non lisibles)",
+      "restockTitle": "Calcul de réassort — à lire, rien n'est rempli ni appliqué",
+      "restockMain": "Pour couvrir {target} jours après un délai de {lead} jours, au rythme observé : environ {units} unités (entre {low} et {high} selon la variabilité des ventes).",
+      "restockZero": "Au rythme observé, votre stock disponible couvre déjà {target} jours après le délai.",
+      "restockExplain": "Détail : {needed} unités nécessaires ({sold} vendues en 30 jours, ramenées à {lead} + {target} jours) − {available} unités disponibles.",
+      "restockLeadNotDeclared": "Délai de réassort non déclaré : le calcul compte 0 jour. Déclarez-le dans « Coûts d'approvisionnement » de la fiche pour un calcul plus juste.",
+      "restockReservedNote": "Les {reserved} unités réservées (payées, non expédiées, non déduites par Affisell) sont retirées du stock déclaré dans ce calcul, par prudence."
     }
   },
   "nextActions": {

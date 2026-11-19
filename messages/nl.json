@@ -3111,7 +3111,8 @@
         "low_net_per_sale": "lage winst per verkoop",
         "rising_on_affisell": "Een product waarvan de bestellingen duidelijk sneller groeien dan Affisell als geheel, bij minstens twee wederverkopers (statistische test op waargenomen verkopen, geen voorspelling)."
       },
-      "rising": "Sterk groeiend op Affisell · {recent, plural, one {# bestelling} other {# bestellingen}} in 14 dagen, duidelijk meer dan de marktplaats"
+      "rising": "Sterk groeiend op Affisell · {recent, plural, one {# betaalde bestelling} other {# betaalde bestellingen}} in de afgelopen 14 dagen, tegenover {prior} in de 42 dagen daarvoor — duidelijk meer dan de marktplaats",
+      "risingNature": "Een waargenomen signaal (statistische test op betaalde bestellingen, meerdere wederverkopers en meerdere dagen), geen voorspelling. Het tilt een product alleen op als de nettowinst per verkoop minstens de mediaan van de selectie is."
     },
     "supplierAffisell": "Affisell-leverancier",
     "replacement": {
@@ -9485,7 +9486,7 @@
       },
       "stock_cover_short": {
         "title": "Bijna uitverkocht in het huidige tempo",
-        "why": "In het tempo van de afgelopen 30 dagen ({units30d, plural, one {# stuk verkocht} other {# stuks verkocht}}) dekken de {available} resterende stuks ongeveer {days, plural, =0 {minder dan een dag} one {# dag} other {# dagen}}. Een berekening, geen voorspelling: vul aan voordat je wederverkopers niet meer kunnen verkopen."
+        "why": "Opgegeven voorraad: {available} stuks. In het tempo van de afgelopen 30 dagen ({units30d, plural, one {# stuk verkocht} other {# stuks verkocht}}) dekt hij ongeveer {days, plural, =0 {minder dan een dag} one {# dag} other {# dagen}}, onder de indicatieve drempel van {threshold} dagen{leadKnown, select, 1 { (je opgegeven aanvultermijn: {leadTimeDays} dagen)} other {}}.{reservedNotDeducted, select, 1 { Als de {reserved} stuks van betaalde, niet verzonden bestellingen nog in deze voorraad zitten, dekt hij maar {daysIfReserved} dagen.} other {}}{stale, select, 1 { De productfiche is al {sheetAgeDays} dagen niet gewijzigd: controleer of de opgegeven hoeveelheid klopt.} other {}} Een indicatieve berekening, geen voorspelling."
       }
     },
     "availability": {
@@ -9515,7 +9516,15 @@
       },
       "showAll": "Alle {count} producten tonen",
       "showLess": "Minder tonen",
-      "method": "Vastgesteld op je betaalde bestellingen en de winkels van je wederverkopers; bedragen vóór terugbetalingen. Wat deze producten deden, geen verliesprognose."
+      "method": "Vastgesteld op je betaalde bestellingen en de winkels van je wederverkopers; bedragen vóór terugbetalingen. Wat deze producten deden, geen verliesprognose.",
+      "stockLine": "Opgegeven voorraad: {declared} {confirmed, select, 1 {(door jou bevestigd)} other {(niet bevestigd)}} · gereserveerd (betaalde, niet verzonden bestellingen): {reserved} {deducted, select, 1 {(al van de voorraad afgetrokken)} other {(niet afgetrokken door Affisell)}}",
+      "declaredUnknown": "Opgegeven voorraad: onbekend (hoeveelheden per variant onleesbaar)",
+      "restockTitle": "Aanvulberekening — om te lezen, er wordt niets ingevuld of toegepast",
+      "restockMain": "Om {target} dagen te dekken na een aanvultermijn van {lead} dagen, in het waargenomen tempo: ongeveer {units} stuks (tussen {low} en {high} afhankelijk van de schommeling van de verkoop).",
+      "restockZero": "In het waargenomen tempo dekt je beschikbare voorraad al {target} dagen na de termijn.",
+      "restockExplain": "Detail: {needed} stuks nodig ({sold} verkocht in 30 dagen, omgerekend naar {lead} + {target} dagen) − {available} stuks beschikbaar.",
+      "restockLeadNotDeclared": "Aanvultermijn niet opgegeven: de berekening telt 0 dagen. Geef hem op onder « Inkoopkosten » in de productfiche.",
+      "restockReservedNote": "De {reserved} gereserveerde stuks (betaald, niet verzonden, niet afgetrokken door Affisell) worden in deze berekening voorzichtigheidshalve van de opgegeven voorraad afgetrokken."
     }
   },
   "nextActions": {

@@ -121,6 +121,8 @@ describe("confidentiality and separation", () => {
       "app/api/admin/products/[id]/supply-cost/route.ts",
       // The supplier's own journey reads only its declaration status (own product).
       "lib/supplier-journey/product-journey.server.ts",
+      // Catalogue health reads back ONLY the lead time the supplier declared, for its own products (ids scoped to it).
+      "lib/supplier-catalog-health/diagnose.server.ts",
     ])
     const found: string[] = []
     const walk = (dir: string) => {

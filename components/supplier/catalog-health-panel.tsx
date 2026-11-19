@@ -217,6 +217,19 @@ function AvailabilityRow({ item, onFixed }: { item: AvailabilityImpactItem; onFi
       <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
         <span className="font-medium">{t("cause")}</span> {tIssue(`issues.${item.code}.why`, p)}
       </p>
+      {item.stock ? (
+        <p className="mt-1 text-xs text-zinc-500">
+          {item.stock.declared == null
+            ? t("declaredUnknown")
+            : t("stockLine", {
+                declared: item.stock.declared,
+                confirmed: item.stock.confirmed ? 1 : 0,
+                reserved: item.stock.reserved,
+                deducted: item.stock.reservedDeducted ? 1 : 0,
+              })}
+        </p>
+      ) : null}
+      {item.restock ? <RestockBlock r={item.restock} reservedNotDeducted={Boolean(item.stock && !item.stock.reservedDeducted && item.stock.reserved > 0)} /> : null}
       {item.alsoCodes.length > 0 ? (
         <p className="mt-0.5 text-xs text-zinc-500">
           {t("also")} {item.alsoCodes.map((c) => tIssue(`issues.${c}.title`)).join(" · ")}
@@ -240,6 +253,39 @@ function AvailabilityRow({ item, onFixed }: { item: AvailabilityImpactItem; onFi
         ) : null}
       </div>
     </li>
+  )
+}
+
+/**
+ * Restock calculation to READ: never pre-filled in the quantity field, never applied (founder rule 2026-11-19). Every
+ * number is explained; an undeclared lead time is said, not invented.
+ */
+function RestockBlock({ r, reservedNotDeducted }: { r: NonNullable<AvailabilityImpactItem["restock"]>; reservedNotDeducted: boolean }) {
+  const t = useTranslations("catalogHealth.availability")
+  return (
+    <details className="mt-2 rounded-lg bg-zinc-50 p-2 text-xs text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
+      <summary className="cursor-pointer font-medium">{t("restockTitle")}</summary>
+      <p className="mt-1">
+        {r.suggestedUnits > 0
+          ? t("restockMain", { target: r.targetCoverDays, lead: r.leadTimeDays, units: r.suggestedUnits, low: r.lowUnits, high: r.highUnits })
+          : t("restockZero", { target: r.targetCoverDays })}
+      </p>
+      <p className="mt-1 text-zinc-500">
+        {t("restockExplain", {
+          needed: r.neededUnits,
+          sold: r.explanation.find((e) => e.code === "units_sold_30d")?.value ?? 0,
+          lead: r.leadTimeDays,
+          target: r.targetCoverDays,
+          available: r.availableUnits,
+        })}
+      </p>
+      {reservedNotDeducted ? (
+        <p className="mt-1 text-zinc-500">
+          {t("restockReservedNote", { reserved: r.explanation.find((e) => e.code === "reserved_units")?.value ?? 0 })}
+        </p>
+      ) : null}
+      {r.leadTimeSource === "not_declared" ? <p className="mt-1 text-zinc-500">{t("restockLeadNotDeclared")}</p> : null}
+    </details>
   )
 }
 

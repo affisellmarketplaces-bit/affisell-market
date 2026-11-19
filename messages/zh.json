@@ -3111,7 +3111,8 @@
         "low_net_per_sale": "每笔收益较低",
         "rising_on_affisell": "该商品的订单增速明显快于 Affisell 整体，且至少有两家分销商在售（基于实际销售的统计检验，并非预测）。"
       },
-      "rising": "在 Affisell 上快速增长 · 14 天内 {recent} 笔订单，明显高于整个市场"
+      "rising": "在 Affisell 上快速增长 · 过去 14 天 {recent} 笔已付款订单，而之前 42 天为 {prior} 笔——明显高于整个市场",
+      "risingNature": "这是观察到的信号（基于已付款订单、多家分销商和多个日期的统计检验），并非预测。只有当该商品每单净收益不低于所选商品的中位数时，才会被提前排列。"
     },
     "supplierAffisell": "Affisell 供应商",
     "replacement": {
@@ -9485,7 +9486,7 @@
       },
       "stock_cover_short": {
         "title": "按当前速度即将断货",
-        "why": "按过去 30 天的销售速度（已售 {units30d} 件），剩余 {available} 件约可维持 {days, plural, =0 {不到一天} other {# 天}}。这是计算而非预测：请在分销商无法销售之前补货。"
+        "why": "申报库存：{available} 件。按过去 30 天的速度（已售 {units30d} 件），约可维持 {days, plural, =0 {不到一天} other {# 天}}，低于 {threshold} 天的参考阈值{leadKnown, select, 1 {（您申报的补货周期：{leadTimeDays} 天）} other {}}。{reservedNotDeducted, select, 1 {如果已付款未发货订单的 {reserved} 件仍计入该库存，则只能维持 {daysIfReserved} 天。} other {}}{stale, select, 1 {商品页已 {sheetAgeDays} 天未修改：请确认申报数量是否最新。} other {}}这是参考计算，并非预测。"
       }
     },
     "availability": {
@@ -9515,7 +9516,15 @@
       },
       "showAll": "查看全部 {count} 件商品",
       "showLess": "收起",
-      "method": "基于您的已付款订单和分销商店铺的实际数据；金额为退款前。这是这些商品过去的表现，而非损失预测。"
+      "method": "基于您的已付款订单和分销商店铺的实际数据；金额为退款前。这是这些商品过去的表现，而非损失预测。",
+      "stockLine": "申报库存：{declared} {confirmed, select, 1 {（已由您确认）} other {（未确认）}} · 预留（已付款未发货订单）：{reserved} {deducted, select, 1 {（已从库存扣除）} other {（Affisell 未扣除）}}",
+      "declaredUnknown": "申报库存：未知（无法读取各规格数量）",
+      "restockTitle": "补货计算 —— 仅供参考，不会自动填写或执行",
+      "restockMain": "按观察到的速度，若要在 {lead} 天补货周期后再维持 {target} 天：约需 {units} 件（视销售波动在 {low} 至 {high} 件之间）。",
+      "restockZero": "按观察到的速度，您的可用库存已能在补货周期后维持 {target} 天。",
+      "restockExplain": "明细：需 {needed} 件（30 天售出 {sold} 件，按 {lead} + {target} 天折算）− 可用 {available} 件。",
+      "restockLeadNotDeclared": "未申报补货周期：计算按 0 天计。可在商品页「采购成本」中申报，以获得更准确的计算。",
+      "restockReservedNote": "出于谨慎，本计算已从申报库存中减去 {reserved} 件预留（已付款、未发货、Affisell 未扣除）。"
     }
   },
   "nextActions": {

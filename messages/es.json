@@ -3111,7 +3111,8 @@
         "low_net_per_sale": "ganancia por venta baja",
         "rising_on_affisell": "Un producto cuyos pedidos se aceleran claramente más rápido que Affisell en conjunto, en al menos dos revendedores (prueba estadística sobre ventas observadas, no una previsión)."
       },
-      "rising": "En fuerte crecimiento en Affisell · {recent, plural, one {# pedido} other {# pedidos}} en 14 días, muy por encima del marketplace"
+      "rising": "En fuerte crecimiento en Affisell · {recent, plural, one {# pedido pagado} other {# pedidos pagados}} en los últimos 14 días, frente a {prior} en los 42 días anteriores — muy por encima del marketplace",
+      "risingNature": "Señal observada (prueba estadística sobre pedidos pagados, varios revendedores y varios días), no una previsión. Solo sube un producto si su ganancia neta por venta es al menos la mediana de la selección."
     },
     "supplierAffisell": "Proveedor Affisell",
     "replacement": {
@@ -9485,7 +9486,7 @@
       },
       "stock_cover_short": {
         "title": "Agotamiento próximo al ritmo actual",
-        "why": "Al ritmo de los últimos 30 días ({units30d, plural, one {# unidad vendida} other {# unidades vendidas}}), las {available} unidades restantes cubren unos {days, plural, =0 {menos de un día} one {# día} other {# días}}. Un cálculo, no una previsión: repón antes de que tus revendedores no puedan vender."
+        "why": "Stock declarado: {available} unidades. Al ritmo de los últimos 30 días ({units30d, plural, one {# unidad vendida} other {# unidades vendidas}}), cubre unos {days, plural, =0 {menos de un día} one {# día} other {# días}}, por debajo del umbral indicativo de {threshold} días{leadKnown, select, 1 { (tu plazo de reposición declarado: {leadTimeDays} días)} other {}}.{reservedNotDeducted, select, 1 { Si las {reserved} unidades de pedidos pagados no enviados siguen contadas en este stock, solo cubre {daysIfReserved} días.} other {}}{stale, select, 1 { La ficha no se modifica desde hace {sheetAgeDays} días: comprueba que la cantidad declarada esté al día.} other {}} Cálculo indicativo, no una previsión."
       }
     },
     "availability": {
@@ -9515,7 +9516,15 @@
       },
       "showAll": "Ver los {count} productos",
       "showLess": "Ver menos",
-      "method": "Observado en tus pedidos pagados y en las tiendas de tus revendedores; importes antes de reembolsos. Lo que hacían estos productos, no una previsión de pérdida."
+      "method": "Observado en tus pedidos pagados y en las tiendas de tus revendedores; importes antes de reembolsos. Lo que hacían estos productos, no una previsión de pérdida.",
+      "stockLine": "Stock declarado: {declared} {confirmed, select, 1 {(confirmado por ti)} other {(no confirmado)}} · reservado (pedidos pagados no enviados): {reserved} {deducted, select, 1 {(ya descontado del stock)} other {(no descontado por Affisell)}}",
+      "declaredUnknown": "Stock declarado: desconocido (cantidades por variante ilegibles)",
+      "restockTitle": "Cálculo de reposición — para leer, no se rellena ni se aplica nada",
+      "restockMain": "Para cubrir {target} días tras un plazo de {lead} días, al ritmo observado: unas {units} unidades (entre {low} y {high} según la variación de las ventas).",
+      "restockZero": "Al ritmo observado, tu stock disponible ya cubre {target} días tras el plazo.",
+      "restockExplain": "Detalle: {needed} unidades necesarias ({sold} vendidas en 30 días, llevadas a {lead} + {target} días) − {available} unidades disponibles.",
+      "restockLeadNotDeclared": "Plazo de reposición no declarado: el cálculo cuenta 0 días. Decláralo en « Costes de aprovisionamiento » de la ficha.",
+      "restockReservedNote": "Las {reserved} unidades reservadas (pagadas, no enviadas, no descontadas por Affisell) se restan del stock declarado en este cálculo, por prudencia."
     }
   },
   "nextActions": {

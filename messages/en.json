@@ -3111,7 +3111,8 @@
         "low_net_per_sale": "low gain per sale",
         "rising_on_affisell": "A product whose orders accelerate clearly faster than Affisell as a whole, across at least two resellers (statistical test on observed sales, not a forecast)."
       },
-      "rising": "Rising fast on Affisell · {recent, plural, one {# order} other {# orders}} in 14 days, well ahead of the marketplace"
+      "rising": "Rising fast on Affisell · {recent, plural, one {# paid order} other {# paid orders}} over the last 14 days, against {prior} over the previous 42 days — clearly ahead of the marketplace",
+      "risingNature": "An observed signal (statistical test on paid orders, several resellers and several days), not a forecast. It only lifts a product whose net per sale is at least the median of the selection."
     },
     "supplierAffisell": "Affisell supplier",
     "replacement": {
@@ -9485,7 +9486,7 @@
       },
       "stock_cover_short": {
         "title": "Running out at the current pace",
-        "why": "At the pace of the last 30 days ({units30d, plural, one {# unit sold} other {# units sold}}), the {available} units left cover about {days, plural, =0 {less than a day} one {# day} other {# days}}. A calculation, not a forecast: restock before your resellers can no longer sell."
+        "why": "Declared stock: {available} units. At the pace of the last 30 days ({units30d, plural, one {# unit sold} other {# units sold}}), it covers about {days, plural, =0 {less than a day} one {# day} other {# days}}, below the indicative threshold of {threshold} days{leadKnown, select, 1 { (your declared restock lead time: {leadTimeDays} days)} other {}}.{reservedNotDeducted, select, 1 { If the {reserved} units of paid, unshipped orders are still counted in this stock, it covers only {daysIfReserved} days.} other {}}{stale, select, 1 { The sheet has not been changed for {sheetAgeDays} days: check that the declared quantity is up to date.} other {}} An indicative calculation, not a forecast."
       }
     },
     "availability": {
@@ -9515,7 +9516,15 @@
       },
       "showAll": "See all {count} products",
       "showLess": "Show less",
-      "method": "Observed on your paid orders and your resellers' shops; amounts before refunds. What these products were doing, not a loss forecast."
+      "method": "Observed on your paid orders and your resellers' shops; amounts before refunds. What these products were doing, not a loss forecast.",
+      "stockLine": "Declared stock: {declared} {confirmed, select, 1 {(confirmed by you)} other {(not confirmed)}} · reserved (paid, unshipped orders): {reserved} {deducted, select, 1 {(already deducted from stock)} other {(not deducted by Affisell)}}",
+      "declaredUnknown": "Declared stock: unknown (per-variant quantities unreadable)",
+      "restockTitle": "Restock calculation — to read, nothing is filled in or applied",
+      "restockMain": "To cover {target} days after a {lead}-day lead time, at the observed pace: about {units} units (between {low} and {high} depending on how sales vary).",
+      "restockZero": "At the observed pace, your available stock already covers {target} days after the lead time.",
+      "restockExplain": "Detail: {needed} units needed ({sold} sold in 30 days, scaled to {lead} + {target} days) − {available} units available.",
+      "restockLeadNotDeclared": "Restock lead time not declared: the calculation counts 0 days. Declare it under « Supply costs » in the product sheet for a better calculation.",
+      "restockReservedNote": "The {reserved} reserved units (paid, unshipped, not deducted by Affisell) are taken out of the declared stock in this calculation, to be safe."
     }
   },
   "nextActions": {

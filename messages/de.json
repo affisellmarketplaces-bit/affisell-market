@@ -3111,7 +3111,8 @@
         "low_net_per_sale": "geringer Gewinn pro Verkauf",
         "rising_on_affisell": "Ein Produkt, dessen Bestellungen deutlich schneller wachsen als Affisell insgesamt, bei mindestens zwei Wiederverkäufern (statistischer Test auf beobachteten Verkäufen, keine Prognose)."
       },
-      "rising": "Stark wachsend auf Affisell · {recent, plural, one {# Bestellung} other {# Bestellungen}} in 14 Tagen, deutlich mehr als der Marktplatz"
+      "rising": "Stark wachsend auf Affisell · {recent, plural, one {# bezahlte Bestellung} other {# bezahlte Bestellungen}} in den letzten 14 Tagen, gegenüber {prior} in den 42 Tagen davor — deutlich mehr als der Marktplatz",
+      "risingNature": "Ein beobachtetes Signal (statistischer Test auf bezahlten Bestellungen, mehrere Wiederverkäufer und mehrere Tage), keine Prognose. Es hebt ein Produkt nur an, wenn sein Nettogewinn pro Verkauf mindestens dem Median der Auswahl entspricht."
     },
     "supplierAffisell": "Affisell-Lieferant",
     "replacement": {
@@ -9485,7 +9486,7 @@
       },
       "stock_cover_short": {
         "title": "Bald ausverkauft beim aktuellen Tempo",
-        "why": "Beim Tempo der letzten 30 Tage ({units30d, plural, one {# Einheit verkauft} other {# Einheiten verkauft}}) reichen die {available} verbleibenden Einheiten für etwa {days, plural, =0 {weniger als einen Tag} one {# Tag} other {# Tage}}. Eine Berechnung, keine Prognose: Füllen Sie nach, bevor Ihre Wiederverkäufer nicht mehr verkaufen können."
+        "why": "Gemeldeter Bestand: {available} Einheiten. Beim Tempo der letzten 30 Tage ({units30d, plural, one {# Einheit verkauft} other {# Einheiten verkauft}}) reicht er etwa {days, plural, =0 {weniger als einen Tag} one {# Tag} other {# Tage}}, unter der Richtschwelle von {threshold} Tagen{leadKnown, select, 1 { (Ihre gemeldete Nachschubzeit: {leadTimeDays} Tage)} other {}}.{reservedNotDeducted, select, 1 { Falls die {reserved} Einheiten bezahlter, nicht versandter Bestellungen noch in diesem Bestand enthalten sind, reicht er nur {daysIfReserved} Tage.} other {}}{stale, select, 1 { Das Produktblatt wurde seit {sheetAgeDays} Tagen nicht geändert: Prüfen Sie, ob die gemeldete Menge aktuell ist.} other {}} Eine Richtberechnung, keine Prognose."
       }
     },
     "availability": {
@@ -9515,7 +9516,15 @@
       },
       "showAll": "Alle {count} Produkte anzeigen",
       "showLess": "Weniger anzeigen",
-      "method": "Beobachtet an Ihren bezahlten Bestellungen und den Shops Ihrer Wiederverkäufer; Beträge vor Erstattungen. Was diese Produkte erzielten, keine Verlustprognose."
+      "method": "Beobachtet an Ihren bezahlten Bestellungen und den Shops Ihrer Wiederverkäufer; Beträge vor Erstattungen. Was diese Produkte erzielten, keine Verlustprognose.",
+      "stockLine": "Gemeldeter Bestand: {declared} {confirmed, select, 1 {(von Ihnen bestätigt)} other {(nicht bestätigt)}} · reserviert (bezahlte, nicht versandte Bestellungen): {reserved} {deducted, select, 1 {(bereits abgezogen)} other {(von Affisell nicht abgezogen)}}",
+      "declaredUnknown": "Gemeldeter Bestand: unbekannt (Mengen je Variante nicht lesbar)",
+      "restockTitle": "Nachschubberechnung — zum Lesen, nichts wird ausgefüllt oder angewendet",
+      "restockMain": "Um {target} Tage nach einer Nachschubzeit von {lead} Tagen beim beobachteten Tempo abzudecken: etwa {units} Einheiten (zwischen {low} und {high} je nach Schwankung der Verkäufe).",
+      "restockZero": "Beim beobachteten Tempo deckt Ihr verfügbarer Bestand bereits {target} Tage nach der Nachschubzeit ab.",
+      "restockExplain": "Detail: {needed} benötigte Einheiten ({sold} in 30 Tagen verkauft, auf {lead} + {target} Tage umgerechnet) − {available} verfügbare Einheiten.",
+      "restockLeadNotDeclared": "Nachschubzeit nicht gemeldet: Die Berechnung zählt 0 Tage. Melden Sie sie unter « Beschaffungskosten » im Produktblatt.",
+      "restockReservedNote": "Die {reserved} reservierten Einheiten (bezahlt, nicht versandt, von Affisell nicht abgezogen) werden in dieser Berechnung vorsichtshalber vom gemeldeten Bestand abgezogen."
     }
   },
   "nextActions": {
