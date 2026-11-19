@@ -33,6 +33,7 @@ export const ADMIN_NAV_LINKS: readonly AdminNavLink[] = [
   { href: "/admin/suppliers/lightning", label: "Lightning", group: "supply" },
   { href: "/admin/queues", label: "Queues", group: "pilotage" },
   { href: "/admin/splits", label: "Splits", group: "finance" },
+  { href: "/admin/procurement-debits", label: "Débits d'achat", group: "finance" },
   { href: "/admin/settings/commission-rates", label: "Taux commission", group: "finance" },
   { href: "/admin/settings/platform-flags", label: "Interrupteurs", group: "pilotage" },
   { href: "/admin/reviews", label: "Avis", group: "operations" },

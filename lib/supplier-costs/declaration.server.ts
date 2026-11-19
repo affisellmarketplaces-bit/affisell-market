@@ -1,6 +1,9 @@
 import "server-only"
 
 import { prisma } from "@/lib/prisma"
+import { entriesFromReconciliation } from "@/lib/procurement-debits/register"
+import { loadOrderCostReconciliations } from "@/lib/procurement-debits/register.server"
+import { variantKeyFromOrderLabel } from "@/lib/supplier-costs/variant-key"
 import { compareDeclaredWithObserved } from "@/lib/supplier-costs/declared-vs-observed"
 import { entryFromOrderSnapshot } from "@/lib/supplier-costs/observed-cost-register"
 import { listVariantOptions, type VariantOption } from "@/lib/supplier-costs/variant-key"
@@ -388,6 +391,23 @@ export async function loadAdminSupplierCostReview(productId: string) {
         : null
     )
     .filter((e): e is NonNullable<typeof e> => e !== null)
+  // Money REALLY debited, only for orders whose reconciliation is complete (never a provisional figure).
+  const reconciled = await loadOrderCostReconciliations(orders.map((o) => ({ id: o.id, storedSourcePriceCents: o.aeWholesaleCents ?? null })))
+  if (reconciled.available) {
+    for (const o of orders) {
+      const rec = reconciled.byOrder.get(o.id)
+      if (!rec || !o.paidAt) continue
+      entries.push(
+        ...entriesFromReconciliation(rec, { productId, quantity: o.quantity, observedAt: o.paidAt.toISOString(), variantKey: variantKeyFromOrderLabel(o.variantLabel) })
+      )
+    }
+  }
   const comparison = compareDeclaredWithObserved([...view.history, ...view.variants.flatMap((v) => v.history)], entries)
-  return { ...view, observed: comparison, observedTruncated: orders.length >= 500 }
+  return {
+    ...view,
+    observed: comparison,
+    observedTruncated: orders.length >= 500,
+    debitRegisterAvailable: reconciled.available,
+    reconciledOrders: reconciled.available ? [...reconciled.byOrder.values()].filter((r) => r.status === "reconciled").length : 0,
+  }
 }

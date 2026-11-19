@@ -13,8 +13,9 @@
  * included / excluded / unknown, variant) and its RELIABILITY, with the same four statuses as `report:fee-reconciliation`
  * (`constate` read at the source of truth, `estime` Affisell's own estimate, `non_rapproche`, `incertain`).
  *
- * Today only `stored_source_price` entries can be built (from order snapshots); `charged_amount` and `fee` entries will
- * come from the reconciliation report or from an admin, once storage exists (a table = migration = founder decision).
+ * `stored_source_price` entries come from order snapshots; `charged_amount` and `fee` entries come from the procurement
+ * debit register (lib/procurement-debits/register.ts, `entriesFromReconciliation`) and ONLY for an order whose
+ * reconciliation is complete — a movement not fully shared out is never turned into an order's cost.
  * Nothing here touches a financial flow. Pure module.
  */
 import { variantKeyFromOrderLabel } from "./variant-key"
@@ -28,6 +29,7 @@ export const OBSERVED_COST_SOURCES = [
   "source_order_record", // the source's own order record (e.g. AliExpress order_amount) — not a bank statement
   "supplier_invoice", // an invoice, entered and checked by an admin
   "manual_admin", // an amount entered by an admin, with a note
+  "procurement_debit_register", // movements of the debit register, COMPLETELY reconciled to the order (lib/procurement-debits)
 ] as const
 export type ObservedCostSource = (typeof OBSERVED_COST_SOURCES)[number]
 

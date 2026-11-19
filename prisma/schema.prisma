@@ -4884,3 +4884,62 @@ model InvoiceSequence {
 
   @@id([issuerKey, year])
 }
+
+/// Procurement debit register (migration 20261119090000_procurement_debit_register) — money REALLY taken from Affisell
+/// to buy from a source (debit), given back (refund) or charged on top (fee), recorded from its source. CHECK
+/// constraints, the partial unique index and the over-allocation trigger live in the migration only.
+model ProcurementDebit {
+  id                 String                       @id @default(cuid())
+  /// debit | refund | fee
+  kind               String
+  /// stripe_issuing | card_statement | bank_statement | supplier_invoice_paid
+  source             String
+  sourceReference    String
+  amountCents        Int
+  currency           String
+  settledAmountCents Int?
+  settledCurrency    String?
+  occurredAt         DateTime
+  parentDebitId      String?
+  parent             ProcurementDebit?            @relation("ProcurementDebitChildren", fields: [parentDebitId], references: [id], onDelete: Restrict)
+  children           ProcurementDebit[]           @relation("ProcurementDebitChildren")
+  includesDelivery   Boolean?
+  /// included | excluded | unknown
+  vatTreatment       String                       @default("unknown")
+  evidence           Json                         @default("[]")
+  note               String                       @default("")
+  /// recorded | voided
+  status             String                       @default("recorded")
+  voidReason         String?
+  voidedAt           DateTime?
+  voidedById         String?
+  recordedById       String
+  createdAt          DateTime                     @default(now())
+  allocations        ProcurementDebitAllocation[]
+
+  @@unique([source, sourceReference])
+  @@index([parentDebitId])
+  @@index([occurredAt])
+}
+
+/// One movement (or part of it) reconciled to ONE order, in settled euros. Revoked, never deleted.
+model ProcurementDebitAllocation {
+  id            String           @id @default(cuid())
+  debitId       String
+  debit         ProcurementDebit @relation(fields: [debitId], references: [id], onDelete: Restrict)
+  orderId       String
+  amountCents   Int
+  /// single_order | grouped_split | partial_payment | manual
+  basis         String
+  note          String           @default("")
+  /// active | revoked
+  status        String           @default("active")
+  allocatedById String
+  createdAt     DateTime         @default(now())
+  revokedAt     DateTime?
+  revokedById   String?
+  revokeReason  String?
+
+  @@index([orderId])
+  @@index([debitId])
+}

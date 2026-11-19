@@ -33,3 +33,8 @@ non plus. Une déclaration par variante est une évolution possible.
    exécuté avec une clé en lecture seule.
 2. Enregistrer, au moment de l'achat, le montant réellement débité sur la carte (flux financier : à valider).
 3. Qui peut saisir un montant ou un justificatif (administrateur seulement, recommandé).
+
+
+## Mise à jour du 19 novembre 2026 — stockage décidé
+
+Le fondateur a validé l'enregistrement des montants réellement débités. Le stockage existe désormais : le registre des débits d'achat (`docs/PROCUREMENT-DEBIT-REGISTER.md`, migration `20261119090000_procurement_debit_register`, non appliquée). Les entrées `charged_amount` et `fee` de ce registre sont produites uniquement pour une commande entièrement rapprochée (`entriesFromReconciliation`, source `procurement_debit_register`, fiabilité `constate`). Un débit non rapproché ne devient jamais le coût d'une commande.

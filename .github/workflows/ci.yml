@@ -99,4 +99,5 @@ jobs:
           lib/__tests__/intelligence-scheduled-db.test.ts
           lib/__tests__/fee-reconciliation-db.test.ts
           lib/__tests__/read-only-reports-db.test.ts
+          lib/__tests__/procurement-debit-register-db.test.ts
           lib/__tests__/unallocated-buyer-notice-db.test.ts
