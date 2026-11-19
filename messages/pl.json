@@ -3112,7 +3112,12 @@
         "rising_on_affisell": "Produkt, którego zamówienia rosną wyraźnie szybciej niż cały Affisell, u co najmniej dwóch sprzedawców (test statystyczny na zaobserwowanej sprzedaży, nie prognoza)."
       },
       "rising": "Szybko rośnie na Affisell · {recent, plural, one {# opłacone zamówienie} few {# opłacone zamówienia} many {# opłaconych zamówień} other {# opłaconych zamówień}} w ostatnich 14 dniach wobec {prior} w poprzednich 42 dniach — wyraźnie więcej niż marketplace",
-      "risingNature": "Sygnał zaobserwowany (test statystyczny na opłaconych zamówieniach, kilku sprzedawców i kilka dni), nie prognoza. Podnosi produkt tylko wtedy, gdy jego zysk netto na sprzedaży jest co najmniej równy medianie wyboru."
+      "risingNature": "Sygnał zaobserwowany (test statystyczny na opłaconych zamówieniach, kilku sprzedawców i kilka dni), nie prognoza. Podnosi produkt tylko wtedy, gdy jego zysk netto na sprzedaży jest co najmniej równy medianie wyboru.",
+      "fit": {
+        "your_categories": "W Twoich kategoriach",
+        "discovery": "Odkrycie"
+      },
+      "personalisedNote": "Wybór dopasowany do kategorii, które już sprzedajesz lub oferujesz, zawsze z częścią innych kategorii do odkrycia. Produkt z Twoich kategorii nigdy nie wyprzedza takiego, który przynosi Ci wyraźnie więcej (ponad 15 % zysku netto na sprzedaży)."
     },
     "supplierAffisell": "Dostawca Affisell",
     "replacement": {

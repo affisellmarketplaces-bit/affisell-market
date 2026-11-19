@@ -3112,7 +3112,12 @@
         "rising_on_affisell": "A product whose orders accelerate clearly faster than Affisell as a whole, across at least two resellers (statistical test on observed sales, not a forecast)."
       },
       "rising": "Rising fast on Affisell · {recent, plural, one {# paid order} other {# paid orders}} over the last 14 days, against {prior} over the previous 42 days — clearly ahead of the marketplace",
-      "risingNature": "An observed signal (statistical test on paid orders, several resellers and several days), not a forecast. It only lifts a product whose net per sale is at least the median of the selection."
+      "risingNature": "An observed signal (statistical test on paid orders, several resellers and several days), not a forecast. It only lifts a product whose net per sale is at least the median of the selection.",
+      "fit": {
+        "your_categories": "In your categories",
+        "discovery": "Discovery"
+      },
+      "personalisedNote": "Selection adapted to the categories you already sell or list, always with a share of other categories to discover. A product from your categories never passes one that pays you clearly more (over 15 % more net per sale)."
     },
     "supplierAffisell": "Affisell supplier",
     "replacement": {

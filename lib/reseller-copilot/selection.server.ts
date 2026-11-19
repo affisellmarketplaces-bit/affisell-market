@@ -50,6 +50,7 @@ async function loadCandidates(affiliateId: string, onlyIds?: ReadonlyArray<strin
       variants: true,
       hasVariants: true,
       offerMode: true,
+      categoryId: true,
       stock: true,
       active: true,
       isDraft: true,
@@ -87,6 +88,7 @@ async function loadCandidates(affiliateId: string, onlyIds?: ReadonlyArray<strin
       inMyShop: r.affiliateProducts.length > 0,
       awaitingReview: !mayListOnProduct({ active: r.active, isDraft: r.isDraft, tags: r.tags }),
       rising: rising.get(r.id) ?? null,
+      categoryId: r.categoryId ?? null,
     }
   })
   return { candidates, truncated: rows.length >= SELECTION_MAX_CANDIDATES }
@@ -158,9 +160,46 @@ async function feeBpsOf(affiliateId: string): Promise<number | null> {
   return u?.affiliatePlatformFeeBps ?? null
 }
 
+/**
+ * Categories this reseller REALLY works: those of its live listings and of the products of its paid orders over 90
+ * days. Its own activity only; a failed read = no personalisation (the selection stays the general one).
+ */
+async function loadMyCategories(affiliateId: string, now = new Date()): Promise<Set<string>> {
+  try {
+    const since = new Date(now.getTime() - 90 * DAY)
+    const [listed, sold] = await Promise.all([
+      prisma.affiliateProduct.findMany({
+        where: { affiliateId, isListed: true },
+        select: { product: { select: { categoryId: true } } },
+        take: 1000,
+      }),
+      prisma.order.findMany({
+        where: { affiliateId, paidAt: { gte: since } },
+        select: { product: { select: { categoryId: true } } },
+        take: 2000,
+      }),
+    ])
+    const out = new Set<string>()
+    for (const r of [...listed, ...sold]) if (r.product?.categoryId) out.add(r.product.categoryId)
+    return out
+  } catch (error) {
+    console.error("[copilot] categories_unreadable", error instanceof Error ? error.message : "unknown")
+    return new Set()
+  }
+}
+
 export async function loadResellerSelection(affiliateId: string, limit = 12) {
-  const [{ candidates, truncated }, feeBps] = await Promise.all([loadCandidates(affiliateId), feeBpsOf(affiliateId)])
-  return { ...buildSelection(candidates, { affiliateFeeBps: feeBps, limit }), truncated, affiliateFeeBps: feeBps }
+  const [{ candidates, truncated }, feeBps, myCategories] = await Promise.all([
+    loadCandidates(affiliateId),
+    feeBpsOf(affiliateId),
+    loadMyCategories(affiliateId),
+  ])
+  return {
+    ...buildSelection(candidates, { affiliateFeeBps: feeBps, limit, myCategories }),
+    truncated,
+    affiliateFeeBps: feeBps,
+    personalised: myCategories.size > 0,
+  }
 }
 
 export type AddOutcome =

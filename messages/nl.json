@@ -3112,7 +3112,12 @@
         "rising_on_affisell": "Een product waarvan de bestellingen duidelijk sneller groeien dan Affisell als geheel, bij minstens twee wederverkopers (statistische test op waargenomen verkopen, geen voorspelling)."
       },
       "rising": "Sterk groeiend op Affisell · {recent, plural, one {# betaalde bestelling} other {# betaalde bestellingen}} in de afgelopen 14 dagen, tegenover {prior} in de 42 dagen daarvoor — duidelijk meer dan de marktplaats",
-      "risingNature": "Een waargenomen signaal (statistische test op betaalde bestellingen, meerdere wederverkopers en meerdere dagen), geen voorspelling. Het tilt een product alleen op als de nettowinst per verkoop minstens de mediaan van de selectie is."
+      "risingNature": "Een waargenomen signaal (statistische test op betaalde bestellingen, meerdere wederverkopers en meerdere dagen), geen voorspelling. Het tilt een product alleen op als de nettowinst per verkoop minstens de mediaan van de selectie is.",
+      "fit": {
+        "your_categories": "In je categorieën",
+        "discovery": "Ontdekking"
+      },
+      "personalisedNote": "Selectie afgestemd op de categorieën die je al verkoopt of aanbiedt, altijd met een deel andere categorieën om te ontdekken. Een product uit je categorieën passeert nooit een product dat je duidelijk meer oplevert (meer dan 15 % nettowinst per verkoop)."
     },
     "supplierAffisell": "Affisell-leverancier",
     "replacement": {

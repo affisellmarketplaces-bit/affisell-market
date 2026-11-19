@@ -14,6 +14,7 @@ type Payload = {
   alreadyInShop: number
   truncated: boolean
   affiliateFeeBps: number | null
+  personalised?: boolean
 }
 
 const money = (c: number) => formatStoreCurrencyFromCents(c, { maximumFractionDigits: 2 })
@@ -115,6 +116,17 @@ export function ResellerCopilotPanel({ onAdded }: { onAdded?: () => void }) {
               ) : null}
               <div className="min-w-0 flex-1 text-sm">
                 <p className="truncate font-medium text-zinc-900 dark:text-zinc-100">{s.name}</p>
+                {s.fit ? (
+                  <p
+                    className={`mr-1 mt-0.5 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                      s.fit === "your_categories"
+                        ? "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200"
+                        : "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-100"
+                    }`}
+                  >
+                    {t(`fit.${s.fit}`)}
+                  </p>
+                ) : null}
                 {s.trend?.rising ? (
                   <p className="mt-0.5 inline-block rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-semibold text-violet-800 dark:bg-violet-950 dark:text-violet-200">
                     {t("rising", { recent: s.trend.recent14d, prior: s.trend.prior42d })}
@@ -149,6 +161,7 @@ export function ResellerCopilotPanel({ onAdded }: { onAdded?: () => void }) {
           <p>{data.affiliateFeeBps == null ? t("feeDefault") : t("feeNegotiated", { pct: Math.round(data.affiliateFeeBps / 100) })}</p>
           <p>{t("honesty")}</p>
           {data.selection.some((s) => s.trend?.rising) ? <p>{t("risingNature")}</p> : null}
+          {data.personalised ? <p>{t("personalisedNote")}</p> : null}
           {data.blocked.length > 0 ? (
             <button type="button" className="underline" onClick={() => setShowBlocked((v) => !v)}>
               {t("blockedToggle", { count: data.blocked.length })}

@@ -46,6 +46,8 @@ export type SelectionCandidate = {
    * Absent = not tested / not rising.
    */
   rising?: { recent14d: number; prior42d: number; distinctDays?: number } | null
+  /** Taxonomy category of the product (personalisation by the reseller's own categories). */
+  categoryId?: string | null
 }
 
 export type Reason = { code: string; qualification: Qualification }
@@ -61,6 +63,11 @@ export type SelectionItem = {
   demand: { paidOrders30d: number; resellersListing: number; qualification: "observe" }
   /** Observed acceleration (statistically tested), never a forecast. */
   trend: { rising: boolean; recent14d: number; prior42d: number; qualification: "observe" }
+  /**
+   * Personalisation (founder brief 2026-11-19): `your_categories` = a category this reseller already sells or lists,
+   * `discovery` = another one, null = no history to personalise on. Observed from its own activity, never a guess.
+   */
+  fit: "your_categories" | "discovery" | null
   returnWindowDays: number
 }
 
@@ -115,6 +122,7 @@ export function assessCandidate(c: SelectionCandidate, affiliateFeeBps: number |
       qualification: "observe",
     },
     returnWindowDays: c.returnWindowDays,
+    fit: null,
   }
 }
 
@@ -126,6 +134,15 @@ function medianNet(items: ReadonlyArray<SelectionItem>): number {
   const mid = Math.floor(v.length / 2)
   return v.length % 2 ? v[mid]! : Math.round((v[mid - 1]! + v[mid]!) / 2)
 }
+
+/**
+ * Personalisation weight: a product in the reseller's own categories is preferred ONLY when its net per sale is within
+ * this share of an out-of-category product's — it never passes a product that pays clearly more (no lock-in that costs
+ * money). Kept small on purpose and documented.
+ */
+export const CATEGORY_AFFINITY_TOLERANCE = 0.15
+/** Share of the selection kept for other categories (when there are any), so a reseller is never locked in its habits. */
+export const DISCOVERY_SHARE = 0.25
 
 /** A rising product is lifted only when it is at least as profitable per sale as the typical selectable product. */
 export function risingLifts(item: Pick<SelectionItem, "trend" | "net">, medianNetCents: number): boolean {
@@ -141,25 +158,46 @@ export function risingLifts(item: Pick<SelectionItem, "trend" | "net">, medianNe
  */
 export function buildSelection(
   candidates: ReadonlyArray<SelectionCandidate>,
-  opts: { affiliateFeeBps: number | null; limit: number }
+  opts: { affiliateFeeBps: number | null; limit: number; myCategories?: ReadonlySet<string> | null }
 ): { selection: SelectionItem[]; blocked: SelectionItem[]; considered: number; alreadyInShop: number } {
   const fresh = candidates.filter((c) => !c.inMyShop)
-  const assessed = fresh.map((c) => assessCandidate(c, opts.affiliateFeeBps))
+  const personalised = Boolean(opts.myCategories && opts.myCategories.size > 0)
+  const assessed = fresh.map((c) => {
+    const item = assessCandidate(c, opts.affiliateFeeBps)
+    if (personalised) {
+      item.fit = c.categoryId && opts.myCategories!.has(c.categoryId) ? "your_categories" : "discovery"
+      item.reasons.push({ code: item.fit === "your_categories" ? "in_your_categories" : "discovery", qualification: "observe" })
+    }
+    return item
+  })
   const selectable = assessed.filter((a) => a.readiness !== "bloque")
   const median = medianNet(selectable)
   const lifted = (a: SelectionItem) => (risingLifts(a, median) ? 1 : 0)
-  const ok = selectable
-    .sort(
-      (a, b) =>
-        RANK[a.readiness] - RANK[b.readiness] ||
-        lifted(b) - lifted(a) ||
-        b.net.netCents - a.net.netCents ||
-        b.demand.paidOrders30d - a.demand.paidOrders30d ||
-        a.productId.localeCompare(b.productId)
-    )
+  // Net used for ordering only: an in-category product counts its net × (1 + tolerance). Shown figures never change.
+  const rankNet = (a: SelectionItem) => (a.fit === "your_categories" ? a.net.netCents * (1 + CATEGORY_AFFINITY_TOLERANCE) : a.net.netCents)
+  const compare = (a: SelectionItem, b: SelectionItem) =>
+    RANK[a.readiness] - RANK[b.readiness] ||
+    lifted(b) - lifted(a) ||
+    rankNet(b) - rankNet(a) ||
+    b.demand.paidOrders30d - a.demand.paidOrders30d ||
+    a.productId.localeCompare(b.productId)
+  const ok = selectable.sort(compare)
   const limit = Math.max(1, Math.min(50, Math.floor(opts.limit)))
+  const picked = ok.slice(0, limit)
+  if (personalised) {
+    // Discovery quota: keep a share of other categories when they exist, replacing the lowest in-category picks.
+    const rest = ok.slice(limit).filter((a) => a.fit === "discovery")
+    const quota = Math.min(Math.ceil(limit * DISCOVERY_SHARE), ok.filter((a) => a.fit === "discovery").length)
+    while (picked.filter((a) => a.fit === "discovery").length < quota && rest.length > 0) {
+      const lastIdx = picked.map((a) => a.fit).lastIndexOf("your_categories")
+      if (lastIdx < 0) break
+      picked.splice(lastIdx, 1)
+      picked.push(rest.shift()!)
+    }
+    picked.sort(compare)
+  }
   return {
-    selection: ok.slice(0, limit),
+    selection: picked,
     blocked: assessed.filter((a) => a.readiness === "bloque").slice(0, limit),
     considered: candidates.length,
     alreadyInShop: candidates.length - fresh.length,

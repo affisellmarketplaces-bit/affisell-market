@@ -158,6 +158,32 @@ describe("selection — ranking and separation", () => {
     expect(readFileSync(path.join(path.resolve(__dirname, "../.."), "lib/reseller-copilot/selection.server.ts"), "utf8")).toContain("RISING_MIN_DISTINCT_DAYS = 3")
   })
 
+  it("personalisation: own categories preferred only within 15 % of net, a discovery share always kept, nothing without history", () => {
+    const mine = new Set(["cat-home"])
+    const r = buildSelection(
+      [
+        cand({ productId: "home-a", basePriceCents: 2000, categoryId: "cat-home" }),
+        cand({ productId: "home-b", basePriceCents: 1900, categoryId: "cat-home" }),
+        cand({ productId: "home-c", basePriceCents: 1800, categoryId: "cat-home" }),
+        cand({ productId: "home-d", basePriceCents: 1700, categoryId: "cat-home" }),
+        cand({ productId: "tech-close", basePriceCents: 2100, categoryId: "cat-tech" }),
+        cand({ productId: "tech-far", basePriceCents: 9000, categoryId: "cat-tech" }),
+        cand({ productId: "garden", basePriceCents: 1000, categoryId: "cat-garden" }),
+      ],
+      { affiliateFeeBps: null, limit: 4, myCategories: mine }
+    )
+    const ids = r.selection.map((s) => s.productId)
+    // A product paying clearly more is never passed; one within 15 % is.
+    expect(ids[0]).toBe("tech-far")
+    expect(ids.indexOf("home-a")).toBeLessThan(ids.indexOf("tech-close") === -1 ? 99 : ids.indexOf("tech-close"))
+    // At least a quarter of the picks stay outside the reseller's categories.
+    expect(r.selection.filter((s) => s.fit === "discovery").length).toBeGreaterThanOrEqual(1)
+    expect(r.selection.find((s) => s.productId === "home-a")?.reasons.some((x) => x.code === "in_your_categories")).toBe(true)
+    // No history: nothing personalised, no label.
+    const plain = buildSelection([cand({ productId: "x", categoryId: "cat-home" })], { affiliateFeeBps: null, limit: 4 })
+    expect(plain.selection[0]!.fit).toBeNull()
+  })
+
   it("the trend reuses the cockpit's own test, needs two resellers, and never blocks the selection", () => {
     const server = readFileSync(path.join(path.resolve(__dirname, "../.."), "lib/reseller-copilot/selection.server.ts"), "utf8")
     expect(server).toContain("detectEmerging(")
