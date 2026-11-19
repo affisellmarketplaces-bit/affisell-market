@@ -13,6 +13,8 @@ export type GuestCartItem = {
   sellerName?: string
   selectedColor?: string
   selectedSize?: string
+  /** Capacity chosen beside a size (a product with both). Kept as chosen — never rebuilt from the title or the row. */
+  selectedStorage?: string
 }
 
 export type CartAddedEventDetail = {
@@ -22,8 +24,17 @@ export type CartAddedEventDetail = {
   variantSignature: string
 }
 
-function itemVariantSig(item: Pick<GuestCartItem, "selectedColor" | "selectedSize">): string {
-  return normalizeCartVariantSignature(item.selectedColor, item.selectedSize)
+/**
+ * The ONE signature of a guest line (same builder as the server cart, `normalizeCartVariantSignature`): colour, size
+ * and — beside a size — the capacity. A line saved before the capacity was kept has none, so its signature is exactly
+ * what it always was.
+ */
+export function guestItemVariantSignature(item: Pick<GuestCartItem, "selectedColor" | "selectedSize" | "selectedStorage">): string {
+  return normalizeCartVariantSignature(item.selectedColor, item.selectedSize, item.selectedSize ? item.selectedStorage : null)
+}
+
+function itemVariantSig(item: Pick<GuestCartItem, "selectedColor" | "selectedSize" | "selectedStorage">): string {
+  return guestItemVariantSignature(item)
 }
 
 function sanitizeQty(input: number) {
@@ -52,6 +63,7 @@ export function readGuestCart(): GuestCartItem[] {
           sellerName: typeof item.sellerName === "string" ? item.sellerName : undefined,
           selectedColor: typeof item.selectedColor === "string" ? item.selectedColor : undefined,
           selectedSize: typeof item.selectedSize === "string" ? item.selectedSize : undefined,
+          selectedStorage: typeof item.selectedStorage === "string" && item.selectedStorage.trim() ? item.selectedStorage : undefined,
         },
       ]
     })
@@ -70,7 +82,7 @@ export function guestCartCount() {
   return readGuestCart().reduce((sum, item) => sum + sanitizeQty(item.qty), 0)
 }
 
-function sameGuestLine(a: GuestCartItem, b: Pick<GuestCartItem, "productId" | "selectedColor" | "selectedSize">) {
+function sameGuestLine(a: GuestCartItem, b: Pick<GuestCartItem, "productId" | "selectedColor" | "selectedSize" | "selectedStorage">) {
   return a.productId === b.productId && itemVariantSig(a) === itemVariantSig(b)
 }
 

@@ -293,6 +293,9 @@ export async function createResellerOrder(
       stock: listing.product.stock,
       variants: listing.product.variants,
       hasVariants: listing.product.hasVariants,
+      customColumns: listing.product.customColumns,
+      // Variants kept only in the ProductVariant table: judged with the same rule (never decremented here).
+      tableVariants: listing.product.productVariants ?? [],
       variantSignature: checkoutVariantSignature,
       qty: 1,
     },

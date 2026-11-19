@@ -98,4 +98,16 @@ describe("agent checkout stock gate", () => {
     m.findFirst.mockResolvedValue(listing({ stock: 2, variants: { variantRows: [{ name: "Unique", stock: 2 }] } }))
     expect(await createCheckoutSession("ap1")).toMatchObject({ checkoutUrl: expect.any(String) })
   })
+
+  it("variants kept in the separate table: the assistant asks for a choice too; one table variant is bought as is", async () => {
+    process.env.CHECKOUT_STOCK_MODE = "warn"
+    m.sessionsCreate.mockClear()
+    m.findFirst.mockResolvedValue(
+      listing({ stock: 5, hasVariants: true, productVariants: [{ color: "Noir", size: "M", stock: 2 }, { color: "Noir", size: "L", stock: 3 }] })
+    )
+    expect(await createCheckoutSession("ap1")).toMatchObject({ checkoutUrl: null, reason: "variant_choice_required" })
+    expect(m.sessionsCreate).not.toHaveBeenCalled()
+    m.findFirst.mockResolvedValue(listing({ stock: 5, hasVariants: true, productVariants: [{ color: "Noir", size: "M", stock: 2 }] }))
+    expect(await createCheckoutSession("ap1")).toMatchObject({ checkoutUrl: expect.any(String) })
+  })
 })

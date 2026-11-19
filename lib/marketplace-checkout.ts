@@ -8,6 +8,7 @@ import {
 import { auth } from "@/auth"
 import { assertGhostStockForCheckout } from "@/lib/ghost/checkout-gate"
 import { availableVariantLabels, evaluateCheckoutStockGate, type StockCheckLine } from "@/lib/checkout-stock"
+import { withTableVariants } from "@/lib/checkout-table-variants.server"
 import { evaluateExternalPurchaseCheckoutGate } from "@/lib/procurement/external-purchase-checkout.server"
 import { getSimilarInStockProducts } from "@/lib/ghost/similar-products"
 import { ensureGhostStockSchema } from "@/lib/ghost/ensure-ghost-schema"
@@ -325,7 +326,9 @@ function guardExplicitSupplierCommission(args: {
  * The codes are Affisell's own (`OUT_OF_STOCK`, `INSUFFICIENT_STOCK`): `OUT_OF_STOCK_VERIFIED` is the supplier-probe
  * refusal of the Ghost gate, whose modal says "we just checked with our supplier" — not true for our own counter.
  */
-async function checkoutStockGate(lines: StockCheckLine[]): Promise<NextResponse | null> {
+async function checkoutStockGate(input: StockCheckLine[]): Promise<NextResponse | null> {
+  // Products whose variants live only in the ProductVariant table get them attached (same rule, read-only).
+  const lines = await withTableVariants(input)
   const { refuse: shortfall, refuseVariant } = evaluateCheckoutStockGate(lines)
   if (refuseVariant) {
     // The size / colour asked for does not exist on the product: the buyer keeps the product and picks another option.
@@ -336,7 +339,7 @@ async function checkoutStockGate(lines: StockCheckLine[]): Promise<NextResponse 
         problem: refuseVariant.problem,
         missing: refuseVariant.missing ?? [],
         productName: refuseVariant.productName,
-        availableVariants: line ? availableVariantLabels(line.variants) : [],
+        availableVariants: line ? availableVariantLabels(line.variants, 12, line.tableVariants) : [],
       },
       { status: 409 }
     )
@@ -524,6 +527,7 @@ async function checkoutFromItems(
       stock: line.listing.product.stock,
       variants: line.listing.product.variants,
       hasVariants: line.listing.product.hasVariants,
+      customColumns: line.listing.product.customColumns,
       variantSignature: line.variantSignature,
       qty: line.qty,
     }))
@@ -743,6 +747,7 @@ export async function marketplaceCheckoutPOST(
       stock: product.stock,
       variants: product.variants,
       hasVariants: product.hasVariants,
+      customColumns: product.customColumns,
       variantSignature: normalizeCartVariantSignature(body.selectedColor, body.selectedSize, body.selectedStorage),
       qty: checkoutQty,
     },

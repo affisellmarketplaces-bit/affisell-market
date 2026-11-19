@@ -5,11 +5,11 @@
 import { describe, expect, it } from "vitest"
 
 import { normalizeCartVariantSignature, parseCartVariantSignature } from "@/lib/cart-variant"
-import { evaluateCheckoutStockGate, isStockManagedForLine, planStockMovement, variantSelectionProblem } from "@/lib/checkout-stock"
+import { availableVariantLabels, evaluateCheckoutStockGate, isStockManagedForLine, planStockMovement, variantSelectionProblem } from "@/lib/checkout-stock"
 import { summarizeReservationExposure } from "@/lib/stock-exposure"
 import { stripVariantOptionTypePrefix } from "@/lib/supplier-sku-builder"
 import { hasVariantChoice, listingRequiresVariantChoice, variantChoicePageHref } from "@/lib/variant-choice-client"
-import { indistinctVariantRows, optionStockForChoice, requiresVariantChoice, resolveVariantChoice } from "@/lib/variant-selection"
+import { indistinctVariantRows, optionStockForChoice, requiresVariantChoice, resolveVariantChoice, rowsForChoice, variantsFromTable } from "@/lib/variant-selection"
 
 const rows = (...r: Array<{ name: string; stock: number; attrs?: Record<string, string> }>) => ({
   variantRows: r.map((x, i) => ({ id: `r${i}`, sku: "", priceCents: 0, commission: 20, sales: 0, ...x })),
@@ -221,5 +221,72 @@ describe("rows a buyer can not tell apart (catalogue health)", () => {
       labels: ["Noir / M"],
     })
     expect(indistinctVariantRows(rows({ name: "Noir / M / Coton", stock: 1 }, { name: "Noir / M / Lin", stock: 1 })).rows).toBe(2)
+  })
+})
+
+describe("variants kept in the separate ProductVariant table (§2)", () => {
+  const table = [
+    { color: "Noir", size: "M", stock: 0 },
+    { color: "Noir", size: "L", stock: 3 },
+    { color: "Blanc", size: "M", stock: 1 },
+  ]
+  const phoneTable = [
+    { color: "Noir", size: null, stock: 2, customData: { stockage: "128 Go" } },
+    { color: "Noir", size: null, stock: 0, customData: { stockage: "256 Go" } },
+  ]
+  const line = (sig: string, t: unknown = table) => ({
+    productId: "p",
+    productName: "P",
+    listingKind: "PHYSICAL",
+    stock: 4,
+    variants: null,
+    hasVariants: true,
+    tableVariants: t as never,
+    variantSignature: sig,
+    qty: 1,
+  })
+  const quiet = <T,>(f: () => T): T => {
+    const log = console.log
+    console.log = () => undefined
+    try {
+      return f()
+    } finally {
+      console.log = log
+    }
+  }
+
+  it("the table is read with the SAME rule; a size alone keeps its size slot; advanced rows win when present", () => {
+    expect(resolveVariantChoice(variantsFromTable(table), { color: "Noir", size: "L" })).toMatchObject({ kind: "resolved", index: 1 })
+    expect(resolveVariantChoice(variantsFromTable([{ size: "M", stock: 1 }, { size: "L", stock: 1 }]), { size: "L" })).toMatchObject({ kind: "resolved", index: 1 })
+    expect(resolveVariantChoice(variantsFromTable(phoneTable), { color: "Noir", size: "256 Go" })).toMatchObject({ kind: "resolved", index: 1 })
+    expect(rowsForChoice(tee, table)).toBe(tee)
+    expect(variantsFromTable([])).toBeNull()
+  })
+
+  it("server check: unknown / incomplete / missing choices are flagged — never a variant picked for the buyer", () => {
+    expect(variantSelectionProblem(line("c:Blanc|s:L"))).toEqual({ problem: "variant_unknown" })
+    expect(variantSelectionProblem(line("c:Noir"))).toEqual({ problem: "variant_incomplete", missing: ["size"] })
+    expect(variantSelectionProblem(line(""))?.problem).toBe("variant_required")
+    expect(variantSelectionProblem(line("c:Noir|s:L"))).toBeNull()
+    // Without the table attached, the product is not judged (previous behaviour, nothing invented).
+    expect(variantSelectionProblem({ ...line("c:Blanc|s:L"), tableVariants: undefined })).toBeNull()
+  })
+
+  it("a sold-out table variant is a shortfall before payment (enforce), never presented as valid; warn refuses nothing", () => {
+    const enforce = quiet(() => evaluateCheckoutStockGate([line("c:Noir|s:M")], { CHECKOUT_STOCK_MODE: "enforce" }))
+    expect(enforce.refuse).toMatchObject({ scope: "variant", available: 0, requested: 1 })
+    expect(quiet(() => evaluateCheckoutStockGate([line("c:Noir|s:M")], {})).refuse).toBeNull()
+    const two = quiet(() => evaluateCheckoutStockGate([line("c:Blanc|s:M"), line("c:Blanc|s:M")], { CHECKOUT_STOCK_MODE: "enforce" }))
+    expect(two.refuse).toMatchObject({ available: 1, requested: 2 })
+    expect(quiet(() => evaluateCheckoutStockGate([line("c:Noir|s:L")], { CHECKOUT_STOCK_MODE: "enforce" }))).toEqual({ mode: "enforce", refuse: null, refuseVariant: null })
+    // nothing is decremented from the table: the line stays unmanaged for the payment-time decrement
+    expect(planStockMovement({ listingKind: "PHYSICAL", stock: 4, variants: null, hasVariants: true, variantSignature: "c:Noir|s:L", qty: 1 }).kind).toBe("unmanaged")
+  })
+
+  it("the refusal lists the table options still on sale; a product with one table variant needs no choice", () => {
+    expect(availableVariantLabels(null, 12, table)).toEqual(["Noir / L", "Blanc / M"])
+    expect(requiresVariantChoice({ variants: null, tableVariants: table })).toBe(true)
+    expect(requiresVariantChoice({ variants: null, tableVariants: [{ color: "Noir", stock: 3 }] })).toBe(false)
+    expect(variantSelectionProblem(line("", [{ color: "Noir", stock: 3 }]))).toBeNull()
   })
 })

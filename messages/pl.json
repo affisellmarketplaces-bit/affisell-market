@@ -943,7 +943,8 @@
       "signInFailed": "Błąd logowania po identyfikacji.",
       "networkError": "Brak połączenia z siecią. Spróbuj ponownie."
     },
-    "tryPulse": "Wypróbuj Affisell Pulse"
+    "tryPulse": "Wypróbuj Affisell Pulse",
+    "storageLabel": "Pojemność"
   },
   "buyerBestsellers": {
     "metaTitle": "Najlepiej sprzedające się · 7 dni",

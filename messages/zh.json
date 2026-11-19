@@ -943,7 +943,8 @@
       "signInFailed": "身份识别后登录失败。",
       "networkError": "网络不可用。请再试一次。"
     },
-    "tryPulse": "试试 Affisell Pulse"
+    "tryPulse": "试试 Affisell Pulse",
+    "storageLabel": "容量"
   },
   "buyerBestsellers": {
     "metaTitle": "畅销榜 · 7天",

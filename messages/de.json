@@ -943,7 +943,8 @@
       "signInFailed": "Anmeldung nach Identifizierung fehlgeschlagen.",
       "networkError": "Netzwerk nicht verfügbar. Versuchen Sie es erneut."
     },
-    "tryPulse": "Affisell Pulse ausprobieren"
+    "tryPulse": "Affisell Pulse ausprobieren",
+    "storageLabel": "Kapazität"
   },
   "buyerBestsellers": {
     "metaTitle": "Bestseller · 7 Tage",

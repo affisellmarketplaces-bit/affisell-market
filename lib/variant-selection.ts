@@ -150,8 +150,16 @@ export function resolveVariantChoice(variants: unknown, choice: VariantChoice, c
  * them): its stock is not held per variant, but an order without a size / colour would still not tell the supplier
  * what to send. Pure.
  */
-export function requiresVariantChoice(args: { variants: unknown; customColumns?: unknown; tableVariantCount?: number }): boolean {
-  const r = resolveVariantChoice(args.variants, {}, args.customColumns)
+export function requiresVariantChoice(args: {
+  variants: unknown
+  customColumns?: unknown
+  /** The `ProductVariant` table rows (judged with the same rule when there are no advanced rows). */
+  tableVariants?: ReadonlyArray<TableVariant> | null
+  /** Only a count is known: ≥ 2 table variants = a choice is needed (cannot tell identical ones apart). */
+  tableVariantCount?: number
+}): boolean {
+  const rows = rowsForChoice(args.variants, args.tableVariants, args.customColumns)
+  const r = resolveVariantChoice(rows, {}, args.customColumns)
   if (r.kind === "incomplete") return true
   if (r.kind === "no_rows") return (args.tableVariantCount ?? 0) >= 2
   return false
@@ -188,4 +196,48 @@ export function indistinctVariantRows(variants: unknown, customColumns?: unknown
   })
   const involved = [...groups.values()].filter((g) => g.length > 1).flat()
   return { rows: involved.length, labels: [...new Set(involved.map((i) => names[i] || "—"))].slice(0, 3) }
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Variants kept in the separate `ProductVariant` table (no `variantRows` json) — founder brief 2026-11-19 §2.
+// ---------------------------------------------------------------------------------------------------------------
+
+/** One row of the `ProductVariant` table, as read for a choice check (no price, no identifier needed). */
+export type TableVariant = {
+  color?: string | null
+  size?: string | null
+  stock?: number | null
+  /** Extra columns (capacity…), `{ key: value }` as the table stores them. */
+  customData?: unknown
+}
+
+/**
+ * The table's variants seen through the SAME rule as the advanced rows: name « colour / size » (a size alone keeps its
+ * size slot, never read as a colour), capacity and other columns as attributes, the table's own stock. Only used to
+ * JUDGE a choice and its availability — checkout never decrements this table (AGENTS.md): nothing here writes.
+ * `null` when the table has no variant. Pure.
+ */
+export function variantsFromTable(table: ReadonlyArray<TableVariant> | null | undefined, customColumns?: unknown): {
+  variantRows: Array<{ name: string; stock: number; attrs: Record<string, string> }>
+  skuCustomColumns: Array<{ key: string; label: string }>
+} | null {
+  if (!table || table.length === 0) return null
+  const variantRows = table.map((v) => {
+    const color = (v.color ?? "").trim()
+    const size = (v.size ?? "").trim()
+    const attrs: Record<string, string> = {}
+    if (v.customData && typeof v.customData === "object" && !Array.isArray(v.customData)) {
+      for (const [k, val] of Object.entries(v.customData as Record<string, unknown>)) {
+        if (val != null && String(val).trim()) attrs[k] = String(val).trim()
+      }
+    }
+    const stock = Number(v.stock)
+    return { name: size ? `${color} / ${size}` : color, stock: Number.isFinite(stock) ? Math.max(0, Math.round(stock)) : 0, attrs }
+  })
+  return { variantRows, skuCustomColumns: asColumns(customColumns) }
+}
+
+/** The rows a choice is judged against: the advanced rows when the product has them, else the table's variants. */
+export function rowsForChoice(variants: unknown, table?: ReadonlyArray<TableVariant> | null, customColumns?: unknown): unknown {
+  return rawRows(variants).length > 0 ? variants : variantsFromTable(table, customColumns) ?? variants
 }

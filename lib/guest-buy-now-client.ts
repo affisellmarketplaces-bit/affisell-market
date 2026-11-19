@@ -11,7 +11,7 @@ import {
 
 export type BuyNowWithoutLoginMeta = Pick<
   AddToBuyerCartInput,
-  "title" | "price" | "imageUrl" | "sellerName" | "selectedColor" | "selectedSize"
+  "title" | "price" | "imageUrl" | "sellerName" | "selectedColor" | "selectedSize" | "selectedStorage"
 > & { productId: string }
 
 export type BuyNowOutOfStockPayload = {
@@ -47,6 +47,9 @@ export async function buyNowWithoutLogin(
   async function fallbackToCart(): Promise<"cart" | "error"> {
     const add = await addToBuyerCart({
       ...productMeta,
+      // The fallback keeps the exact choice of the buy-now (colour, size, capacity), never a rebuilt one.
+      selectedStorage: productMeta.selectedStorage ?? body.selectedStorage ?? undefined,
+      variantChoiceChecked: true,
       productId: listingId,
       qty: body.qty ?? 1,
     })

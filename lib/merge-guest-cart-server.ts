@@ -8,6 +8,8 @@ export type GuestCartMergeLine = {
   qty?: number
   selectedColor?: string | null
   selectedSize?: string | null
+  /** Capacity beside a size: kept in the server cart's signature (`g:`), exactly as chosen. */
+  selectedStorage?: string | null
 }
 
 function sanitizeQty(input: number) {
@@ -50,7 +52,8 @@ export async function mergeGuestCartLinesForUser(
     const qty = sanitizeQty(Number(row.qty))
     const colorRaw = typeof row.selectedColor === "string" ? row.selectedColor.trim() : ""
     const sizeRaw = typeof row.selectedSize === "string" ? row.selectedSize.trim() : ""
-    const variantSignature = normalizeCartVariantSignature(colorRaw || null, sizeRaw || null)
+    const storageRaw = typeof row.selectedStorage === "string" ? row.selectedStorage.trim() : ""
+    const variantSignature = normalizeCartVariantSignature(colorRaw || null, sizeRaw || null, sizeRaw ? storageRaw || null : null)
     const selectedColor = colorRaw ? colorRaw.slice(0, 48) : null
     const selectedSize = sizeRaw ? sizeRaw.slice(0, 40) : null
 
@@ -97,6 +100,7 @@ export function parseGuestCartMergeBody(raw: unknown): GuestCartMergeLine[] {
       qty: sanitizeQty(Number(item.qty)),
       selectedColor: item.selectedColor ?? null,
       selectedSize: item.selectedSize ?? null,
+      selectedStorage: typeof item.selectedStorage === "string" ? item.selectedStorage.slice(0, 40) : null,
     })
   }
   return out

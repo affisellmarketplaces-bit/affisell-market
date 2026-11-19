@@ -26,7 +26,12 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
       where: { id: listingId, ...buyerListedAffiliateProductWhere },
       select: {
         product: {
-          select: { variants: true, customColumns: true, listingKind: true, _count: { select: { productVariants: true } } },
+          select: {
+            variants: true,
+            customColumns: true,
+            listingKind: true,
+            productVariants: { select: { color: true, size: true, stock: true, customData: true }, take: 200 },
+          },
         },
       },
     })
@@ -37,7 +42,7 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
       requiresVariantChoice({
         variants: listing.product.variants,
         customColumns: listing.product.customColumns,
-        tableVariantCount: listing.product._count.productVariants,
+        tableVariants: listing.product.productVariants,
       })
     return NextResponse.json({ requiresChoice }, { headers: { "Cache-Control": "private, max-age=30" } })
   } catch {

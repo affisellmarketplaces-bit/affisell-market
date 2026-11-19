@@ -62,6 +62,7 @@ export async function POST(req: Request) {
           qty: item.qty,
           selectedColor: item.selectedColor ?? null,
           selectedSize: item.selectedSize ?? null,
+          selectedStorage: item.selectedStorage ?? null,
         }))
         .filter((row) => row.productId?.trim())
       if (lines.length > 0) {

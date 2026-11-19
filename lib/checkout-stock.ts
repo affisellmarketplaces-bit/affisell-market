@@ -21,7 +21,14 @@
 
 import { parseListingKind } from "@/lib/supplier-commission"
 import { parseCartVariantSignature } from "@/lib/cart-variant"
-import { resolveVariantChoice, type VariantChoiceResolution, type VariantDimension } from "@/lib/variant-selection"
+import {
+  resolveVariantChoice,
+  rowsForChoice,
+  variantsFromTable,
+  type TableVariant,
+  type VariantChoiceResolution,
+  type VariantDimension,
+} from "@/lib/variant-selection"
 
 /**
  * Rollout switch `CHECKOUT_STOCK_MODE` = `off` | `warn` (DEFAULT) | `enforce`, read per request (flip it on Vercel, no code
@@ -100,9 +107,14 @@ function rawRowStock(row: Record<string, unknown>): number {
  * The row a line draws from — the SHARED rule of `lib/variant-selection.ts` (same as the product pages and the check
  * before payment). `null` = no single row can be told: the line is not managed (never decremented, never guessed).
  */
-function resolveVariantLine(variants: unknown, variantSignature: string | null | undefined): VariantChoiceResolution {
+function resolveVariantLine(
+  variants: unknown,
+  variantSignature: string | null | undefined,
+  table?: ReadonlyArray<TableVariant> | null,
+  customColumns?: unknown
+): VariantChoiceResolution {
   const { color, size, storage } = parseCartVariantSignature(variantSignature ?? "")
-  return resolveVariantChoice(variants, { color, size, storage })
+  return resolveVariantChoice(rowsForChoice(variants, table, customColumns), { color, size, storage }, customColumns)
 }
 
 /**
@@ -236,6 +248,12 @@ export type StockCheckLine = {
   hasVariants?: boolean | null
   variantSignature: string | null | undefined
   qty: number
+  /**
+   * The product's `ProductVariant` table rows, when it has no advanced rows: the choice and its availability are
+   * judged on them with the same rule (never decremented here). Absent = not judged (the previous behaviour).
+   */
+  tableVariants?: ReadonlyArray<TableVariant> | null
+  customColumns?: unknown
 }
 
 export type StockShortfall = {
@@ -339,9 +357,11 @@ export function variantSelectionProblem(input: {
   listingKind: string | null | undefined
   variants: unknown
   variantSignature: string | null | undefined
+  tableVariants?: ReadonlyArray<TableVariant> | null
+  customColumns?: unknown
 }): { problem: VariantSelectionProblem; missing?: VariantDimension[] } | null {
   if (parseListingKind(input.listingKind) !== "PHYSICAL") return null
-  const r = resolveVariantLine(input.variants, input.variantSignature)
+  const r = resolveVariantLine(input.variants, input.variantSignature, input.tableVariants, input.customColumns)
   if (r.kind === "unknown") return { problem: "variant_unknown" }
   if (r.kind !== "incomplete") return null
   const { color, size, storage } = parseCartVariantSignature(input.variantSignature ?? "")
@@ -349,9 +369,37 @@ export function variantSelectionProblem(input: {
   return { problem: chose ? "variant_incomplete" : "variant_required", missing: r.missing }
 }
 
+/**
+ * Availability of a variant kept in the `ProductVariant` table (a product with no advanced rows): the stock the
+ * product page shows for it. Advisory, before the payment only — the payment does not decrement that table (the
+ * supplier maintains it), so this never becomes a reservation. Lines of the same variant are counted together.
+ */
+export function findTableVariantShortfall(lines: StockCheckLine[]): StockShortfall | null {
+  const asked = new Map<string, number>()
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]!
+    if (parseListingKind(line.listingKind) !== "PHYSICAL") continue
+    if (rawVariantRows(line.variants).length > 0) continue
+    const mirror = variantsFromTable(line.tableVariants, line.customColumns)
+    if (!mirror) continue
+    const r = resolveVariantLine(null, line.variantSignature, line.tableVariants, line.customColumns)
+    if (r.kind !== "resolved") continue
+    const qty = Math.round(Number(line.qty))
+    if (!Number.isFinite(qty) || qty < 1) continue
+    const key = `${line.productId}|table:${r.index}`
+    const total = (asked.get(key) ?? 0) + qty
+    asked.set(key, total)
+    const available = mirror.variantRows[r.index]!.stock
+    if (available < total) {
+      return { lineIndex: i, productId: line.productId, productName: line.productName ?? null, scope: "variant", available, requested: total }
+    }
+  }
+  return null
+}
+
 /** Names of the rows the buyer can still choose (stock > 0) — what a refusal offers instead. Public on the PDP already. */
-export function availableVariantLabels(variants: unknown, max = 12): string[] {
-  return rawVariantRows(variants)
+export function availableVariantLabels(variants: unknown, max = 12, table?: ReadonlyArray<TableVariant> | null): string[] {
+  return rawVariantRows(rowsForChoice(variants, table))
     .filter((r) => rawRowStock(r) > 0)
     .map(rawRowName)
     .filter(Boolean)
@@ -396,7 +444,7 @@ export function evaluateCheckoutStockGate(
     })
     if (mode === "enforce") return { mode, refuse: null, refuseVariant: variant }
   }
-  const shortfall = findCheckoutStockShortfall(lines)
+  const shortfall = findCheckoutStockShortfall(lines) ?? findTableVariantShortfall(lines)
   if (!shortfall) return { mode, refuse: null, refuseVariant: null }
   console.log("[checkout]", {
     result: mode === "enforce" ? "insufficient_stock" : "would_refuse_insufficient_stock",

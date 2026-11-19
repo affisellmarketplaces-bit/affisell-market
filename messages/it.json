@@ -943,7 +943,8 @@
       "signInFailed": "Fallito l'accesso dopo l'identificazione.",
       "networkError": "Rete non disponibile. Prova di nuovo."
     },
-    "tryPulse": "Prova Affisell Pulse"
+    "tryPulse": "Prova Affisell Pulse",
+    "storageLabel": "Capacità"
   },
   "buyerBestsellers": {
     "metaTitle": "Più venduti · 7 giorni",

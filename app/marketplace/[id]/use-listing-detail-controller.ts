@@ -630,6 +630,7 @@ export function useListingDetailController(props: ListingDetailProps) {
           price: displayFlashPriceEur ?? listingPriceEur,
           selectedColor: selectedColor ?? undefined,
           selectedSize: cartSelectedSize ?? undefined,
+          selectedStorage: cartSelectedStorage,
         }
       )
       if (typeof outcome === "object" && outcome.kind === "out_of_stock") {

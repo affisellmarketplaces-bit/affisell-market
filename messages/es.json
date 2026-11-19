@@ -943,7 +943,8 @@
       "signInFailed": "Falló la autenticación de inicio de sesión después de la identificación.",
       "networkError": "Red no disponible. Intenta de nuevo."
     },
-    "tryPulse": "Probar Affisell Pulse"
+    "tryPulse": "Probar Affisell Pulse",
+    "storageLabel": "Capacidad"
   },
   "buyerBestsellers": {
     "metaTitle": "Más vendidos · 7 días",

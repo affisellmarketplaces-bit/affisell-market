@@ -943,7 +943,8 @@
       "signInFailed": "Sign-in failed after identification.",
       "networkError": "Network unavailable. Try again."
     },
-    "tryPulse": "Try Affisell Pulse"
+    "tryPulse": "Try Affisell Pulse",
+    "storageLabel": "Capacity"
   },
   "buyerBestsellers": {
     "metaTitle": "Top sellers · 7 days",

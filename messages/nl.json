@@ -943,7 +943,8 @@
       "signInFailed": "Inloggen mislukt na identificatie.",
       "networkError": "Netwerk onbereikbaar. Probeer opnieuw."
     },
-    "tryPulse": "Probeer Affisell Pulse"
+    "tryPulse": "Probeer Affisell Pulse",
+    "storageLabel": "Capaciteit"
   },
   "buyerBestsellers": {
     "metaTitle": "Bestverkocht · 7 dagen",

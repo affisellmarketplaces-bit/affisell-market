@@ -31,6 +31,8 @@ const agentListingSelect = {
       variants: true,
       hasVariants: true,
       customColumns: true,
+      // Variants kept in the separate table: judged with the same rule as the advanced rows (never decremented here).
+      productVariants: { select: { color: true, size: true, stock: true, customData: true }, take: 200 },
       listingKind: true,
       basePriceCents: true,
       supplierId: true,
@@ -92,11 +94,14 @@ export async function createCheckoutSession(productId: string, userId?: string):
 
   // The assistant buys one unit WITHOUT a size / colour. A product that needs one is never bought undetermined — in
   // every mode, like the card buttons (it is a missing choice, not a stock refusal): the shopper gets its page to
-  // choose (shared rule, lib/variant-selection.ts). Variants kept only in the variant table are not counted here
-  // (no count is read): the stock gate below and the page still apply to them.
+  // choose (shared rule, lib/variant-selection.ts) — advanced rows or, when there are none, the variant table.
   if (
     (listing.product.listingKind ?? "PHYSICAL").trim().toUpperCase() === "PHYSICAL" &&
-    requiresVariantChoice({ variants: listing.product.variants, customColumns: listing.product.customColumns })
+    requiresVariantChoice({
+      variants: listing.product.variants,
+      customColumns: listing.product.customColumns,
+      tableVariants: listing.product.productVariants ?? [],
+    })
   ) {
     return { checkoutUrl: null, reason: "variant_choice_required", name, productPath: `/marketplace/${encodeURIComponent(listing.id)}` }
   }
@@ -110,6 +115,8 @@ export async function createCheckoutSession(productId: string, userId?: string):
       stock: listing.product.stock,
       variants: listing.product.variants,
       hasVariants: listing.product.hasVariants,
+      customColumns: listing.product.customColumns,
+      tableVariants: listing.product.productVariants ?? null,
       variantSignature: "",
       qty: 1,
     },

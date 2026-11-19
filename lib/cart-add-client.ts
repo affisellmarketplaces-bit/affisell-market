@@ -86,6 +86,7 @@ export async function addToBuyerCart(input: AddToBuyerCartInput): Promise<AddToB
       sellerName: input.sellerName,
       selectedColor: input.selectedColor ?? undefined,
       selectedSize: input.selectedSize ?? undefined,
+      selectedStorage: input.selectedSize && input.selectedStorage ? input.selectedStorage : undefined,
     }
     addGuestCartItem(guestItem)
     notifyCartUpdated()
