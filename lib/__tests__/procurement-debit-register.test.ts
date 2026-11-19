@@ -112,7 +112,11 @@ describe("lifecycle — review, Issuing card link, refund reversals", () => {
   it("a reversal only takes back a refund the order received, and counts as money out again", () => {
     const V: MovementRow = { ...R, id: "v1", kind: "refund_reversal", sourceReference: "ipv_1", settledAmountCents: 100 }
     const a = [al("a1", "d1", "o1", 1200), al("b1", "r1", "o1", 180)]
-    expect(checkAllocation({ movement: V, parent: D, allocations: a, siblings: [R, V], request: req("o1", 181) })).toEqual({ ok: false, error: "reversal_exceeds_order_refunds", remainingCents: 180 })
+    // The order received 180 of refunds: a reversal of 181 exceeds them, whatever the movement's own room.
+    const Vroom: MovementRow = { ...V, settledAmountCents: 300 }
+    expect(checkAllocation({ movement: Vroom, parent: D, allocations: a, siblings: [R, Vroom], request: req("o1", 181) })).toEqual({ ok: false, error: "reversal_exceeds_order_refunds", remainingCents: 180 })
+    // The movement's own capacity (100) is checked first, and is the tighter bound here.
+    expect(checkAllocation({ movement: V, parent: D, allocations: a, siblings: [R, V], request: req("o1", 181) })).toEqual({ ok: false, error: "over_allocated", remainingCents: 100 })
     expect(checkAllocation({ movement: V, parent: D, allocations: a, siblings: [R, V], request: req("o1", 100) }).ok).toBe(true)
     const rec = reconcileOrderCost({ orderId: "o1", storedSourcePriceCents: null, movements: [D, R, V], allocations: [...a, al("c1", "v1", "o1", 100)] })
     expect(rec).toMatchObject({ status: "reconciled", debitedCents: 1300, refundedCents: 180, realDebitedCents: 1120 })

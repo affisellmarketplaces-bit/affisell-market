@@ -159,7 +159,15 @@ describe("isolation", () => {
       expect(src).not.toMatch(/refunds\.create|transfers\.create|payouts\.create|method: "POST"/)
     }
     const root = path.resolve(__dirname, "../..")
-    const users = execSync(`grep -rl "issuing-import.server" app lib --include=*.ts --include=*.tsx || true`, { cwd: root }).toString().trim().split("\n").filter(Boolean)
+    // Imports only (static `from "…"` or dynamic `import("…")`): a doc comment that names the file is not a wiring.
+    const users = execSync(
+      `grep -rlE '(from|import\\() *"[^"]*issuing-import\\.server"' app lib --include=*.ts --include=*.tsx || true`,
+      { cwd: root },
+    )
+      .toString()
+      .trim()
+      .split("\n")
+      .filter(Boolean)
     expect(users.filter((u) => !u.includes("__tests__"))).toEqual([])
   })
 })
