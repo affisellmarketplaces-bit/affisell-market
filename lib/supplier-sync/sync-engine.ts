@@ -2,6 +2,7 @@ import { IntegrationProvider, Prisma, SyncStatus } from "@prisma/client"
 
 import { importSourceForProvider } from "@/lib/integrations/map-canonical-product"
 import { productDecoupleFieldsLive } from "@/lib/integrations/schema-capabilities"
+import { decideImportPublication } from "@/lib/listing-compliance/import-publication.server"
 import { prisma } from "@/lib/prisma"
 import type { MappedAffisellProduct, SyncProductResult } from "@/lib/supplier-sync/types"
 
@@ -49,24 +50,20 @@ export async function upsertSyncedProduct(args: {
     return { externalId, action: "skipped" }
   }
 
+  // Product lifecycle (founder decision 2026-11-18): a sync writes content and AVAILABILITY only. Out of stock never
+  // unpublishes (the product stays listed as sold out); publication is decided ONCE, at creation, by the supplier's
+  // `publishLive` choice, and never rewritten by later syncs (a product the supplier published or paused by hand keeps
+  // its status). `SyncStatus.UNPUBLISHED_OOS` keeps its legacy name but now only means "out of stock at the source".
   const outOfStock = mapped.stock <= 0
   const syncStatus: SyncStatus = outOfStock ? SyncStatus.UNPUBLISHED_OOS : SyncStatus.SYNCED
-  const active = outOfStock ? false : publishLive
-  const isDraft = outOfStock ? true : !publishLive
 
   if (existing?.externalContentHash === mapped.contentHash) {
-    if (outOfStock && existing.active) {
+    if (outOfStock) {
       await prisma.product.update({
         where: { id: existing.id },
-        data: {
-          active: false,
-          isDraft: true,
-          stock: 0,
-          syncStatus,
-          lastExternalSyncAt: new Date(),
-        },
+        data: { stock: 0, syncStatus, lastExternalSyncAt: new Date() },
       })
-      return { externalId, action: "unpublished" }
+      return { externalId, action: "updated" }
     }
     await prisma.product.update({
       where: { id: existing.id },
@@ -95,9 +92,6 @@ export async function upsertSyncedProduct(args: {
     lastExternalSyncAt: new Date(),
     syncStatus,
     ...decoupleProductFields(integrationId, mapped),
-    active,
-    isDraft,
-    commissionRate: DEFAULT_COMMISSION,
     categories: mapped.categoryLabel ? [mapped.categoryLabel.slice(0, 120)] : [],
     tags: syncTags,
   }
@@ -107,14 +101,21 @@ export async function upsertSyncedProduct(args: {
       where: { id: existing.id },
       data: productData,
     })
-    return { externalId, action: outOfStock ? "unpublished" : "updated" }
+    return { externalId, action: "updated" }
   }
 
+  // Publication is the supplier's choice at import, through the same readiness gate as a hand-made sheet.
+  const publication = decideImportPublication({ source: "import_sync", supplierId, wantLive: publishLive })
   await prisma.product.create({
     data: {
       supplierId,
       ...productData,
       supplierTag,
+      // Commission is a commercial condition: set once at import (default), never reset by a later sync.
+      commissionRate: DEFAULT_COMMISSION,
+      // Stock (even 0) is only availability.
+      active: publication.live,
+      isDraft: !publication.live,
     },
   })
   return { externalId, action: "created" }

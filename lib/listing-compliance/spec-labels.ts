@@ -8,6 +8,7 @@
  */
 import { GPSR_KEYS, IDENTITY_KEYS } from "@/lib/listing-compliance/keys"
 import { RETURN_WINDOW_KEY } from "@/lib/return-terms"
+import { STOCK_UNCONFIRMED_KEY } from "@/lib/import-stock"
 
 /** Attribute key → id under `productSpecs.keys.*` in the message catalogues. */
 export const SPEC_LABEL_IDS: Readonly<Record<string, string>> = {
@@ -32,7 +33,7 @@ export const SPEC_LABEL_IDS: Readonly<Record<string, string>> = {
 }
 
 /** Internal flags: never shown to buyers. (The return window has its own line on the page, not a spec row.) */
-export const HIDDEN_SPEC_KEYS: ReadonlySet<string> = new Set([IDENTITY_KEYS.gtinExempt, RETURN_WINDOW_KEY])
+export const HIDDEN_SPEC_KEYS: ReadonlySet<string> = new Set([IDENTITY_KEYS.gtinExempt, RETURN_WINDOW_KEY, STOCK_UNCONFIRMED_KEY])
 
 type Translator = { (key: string): string; has?: (key: string) => boolean }
 

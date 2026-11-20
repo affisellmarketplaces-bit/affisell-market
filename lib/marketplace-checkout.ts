@@ -7,6 +7,10 @@ import {
 } from "@/lib/affiliate-listing-display"
 import { auth } from "@/auth"
 import { assertGhostStockForCheckout } from "@/lib/ghost/checkout-gate"
+import { availableVariantLabels, evaluateCheckoutStockGate, type StockCheckLine } from "@/lib/checkout-stock"
+import { withTableVariants } from "@/lib/checkout-table-variants.server"
+import { evaluateExternalPurchaseCheckoutGate } from "@/lib/procurement/external-purchase-checkout.server"
+import { getSimilarInStockProducts } from "@/lib/ghost/similar-products"
 import { ensureGhostStockSchema } from "@/lib/ghost/ensure-ghost-schema"
 import {
   applyBattleFlashUnitCents,
@@ -37,6 +41,8 @@ import {
 } from "@/lib/stripe-minimum"
 import { stripeCheckoutMinimumNotMetResponse } from "@/lib/stripe-minimum.server"
 import { prisma } from "@/lib/prisma"
+import { isPricedBelowSupplierPrice, priceBelowSupplierPriceResponse } from "@/lib/checkout-price-guard"
+import { encodeLineSupplierUnits } from "@/lib/checkout-supplier-snapshot"
 import {
   marketplaceWholesaleCentsForOption,
   variantsFromDb,
@@ -115,13 +121,20 @@ type CartLineInput = {
   selectedSize?: string | null
 }
 
-function resolveCheckoutVariantLabel(row: CartLineInput): string {
-  const explicit = formatCartVariantLabel(row.selectedColor, row.selectedSize)
-  if (explicit) return explicit
+/** The capacity, when the signature carries it beside a size (`g:`), is part of what the supplier must send. */
+function withStorage(label: string, storage: string | null | undefined): string {
+  const g = typeof storage === "string" ? storage.trim() : ""
+  if (!g || label.toLowerCase().includes(g.toLowerCase())) return label
+  return label ? `${label} · ${g}` : g
+}
+
+function resolveCheckoutVariantLabel(row: CartLineInput & { selectedStorage?: string | null }): string {
   const raw = typeof row.variantSignature === "string" ? row.variantSignature.trim() : ""
+  const parsed = raw ? parseCartVariantSignature(raw) : {}
+  const explicit = formatCartVariantLabel(row.selectedColor, row.selectedSize)
+  if (explicit) return withStorage(explicit, row.selectedStorage ?? parsed.storage)
   if (!raw) return ""
-  const p = parseCartVariantSignature(raw)
-  return formatCartVariantLabel(p.color, p.size)
+  return withStorage(formatCartVariantLabel(parsed.color, parsed.size), parsed.storage)
 }
 
 function checkoutOptionName(row: CartLineInput): string | null {
@@ -145,6 +158,26 @@ function lineSellingPriceCents(
     optionName: checkoutOptionName(row),
     variantPricing,
   })
+}
+
+/** Flags the listing for its reseller after a refused checkout (below the supplier price). Never throws, never awaited. */
+function flagListingBelowSupplierPrice(affiliateProductId: string, unitSellingCents: number, unitSupplierCents: number): void {
+  console.warn("[checkout]", {
+    result: "refused_price_below_supplier_price",
+    affiliateProductId,
+    unitSellingCents,
+    unitSupplierCents,
+  })
+  try {
+    void prisma.affiliateProduct
+      .updateMany({
+        where: { id: affiliateProductId, marginReviewNeeded: false },
+        data: { marginReviewNeeded: true, marginReviewAt: new Date() },
+      })
+      .catch(() => undefined)
+  } catch {
+    // best effort: the refusal itself is what protects the money
+  }
 }
 
 function validateOfferCheckoutLine(
@@ -283,6 +316,74 @@ function guardExplicitSupplierCommission(args: {
   return null
 }
 
+/**
+ * G1: refuse the checkout BEFORE the payment session exists when the stock can not serve the cart (409, nothing created).
+ * Advisory — the authoritative, atomic decrement is done when the payment is processed — but it stops the common case
+ * (sold-out product, stale cart) from ever taking a payment. Products whose stock is not managed (digital goods,
+ * bookings, an unresolvable or table-only variant) are never refused. `CHECKOUT_STOCK_MODE` decides: `warn` (default)
+ * only logs "would refuse", `enforce` refuses, `off` (or `CHECKOUT_STOCK_GUARD=off`) does nothing.
+ *
+ * The codes are Affisell's own (`OUT_OF_STOCK`, `INSUFFICIENT_STOCK`): `OUT_OF_STOCK_VERIFIED` is the supplier-probe
+ * refusal of the Ghost gate, whose modal says "we just checked with our supplier" — not true for our own counter.
+ */
+async function checkoutStockGate(input: StockCheckLine[]): Promise<NextResponse | null> {
+  // Products whose variants live only in the ProductVariant table get them attached (same rule, read-only).
+  const lines = await withTableVariants(input)
+  const { refuse: shortfall, refuseVariant } = evaluateCheckoutStockGate(lines)
+  if (refuseVariant) {
+    // The size / colour asked for does not exist on the product: the buyer keeps the product and picks another option.
+    const line = lines[refuseVariant.lineIndex]
+    return NextResponse.json(
+      {
+        error: "VARIANT_UNAVAILABLE",
+        problem: refuseVariant.problem,
+        missing: refuseVariant.missing ?? [],
+        productName: refuseVariant.productName,
+        availableVariants: line ? availableVariantLabels(line.variants, 12, line.tableVariants) : [],
+      },
+      { status: 409 }
+    )
+  }
+  if (!shortfall) return null
+  const soldOut = shortfall.available <= 0
+  const alternatives = soldOut
+    ? await getSimilarInStockProducts(shortfall.productId, 3).catch(() => [])
+    : []
+  return NextResponse.json(
+    {
+      error: soldOut ? "OUT_OF_STOCK" : "INSUFFICIENT_STOCK",
+      productName: shortfall.productName,
+      availableQty: shortfall.available,
+      requestedQty: shortfall.requested,
+      alternatives,
+    },
+    { status: 409 }
+  )
+}
+
+/**
+ * Chantier 1 (single external-purchase switch): a product only an external purchase can deliver (platform auto-buy
+ * account) must not take a payment while purchases are off. `PROCUREMENT_CHECKOUT_GATE`: `warn` (default) only logs,
+ * `enforce` refuses here, before the Stripe session exists. The buyer sees the same "no longer available" message as a
+ * sold-out product (the product IS unavailable to buy); the reason stays in the server log, never in the UI.
+ */
+async function externalPurchaseCheckoutGate(
+  lines: { productId: string; productName: string; supplierId: string | null }[]
+): Promise<NextResponse | null> {
+  const decision = await evaluateExternalPurchaseCheckoutGate(lines)
+  if (!decision.refuse || !decision.blocked) return null
+  return NextResponse.json(
+    {
+      error: "OUT_OF_STOCK",
+      productName: decision.blocked.productName ?? null,
+      availableQty: 0,
+      requestedQty: 0,
+      alternatives: [],
+    },
+    { status: 409 }
+  )
+}
+
 type LoadedLine = {
   affiliateProductId: string
   qty: number
@@ -367,6 +468,8 @@ async function checkoutFromItems(
   }
 
   const loaded: LoadedLine[] = []
+  /** Supplier unit price of each line AT CHECKOUT, in `normalized` order (lib/checkout-supplier-snapshot.ts). */
+  const lineSupplierUnits: number[] = []
   const listings = await Promise.all(
     normalized.map((row) => loadListing(row.affiliateProductId))
   )
@@ -383,6 +486,16 @@ async function checkoutFromItems(
       selectedColor: parsed.color,
       selectedSize: parsed.size,
     })
+    const unitSupplierForLine = marketplaceWholesaleCentsForOption({
+      productBasePriceCents: listing.product.basePriceCents,
+      variants: variantsFromDb(listing.product.variants),
+      optionName: parsed.color || null,
+    })
+    if (isPricedBelowSupplierPrice({ unitSellingCents: unit, unitSupplierCents: unitSupplierForLine })) {
+      flagListingBelowSupplierPrice(row.affiliateProductId, unit, unitSupplierForLine)
+      return priceBelowSupplierPriceResponse()
+    }
+    lineSupplierUnits.push(unitSupplierForLine)
     const lineSubtotal = unit * row.qty
     const offerGate = validateOfferCheckoutLine(listing, row.qty, lineSubtotal)
     if (offerGate) return offerGate
@@ -405,6 +518,30 @@ async function checkoutFromItems(
       listing,
     })
   }
+
+  const stockGate = await checkoutStockGate(
+    loaded.map((line) => ({
+      productId: line.listing.product.id,
+      productName: line.listing.product.name,
+      listingKind: line.listing.product.listingKind,
+      stock: line.listing.product.stock,
+      variants: line.listing.product.variants,
+      hasVariants: line.listing.product.hasVariants,
+      customColumns: line.listing.product.customColumns,
+      variantSignature: line.variantSignature,
+      qty: line.qty,
+    }))
+  )
+  if (stockGate) return stockGate
+
+  const purchaseGate = await externalPurchaseCheckoutGate(
+    loaded.map((line) => ({
+      productId: line.listing.product.id,
+      productName: line.listing.product.name,
+      supplierId: line.listing.product.supplierId,
+    }))
+  )
+  if (purchaseGate) return purchaseGate
 
   const ghostGates = await Promise.all(
     loaded.map((line) => assertGhostStockForCheckout(line.listing.product))
@@ -486,6 +623,8 @@ async function checkoutFromItems(
   }
   const paymentMethodTypes =
     marketplaceCheckoutPaymentSessionOptionsForAmount(paidTotalCents).payment_method_types
+  const encodedLineSupplierUnits =
+    lineSupplierUnits.length === normalized.length ? encodeLineSupplierUnits(lineSupplierUnits) : undefined
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: paymentMethodTypes,
@@ -511,6 +650,7 @@ async function checkoutFromItems(
       cartLines: JSON.stringify(normalized),
       appliedRewardCents: String(appliedCents),
       linePaids: JSON.stringify(paidLineCents),
+      ...(encodedLineSupplierUnits ? { lineSupplierUnits: encodedLineSupplierUnits } : {}),
       locale: checkoutLocale,
       cgvConsentRequired: "1",
       ...(primarySupplierId ? { sellerId: primarySupplierId } : {}),
@@ -552,6 +692,8 @@ export async function marketplaceCheckoutPOST(
     useRewardCents?: number
     selectedColor?: string | null
     selectedSize?: string | null
+    /** Capacity, sent only when the product has a size AND a storage dimension (`normalizeCartVariantSignature`). */
+    selectedStorage?: string | null
     bookingSlotId?: string | null
     bookingSeatLabels?: string[]
     /** Pulse Battle flash — server-validated; ?flash= URL alone is ignored. */
@@ -596,6 +738,26 @@ export async function marketplaceCheckoutPOST(
     }),
   })
   if (commissionGate) return commissionGate
+
+  const stockGate = await checkoutStockGate([
+    {
+      productId: product.id,
+      productName: product.name,
+      listingKind: product.listingKind,
+      stock: product.stock,
+      variants: product.variants,
+      hasVariants: product.hasVariants,
+      customColumns: product.customColumns,
+      variantSignature: normalizeCartVariantSignature(body.selectedColor, body.selectedSize, body.selectedStorage),
+      qty: checkoutQty,
+    },
+  ])
+  if (stockGate) return stockGate
+
+  const purchaseGate = await externalPurchaseCheckoutGate([
+    { productId: product.id, productName: product.name, supplierId: product.supplierId },
+  ])
+  if (purchaseGate) return purchaseGate
 
   const affiliateProduct = listing
   const affiliate = listing.affiliate
@@ -651,6 +813,17 @@ export async function marketplaceCheckoutPOST(
     selectedColor: body.selectedColor,
     selectedSize: body.selectedSize,
   })
+  {
+    const unitSupplier = marketplaceWholesaleCentsForOption({
+      productBasePriceCents: product.basePriceCents,
+      variants,
+      optionName,
+    })
+    if (isPricedBelowSupplierPrice({ unitSellingCents: unitSelling, unitSupplierCents: unitSupplier })) {
+      flagListingBelowSupplierPrice(affiliateProductId, unitSelling, unitSupplier)
+      return priceBelowSupplierPriceResponse()
+    }
+  }
 
   const battleId =
     typeof body.battleId === "string" && body.battleId.trim() ? body.battleId.trim() : ""
@@ -746,8 +919,9 @@ export async function marketplaceCheckoutPOST(
   const oneShotVariantLabel = resolveCheckoutVariantLabel({
     selectedColor: body.selectedColor,
     selectedSize: body.selectedSize,
+    selectedStorage: body.selectedSize ? body.selectedStorage : null,
   })
-  const oneShotVariantSignature = normalizeCartVariantSignature(body.selectedColor, body.selectedSize)
+  const oneShotVariantSignature = normalizeCartVariantSignature(body.selectedColor, body.selectedSize, body.selectedStorage)
   pushLineItemsForPaidTotal(stripeLineItems, listing, paidLineCents[0]!, checkoutQty, oneShotVariantLabel)
 
   const unitSupplierCents = marketplaceWholesaleCentsForOption({

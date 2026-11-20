@@ -21,7 +21,8 @@ export async function POST(_req: NextRequest, ctx: Ctx) {
   })
   if (!line) return NextResponse.json({ error: "job_not_found" }, { status: 404 })
 
-  const result = await cancelSupplierFulfillmentJob(jobId)
+  // an explicit admin action on the job itself: the whole job is cancelled, as before
+  const result = await cancelSupplierFulfillmentJob(jobId, { allowSharedJob: true })
   if (!result.ok) {
     return NextResponse.json({ error: result.error ?? "cancel_failed" }, { status: 400 })
   }

@@ -19,6 +19,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 
+import { resellerFacingSupplierLabel } from "@/lib/supplier-public-label"
+
 import { AffiliateCatalogEconomicsPanel } from "@/components/affiliate/affiliate-catalog-economics-panel"
 import { AffiliateCatalogHighlights } from "@/components/affiliate/affiliate-catalog-highlights"
 import { AffiliateOpportunityPulseRail } from "@/components/affiliate/affiliate-opportunity-pulse-rail"
@@ -79,7 +81,7 @@ type CatalogProduct = {
   hasVariants?: boolean
   productVariants?: Array<{ color: string | null; size: string | null; stock: number }>
   affiliateProducts?: { id: string; isListed: boolean }[]
-  supplier: { email: string; store?: { name: string; slug: string } | null }
+  supplier: { store?: { name: string; slug: string } | null }
 }
 
 const ADDED_WINDOW_OPTIONS: CatalogAddedWindow[] = ["all", "7d", "30d", "90d"]
@@ -138,21 +140,22 @@ type Props = {
   stats: HomeMarketplaceStats
   initialHighlights: HighlightsData
   initialOpportunityPicks?: AffiliateOpportunityPulseCard[]
+  /** The reseller's negotiated Affisell fee (`User.affiliatePlatformFeeBps`); null = platform default. */
+  affiliateFeeBps?: number | null
 }
 
-function supplierLabel(p: AffiliateCatalogProduct) {
-  const brand = p.supplier.store?.name?.trim()
-  if (brand) return brand
-  return p.supplier.email
-}
 
 export function AffiliateCatalogExperience({
   stats,
   initialHighlights,
   initialOpportunityPicks = [],
+  affiliateFeeBps = null,
 }: Props) {
   const tOpportunity = useTranslations("affiliate.opportunityPulse")
   const tCatalog = useTranslations("affiliate.catalogEconomics")
+  const tAffiliate = useTranslations("affiliate")
+  const supplierLabel = (p: AffiliateCatalogProduct) =>
+    resellerFacingSupplierLabel(p.supplier.store, tAffiliate("supplierAffisell"))
   const tFilters = useTranslations("affiliate.catalogFilters")
   const tLive = useTranslations("affiliate.catalogLive")
   const router = useRouter()
@@ -763,7 +766,7 @@ export function AffiliateCatalogExperience({
                     const isHidden = listingState.kind === "hidden"
                     const listingId = listingState.kind !== "none" ? listingState.listingId : undefined
                     const thumb = primaryProductImage(p.images) || "/placeholder-product.jpg"
-                    const economics = buildAffiliateCatalogCardEconomicsFromProduct(p)
+                    const economics = buildAffiliateCatalogCardEconomicsFromProduct(p, affiliateFeeBps)
                     const supplierHref = p.supplier.store?.slug
                       ? `/store/supplier/${encodeURIComponent(p.supplier.store.slug)}`
                       : null

@@ -1,7 +1,8 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Loader2 } from "lucide-react"
+import { variantStockBaselineFromRows } from "@/lib/stock/partner-stock"
 import { toast } from "sonner"
 
 import { SupplierPriceShieldBanner } from "@/components/supplier/supplier-price-shield-banner"
@@ -63,6 +64,8 @@ export function SupplierProductPricingPanel({ productId }: Props) {
   const [price, setPrice] = useState("")
   const [compareAt, setCompareAt] = useState("")
   const [stock, setStock] = useState("0")
+  const stockBaselineRef = useRef<number | null>(null)
+  const variantStockBaselineRef = useRef<Record<string, number> | null>(null)
   const [commissionRate, setCommissionRate] = useState("15")
   const [variantRows, setVariantRows] = useState<EditableVariantRow[]>([])
   const [skuHiddenColumns, setSkuHiddenColumns] = useState<SkuOptionalColumnKey[]>([])
@@ -91,9 +94,11 @@ export function SupplierProductPricingPanel({ productId }: Props) {
           : ""
       )
       setStock(String(data.stock ?? 0))
+      stockBaselineRef.current = Math.max(0, Math.round(Number(data.stock ?? 0) || 0))
       setCommissionRate(String(data.commissionRate ?? 15))
       setVariantRows(rowsFromProduct(data))
       const parsed = parseVariantsPayload(data.listingVariants)
+      variantStockBaselineRef.current = variantStockBaselineFromRows(parsed?.variantRows)
       setSkuHiddenColumns(parseSkuHiddenColumns(parsed?.skuHiddenColumns))
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erreur")
@@ -130,6 +135,8 @@ export function SupplierProductPricingPanel({ productId }: Props) {
               100
           )
         )
+        // Sold units are never resurrected, row by row (the server merges from these baselines).
+        if (variantStockBaselineRef.current) body.variantStockBaseline = variantStockBaselineRef.current
         body.listingVariants = {
           variantRows: skuTableRowsToProductVariantLines(filled, baseCents),
           ...(skuHiddenColumns.length > 0 ? { skuHiddenColumns } : {}),
@@ -138,6 +145,8 @@ export function SupplierProductPricingPanel({ productId }: Props) {
     } else {
       body.price = priceN
       body.stock = Number(stock)
+      // Sold units are never resurrected: the server applies only the supplier's change since this load.
+      if (stockBaselineRef.current != null) body.stockBaseline = stockBaselineRef.current
     }
     return body
   }, [

@@ -142,6 +142,17 @@ export async function POST(req: Request) {
       })
     }
     const checkout = await createCheckoutSession(candidateProductId, userId ?? undefined)
+    if (checkout && checkout.checkoutUrl === null && checkout.reason === "out_of_stock") {
+      return Response.json({ error: `${checkout.name} n'est plus en stock. Voulez-vous voir des alternatives ?` })
+    }
+    if (checkout && checkout.checkoutUrl === null && checkout.reason === "variant_choice_required") {
+      return Response.json({
+        error: `${checkout.name} existe en plusieurs tailles ou couleurs : choisissez la vôtre sur sa fiche (${checkout.productPath}).`,
+      })
+    }
+    if (checkout && checkout.checkoutUrl === null && checkout.reason === "price_updating") {
+      return Response.json({ error: `Le prix de ${checkout.name} est en cours de mise à jour. Réessayez dans quelques minutes.` })
+    }
     if (!checkout?.checkoutUrl) {
       return Response.json({ error: "Impossible de préparer le paiement pour ce produit." })
     }

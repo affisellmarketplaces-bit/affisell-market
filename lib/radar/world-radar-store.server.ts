@@ -12,6 +12,7 @@ import {
 import {
   buildMockTrendingForCountry,
   buildMockWinnersForCountry,
+  isGeneratedTrendingKeyword,
 } from "@/lib/radar/world-mock-catalog"
 import { enrichWorldRadarWinners } from "@/lib/radar/enrich-winners.server"
 import type {
@@ -21,7 +22,14 @@ import type {
   WorldRadarTrendingDto,
   WorldRadarWinnerDto,
 } from "@/lib/radar/world-radar-types"
-import { isCountryScanLive } from "@/lib/radar/world-radar-types"
+import {
+  classifyWinnersOrigin,
+  isCountryScanLive,
+  isRealWinnerSource,
+  radarPayloadFlags,
+  trendingForSource,
+  type RadarDataSource,
+} from "@/lib/radar/world-radar-types"
 
 let worldRadarTablesReady: boolean | null = null
 
@@ -98,20 +106,27 @@ function winnerToDto(row: {
     lastWeekRank: row.lastWeekRank ?? null,
     finalScore: row.finalScore,
     supplierLabel: row.supplierLabel,
+    // Truthful per-row flag: a row is only "real" when a real provider wrote its source label.
+    synthetic: !isRealWinnerSource(row.source),
   }
 }
 
-function trendingToDto(row: {
-  id?: string
-  keyword: string
-  growthRate: number
-  volume: number | null
-}): WorldRadarTrendingDto {
+/** `synthetic` must be stated by the caller: a keyword is only "real" when a trends source produced it. */
+function trendingToDto(
+  row: {
+    id?: string
+    keyword: string
+    growthRate: number
+    volume: number | null
+  },
+  synthetic: boolean
+): WorldRadarTrendingDto {
   return {
     id: row.id ?? `trend-${row.keyword}`,
     keyword: row.keyword,
     growthRate: row.growthRate,
     volume: row.volume,
+    synthetic,
   }
 }
 
@@ -120,8 +135,9 @@ function countryDto(
   meta?: { productCount?: number; lastScanAt?: Date | null }
 ): WorldRadarCountryDto {
   const def = getWorldCountry(code)
-  const productCount = meta?.productCount ?? 20
-  const lastScanAt = meta?.lastScanAt ?? new Date()
+  // No scan date unless a real scan provided one: it used to default to "now", which made every country look freshly scanned.
+  const productCount = meta?.productCount ?? 0
+  const lastScanAt = meta?.lastScanAt ?? null
   return {
     code: def?.code ?? code,
     name: def?.name ?? code,
@@ -135,39 +151,36 @@ function countryDto(
   }
 }
 
+/**
+ * The deterministic generator's payload (lib/radar/scoring-engine.ts). It is SIMULATED: `source: "mock"`, never live, no scan
+ * date. It used to claim `isLive: true` and `lastScanAt: now`.
+ */
 async function mockPayload(countryCode: string): Promise<WorldRadarPayload> {
   const code = countryCode.toUpperCase()
   const winners = buildMockWinnersForCountry(code, 20).map((w) =>
     winnerToDto({ ...w, id: `v2-${w.productId}` })
   )
-  const trending = buildMockTrendingForCountry(code).map((t) => trendingToDto(t))
-  const now = new Date()
+  // The generator's keywords are the hand-typed list + random jitter: every one is flagged synthetic (this payload is a demo).
+  const trending = buildMockTrendingForCountry(code).map((t) => trendingToDto(t, true))
   return {
     winners: await enrichWorldRadarWinners(winners),
     trendingKeywords: trending,
-    country: countryDto(code, { productCount: winners.length, lastScanAt: now }),
-    lastScanAt: now.toISOString(),
-    isLive: true,
+    country: countryDto(code, { productCount: winners.length, lastScanAt: null }),
+    lastScanAt: null,
     source: "mock",
+    servedFrom: "mock",
+    ...radarPayloadFlags("mock", null),
   }
 }
 
+/**
+ * Adds the Arbitrage / Saturation / Supplier-match columns to the winners it is GIVEN. It never replaces them: it used to
+ * throw away scanned (real) rows and serve a fresh generated pool instead — real data silently overwritten by the mock.
+ */
 async function withMoats(payload: WorldRadarPayload): Promise<WorldRadarPayload> {
-  const code = payload.country.code
-  const hasAffisell = payload.winners.some((w) => w.source === "Affisell")
-  if (code === "FR" && hasAffisell) {
-    return {
-      ...payload,
-      winners: await enrichWorldRadarWinners(payload.winners),
-    }
-  }
-  // Always serve V2 culturally-scored pool (DB cache may be legacy identical SKUs)
-  const fresh = buildMockWinnersForCountry(code, 20).map((w) =>
-    winnerToDto({ ...w, id: `v2-${w.productId}` })
-  )
   return {
     ...payload,
-    winners: await enrichWorldRadarWinners(fresh),
+    winners: await enrichWorldRadarWinners(payload.winners),
   }
 }
 
@@ -209,6 +222,13 @@ export async function persistWorldRadarScan(args: {
   if (!(await probeWorldRadarDb())) return
   const db = getRadarDb()
   const code = args.countryCode.toUpperCase()
+
+  // A scan that produced only simulated rows is NOT stored: persisting it would stamp the country with a scan date and
+  // serve generated rows from the "cache" as if they had been crawled.
+  if (classifyWinnersOrigin(args.winners) === "mock") {
+    console.log("[world-radar-store]", { result: "persist_skipped_simulated", country: code, winners: args.winners.length })
+    return
+  }
 
   await db.$transaction(async (tx) => {
     await tx.radarWinner.deleteMany({ where: { countryCode: code } })
@@ -288,16 +308,23 @@ export async function readCachedWorldRadar(countryCode: string): Promise<WorldRa
 
     if (winners.length === 0) return null
 
+    const origin: RadarDataSource = classifyWinnersOrigin(winners)
+    const scannedAt = countryRow?.lastScanAt ?? winners[0]?.createdAt
     return {
       winners: winners.map(winnerToDto),
-      trendingKeywords: trending.map(trendingToDto),
+      // The old scan stored the generated list next to real winners: recognise it, and never serve it under a live payload.
+      trendingKeywords: trendingForSource(
+        origin,
+        trending.map((t) => trendingToDto(t, isGeneratedTrendingKeyword(t.keyword)))
+      ),
       country: countryDto(code, {
         productCount: countryRow?.productCount ?? winners.length,
-        lastScanAt: countryRow?.lastScanAt ?? winners[0]?.createdAt,
+        lastScanAt: scannedAt,
       }),
-      lastScanAt: (countryRow?.lastScanAt ?? winners[0]?.createdAt)?.toISOString() ?? null,
-      isLive: isCountryScanLive(countryRow?.lastScanAt ?? winners[0]?.createdAt),
-      source: "cache",
+      lastScanAt: scannedAt?.toISOString() ?? null,
+      source: origin,
+      servedFrom: "cache",
+      ...radarPayloadFlags(origin, scannedAt),
     }
   } catch (err) {
     if (isMissingTableError(err)) {
@@ -323,11 +350,14 @@ export async function getWorldRadarPayload(
   }
 
   const cached = await readCachedWorldRadar(code)
-  if (cached) return withMoats(cached)
+  // Rows stored by an older version of the scan may be simulated (their source label is not a real provider's): they are not
+  // served as a cache hit — the request falls through to a real scan, and to the clearly labelled generator if that finds nothing.
+  if (cached && cached.source !== "mock") return withMoats(cached)
 
   if (options?.coldScan !== false) {
     try {
       const scan = await runWorldRadarScan(code)
+      const origin = classifyWinnersOrigin(scan.winners)
       await persistWorldRadarScan({
         countryCode: code,
         winners: scan.winners,
@@ -342,22 +372,29 @@ export async function getWorldRadarPayload(
         })
       })
 
-      return withMoats({
-        winners: scan.winners.map((w, i) =>
-          winnerToDto({
-            ...w,
-            id: w.productId ? `v2-${w.productId}` : `scan-${code}-${i + 1}`,
-          })
-        ),
-        trendingKeywords: scan.trending.map(trendingToDto),
-        country: countryDto(code, {
-          productCount: scan.winners.length,
-          lastScanAt: scan.scannedAt,
-        }),
-        lastScanAt: scan.scannedAt.toISOString(),
-        isLive: true,
-        source: "scan",
-      })
+      if (origin !== "mock") {
+        return withMoats({
+          winners: scan.winners.map((w, i) =>
+            winnerToDto({
+              ...w,
+              id: w.productId ? `v2-${w.productId}` : `scan-${code}-${i + 1}`,
+            })
+          ),
+          // the scanner only returns keywords a trends source produced (no generated fallback any more)
+          trendingKeywords: trendingForSource(
+            origin,
+            scan.trending.map((t) => trendingToDto(t, false))
+          ),
+          country: countryDto(code, {
+            productCount: scan.winners.length,
+            lastScanAt: scan.scannedAt,
+          }),
+          lastScanAt: scan.scannedAt.toISOString(),
+          source: origin,
+          servedFrom: "scan",
+          ...radarPayloadFlags(origin, scan.scannedAt),
+        })
+      }
     } catch (err) {
       console.warn("[world-radar-store]", {
         result: "cold_scan_failed",
@@ -370,9 +407,10 @@ export async function getWorldRadarPayload(
   return mockPayload(code)
 }
 
+/** Radar database unreachable: the 31 markets are listed, but nothing was scanned (no date, no counts, never live). */
 function mockCountriesPayload(): WorldRadarCountriesPayload {
   const countries = WORLD_RADAR_COUNTRIES.map((c) =>
-    countryDto(c.code, { productCount: 20, lastScanAt: new Date() })
+    countryDto(c.code, { productCount: 0, lastScanAt: null })
   )
   const byRegion = groupCountriesByRegion(
     countries.map((c) => ({
@@ -390,6 +428,7 @@ function mockCountriesPayload(): WorldRadarCountriesPayload {
     countries,
     byRegion: byRegion as Record<string, WorldRadarCountryDto[]>,
     total: countries.length,
+    source: "mock",
   }
 }
 
@@ -426,6 +465,7 @@ export async function getWorldRadarCountriesPayload(): Promise<WorldRadarCountri
       countries,
       byRegion: byRegion as Record<string, WorldRadarCountryDto[]>,
       total: countries.length,
+      source: "live",
     }
   } catch (err) {
     if (isMissingTableError(err)) {
@@ -440,9 +480,15 @@ export async function getWorldRadarCountriesPayload(): Promise<WorldRadarCountri
 }
 
 export async function scanAndPersistCountries(codes: string[]): Promise<
-  Array<{ country: string; winners: number; ok: boolean }>
+  Array<{ country: string; winners: number; ok: boolean; origin?: RadarDataSource; persisted?: boolean }>
 > {
-  const results: Array<{ country: string; winners: number; ok: boolean }> = []
+  const results: Array<{
+    country: string
+    winners: number
+    ok: boolean
+    origin?: RadarDataSource
+    persisted?: boolean
+  }> = []
   for (const raw of codes) {
     const country = raw.toUpperCase()
     try {
@@ -454,8 +500,10 @@ export async function scanAndPersistCountries(codes: string[]): Promise<
         scannedAt: scan.scannedAt,
         expiresAt: scan.expiresAt,
       })
-      console.log(`[RADAR] Scanned ${country}: ${scan.winners.length} winners`)
-      results.push({ country, winners: scan.winners.length, ok: true })
+      const origin = classifyWinnersOrigin(scan.winners)
+      console.log(`[RADAR] Scanned ${country}: ${scan.winners.length} winners (${origin})`)
+      // `persisted: false` = the scan only produced simulated rows, which are never stored (see persistWorldRadarScan).
+      results.push({ country, winners: scan.winners.length, ok: true, origin, persisted: origin !== "mock" })
     } catch (err) {
       console.error("[RADAR]", {
         result: "scan_failed",

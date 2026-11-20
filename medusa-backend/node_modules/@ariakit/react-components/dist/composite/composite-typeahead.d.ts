@@ -1,2 +1,0 @@
-import { i as useCompositeTypeahead, n as CompositeTypeaheadOptions, r as CompositeTypeaheadProps, t as CompositeTypeahead } from "../composite-typeahead-0euW43GU.js";
-export { CompositeTypeahead, CompositeTypeaheadOptions, CompositeTypeaheadProps, useCompositeTypeahead };

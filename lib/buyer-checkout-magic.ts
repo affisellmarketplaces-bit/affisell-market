@@ -43,6 +43,8 @@ export function verifyBuyerCheckoutMagicToken(token: string): {
   userId: string
   email: string
   name: string | null
+  /** Expiry of the token (ms since epoch), used to bound the single-use marker. */
+  expiresAtMs: number
 } | null {
   const parts = token.split(":")
   if (parts.length !== 6) return null
@@ -65,5 +67,6 @@ export function verifyBuyerCheckoutMagicToken(token: string): {
     userId: userId.trim(),
     email,
     name: nameRaw || null,
+    expiresAtMs: exp,
   }
 }

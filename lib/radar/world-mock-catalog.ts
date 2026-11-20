@@ -128,6 +128,17 @@ const COUNTRY_TRENDING: Record<string, Array<{ keyword: string; growthRate: numb
   ],
 }
 
+/**
+ * True when `keyword` is one of the hand-typed keywords of this file (any market). The old scan stored the generated trending
+ * list in the radar tables with nothing marking it as generated; this lets the cache path recognise those rows (they expire
+ * within the 6 h TTL, and the scan no longer writes any).
+ */
+export function isGeneratedTrendingKeyword(keyword: string | null | undefined): boolean {
+  const k = (keyword ?? "").trim().toLowerCase()
+  if (!k) return false
+  return Object.values(COUNTRY_TRENDING).some((rows) => rows.some((r) => r.keyword.trim().toLowerCase() === k))
+}
+
 function jitter(value: number, pct = 0.08): number {
   const delta = value * pct * (Math.random() * 2 - 1)
   return Math.max(1, Math.round(value + delta))

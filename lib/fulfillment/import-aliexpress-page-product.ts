@@ -89,6 +89,7 @@ export function buildSupplierProductFromAeParse(
     category: "AliExpress Product",
     sku: parsed.sku || (aeId ? `AE-${aeId}` : ""),
     stock: parsed.stock,
+    stockProvenance: parsed.stockProvenance,
     shipping: {
       from_country: parsed.shipping.from_country,
       delivery_time: parsed.shipping.delivery_time,
@@ -147,6 +148,12 @@ export function parseSupplierProductFromAeHtml(
         ...(s.matchSize ? { Taille: s.matchSize } : {}),
       },
     }))
+    // SKU quantities read from the page: a total > 0 is a source figure; 0 can not be told from « missing ».
+    const skuTotal = catalog.aeSkus.reduce((acc, s) => acc + Math.max(0, s.stock), 0)
+    if (skuTotal > 0) {
+      product.stock = skuTotal
+      product.stockProvenance = "source"
+    }
     const minCents = catalog.aeSkus
       .map((s) => s.aePriceCents)
       .filter((c) => c > 0)

@@ -1,10 +1,12 @@
 import { unwrapAliExpressMethodResponse } from "@/lib/aliexpress-open-api"
+import { sourceQuantity, type StockProvenance } from "@/lib/import-stock"
 import { absolutizeCdnImageUrl, collectAbsolutizedImageUrls } from "@/lib/cdn-image-url"
 import { stripDescriptionImageMarkers } from "@/lib/description-rich-content"
 import {
   parseAeProductSpecsFromPayload,
   specsToDescriptionBullets,
 } from "@/lib/fulfillment/ae-product-specs"
+import { aliexpressSkuPriceEur } from "@/lib/aliexpress-price-eur"
 import { extractHtmlDescriptionContent } from "@/lib/html-description-extract"
 
 export type AliExpressMappedProduct = {
@@ -16,6 +18,8 @@ export type AliExpressMappedProduct = {
   images: string[]
   basePriceCents: number
   stock: number
+  /** Where `stock` comes from (lib/import-stock.ts). */
+  stockProvenance: StockProvenance
   brand: string
   specs: Record<string, string>
   videos: string[]
@@ -53,38 +57,18 @@ function parseSkuList(raw: unknown): Record<string, unknown>[] {
 }
 
 function parsePriceEur(sku: Record<string, unknown>, result: Record<string, unknown>): number {
-  const fromSku =
-    pickString(sku, [
-      "offer_sale_price",
-      "sku_price",
-      "target_offer_sale_price",
-      "sale_price",
-      "price",
-    ]) ||
-    String(sku.offer_sale_price ?? sku.sku_price ?? sku.target_offer_sale_price ?? "")
-
-  const fromResult = pickString(result, [
-    "target_sale_price",
-    "sale_price",
-    "product_price",
-  ])
-
-  const raw = fromSku || fromResult
-  const n = Number(String(raw).replace(/[^\d.,]/g, "").replace(",", "."))
-  if (!Number.isFinite(n) || n <= 0) return 0
-  return n
+  return aliexpressSkuPriceEur(sku, result)
 }
 
-function parseStock(sku: Record<string, unknown>, result: Record<string, unknown>): number {
+/** The SKU's quantity as AliExpress answered it; null when the answer carries none (never read as 0 or 1). */
+function parseStockOrNull(sku: Record<string, unknown>, result: Record<string, unknown>): number | null {
   const raw =
     sku.sku_available_stock ??
     sku.available_stock ??
     sku.stock ??
     result.total_avail_quantity ??
     result.total_available_stock
-  const n = Math.round(Number(raw))
-  if (!Number.isFinite(n) || n < 0) return 0
-  return n
+  return sourceQuantity(raw)
 }
 
 function mergeImageLists(...lists: string[][]): string[] {
@@ -210,11 +194,12 @@ export function mapAliExpressGetProductResponse(
     .filter((p) => p > 0)
   const priceEur =
     skuPrices.length > 0 ? Math.min(...skuPrices) : parsePriceEur(firstSku, result)
-  const stock =
-    skus.length > 0
-      ? Math.max(...skus.map((sku) => parseStock(sku, result)).filter((s) => s > 0), 0) ||
-        parseStock(firstSku, result)
-      : parseStock(firstSku, result)
+  // Quantity only when the answer carries one (founder decision 2026-11-19): no « 1 » invented any more.
+  const knownStocks = (skus.length > 0 ? skus : [firstSku])
+    .map((sku) => parseStockOrNull(sku, result))
+    .filter((s): s is number => s != null)
+  const stock = knownStocks.length > 0 ? Math.max(...knownStocks, 0) : 0
+  const stockProvenance: StockProvenance = knownStocks.length > 0 ? "source" : "not_provided"
 
   const descriptionRaw =
     pickString(base, ["detail", "product_description", "description"]) ||
@@ -260,7 +245,8 @@ export function mapAliExpressGetProductResponse(
     descriptionIllustrationImages: illustrationImages.slice(0, 40),
     images,
     basePriceCents: Math.max(100, Math.round(priceEur * 100)),
-    stock: stock > 0 ? stock : 1,
+    stock,
+    stockProvenance,
     brand,
     specs,
     videos,

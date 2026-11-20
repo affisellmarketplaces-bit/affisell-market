@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest"
 
 import { fingerprintImageInput, productAnalysisCacheKey } from "@/lib/ai/product-analysis-cache"
+import { redisKey } from "@/lib/redis-namespace"
 
 describe("product-analyzer", () => {
   it("builds stable cache keys", () => {
     const a = productAnalysisCacheKey("same-input")
     const b = productAnalysisCacheKey("same-input")
     expect(a).toBe(b)
-    expect(a.startsWith("product-analysis:")).toBe(true)
+    expect(a.startsWith(redisKey("product-analysis:"))).toBe(true)
   })
 
   it("fingerprints url vs data inputs differently", () => {

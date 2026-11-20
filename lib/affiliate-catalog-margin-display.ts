@@ -1,3 +1,5 @@
+import { computeResellerNetPerSale } from "@/lib/reseller-copilot/net-per-sale"
+
 /** Default markup when affiliate has not set a selling price yet (swipe feed + quick list). */
 export const DEFAULT_AFFILIATE_CATALOG_MARKUP_RATE = 0.3
 
@@ -5,6 +7,8 @@ export type AffiliateCatalogEconomicsOptions = {
   markupRate?: number
   /** When the affiliate already has a listing, use their configured selling price. */
   listedSellingPriceCents?: number | null
+  /** The reseller's negotiated Affisell fee (`User.affiliatePlatformFeeBps`); null / absent = platform default. */
+  affiliateFeeBps?: number | null
 }
 
 export function listedSellingPriceFromAffiliateProducts(
@@ -60,7 +64,14 @@ export type AffiliateCatalogCardEconomics = {
   markupMarginCents: number
   commissionRatePct: number
   commissionCents: number
+  /** Commission + markup, BEFORE Affisell's reseller fee (what used to be shown as the reseller's revenue). */
   totalPartnerGainCents: number
+  /** Affisell's reseller-side fee taken at payout. */
+  affisellFeeCents: number
+  /** What the transfer really pays per sale (lib/reseller-copilot/net-per-sale.ts, pinned to the settlement). */
+  netPartnerGainCents: number
+  feeBps: number
+  feeIsDefault: boolean
   suggestedMarkupRate: number
   /** @deprecated use clientPriceCents */
   suggestedSellingPriceCents: number
@@ -87,6 +98,12 @@ export function buildAffiliateCatalogCardEconomics(
       : 0
     : markupRate
 
+  const net = computeResellerNetPerSale({
+    supplierPriceCents: basePriceCents,
+    commissionRatePct: Number(commissionRate) || 0,
+    sellingPriceHtCents: clientPrice,
+    affiliateFeeBps: options?.affiliateFeeBps ?? null,
+  })
   return {
     supplierPriceCents: basePriceCents,
     clientPriceCents: clientPrice,
@@ -95,18 +112,26 @@ export function buildAffiliateCatalogCardEconomics(
     commissionRatePct: Math.round(Number(commissionRate) || 0),
     commissionCents,
     totalPartnerGainCents: commissionCents + markupMarginCents,
+    affisellFeeCents: net.affisellFeeCents,
+    netPartnerGainCents: net.netCents,
+    feeBps: net.feeBps,
+    feeIsDefault: net.feeIsDefault,
     suggestedMarkupRate: effectiveMarkupRate,
     suggestedSellingPriceCents: clientPrice,
   }
 }
 
 /** Build economics from a discover catalog row. */
-export function buildAffiliateCatalogCardEconomicsFromProduct(product: {
-  basePriceCents: number
-  commissionRate: number
-  affiliateProducts?: Array<{ sellingPriceCents?: number | null }>
-}): AffiliateCatalogCardEconomics {
+export function buildAffiliateCatalogCardEconomicsFromProduct(
+  product: {
+    basePriceCents: number
+    commissionRate: number
+    affiliateProducts?: Array<{ sellingPriceCents?: number | null }>
+  },
+  affiliateFeeBps: number | null = null
+): AffiliateCatalogCardEconomics {
   return buildAffiliateCatalogCardEconomics(product.basePriceCents, product.commissionRate, {
     listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(product.affiliateProducts),
+    affiliateFeeBps,
   })
 }

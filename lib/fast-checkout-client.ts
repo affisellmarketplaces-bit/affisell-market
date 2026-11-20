@@ -1,3 +1,5 @@
+import { parseCheckoutStockRefusal, type CheckoutStockRefusalCode } from "@/lib/checkout-stock-client"
+
 export type FastCheckoutBody = {
   productId?: string
   affiliateProductId?: string
@@ -7,6 +9,8 @@ export type FastCheckoutBody = {
   useRewardCents?: number
   selectedColor?: string | null
   selectedSize?: string | null
+  /** Capacity, only for a product with a size AND a storage dimension. */
+  selectedStorage?: string | null
   successPath?: string
   cancelPath?: string
   items?: unknown[]
@@ -29,6 +33,15 @@ export type FastCheckoutOutOfStock = {
   coupon?: string
   message?: string
 }
+/** Refused because of Affisell's own stock counter (not the supplier probe): the caller shows a translated message. */
+export type FastCheckoutNoStock = {
+  ok: false
+  status: "no_stock"
+  code: CheckoutStockRefusalCode
+  availableQty: number | null
+  /** VARIANT_UNAVAILABLE only: the options still on sale (named to the shopper, never chosen for them). */
+  availableVariants?: string[]
+}
 export type FastCheckoutFailure = {
   ok: false
   status: "auth" | "error"
@@ -38,6 +51,7 @@ export type FastCheckoutResult =
   | FastCheckoutSuccess
   | FastCheckoutFailure
   | FastCheckoutOutOfStock
+  | FastCheckoutNoStock
 
 export function fastCheckoutRedirected(
   result: FastCheckoutResult
@@ -97,6 +111,17 @@ export async function startFastCheckout(
         alternatives: data.alternatives,
         coupon: data.coupon,
         message: data.message,
+      }
+    }
+
+    const stockRefusal = res.status === 409 ? parseCheckoutStockRefusal(data) : null
+    if (stockRefusal) {
+      return {
+        ok: false,
+        status: "no_stock",
+        code: stockRefusal.code,
+        availableQty: stockRefusal.availableQty,
+        ...(stockRefusal.availableVariants ? { availableVariants: stockRefusal.availableVariants } : {}),
       }
     }
 

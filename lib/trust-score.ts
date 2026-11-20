@@ -1,3 +1,9 @@
+/**
+ * DETERMINISTIC SCORE — NOT an AI model. Three all-or-nothing checks added up: 20 points when Stripe charges are enabled,
+ * 30 when the supplier has more than 10 paid orders and fewer than 5 % of them have a non-rejected return, 50 when the last
+ * 10 shipments all carry a valid tracking number (see `calculateTrustScoreBreakdown`). Every point is traceable to a fact in
+ * the database or on the Stripe account; nothing is learned or predicted, and the weights are hand-chosen.
+ */
 import { isAfterShipTrackingValid } from "@/lib/aftership-tracking"
 import { getStripeClient } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"

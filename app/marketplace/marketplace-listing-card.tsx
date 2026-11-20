@@ -60,6 +60,7 @@ export function MarketplaceListingCard({
       title: name,
       imageUrl: listing.image,
       sellerName: sellerDisplay,
+      detailHref,
     })
   }
 

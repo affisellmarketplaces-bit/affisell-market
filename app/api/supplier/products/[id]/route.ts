@@ -1,7 +1,10 @@
 import { Prisma } from "@prisma/client"
+import { checkSupplierMayActivate } from "@/lib/products/affisell-suspension.server"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { alignTableVariantStocks, mergeVariantRowStocks, resolveSupplierStockWrite } from "@/lib/stock/partner-stock"
+import { buildVariantOptionLabel } from "@/lib/marketplace-purchase-quantity"
 import { SUPPLIER_PRODUCT_WRITE_TX } from "@/lib/prisma-transaction-options"
 import { loadSupplierProductForPut } from "@/lib/supplier-product-put-load"
 import {
@@ -21,6 +24,12 @@ import {
 import { applyListingReadinessGate } from "@/lib/listing-compliance/gate.server"
 import { LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
 import { RETURN_WINDOW_KEY } from "@/lib/return-terms"
+import {
+  isStockUnconfirmed,
+  STOCK_UNCONFIRMED_ERROR,
+  STOCK_UNCONFIRMED_KEY,
+  stockUnconfirmedAttribute,
+} from "@/lib/import-stock"
 import { parseCompareAtDraftLax, parseCompareAtStrict } from "@/lib/supplier-product-compare-at"
 import { parseDescriptionBullets } from "@/lib/supplier-product-description-bullets"
 import {
@@ -191,6 +200,11 @@ export async function PUT(
   }
 
   const publish = Boolean(rawBody.publish)
+  // Publishing sets `active = true`: never over an Affisell suspension (open product-safety recall).
+  if (publish) {
+    const hold = await checkSupplierMayActivate(id)
+    if (hold.held) return Response.json({ error: hold.error }, { status: 409 })
+  }
   const saveAsDraftReq = Boolean(rawBody.saveAsDraft)
   /** Ignore stale client autosaves that still send saveAsDraft after the listing went live. */
   const effectiveSaveAsDraft = saveAsDraftReq && existingRow.isDraft
@@ -274,12 +288,11 @@ export async function PUT(
     const rawName = typeof body.name === "string" ? body.name.trim() : ""
     nameResolved = (rawName || UNTITLED_DRAFT_SENTINEL).slice(0, 500)
 
-    stock = Math.max(
-      0,
-      Math.round(
-        Number.isFinite(Number(body.stock)) ? Number(body.stock) : existingRow.stock
-      )
-    )
+    stock = resolveSupplierStockWrite({
+      current: existingRow.stock,
+      submitted: body.stock,
+      baseline: rawBody.stockBaseline,
+    })
   } else {
     const name = typeof body.name === "string" ? body.name.trim() : ""
     if (!name) {
@@ -302,12 +315,11 @@ export async function PUT(
     }
     compareAt = strict.decimal
 
-    stock = Math.max(
-      0,
-      Math.round(
-        Number.isFinite(Number(body.stock)) ? Number(body.stock) : existingRow.stock
-      )
-    )
+    stock = resolveSupplierStockWrite({
+      current: existingRow.stock,
+      submitted: body.stock,
+      baseline: rawBody.stockBaseline,
+    })
   }
 
   const activatingFromDraft = Boolean(existingRow.isDraft && publish)
@@ -358,6 +370,23 @@ export async function PUT(
       ? parseDescriptionIllustrationVideos(rawBody)
       : undefined
   const attr = parseProductAttributesBody(body as unknown as Record<string, unknown>)
+  // Advanced SKU table: the same "never resurrect sold units" rule as the product stock, row by row. The form sends
+  // each row's stock as loaded (`variantStockBaseline`); Product.stock becomes the merged rows' sum.
+  const variantStockBaseline =
+    rawBody.variantStockBaseline && typeof rawBody.variantStockBaseline === "object" && !Array.isArray(rawBody.variantStockBaseline)
+      ? (rawBody.variantStockBaseline as Record<string, unknown>)
+      : null
+  let mergedJsonVariantRows: Array<{ id?: unknown; name?: unknown; stock: number }> | null = null
+  if (variantStockBaseline && attr.variants?.variantRows?.length) {
+    const merged = mergeVariantRowStocks({
+      existingRows: parseVariantsPayload(putLoad.listingVariantsJson ?? null)?.variantRows ?? [],
+      incomingRows: attr.variants.variantRows,
+      baseline: variantStockBaseline,
+    })
+    attr.variants = { ...attr.variants, variantRows: merged.rows }
+    stock = merged.total
+    mergedJsonVariantRows = merged.rows
+  }
   const ship = parseSupplierProductShippingBody(body as unknown as Record<string, unknown>)
   if (publish || activatingFromDraft) {
     const imagesErr = validateSupplierProductImagesForPublish(images)
@@ -428,6 +457,20 @@ export async function PUT(
         )
       : putLoad.attributes
 
+  // Imported quantity never confirmed (lib/import-stock.ts, founder decision 2026-11-19): the supplier saving a quantity
+  // IS the confirmation; publishing without one is refused, whatever LISTING_READINESS_MODE says.
+  const stockWasUnconfirmed = isStockUnconfirmed(putLoad.attributes)
+  const stockSubmittedNow = body.stock !== undefined && body.stock !== null && String(body.stock).trim() !== ""
+  const stockConfirmedNow = stockWasUnconfirmed && stockSubmittedNow
+  if (stockWasUnconfirmed && !stockSubmittedNow && activatingFromDraft) {
+    return Response.json({ error: STOCK_UNCONFIRMED_ERROR }, { status: 409 })
+  }
+  const attributesAfterSaveWithStock = stockConfirmedNow
+    ? attributesAfterSave.filter((a) => a.key !== STOCK_UNCONFIRMED_KEY)
+    : stockWasUnconfirmed && !attributesAfterSave.some((a) => a.key === STOCK_UNCONFIRMED_KEY)
+      ? [...attributesAfterSave, stockUnconfirmedAttribute()]
+      : attributesAfterSave
+
   if (isPublishing) {
     // Product-safety (GPSR) + identity data. Only a draft going live is ever refused (and only in enforce mode):
     // edits of listings that are already live are never blocked, so legacy listings can still be repriced / restocked.
@@ -467,6 +510,12 @@ export async function PUT(
       )
     }
     // Brouillon : on enregistre le reste même si le tableau SKU est incomplet.
+  }
+
+  if (variantPatch && !("error" in variantPatch) && mergedJsonVariantRows && variantPatch.hasVariants) {
+    // The table must carry the same per-SKU stock as the merged JSON rows, or syncProductVariants puts the units
+    // sold meanwhile back into Product.stock (it sets it to the table's sum).
+    variantPatch.variants = alignTableVariantStocks(variantPatch.variants, mergedJsonVariantRows, buildVariantOptionLabel).rows
   }
 
   if (variantPatch && !("error" in variantPatch)) {
@@ -659,13 +708,13 @@ export async function PUT(
 
     const shouldSyncProductAttributes =
       "productAttributes" in rawBody &&
-      !supplierProductAttributesEqual(putLoad.attributes, attributesAfterSave)
+      !supplierProductAttributesEqual(putLoad.attributes, attributesAfterSaveWithStock)
 
     if (shouldSyncProductAttributes) {
       await tx.productAttribute.deleteMany({ where: { productId: id } })
-      if (attributesAfterSave.length) {
+      if (attributesAfterSaveWithStock.length) {
         await tx.productAttribute.createMany({
-          data: attributesAfterSave.map((a) => ({
+          data: attributesAfterSaveWithStock.map((a) => ({
             productId: id,
             key: a.key,
             label: a.label || a.key,
@@ -673,6 +722,9 @@ export async function PUT(
           })),
         })
       }
+    }
+    if (stockConfirmedNow && !shouldSyncProductAttributes) {
+      await tx.productAttribute.deleteMany({ where: { productId: id, key: STOCK_UNCONFIRMED_KEY } })
     }
 
     if (variantPatch && !("error" in variantPatch)) {
@@ -877,6 +929,7 @@ export async function PATCH(
       hasVariants: true,
       isDraft: true,
       active: true,
+      stock: true,
       productVariants: {
         select: {
           color: true,
@@ -966,11 +1019,28 @@ export async function PATCH(
     ) {
       const existingVariants = parseVariantsPayload(existingRow.variants) ?? {}
       const incoming = rawBody.listingVariants as Record<string, unknown>
+      let variantRows = incoming.variantRows ?? existingVariants.variantRows
+      // Same "never resurrect sold units" rule per SKU row as the product stock (form sends `variantStockBaseline`).
+      const rowBaseline =
+        rawBody.variantStockBaseline && typeof rawBody.variantStockBaseline === "object" && !Array.isArray(rawBody.variantStockBaseline)
+          ? (rawBody.variantStockBaseline as Record<string, unknown>)
+          : null
+      if (rowBaseline && Array.isArray(incoming.variantRows) && incoming.variantRows.length > 0) {
+        const merged = mergeVariantRowStocks({
+          existingRows: existingVariants.variantRows ?? [],
+          incomingRows: incoming.variantRows as Array<Record<string, unknown>>,
+          baseline: rowBaseline,
+        })
+        variantRows = merged.rows
+        data.stock = merged.total
+        if (variantPatch.hasVariants && variantPatch.variants.length > 0) {
+          variantPatch.variants = alignTableVariantStocks(variantPatch.variants, merged.rows, buildVariantOptionLabel).rows
+        }
+      }
       data.variants = {
         ...existingVariants,
         ...incoming,
-        variantRows:
-          incoming.variantRows ?? existingVariants.variantRows,
+        variantRows,
       } as unknown as Prisma.InputJsonValue
     }
     if (!variantPatch.hasVariants) {
@@ -978,9 +1048,12 @@ export async function PATCH(
       if (Number.isFinite(price) && price > 0) {
         data.basePriceCents = Math.max(100, Math.round(price * 100))
       }
-      const stock = Number(rawBody.stock)
-      if (Number.isFinite(stock)) {
-        data.stock = Math.max(0, Math.round(stock))
+      if (rawBody.stock !== undefined) {
+        data.stock = resolveSupplierStockWrite({
+          current: existingRow.stock,
+          submitted: rawBody.stock,
+          baseline: rawBody.stockBaseline,
+        })
       }
     } else if (variantPatch.variants.length > 0) {
       data.basePriceCents = priceCentsForCompare
@@ -988,6 +1061,10 @@ export async function PATCH(
     }
     if (Object.keys(data).length) {
       await tx.product.update({ where: { id }, data })
+    }
+    // The supplier typed a quantity: an imported « quantity to confirm » marker is lifted (lib/import-stock.ts).
+    if (rawBody.stock !== undefined && rawBody.stock !== null && String(rawBody.stock).trim() !== "") {
+      await tx.productAttribute.deleteMany({ where: { productId: id, key: STOCK_UNCONFIRMED_KEY } })
     }
     await syncProductVariants(tx, id, variantPatch.hasVariants, variantPatch.variants)
   }, SUPPLIER_PRODUCT_WRITE_TX)

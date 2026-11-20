@@ -1,5 +1,6 @@
 import { formatOrderNumber } from "@/lib/admin/orders/list-query"
 import { stripeConnectDashboardUrl } from "@/lib/admin/stripe-health/stripe-dashboard-url"
+import { DISPUTE_HOLD_ID_PREFIX } from "@/lib/orders/dispute-hold.server"
 import { opsWebhookAlert } from "@/lib/ops-webhook"
 import { prisma } from "@/lib/prisma"
 
@@ -55,7 +56,8 @@ export async function findStuckStripeHealthOrders(
   )
 
   const latestWebhooks = await prisma.processedWebhook.findMany({
-    where: { orderId: { in: orderIds } },
+    // Stripe EVENT rows only: the dispute ledger shares the `orderId` column and must not become the "latest webhook".
+    where: { orderId: { in: orderIds }, NOT: { id: { startsWith: DISPUTE_HOLD_ID_PREFIX } } },
     orderBy: { createdAt: "desc" },
   })
   const latestByOrder = new Map<string, (typeof latestWebhooks)[number]>()

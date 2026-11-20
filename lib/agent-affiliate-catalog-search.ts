@@ -11,6 +11,7 @@ import {
 } from "@/lib/affiliate-catalog-margin-display"
 import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
+import { resellerFacingSupplierLabel } from "@/lib/supplier-public-label"
 import { primaryProductImage } from "@/lib/product-images"
 
 function trimDescription(s: string, max = 320): string {
@@ -27,7 +28,7 @@ type DiscoverRow = {
   variants?: unknown
   categories: string[]
   affiliateProducts: { id: string; isListed: boolean; sellingPriceCents?: number | null }[]
-  supplier: { email: string; store: { name: string; slug: string } | null }
+  supplier: { store: { name: string; slug: string } | null }
 }
 
 type ProductFindRow = DiscoverRow & { variants?: unknown }
@@ -56,7 +57,7 @@ function sortByResellerGain(rows: DiscoverRow[]): DiscoverRow[] {
 
 function mapRow(row: DiscoverRow): AffiliateAgentProductCard {
   const listing = row.affiliateProducts[0]
-  const supplierLabel = row.supplier.store?.name?.trim() || row.supplier.email
+  const supplierLabel = resellerFacingSupplierLabel(row.supplier.store)
   const displayCommission = affiliateCommissionDisplayPct({
     commissionRate: Number(row.commissionRate) || 0,
     variants: row.variants,

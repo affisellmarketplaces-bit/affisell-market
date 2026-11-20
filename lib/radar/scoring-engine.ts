@@ -203,10 +203,16 @@ function supplierLabel(score: number, countryCode: string): string {
   })
 }
 
+/**
+ * The label every GENERATED winner carries. It must say it is simulated: growth, searches and competition of these rows come
+ * from a hashed jitter on a hand-written archetype pool — no social, e-commerce or search signal was read. (It used to say
+ * "Signaux social/e-commerce/search", which claimed a real signal.) `isRealWinnerSource` treats the "Démo" prefix — and the
+ * legacy "Signaux " one still stored in older rows — as simulated.
+ */
 function sourceLabel(product: ProductArchetype, country: string): string {
-  if (product.tags.includes("tiktok_viral")) return `Signaux social ${country}`
-  if (product.tags.includes("amazon_best")) return `Signaux e-commerce ${country}`
-  return `Signaux search ${country}`
+  if (product.tags.includes("tiktok_viral")) return `Démo · signaux simulés (social) ${country}`
+  if (product.tags.includes("amazon_best")) return `Démo · signaux simulés (e-commerce) ${country}`
+  return `Démo · signaux simulés (recherche) ${country}`
 }
 
 type Ranked = { product: ProductArchetype; score: number }

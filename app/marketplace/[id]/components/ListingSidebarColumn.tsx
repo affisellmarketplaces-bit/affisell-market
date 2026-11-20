@@ -14,6 +14,8 @@ import { SizeSelector } from "./SizeSelector"
 import { ListingPurchaseDock } from "./ListingPurchaseDock"
 import { ListingDetailsPanel } from "./ListingDetailsPanel"
 import { ListingStorefrontCard } from "./ListingStorefrontCard"
+import { RestockWatchButton } from "@/components/restock/restock-watch-button"
+import { ShopVariantAlternatives } from "@/components/restock/shop-variant-alternatives"
 
 const BookingComingSoonRail = nextDynamic(
   () =>
@@ -114,12 +116,14 @@ export function ListingSidebarColumn({
     setTitleExpanded,
     categoryEyebrow,
     availableStock,
+    restockWatch,
     partnerHighlightLabel,
     selectedStorage,
     setSelectedStorage,
     selectedSize,
     setSelectedSize,
     sizeOptions,
+    sizeOptionStock,
     isShoeProduct,
     sizeTip,
     shopperSelection,
@@ -239,6 +243,13 @@ export function ListingSidebarColumn({
           ) : null}
         </div>
 
+        {restockWatch ? (
+          <div className="px-4 py-2 lg:px-0">
+            <RestockWatchButton choice={restockWatch} />
+            {storefront?.slug ? <ShopVariantAlternatives choice={restockWatch} storeSlug={storefront.slug} /> : null}
+          </div>
+        ) : null}
+
         <div className="hidden space-y-2 px-4 py-2.5 lg:block lg:space-y-4 lg:px-0 lg:py-0">
           {availableStock <= 5 && availableStock > 0 ? (
             <p className="rounded-lg border border-amber-200/90 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100 lg:rounded-xl lg:py-2 lg:text-sm">
@@ -303,6 +314,11 @@ export function ListingSidebarColumn({
             productName={name}
             sizeTip={sizeTip}
             brandedChipSelected={brand.chipSelected}
+            getOptionStock={sizeOptionStock}
+            outOfStockLabel={productT.outOfStock}
+            showStockLegend={Boolean(sizeOptionStock)}
+            inStockLegendLabel={productT.inStock}
+            outOfStockLegendLabel={productT.outOfStock}
           />
         </div>
 

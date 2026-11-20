@@ -2,6 +2,7 @@ import { precheckChinaBuyRoute } from "@/lib/china-buying/china-buy-qc-gate"
 import { isChinaBuyingAgentId } from "@/lib/china-buying/china-buying-shared"
 import { routeChinaBuy } from "@/lib/china-buying/route-china-buy"
 import { prisma } from "@/lib/prisma"
+import { isExternalPurchaseEnabled } from "@/lib/procurement/external-purchase-switch"
 
 /**
  * After payment: route paid orders to the product's China buying agent.
@@ -11,6 +12,12 @@ import { prisma } from "@/lib/prisma"
 export async function triggerChinaBuyForPaidOrders(
   stripeSessionId: string
 ): Promise<{ triggered: number; skipped: number }> {
+  // A China buying agent purchases from an external site: same single switch as every other external purchase.
+  if (!isExternalPurchaseEnabled()) {
+    console.log("[china-buy]", { stripeSessionId, result: "external_purchase_disabled" })
+    return { triggered: 0, skipped: 0 }
+  }
+
   const orders = await prisma.order.findMany({
     where: {
       OR: [

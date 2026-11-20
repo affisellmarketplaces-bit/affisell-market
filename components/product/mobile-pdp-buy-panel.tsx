@@ -45,6 +45,8 @@ export type MobilePdpBuyPanelProps = {
   onSelectStorage: (cap: string) => void
   isStorageOptionDisabled?: (cap: string) => boolean
   sizeOptions: string[]
+  /** Stock of a size for the current colour / capacity; a size at 0 is shown sold out and can not be picked. */
+  getSizeStock?: (size: string) => number
   selectedSize: string | null
   onSelectSize: (size: string) => void
   availableStock: number
@@ -120,6 +122,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
       onSelectStorage,
       isStorageOptionDisabled,
       sizeOptions,
+      getSizeStock,
       selectedSize,
       onSelectSize,
       availableStock,
@@ -298,21 +301,30 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
               {labels.sizeLabel}
             </p>
             <div className="flex flex-wrap gap-2">
-              {sizeOptions.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => onSelectSize(s)}
-                  className={cn(
-                    "min-w-[2.75rem] rounded-full border px-3 py-2 text-xs font-semibold transition active:scale-95",
-                    selectedSize === s
-                      ? brand.chipSelected
-                      : "border-zinc-200 bg-zinc-50 text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-                  )}
-                >
-                  {s}
-                </button>
-              ))}
+              {sizeOptions.map((s) => {
+                const stock = getSizeStock?.(s)
+                const out = stock != null && stock <= 0
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    disabled={out}
+                    aria-disabled={out}
+                    aria-label={out ? `${labels.sizeLabel} ${s} — ${labels.outOfStock}` : undefined}
+                    title={out ? labels.outOfStock : undefined}
+                    onClick={() => onSelectSize(s)}
+                    className={cn(
+                      "min-w-[2.75rem] rounded-full border px-3 py-2 text-xs font-semibold transition active:scale-95",
+                      selectedSize === s
+                        ? brand.chipSelected
+                        : "border-zinc-200 bg-zinc-50 text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100",
+                      out && "cursor-not-allowed line-through opacity-40"
+                    )}
+                  >
+                    {s}
+                  </button>
+                )
+              })}
             </div>
           </div>
         ) : null}

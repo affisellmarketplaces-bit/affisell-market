@@ -1,4 +1,6 @@
 import { listingDisplayTitle } from "@/lib/affiliate-listing-display"
+import type { RefundState } from "@/lib/unallocated-buyer-notice"
+import { loadUnallocatedSessionFacts } from "@/lib/unallocated-buyer-notice.server"
 import {
   ensureMarketplaceCheckoutFulfilled,
   isMarketplaceCheckoutFulfilled,
@@ -24,6 +26,9 @@ export type PaidCheckoutSessionResult = {
   currency: string
   productName: string | null
   productImageUrl: string | null
+  /** Paid lines of this checkout that produced no order (traced), and the REAL state of their refund. */
+  unallocatedLines: number
+  unallocatedRefundState: RefundState | null
 }
 
 /** Idempotent: mark orders paid + partner notifications after Stripe Checkout. */
@@ -103,9 +108,16 @@ export async function fulfillPaidCheckoutSession(
     })),
   })
 
+  // Read-only, never throws: a failed read keeps the page's previous behaviour (no claim either way).
+  const unallocated = paid
+    ? await loadUnallocatedSessionFacts(sessionId).catch(() => ({ lines: 0, state: null }))
+    : { lines: 0, state: null }
+
   return {
     paid,
     fulfilled,
+    unallocatedLines: unallocated.lines,
+    unallocatedRefundState: unallocated.lines > 0 ? unallocated.state : null,
     orderId: orderIds[0] ?? session.metadata?.orderId ?? null,
     orderIds,
     affiliateProductId: orderRows[0]?.affiliateProductId ?? null,

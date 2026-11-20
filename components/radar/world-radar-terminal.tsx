@@ -23,6 +23,8 @@ import { canViewResellerMargin, radarPriceColumnLabel } from "@/lib/radar/radar-
 import type { SupplierKind } from "@/lib/supplier-kind"
 import {
   formatRelativeScan,
+  isCountrySelectable,
+  radarBadgeKind,
   type WorldRadarCountriesPayload,
   type WorldRadarPayload,
   type WorldRadarWinnerDto,
@@ -309,7 +311,11 @@ export default function WorldRadarTerminal({
   const bulkTotals = useMemo(() => estimateBulkCatalogTotals(bulkWinners), [bulkWinners])
 
   const lastScanLabel = formatRelativeScan(data?.lastScanAt, locale)
-  const isLive = data?.isLive ?? false
+  // Never "live" unless the server says the data is real AND fresh; anything simulated is shown as a demo.
+  const badgeKind = radarBadgeKind(data)
+  const isLive = badgeKind === "live"
+  const isDemo = badgeKind === "demo"
+  const dataNotice = data?.dataNotice ?? null
 
   async function listOneWithoutStock(winnerId: string) {
     try {
@@ -475,24 +481,41 @@ export default function WorldRadarTerminal({
             </div>
             <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-zinc-300">
               <span
+                data-testid="radar-data-badge"
                 className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                  isLive ? "bg-emerald-500/20 text-emerald-300" : "bg-zinc-700 text-zinc-300"
+                  isDemo
+                    ? "bg-amber-500/20 text-amber-300"
+                    : isLive
+                      ? "bg-emerald-500/20 text-emerald-300"
+                      : "bg-zinc-700 text-zinc-300"
                 }`}
               >
                 <span
-                  className={`size-2 rounded-full ${isLive ? "animate-pulse bg-emerald-400" : "bg-zinc-500"}`}
+                  className={`size-2 rounded-full ${
+                    isDemo ? "bg-amber-400" : isLive ? "animate-pulse bg-emerald-400" : "bg-zinc-500"
+                  }`}
                   aria-hidden
                 />
-                {isLive ? t("live") : t("cache")}
-                {data?.lastScanAt ? ` · ${t("lastAnalysis", { when: lastScanLabel })}` : ""}
+                {isDemo ? t("demoBadge") : isLive ? t("live") : t("cache")}
+                {!isDemo && data?.lastScanAt ? ` · ${t("lastAnalysis", { when: lastScanLabel })}` : ""}
               </span>
               {isValidating ? (
                 <span className="text-xs text-violet-300">{t("refreshing")}</span>
               ) : null}
             </p>
+            {dataNotice ? (
+              <p
+                role="status"
+                data-testid="radar-demo-banner"
+                className="mt-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200"
+              >
+                {t(dataNotice === "mixed" ? "demoBannerMixed" : dataNotice === "demo" ? "demoBannerDemo" : "demoBannerMock")}
+              </p>
+            ) : null}
             <p className="mt-2 text-[11px] text-zinc-400">
               {t("tagline")}
             </p>
+            <p className="mt-1 text-[11px] text-zinc-500">{t("scoresAreRules")}</p>
           </div>
           <div className="w-full max-w-sm">
             <label className="sr-only" htmlFor="world-radar-search">
@@ -530,10 +553,20 @@ export default function WorldRadarTerminal({
           ))}
         </div>
 
+        {countriesData?.source === "mock" ? (
+          <p
+            role="status"
+            data-testid="radar-countries-mock-notice"
+            className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-800"
+          >
+            {t("countriesMockNotice")}
+          </p>
+        ) : null}
+
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
           {filteredCountries.map((c) => {
             const active = c.code === country
-            const ready = (c.productCount ?? 0) > 0
+            const ready = isCountrySelectable(c, countriesData?.source)
             if (!ready) {
               return (
                 <div
@@ -589,9 +622,13 @@ export default function WorldRadarTerminal({
                   {c.flag}
                 </span>
                 <p className="mt-0.5 text-xs font-semibold text-zinc-900">{c.name}</p>
-                <p className="text-[10px] font-medium text-emerald-700">
-                  {t("winnersCount", { n: c.productCount ?? 0 })}
-                </p>
+                {(c.productCount ?? 0) > 0 ? (
+                  <p className="text-[10px] font-medium text-emerald-700">
+                    {t("winnersCount", { n: c.productCount ?? 0 })}
+                  </p>
+                ) : (
+                  <p className="text-[10px] font-semibold text-amber-700">{t("demoBadge")}</p>
+                )}
               </button>
             )
           })}
@@ -782,9 +819,18 @@ export default function WorldRadarTerminal({
         <h2 className="text-base font-semibold text-zinc-900">
           📈 {t("trendingTitle", { country })}
         </h2>
-        <p className="mt-1 text-xs text-zinc-500">
-          {t("trendingSubtitle")}
-        </p>
+        {(data?.trendingKeywords ?? []).some((kw) => kw.synthetic) ? (
+          <p data-testid="radar-trending-demo" className="mt-1 text-xs font-medium text-amber-700">
+            {t("trendingDemo")}
+          </p>
+        ) : (
+          <p className="mt-1 text-xs text-zinc-500">{t("trendingSubtitle")}</p>
+        )}
+        {data && (data.trendingKeywords ?? []).length === 0 ? (
+          <p data-testid="radar-trending-none" className="mt-3 text-xs text-zinc-500">
+            {t("trendingNone")}
+          </p>
+        ) : null}
         <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {(data?.trendingKeywords ?? []).map((kw) => (
             <li

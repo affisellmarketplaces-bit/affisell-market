@@ -47,7 +47,9 @@
       "brandStudio": "Brand Studio",
       "brandStudioShort": "Marka",
       "magicLab": "Magiczne Systemy",
-      "magicLabShort": "Lab"
+      "magicLabShort": "Lab",
+      "opportunities": "Okazje (realna sprzedaż)",
+      "opportunitiesShort": "Okazje"
     },
     "supplier": {
       "badge": "Dostawca",
@@ -506,6 +508,8 @@
     "invalid_password": "Błędne hasło.",
     "account_not_found": "Nie znaleziono konta Affisell z tym adresem e-mail.",
     "password_login_unavailable": "Ten konto używa logowania za pomocą mediów społecznościowych. Użyj Google lub ustaw hasło za pomocą “Zapomniałem hasła”.",
+    "invalid_credentials": "Nieprawidłowy e-mail lub hasło. Jeśli Twoje konto korzysta z logowania społecznościowego, użyj go lub ustaw hasło przez „Nie pamiętasz hasła?”.",
+    "too_many_attempts": "Zbyt wiele prób logowania na to konto. Spróbuj ponownie za 15 minut lub zresetuj hasło.",
     "passwordReset": {
       "secureBadge": "Bezpieczny dostęp do Affisell",
       "forgotLink": "Zapomniałem hasła?",
@@ -522,10 +526,18 @@
       "confirmPassword": "Potwierdź hasło",
       "savePassword": "Zapisz hasło",
       "passwordTooShort": "Hasło musi mieć co najmniej 8 znaków.",
+      "passwordTooLong": "Hasło jest za długie (maksymalnie 72 bajty).",
+      "passwordTooCommon": "To hasło jest zbyt popularne. Wybierz inne.",
+      "passwordMatchesEmail": "Hasło nie może być Twoim adresem e-mail.",
       "passwordMismatch": "Hasła nie zgadzają się.",
       "invalidToken": "Ten link jest nieprawidłowy lub wygasł. Zadzwoń do nas.",
       "resetFailed": "Nie udało się zaktualizować hasła.",
       "resetSuccessLogin": "Hasło zaktualizowano. Możesz się teraz zalogować."
+    },
+    "emailVerification": {
+      "done": "Adres e-mail potwierdzony. Możesz się zalogować.",
+      "invalid": "Ten link potwierdzający jest nieprawidłowy lub został już użyty.",
+      "expired": "Ten link potwierdzający wygasł. Zaloguj się, aby otrzymać nowy."
     },
     "signupFail": "Nie udało się zarejestrować.",
     "signupLoginFail": "Konto utworzone, ale logowanie nie powiodło się. Spróbuj zalogować się.",
@@ -857,6 +869,15 @@
     }
   },
   "cart": {
+    "stock": {
+      "outOfStock": "Ten produkt jest niedostępny.",
+      "insufficient": "Zostało tylko {count} sztuk w magazynie.",
+      "priceUpdating": "Cena tego produktu jest aktualizowana. Spróbuj ponownie za kilka minut.",
+      "variantUnavailable": "Wybrana opcja (rozmiar lub kolor) nie istnieje już dla tego produktu: wybierz inną na jego stronie.",
+      "variantUnavailableWith": "Wybrana opcja nie istnieje już dla tego produktu. Nadal dostępne: {options}.",
+      "chooseOptions": "Wybierz wszystkie opcje (kolor, rozmiar, pojemność…), zanim przejdziesz dalej.",
+      "chooseOnPage": "Ten produkt występuje w kilku rozmiarach lub kolorach: wybierz swój na jego stronie."
+    },
     "title": "Koszyk",
     "loading": "Ładowanie koszyka…",
     "empty": "Twój koszyk jest pusty",
@@ -918,10 +939,12 @@
       "handoffPowered": "Szyfrowane przekazanie Affisell",
       "legalNote": "Kontynuując, zgadzasz się na utworzenie konta Affisell kupującego w celu uzyskania odsetek za cashback.",
       "identifyFailed": "Nie można kontynuować. Spróbuj ponownie.",
+      "accountExists": "Konto z tym identyfikatorem już istnieje. Zaloguj się, aby kontynuować.",
       "signInFailed": "Błąd logowania po identyfikacji.",
       "networkError": "Brak połączenia z siecią. Spróbuj ponownie."
     },
-    "tryPulse": "Wypróbuj Affisell Pulse"
+    "tryPulse": "Wypróbuj Affisell Pulse",
+    "storageLabel": "Pojemność"
   },
   "buyerBestsellers": {
     "metaTitle": "Najlepiej sprzedające się · 7 dni",
@@ -1205,7 +1228,11 @@
       "merchantVerificationPending": "Wymagana weryfikacja sprzedawcy — uzupełnij dokumentację KYC na /dashboard/verification przed publikacją.",
       "affiliateCommissionRequired": "Ustaw prowizję oferowaną partnerom przy każdej sprzedaży (> 0%). Siatka kategorii ma charakter poglądowy.",
       "productImagesRequiredHosted": "Dodaj co najmniej jedno hostowane zdjęcie produktu (zakończony upload) przed publikacją.",
-      "variantsInvalidGeneric": "Popraw warianty / wiersze SKU (nieprawidłowe pola)."
+      "variantsInvalidGeneric": "Popraw warianty / wiersze SKU (nieprawidłowe pola).",
+      "productRecalled": "Ten produkt jest objęty wycofaniem z powodów bezpieczeństwa, wszczętym przez Affisell: na razie nie może wrócić do sprzedaży. Skontaktuj się z pomocą Affisell, aby dowiedzieć się, jak zakończyć wycofanie.",
+      "productSuspended": "Affisell zawiesił sprzedaż tego produktu: na razie nie może wrócić do sprzedaży. Skontaktuj się z pomocą Affisell, aby poznać powód i sposób zniesienia zawieszenia.",
+      "productHoldUnverifiable": "Nie udało się sprawdzić, czy ten produkt może wrócić do sprzedaży. Spróbuj ponownie za chwilę.",
+      "stockUnconfirmed": "Ilość tego importowanego produktu nigdy nie została potwierdzona: źródło jej nie podawało. Podaj rzeczywiście dostępną ilość, zapisz, a następnie opublikuj."
     },
     "descriptionField": {
       "label": "Opis",
@@ -1807,7 +1834,16 @@
       "publishSuccessToast": "🎉 Produkt opublikowany — +10 XP",
       "aliexpressImportedToast": "Zaimportowano z AliExpress — {imgCount, plural, one {# zdjęcie} other {# zdjęć}}, {specCount, plural, one {# cecha} other {# cech}}",
       "productImportedToast": "Produkt zaimportowany — sprawdź podgląd",
-      "titleNotFoundError": "Nie znaleziono tytułu — spróbuj ponownie lub przełącz się na tryb Pro"
+      "titleNotFoundError": "Nie znaleziono tytułu — spróbuj ponownie lub przełącz się na tryb Pro",
+      "stockLabel": "Dostępna ilość",
+      "stockHint": "Liczba sztuk, które naprawdę możesz wysłać. Nigdy nie jest uzupełniana za Ciebie.",
+      "stockFromVariantsHint": "Ilość podaje się przy każdym wariancie (tabela wariantów).",
+      "declaration": {
+        "price_required": "Podaj cenę katalogową przed publikacją.",
+        "stock_required": "Podaj dostępną ilość przed publikacją (liczba całkowita).",
+        "stock_zero": "Ilość 0: produkt byłby pokazany jako wyprzedany. Podaj rzeczywiście dostępną ilość.",
+        "variant_stock_required": "Każdy wariant musi mieć dostępną ilość przed publikacją."
+      }
     },
     "categoryPicker": {
       "loading": "Wczytywanie kategorii…",
@@ -2182,6 +2218,103 @@
       "optionDays": "{days} dni",
       "hint": "Przez ile dni po dostawie kupujący może zwrócić ten produkt. 14 dni to ustawowe minimum dla każdego kupującego; zaoferowanie więcej może pomóc w sprzedaży.",
       "cost": "Zwroty przyjmowane w tym terminie idą na Twój koszt, tak jak w ustawowych 14 dniach: kupujący otrzymuje zwrot, a Twoja część sprzedaży zostaje odzyskana. Termin jest utrwalany w chwili zakupu – późniejsze skrócenie nigdy nie wpływa na złożone już zamówienia."
+    },
+    "supplyCost": {
+      "title": "Koszty zaopatrzenia (poufne)",
+      "confidential": "Widoczne tylko dla Ciebie i Affisell. Te kwoty nie zmieniają Twojej ceny, prowizji ani oferty: służą do sprawdzenia, czy przyszły sposób sprzedaży pozostanie dla Ciebie opłacalny.",
+      "unitCost": "Koszt zakupu lub wytworzenia jednej sztuki, netto (€)",
+      "deliveryCost": "Koszt dostawy jednej sztuki do kupującego, netto (€)",
+      "source": "Pochodzenie produktu",
+      "sources": {
+        "own_stock": "Mój własny magazyn",
+        "manufacturer": "Produkuję lub kupuję od producenta",
+        "wholesaler": "Hurtownia",
+        "dropship_source": "Dostawca dropshippingowy",
+        "other": "Inne"
+      },
+      "leadTime": "Czas do wysyłki (dni, opcjonalnie)",
+      "minimumOrder": "Minimalna ilość u Twojego źródła (opcjonalnie)",
+      "note": "Uwaga dla Affisell (opcjonalnie)",
+      "save": "Zapisz moje koszty",
+      "saved": "Koszty zapisane.",
+      "invalid": "Nieprawidłowa kwota: podaj liczbę w euro, np. 12,50.",
+      "error": "Zapis nie powiódł się. Spróbuj ponownie.",
+      "warnAbovePrice": "Zadeklarowane koszty przekraczają Twoją cenę dostawcy: sprawdź kwoty.",
+      "lastDeclared": "Ostatnia deklaracja: {date}",
+      "qualification": {
+        "label": "Status deklaracji",
+        "unverified": "Niezweryfikowana",
+        "document_provided": "Zgłoszono dokument",
+        "verified": "Zweryfikowana przez Affisell",
+        "disputed": "Zakwestionowana przez Affisell",
+        "expired": "Wygasła"
+      },
+      "documentTitle": "Masz dokument potwierdzający (fakturę, cennik dostawcy)?",
+      "documentHint": "Opisz dokument przesłany do Affisell (rodzaj, data, numer). Affisell go sprawdzi; ten status nie oznacza weryfikacji.",
+      "documentPlaceholder": "Np. faktura hurtowni nr 2026-114 z 3 listopada",
+      "documentSubmit": "Zgłoś dokument",
+      "documentSent": "Dokument zgłoszony.",
+      "newDeclarationResets": "Każda nowa deklaracja wraca do statusu „niezweryfikowana”.",
+      "effectiveFrom": "Obowiązuje od",
+      "effectiveFromHint": "Zostaw puste dla dzisiejszej daty. Data z przeszłości jest odrzucana: opłacone zamówienia zachowują koszt obowiązujący w tamtym czasie.",
+      "effectiveLater": "Ta deklaracja będzie obowiązywać od {date}.",
+      "variants": {
+        "scope": "Koszt zadeklarowany dla",
+        "wholeProduct": "Cały produkt (domyślnie)",
+        "wholeProductHint": "Dotyczy każdego wariantu bez własnej deklaracji.",
+        "variantHint": "Dotyczy tylko tego wariantu; nigdy innego.",
+        "ambiguous": "Niektóre warianty mają tę samą nazwę: nie mogą otrzymać własnego kosztu, dopóki nie zostaną rozróżnione.",
+        "tableTitle": "Koszty zadeklarowane dla wariantów",
+        "gone": "wariant usunięty",
+        "notInForce": "jeszcze nie obowiązuje",
+        "fallbackHint": "Wariant bez własnego kosztu korzysta z deklaracji produktu, jeśli istnieje."
+      }
+    },
+    "productJourney": {
+      "title": "Droga do sprzedaży",
+      "next": "Następny krok: {step}",
+      "allDone": "Wszystko gotowe: Twój produkt może być sprzedawany.",
+      "steps": {
+        "sheet": "Karta produktu",
+        "safety": "Bezpieczeństwo produktu",
+        "stock": "Stan magazynowy",
+        "commission": "Prowizja sprzedawcy",
+        "publication": "Publikacja",
+        "resellers": "Wybór przez sprzedawców",
+        "sales": "Sprzedaż (30 dni)",
+        "costs": "Koszty zaopatrzenia"
+      },
+      "status": {
+        "done": "gotowe",
+        "todo": "do zrobienia",
+        "blocked": "zablokowane przez Affisell",
+        "waiting": "oczekuje",
+        "optional": "opcjonalne"
+      },
+      "missing": {
+        "name": "nazwa",
+        "photo": "zdjęcie",
+        "category": "kategoria"
+      },
+      "safetyMissing": "{count, plural, one {# brakująca informacja} few {# brakujące informacje} many {# brakujących informacji} other {# brakujących informacji}}",
+      "units": "{count, plural, =0 {brak dostępnych sztuk} one {# sztuka} few {# sztuki} many {# sztuk} other {# sztuk}}",
+      "publication": {
+        "draft": "wersja robocza",
+        "paused": "wstrzymane",
+        "product_recalled": "trwa wycofanie z powodów bezpieczeństwa",
+        "product_suspended": "sprzedaż zawieszona przez Affisell",
+        "product_hold_unverifiable": "chwilowo nie można sprawdzić"
+      },
+      "resellers": "{count, plural, =0 {brak sprzedawców} one {# sprzedawca} few {# sprzedawców} many {# sprzedawców} other {# sprzedawców}}",
+      "sales": "{count, plural, =0 {brak zamówień} one {# zamówienie} few {# zamówienia} many {# zamówień} other {# zamówień}}",
+      "costs": {
+        "unverified": "zadeklarowane, niezweryfikowane",
+        "document_provided": "zgłoszono dokument",
+        "verified": "zweryfikowane przez Affisell",
+        "disputed": "zakwestionowane przez Affisell",
+        "expired": "wygasłe"
+      },
+      "costsNote": "Koszty zaopatrzenia są opcjonalne i poufne: nie warunkują publikacji, ceny ani prowizji."
     }
   },
   "affiliate": {
@@ -2377,7 +2510,11 @@
       "estimatedRevenue": "Szacowane zarobki resellera",
       "estimatedRevenueHint": "Prowizja + marża przy sugerowanej marży {markupPct}%",
       "sortRevenueDesc": "Zarobki resellera · od najwyższych",
-      "supplierSheetAria": "Strona produktu dostawcy"
+      "supplierSheetAria": "Strona produktu dostawcy",
+      "netShort": "Netto",
+      "netRevenue": "Twój zysk netto na sprzedaży",
+      "netBreakdown": "{gross} prowizja + marża − {fee} opłata Affisell ({feePct}%)",
+      "priceIsHt": "Ceny bez VAT: kupujący płaci VAT dodatkowo."
     },
     "catalogFilters": {
       "groupAria": "Filtry sklepu i daty dodania",
@@ -2780,6 +2917,315 @@
       "pendingVerification": "Oczekuje",
       "setDefault": "Ustaw jako domyślną",
       "delete": "Usuń"
+    },
+    "opportunities": {
+      "title": "Okazje oparte na rzeczywistej sprzedaży",
+      "intro": "Panel decyzyjny oparty na opłaconych zamówieniach: najpierw Twoje produkty, potem katalog uszeregowany według tego, ile sprzedaż z ostatnich {days} dni przyniosła sprzedawcom, po opłatach Affisell i kwotach zwróconych w ciągu {qualityDays} dni. To dane historyczne, a nie prognoza.",
+      "platformRate": "Wskaźnik zwrotów platformy: {rate} pobranych kwot ({orders} opłaconych zamówień w 90 dni).",
+      "emptyRanked": "Brak opłaconych zamówień w ostatnich {days} dniach: nie można jeszcze niczego uszeregować na podstawie rzeczywistej sprzedaży.",
+      "col": {
+        "product": "Produkt",
+        "units": "Sprzedane sztuki ({days} dni)",
+        "perUnit": "Zarobek na sprzedaży",
+        "refundRate": "Zwrócono (wartościowo)",
+        "observedNet": "Zaobserwowany zarobek netto ({days} dni)",
+        "checks": "Do sprawdzenia",
+        "disputeRate": "Spory"
+      },
+      "inStore": "Już w Twoim sklepie",
+      "rateOwn": "wskaźnik produktu",
+      "ratePlatform": "zbyt mała próba: wskaźnik platformy",
+      "flags": {
+        "high_refund_rate": "Wysoki wskaźnik zwrotów",
+        "disputes_seen": "Odnotowane spory",
+        "slow_delivery": "Wolna dostawa (9 na 10 zamówień powyżej 12 dni)",
+        "supplier_price_rising": "Cena dostawcy rośnie lub jest niestabilna",
+        "thin_sample": "Mało zamówień: niepewne dane",
+        "sales_falling": "Sprzedaż spada (−30% lub więcej)",
+        "payout_per_unit_down": "Zarobek na sprzedaży spadł w 30 dni",
+        "out_of_stock": "Zgłoszony brak w magazynie",
+        "stock_not_maintained": "Stan magazynu prawdopodobnie nieaktualizowany (wartość domyślna importu)"
+      },
+      "howToRead": "„Zaobserwowany zarobek netto” = sprzedane sztuki × zarobek na sprzedaży po uwzględnieniu zwrotów. Możesz dodać własny narzut do ceny: nie jest tu liczony.",
+      "noSalesTitle": "Brak danych o sprzedaży",
+      "noSalesIntro": "Te produkty nie mają opłaconych zamówień w tym okresie: nie są szeregowane z braku rzeczywistych danych.",
+      "perUnitShort": "{amount} za sprzedaż",
+      "toCatalog": "Otwórz katalog →",
+      "vsPrevious": "{prev} w poprzednich 30 dniach",
+      "perUnitWas": "{amount} 30 dni temu",
+      "truncated": "Bardzo duży wolumen: pokazane liczby są minimum.",
+      "documentedTitle": "Dobrze udokumentowane okazje",
+      "documentedIntro": "Co najmniej {min} opłaconych zamówień w {qualityDays} dni: stosowane są wskaźniki produktu.",
+      "documentedEmpty": "Żaden produkt nie ma jeszcze dość zamówień, by ocenić go na podstawie własnych danych.",
+      "limitedTitle": "Niewystarczające dane",
+      "limitedIntro": "Te produkty mają sprzedaż, ale zbyt małą, by była wiarygodna: stosowany jest wyższy z ich wskaźnika zwrotów i wskaźnika platformy.",
+      "mine": {
+        "title": "Twoje produkty",
+        "intro": "Liczone wyłącznie z Twoich opłaconych zamówień: zysk netto = prowizje zapisane na Twoich zamówieniach minus część odebrana przez zwroty (proporcjonalnie). Okres: {days} dni, porównany z poprzednimi {days} dniami.",
+        "totals": "{net} netto w {days} dni ({orders} zamówień) — {prevNet} w poprzednim okresie ({prevOrders} zamówień).",
+        "empty": "Brak opłaconych zamówień w ostatnich {days} dniach.",
+        "attentionTitle": "Do zrobienia dziś",
+        "attentionEmpty": "Nic do zgłoszenia w Twoich produktach.",
+        "topTitle": "Co przynosi Ci najwięcej ({days} dni)",
+        "decliningTitle": "Co staje się mniej opłacalne",
+        "decliningEmpty": "Żaden produkt nie spada (porównanie od 3 zamówień w poprzednim okresie).",
+        "netChange": "{from} → {to}",
+        "notComparable": "za mało zamówień do porównania",
+        "col": {
+          "product": "Produkt",
+          "orders": "Zamówienia",
+          "net": "Zysk netto",
+          "perUnit": "Netto na sztukę",
+          "refundShare": "Zwrócono",
+          "previous": "Poprzedni okres"
+        },
+        "reasons": {
+          "volume_down": "mniej sprzedaży",
+          "your_price_down": "obniżyłeś swoją cenę sprzedaży",
+          "collected_price_down": "niższa pobrana cena bez zapisanej obniżki z Twojej strony (rabaty, sprzedane warianty)",
+          "supplier_price_up": "wyższa cena dostawcy (Twoja marża maleje)",
+          "commission_down": "niższa prowizja dostawcy",
+          "fees_up": "wyższe opłaty Affisell",
+          "refunds_up": "więcej zwrotów",
+          "disputes_up": "więcej sporów",
+          "unknown": "brak istotnej przyczyny możliwej do ustalenia w danych"
+        },
+        "attention": {
+          "open_dispute": "{orders} zamówień z otwartym sporem",
+          "no_longer_for_sale": "nie jest już w sprzedaży na marketplace",
+          "sold_out": "brak w magazynie",
+          "margin_review": "marża do przeglądu: cena dostawcy się zmieniła",
+          "supplier_price_changed": "cena dostawcy zmieniła się w tym tygodniu z {from} na {to}",
+          "return_requested": "{returns} zgłoszonych zwrotów czeka na dostawcę"
+        },
+        "drivers": {
+          "volume": "Wolumen",
+          "selling_price": "Twoja cena",
+          "supplier_price": "Cena dostawcy",
+          "commission": "Prowizja",
+          "fees": "Opłaty",
+          "refunds": "Zwroty",
+          "residual": "Niewyjaśnione"
+        },
+        "priceCut": "cena obniżona z {from} na {to} dnia {date}",
+        "partlyUnexplained": "Duża część różnicy nie wynika z danych (stała marża, rabaty, zaokrąglenia).",
+        "impactTitle": "Efekt Twoich zmian cen",
+        "impactIntro": "Twoje zamówienia w 30 dniach przed każdą zmianą ceny sprzedaży w porównaniu z dniami po niej. Obserwacja dwóch okresów: nie dowodzi, że cena jest jedyną przyczyną.",
+        "impactEmpty": "Brak zapisanych zmian cen w ostatnich 90 dniach.",
+        "impactChange": "{from} → {to} dnia {date}",
+        "impactFigures": "Przed ({beforeDays} dni, {beforeOrders} zamówień): {beforePerDay}/dzień, {beforePerUnit} na sprzedaż — Po ({afterDays} dni, {afterOrders} zamówień): {afterPerDay}/dzień, {afterPerUnit} na sprzedaż.",
+        "impactStatus": {
+          "too_recent": "Zbyt świeże, by mierzyć (mniej niż 7 dni).",
+          "insufficient_orders": "Za mało zamówień przed lub po (co najmniej 3 z każdej strony)."
+        },
+        "simTitle": "Symulacje cen",
+        "simIntro": "Obliczenie, nie prognoza: zysk netto na sprzedaży przy każdej cenie, przy obecnej cenie dostawcy, prowizji i opłatach, po Twoim wskaźniku zwrotów; oraz liczba sprzedaży potrzebna, by zarobić tyle co w ostatnich 30 dniach. Nic się nie zmienia bez Twojego działania.",
+        "simEmpty": "Za mało sprzedaży w 30 dni, by symulować (co najmniej 5 zamówień).",
+        "simAssumptions": "Założenia: cena dostawcy {supplier}, prowizja {commission}, opłaty {fee}, zwroty {refunds} — zaobserwowano: {orders} zamówień, {net} netto w 30 dni.",
+        "simCol": {
+          "price": "Cena sprzedaży netto",
+          "netPerSale": "Netto na sprzedaży",
+          "salesToMatch": "Sprzedaże do wyrównania 30 dni"
+        },
+        "simCurrent": "(obecna)",
+        "simRestore": "(odzyskaj marżę)",
+        "simEdit": "Zmień moją cenę →"
+      }
+    },
+    "profitAlerts": {
+      "title": "Spadek rentowności: {product}",
+      "change": "Twój zysk netto spadł z {from} do {to} (−{drop}): ostatnie 30 dni ({currentOrders} zamówień) w porównaniu z poprzednimi 30 ({previousOrders} zamówień).",
+      "sincePeriod": "Stwierdzono w ostatnich 30 dniach w porównaniu z poprzednimi 30.",
+      "since": {
+        "price_cut": "Od Twojej zmiany ceny z dnia {date}.",
+        "supplier_price_change": "Od podwyżki ceny dostawcy z dnia {date}."
+      },
+      "causeWithAmount": "{cause} (−{amount})",
+      "causes": {
+        "supplier_price_up": "cena dostawcy wzrosła i zmniejszyła Twoją marżę",
+        "your_price_down": "obniżyłeś swoją cenę sprzedaży",
+        "collected_price_down": "pobrana cena jest niższa, bez zapisanej obniżki z Twojej strony (rabaty, sprzedane warianty)",
+        "commission_down": "prowizja dostawcy spadła",
+        "fees_up": "naliczane opłaty Affisell są wyższe",
+        "refunds_up": "więcej sprzedaży zostało zwróconych",
+        "volume_down": "sprzedajesz wyraźnie mniej",
+        "disputes_up": "więcej sporów"
+      },
+      "suggestion": {
+        "restore_markup": "Symulacja: przy cenie {price} odzyskałbyś marżę — około {net} netto na sprzedaży; {sales} sprzedaży wyrównałoby ostatnie 30 dni.",
+        "previous_price": "Symulacja: przy poprzedniej cenie {price} sprzedaż przyniosłaby około {net} netto; {sales} sprzedaży wyrównałoby ostatnie 30 dni.",
+        "none": {
+          "supplier_price_up": "Sprawdź swoją cenę względem nowej ceny dostawcy.",
+          "your_price_down": "Porównaj sprzedaż przed i po zmianie ceny w swoim panelu.",
+          "collected_price_down": "Sprawdź rabaty i sprzedane warianty: wyświetlana cena się nie zmieniła.",
+          "commission_down": "Dostawca obniżył prowizję: sprawdź, czy Twoja marża nadal wystarcza.",
+          "fees_up": "Twoje opłaty wzrosły: sprawdź marżę w swoim panelu.",
+          "refunds_up": "Sprawdź powody zwrotów tych zamówień.",
+          "volume_down": "Sprawdź widoczność i stan magazynu produktu; żadna symulacja ceny nie przewiduje sprzedaży.",
+          "disputes_up": "Sprawdź spory tych zamówień."
+        }
+      },
+      "short": "{product}: zysk netto niższy o {drop} — {cause}",
+      "disclaimer": "Dane liczone z Twoich opłaconych zamówień; symulacje to obliczenia, nie prognozy. Żadna cena nie zmieni się bez Twojego działania.",
+      "causesTitle": "Ustalone przyczyny",
+      "suggestionTitle": "Co możesz zrobić",
+      "ctaEdit": "Zmień moją cenę →",
+      "ctaBoard": "Otwórz panel rentowności →",
+      "emailFooter": "Otrzymujesz tę wiadomość, ponieważ włączyłeś alerty rentowności e-mailem. Aby je wyłączyć:",
+      "panelTitle": "Alerty rentowności",
+      "panelIntro": "Alert jest wysyłany tylko wtedy, gdy produkt naprawdę zarabiał (co najmniej 5 zamówień i 20 € netto), spadek jest istotny (co najmniej 10 € i 25%), a jego przyczyna wynika z danych. Najwyżej jeden alert na produkt co 14 dni.",
+      "panelEmpty": "Brak alertów: żaden z Twoich rentownych produktów nie spadł istotnie.",
+      "dismiss": "Ukryj",
+      "prefTitle": "Otrzymuj alerty",
+      "prefInApp": "W aplikacji",
+      "prefEmail": "E-mailem",
+      "prefStatus": {
+        "idle": "",
+        "saving": "Zapisywanie…",
+        "saved": "Zapisano",
+        "error": "Nie udało się zapisać"
+      }
+    },
+    "copilot": {
+      "title": "Copilot sprzedawcy — Twój wybór gotowy do sprzedaży",
+      "subtitle": "Produkty z katalogu, które naprawdę możesz sprzedać, uszeregowane według tego, ile naprawdę przynosi jedna sprzedaż po opłacie Affisell. Zaznacz te, które zostawiasz, i dodaj je za jednym razem.",
+      "addCta": "Dodaj wybór ({count})",
+      "adding": "Dodawanie…",
+      "added": "Dodano {added} produkt(ów) do sklepu.",
+      "addedPartial": "Dodano {added}, odrzucono {refused}: ich sytuacja zmieniła się od załadowania.",
+      "addError": "Dodawanie nie powiodło się. Spróbuj ponownie.",
+      "loading": "Analiza katalogu…",
+      "empty": "Obecnie brak nowych produktów do sprzedaży.",
+      "pick": "Zostaw {name}",
+      "netPerSale": "netto na sprzedaży, po opłacie Affisell",
+      "priceLine": "Proponowana cena {price} netto · kupujący płaci ok. {ttc} brutto",
+      "demandSeen": "{orders} opłacone zamówienie(a) na marketplace w 30 dni",
+      "demandNone": "Brak zaobserwowanej sprzedaży",
+      "resellers": "{count, plural, =0 {żaden sprzedawca go nie sprzedaje} one {# sprzedawca go sprzedaje} few {# sprzedawców go sprzedaje} many {# sprzedawców go sprzedaje} other {# sprzedawców go sprzedaje}}",
+      "feeDefault": "Wyliczone ze standardową opłatą Affisell (20% prowizji i marży).",
+      "feeNegotiated": "Wyliczone z Twoją stawką Affisell ({pct}%).",
+      "honesty": "Kwota netto to wyliczenie z warunków dostawcy, nie obietnica sprzedaży. Pokazana sprzedaż jest obserwowana w Affisell, nie jest prognozą.",
+      "blockedToggle": "Pominięto {count} produkt(ów): zobacz dlaczego",
+      "reasons": {
+        "awaiting_affisell_review": "oczekuje na weryfikację Affisell",
+        "no_explicit_commission": "brak prowizji: sprzedaż nie mogłaby zostać zarejestrowana",
+        "no_supplier_price": "brak ceny dostawcy",
+        "out_of_stock": "brak w magazynie",
+        "stock_unknown": "stanu nie da się sprawdzić",
+        "low_stock": "bardzo mało sztuk",
+        "low_net_per_sale": "niski zysk ze sprzedaży",
+        "rising_on_affisell": "Produkt, którego zamówienia rosną wyraźnie szybciej niż cały Affisell, u co najmniej dwóch sprzedawców (test statystyczny na zaobserwowanej sprzedaży, nie prognoza)."
+      },
+      "rising": "Szybko rośnie na Affisell · {recent, plural, one {# opłacone zamówienie} few {# opłacone zamówienia} many {# opłaconych zamówień} other {# opłaconych zamówień}} w ostatnich 14 dniach wobec {prior} w poprzednich 42 dniach — wyraźnie więcej niż marketplace",
+      "risingNature": "Sygnał zaobserwowany (test statystyczny na opłaconych zamówieniach, kilku sprzedawców i kilka dni), nie prognoza. Podnosi produkt tylko wtedy, gdy jego zysk netto na sprzedaży jest co najmniej równy medianie wyboru.",
+      "fit": {
+        "your_categories": "W Twoich kategoriach",
+        "discovery": "Odkrycie"
+      },
+      "personalisedNote": "Wybór dopasowany do kategorii, które już sprzedajesz lub oferujesz, zawsze z częścią innych kategorii do odkrycia. Produkt z Twoich kategorii nigdy nie wyprzedza takiego, który przynosi Ci wyraźnie więcej (ponad 15 % zysku netto na sprzedaży)."
+    },
+    "supplierAffisell": "Dostawca Affisell",
+    "replacement": {
+      "title": "Co zrobić z « {product} »?",
+      "loading": "Szukamy wiarygodnych alternatyw…",
+      "error": "Nie udało się wczytać alternatyw.",
+      "errorChanged": "Ta alternatywa nie jest już dostępna: lista została odświeżona.",
+      "retry": "Spróbuj ponownie",
+      "problem": {
+        "out_of_stock": "Dostawca nie ma już zapasu: Twoi kupujący widzą go jako wyprzedany i nie mogą go kupić.",
+        "product_unavailable": "Dostawca go wycofał lub wstrzymał: nie można go już kupić.",
+        "awaiting_review": "Ten produkt czeka na zatwierdzenie przez Affisell: nie można go jeszcze sprzedawać.",
+        "no_commission": "Dostawca nie ustalił prowizji: sprzedaż nie mogłaby zostać Ci przypisana.",
+        "none": "Ten produkt można dziś sprzedawać. Mimo to możesz porównać alternatywy."
+      },
+      "currentLine": "Dziś: cena sprzedaży {price} netto · zarabiasz {net} netto na sprzedaży.",
+      "none": {
+        "no_sellable_candidate": "Żadnej alternatywy nie można dziś sprzedać w Twoim katalogu.",
+        "no_reliable_match": "Żadna alternatywa nie jest wystarczająco podobna: wolimy nic nie proponować niż inny produkt."
+      },
+      "noneHint": "Możesz wycofać ten produkt ze sklepu; może wrócić, jeśli dostawca rozwiąże problem, a Ty ponownie wystawisz go na sprzedaż.",
+      "match": {
+        "identique": "Ten sam produkt (ten sam kod kreskowy)",
+        "similaire": "Podobny produkt"
+      },
+      "identity": {
+        "same_gtin": "Ten sam kod kreskowy",
+        "similar": "Podobny"
+      },
+      "availableLine": "{n} w magazynie · {supplier}",
+      "netLine": "Zarabiasz {net} netto na sprzedaży (cena sprzedaży {price} netto)",
+      "col": {
+        "what": "Cecha",
+        "before": "Obecnie",
+        "after": "Alternatywa"
+      },
+      "field": {
+        "selling_price": "Cena sprzedaży netto",
+        "net_per_sale": "Twój zysk netto na sprzedaży",
+        "supplier_price": "Cena dostawcy",
+        "commission": "Prowizja",
+        "delivery": "Maksymalna dostawa",
+        "return_window": "Zwroty przyjmowane",
+        "variants_missing": "Nieoferowane opcje",
+        "brand": "Marka",
+        "supplier": "Dostawca"
+      },
+      "days": "{n, plural, one {# dzień} other {# dni}}",
+      "replaceCta": "Zastąp tym produktem",
+      "confirmQuestion": "Zastąpić? Stary produkt opuszcza Twój sklep; jego historia i zamówienia zostają zachowane.",
+      "confirmYes": "Tak, zastąp",
+      "working": "Zastępowanie…",
+      "cancel": "Anuluj",
+      "withdrawOnly": "Tylko wycofaj ten produkt z mojego sklepu",
+      "withdrawConfirm": "Wycofać ten produkt ze sklepu?",
+      "withdrawYes": "Tak, wycofaj",
+      "doneReplaced": "Gotowe: alternatywa jest w sprzedaży w Twoim sklepie.",
+      "doneReplacedPending": "Alternatywa została dodana do sklepu; trafi do sprzedaży po zakończeniu weryfikacji konta.",
+      "doneWithdrawn": "Produkt został wycofany z Twojego sklepu.",
+      "historyKept": "Nic nie jest usuwane: historia, statystyki i wcześniejsze zamówienia pozostają nienaruszone.",
+      "backToShop": "Wróć do mojego panelu",
+      "honesty": "Netto = prowizja + marża − opłata Affisell, liczone jak Twoje wypłaty. Ceny bez VAT; tylko kod kreskowy dowodzi, że to ten sam produkt.",
+      "bellMessage": "« {product} » nie można już kupić w Twoim sklepie. Wycofaj go lub zastąp równoważnym produktem.",
+      "partialTitle": "Zamiana zakończona częściowo",
+      "partialBody": "„{alternative}” dodano do Twojego sklepu, ale nie udało się wycofać „{product}”: oba produkty są teraz w sprzedaży.",
+      "partialHint": "Dokończenie wycofuje tylko stary produkt ze sklepu. Nic nie jest dodawane drugi raz, nic nie jest usuwane.",
+      "finishCta": "Dokończ zamianę",
+      "partialUnnamed": "wybrana alternatywa",
+      "partialNow": "Alternatywę dodano, ale nie udało się wycofać starego produktu. Dokończ zamianę poniżej.",
+      "digestMessage": "{count, plural, one {# produkt z Twojego sklepu nie może być już sprzedawany} few {# produkty z Twojego sklepu nie mogą być już sprzedawane} many {# produktów z Twojego sklepu nie może być już sprzedawanych} other {# produktów z Twojego sklepu nie może być już sprzedawanych}}: zobacz listę, aby je wycofać lub zastąpić.",
+      "listTitle": "Niesprzedawalne produkty w Twoim sklepie",
+      "listSubtitle": "{count, plural, =0 {Brak takich produktów.} one {# produktu nie można dziś kupić.} other {# produktów nie można dziś kupić.}}",
+      "listEmpty": "Wszystkie produkty w Twoim sklepie można kupić.",
+      "listCta": "Wycofaj lub zastąp"
+    },
+    "shopDemand": {
+      "title": "Czekający kupujący z Twojego sklepu",
+      "signal": "{count, plural, one {# kupujący z Twojego sklepu czeka na} few {# kupujących z Twojego sklepu czeka na} many {# kupujących z Twojego sklepu czeka na} other {# kupującego z Twojego sklepu czeka na}} {variant} produktu „{product}”.",
+      "noSignal": "Mniej niż trzech kupujących z Twojego sklepu wciąż czeka na ten wariant: brak sygnału.",
+      "why": "Liczeni: różni kupujący z Twojego sklepu, aktywne, niewygasłe prośby, dokładnie ten wariant, dopóki jest wyprzedany. Prośba nie jest gwarantowaną sprzedażą.",
+      "matchSame": "Ta sama referencja (kod kreskowy)",
+      "matchSimilar": "Podobny produkt",
+      "altFacts": "{units} szt. tego wariantu · cena {price} · zarabiasz {net} na sprzedaży (obecnie: {originalNet})",
+      "lowStock": "Mało sztuk tego wariantu.",
+      "missingOptions": "Niektóre opcje oryginalnego produktu nie są oferowane.",
+      "supplier": "Dostawca: {supplier}",
+      "inShop": "Już w Twoim sklepie",
+      "offer": "Zaproponuj w moim sklepie",
+      "confirm": "Potwierdź dodanie",
+      "cancel": "Anuluj",
+      "chosenAdded": "Alternatywa dodana do sklepu. Żądany produkt pozostaje w sprzedaży.",
+      "chosenAlready": "Ta alternatywa jest już w Twoim sklepie.",
+      "chooseFailed": "Nie udało się dodać. Spróbuj ponownie.",
+      "noneReliable": "Żadna wiarygodna alternatywa nie oferuje tego wariantu.",
+      "noneSellable": "Żadna alternatywa możliwa dziś do sprzedaży nie oferuje tego wariantu.",
+      "buyerChoice": "Affisell nigdy automatycznie nie zastępuje żądanego produktu: prośby kupujących pozostają bez zmian, a kupujący wybiera swobodnie.",
+      "backToCatalog": "Wróć do katalogu",
+      "recovery": {
+        "title": "Wyniki Twoich odpowiedzi (90 dni)",
+        "counts": "{shown} wyświetlonych propozycji · {chosen} dodanych alternatyw · {open} próśb bez rozwiązania",
+        "orders": "{orders} opłaconych zamówień wybranych alternatyw w ciągu 30 dni ({refunded} anulowanych lub zwróconych) · {waiting} od czekających kupujących",
+        "caveat": "Zaobserwowany związek, nie dowód, że propozycja spowodowała sprzedaż."
+      }
     }
   },
   "marketplace": {
@@ -3334,7 +3780,7 @@
         "beta": "BETA",
         "multiHint": "Zastosowanie AI ustawi marże dla {count} wybranego/ych wariantu/ów, skalowane według ceny hurtowej.",
         "yourPrice": "Twoja cena",
-        "aiSuggests": "AI sugeruje",
+        "aiSuggests": "Wyliczona sugestia",
         "marketAvg": "Średnia rynkowa",
         "competitors": "Konkurenci",
         "salesPerMonth": "{count} sprzedaży/mies.",
@@ -3353,7 +3799,8 @@
         "noDataBody": "Nie znaleziono jeszcze podobnych ofert w tej kategorii — pokazujemy ogólne oszacowanie wstępne. Poprawi się wraz z rzeczywistą sprzedażą.",
         "salesUnknown": "Brak ostatnich danych sprzedaży",
         "comparableListings": "{count, plural, one {# podobna oferta} other {# podobnych ofert}}",
-        "loadFailed": "Nie udało się wczytać danych rynkowych — spróbuj ponownie."
+        "loadFailed": "Nie udało się wczytać danych rynkowych — spróbuj ponownie.",
+        "ruleNote": "Obliczenie statystyczne na podstawie porównywalnych ofert Affisell – reguła obliczeniowa, a nie model AI. Bez wystarczających danych: cena dostawcy × 1,4."
       },
       "variantMargins": {
         "title": "Warianty i marże",
@@ -4937,6 +5384,12 @@
         "ASSOCIATION": "Partner stowarzyszenia",
         "FOREIGN": "Partner międzynarodowy"
       }
+    },
+    "variantAlternatives": {
+      "title": "Ten wariant ({variant}) jest wyprzedany — dostępne w tym sklepie:",
+      "same": "Ta sama referencja",
+      "similar": "Podobny produkt",
+      "note": "Sugestia: wybrany produkt pozostaje w sprzedaży, wybór należy do Ciebie."
     }
   },
   "success": {
@@ -4976,6 +5429,16 @@
       "pushBody": "Powiadomienia o wysyłce i dostawie na tym urządzeniu — bez spamu.",
       "pushEnable": "Włącz powiadomienia",
       "pushLoading": "Powiadomienia…"
+    },
+    "unallocatedBadge": "Płatność otrzymana",
+    "unallocatedTitle": "Produkt niepotwierdzony",
+    "unallocatedBody": "Otrzymaliśmy Twoją płatność, ale nie udało się potwierdzić produktu. Nie zostanie wysłany.",
+    "unallocatedSome": "{count, plural, one {# produktu nie udało się potwierdzić i nie zostanie wysłany.} few {# produktów nie udało się potwierdzić i nie zostaną wysłane.} many {# produktów nie udało się potwierdzić i nie zostaną wysłane.} other {# produktów nie udało się potwierdzić i nie zostaną wysłane.}}",
+    "unallocatedRefund": {
+      "notTriggered": "Zwrot tej kwoty nie został jeszcze zlecony. Nasz zespół został poinformowany.",
+      "requested": "Zlecono zwrot tej kwoty.",
+      "inProgress": "Zwrot tej kwoty jest w trakcie realizacji.",
+      "confirmed": "Ta kwota została Ci zwrócona. W zależności od banku może minąć kilka dni, zanim pojawi się na wyciągu."
     }
   },
   "cancel": {
@@ -6952,6 +7415,15 @@
       "footerNote": "Nie żądałeś tego? Zignoruj ten email — twoje hasło pozostaje bez zmian.",
       "legal": "© Affisell — rynek afiliacyjny · affisell.com"
     },
+    "emailVerification": {
+      "preview": "Potwierdź swój adres e-mail w Affisell — {accountEmail}",
+      "subject": "Potwierdź swój adres e-mail · {accountEmail}",
+      "badge": "Bezpieczeństwo Affisell · Weryfikacja",
+      "title": "Potwierdź swój adres e-mail",
+      "body": "Właśnie utworzono konto Affisell z tym adresem. Potwierdź, że należy do Ciebie; link wygasa po 48 godzinach.",
+      "cta": "Potwierdź mój adres",
+      "footerNote": "Nie zakładałeś konta? Zignoruj tę wiadomość: adres nie zostanie potwierdzony."
+    },
     "contactAcknowledgment": {
       "preview": "Wiadomość odebrana — Affisell #{ticketRef}",
       "subject": "[Affisell] Wiadomość odebrana — #{ticketRef}",
@@ -6971,6 +7443,26 @@
       "body": "Rozpocząłeś zakup na Affisell. Twoja selekcja jest nadal dostępna — bezpieczna płatność za pomocą Stripe i śledzenie dostawy.",
       "cta": "Wznów mój zakup",
       "footer": "Pytania? Sprawdź FAQ lub asystenta wsparcia na Affisell."
+    },
+    "unallocatedLine": {
+      "subject": "Twoja płatność: nie udało się potwierdzić produktu",
+      "subjectConfirmed": "Zwrot został zrealizowany",
+      "preview": "Część Twojego zakupu nie zostanie wysłana.",
+      "previewConfirmed": "Zwrot został zrealizowany.",
+      "heading": "Nie udało się potwierdzić produktu",
+      "headingConfirmed": "Zwrot zrealizowany",
+      "greeting": "Dzień dobry,",
+      "intro": "Otrzymaliśmy Twoją płatność, ale części Twojego zakupu nie udało się potwierdzić. Te produkty nie zostaną wysłane. Pozostała część zamówienia, jeśli jest, nie jest objęta tą zmianą.",
+      "introConfirmed": "W związku z Twoją niedawną płatnością produkty, których nie udało się potwierdzić, zostały zwrócone.",
+      "amountLine": "Kwota: {amount}",
+      "refund": {
+        "notTriggered": "Zwrot tej kwoty nie został jeszcze zlecony. Nasz zespół został poinformowany i skontaktuje się z Tobą.",
+        "requested": "Zlecono zwrot tej kwoty. Napiszemy do Ciebie, gdy zostanie zrealizowany.",
+        "inProgress": "Zwrot tej kwoty jest w trakcie realizacji.",
+        "confirmed": "Ta kwota została Ci zwrócona. W zależności od banku może minąć kilka dni, zanim pojawi się na wyciągu."
+      },
+      "ctaSupport": "Skontaktuj się z pomocą",
+      "footerNote": "Otrzymujesz tę wiadomość, ponieważ z tego adresu dokonano płatności."
     }
   },
   "errors": {
@@ -7149,6 +7641,7 @@
     "jobToastCsv": "CSV wyeksportowany",
     "jobToastNoDraft": "Brak szkicu katalogu do wystawienia",
     "jobToastListed": "{ok}/{total} produktów wystawiono w sklepie",
+    "jobToastPendingReview": "{count} produkt(ów) czeka na weryfikację przez Affisell: zostaną opublikowane po sprawdzeniu.",
     "jobToastListFailed": "Wystawianie zbiorcze nie powiodło się",
     "arbTip": "Kupiono {cost}€ → Sprzedano {sale}€ = +{margin}€",
     "arbTipScore": "Kupiono {cost}€ → Sprzedano {sale}€ = +{margin}€ | Wynik {score}/100",
@@ -7205,7 +7698,8 @@
       "slaWarning": "poza typowym SLA",
       "provenanceLabel": "Pochodzenie",
       "complianceLabel": "Wymogi zgodności",
-      "complianceCount": "{count, plural, one {# wymóg} few {# wymogi} many {# wymogów} other {# wymogu}}"
+      "complianceCount": "{count, plural, one {# wymóg} few {# wymogi} many {# wymogów} other {# wymogu}}",
+      "supplierAffisell": "Dostawca Affisell"
     },
     "sla": {
       "singleMarket": "Dla {code}, rozsądna dostawa: {idealDays}–{maxDays} dni. Powyżej {maxDays} dni wskaźnik zwrotów wzrasta o ~40%.",
@@ -7766,6 +8260,14 @@
     "lastAnalysis": "Ostatnia analiza {when}",
     "refreshing": "Odświeżanie…",
     "tagline": "Sygnały e-commerce · Arbitrage Score™ · Nasycenie · Affisell Supplier Match",
+    "demoBadge": "DEMO",
+    "demoBannerMock": "Dane demonstracyjne: te winnery pochodzą z reguły obliczeniowej, a nie z prawdziwego skanu rynku. Nie używaj ich jako sygnału sprzedaży.",
+    "demoBannerMixed": "Dane mieszane: część wierszy jest symulowana (oznaczona „Demo”).",
+    "demoBannerDemo": "Ręcznie napisane dane przykładowe: brak prawdziwego skanu.",
+    "scoresAreRules": "Arbitrage Score™ i Nasycenie to wzory (reguły), a nie model AI.",
+    "trendingDemo": "Słowa kluczowe demonstracyjne: ręcznie napisana lista z losowymi wahaniami, bez pomiaru rynku.",
+    "trendingNone": "Brak prawdziwych słów kluczowych trendów dla tego rynku: żadne źródło trendów nie zwróciło danych (nic nie jest zmyślane).",
+    "countriesMockNotice": "Baza danych Radaru jest niedostępna: lista rynków jest pokazana bez danych ze skanowania. Każdy rynek otwiera się w trybie demo.",
     "searchLabel": "Szukaj",
     "searchPlaceholder": "Szukaj produktu, kraju…",
     "comingSoon": "Wkrótce dostępne",
@@ -8307,7 +8809,15 @@
     "curve24": "Wykres 24 godz.",
     "copyWinner": "Skopiuj tego winnera → Import w 10 s",
     "fullPage": "Zobacz pełną stronę",
-    "tickerAgo": "{n} min temu"
+    "tickerAgo": "{n} min temu",
+    "badgeLive": "LIVE",
+    "badgeMixed": "MIESZANE",
+    "badgeDemo": "DEMO",
+    "demoNotice": "Dane demonstracyjne: te zdarzenia są generowane, aby wypełnić globus, i nie odpowiadają żadnej prawdziwej sprzedaży.",
+    "mixedNotice": "Dane mieszane: część zdarzeń jest generowana, aby wypełnić globus (oznaczone „demo”).",
+    "demoEvent": "demo",
+    "demoEventNotice": "Zdarzenie demonstracyjne: wygenerowane, aby wypełnić globus, bez prawdziwej sprzedaży ani importu.",
+    "estimatedLocation": "Szacowana lokalizacja: miasto jest wybierane automatycznie, to nie jest rzeczywiste miejsce zdarzenia."
   },
   "radarPricing": {
     "starterEyebrow": "Próba sygnału",
@@ -8706,7 +9216,11 @@
     "browseCatalog": "Przeglądaj katalog",
     "reviewMargins": "Sprawdź moje marże",
     "viewInvitation": "Zobacz zaproszenie",
-    "viewAffiliateInvites": "Zobacz zaproszenia resellerów"
+    "viewAffiliateInvites": "Zobacz zaproszenia resellerów",
+    "viewProfitAlert": "Zobacz alert",
+    "viewReplacement": "Wycofaj lub zastąp",
+    "viewUnsellableList": "Zobacz listę",
+    "viewBlockedDemand": "Zobacz zablokowane produkty"
   },
   "aiConnect": {
     "title": "Połącz AI",
@@ -8830,5 +9344,520 @@
       "dimensions": "Wymiary"
     },
     "returnWindowBadge": "Zwrot możliwy w ciągu {days} dni"
+  },
+  "supplierReturns": {
+    "disposition": {
+      "title": "Zwrócony towar — inspekcja i decyzja",
+      "outcomeLabel": "Stwierdzony stan",
+      "noteLabel": "Notatka (co Pan/Pani zauważył/a)",
+      "record": "Zapisz inspekcję",
+      "decideRestock": "Zatwierdź przywrócenie na stan",
+      "decideKeepOut": "Nie przywracaj na stan",
+      "decisionNoteLabel": "Powód decyzji",
+      "timeline": "Historia",
+      "stage": {
+        "awaiting_reception": "Oczekuje na odbiór",
+        "awaiting_inspection": "Do inspekcji",
+        "inspected_not_resellable": "Sprawdzony — nie do odsprzedaży",
+        "awaiting_decision": "Do odsprzedaży — wymagana decyzja",
+        "kept_out": "Poza stanem",
+        "restock_validated_not_applied": "Przywrócenie zatwierdzone — niezastosowane",
+        "restocked": "Przywrócony na stan"
+      },
+      "outcome": {
+        "resellable": "Do odsprzedaży (jak nowy, kompletny)",
+        "damaged": "Uszkodzony",
+        "defective": "Wadliwy",
+        "missing_parts": "Brakujące części",
+        "wrong_item_returned": "Zwrócono niewłaściwy artykuł",
+        "not_received": "Nic nie otrzymano"
+      },
+      "event": {
+        "received": "Odebrano",
+        "inspected": "Sprawdzono",
+        "decided": "Decyzja",
+        "restocked": "Przywrócono na stan ({qty})"
+      },
+      "decision": {
+        "restock": "przywrócenie zatwierdzone",
+        "keep_out": "poza stanem"
+      },
+      "modeOff": "Automatyczne przywracanie na stan jest wyłączone w Affisell: decyzja jest zapisana, stan się nie zmienia.",
+      "modeObserve": "Tryb obserwacji: decyzja jest zapisana, przywrócenie jest tylko obliczane.",
+      "inspectionSaved": "Inspekcja zapisana.",
+      "decisionSaved": "Decyzja zapisana.",
+      "restocked": "Jednostki przywrócone na stan.",
+      "error": "Operacja nie powiodła się.",
+      "errNotResellable": "Ostatnia inspekcja nie pozwala na przywrócenie na stan.",
+      "errNotInspected": "Najpierw sprawdź towar.",
+      "errAlreadyRestocked": "Już przywrócono na stan."
+    }
+  },
+  "catalogHealth": {
+    "title": "Kondycja Twojego katalogu",
+    "subtitle": "Co blokuje sprzedaż Twoich produktów, uporządkowane według zaobserwowanego wpływu handlowego. Każdy punkt wskazuje dane, na których się opiera.",
+    "summary": "{checked, plural, one {# produkt sprawdzony} few {# produkty sprawdzone} many {# produktów sprawdzonych} other {# produktu sprawdzonego}} · {blocked, plural, =0 {żaden nie jest zablokowany} one {# zablokowany} other {# zablokowanych}} · {healthy, plural, =0 {żaden w sprzedaży bez problemów} one {# w sprzedaży bez problemów} other {# w sprzedaży bez problemów}}",
+    "truncated": "Analizowanych jest tylko 1000 Twoich najnowszych produktów.",
+    "loading": "Analiza katalogu…",
+    "error": "Nie udało się wczytać analizy.",
+    "retry": "Spróbuj ponownie",
+    "filterLabel": "Filtruj według typu",
+    "filterAll": "Wszystko ({count})",
+    "emptyCatalogue": "Nie masz jeszcze produktów.",
+    "nothingHere": "Brak uwag w tej kategorii.",
+    "showMore": "Pokaż jeszcze {count}",
+    "openLink": "Zobacz pełną kondycję katalogu",
+    "demandLine": "{orders, plural, =0 {brak opłaconych zamówień} one {# opłacone zamówienie} other {# opłaconych zamówień}} w 30 dni · {resellers, plural, =0 {żaden sprzedawca} one {# sprzedawca go oferuje} other {# sprzedawców go oferuje}}",
+    "method": "Kolejność: najpierw problemy produktów, które się sprzedają lub które oferują sprzedawcy (opłacone zamówienia w 30 dni i zaobserwowani sprzedawcy). To nie jest prognoza. Rekomendacje są dobrowolne.",
+    "class": {
+      "blocage": {
+        "label": "Blokada",
+        "definition": "Rzeczywiście uniemożliwia dziś operację (zakup, publikację lub przypisanie sprzedaży)."
+      },
+      "anomalie": {
+        "label": "Anomalia",
+        "definition": "Dane niespójne lub prawdopodobnie błędne — mogą być poprawne: Ty potwierdzasz."
+      },
+      "avertissement": {
+        "label": "Ostrzeżenie",
+        "definition": "Ryzyko lub informacja warta uwagi. Nic nie jest zablokowane."
+      },
+      "recommandation": {
+        "label": "Rekomendacja",
+        "definition": "Dobrowolne ulepszenie. Nic nie jest obowiązkowe."
+      }
+    },
+    "source": {
+      "fiche": "Źródło: Twoja karta produktu",
+      "observe": "Źródło: zaobserwowane zamówienia i sprzedawcy",
+      "affisell": "Źródło: reguła lub decyzja Affisell",
+      "calcul": "Źródło: obliczone z Twoich danych"
+    },
+    "fix": {
+      "edit": "Otwórz produkt",
+      "hold": "Affisell wycofał ten produkt ze sprzedaży: nie możesz sam przywrócić go do sprzedaży. Szczegóły są na karcie produktu; kontakt odbywa się przez wsparcie Affisell.",
+      "stockLabel": "Rzeczywiście dostępna ilość",
+      "stockSave": "Zapisz",
+      "saving": "Zapisywanie…",
+      "stockSaved": "Ilość zapisana.",
+      "stockError": "Nie udało się zapisać ilości.",
+      "stockInvalid": "Podaj liczbę całkowitą."
+    },
+    "issues": {
+      "held_by_affisell": {
+        "title": "Wycofany ze sprzedaży przez Affisell",
+        "why": "{hold, select, product_recalled {Trwa wycofanie tego produktu ze względów bezpieczeństwa.} other {Affisell zawiesił ten produkt.}} Nikt nie może go kupić, dopóki nie zostanie to zniesione."
+      },
+      "price_missing": {
+        "title": "Brak ceny",
+        "why": "Cena katalogowa jest pusta lub zerowa: produktu nie można sprzedać."
+      },
+      "commission_not_explicit": {
+        "title": "Brak prowizji dla sprzedawców",
+        "why": "Bez wyraźnej prowizji opłacona sprzedaż nie może stać się zamówieniem: zostaje odłożona i musi zostać zwrócona."
+      },
+      "out_of_stock": {
+        "title": "Wyprzedany",
+        "why": "Dostępna ilość: 0. Karta produktu pokazuje « wyprzedany », nikt nie może go kupić."
+      },
+      "safety_blocks_publication": {
+        "title": "Publikacja odrzucona: bezpieczeństwo produktu",
+        "why": "Brakuje {missingCount, plural, one {# informacji o bezpieczeństwie produktu} other {# informacji o bezpieczeństwie produktu}} (producent, adres, osoba odpowiedzialna w UE…). Kontrola jest stosowana: publikacja jest odrzucana."
+      },
+      "stock_nominal": {
+        "title": "Ilość do potwierdzenia",
+        "why": "Ilość {stock}: wartość typowa dla importu lub asystenta, niekoniecznie Twój rzeczywisty stan."
+      },
+      "variant_stock_mismatch": {
+        "title": "Stany się nie zgadzają",
+        "why": "Stan produktu ({productStock}) nie odpowiada sumie wariantów ({rowsTotal})."
+      },
+      "variant_stock_untracked": {
+        "title": "Nieznany stan wariantów",
+        "why": "Ilości wariantów nie ma w tabeli odczytywanej przy zakupie: rzeczywista dostępność jest nieznana."
+      },
+      "delivery_window_inverted": {
+        "title": "Niespójny czas dostawy",
+        "why": "Minimalny czas ({min} dni) jest dłuższy niż maksymalny ({max} dni)."
+      },
+      "duplicate_name": {
+        "title": "Możliwy duplikat",
+        "why": "{others, plural, one {# inny Twój produkt ma} other {# innych Twoich produktów ma}} tę samą nazwę: duplikat albo nazwy do rozróżnienia dla sprzedawców."
+      },
+      "hold_unverifiable": {
+        "title": "Nie można sprawdzić statusu",
+        "why": "Nie udało się odczytać statusu wycofania lub zawieszenia. Spróbuj później."
+      },
+      "safety_data_missing": {
+        "title": "Brakuje informacji o bezpieczeństwie produktu",
+        "why": "Brakuje {missingCount, plural, one {# informacji} other {# informacji}}. Dziś nie jest to odrzucane (kontrola w trybie obserwacji{live, select, 1 {, produkt już opublikowany} other {}}), ale nowa publikacja może zostać odrzucona, gdy kontrola zostanie włączona."
+      },
+      "paused_but_listed": {
+        "title": "Wstrzymany, choć oferują go sprzedawcy",
+        "why": "Wstrzymałeś go; {resellers, plural, one {# sprzedawca go oferuje} other {# sprzedawców go oferuje}} bez możliwości sprzedaży."
+      },
+      "low_stock": {
+        "title": "Niski stan",
+        "why": "Zostało tylko {available, plural, one {# sztuka} few {# sztuki} other {# sztuk}} ({paidOrders30d, plural, =0 {brak opłaconych zamówień} one {# opłacone zamówienie} other {# opłaconych zamówień}} w 30 dni)."
+      },
+      "no_photo": {
+        "title": "Brak zdjęcia",
+        "why": "Bez zdjęcia produkt jest mało widoczny i trudny do zaprezentowania dla sprzedawców."
+      },
+      "no_category": {
+        "title": "Brak kategorii",
+        "why": "Sprzedawcy nie znajdą go przez filtry kategorii katalogu."
+      },
+      "no_reseller": {
+        "title": "Żaden sprzedawca go nie oferuje",
+        "why": "W sprzedaży od {ageDays} dni, żaden sklep go nie oferuje: nie jest nigdzie sprzedawany."
+      },
+      "listed_no_sales": {
+        "title": "Oferowany, ale niesprzedawany",
+        "why": "{resellers, plural, one {# sprzedawca go oferuje} other {# sprzedawców go oferuje}}, brak opłaconych zamówień w ciągu {days} dni. Przyczyną może być cena, zdjęcia lub opis — to trop, nie stwierdzenie."
+      },
+      "draft_ready": {
+        "title": "Szkic gotowy do publikacji",
+        "why": "Cena, ilość, prowizja i zdjęcie są uzupełnione. Opublikuj go, jeśli chcesz."
+      },
+      "few_photos": {
+        "title": "Mało zdjęć",
+        "why": "{photos, plural, one {# zdjęcie} few {# zdjęcia} other {# zdjęć}}. Dobrowolnie: kilka ujęć pomaga sprzedawcom go zaprezentować."
+      },
+      "short_description": {
+        "title": "Krótki opis",
+        "why": "{characters} znaków. Dobrowolnie: pełniejszy opis pomaga kupującemu podjąć decyzję."
+      },
+      "no_gtin": {
+        "title": "Brak kodu kreskowego",
+        "why": "Dobrowolnie: GTIN / EAN pozwala sprawdzać europejskie alerty bezpieczeństwa i wykrywać duplikaty."
+      },
+      "stock_unconfirmed": {
+        "title": "Ilość do potwierdzenia",
+        "why": "Zaimportowano bez ilości ze źródła: stan 0 i publikacja odrzucana, dopóki nie podasz rzeczywiście dostępnej ilości."
+      },
+      "stock_cover_short": {
+        "title": "Szybkie wyczerpanie przy obecnym tempie",
+        "why": "Zadeklarowany zapas: {available} szt. Przy tempie z ostatnich 30 dni ({units30d, plural, one {# sprzedana sztuka} few {# sprzedane sztuki} many {# sprzedanych sztuk} other {# sprzedanych sztuk}}) wystarczy na około {days, plural, =0 {mniej niż dzień} one {# dzień} other {# dni}}, poniżej orientacyjnego progu {threshold} dni{leadKnown, select, 1 { (Twój zadeklarowany czas uzupełnienia: {leadTimeDays} dni)} other {}}.{reservedNotDeducted, select, 1 { Jeśli {reserved} szt. z opłaconych, niewysłanych zamówień nadal liczy się w tym zapasie, wystarczy tylko na {daysIfReserved} dni.} other {}}{stale, select, 1 { Karta nie była zmieniana od {sheetAgeDays} dni: sprawdź, czy zadeklarowana ilość jest aktualna.} other {}} Obliczenie orientacyjne, nie prognoza."
+      },
+      "variant_rows_indistinct": {
+        "title": "Warianty nie do odróżnienia",
+        "why": "Warianty ({rows}: {labels}) mają ten sam kolor, rozmiar i pojemność: kupujący nie może wybrać między nimi, a ich zapas nigdy nie jest odejmowany. Nadaj im różne nazwy."
+      }
+    },
+    "availability": {
+      "title": "Dostępność w sklepach Twoich sprzedawców",
+      "none": "Żaden z Twoich produktów oferowanych przez sprzedawców nie ma problemu z dostępnością.",
+      "summaryBlocked": "{products, plural, one {# produktu nie można kupić} few {# produktów nie można kupić} many {# produktów nie można kupić} other {# produktów nie można kupić}} w {shops, plural, one {# sklepie sprzedawcy} other {# sklepach sprzedawców}}. W ostatnich 30 dniach te produkty miały {orders, plural, =0 {zero opłaconych zamówień} one {# opłacone zamówienie} few {# opłacone zamówienia} many {# opłaconych zamówień} other {# opłaconych zamówień}} ({amount} dla Ciebie).",
+      "summaryAtRisk": "{products, plural, one {# produkt nadal w sprzedaży może} few {# produkty nadal w sprzedaży mogą} many {# produktów nadal w sprzedaży może} other {# produktów nadal w sprzedaży może}} wkrótce przestać być dostępny ({shops, plural, one {# sklep} few {# sklepy} many {# sklepów} other {# sklepów}}).",
+      "shopsBlocked": "Niedostępny do sprzedaży w {shops, plural, one {# sklepie sprzedawcy} other {# sklepach sprzedawców}}.",
+      "shopsAtRisk": "W sprzedaży w {shops, plural, one {# sklepie sprzedawcy} other {# sklepach sprzedawców}}, ale zagrożony.",
+      "observed": "Ostatnie 30 dni: {orders, plural, =0 {zero opłaconych zamówień} one {# opłacone zamówienie} few {# opłacone zamówienia} many {# opłaconych zamówień} other {# opłaconych zamówień}}, {units, plural, =0 {zero sztuk} one {# sztuka} few {# sztuki} many {# sztuk} other {# sztuk}}, {amount} dla Ciebie (przed zwrotami).",
+      "lastSale": "Ostatnia sprzedaż {days, plural, =0 {mniej niż dzień temu} one {# dzień temu} other {# dni temu}}.",
+      "neverSold": "Nigdy nie sprzedany.",
+      "cause": "Przyczyna:",
+      "also": "Również:",
+      "severity": {
+        "blocked": "Niesprzedawalny",
+        "at_risk": "Zagrożony"
+      },
+      "reactivate": "Przywróć do sprzedaży",
+      "reactivating": "Przywracanie…",
+      "reactivated": "Produkt znów w sprzedaży.",
+      "reactivateError": "Nie udało się przywrócić do sprzedaży.",
+      "refused": {
+        "product_recalled": "Odmowa: trwa wycofanie ze względów bezpieczeństwa.",
+        "product_suspended": "Odmowa: Affisell zawiesił ten produkt.",
+        "stock_unconfirmed": "Odmowa: najpierw podaj w karcie produktu faktycznie dostępną ilość."
+      },
+      "showAll": "Pokaż wszystkie produkty ({count})",
+      "showLess": "Pokaż mniej",
+      "method": "Ustalone na podstawie Twoich opłaconych zamówień i sklepów Twoich sprzedawców; kwoty przed zwrotami. To, co te produkty sprzedawały, a nie prognoza straty.",
+      "stockLine": "Zadeklarowany zapas: {declared} {confirmed, select, 1 {(potwierdzony przez Ciebie)} other {(niepotwierdzony)}} · zarezerwowane (opłacone, niewysłane zamówienia): {reserved} {deducted, select, 1 {(już odjęte od zapasu)} other {(nieodjęte przez Affisell)}}",
+      "declaredUnknown": "Zadeklarowany zapas: nieznany (ilości wariantów nieczytelne)",
+      "restockTitle": "Obliczenie uzupełnienia — do przeczytania, nic nie jest wpisywane ani stosowane",
+      "restockMain": "Aby pokryć {target} dni po czasie uzupełnienia {lead} dni, przy zaobserwowanym tempie: około {units} szt. (od {low} do {high} zależnie od zmienności sprzedaży).",
+      "restockZero": "Przy zaobserwowanym tempie dostępny zapas już pokrywa {target} dni po czasie uzupełnienia.",
+      "restockExplain": "Szczegóły: potrzeba {needed} szt. ({sold} sprzedanych w 30 dni, przeliczone na {lead} + {target} dni) − {available} szt. dostępnych.",
+      "restockLeadNotDeclared": "Czas uzupełnienia niezadeklarowany: obliczenie liczy 0 dni. Zadeklaruj go w « Koszty zaopatrzenia » na karcie produktu.",
+      "restockReservedNote": "{reserved} zarezerwowanych szt. (opłaconych, niewysłanych, nieodjętych przez Affisell) odjęto w tym obliczeniu od zadeklarowanego zapasu, dla ostrożności."
+    },
+    "blockedDemand": {
+      "title": "Popyt zablokowany przez niedostępność",
+      "subtitle": "Twoje produkty oferowane przez sprzedawców, które się sprzedawały lub za które kupujący zapłacili, a których dziś nie można kupić. Liczą się tylko stwierdzone fakty – nigdy wizyta ani samo zainteresowanie.",
+      "empty": "Obecnie brak zablokowanego popytu na Twoje produkty.",
+      "bellSingle": "Kupujący nie mogą już zamówić „{product}”: jest niedostępny w sklepach Twoich sprzedawców.",
+      "bellDigest": "{count} Twoich produktów sprzedawanych przez Twoich sprzedawców nie można już zamówić.",
+      "cause": {
+        "out_of_stock": "Wyprzedane: dostępna ilość wynosi 0.",
+        "stock_unconfirmed": "Ilość nigdy nie potwierdzona: produkt nie może być sprzedawany, dopóki nie zostanie potwierdzona.",
+        "paused_by_supplier": "Wstrzymany lub niepublikowany w Twojej karcie produktu.",
+        "no_commission": "Brak wyraźnej prowizji sprzedawcy: sprzedaży nie można by zarejestrować."
+      },
+      "fix": {
+        "update_stock": "Zaktualizuj ilość",
+        "confirm_stock": "Potwierdź ilość",
+        "reactivate": "Przywróć do sprzedaży",
+        "set_commission": "Ustaw prowizję"
+      },
+      "ordersBefore": "{count, plural, one {# opłacone zamówienie} few {# opłacone zamówienia} many {# opłaconych zamówień} other {# opłaconego zamówienia}} w 30 dniach przed niedostępnością (stwierdzone)",
+      "ordersSince": "{count, plural, one {# opłacone zamówienie} few {# opłacone zamówienia} many {# opłaconych zamówień} other {# opłaconego zamówienia}} od tego czasu (stwierdzone)",
+      "failedLines": "{count, plural, one {# otrzymana płatność nie mogła stać się zamówieniem} few {# otrzymane płatności nie mogły stać się zamówieniami} many {# otrzymanych płatności nie mogło stać się zamówieniami} other {# otrzymanej płatności nie mogło stać się zamówieniami}} z powodu niedostępności (stwierdzone; kupujący otrzymali lub otrzymają zwrot)",
+      "shops": "W {count, plural, one {# sklepie sprzedawcy} other {# sklepach sprzedawców}}",
+      "lastSale": "Ostatnie opłacone zamówienie: {date}",
+      "since": "Niedostępny najpóźniej od {date} ({days, plural, =0 {dziś} one {# dzień} other {# dni}})",
+      "sinceUnknown": "Data rozpoczęcia nie została jeszcze zarejestrowana przez codzienny monitoring.",
+      "estimate": "Szacunek: w tempie poprzednich 30 dni około {orders} zamówień (od {low} do {high}) w tym okresie. To nie jest stwierdzona strata.",
+      "note": "Nie jest wyświetlana żadna nazwa ani dane konkretnego sprzedawcy. Nic nie jest zmieniane automatycznie: to Ty aktualizujesz kartę produktu.",
+      "pref": "Powiadamiaj mnie dzwonkiem (najwyżej jedno powiadomienie dziennie)",
+      "prefSaved": "Preferencja zapisana",
+      "truncated": "Odczyt ograniczony: lista może być niepełna.",
+      "riskSingle": "Zapas „{product}” może się wyczerpać za około {days} dni, przed uzupełnieniem.",
+      "attentionDigest": "{count} Twoich produktów sprzedawanych przez sprzedawców wymaga uwagi (niedostępne, wyprzedane w niektórych rozmiarach lub kolorach albo wkrótce wyprzedane).",
+      "variantSoldOutSingle": "„{product}”: {count, plural, one {wariant {labels} jest wyprzedany} few {# warianty są wyprzedane ({labels})} many {# wariantów jest wyprzedanych ({labels})} other {# wariantu jest wyprzedane ({labels})}}, choć kupujący go zamawiali; {available, plural, =0 {żaden inny nie jest w sprzedaży} one {# inny jest nadal w sprzedaży} few {# inne są nadal w sprzedaży} many {# innych jest nadal w sprzedaży} other {# innego jest nadal w sprzedaży}}.",
+      "variantRiskSingle": "„{product}”: {count, plural, one {wariant {labels} może się wyczerpać} few {# warianty mogą się wyczerpać ({labels})} many {# wariantów może się wyczerpać ({labels})} other {# wariantu może się wyczerpać ({labels})}} przed uzupełnieniem zapasu."
+    },
+    "stockout": {
+      "title": "Braki do przewidzenia",
+      "subtitle": "Twoje produkty w sklepach sprzedawców, których zapas może się wyczerpać przed dostawą uzupełnienia. Fakty, obliczenia, założenia i ograniczenia są pokazane osobno; nic nie jest zamawiane ani zmieniane.",
+      "empty": "Na razie brak produktów do obserwacji.",
+      "truncated": "Odczyt ograniczony: lista może być niepełna.",
+      "risk": {
+        "sous_le_delai": "Wyczerpanie przed uzupełnieniem, nawet przy wolnym tempie",
+        "probable": "Wyczerpanie przed uzupełnieniem prawdopodobne",
+        "a_surveiller": "Do obserwacji",
+        "suffisant": "Wystarczające pokrycie",
+        "non_evaluable": "Nie do oceny"
+      },
+      "confidence": {
+        "high": "wysoka pewność",
+        "medium": "średnia pewność",
+        "low": "niska pewność"
+      },
+      "factsTitle": "Fakty",
+      "calcTitle": "Obliczenie",
+      "declared": "Zadeklarowany zapas: {units}",
+      "declaredUnknown": "Zadeklarowany zapas nieznany (warianty nieśledzone)",
+      "reservedDeducted": "Zarezerwowane jednostki (opłacone, niewysłane zamówienia): {units}, już odjęte przez platformę",
+      "reservedNotDeducted": "Zarezerwowane jednostki (opłacone, niewysłane zamówienia): {units}, wciąż wliczone w zadeklarowany zapas",
+      "sold": "Sprzedane jednostki w 30 dni: {units}, w {days} różnych dniach",
+      "confirmedOn": "Ilość potwierdzona: {date}",
+      "neverConfirmed": "Ilość nigdy niepotwierdzona",
+      "sheetAge": "Karta zmieniona {days} dni temu (to nie jest potwierdzenie zapasu)",
+      "leadKnown": "Zadeklarowany czas uzupełnienia: {days} dni",
+      "leadUnknown": "Czas uzupełnienia niezadeklarowany",
+      "available": "Dostępne po rezerwacjach: {units}",
+      "pace": "Tempo: {pace} dziennie (od {low} do {high})",
+      "cover": "Szacowane pokrycie: {days} dni (od {low} do {high})",
+      "coverOpen": "Szacowane pokrycie: {days} dni (co najmniej {low})",
+      "comparedLead": "W porównaniu z zadeklarowanym czasem {days} dni",
+      "comparedIndicative": "W porównaniu z orientacyjnym czasem {days} dni (Twój nie jest zadeklarowany)",
+      "notCalculated": "Brak obliczenia: dane na to nie pozwalają (zob. ograniczenia).",
+      "hypothesesTitle": "Założenia:",
+      "hypothesis": {
+        "pace_constant": "tempo ostatnich 30 dni się utrzyma",
+        "no_incoming_restock": "Affisell nie zna żadnego trwającego uzupełnienia",
+        "lead_time_indicative": "czas 14 dni jest orientacyjny"
+      },
+      "limitsTitle": "Ograniczenia:",
+      "limit": {
+        "too_few_sales": "mniej niż 5 sprzedaży w 30 dni",
+        "sales_on_few_days": "sprzedaż w mniej niż 3 dni",
+        "declared_unknown": "zadeklarowany zapas nieznany",
+        "never_confirmed": "ilość nigdy niepotwierdzona",
+        "confirmation_old": "potwierdzenie starsze niż 30 dni",
+        "confirmation_too_old": "potwierdzenie starsze niż 120 dni: ilość nieużywalna",
+        "unconfirmed_marker": "zaimportowana ilość nigdy niepotwierdzona",
+        "lead_time_unknown": "czas uzupełnienia niezadeklarowany"
+      },
+      "action": {
+        "restock_now": "Uzupełnij teraz",
+        "plan_restock": "Zaplanuj uzupełnienie",
+        "confirm_quantity": "Potwierdź lub popraw ilość",
+        "declare_lead_time": "Zadeklaruj czas uzupełnienia"
+      },
+      "openSheet": "Otwórz kartę produktu",
+      "confirmButton": "Ilość {units} jest prawidłowa",
+      "confirmResult": {
+        "ok": "Ilość potwierdzona.",
+        "quantity_changed": "Ilość zmieniła się w międzyczasie: odśwież stronę.",
+        "unconfirmed_import": "Ilość zaimportowana: wpisz ją w karcie.",
+        "quantity_unknown": "Ilość nieznana: użyj karty.",
+        "error": "Potwierdzenie chwilowo niemożliwe."
+      },
+      "note": "Obliczenie, nie pewność. Żadne zamówienie uzupełnienia nie jest tworzone ani wysyłane. Twoi sprzedawcy nie widzą tych informacji."
+    },
+    "variantStock": {
+      "title": "Zapas według wariantu",
+      "subtitle": "Wystarczająca suma może ukrywać wyczerpany rozmiar lub kolor. Każdy wariant jest oceniany na podstawie własnego zapasu, sprzedaży i rezerwacji; suma nigdy nie jest rozdzielana między warianty.",
+      "empty": "Brak wyczerpanych lub zagrożonych wariantów Twoich produktów w sklepach.",
+      "truncated": "Odczyt ograniczony: lista może być niepełna.",
+      "shops": "{count, plural, one {# sklep sprzedawcy} few {# sklepy sprzedawców} many {# sklepów sprzedawców} other {# sklepu sprzedawców}}",
+      "notTracked": "Warianty tego produktu nie są śledzone osobno (brak zapasu na wiersz): nie można określić, który się wyczerpuje. Nie do oceny.",
+      "partial": "{count, plural, one {# wariant wyczerpany} few {# warianty wyczerpane} many {# wariantów wyczerpanych} other {# wariantu wyczerpanego}}, podczas gdy inne są nadal w sprzedaży",
+      "col": {
+        "variant": "Wariant",
+        "declared": "Zadeklarowany zapas",
+        "sold": "Stwierdzona sprzedaż (90 dni)",
+        "cover": "Szacowane pokrycie",
+        "state": "Stan"
+      },
+      "unknown": "nieznany",
+      "soldValue": "{units} ({pct}% sprzedaży)",
+      "noSale": "brak stwierdzonej sprzedaży",
+      "resellers": "sprzedawany przez sprzedawców: {count}",
+      "resellersFew": "sprzedawany przez mniej niż 2 sprzedawców",
+      "coverValue": "{days} dni (co najmniej {low})",
+      "ambiguous": "niejednoznaczny: nazwa wspólna dla dwóch wierszy",
+      "notEvaluable": "nie do oceny",
+      "soldOut": "wyczerpany",
+      "unattributed": "Jednostki sprzedane bez rozpoznanego wariantu: {units} — liczone osobno, nigdy nie rozdzielane.",
+      "confirmationScope": "Potwierdzenie ilości dotyczy całej karty.",
+      "fixTrack": "Śledź zapas według wariantu w karcie",
+      "fixRows": "Zaktualizuj ilość wariantu",
+      "note": "Stwierdzona sprzedaż i obliczenia są oddzielone. Wyczerpany wariant nie jest przedstawiany jako utracona sprzedaż: w danych Affisell żadna nieudana sprzedaż nie jest przypisana do wariantu. Nie jest wyświetlana żadna nazwa sprzedawcy.",
+      "waitingBuyers": "{count, plural, one {# kupujący czeka na powrót} few {# kupujących czeka na powrót} many {# kupujących czeka na powrót} other {# kupującego czeka na powrót}}"
+    },
+    "restockDemand": {
+      "title": "Kupujący czekający na uzupełnienie",
+      "subtitle": "Wyprzedane warianty, dla których co najmniej {min} różnych kupujących poprosiło o powiadomienie o powrocie.",
+      "buyers": "{count, plural, one {# kupujący czeka} few {# kupujących czeka} many {# kupujących czeka} other {# kupującego czeka}} na powrót",
+      "fix": "Zaktualizuj ilość",
+      "truncated": "Bardzo duży katalog: sprawdzono tylko część produktów.",
+      "disclaimer": "Wyraźne prośby kupujących, liczone raz na kupującego i wariant. To wskazówka rzeczywistego popytu, nie prognoza sprzedaży: powiadomiony kupujący może nie kupić.",
+      "noneNow": "Żaden wariant nie osiąga teraz progu.",
+      "followUp": {
+        "title": "Śledzenie popytu (ostatnie 90 dni)",
+        "counts": "{episodes} zgrupowanych próśb: {waiting} oczekujących, {returned} wariantów ponownie dostępnych, {lapsed} zamkniętych bez powrotu.",
+        "delay": "Mediana czasu od prośby do powrotu: {days} dni.",
+        "orders": "Po powrotach: {orders} zamówień tych wariantów, w tym {refunded} zwróconych lub anulowanych, {waitingBuyers} od czekających kupujących.",
+        "notEvaluable": "Dla {count} powrotów zamówień nie można przypisać do wariantu (nie liczone).",
+        "partial": "{count} powrotów z mniejszą liczbą sztuk niż czekających kupujących.",
+        "resoldOut": "{count} wariantów ponownie wyprzedanych po powrocie.",
+        "caveat": "To, co nastąpiło po prośbach, stwierdzone. Zamówienie po uzupełnieniu nie dowodzi, że spowodowała je prośba lub rekomendacja."
+      }
+    },
+    "listingQuality": {
+      "title": "Co idzie w parze z większą sprzedażą na Affisell",
+      "intro": "Na Affisell w ciągu {days} dni karty z tymi elementami sprzedawały więcej na dzień w sklepie niż karty tej samej kategorii, przedziału cenowego i wieku bez nich. Te karty jeszcze ich nie mają:",
+      "evidence": "Na Affisell: {ratio}× więcej sprzedaży na dzień w sklepie (co najmniej {lo}×, z marginesem błędu).",
+      "cta": "Uzupełnij kartę",
+      "caveat": "Zaobserwowany związek, nie obietnica: ruch w sklepach, cena sprzedawcy i inne czynniki nie są mierzone. Nic nie zmienia się bez Ciebie.",
+      "feature": {
+        "photos_3plus": "Dodaj co najmniej 3 zdjęcia.",
+        "photos_5plus": "Dodaj co najmniej 5 zdjęć.",
+        "title_precise": "Doprecyzuj tytuł (co najmniej 3 słowa, bez samych wielkich liter).",
+        "description_200plus": "Napisz opis o długości co najmniej 200 znaków.",
+        "specs_3plus": "Uzupełnij co najmniej 3 cechy.",
+        "variants_distinct": "Spraw, by każdy wariant był rozróżnialny (kolor, rozmiar, pojemność).",
+        "gtin_valid": "Podaj prawidłowy kod kreskowy (GTIN).",
+        "brand_declared": "Podaj markę.",
+        "delivery_declared": "Podaj czas dostawy.",
+        "return_extended": "Zaproponuj termin zwrotu dłuższy niż 14 dni.",
+        "safety_complete": "Uzupełnij informacje o bezpieczeństwie produktu.",
+        "stock_confirmed": "Podaj rzeczywistą ilość w magazynie."
+      }
+    }
+  },
+  "nextActions": {
+    "title": "Twoje następne działania",
+    "subtitle": "Od jednego do trzech działań z Twoich własnych danych.",
+    "honesty": "Potencjalny wpływ: to, co zaobserwowano dla tego produktu w ciągu ostatnich 30 dni, a nie obiecany wynik.",
+    "priority": {
+      "haute": "Wysoki priorytet",
+      "moyenne": "Średni priorytet",
+      "basse": "Niski priorytet"
+    },
+    "kind": {
+      "fix_blocage": "Odblokuj « {product} »",
+      "resolve_availability": "Ureguluj dostępność « {product} »",
+      "promote_to_resellers": "Pokaż « {product} » sprzedawcom",
+      "publish_draft": "Opublikuj « {product} »",
+      "complete_sheet": "Ulepsz kartę « {product} »",
+      "fix_shop_listing": "Rozwiąż problem z « {product} » w swoim sklepie",
+      "review_profit_drop": "Sprawdź spadek dla « {product} »",
+      "add_ready_product": "Dodaj « {product} » do swojego sklepu",
+      "answer_restock_demand": "Odpowiedz na popyt na {product}",
+      "answer_shop_demand": "Kupujący z Twojego sklepu czekają na {product}"
+    },
+    "cta": {
+      "fix_blocage": "Otwórz produkt",
+      "resolve_availability": "Otwórz produkt",
+      "promote_to_resellers": "Zaproś sprzedawców",
+      "publish_draft": "Otwórz szkic",
+      "complete_sheet": "Otwórz produkt",
+      "fix_shop_listing": "Wycofaj lub zastąp",
+      "review_profit_drop": "Zobacz analizę",
+      "add_ready_product": "Zobacz w katalogu",
+      "answer_restock_demand": "Zaktualizuj dostępność",
+      "answer_shop_demand": "Zobacz popyt i alternatywy"
+    },
+    "impact": {
+      "label": "Potencjalny wpływ:",
+      "orders": "{count, plural, =0 {brak opłaconych zamówień w 30 dni} one {# opłacone zamówienie w 30 dni} other {# opłaconych zamówień w 30 dni}}",
+      "resellers": "{count, plural, =0 {żaden sprzedawca} one {# sprzedawca} other {# sprzedawców}}",
+      "netPerSale": "{amount} netto za sprzedaż (obliczenie)",
+      "netChange": "{amount} mniej zysku netto (zaobserwowane)",
+      "waitingBuyers": "{count, plural, one {# czekający kupujący} few {# czekających kupujących} many {# czekających kupujących} other {# czekającego kupującego}}"
+    },
+    "reason": {
+      "price_missing": "Brak ceny: produktu nie można sprzedać.",
+      "commission_not_explicit": "Brak prowizji dla sprzedawców: sprzedaży nie można przypisać.",
+      "safety_blocks_publication": "Brakuje informacji o bezpieczeństwie i publikacja jest odrzucana.",
+      "out_of_stock": "Ilość 0: karta pokazuje « wyprzedany ».",
+      "low_stock": "Zostało bardzo mało sztuk produktu, który się sprzedaje.",
+      "stock_nominal": "Ilość wygląda na wartość z importu, a nie na Twój stan.",
+      "variant_stock_mismatch": "Stan produktu i wariantów się nie zgadza.",
+      "variant_stock_untracked": "Stan wariantów nie jest znany w chwili zakupu.",
+      "no_reseller": "Jest w sprzedaży, ale żaden sklep go nie oferuje.",
+      "draft_ready": "Szkic jest kompletny.",
+      "no_photo": "Nie ma zdjęcia.",
+      "no_category": "Nie ma kategorii: sprzedawcy go nie znajdą.",
+      "duplicate_name": "Inny Twój produkt ma tę samą nazwę.",
+      "delivery_window_inverted": "Minimalny czas dostawy przekracza maksymalny.",
+      "safety_data_missing": "Brakuje informacji o bezpieczeństwie produktu.",
+      "paused_but_listed": "Jest wstrzymany, choć oferują go sprzedawcy.",
+      "listed_no_sales": "Sprzedawcy go oferują, ale się nie sprzedaje.",
+      "few_photos": "Ma mało zdjęć, choć jest popyt.",
+      "short_description": "Ma krótki opis, choć jest popyt.",
+      "no_gtin": "Nie ma kodu kreskowego, choć jest popyt.",
+      "shop_out_of_stock": "Dostawca nie ma już zapasu: Twoi kupujący widzą go jako wyprzedany.",
+      "shop_product_unavailable": "Dostawca go wycofał lub wstrzymał: nie można go już kupić.",
+      "shop_awaiting_review": "Produkt czeka na zatwierdzenie przez Affisell.",
+      "shop_no_commission": "Dostawca nie ustalił prowizji: sprzedaży nie można by przypisać.",
+      "drop_volume_down": "Twoja sprzedaż tego produktu spadła.",
+      "drop_your_price_down": "Obniżyłeś swoją cenę.",
+      "drop_collected_price_down": "Pobrana cena spadła.",
+      "drop_supplier_price_up": "Cena dostawcy wzrosła.",
+      "drop_commission_down": "Prowizja spadła.",
+      "drop_fees_up": "Opłaty wzrosły.",
+      "drop_refunds_up": "Zwroty wzrosły.",
+      "drop_disputes_up": "Spory wzrosły.",
+      "drop_other": "Twój zysk netto na tym produkcie spadł.",
+      "ready_to_sell": "Można go dziś sprzedawać i nie ma go jeszcze w Twoim sklepie.",
+      "stock_unconfirmed": "Źródło importu nie podało ilości: publikacja czeka na Twoją.",
+      "stock_cover_short": "Przy obecnym tempie sprzedaży zapas wyczerpie się w mniej niż dwa tygodnie (obliczenie).",
+      "variant_rows_indistinct": "Niektóre warianty mają ten sam kolor, rozmiar i pojemność: kupujący nie może wybrać między nimi.",
+      "restock_demand": "{count, plural, one {# kupujący czeka} few {# kupujących czeka} many {# kupujących czeka} other {# kupującego czeka}} na {variant}. Zaktualizuj dostępność tego wariantu, aby odpowiedzieć na popyt.",
+      "shop_restock_demand": "{count, plural, one {# kupujący z Twojego sklepu czeka na} few {# kupujących z Twojego sklepu czeka na} many {# kupujących z Twojego sklepu czeka na} other {# kupującego z Twojego sklepu czeka na}} {variant}. Możesz zaproponować dostępną alternatywę; to nie jest gwarantowana sprzedaż."
+    }
+  },
+  "restockWatch": {
+    "cta": "Powiadom mnie, gdy ten wariant wróci",
+    "watching": "Otrzymasz powiadomienie — anuluj",
+    "hint": "Jedno powiadomienie, gdy ten wariant będzie znów dostępny. Data dostawy nie jest znana.",
+    "hintNotActive": "Twoja prośba została zapisana, ale powiadomienia nie są jeszcze włączone. Data dostawy nie jest znana.",
+    "saved": "Gotowe: jedno powiadomienie, gdy wróci.",
+    "savedNotActive": "Prośba zapisana. Powiadomienia nie są jeszcze wysyłane.",
+    "cancelled": "Prośba anulowana.",
+    "pushDenied": "Powiadomienia są zablokowane w przeglądarce: zezwól na nie.",
+    "pushUnsupported": "Twoja przeglądarka nie obsługuje powiadomień.",
+    "availableNow": "Dobra wiadomość: ten wariant jest teraz dostępny.",
+    "tooMany": "Masz już zbyt wiele oczekujących próśb.",
+    "error": "Nie udało się teraz zapisać.",
+    "signInPrompt": "Zaloguj się, aby otrzymać powiadomienie o powrocie tego wariantu.",
+    "signIn": "Zaloguj się",
+    "pushTitle": "Wróciło: {product}",
+    "pushBody": "{variant} jest znów dostępny. Ilość może być ograniczona."
   }
 }

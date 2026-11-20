@@ -12,6 +12,11 @@ function run(cmd: string, args: string[], timeoutMs = 90_000): { ok: boolean; ou
   return { ok: result.status === 0, output }
 }
 
+/** Pushing AI-written code is opt-in: only the exact value "true" enables it (read per call, no deploy needed). */
+export function isIngPushAllowed(env: Record<string, string | undefined> = process.env): boolean {
+  return env.ING_ALLOW_PUSH === "true"
+}
+
 export class IngShipper {
   async ship(
     actions: IngAction[],
@@ -65,12 +70,19 @@ export class IngShipper {
     const migrate = run("npm", ["run", "migrate:fulfillment-groups", "--", "--dry-run"], 120_000)
     const tests = run("npx", ["vitest", "run", "lib/__tests__/ing-observer.test.ts"], 60_000)
 
+    // `npm run push:safe` pushes `main` — production — whatever branch is checked out. The code committed here was written by a
+    // model from log analysis, so it never reaches production by itself: the push only happens when the operator opted in
+    // explicitly (finalisation master doc). Default = commit locally, human pushes after reading the diff.
     let pushed = false
     if (commitHash) {
-      const push = run("npm", ["run", "push:safe"], 120_000)
-      pushed = push.ok
-      if (!push.ok) {
-        console.error("[ing]", { stage: "push", error: push.output.slice(-500) })
+      if (isIngPushAllowed()) {
+        const push = run("npm", ["run", "push:safe"], 120_000)
+        pushed = push.ok
+        if (!push.ok) {
+          console.error("[ing]", { stage: "push", error: push.output.slice(-500) })
+        }
+      } else {
+        console.log("[ing]", { result: "push_disabled", reason: "ING_ALLOW_PUSH is not 'true'", commit: commitHash })
       }
     }
 

@@ -1,4 +1,5 @@
 import "server-only"
+import { resolveImportedStock, STOCK_UNCONFIRMED_KEY, stockUnconfirmedAttribute, type StockProvenance } from "@/lib/import-stock"
 
 import type { Prisma } from "@prisma/client"
 
@@ -64,6 +65,8 @@ export type EnlistAeProductResult = {
   name: string
   autoBuyEnabled: boolean
   published: boolean
+  /** False = AliExpress gave no quantity: kept a draft with « quantity to confirm » (POST …/confirm-stock). */
+  stockConfirmed: boolean
   supplierId: string
   source: string
   hasVariants: boolean
@@ -85,6 +88,9 @@ async function resolveProductCatalogMeta(
   description: string
   descriptionIllustrationImages: string[]
   specs: AeProductSpecRow[]
+  /** AliExpress's quantity with its provenance (lib/import-stock.ts) — « not provided » when unknown. */
+  stock: number
+  stockProvenance: StockProvenance
 }> {
   if (!AliExpressClient.isConfigured()) {
     return {
@@ -93,6 +99,8 @@ async function resolveProductCatalogMeta(
       description: `Auto-buy AE ${aeProductId}`,
       descriptionIllustrationImages: [],
       specs: [],
+      stock: 0,
+      stockProvenance: "not_provided",
     }
   }
   try {
@@ -106,6 +114,8 @@ async function resolveProductCatalogMeta(
       description: mapped.description?.trim() || `Auto-buy AE — ${mapped.name || aeProductId}`,
       descriptionIllustrationImages: mapped.descriptionIllustrationImages ?? [],
       specs,
+      stock: mapped.stock,
+      stockProvenance: mapped.stockProvenance,
     }
   } catch {
     return {
@@ -114,6 +124,8 @@ async function resolveProductCatalogMeta(
       description: `Auto-buy AE ${aeProductId}`,
       descriptionIllustrationImages: [],
       specs: [],
+      stock: 0,
+      stockProvenance: "not_provided",
     }
   }
 }
@@ -123,7 +135,8 @@ async function writeProductAttributes(
   specs: AeProductSpecRow[]
 ): Promise<void> {
   if (specs.length === 0) return
-  await prisma.productAttribute.deleteMany({ where: { productId } })
+  // Keeps the « quantity to confirm » marker: rewriting the specs must not make an unconfirmed quantity look confirmed.
+  await prisma.productAttribute.deleteMany({ where: { productId, key: { not: STOCK_UNCONFIRMED_KEY } } })
   await prisma.productAttribute.createMany({
     data: specs.slice(0, 40).map((s) => ({
       productId,
@@ -314,6 +327,10 @@ export async function enlistAeProductForAutoBuy(
     specBullets.length > 0 ? specBullets : variantPersist.variantBullets
 
   if (existing) {
+    // An existing product whose quantity was never confirmed is not published by a re-enlist (founder decision 2026-11-19).
+    const existingStockUnconfirmed =
+      (await prisma.productAttribute.count({ where: { productId: existing.id, key: STOCK_UNCONFIRMED_KEY } })) > 0
+    const publishExisting = publish && !existingStockUnconfirmed
     const link = await prisma.supplierLink.upsert({
       where: { productId: existing.id },
       create: {
@@ -360,7 +377,7 @@ export async function enlistAeProductForAutoBuy(
         ...(meta.descriptionIllustrationImages.length > 0
           ? { descriptionIllustrationImages: meta.descriptionIllustrationImages }
           : {}),
-        ...(publish ? { active: true, isDraft: false } : {}),
+        ...(publishExisting ? { active: true, isDraft: false } : {}),
         ...(canReassignToPlatform ? { supplierId } : {}),
         ...(input.name?.trim() ? { name: input.name.trim() } : {}),
       },
@@ -388,7 +405,8 @@ export async function enlistAeProductForAutoBuy(
       productId: existing.id,
       aeProductId,
       supplierId: canReassignToPlatform ? supplierId : existing.supplierId,
-      published: publish,
+      published: publishExisting,
+      stockUnconfirmed: existingStockUnconfirmed,
       source: resolved.source,
       variantCount: synced.variantCount,
       specCount: meta.specs.length,
@@ -403,7 +421,8 @@ export async function enlistAeProductForAutoBuy(
       aePriceCents: wholesale,
       name,
       autoBuyEnabled,
-      published: publish,
+      published: publishExisting,
+      stockConfirmed: !existingStockUnconfirmed,
       supplierId: canReassignToPlatform ? supplierId : existing.supplierId,
       source: resolved.source ?? "unknown",
       hasVariants: synced.hasVariants,
@@ -414,12 +433,15 @@ export async function enlistAeProductForAutoBuy(
 
   const affisellSku = await generateAffisellSku()
   const basePriceCents = Math.max(wholesale, Math.round(wholesale * 1.35))
-  const stock =
+  // No invented quantity (was 999): the SKU total, else AliExpress's own figure, else 0 + « to confirm » + draft.
+  const importStock =
     variantPersist.totalStock > 0
-      ? variantPersist.totalStock
+      ? { stock: variantPersist.totalStock, confirmed: true }
       : variantPersist.hasVariants
-        ? 0
-        : 999
+        ? { stock: 0, confirmed: false }
+        : resolveImportedStock({ stock: meta.stock, stockProvenance: meta.stockProvenance })
+  const stock = importStock.stock
+  const publishNew = publish && importStock.confirmed
 
   const created = await prisma.$transaction(async (tx) => {
     const product = await tx.product.create({
@@ -440,8 +462,8 @@ export async function enlistAeProductForAutoBuy(
         basePriceCents,
         commissionRate: 10,
         stock,
-        active: publish,
-        isDraft: !publish,
+        active: publishNew,
+        isDraft: !publishNew,
         importSource: AFFISELL_AUTOBUY_IMPORT_SOURCE,
         sourceUrl: resolved.aeUrl,
         aliexpressProductId: aeProductId,
@@ -478,6 +500,14 @@ export async function enlistAeProductForAutoBuy(
 
   if (meta.specs.length > 0) {
     await writeProductAttributes(created.product.id, meta.specs)
+  }
+  if (!importStock.confirmed) {
+    const marker = stockUnconfirmedAttribute()
+    await prisma.productAttribute.upsert({
+      where: { productId_key: { productId: created.product.id, key: marker.key } },
+      create: { productId: created.product.id, ...marker },
+      update: { value: marker.value, label: marker.label },
+    })
   }
 
   let variantCount = 0
@@ -523,7 +553,8 @@ export async function enlistAeProductForAutoBuy(
     wholesale,
     source: resolved.source,
     autoBuyEnabled,
-    published: publish,
+    published: publishNew,
+    stockConfirmed: importStock.confirmed,
     supplierId,
     platformAutoBuy: usedPlatformAutoBuy,
     variantCount,
@@ -539,7 +570,8 @@ export async function enlistAeProductForAutoBuy(
     aePriceCents: wholesale,
     name,
     autoBuyEnabled,
-    published: publish,
+    published: publishNew,
+    stockConfirmed: importStock.confirmed,
     supplierId,
     source: resolved.source ?? "unknown",
     hasVariants,

@@ -111,6 +111,7 @@ function NavAffiliateInner() {
     pathname.startsWith("/dashboard/affiliate/earnings") ||
     pathname.startsWith("/dashboard/affiliate/settings/payouts") ||
     pathname.startsWith("/dashboard/affiliate/payout-methods")
+  const onOpportunities = pathname.startsWith("/dashboard/affiliate/opportunities")
   const onInviteSupplier = pathname.startsWith("/dashboard/affiliate/invite-supplier")
   const onReferral = pathname.startsWith("/dashboard/affiliate/referral")
   const onBrandStudio = pathname.startsWith("/dashboard/affiliate/brand-studio")
@@ -213,6 +214,13 @@ function NavAffiliateInner() {
         />
         <RadarNavPill variant="affiliate" />
         <ResellerRequestsNavLink active={onRequests} />
+        <NavPill
+          href="/dashboard/affiliate/opportunities"
+          label={t("opportunities")}
+          shortLabel={t("opportunitiesShort")}
+          icon={TrendingUp}
+          active={onOpportunities}
+        />
         <NavPill
           href="/dashboard/affiliate/earnings"
           label={t("earnings")}

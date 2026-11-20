@@ -47,7 +47,9 @@
       "brandStudio": "Brand Studio",
       "brandStudioShort": "Merk",
       "magicLab": "Magische Systemen",
-      "magicLabShort": "Lab"
+      "magicLabShort": "Lab",
+      "opportunities": "Kansen (echte verkopen)",
+      "opportunitiesShort": "Kansen"
     },
     "supplier": {
       "badge": "Levertijd",
@@ -506,6 +508,8 @@
     "invalid_password": "Fout wachtwoord.",
     "account_not_found": "Geen Affisell-account gevonden met deze e-mail.",
     "password_login_unavailable": "Dit account gebruikt sociale aanmelding. Gebruik Google of stel een wachtwoord in via “Wachtwoord vergeten”.",
+    "invalid_credentials": "Onjuist e-mailadres of wachtwoord. Gebruikt je account sociale aanmelding, gebruik die dan of stel een wachtwoord in via ‘Wachtwoord vergeten’.",
+    "too_many_attempts": "Te veel aanmeldpogingen voor dit account. Probeer het over 15 minuten opnieuw of stel je wachtwoord opnieuw in.",
     "passwordReset": {
       "secureBadge": "Beveiligde Affisell-toegang",
       "forgotLink": "Wachtwoord vergeten?",
@@ -522,10 +526,18 @@
       "confirmPassword": "Bevestig wachtwoord",
       "savePassword": "Wachtwoord opslaan",
       "passwordTooShort": "Wachtwoord moet minstens 8 tekens bevatten.",
+      "passwordTooLong": "Het wachtwoord is te lang (maximaal 72 bytes).",
+      "passwordTooCommon": "Dit wachtwoord komt te vaak voor. Kies een ander.",
+      "passwordMatchesEmail": "Het wachtwoord mag niet je e-mailadres zijn.",
       "passwordMismatch": "Wachtwoorden komen niet overeen.",
       "invalidToken": "Deze link is ongeldig of verlopen. Vraag een nieuwe aan.",
       "resetFailed": "Kan uw wachtwoord niet bijwerken.",
       "resetSuccessLogin": "Wachtwoord bijgewerkt. U kunt nu aanmelden."
+    },
+    "emailVerification": {
+      "done": "E-mailadres bevestigd. Je kunt nu inloggen.",
+      "invalid": "Deze bevestigingslink is ongeldig of al gebruikt.",
+      "expired": "Deze bevestigingslink is verlopen. Log in om een nieuwe te ontvangen."
     },
     "signupFail": "Kan niet registreren.",
     "signupLoginFail": "Account aangemaakt maar aanmelden mislukt. Probeer het opnieuw.",
@@ -857,6 +869,15 @@
     }
   },
   "cart": {
+    "stock": {
+      "outOfStock": "Dit product is uitverkocht.",
+      "insufficient": "Nog maar {count} op voorraad.",
+      "priceUpdating": "De prijs van dit product wordt bijgewerkt. Probeer het over een paar minuten opnieuw.",
+      "variantUnavailable": "De gekozen optie (maat of kleur) bestaat niet meer voor dit product: kies een andere op de productpagina.",
+      "variantUnavailableWith": "De gekozen optie bestaat niet meer voor dit product. Nog beschikbaar: {options}.",
+      "chooseOptions": "Kies alle opties (kleur, maat, capaciteit…) voordat u verdergaat.",
+      "chooseOnPage": "Dit product bestaat in meerdere maten of kleuren: kies de uwe op de productpagina."
+    },
     "title": "Winkelwagen",
     "loading": "Winkelwagen wordt geladen…",
     "empty": "Uw winkelwagen is leeg",
@@ -918,10 +939,12 @@
       "handoffPowered": "Versleutelde overdracht door Affisell",
       "legalNote": "Door door te gaan, stem je in met het maken van een Affisell koperaccount voor cashback-reward.",
       "identifyFailed": "Kan niet doorgaan. Probeer opnieuw.",
+      "accountExists": "Er bestaat al een account met deze gegevens. Log in om verder te gaan.",
       "signInFailed": "Inloggen mislukt na identificatie.",
       "networkError": "Netwerk onbereikbaar. Probeer opnieuw."
     },
-    "tryPulse": "Probeer Affisell Pulse"
+    "tryPulse": "Probeer Affisell Pulse",
+    "storageLabel": "Capaciteit"
   },
   "buyerBestsellers": {
     "metaTitle": "Bestverkocht · 7 dagen",
@@ -1205,7 +1228,11 @@
       "merchantVerificationPending": "Verkopersverificatie vereist — voltooi je KYC-dossier op /dashboard/verification voordat je publiceert.",
       "affiliateCommissionRequired": "Stel de commissie in die aan affiliates wordt aangeboden per verkoop (> 0%). Het categorierooster is alleen indicatief.",
       "productImagesRequiredHosted": "Voeg minstens één gehoste productfoto toe (upload voltooid) voordat je publiceert.",
-      "variantsInvalidGeneric": "Corrigeer de varianten / SKU-rijen (ongeldige velden)."
+      "variantsInvalidGeneric": "Corrigeer de varianten / SKU-rijen (ongeldige velden).",
+      "productRecalled": "Voor dit product loopt een veiligheidsterugroeping die door Affisell is geopend: het kan voorlopig niet opnieuw te koop worden gezet. Neem contact op met de Affisell-support om te horen hoe de terugroeping kan worden opgeheven.",
+      "productSuspended": "Affisell heeft de verkoop van dit product opgeschort: het kan voorlopig niet opnieuw te koop worden gezet. Neem contact op met de Affisell-support om de reden te horen en hoe de opschorting kan worden opgeheven.",
+      "productHoldUnverifiable": "We konden niet controleren of dit product opnieuw te koop mag worden gezet. Probeer het zo meteen opnieuw.",
+      "stockUnconfirmed": "De hoeveelheid van dit geïmporteerde product is nooit bevestigd: de bron gaf er geen. Vul de echt beschikbare hoeveelheid in, sla op en publiceer daarna."
     },
     "descriptionField": {
       "label": "Beschrijving",
@@ -1807,7 +1834,16 @@
       "publishSuccessToast": "🎉 Product gepubliceerd — +10 XP",
       "aliexpressImportedToast": "AliExpress geïmporteerd — {imgCount, plural, one {# foto} other {# foto’s}}, {specCount, plural, one {# kenmerk} other {# kenmerken}}",
       "productImportedToast": "Product geïmporteerd — controleer het voorbeeld",
-      "titleNotFoundError": "Titel niet gevonden — probeer opnieuw of schakel over naar Pro-modus"
+      "titleNotFoundError": "Titel niet gevonden — probeer opnieuw of schakel over naar Pro-modus",
+      "stockLabel": "Beschikbare hoeveelheid",
+      "stockHint": "Het aantal eenheden dat u echt kunt verzenden. Dit wordt nooit voor u ingevuld.",
+      "stockFromVariantsHint": "De hoeveelheid staat bij elke variant (varianttabel).",
+      "declaration": {
+        "price_required": "Vul de catalogusprijs in voordat u publiceert.",
+        "stock_required": "Vul de beschikbare hoeveelheid in voordat u publiceert (een geheel getal).",
+        "stock_zero": "Hoeveelheid 0: het product zou als uitverkocht worden getoond. Vul de echt beschikbare hoeveelheid in.",
+        "variant_stock_required": "Elke variant heeft een beschikbare hoeveelheid nodig voordat u publiceert."
+      }
     },
     "categoryPicker": {
       "loading": "Categorieën laden…",
@@ -2182,6 +2218,103 @@
       "optionDays": "{days} dagen",
       "hint": "Hoeveel dagen na levering de koper dit product kan retourneren. 14 dagen is het wettelijke minimum voor elke koper; meer aanbieden kan helpen bij het verkopen.",
       "cost": "Retouren die binnen deze termijn worden geaccepteerd komen voor uw rekening, net als binnen de wettelijke 14 dagen: de koper krijgt zijn geld terug en uw deel van de verkoop wordt teruggenomen. De termijn wordt bij aankoop vastgelegd: later inkorten raakt nooit bestellingen die al zijn geplaatst."
+    },
+    "supplyCost": {
+      "title": "Inkoopkosten (vertrouwelijk)",
+      "confidential": "Alleen zichtbaar voor jou en Affisell. Deze bedragen veranderen je prijs, de commissie en de productpagina niet: ze dienen om te controleren of een toekomstige verkoopvorm voor jou rendabel blijft.",
+      "unitCost": "Inkoop- of productiekosten per stuk, excl. btw (€)",
+      "deliveryCost": "Leveringskosten per stuk tot de koper, excl. btw (€)",
+      "source": "Herkomst van het product",
+      "sources": {
+        "own_stock": "Mijn eigen voorraad",
+        "manufacturer": "Ik maak het of koop bij de fabrikant",
+        "wholesaler": "Groothandel",
+        "dropship_source": "Dropshipping-leverancier",
+        "other": "Anders"
+      },
+      "leadTime": "Tijd tot verzending (dagen, optioneel)",
+      "minimumOrder": "Minimale hoeveelheid bij je bron (optioneel)",
+      "note": "Opmerking voor Affisell (optioneel)",
+      "save": "Mijn kosten opslaan",
+      "saved": "Kosten opgeslagen.",
+      "invalid": "Ongeldig bedrag: vul een getal in euro in, bijvoorbeeld 12,50.",
+      "error": "Opslaan mislukt. Probeer het opnieuw.",
+      "warnAbovePrice": "Je opgegeven kosten liggen boven je leveranciersprijs: controleer de bedragen.",
+      "lastDeclared": "Laatst opgegeven: {date}",
+      "qualification": {
+        "label": "Status van de opgave",
+        "unverified": "Niet gecontroleerd",
+        "document_provided": "Bewijsstuk aangekondigd",
+        "verified": "Gecontroleerd door Affisell",
+        "disputed": "Betwist door Affisell",
+        "expired": "Verlopen"
+      },
+      "documentTitle": "Heb je een bewijsstuk (factuur, prijslijst van de leverancier)?",
+      "documentHint": "Beschrijf het document dat je naar Affisell stuurde (soort, datum, nummer). Affisell controleert het; deze status is geen controle.",
+      "documentPlaceholder": "Bijv. factuur groothandel nr. 2026-114 van 3 november",
+      "documentSubmit": "Bewijsstuk melden",
+      "documentSent": "Bewijsstuk gemeld.",
+      "newDeclarationResets": "Elke nieuwe opgave begint weer als „niet gecontroleerd”.",
+      "effectiveFrom": "Geldig vanaf",
+      "effectiveFromHint": "Leeg laten voor vandaag. Een datum in het verleden wordt geweigerd: al betaalde bestellingen behouden de toen geldende kosten.",
+      "effectiveLater": "Deze opgave geldt vanaf {date}.",
+      "variants": {
+        "scope": "Kosten opgegeven voor",
+        "wholeProduct": "Het hele product (standaard)",
+        "wholeProductHint": "Geldt voor elke variant zonder eigen opgave.",
+        "variantHint": "Geldt alleen voor deze variant, nooit voor een andere.",
+        "ambiguous": "Sommige varianten hebben dezelfde naam: ze kunnen pas eigen kosten krijgen als ze te onderscheiden zijn.",
+        "tableTitle": "Opgegeven kosten per variant",
+        "gone": "variant verwijderd",
+        "notInForce": "nog niet geldig",
+        "fallbackHint": "Een variant zonder eigen kosten gebruikt de opgave van het product, als die er is."
+      }
+    },
+    "productJourney": {
+      "title": "Weg naar verkoop",
+      "next": "Volgende stap: {step}",
+      "allDone": "Alles is klaar: je product kan worden verkocht.",
+      "steps": {
+        "sheet": "Productfiche",
+        "safety": "Productveiligheid",
+        "stock": "Voorraad",
+        "commission": "Commissie wederverkoper",
+        "publication": "Publicatie",
+        "resellers": "Gekozen door wederverkopers",
+        "sales": "Verkopen (30 dagen)",
+        "costs": "Inkoopkosten"
+      },
+      "status": {
+        "done": "klaar",
+        "todo": "te doen",
+        "blocked": "geblokkeerd door Affisell",
+        "waiting": "in afwachting",
+        "optional": "optioneel"
+      },
+      "missing": {
+        "name": "naam",
+        "photo": "foto",
+        "category": "categorie"
+      },
+      "safetyMissing": "{count, plural, one {# ontbrekend gegeven} other {# ontbrekende gegevens}}",
+      "units": "{count, plural, =0 {geen eenheid beschikbaar} one {# eenheid} other {# eenheden}}",
+      "publication": {
+        "draft": "concept",
+        "paused": "gepauzeerd",
+        "product_recalled": "lopende veiligheidsterugroeping",
+        "product_suspended": "verkoop opgeschort door Affisell",
+        "product_hold_unverifiable": "momenteel niet te controleren"
+      },
+      "resellers": "{count, plural, =0 {geen wederverkoper} one {# wederverkoper} other {# wederverkopers}}",
+      "sales": "{count, plural, =0 {geen bestelling} one {# bestelling} other {# bestellingen}}",
+      "costs": {
+        "unverified": "opgegeven, niet gecontroleerd",
+        "document_provided": "bewijsstuk aangekondigd",
+        "verified": "gecontroleerd door Affisell",
+        "disputed": "betwist door Affisell",
+        "expired": "verlopen"
+      },
+      "costsNote": "Inkoopkosten zijn optioneel en vertrouwelijk: ze bepalen publicatie, prijs en commissie niet."
     }
   },
   "affiliate": {
@@ -2377,7 +2510,11 @@
       "estimatedRevenue": "Geschatte reseller-inkomsten",
       "estimatedRevenueHint": "Commissie + marge bij {markupPct}% aanbevolen opslag",
       "sortRevenueDesc": "Reseller-inkomsten · hoog → laag",
-      "supplierSheetAria": "Leveranciersproductpagina"
+      "supplierSheetAria": "Leveranciersproductpagina",
+      "netShort": "Netto",
+      "netRevenue": "Uw nettowinst per verkoop",
+      "netBreakdown": "{gross} commissie + marge − {fee} Affisell-vergoeding ({feePct}%)",
+      "priceIsHt": "Prijzen exclusief btw: de koper betaalt de btw erbovenop."
     },
     "catalogFilters": {
       "groupAria": "Storefront- en toevoegdatumfilters",
@@ -2780,6 +2917,315 @@
       "pendingVerification": "In afwachting",
       "setDefault": "Instellen als standaard",
       "delete": "Verwijderen"
+    },
+    "opportunities": {
+      "title": "Kansen op basis van echte verkopen",
+      "intro": "Beslisoverzicht op basis van betaalde bestellingen: eerst je eigen producten, daarna de catalogus gerangschikt naar wat de verkopen van de afgelopen {days} dagen resellers opleverden, na Affisell-kosten en de over {qualityDays} dagen terugbetaalde bedragen. Dit zijn cijfers uit het verleden, geen voorspelling.",
+      "platformRate": "Terugbetalingspercentage van het platform: {rate} van de geïnde bedragen ({orders} betaalde bestellingen in 90 dagen).",
+      "emptyRanked": "Geen betaalde bestelling in de laatste {days} dagen: er kan nog niets worden gerangschikt op basis van echte verkopen.",
+      "col": {
+        "product": "Product",
+        "units": "Verkochte eenheden ({days} d)",
+        "perUnit": "Opbrengst per verkoop",
+        "refundRate": "Terugbetaald (in waarde)",
+        "observedNet": "Waargenomen netto-opbrengst ({days} d)",
+        "checks": "Te controleren",
+        "disputeRate": "Geschillen"
+      },
+      "inStore": "Al in je winkel",
+      "rateOwn": "percentage van het product",
+      "ratePlatform": "steekproef te klein: percentage van het platform",
+      "flags": {
+        "high_refund_rate": "Hoog terugbetalingspercentage",
+        "disputes_seen": "Geschillen vastgesteld",
+        "slow_delivery": "Trage levering (9 op 10 bestellingen boven 12 dagen)",
+        "supplier_price_rising": "Leveranciersprijs stijgend of instabiel",
+        "thin_sample": "Weinig bestellingen: onzekere cijfers",
+        "sales_falling": "Verkoop daalt (−30 % of meer)",
+        "payout_per_unit_down": "Opbrengst per verkoop gedaald in 30 dagen",
+        "out_of_stock": "Uitverkocht gemeld",
+        "stock_not_maintained": "Voorraad waarschijnlijk niet bijgehouden (standaardwaarde van import)"
+      },
+      "howToRead": "‘Waargenomen netto-opbrengst’ = verkochte eenheden × opbrengst per verkoop na het terugbetalingspercentage. Je kunt je eigen opslag toevoegen: die telt hier niet mee.",
+      "noSalesTitle": "Geen verkoopgegevens",
+      "noSalesIntro": "Deze producten hebben geen betaalde bestelling in de periode: ze worden niet gerangschikt, bij gebrek aan echte gegevens.",
+      "perUnitShort": "{amount} per verkoop",
+      "toCatalog": "Catalogus openen →",
+      "vsPrevious": "{prev} in de 30 dagen daarvoor",
+      "perUnitWas": "{amount} 30 dagen geleden",
+      "truncated": "Zeer hoog volume: de getoonde cijfers zijn een minimum.",
+      "documentedTitle": "Goed onderbouwde kansen",
+      "documentedIntro": "Minstens {min} betaalde bestellingen in {qualityDays} dagen: de eigen percentages van het product worden gebruikt.",
+      "documentedEmpty": "Nog geen product heeft genoeg bestellingen om op eigen cijfers te worden beoordeeld.",
+      "limitedTitle": "Onvoldoende gegevens",
+      "limitedIntro": "Deze producten hebben verkopen, maar te weinig om betrouwbaar te zijn: het hoogste van hun eigen en het platformpercentage wordt toegepast.",
+      "mine": {
+        "title": "Jouw producten",
+        "intro": "Alleen berekend uit jouw betaalde bestellingen: netto-opbrengst = commissies op jouw bestellingen, min het deel dat terugbetalingen terugnamen (naar rato). Periode: {days} dagen, vergeleken met de {days} dagen daarvoor.",
+        "totals": "{net} netto in {days} dagen ({orders} bestellingen) — {prevNet} in de vorige periode ({prevOrders} bestellingen).",
+        "empty": "Geen betaalde bestelling in de afgelopen {days} dagen.",
+        "attentionTitle": "Vandaag te doen",
+        "attentionEmpty": "Niets te melden over je producten.",
+        "topTitle": "Wat je het meest oplevert ({days} d)",
+        "decliningTitle": "Wat minder rendabel wordt",
+        "decliningEmpty": "Geen product in daling (vergelijking vanaf 3 bestellingen in de vorige periode).",
+        "netChange": "{from} → {to}",
+        "notComparable": "te weinig bestellingen om te vergelijken",
+        "col": {
+          "product": "Product",
+          "orders": "Bestellingen",
+          "net": "Netto-opbrengst",
+          "perUnit": "Netto per stuk",
+          "refundShare": "Terugbetaald",
+          "previous": "Vorige periode"
+        },
+        "reasons": {
+          "volume_down": "minder verkopen",
+          "your_price_down": "je hebt je verkoopprijs verlaagd",
+          "collected_price_down": "lagere geïnde prijs zonder geregistreerde prijsverlaging van jou (kortingen, verkochte varianten)",
+          "supplier_price_up": "leveranciersprijs gestegen (je marge krimpt)",
+          "commission_down": "commissie van de leverancier gedaald",
+          "fees_up": "hogere Affisell-kosten",
+          "refunds_up": "meer terugbetalingen",
+          "disputes_up": "meer geschillen",
+          "unknown": "geen significante oorzaak herkenbaar in de gegevens"
+        },
+        "attention": {
+          "open_dispute": "{orders} bestelling(en) met een open geschil",
+          "no_longer_for_sale": "niet meer te koop op de marktplaats",
+          "sold_out": "uitverkocht",
+          "margin_review": "marge herzien: de leveranciersprijs is gewijzigd",
+          "supplier_price_changed": "leveranciersprijs deze week van {from} naar {to}",
+          "return_requested": "{returns} retour(en) aangevraagd, wacht op de leverancier"
+        },
+        "drivers": {
+          "volume": "Volume",
+          "selling_price": "Jouw prijs",
+          "supplier_price": "Leveranciersprijs",
+          "commission": "Commissie",
+          "fees": "Kosten",
+          "refunds": "Terugbetalingen",
+          "residual": "Onverklaard"
+        },
+        "priceCut": "prijs verlaagd van {from} naar {to} op {date}",
+        "partlyUnexplained": "Een groot deel van het verschil wordt niet door de gegevens verklaard (vaste marge, kortingen, afrondingen).",
+        "impactTitle": "Effect van je prijswijzigingen",
+        "impactIntro": "Je bestellingen in de 30 dagen vóór elke wijziging van je verkoopprijs, vergeleken met de dagen erna. Een waarneming over twee periodes: het bewijst niet dat de prijs de enige oorzaak is.",
+        "impactEmpty": "Geen prijswijziging geregistreerd in de afgelopen 90 dagen.",
+        "impactChange": "{from} → {to} op {date}",
+        "impactFigures": "Vóór ({beforeDays} d, {beforeOrders} bestellingen): {beforePerDay}/dag, {beforePerUnit} per verkoop — Na ({afterDays} d, {afterOrders} bestellingen): {afterPerDay}/dag, {afterPerUnit} per verkoop.",
+        "impactStatus": {
+          "too_recent": "Te recent om te meten (minder dan 7 dagen).",
+          "insufficient_orders": "Niet genoeg bestellingen ervoor of erna (minstens 3 aan elke kant)."
+        },
+        "simTitle": "Prijssimulaties",
+        "simIntro": "Een berekening, geen voorspelling: netto-opbrengst per verkoop bij elke prijs, met de huidige leveranciersprijs, commissie en kosten, na je terugbetalingspercentage; en het aantal verkopen dat nodig is om evenveel te verdienen als de afgelopen 30 dagen. Niets verandert zonder jouw actie.",
+        "simEmpty": "Niet genoeg verkopen in 30 dagen om te simuleren (minstens 5 bestellingen).",
+        "simAssumptions": "Aannames: leveranciersprijs {supplier}, commissie {commission}, kosten {fee}, terugbetalingen {refunds} — waargenomen: {orders} bestellingen, {net} netto in 30 d.",
+        "simCol": {
+          "price": "Verkoopprijs excl. btw",
+          "netPerSale": "Netto per verkoop",
+          "salesToMatch": "Verkopen om 30 d te evenaren"
+        },
+        "simCurrent": "(huidig)",
+        "simRestore": "(je marge herstellen)",
+        "simEdit": "Mijn prijs wijzigen →"
+      }
+    },
+    "profitAlerts": {
+      "title": "Rendement gedaald: {product}",
+      "change": "Je netto-opbrengst ging van {from} naar {to} (−{drop}): afgelopen 30 dagen ({currentOrders} bestellingen) vergeleken met de 30 daarvoor ({previousOrders} bestellingen).",
+      "sincePeriod": "Vastgesteld over de afgelopen 30 dagen ten opzichte van de 30 daarvoor.",
+      "since": {
+        "price_cut": "Sinds je prijswijziging op {date}.",
+        "supplier_price_change": "Sinds de verhoging van de leveranciersprijs op {date}."
+      },
+      "causeWithAmount": "{cause} (−{amount})",
+      "causes": {
+        "supplier_price_up": "de leveranciersprijs is gestegen en heeft je marge verkleind",
+        "your_price_down": "je hebt je verkoopprijs verlaagd",
+        "collected_price_down": "de geïnde prijs is lager, zonder geregistreerde prijsverlaging van jou (kortingen, verkochte varianten)",
+        "commission_down": "de commissie van de leverancier is gedaald",
+        "fees_up": "de toegepaste Affisell-kosten zijn hoger",
+        "refunds_up": "meer verkopen zijn terugbetaald",
+        "volume_down": "je verkoopt duidelijk minder",
+        "disputes_up": "meer geschillen"
+      },
+      "suggestion": {
+        "restore_markup": "Simulatie: bij {price} zou je je marge herstellen — ongeveer {net} netto per verkoop; {sales} verkopen zouden je afgelopen 30 dagen evenaren.",
+        "previous_price": "Simulatie: tegen je vorige prijs van {price} zou een verkoop ongeveer {net} netto opleveren; {sales} verkopen zouden je afgelopen 30 dagen evenaren.",
+        "none": {
+          "supplier_price_up": "Controleer je prijs ten opzichte van de nieuwe leveranciersprijs.",
+          "your_price_down": "Vergelijk je verkopen voor en na je prijswijziging in je overzicht.",
+          "collected_price_down": "Controleer kortingen en verkochte varianten: je getoonde prijs is niet veranderd.",
+          "commission_down": "De leverancier heeft zijn commissie verlaagd: controleer of je marge nog volstaat.",
+          "fees_up": "Je kosten zijn gestegen: controleer je marge in je overzicht.",
+          "refunds_up": "Bekijk de terugbetalingsredenen van deze bestellingen.",
+          "volume_down": "Controleer zichtbaarheid en voorraad van het product; geen prijssimulatie voorspelt verkopen.",
+          "disputes_up": "Bekijk de geschillen van deze bestellingen."
+        }
+      },
+      "short": "{product}: netto-opbrengst {drop} lager — {cause}",
+      "disclaimer": "Cijfers berekend uit je eigen betaalde bestellingen; simulaties zijn berekeningen, geen voorspellingen. Geen prijs verandert zonder jouw actie.",
+      "causesTitle": "Vastgestelde oorzaken",
+      "suggestionTitle": "Wat je kunt doen",
+      "ctaEdit": "Mijn prijs wijzigen →",
+      "ctaBoard": "Mijn rendementsoverzicht openen →",
+      "emailFooter": "Je ontvangt deze e-mail omdat je rendementsmeldingen per e-mail hebt ingeschakeld. Uitschakelen:",
+      "panelTitle": "Rendementsmeldingen",
+      "panelIntro": "Een melding wordt alleen verstuurd als het product echt opbracht (minstens 5 bestellingen en € 20 netto), de daling aanzienlijk is (minstens € 10 en 25%) en de oorzaak door de gegevens is vastgesteld. Hoogstens één melding per product per 14 dagen.",
+      "panelEmpty": "Geen melding: geen van je rendabele producten is significant gedaald.",
+      "dismiss": "Verbergen",
+      "prefTitle": "Meldingen ontvangen",
+      "prefInApp": "In de app",
+      "prefEmail": "Per e-mail",
+      "prefStatus": {
+        "idle": "",
+        "saving": "Opslaan…",
+        "saved": "Opgeslagen",
+        "error": "Opslaan mislukt"
+      }
+    },
+    "copilot": {
+      "title": "Reseller-copiloot — uw verkoopklare selectie",
+      "subtitle": "Catalogusproducten die u echt kunt verkopen, gerangschikt naar wat één verkoop u na de Affisell-vergoeding echt oplevert. Vink aan wat u houdt en voeg alles in één keer toe.",
+      "addCta": "Selectie toevoegen ({count})",
+      "adding": "Toevoegen…",
+      "added": "{added} product(en) aan uw winkel toegevoegd.",
+      "addedPartial": "{added} toegevoegd, {refused} geweigerd: hun situatie veranderde sinds het laden.",
+      "addError": "Toevoegen mislukt. Probeer opnieuw.",
+      "loading": "Catalogus wordt geanalyseerd…",
+      "empty": "Momenteel geen nieuw verkoopbaar product.",
+      "pick": "{name} houden",
+      "netPerSale": "netto per verkoop, na Affisell-vergoeding",
+      "priceLine": "Voorgestelde prijs {price} excl. btw · de koper betaalt ongeveer {ttc} incl. btw",
+      "demandSeen": "{orders} betaalde bestelling(en) op de marktplaats in 30 dagen",
+      "demandNone": "Nog geen verkoop waargenomen",
+      "resellers": "{count, plural, =0 {geen reseller verkoopt het} one {# reseller verkoopt het} other {# resellers verkopen het}}",
+      "feeDefault": "Berekend met de standaardvergoeding van Affisell (20% van uw commissie en marge).",
+      "feeNegotiated": "Berekend met uw Affisell-tarief ({pct}%).",
+      "honesty": "Het netto is een berekening op basis van de voorwaarden van de leverancier, geen verkoopbelofte. Getoonde verkopen zijn waargenomen op Affisell, geen prognose.",
+      "blockedToggle": "{count} product(en) weggelaten: bekijk waarom",
+      "reasons": {
+        "awaiting_affisell_review": "wacht op controle door Affisell",
+        "no_explicit_commission": "geen commissie ingesteld: een verkoop kan niet worden geregistreerd",
+        "no_supplier_price": "geen leveranciersprijs",
+        "out_of_stock": "niet op voorraad",
+        "stock_unknown": "voorraad niet controleerbaar",
+        "low_stock": "zeer weinig voorraad",
+        "low_net_per_sale": "lage winst per verkoop",
+        "rising_on_affisell": "Een product waarvan de bestellingen duidelijk sneller groeien dan Affisell als geheel, bij minstens twee wederverkopers (statistische test op waargenomen verkopen, geen voorspelling)."
+      },
+      "rising": "Sterk groeiend op Affisell · {recent, plural, one {# betaalde bestelling} other {# betaalde bestellingen}} in de afgelopen 14 dagen, tegenover {prior} in de 42 dagen daarvoor — duidelijk meer dan de marktplaats",
+      "risingNature": "Een waargenomen signaal (statistische test op betaalde bestellingen, meerdere wederverkopers en meerdere dagen), geen voorspelling. Het tilt een product alleen op als de nettowinst per verkoop minstens de mediaan van de selectie is.",
+      "fit": {
+        "your_categories": "In je categorieën",
+        "discovery": "Ontdekking"
+      },
+      "personalisedNote": "Selectie afgestemd op de categorieën die je al verkoopt of aanbiedt, altijd met een deel andere categorieën om te ontdekken. Een product uit je categorieën passeert nooit een product dat je duidelijk meer oplevert (meer dan 15 % nettowinst per verkoop)."
+    },
+    "supplierAffisell": "Affisell-leverancier",
+    "replacement": {
+      "title": "Wat te doen met « {product} »?",
+      "loading": "Betrouwbare alternatieven worden gezocht…",
+      "error": "De alternatieven konden niet worden geladen.",
+      "errorChanged": "Dit alternatief is niet meer beschikbaar: de lijst is vernieuwd.",
+      "retry": "Opnieuw proberen",
+      "problem": {
+        "out_of_stock": "De leverancier heeft geen voorraad meer: uw kopers zien het uitverkocht en kunnen het niet kopen.",
+        "product_unavailable": "De leverancier heeft het ingetrokken of gepauzeerd: het is niet meer te koop.",
+        "awaiting_review": "Dit product wacht op validatie door Affisell: het kan nog niet worden verkocht.",
+        "no_commission": "De leverancier heeft geen commissie ingesteld: een verkoop kan niet aan u worden toegekend.",
+        "none": "Dit product is vandaag verkoopbaar. U kunt toch alternatieven vergelijken."
+      },
+      "currentLine": "Vandaag: verkoopprijs {price} excl. btw · u verdient {net} netto per verkoop.",
+      "none": {
+        "no_sellable_candidate": "Vandaag is geen enkel alternatief in uw catalogus verkoopbaar.",
+        "no_reliable_match": "Geen alternatief lijkt genoeg: we stellen liever niets voor dan een ander product."
+      },
+      "noneHint": "U kunt dit product uit uw winkel halen; het kan terugkomen als de leverancier het probleem oplost en u het weer te koop zet.",
+      "match": {
+        "identique": "Hetzelfde product (zelfde barcode)",
+        "similaire": "Vergelijkbaar product"
+      },
+      "identity": {
+        "same_gtin": "Zelfde barcode",
+        "similar": "Vergelijkbaar"
+      },
+      "availableLine": "{n} op voorraad · {supplier}",
+      "netLine": "U verdient {net} netto per verkoop (verkoopprijs {price} excl. btw)",
+      "col": {
+        "what": "Kenmerk",
+        "before": "Huidig",
+        "after": "Alternatief"
+      },
+      "field": {
+        "selling_price": "Verkoopprijs excl. btw",
+        "net_per_sale": "Uw netto per verkoop",
+        "supplier_price": "Leveranciersprijs",
+        "commission": "Commissie",
+        "delivery": "Maximale levertijd",
+        "return_window": "Retouren geaccepteerd",
+        "variants_missing": "Opties niet aangeboden",
+        "brand": "Merk",
+        "supplier": "Leverancier"
+      },
+      "days": "{n, plural, one {# dag} other {# dagen}}",
+      "replaceCta": "Vervangen door dit product",
+      "confirmQuestion": "Vervangen? Het oude product verlaat uw winkel; de geschiedenis en bestellingen blijven bewaard.",
+      "confirmYes": "Ja, vervangen",
+      "working": "Bezig met vervangen…",
+      "cancel": "Annuleren",
+      "withdrawOnly": "Dit product alleen uit mijn winkel halen",
+      "withdrawConfirm": "Dit product uit uw winkel halen?",
+      "withdrawYes": "Ja, verwijderen",
+      "doneReplaced": "Klaar: het alternatief is te koop in uw winkel.",
+      "doneReplacedPending": "Het alternatief is aan uw winkel toegevoegd; het gaat in de verkoop zodra de controle van uw account klaar is.",
+      "doneWithdrawn": "Het product is uit uw winkel gehaald.",
+      "historyKept": "Er wordt niets verwijderd: geschiedenis, statistieken en eerdere bestellingen blijven intact.",
+      "backToShop": "Terug naar mijn omgeving",
+      "honesty": "Netto = commissie + marge − Affisell-kosten, berekend zoals uw uitbetalingen. Prijzen excl. btw; alleen de barcode bewijst dat het hetzelfde product is.",
+      "bellMessage": "« {product} » kan niet meer worden gekocht in uw winkel. Haal het weg of vervang het door een gelijkwaardig product.",
+      "partialTitle": "Vervanging deels voltooid",
+      "partialBody": "‘{alternative}’ is aan je winkel toegevoegd, maar ‘{product}’ kon niet worden teruggetrokken: beide zijn nu te koop.",
+      "partialHint": "Voltooien trekt alleen het oude product uit je winkel terug. Niets wordt dubbel toegevoegd, niets wordt verwijderd.",
+      "finishCta": "Vervanging voltooien",
+      "partialUnnamed": "het gekozen alternatief",
+      "partialNow": "Het alternatief is toegevoegd, maar het oude product kon niet worden teruggetrokken. Voltooi de vervanging hieronder.",
+      "digestMessage": "{count, plural, one {# product in je winkel kan niet meer verkocht worden} other {# producten in je winkel kunnen niet meer verkocht worden}}: bekijk de lijst om ze terug te trekken of te vervangen.",
+      "listTitle": "Onverkoopbare producten in je winkel",
+      "listSubtitle": "{count, plural, =0 {Geen product betrokken.} one {# product kan vandaag niet gekocht worden.} other {# producten kunnen vandaag niet gekocht worden.}}",
+      "listEmpty": "Alle producten in je winkel kunnen gekocht worden.",
+      "listCta": "Terugtrekken of vervangen"
+    },
+    "shopDemand": {
+      "title": "Wachtende kopers van je winkel",
+      "signal": "{count, plural, one {# koper van je winkel wacht op} other {# kopers van je winkel wachten op}} {variant} van „{product}”.",
+      "noSignal": "Minder dan drie kopers van je winkel wachten nog op deze variant: geen signaal.",
+      "why": "Geteld: verschillende kopers van je winkel, actieve niet-verlopen aanvragen, op precies deze variant, zolang die uitverkocht is. Een aanvraag is geen gegarandeerde verkoop.",
+      "matchSame": "Zelfde referentie (barcode)",
+      "matchSimilar": "Vergelijkbaar product",
+      "altFacts": "{units} stuks van deze variant · prijs {price} · je verdient {net} per verkoop (nu: {originalNet})",
+      "lowStock": "Weinig stuks van deze variant beschikbaar.",
+      "missingOptions": "Sommige opties van het oorspronkelijke product worden niet aangeboden.",
+      "supplier": "Leverancier: {supplier}",
+      "inShop": "Al in je winkel",
+      "offer": "Aanbieden in mijn winkel",
+      "confirm": "Toevoegen bevestigen",
+      "cancel": "Annuleren",
+      "chosenAdded": "Alternatief toegevoegd aan je winkel. Het gevraagde product blijft te koop.",
+      "chosenAlready": "Dit alternatief staat al in je winkel.",
+      "chooseFailed": "Toevoegen mislukt. Probeer opnieuw.",
+      "noneReliable": "Geen betrouwbaar alternatief biedt deze variant.",
+      "noneSellable": "Geen vandaag verkoopbaar alternatief biedt deze variant.",
+      "buyerChoice": "Affisell vervangt het gevraagde product nooit automatisch: de aanvragen van kopers blijven ongewijzigd en de koper kiest vrij.",
+      "backToCatalog": "Terug naar de catalogus",
+      "recovery": {
+        "title": "Opvolging van je antwoorden (90 dagen)",
+        "counts": "{shown} bekeken voorstellen · {chosen} toegevoegde alternatieven · {open} aanvragen zonder oplossing",
+        "orders": "{orders} betaalde bestellingen van gekozen alternatieven binnen 30 dagen ({refunded} geannuleerd of terugbetaald) · {waiting} door wachtende kopers",
+        "caveat": "Waargenomen verband, geen bewijs dat het voorstel de verkoop veroorzaakte."
+      }
     }
   },
   "marketplace": {
@@ -3334,7 +3780,7 @@
         "beta": "BETA",
         "multiHint": "AI toepassen stelt marges in voor {count} geselecteerde variant(en), geschaald op groothandelsprijs.",
         "yourPrice": "Jouw prijs",
-        "aiSuggests": "AI stelt voor",
+        "aiSuggests": "Berekende suggestie",
         "marketAvg": "Marktgemiddelde",
         "competitors": "Concurrenten",
         "salesPerMonth": "{count} verkopen/maand",
@@ -3353,7 +3799,8 @@
         "noDataBody": "Nog geen vergelijkbare aanbiedingen gevonden in deze categorie — dit is een algemene startschatting. Ze verbetert naarmate er echte verkopen binnenkomen.",
         "salesUnknown": "Geen recente verkoopgegevens",
         "comparableListings": "{count, plural, one {# vergelijkbare aanbieding} other {# vergelijkbare aanbiedingen}}",
-        "loadFailed": "Kon marktgegevens niet laden — probeer opnieuw."
+        "loadFailed": "Kon marktgegevens niet laden — probeer opnieuw.",
+        "ruleNote": "Statistische berekening over vergelijkbare Affisell-advertenties: een rekenregel, geen AI-model. Zonder voldoende data: leveranciersprijs × 1,4."
       },
       "variantMargins": {
         "title": "Varianten & marges",
@@ -4937,6 +5384,12 @@
         "ASSOCIATION": "Verenigingspartner",
         "FOREIGN": "Internationale partner"
       }
+    },
+    "variantAlternatives": {
+      "title": "Deze variant ({variant}) is uitverkocht — beschikbaar in deze winkel:",
+      "same": "Zelfde referentie",
+      "similar": "Vergelijkbaar product",
+      "note": "Een suggestie: het gekozen product blijft te koop, jij kiest."
     }
   },
   "success": {
@@ -4976,6 +5429,16 @@
       "pushBody": "Verzend- en bezorgmeldingen op dit apparaat — geen spam.",
       "pushEnable": "Meldingen inschakelen",
       "pushLoading": "Meldingen…"
+    },
+    "unallocatedBadge": "Betaling ontvangen",
+    "unallocatedTitle": "Artikel niet bevestigd",
+    "unallocatedBody": "Je betaling is ontvangen, maar het artikel kon niet worden bevestigd. Het wordt niet verzonden.",
+    "unallocatedSome": "{count, plural, one {# artikel kon niet worden bevestigd en wordt niet verzonden.} other {# artikelen konden niet worden bevestigd en worden niet verzonden.}}",
+    "unallocatedRefund": {
+      "notTriggered": "Voor dit bedrag is nog geen terugbetaling gedaan. Ons team is op de hoogte.",
+      "requested": "Er is een terugbetaling van dit bedrag aangevraagd.",
+      "inProgress": "De terugbetaling van dit bedrag wordt verwerkt.",
+      "confirmed": "Dit bedrag is aan je terugbetaald. Afhankelijk van je bank kan het enkele dagen duren voordat het op je afschrift verschijnt."
     }
   },
   "cancel": {
@@ -6952,6 +7415,15 @@
       "footerNote": "Heeft u dit niet aangevraagd? Negeer deze e-mail — uw wachtwoord blijft ongewijzigd.",
       "legal": "© Affisell — affiliate-marktplaats · affisell.com"
     },
+    "emailVerification": {
+      "preview": "Bevestig je Affisell-e-mailadres — {accountEmail}",
+      "subject": "Bevestig je e-mailadres · {accountEmail}",
+      "badge": "Affisell-beveiliging · Verificatie",
+      "title": "Bevestig je e-mailadres",
+      "body": "Er is zojuist een Affisell-account aangemaakt met dit adres. Bevestig dat het van jou is; de link verloopt na 48 uur.",
+      "cta": "Mijn adres bevestigen",
+      "footerNote": "Heb je geen account aangemaakt? Negeer deze e-mail: het adres wordt niet bevestigd."
+    },
     "contactAcknowledgment": {
       "preview": "Bericht ontvangen — Affisell #{ticketRef}",
       "subject": "[Affisell] Bericht ontvangen — #{ticketRef}",
@@ -6971,6 +7443,26 @@
       "body": "U bent een aankoop op Affisell gestart. Uw selectie is nog steeds beschikbaar — beveiligde Stripe-betaling en gevolgde levering.",
       "cta": "Mijn aankoop hervatten",
       "footer": "Vragen? Bekijk de FAQ of de ondersteuningsassistent op Affisell."
+    },
+    "unallocatedLine": {
+      "subject": "Je betaling: een artikel kon niet worden bevestigd",
+      "subjectConfirmed": "Je terugbetaling is uitgevoerd",
+      "preview": "Een deel van je aankoop wordt niet verzonden.",
+      "previewConfirmed": "De terugbetaling is uitgevoerd.",
+      "heading": "Een artikel kon niet worden bevestigd",
+      "headingConfirmed": "Terugbetaling uitgevoerd",
+      "greeting": "Hallo,",
+      "intro": "Je betaling is ontvangen, maar een deel van je aankoop kon niet worden bevestigd. De betreffende artikelen worden niet verzonden. De rest van je bestelling, indien aanwezig, wordt niet beïnvloed.",
+      "introConfirmed": "Na je recente betaling zijn de artikelen die niet konden worden bevestigd terugbetaald.",
+      "amountLine": "Betreffend bedrag: {amount}",
+      "refund": {
+        "notTriggered": "Voor dit bedrag is nog geen terugbetaling gedaan. Ons team is op de hoogte en neemt contact met je op.",
+        "requested": "Er is een terugbetaling van dit bedrag aangevraagd. We laten het je weten zodra die is uitgevoerd.",
+        "inProgress": "De terugbetaling van dit bedrag wordt verwerkt.",
+        "confirmed": "Dit bedrag is aan je terugbetaald. Afhankelijk van je bank kan het enkele dagen duren voordat het op je afschrift verschijnt."
+      },
+      "ctaSupport": "Contact opnemen met support",
+      "footerNote": "Je ontvangt deze e-mail omdat er met dit adres een betaling is gedaan."
     }
   },
   "errors": {
@@ -7149,6 +7641,7 @@
     "jobToastCsv": "CSV geëxporteerd",
     "jobToastNoDraft": "Geen catalogusconcept om te listen",
     "jobToastListed": "{ok}/{total} producten in de winkel gelist",
+    "jobToastPendingReview": "{count} product(en) wachten op controle door Affisell: ze gaan online na de controle.",
     "jobToastListFailed": "Bulk listen mislukt",
     "arbTip": "Ingekocht {cost}€ → Verkocht {sale}€ = +{margin}€",
     "arbTipScore": "Ingekocht {cost}€ → Verkocht {sale}€ = +{margin}€ | Score {score}/100",
@@ -7205,7 +7698,8 @@
       "slaWarning": "buiten de gebruikelijke SLA",
       "provenanceLabel": "Herkomst",
       "complianceLabel": "Compliance-vereisten",
-      "complianceCount": "{count, plural, one {# vereiste} other {# vereisten}}"
+      "complianceCount": "{count, plural, one {# vereiste} other {# vereisten}}",
+      "supplierAffisell": "Affisell-leverancier"
     },
     "sla": {
       "singleMarket": "Voor {code}, redelijke levering: {idealDays}–{maxDays} dagen. Na {maxDays} dagen stijgt je retourpercentage met ~40%.",
@@ -7766,6 +8260,14 @@
     "lastAnalysis": "Laatste analyse {when}",
     "refreshing": "Vernieuwen…",
     "tagline": "E-commercesignalen · Arbitrage Score™ · Verzadiging · Affisell Supplier Match",
+    "demoBadge": "DEMO",
+    "demoBannerMock": "Demogegevens: deze winners komen uit een rekenregel, niet uit een echte marktscan. Gebruik ze niet als verkoopsignaal.",
+    "demoBannerMixed": "Gemengde gegevens: een deel van de rijen is gesimuleerd (gemarkeerd als ‘Demo’).",
+    "demoBannerDemo": "Met de hand geschreven voorbeeldgegevens: geen echte scan.",
+    "scoresAreRules": "Arbitrage Score™ en Verzadiging zijn formules (regels), geen AI-model.",
+    "trendingDemo": "Demo-zoekwoorden: met de hand geschreven lijst met willekeurige variaties, geen marktmeting.",
+    "trendingNone": "Geen echte trendzoekwoorden voor deze markt: geen trendbron leverde gegevens (er wordt niets verzonnen).",
+    "countriesMockNotice": "Radar-database onbereikbaar: de marktlijst wordt zonder scangegevens getoond. Elke markt opent in demomodus.",
     "searchLabel": "Zoeken",
     "searchPlaceholder": "Zoek een product, land…",
     "comingSoon": "Binnenkort beschikbaar",
@@ -8307,7 +8809,15 @@
     "curve24": "24u-verloop",
     "copyWinner": "Kopieer deze winner → Import in 10 s",
     "fullPage": "Volledige pagina bekijken",
-    "tickerAgo": "{n} min geleden"
+    "tickerAgo": "{n} min geleden",
+    "badgeLive": "LIVE",
+    "badgeMixed": "GEMENGD",
+    "badgeDemo": "DEMO",
+    "demoNotice": "Demogegevens: deze gebeurtenissen worden gegenereerd om de wereldbol te vullen en komen niet overeen met een echte verkoop.",
+    "mixedNotice": "Gemengde gegevens: een deel van de gebeurtenissen wordt gegenereerd om de wereldbol te vullen (gemarkeerd als ‘demo’).",
+    "demoEvent": "demo",
+    "demoEventNotice": "Demogebeurtenis: gegenereerd om de wereldbol te vullen, zonder echte verkoop of import erachter.",
+    "estimatedLocation": "Geschatte locatie: de stad wordt automatisch gekozen, niet de werkelijke plaats van de gebeurtenis."
   },
   "radarPricing": {
     "starterEyebrow": "Signaalproef",
@@ -8706,7 +9216,11 @@
     "browseCatalog": "Catalogus bekijken",
     "reviewMargins": "Mijn marges controleren",
     "viewInvitation": "Uitnodiging bekijken",
-    "viewAffiliateInvites": "Wederverkopersuitnodigingen bekijken"
+    "viewAffiliateInvites": "Wederverkopersuitnodigingen bekijken",
+    "viewProfitAlert": "Melding bekijken",
+    "viewReplacement": "Verwijderen of vervangen",
+    "viewUnsellableList": "Lijst bekijken",
+    "viewBlockedDemand": "Geblokkeerde producten bekijken"
   },
   "aiConnect": {
     "title": "Een AI koppelen",
@@ -8830,5 +9344,520 @@
       "dimensions": "Afmetingen"
     },
     "returnWindowBadge": "Retour mogelijk binnen {days} dagen"
+  },
+  "supplierReturns": {
+    "disposition": {
+      "title": "Geretourneerde goederen — inspectie en beslissing",
+      "outcomeLabel": "Vastgestelde staat",
+      "noteLabel": "Notitie (wat u zag)",
+      "record": "Inspectie vastleggen",
+      "decideRestock": "Terugplaatsing bevestigen",
+      "decideKeepOut": "Niet terugplaatsen",
+      "decisionNoteLabel": "Reden van de beslissing",
+      "timeline": "Geschiedenis",
+      "stage": {
+        "awaiting_reception": "Wacht op ontvangst",
+        "awaiting_inspection": "Te inspecteren",
+        "inspected_not_resellable": "Geïnspecteerd — niet doorverkoopbaar",
+        "awaiting_decision": "Doorverkoopbaar — beslissing nodig",
+        "kept_out": "Buiten voorraad gehouden",
+        "restock_validated_not_applied": "Terugplaatsing bevestigd — niet toegepast",
+        "restocked": "Teruggeplaatst"
+      },
+      "outcome": {
+        "resellable": "Doorverkoopbaar (als nieuw, compleet)",
+        "damaged": "Beschadigd",
+        "defective": "Defect",
+        "missing_parts": "Onderdelen ontbreken",
+        "wrong_item_returned": "Verkeerd artikel teruggestuurd",
+        "not_received": "Niets ontvangen"
+      },
+      "event": {
+        "received": "Ontvangen",
+        "inspected": "Geïnspecteerd",
+        "decided": "Beslissing",
+        "restocked": "Teruggeplaatst ({qty})"
+      },
+      "decision": {
+        "restock": "terugplaatsing bevestigd",
+        "keep_out": "buiten voorraad"
+      },
+      "modeOff": "Automatische terugplaatsing staat uit bij Affisell: uw beslissing wordt vastgelegd, de voorraad verandert niet.",
+      "modeObserve": "Observatiemodus: uw beslissing wordt vastgelegd, de terugplaatsing wordt alleen berekend.",
+      "inspectionSaved": "Inspectie vastgelegd.",
+      "decisionSaved": "Beslissing vastgelegd.",
+      "restocked": "Eenheden teruggeplaatst.",
+      "error": "De actie is mislukt.",
+      "errNotResellable": "De laatste inspectie staat geen terugplaatsing toe.",
+      "errNotInspected": "Inspecteer eerst de goederen.",
+      "errAlreadyRestocked": "Al teruggeplaatst."
+    }
+  },
+  "catalogHealth": {
+    "title": "Gezondheid van uw catalogus",
+    "subtitle": "Wat de verkoop van uw producten tegenhoudt, gerangschikt naar waargenomen commerciële impact. Elk punt noemt de gegevens waarop het berust.",
+    "summary": "{checked, plural, one {# product gecontroleerd} other {# producten gecontroleerd}} · {blocked, plural, =0 {geen geblokkeerd} one {# geblokkeerd} other {# geblokkeerd}} · {healthy, plural, =0 {geen zonder problemen te koop} one {# zonder problemen te koop} other {# zonder problemen te koop}}",
+    "truncated": "Alleen uw 1.000 nieuwste producten worden geanalyseerd.",
+    "loading": "Uw catalogus wordt geanalyseerd…",
+    "error": "De analyse kon niet worden geladen.",
+    "retry": "Opnieuw proberen",
+    "filterLabel": "Filteren op type",
+    "filterAll": "Alles ({count})",
+    "emptyCatalogue": "U heeft nog geen producten.",
+    "nothingHere": "Niets te melden in deze categorie.",
+    "showMore": "Nog {count} tonen",
+    "openLink": "Volledige cataloguscontrole bekijken",
+    "demandLine": "{orders, plural, =0 {geen betaalde bestelling} one {# betaalde bestelling} other {# betaalde bestellingen}} in 30 dagen · {resellers, plural, =0 {geen wederverkoper} one {# wederverkoper biedt het aan} other {# wederverkopers bieden het aan}}",
+    "method": "Volgorde: problemen van producten die verkopen of die wederverkopers aanbieden komen eerst (betaalde bestellingen in 30 dagen en waargenomen wederverkopers). Geen voorspelling. Aanbevelingen zijn vrijblijvend.",
+    "class": {
+      "blocage": {
+        "label": "Blokkade",
+        "definition": "Verhindert vandaag echt een handeling (kopen, publiceren of de verkoop toewijzen)."
+      },
+      "anomalie": {
+        "label": "Afwijking",
+        "definition": "Tegenstrijdige of waarschijnlijk foute gegevens — ze kunnen kloppen: u bevestigt."
+      },
+      "avertissement": {
+        "label": "Waarschuwing",
+        "definition": "Een risico of informatie die aandacht verdient. Niets is geblokkeerd."
+      },
+      "recommandation": {
+        "label": "Aanbeveling",
+        "definition": "Vrijblijvende verbetering. Niets is verplicht."
+      }
+    },
+    "source": {
+      "fiche": "Bron: uw productfiche",
+      "observe": "Bron: waargenomen bestellingen en wederverkopers",
+      "affisell": "Bron: een regel of beslissing van Affisell",
+      "calcul": "Bron: berekend uit uw gegevens"
+    },
+    "fix": {
+      "edit": "Product openen",
+      "hold": "Affisell heeft dit product uit de verkoop gehaald: u kunt het niet zelf weer te koop zetten. De details staan op de productpagina; het contact loopt via de Affisell-support.",
+      "stockLabel": "Echt beschikbare hoeveelheid",
+      "stockSave": "Opslaan",
+      "saving": "Opslaan…",
+      "stockSaved": "Hoeveelheid opgeslagen.",
+      "stockError": "De hoeveelheid kon niet worden opgeslagen.",
+      "stockInvalid": "Vul een geheel getal in."
+    },
+    "issues": {
+      "held_by_affisell": {
+        "title": "Door Affisell uit de verkoop gehaald",
+        "why": "{hold, select, product_recalled {Er loopt een veiligheidsterugroeping voor dit product.} other {Affisell heeft dit product geschorst.}} Niemand kan het kopen zolang dat niet is opgeheven."
+      },
+      "price_missing": {
+        "title": "Prijs ontbreekt",
+        "why": "De catalogusprijs is leeg of nul: het product kan niet worden verkocht."
+      },
+      "commission_not_explicit": {
+        "title": "Geen commissie voor wederverkopers",
+        "why": "Zonder expliciete commissie kan een betaalde verkoop geen bestelling worden: hij wordt apart gezet en moet worden terugbetaald."
+      },
+      "out_of_stock": {
+        "title": "Uitverkocht",
+        "why": "Beschikbare hoeveelheid: 0. De productpagina toont « uitverkocht », niemand kan het kopen."
+      },
+      "safety_blocks_publication": {
+        "title": "Publicatie geweigerd: productveiligheid",
+        "why": "{missingCount, plural, one {# gegeven over productveiligheid ontbreekt} other {# gegevens over productveiligheid ontbreken}} (fabrikant, adres, EU-verantwoordelijke…). De controle is actief: de publicatie wordt geweigerd."
+      },
+      "stock_nominal": {
+        "title": "Hoeveelheid te bevestigen",
+        "why": "Hoeveelheid {stock}: een typische waarde van een import of assistent, niet per se uw echte voorraad."
+      },
+      "variant_stock_mismatch": {
+        "title": "Voorraden kloppen niet",
+        "why": "De productvoorraad ({productStock}) komt niet overeen met de som van de varianten ({rowsTotal})."
+      },
+      "variant_stock_untracked": {
+        "title": "Voorraad van varianten onbekend",
+        "why": "De hoeveelheden van de varianten staan niet in de tabel die bij aankoop wordt gelezen: de echte beschikbaarheid is onbekend."
+      },
+      "delivery_window_inverted": {
+        "title": "Levertijd klopt niet",
+        "why": "De minimale levertijd ({min} d) is langer dan de maximale ({max} d)."
+      },
+      "duplicate_name": {
+        "title": "Mogelijk duplicaat",
+        "why": "{others, plural, one {# ander product van u heeft} other {# andere producten van u hebben}} dezelfde naam: een duplicaat, of namen die voor wederverkopers te onderscheiden zijn."
+      },
+      "hold_unverifiable": {
+        "title": "Status niet te controleren",
+        "why": "De terugroep- of schorsingsstatus kon niet worden gelezen. Probeer het later opnieuw."
+      },
+      "safety_data_missing": {
+        "title": "Gegevens over productveiligheid ontbreken",
+        "why": "{missingCount, plural, one {# gegeven ontbreekt} other {# gegevens ontbreken}}. Vandaag niet geweigerd (controle in observatie{live, select, 1 {, product al gepubliceerd} other {}}), maar een nieuwe publicatie kan dat worden zodra de controle actief is."
+      },
+      "paused_but_listed": {
+        "title": "Gepauzeerd terwijl wederverkopers het aanbieden",
+        "why": "U heeft het gepauzeerd; {resellers, plural, one {# wederverkoper biedt het aan} other {# wederverkopers bieden het aan}} zonder het te kunnen verkopen."
+      },
+      "low_stock": {
+        "title": "Lage voorraad",
+        "why": "Nog maar {available, plural, one {# stuk} other {# stuks}} ({paidOrders30d, plural, =0 {geen betaalde bestelling} one {# betaalde bestelling} other {# betaalde bestellingen}} in 30 dagen)."
+      },
+      "no_photo": {
+        "title": "Geen foto",
+        "why": "Zonder foto is het product nauwelijks zichtbaar en lastig te presenteren voor wederverkopers."
+      },
+      "no_category": {
+        "title": "Geen categorie",
+        "why": "Wederverkopers vinden het niet via de categoriefilters van de catalogus."
+      },
+      "no_reseller": {
+        "title": "Geen wederverkoper biedt het aan",
+        "why": "Al {ageDays} dagen te koop, geen enkele winkel biedt het aan: het wordt nergens verkocht."
+      },
+      "listed_no_sales": {
+        "title": "Aangeboden maar niet verkocht",
+        "why": "{resellers, plural, one {# wederverkoper biedt het aan} other {# wederverkopers bieden het aan}}, geen betaalde bestelling in {days} dagen. Prijs, foto's of beschrijving kunnen de oorzaak zijn — een spoor, geen vaststelling."
+      },
+      "draft_ready": {
+        "title": "Concept klaar om te publiceren",
+        "why": "Prijs, hoeveelheid, commissie en foto zijn ingevuld. Publiceer het als u wilt."
+      },
+      "few_photos": {
+        "title": "Weinig foto's",
+        "why": "{photos, plural, one {# foto} other {# foto's}}. Vrijblijvend: meerdere aanzichten helpen wederverkopers het te presenteren."
+      },
+      "short_description": {
+        "title": "Korte beschrijving",
+        "why": "{characters} tekens. Vrijblijvend: een vollediger beschrijving helpt de koper te beslissen."
+      },
+      "no_gtin": {
+        "title": "Geen barcode",
+        "why": "Vrijblijvend: met een GTIN / EAN kunnen Europese veiligheidswaarschuwingen worden gecontroleerd en duplicaten worden gevonden."
+      },
+      "stock_unconfirmed": {
+        "title": "Hoeveelheid te bevestigen",
+        "why": "Geïmporteerd zonder hoeveelheid van de bron: voorraad 0 en publicatie geweigerd tot u de echt beschikbare hoeveelheid invult."
+      },
+      "stock_cover_short": {
+        "title": "Bijna uitverkocht in het huidige tempo",
+        "why": "Opgegeven voorraad: {available} stuks. In het tempo van de afgelopen 30 dagen ({units30d, plural, one {# stuk verkocht} other {# stuks verkocht}}) dekt hij ongeveer {days, plural, =0 {minder dan een dag} one {# dag} other {# dagen}}, onder de indicatieve drempel van {threshold} dagen{leadKnown, select, 1 { (je opgegeven aanvultermijn: {leadTimeDays} dagen)} other {}}.{reservedNotDeducted, select, 1 { Als de {reserved} stuks van betaalde, niet verzonden bestellingen nog in deze voorraad zitten, dekt hij maar {daysIfReserved} dagen.} other {}}{stale, select, 1 { De productfiche is al {sheetAgeDays} dagen niet gewijzigd: controleer of de opgegeven hoeveelheid klopt.} other {}} Een indicatieve berekening, geen voorspelling."
+      },
+      "variant_rows_indistinct": {
+        "title": "Varianten die niet te onderscheiden zijn",
+        "why": "{rows} varianten ({labels}) hebben dezelfde kleur, maat en capaciteit: kopers kunnen er niet tussen kiezen en hun voorraad wordt nooit afgeboekt. Geef ze verschillende namen."
+      }
+    },
+    "availability": {
+      "title": "Beschikbaarheid in de winkels van je wederverkopers",
+      "none": "Geen van je producten die wederverkopers aanbieden heeft een beschikbaarheidsprobleem.",
+      "summaryBlocked": "{products, plural, one {# product kan niet gekocht worden} other {# producten kunnen niet gekocht worden}} in {shops, plural, one {# winkel van een wederverkoper} other {# winkels van wederverkopers}}. De afgelopen 30 dagen hadden deze producten {orders, plural, =0 {geen betaalde bestelling} one {# betaalde bestelling} other {# betaalde bestellingen}} ({amount} voor jou).",
+      "summaryAtRisk": "{products, plural, one {# product dat nog te koop is, kan} other {# producten die nog te koop zijn, kunnen}} binnenkort niet meer verkocht worden ({shops, plural, one {# winkel} other {# winkels}}).",
+      "shopsBlocked": "Onverkoopbaar in {shops, plural, one {# winkel van een wederverkoper} other {# winkels van wederverkopers}}.",
+      "shopsAtRisk": "Te koop in {shops, plural, one {# winkel van een wederverkoper} other {# winkels van wederverkopers}}, maar met risico.",
+      "observed": "Afgelopen 30 dagen: {orders, plural, =0 {geen betaalde bestelling} one {# betaalde bestelling} other {# betaalde bestellingen}}, {units, plural, =0 {geen stuks} one {# stuk} other {# stuks}}, {amount} voor jou (vóór terugbetalingen).",
+      "lastSale": "Laatste verkoop {days, plural, =0 {minder dan een dag geleden} one {# dag geleden} other {# dagen geleden}}.",
+      "neverSold": "Nooit verkocht.",
+      "cause": "Oorzaak:",
+      "also": "Ook:",
+      "severity": {
+        "blocked": "Onverkoopbaar",
+        "at_risk": "Risico"
+      },
+      "reactivate": "Weer te koop zetten",
+      "reactivating": "Bezig…",
+      "reactivated": "Product weer te koop.",
+      "reactivateError": "Weer te koop zetten is niet gelukt.",
+      "refused": {
+        "product_recalled": "Geweigerd: er loopt een veiligheidsterugroeping.",
+        "product_suspended": "Geweigerd: Affisell heeft dit product geschorst.",
+        "stock_unconfirmed": "Geweigerd: vul eerst in de productfiche de echt beschikbare hoeveelheid in."
+      },
+      "showAll": "Alle {count} producten tonen",
+      "showLess": "Minder tonen",
+      "method": "Vastgesteld op je betaalde bestellingen en de winkels van je wederverkopers; bedragen vóór terugbetalingen. Wat deze producten deden, geen verliesprognose.",
+      "stockLine": "Opgegeven voorraad: {declared} {confirmed, select, 1 {(door jou bevestigd)} other {(niet bevestigd)}} · gereserveerd (betaalde, niet verzonden bestellingen): {reserved} {deducted, select, 1 {(al van de voorraad afgetrokken)} other {(niet afgetrokken door Affisell)}}",
+      "declaredUnknown": "Opgegeven voorraad: onbekend (hoeveelheden per variant onleesbaar)",
+      "restockTitle": "Aanvulberekening — om te lezen, er wordt niets ingevuld of toegepast",
+      "restockMain": "Om {target} dagen te dekken na een aanvultermijn van {lead} dagen, in het waargenomen tempo: ongeveer {units} stuks (tussen {low} en {high} afhankelijk van de schommeling van de verkoop).",
+      "restockZero": "In het waargenomen tempo dekt je beschikbare voorraad al {target} dagen na de termijn.",
+      "restockExplain": "Detail: {needed} stuks nodig ({sold} verkocht in 30 dagen, omgerekend naar {lead} + {target} dagen) − {available} stuks beschikbaar.",
+      "restockLeadNotDeclared": "Aanvultermijn niet opgegeven: de berekening telt 0 dagen. Geef hem op onder « Inkoopkosten » in de productfiche.",
+      "restockReservedNote": "De {reserved} gereserveerde stuks (betaald, niet verzonden, niet afgetrokken door Affisell) worden in deze berekening voorzichtigheidshalve van de opgegeven voorraad afgetrokken."
+    },
+    "blockedDemand": {
+      "title": "Vraag geblokkeerd door onbeschikbaarheid",
+      "subtitle": "Uw producten die wederverkopers aanbieden, die verkochten of die kopers betaalden, en die vandaag niet meer te koop zijn. Alleen vastgestelde feiten tellen – nooit een bezoek of louter interesse.",
+      "empty": "Momenteel geen geblokkeerde vraag op uw producten.",
+      "bellSingle": "Kopers kunnen „{product}” niet meer bestellen: het is niet beschikbaar in de winkels van uw wederverkopers.",
+      "bellDigest": "{count} van uw producten die uw wederverkopers verkopen, kunnen niet meer worden besteld.",
+      "cause": {
+        "out_of_stock": "Uitverkocht: beschikbare hoeveelheid is 0.",
+        "stock_unconfirmed": "Hoeveelheid nooit bevestigd: het product kan pas daarna verkocht worden.",
+        "paused_by_supplier": "Gepauzeerd of niet gepubliceerd via uw productfiche.",
+        "no_commission": "Geen expliciete wederverkoperscommissie: een verkoop zou niet kunnen worden geregistreerd."
+      },
+      "fix": {
+        "update_stock": "Hoeveelheid bijwerken",
+        "confirm_stock": "Hoeveelheid bevestigen",
+        "reactivate": "Weer te koop zetten",
+        "set_commission": "Commissie instellen"
+      },
+      "ordersBefore": "{count, plural, one {# betaalde bestelling} other {# betaalde bestellingen}} in de 30 dagen vóór de onbeschikbaarheid (vastgesteld)",
+      "ordersSince": "{count, plural, one {# betaalde bestelling} other {# betaalde bestellingen}} sindsdien (vastgesteld)",
+      "failedLines": "{count, plural, one {# ontvangen betaling kon geen bestelling worden} other {# ontvangen betalingen konden geen bestellingen worden}} door onbeschikbaarheid (vastgesteld; kopers terugbetaald of terug te betalen)",
+      "shops": "In {count, plural, one {# winkel van een wederverkoper} other {# winkels van wederverkopers}}",
+      "lastSale": "Laatste betaalde bestelling op {date}",
+      "since": "Uiterlijk sinds {date} niet beschikbaar ({days, plural, =0 {vandaag} one {# dag} other {# dagen}})",
+      "sinceUnknown": "Begindatum nog niet vastgelegd door de dagelijkse controle.",
+      "estimate": "Schatting: in het tempo van de vorige 30 dagen ongeveer {orders} bestellingen (tussen {low} en {high}) in deze periode. Geen vastgesteld verlies.",
+      "note": "Er wordt geen naam of eigen cijfer van een wederverkoper getoond. Niets wordt automatisch gewijzigd: u werkt uw productfiche bij.",
+      "pref": "Waarschuw mij via de bel (hoogstens één melding per dag)",
+      "prefSaved": "Voorkeur opgeslagen",
+      "truncated": "Beperkte lezing: de lijst kan onvolledig zijn.",
+      "riskSingle": "De voorraad van „{product}” kan over ongeveer {days} dagen op zijn, vóór uw aanvulling.",
+      "attentionDigest": "{count} van uw producten die uw wederverkopers verkopen hebben uw aandacht nodig (niet beschikbaar, in sommige maten of kleuren uitverkocht, of binnenkort uitverkocht).",
+      "variantSoldOutSingle": "“{product}”: {count, plural, one {de variant {labels} is uitverkocht} other {# varianten zijn uitverkocht ({labels})}} terwijl kopers hem bestelden; {available, plural, =0 {geen andere is te koop} one {# andere is nog te koop} other {# andere zijn nog te koop}}.",
+      "variantRiskSingle": "“{product}”: {count, plural, one {de variant {labels} kan opraken} other {# varianten kunnen opraken ({labels})}} vóór uw aanvulling."
+    },
+    "stockout": {
+      "title": "Te verwachten voorraadtekorten",
+      "subtitle": "Uw producten in de winkels van uw wederverkopers waarvan de voorraad op kan raken voordat een aanvulling aankomt. Feiten, berekeningen, aannames en grenzen staan apart; er wordt niets besteld of gewijzigd.",
+      "empty": "Momenteel geen product om in de gaten te houden.",
+      "truncated": "Beperkte lezing: de lijst kan onvolledig zijn.",
+      "risk": {
+        "sous_le_delai": "Uitverkocht vóór aanvulling, zelfs in het lage tempo",
+        "probable": "Waarschijnlijk uitverkocht vóór aanvulling",
+        "a_surveiller": "In de gaten houden",
+        "suffisant": "Voldoende dekking",
+        "non_evaluable": "Niet te beoordelen"
+      },
+      "confidence": {
+        "high": "hoge betrouwbaarheid",
+        "medium": "gemiddelde betrouwbaarheid",
+        "low": "lage betrouwbaarheid"
+      },
+      "factsTitle": "Feiten",
+      "calcTitle": "Berekening",
+      "declared": "Opgegeven voorraad: {units}",
+      "declaredUnknown": "Opgegeven voorraad onbekend (varianten niet gevolgd)",
+      "reservedDeducted": "{units} eenheden gereserveerd door betaalde, niet verzonden bestellingen, al door het platform afgetrokken",
+      "reservedNotDeducted": "{units} eenheden gereserveerd door betaalde, niet verzonden bestellingen, nog in de opgegeven voorraad",
+      "sold": "{units} eenheden verkocht in 30 dagen, op {days} verschillende dagen",
+      "confirmedOn": "Hoeveelheid bevestigd op {date}",
+      "neverConfirmed": "Hoeveelheid nooit bevestigd",
+      "sheetAge": "Productfiche {days} dagen geleden gewijzigd (dat is geen voorraadbevestiging)",
+      "leadKnown": "Opgegeven aanvullingstermijn: {days} dagen",
+      "leadUnknown": "Aanvullingstermijn niet opgegeven",
+      "available": "Beschikbaar na reserveringen: {units}",
+      "pace": "Tempo: {pace} per dag (tussen {low} en {high})",
+      "cover": "Geschatte dekking: {days} dagen (tussen {low} en {high})",
+      "coverOpen": "Geschatte dekking: {days} dagen (minstens {low})",
+      "comparedLead": "Vergeleken met uw opgegeven termijn van {days} dagen",
+      "comparedIndicative": "Vergeleken met een indicatieve termijn van {days} dagen (de uwe is niet opgegeven)",
+      "notCalculated": "Geen berekening: de gegevens laten het niet toe (zie de grenzen).",
+      "hypothesesTitle": "Aannames:",
+      "hypothesis": {
+        "pace_constant": "het tempo van de laatste 30 dagen houdt aan",
+        "no_incoming_restock": "Affisell kent geen lopende aanvulling",
+        "lead_time_indicative": "termijn van 14 dagen is indicatief"
+      },
+      "limitsTitle": "Grenzen:",
+      "limit": {
+        "too_few_sales": "minder dan 5 verkopen in 30 dagen",
+        "sales_on_few_days": "verkopen op minder dan 3 dagen",
+        "declared_unknown": "opgegeven voorraad onbekend",
+        "never_confirmed": "hoeveelheid nooit bevestigd",
+        "confirmation_old": "bevestiging ouder dan 30 dagen",
+        "confirmation_too_old": "bevestiging ouder dan 120 dagen: hoeveelheid onbruikbaar",
+        "unconfirmed_marker": "geïmporteerde hoeveelheid nooit bevestigd",
+        "lead_time_unknown": "aanvullingstermijn niet opgegeven"
+      },
+      "action": {
+        "restock_now": "Nu aanvullen",
+        "plan_restock": "Een aanvulling plannen",
+        "confirm_quantity": "Hoeveelheid bevestigen of corrigeren",
+        "declare_lead_time": "Uw aanvullingstermijn opgeven"
+      },
+      "openSheet": "Productfiche openen",
+      "confirmButton": "De hoeveelheid {units} klopt",
+      "confirmResult": {
+        "ok": "Hoeveelheid bevestigd.",
+        "quantity_changed": "De hoeveelheid is intussen gewijzigd: herlaad de pagina.",
+        "unconfirmed_import": "Geïmporteerde hoeveelheid: vul ze in op de fiche.",
+        "quantity_unknown": "Hoeveelheid onbekend: gebruik de fiche.",
+        "error": "Bevestiging nu niet mogelijk."
+      },
+      "note": "Een berekening, geen zekerheid. Er wordt geen aanvullingsbestelling gemaakt of verzonden. Uw wederverkopers zien deze informatie niet."
+    },
+    "variantStock": {
+      "title": "Voorraad per variant",
+      "subtitle": "Een voldoende totaal kan een uitverkochte maat of kleur verbergen. Elke variant wordt beoordeeld op zijn eigen voorraad, verkopen en reserveringen; het totaal wordt nooit over varianten verdeeld.",
+      "empty": "Geen uitverkochte of risicovolle variant bij uw producten in winkels.",
+      "truncated": "Beperkte lezing: de lijst kan onvolledig zijn.",
+      "shops": "{count, plural, one {# winkel van een wederverkoper} other {# winkels van wederverkopers}}",
+      "notTracked": "De varianten van dit product worden niet afzonderlijk gevolgd (geen voorraad per regel): niet te zeggen welke opraakt. Niet te beoordelen.",
+      "partial": "{count, plural, one {# variant uitverkocht} other {# varianten uitverkocht}} terwijl andere nog te koop zijn",
+      "col": {
+        "variant": "Variant",
+        "declared": "Opgegeven voorraad",
+        "sold": "Vastgestelde verkopen (90 d)",
+        "cover": "Geschatte dekking",
+        "state": "Status"
+      },
+      "unknown": "onbekend",
+      "soldValue": "{units} ({pct}% van de verkopen)",
+      "noSale": "geen vastgestelde verkoop",
+      "resellers": "verkocht door {count} wederverkopers",
+      "resellersFew": "verkocht door minder dan 2 wederverkopers",
+      "coverValue": "{days} d (minstens {low})",
+      "ambiguous": "dubbelzinnig: naam gedeeld door twee regels",
+      "notEvaluable": "niet te beoordelen",
+      "soldOut": "uitverkocht",
+      "unattributed": "{units} eenheden verkocht zonder herkende variant: apart geteld, nooit verdeeld.",
+      "confirmationScope": "De bevestiging van de hoeveelheid geldt voor de hele fiche.",
+      "fixTrack": "Voorraad per variant volgen in de fiche",
+      "fixRows": "Hoeveelheid van de variant bijwerken",
+      "note": "Vastgestelde verkopen en berekeningen staan apart. Een uitverkochte variant wordt niet voorgesteld als verloren verkopen: in de gegevens van Affisell is geen gemiste verkoop aan een variant gekoppeld. Er wordt geen naam van een wederverkoper getoond.",
+      "waitingBuyers": "{count, plural, one {# koper wacht erop} other {# kopers wachten erop}}"
+    },
+    "restockDemand": {
+      "title": "Kopers die wachten op aanvulling",
+      "subtitle": "Uitverkochte varianten waarvoor minstens {min} verschillende kopers een melding bij terugkeer vroegen.",
+      "buyers": "{count, plural, one {# koper wacht} other {# kopers wachten}} erop",
+      "fix": "Hoeveelheid bijwerken",
+      "truncated": "Zeer grote catalogus: slechts een deel van de producten is bekeken.",
+      "disclaimer": "Uitdrukkelijke verzoeken van kopers, één keer geteld per koper en variant. Een aanwijzing van echte vraag, geen verkoopprognose: een gewaarschuwde koper koopt niet altijd.",
+      "noneNow": "Geen enkele variant bereikt nu de drempel.",
+      "followUp": {
+        "title": "Opvolging van de vraag (laatste 90 dagen)",
+        "counts": "{episodes} gegroepeerde vragen: {waiting} wachtend, {returned} varianten weer op voorraad, {lapsed} gesloten zonder terugkeer.",
+        "delay": "Mediane tijd tussen vraag en terugkeer: {days} dagen.",
+        "orders": "Na de terugkeer: {orders} bestellingen van deze varianten, waarvan {refunded} terugbetaald of geannuleerd, {waitingBuyers} door wachtende kopers.",
+        "notEvaluable": "Bij {count} terugkeren kunnen bestellingen niet aan de variant worden gekoppeld (niet geteld).",
+        "partial": "{count} terugkeren met minder stuks dan wachtende kopers.",
+        "resoldOut": "{count} varianten na terugkeer opnieuw uitverkocht.",
+        "caveat": "Wat er na de vraag gebeurde, vastgesteld. Een bestelling na aanvulling bewijst niet dat de vraag of de aanbeveling die veroorzaakte."
+      }
+    },
+    "listingQuality": {
+      "title": "Wat op Affisell samengaat met meer verkopen",
+      "intro": "Op Affisell verkochten productpagina's met deze elementen in {days} dagen meer per dag in een winkel dan pagina's van dezelfde categorie, prijsklasse en leeftijd zonder. Deze pagina's hebben ze nog niet:",
+      "evidence": "Op Affisell: {ratio}× meer verkopen per dag in een winkel (minstens {lo}×, foutmarge inbegrepen).",
+      "cta": "Pagina aanvullen",
+      "caveat": "Een waargenomen verband, geen belofte: winkelverkeer, de prijs van de wederverkoper en andere factoren worden niet gemeten. Niets wordt zonder jou gewijzigd.",
+      "feature": {
+        "photos_3plus": "Voeg minstens 3 foto's toe.",
+        "photos_5plus": "Voeg minstens 5 foto's toe.",
+        "title_precise": "Maak de titel nauwkeuriger (minstens 3 woorden, geen doorlopende hoofdletters).",
+        "description_200plus": "Schrijf een beschrijving van minstens 200 tekens.",
+        "specs_3plus": "Vul minstens 3 kenmerken in.",
+        "variants_distinct": "Maak elke variant onderscheidbaar (kleur, maat, capaciteit).",
+        "gtin_valid": "Vul een geldige barcode (GTIN) in.",
+        "brand_declared": "Vul het merk in.",
+        "delivery_declared": "Vul de levertijd in.",
+        "return_extended": "Bied een retourtermijn van meer dan 14 dagen.",
+        "safety_complete": "Vul de productveiligheidsgegevens aan.",
+        "stock_confirmed": "Vul een echte voorraad in."
+      }
+    }
+  },
+  "nextActions": {
+    "title": "Uw volgende acties",
+    "subtitle": "Een tot drie acties uit uw eigen gegevens.",
+    "honesty": "Mogelijke impact: wat bij dit product de afgelopen 30 dagen is waargenomen, geen beloofd resultaat.",
+    "priority": {
+      "haute": "Hoge prioriteit",
+      "moyenne": "Gemiddelde prioriteit",
+      "basse": "Lage prioriteit"
+    },
+    "kind": {
+      "fix_blocage": "« {product} » deblokkeren",
+      "resolve_availability": "Beschikbaarheid van « {product} » regelen",
+      "promote_to_resellers": "« {product} » bekendmaken bij wederverkopers",
+      "publish_draft": "« {product} » publiceren",
+      "complete_sheet": "Productfiche « {product} » verbeteren",
+      "fix_shop_listing": "« {product} » in uw winkel regelen",
+      "review_profit_drop": "Daling bij « {product} » bekijken",
+      "add_ready_product": "« {product} » aan uw winkel toevoegen",
+      "answer_restock_demand": "Reageer op de vraag naar {product}",
+      "answer_shop_demand": "Kopers van je winkel wachten op {product}"
+    },
+    "cta": {
+      "fix_blocage": "Product openen",
+      "resolve_availability": "Product openen",
+      "promote_to_resellers": "Wederverkopers uitnodigen",
+      "publish_draft": "Concept openen",
+      "complete_sheet": "Product openen",
+      "fix_shop_listing": "Verwijderen of vervangen",
+      "review_profit_drop": "Analyse bekijken",
+      "add_ready_product": "In de catalogus bekijken",
+      "answer_restock_demand": "Beschikbaarheid bijwerken",
+      "answer_shop_demand": "Bekijk de vraag en alternatieven"
+    },
+    "impact": {
+      "label": "Mogelijke impact:",
+      "orders": "{count, plural, =0 {geen betaalde bestelling in 30 d} one {# betaalde bestelling in 30 d} other {# betaalde bestellingen in 30 d}}",
+      "resellers": "{count, plural, =0 {geen wederverkoper} one {# wederverkoper} other {# wederverkopers}}",
+      "netPerSale": "{amount} netto per verkoop (berekend)",
+      "netChange": "{amount} minder netto-opbrengst (waargenomen)",
+      "waitingBuyers": "{count, plural, one {# wachtende koper} other {# wachtende kopers}}"
+    },
+    "reason": {
+      "price_missing": "De prijs ontbreekt: het product kan niet worden verkocht.",
+      "commission_not_explicit": "Geen commissie voor wederverkopers: een verkoop kan niet worden toegewezen.",
+      "safety_blocks_publication": "Gegevens over productveiligheid ontbreken en de publicatie wordt geweigerd.",
+      "out_of_stock": "Hoeveelheid 0: de productpagina toont « uitverkocht ».",
+      "low_stock": "Zeer weinig stuks over van een product dat verkoopt.",
+      "stock_nominal": "De hoeveelheid lijkt een importwaarde, niet uw voorraad.",
+      "variant_stock_mismatch": "Product- en variantvoorraad komen niet overeen.",
+      "variant_stock_untracked": "De variantvoorraad is bij aankoop niet bekend.",
+      "no_reseller": "Het is te koop maar geen winkel biedt het aan.",
+      "draft_ready": "Het concept is volledig.",
+      "no_photo": "Het heeft geen foto.",
+      "no_category": "Het heeft geen categorie: wederverkopers vinden het niet.",
+      "duplicate_name": "Een ander product van u heeft dezelfde naam.",
+      "delivery_window_inverted": "De minimale levertijd is langer dan de maximale.",
+      "safety_data_missing": "Gegevens over productveiligheid ontbreken.",
+      "paused_but_listed": "Het is gepauzeerd terwijl wederverkopers het aanbieden.",
+      "listed_no_sales": "Wederverkopers bieden het aan maar het verkoopt niet.",
+      "few_photos": "Het heeft weinig foto's terwijl er vraag naar is.",
+      "short_description": "De beschrijving is kort terwijl er vraag naar is.",
+      "no_gtin": "Het heeft geen barcode terwijl er vraag naar is.",
+      "shop_out_of_stock": "De leverancier heeft geen voorraad meer: uw kopers zien het uitverkocht.",
+      "shop_product_unavailable": "De leverancier heeft het ingetrokken of gepauzeerd: het is niet meer te koop.",
+      "shop_awaiting_review": "Het product wacht op validatie door Affisell.",
+      "shop_no_commission": "De leverancier heeft geen commissie ingesteld: een verkoop kan niet worden toegewezen.",
+      "drop_volume_down": "Uw verkoop van dit product is gedaald.",
+      "drop_your_price_down": "U heeft uw prijs verlaagd.",
+      "drop_collected_price_down": "De ontvangen prijs is gedaald.",
+      "drop_supplier_price_up": "De leveranciersprijs is gestegen.",
+      "drop_commission_down": "De commissie is gedaald.",
+      "drop_fees_up": "De kosten zijn gestegen.",
+      "drop_refunds_up": "De terugbetalingen zijn gestegen.",
+      "drop_disputes_up": "De geschillen zijn gestegen.",
+      "drop_other": "Uw netto-opbrengst op dit product is gedaald.",
+      "ready_to_sell": "Het is vandaag verkoopbaar en staat nog niet in uw winkel.",
+      "stock_unconfirmed": "De importbron gaf geen hoeveelheid: de publicatie wacht op de uwe.",
+      "stock_cover_short": "In het huidige verkooptempo is de voorraad binnen twee weken op (berekening).",
+      "variant_rows_indistinct": "Sommige varianten hebben dezelfde kleur, maat en capaciteit: kopers kunnen er niet tussen kiezen.",
+      "restock_demand": "{count, plural, one {# koper wacht} other {# kopers wachten}} op {variant}. Werk de beschikbaarheid van deze variant bij om aan de vraag te voldoen.",
+      "shop_restock_demand": "{count, plural, one {# koper van je winkel wacht op} other {# kopers van je winkel wachten op}} {variant}. Je kunt een beschikbaar alternatief aanbieden; dit is geen gegarandeerde verkoop."
+    }
+  },
+  "restockWatch": {
+    "cta": "Laat het me weten als deze variant terug is",
+    "watching": "U krijgt bericht — annuleren",
+    "hint": "Eén melding zodra deze variant weer beschikbaar is. Er is geen leverdatum bekend.",
+    "hintNotActive": "Uw verzoek is opgeslagen, maar meldingen zijn nog niet ingeschakeld. Er is geen leverdatum bekend.",
+    "saved": "Gelukt: één melding als hij terug is.",
+    "savedNotActive": "Verzoek opgeslagen. Meldingen worden nog niet verstuurd.",
+    "cancelled": "Verzoek geannuleerd.",
+    "pushDenied": "Meldingen zijn geblokkeerd in uw browser: sta ze toe.",
+    "pushUnsupported": "Uw browser ondersteunt geen meldingen.",
+    "availableNow": "Goed nieuws: deze variant is nu beschikbaar.",
+    "tooMany": "U hebt al te veel openstaande verzoeken.",
+    "error": "Opslaan is nu niet mogelijk.",
+    "signInPrompt": "Log in om bericht te krijgen als deze variant terug is.",
+    "signIn": "Inloggen",
+    "pushTitle": "Terug: {product}",
+    "pushBody": "{variant} is weer beschikbaar. Hoeveelheden kunnen beperkt zijn."
   }
 }

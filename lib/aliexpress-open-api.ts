@@ -13,12 +13,24 @@ const DEFAULT_BIZ_LOCALE = {
 export class AliExpressApiError extends Error {
   readonly code?: string | number
   readonly rateLimited: boolean
+  /**
+   * Envelope type the gateway sent: "ISP" = a fault of the platform / of a remote service behind it (the outcome of the call
+   * is unknown whatever the text says), "ISV" = an error attributed to the caller. Absent when the gateway sent none.
+   */
+  readonly gatewayType?: "ISP" | "ISV"
+  /** EVERY text field of the answer (message, msg, sub_msg, error, codes…), joined — what classification must read. */
+  readonly detail?: string
 
-  constructor(message: string, opts?: { code?: string | number; rateLimited?: boolean }) {
+  constructor(
+    message: string,
+    opts?: { code?: string | number; rateLimited?: boolean; gatewayType?: "ISP" | "ISV"; detail?: string }
+  ) {
     super(message)
     this.name = "AliExpressApiError"
     this.code = opts?.code
     this.rateLimited = opts?.rateLimited ?? false
+    this.gatewayType = opts?.gatewayType
+    this.detail = opts?.detail
   }
 }
 

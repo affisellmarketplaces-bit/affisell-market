@@ -1,11 +1,24 @@
 import path from "node:path"
 import { defineConfig } from "vitest/config"
 
+import { radarLiteralVariant } from "./vitest-env/radar-literal-variant"
+
 export default defineConfig({
+  /**
+   * Tests only (this file is read by Vitest and by nothing that runs the seed): lets the seed's tests import
+   * `scripts/radar-seed-run.ts?lift=<class>` with that class's disabling literal rewritten in memory. See the plugin.
+   */
+  plugins: [radarLiteralVariant()],
   /** Isolate from repo `.env` (secrets); Vitest/Vite would otherwise load it. */
   envDir: path.resolve(__dirname, "vitest-env"),
   test: {
     environment: "node",
+    /**
+     * `next-auth` / `@auth/core` are ESM packages that import `next/server` WITHOUT an extension: Node's own loader cannot
+     * resolve that outside Next's bundler. Inlining them lets Vite resolve it, which is what makes the tests that run
+     * Affisell's real `lib/auth.ts` on the real library possible (`authjs-flows.test.ts`).
+     */
+    server: { deps: { inline: [/next-auth/, /@auth\/core/] } },
     include: ["**/*.test.ts"],
     exclude: ["node_modules", ".next", "e2e", "medusa-backend/**"],
     /**

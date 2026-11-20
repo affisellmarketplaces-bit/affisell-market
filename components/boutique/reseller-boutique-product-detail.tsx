@@ -1,6 +1,7 @@
 "use client"
 
 import { ArrowRight, Loader2, Package, ShieldCheck, Truck } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useCallback, useMemo, useState } from "react"
 import { toast } from "sonner"
 
@@ -31,6 +32,7 @@ import {
   resolveColorHeroImageUrl,
 } from "@/lib/product-color-images"
 import { resolveUsableProductImageUrl } from "@/lib/product-image-url"
+import { optionStockForChoice } from "@/lib/variant-selection"
 
 type Props = {
   storeSlug: string
@@ -47,6 +49,7 @@ type CreateResellerOrderResponse = {
 
 const ORDER_ERROR_HINTS: Record<string, string> = {
   out_of_stock: "Ce produit est en rupture de stock.",
+  variant_unavailable: "Cette taille ou couleur n'est plus disponible : choisissez-en une autre.",
   affiliate_commission_required: "Commission fournisseur manquante — contactez le support.",
   stripe_minimum_not_met: "Montant trop faible pour Stripe (min. 0,50 €).",
   delivery_destination_unavailable: "Livraison indisponible pour ce produit.",
@@ -75,16 +78,13 @@ function resolveSizeStockForSelection(args: {
   storage: string | null
   product: ResellerBoutiqueProductDetail
 }): number {
-  const row = findVariantRowForShopperSelection({
-    variants: args.product.variants,
-    customColumns: args.product.customColumns,
-    selection: {
-      selectedPrimary: args.color,
-      selectedStorage: args.storage,
-      selectedSize: args.size,
-    },
-  })
-  if (row) return Math.max(0, Math.round(row.stock) || 0)
+  // Same rule as the purchase (lib/variant-selection.ts): a size that does not exist for the chosen colour is sold out.
+  const units = optionStockForChoice(
+    args.product.variants,
+    { color: args.color, size: args.size, storage: args.storage },
+    args.product.customColumns
+  )
+  if (units !== null) return units
   return resolveListingAvailableStock({
     productStock: args.product.catalogStock,
     variants: args.product.variants,
@@ -124,6 +124,7 @@ function pickFirstInStockSize(args: {
 }
 
 export function ResellerBoutiqueProductDetailPanel({ storeSlug, product }: Props) {
+  const router = useRouter()
   const images = useMemo(
     () => product.gallery.filter((url): url is string => typeof url === "string" && Boolean(url.trim())),
     [product.gallery]
@@ -296,6 +297,9 @@ export function ResellerBoutiqueProductDetailPanel({ storeSlug, product }: Props
             (data.error && ORDER_ERROR_HINTS[data.error]) ||
             "Réessayez dans un instant.",
         })
+        // Availability changed since the page loaded: reload it so the options show what is really left. The buyer's
+        // choice stays selected (component state survives the refresh) — nothing is swapped for them.
+        if (data.error === "out_of_stock" || data.error === "variant_unavailable") router.refresh()
         return
       }
 
@@ -305,7 +309,7 @@ export function ResellerBoutiqueProductDetailPanel({ storeSlug, product }: Props
     } finally {
       setLoading(false)
     }
-  }, [isOutOfStock, product.listingId, selectedColor, selectedSize, selectedStorage, storeSlug])
+  }, [isOutOfStock, product.listingId, router, selectedColor, selectedSize, selectedStorage, storeSlug])
 
   const hasVariantPickers =
     product.variantSummary.hasMultipleOptions ||

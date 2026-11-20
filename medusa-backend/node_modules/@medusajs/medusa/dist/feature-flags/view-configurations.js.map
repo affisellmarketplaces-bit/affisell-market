@@ -1,1 +1,0 @@
-{"version":3,"file":"view-configurations.js","sourceRoot":"","sources":["../../src/feature-flags/view-configurations.ts"],"names":[],"mappings":";;AAEA,MAAM,6BAA6B,GAAiB;IAClD,GAAG,EAAE,qBAAqB;IAC1B,WAAW,EAAE,KAAK;IAClB,OAAO,EAAE,+BAA+B;IACxC,WAAW,EAAE,kDAAkD;CAChE,CAAA;AAED,kBAAe,6BAA6B,CAAA"}

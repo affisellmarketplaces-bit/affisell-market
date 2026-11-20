@@ -156,38 +156,68 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ returnId: str
     return Response.json(payload)
   }
 
-  const updated = await prisma.orderReturn.update({
-    where: { id: returnId },
+  // mark_refunded (RECEIVED → REFUNDED). D5: the return is written REFUNDED only AFTER Stripe accepted the refund. It used
+  // to be written first, so a Stripe failure left a REFUNDED return with no money moved and, since the only transition
+  // into REFUNDED starts from RECEIVED, a 502 nobody could replay. Now a failure leaves the return RECEIVED: the same
+  // PATCH can simply be repeated (the refund carries a stable idempotency key per return, so a refund that did go
+  // through is not duplicated).
+  const approvedRefundCents = ret.approvedRefundCents ?? ret.requestedRefundCents
+
+  const refund = await initiateMarketplaceRefundPipeline({
+    orderId: ret.orderId,
+    source: "supplier_mark_refunded",
+    amountCents: approvedRefundCents,
+    reason: "requested_by_customer",
+    metadata: { returnId },
+  })
+
+  if (!refund.ok && refund.skipped !== "already_refunded") {
+    // The refund already raised the ops alert / Sentry event (lib/stripe-refund-marketplace-order.ts).
+    console.error("[supplier-returns]", {
+      returnId,
+      action: "mark_refunded",
+      result: "stripe_refund_failed",
+      error: refund.error ?? "stripe_refund_failed",
+      retryable: refund.retryable ?? false,
+    })
+    return Response.json(
+      {
+        error: refund.error ?? "stripe_refund_failed",
+        returnId: ret.id,
+        status: ret.status,
+        retryable: refund.retryable ?? false,
+      },
+      { status: refund.error === "invalid_refund_amount" ? 422 : 502 }
+    )
+  }
+
+  // Compare-and-set on RECEIVED: a double click or a concurrent replay moves the return once and reverses the reward once.
+  const claim = await prisma.orderReturn.updateMany({
+    where: { id: returnId, status: ret.status },
     data: {
       status: next,
       refundedAt: new Date(),
       sellerNote: sellerNote ?? ret.sellerNote,
     },
   })
+  const updated = await prisma.orderReturn.findUniqueOrThrow({ where: { id: returnId } })
 
-  if (updated.status === "REFUNDED") {
-    const sell = Math.max(1, ret.order.sellingPriceCents)
-    const approved =
-      updated.approvedRefundCents ?? ret.approvedRefundCents ?? ret.requestedRefundCents
-    const frac = Math.min(1, Math.max(0, approved / sell))
-    await reverseBuyerRewardEarnOnRefund(prisma, {
-      orderId: ret.orderId,
-      refundFraction: frac,
-    })
-
-    const refund = await initiateMarketplaceRefundPipeline({
-      orderId: ret.orderId,
-      source: "supplier_mark_refunded",
-      amountCents: approved,
-      reason: "requested_by_customer",
-      metadata: { returnId },
-    })
-
-    if (!refund.ok && refund.skipped !== "already_refunded") {
-      return Response.json(
-        { error: refund.error ?? "stripe_refund_failed", returnId: updated.id },
-        { status: 502 }
-      )
+  if (claim.count === 1) {
+    try {
+      const sell = Math.max(1, ret.order.sellingPriceCents)
+      const frac = Math.min(1, Math.max(0, approvedRefundCents / sell))
+      await reverseBuyerRewardEarnOnRefund(prisma, {
+        orderId: ret.orderId,
+        refundFraction: frac,
+      })
+    } catch (rewardError) {
+      // The money already went back and the return is REFUNDED: do not turn that into an error for the supplier.
+      console.error("[supplier-returns]", {
+        returnId,
+        action: "mark_refunded",
+        result: "reward_reversal_failed",
+        error: rewardError instanceof Error ? rewardError.message : String(rewardError),
+      })
     }
   }
 

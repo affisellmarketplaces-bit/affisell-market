@@ -30,6 +30,8 @@ import {
   type GuidedProductAiSuggestion,
 } from "@/lib/guided-product-ai-shared"
 import { ListingComplianceSection } from "@/components/supplier/listing-compliance/listing-compliance-section"
+import { ReturnWindowField } from "@/components/supplier/return-window-field"
+import { CANONICAL_RETURN_WINDOW_LABEL, parseReturnWindowDays, RETURN_WINDOW_KEY } from "@/lib/return-terms"
 import { evaluateListingReadiness } from "@/lib/listing-compliance/evaluate"
 import { CANONICAL_LABELS, LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
 import { blockIfHoneypotValue } from "@/lib/security/honeypot-client"
@@ -82,6 +84,8 @@ type FormState = {
    * classic form keeps, so both flows store exactly the same rows.
    */
   compliance: Record<string, string>
+  /** Return window offered beyond the legal 14 days ("" = legal only) — same field as the classic form. */
+  returnWindowDays: string
 }
 
 const DEFAULT_FORM: FormState = {
@@ -102,6 +106,7 @@ const DEFAULT_FORM: FormState = {
   stock: "",
   price: "",
   compliance: {},
+  returnWindowDays: "",
 }
 
 const DESCRIPTION_MIN_LENGTH = 40
@@ -188,6 +193,7 @@ function toDraftForm(form: FormState): GuidedDraftForm {
     imageUrl: form.imageUrl ?? "",
     extraImages: form.extraImages,
     compliance: form.compliance,
+    returnWindowDays: form.returnWindowDays,
   }
 }
 
@@ -691,6 +697,11 @@ export function GuidedAddProductButton({
           value: (form.compliance[key] ?? "").trim(),
         })),
       ].filter((a) => a.value.length > 0)
+      // Return window beyond the legal 14 days (empty = legal window, no row) — same row as the classic form.
+      const returnDays = parseReturnWindowDays(form.returnWindowDays)
+      if (returnDays) {
+        productAttributes.push({ key: RETURN_WINDOW_KEY, label: CANONICAL_RETURN_WINDOW_LABEL, value: String(returnDays) })
+      }
 
       const send = (withLeaf: boolean) =>
         fetch("/api/supplier/products", {
@@ -1125,6 +1136,12 @@ export function GuidedAddProductButton({
                     ? tWiz("aiPriceHint", { price: formatGuidedPrice(aiSuggestion.attributes.suggestedPrice) ?? "" })
                     : tWiz("aiHint")}
                 </p>
+                <ReturnWindowField
+                  id="guided-return-window"
+                  className="sm:col-span-2"
+                  value={form.returnWindowDays}
+                  onChange={(next) => patchForm({ returnWindowDays: next }, { user: true })}
+                />
               </div>
             )}
 

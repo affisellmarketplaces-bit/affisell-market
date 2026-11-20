@@ -35,6 +35,10 @@ vi.mock("@/lib/merchant-legal/require-merchant-verified", () => ({
 }))
 vi.mock("@/lib/revalidate-affiliate-shopfront", () => ({ revalidateAffiliateShopfront: m.revalidate }))
 vi.mock("@/lib/revalidate-listing-card-image", () => ({ revalidateListingCardImage: vi.fn() }))
+vi.mock("@/lib/listing-price-history/record.server", () => ({
+  updateListingWithPriceSource: (args: unknown) => m.listingUpdate(args),
+  upsertListingWithPriceSource: vi.fn(),
+}))
 vi.mock("@/lib/auction-listing-lifecycle", () => ({ cancelAuctionsForListings: m.cancelAuctions }))
 vi.mock("@/lib/affiliate-listing-remove", () => ({ removeAffiliateListingsFromStorefront: vi.fn() }))
 
@@ -111,11 +115,25 @@ describe("syncAffiliateStorefrontListingsLive (runs on every dashboard load)", (
   })
 })
 
+const LIVE = { active: true, isDraft: false, tags: [] as string[] }
+
 describe("bulk PATCH isListed", () => {
+  it("never lists a listing whose product is a reseller import awaiting review", async () => {
+    m.listingFindMany.mockResolvedValue([
+      { id: "l1", productId: "pA", product: LIVE },
+      { id: "l2", productId: "pB", product: { active: false, isDraft: true, tags: ["import-review:pending"] } },
+    ])
+    m.productFindMany.mockResolvedValue([])
+    const res = await bulkPatch(req({ ids: ["l1", "l2"], isListed: true }))
+    expect(await res.json()).toEqual({ ok: true, notReviewed: 1 })
+    const listCall = m.listingUpdateMany.mock.calls.find((c) => c[0].data.isListed === true)!
+    expect(listCall[0].where.id).toEqual({ in: ["l1"] })
+  })
+
   it("lists the allowed listings and reports the ones blocked by another reseller's exclusivity", async () => {
     m.listingFindMany.mockResolvedValue([
-      { id: "l1", productId: "pA" },
-      { id: "l2", productId: "pB" },
+      { id: "l1", productId: "pA", product: LIVE },
+      { id: "l2", productId: "pB", product: LIVE },
     ])
     m.productFindMany.mockResolvedValue([{ id: "pB", exclusiveAffiliateId: "other", exclusiveUntil: future }])
 
@@ -126,7 +144,7 @@ describe("bulk PATCH isListed", () => {
   })
 
   it("is unchanged when nothing is blocked, and unlisting is never filtered", async () => {
-    m.listingFindMany.mockResolvedValue([{ id: "l1", productId: "pA" }])
+    m.listingFindMany.mockResolvedValue([{ id: "l1", productId: "pA", product: LIVE }])
     m.productFindMany.mockResolvedValue([])
     const ok = await bulkPatch(req({ ids: ["l1"], isListed: true }))
     expect(await ok.json()).toEqual({ ok: true })
@@ -147,7 +165,7 @@ describe("listing PATCH (re-list)", () => {
     isListed: false,
     auctionEligible: false,
     sellingPriceCents: 5000,
-    product: { basePriceCents: 1000, ...exclusive },
+    product: { basePriceCents: 1000, active: true, isDraft: false, tags: [], ...exclusive },
   })
   const ctx = { params: Promise.resolve({ id: "l1" }) }
 

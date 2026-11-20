@@ -1,7 +1,12 @@
 # PROD LIVE REPORT - World Radar
 
+> **Avertissement (finalisation master, 2026-11-13) — rapport historique, ne pas lire « LIVE ✅ » comme un état de production vérifié.**
+> Ce rapport date du 2026-07-20 et sa propre section « Sign-off » dit « Verified locally » : le registre de 31 pays et les 620 « winners » sont des **données de démonstration déterministes**
+> (« Mock/seed per country »), contrôlées en local, pas un contrôle de la production. Le seed de production est depuis **verrouillé** (RSK-90, lot A) et le Radar mondial est une
+> **maquette** étiquetée « live » (`docs/FINALISATION-MASTER.md` §5-I). La case « Status » ci-dessous n'a pas de preuve en production derrière elle ; `GO_LIVE_CHECKLIST.md` n'est pas coché.
+
 **Date:** 2026-07-20  
-**Status:** LIVE ✅
+**Status:** LIVE ✅ *(déclaré à l'époque — non vérifié en production, voir l'avertissement)*
 
 ---
 

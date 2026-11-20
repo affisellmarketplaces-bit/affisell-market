@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
 /** Force AliExpress token refresh + DB persist (scheduled every 6h).
- * Auth: Bearer / x-cron-secret / ?secret= / HMAC (same as order create). */
+ * Auth: Bearer / x-cron-secret / JSON secret / HMAC (same as order create). */
 export async function GET(req: Request) {
   const denied = authorizeAliExpressOps(req)
   if (denied) return denied

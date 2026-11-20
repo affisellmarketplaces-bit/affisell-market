@@ -1,0 +1,15 @@
+# Security fixes reachable INSIDE the declared semver ranges (npm update, lockfile only). Reviewed 2026-11-17 —
+# exploitability in Affisell per package in AGENTS.md « Dependencies ». 2026-11-17 (2): undici, zod added.
+dompurify
+proxy-addr
+body-parser
+fast-uri
+js-yaml
+tmp
+brace-expansion
+hono
+ip-address
+@grpc/grpc-js
+@modelcontextprotocol/sdk
+undici
+zod

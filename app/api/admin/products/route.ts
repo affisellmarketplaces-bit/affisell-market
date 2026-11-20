@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client"
+import { stockUnconfirmedAttribute } from "@/lib/import-stock"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
@@ -118,9 +119,11 @@ export async function POST(req: Request) {
             : undefined,
         basePriceCents: Math.max(body.wholesalePriceCents, Math.round(body.wholesalePriceCents * 1.35)),
         commissionRate: 10,
-        stock: 999,
+        // An admin manual entry carries no quantity: 0 + « to confirm » (was 999). Confirm with POST …/confirm-stock.
+        stock: 0,
         active: false,
         isDraft: true,
+        attributes: { create: [stockUnconfirmedAttribute()] },
         importSource: "admin_ae_manual",
         sourceUrl: body.supplierUrl.trim(),
         aliexpressProductId: aeProductId,
@@ -156,7 +159,7 @@ export async function POST(req: Request) {
             wholesalePriceCents: rowWholesale,
             supplierPrice: new Prisma.Decimal(rowWholesale / 100),
             publicPrice: new Prisma.Decimal(Math.round(rowWholesale * 1.35) / 100),
-            stock: 999,
+            stock: 0, // no per-SKU quantity in a manual entry (was 999)
             customData,
           },
         })

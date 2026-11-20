@@ -1,5 +1,6 @@
 import { requireSupplierSession } from "@/lib/dashboard-session"
 import { ChevronDown } from "lucide-react"
+import Link from "next/link"
 import { getLocale, getTranslations } from "next-intl/server"
 
 import { BentoContainer } from "@/components/affisell/bento-ui"
@@ -20,6 +21,7 @@ import { SupplierToolsRow } from "@/components/supplier/mission-control/supplier
 import { SupplierDeliveryPerformanceCard } from "@/components/supplier/mission-control/supplier-delivery-performance-card"
 import { SupplierTrustLadderCard } from "@/components/supplier/mission-control/supplier-trust-ladder-card"
 import { SupplierUrgentActions } from "@/components/supplier/mission-control/supplier-urgent-actions"
+import { NextActionsCard } from "@/components/next-best-action/next-actions-card"
 import { loadSupplierTrustSnapshot } from "@/lib/supplier/compute-supplier-trust-tier"
 import { loadSupplierDeliveryInsight } from "@/lib/supplier-delivery-stats.server"
 import { coerceSupplierTrustTier } from "@/lib/supplier/supplier-trust-tier-shared"
@@ -56,6 +58,7 @@ export default async function DashboardSupplierPage() {
   }
 
   const tMore = await getTranslations("supplierDashboard.more")
+  const tHealth = await getTranslations("catalogHealth")
   const locale = resolveAppLocale(await getLocale())
   const copyLocale = resolveBinaryCopyLocale(locale)
 
@@ -125,6 +128,14 @@ export default async function DashboardSupplierPage() {
             ) : (
               <SupplierUrgentActions urgent={data.urgent} />
             )}
+
+            {/* 3 bis — one to three next actions from the catalogue health (lib/next-best-action) */}
+            <NextActionsCard role="supplier" />
+            <p className="-mt-3 text-xs">
+              <Link href="/dashboard/supplier/catalog-health" className="font-medium text-violet-700 underline">
+                {tHealth("openLink")}
+              </Link>
+            </p>
 
             {/* 4 — performance (main column) next to status & discovery (side column) */}
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">

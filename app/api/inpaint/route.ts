@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from "next/server"
 
+import { guardSupplierAiRoute } from "@/lib/ai-route-guards"
+
 export const runtime = "nodejs"
 export const maxDuration = 60
 
 const PRIMARY_MODEL = "stabilityai/stable-diffusion-inpainting"
 const FALLBACK_MODEL = "runwayml/stable-diffusion-inpainting"
+
+/** ~6 MB of image once decoded; the route sits on a paid inference API that retries for up to a minute. */
+const INPAINT_MAX_IMAGE_CHARS = 8_000_000
+const INPAINT_MAX_PROMPT_CHARS = 300
+const BASE64_PAYLOAD = /^[A-Za-z0-9+/]+={0,2}$/
+
+const isProduction = () => process.env.NODE_ENV === "production"
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -77,15 +86,24 @@ async function callHfModel(params: {
   return { ok: false as const, status: 500, error: "HF inference retries exhausted", detail: null as unknown }
 }
 
+/** Supplier/admin only (+ the shared per-user AI rate limit): every call is a paid Hugging Face inference. */
 export async function POST(req: NextRequest) {
+  const guard = await guardSupplierAiRoute(req, "inpaint")
+  if (!guard.ok) return guard.response
+
   try {
-    const { image, mask, prompt = "remove text, clean background" } = (await req.json()) as {
-      image?: string
-      mask?: string
-      prompt?: string
-    }
+    const body = (await req.json().catch(() => ({}))) as { image?: unknown; mask?: unknown; prompt?: unknown }
+    const image = typeof body.image === "string" ? body.image : ""
+    const mask = typeof body.mask === "string" ? body.mask : ""
+    const prompt =
+      typeof body.prompt === "string" && body.prompt.trim()
+        ? body.prompt.trim().slice(0, INPAINT_MAX_PROMPT_CHARS)
+        : "remove text, clean background"
     if (!image || !mask) {
       return NextResponse.json({ error: "Missing image or mask" }, { status: 400 })
+    }
+    if (image.length > INPAINT_MAX_IMAGE_CHARS || mask.length > INPAINT_MAX_IMAGE_CHARS) {
+      return NextResponse.json({ error: "Image or mask too large" }, { status: 413 })
     }
 
     const token = process.env.HUGGINGFACE_API_KEY || process.env.HF_TOKEN
@@ -102,7 +120,7 @@ export async function POST(req: NextRequest) {
 
     const imageBase64 = image.includes(",") ? image.split(",")[1] : image
     const maskBase64 = mask.includes(",") ? mask.split(",")[1] : mask
-    if (!imageBase64 || !maskBase64) {
+    if (!imageBase64 || !maskBase64 || !BASE64_PAYLOAD.test(imageBase64) || !BASE64_PAYLOAD.test(maskBase64)) {
       return NextResponse.json({ error: "Invalid base64 image/mask payload" }, { status: 400 })
     }
 
@@ -119,7 +137,7 @@ export async function POST(req: NextRequest) {
     console.error("[api/inpaint] fallback model failed", fallback)
 
     // Dev-safe fallback to keep Studio UX unblocked when HF permissions/quotas fail.
-    if (process.env.NODE_ENV !== "production") {
+    if (!isProduction()) {
       return NextResponse.json({
         image,
         fallback: true,
@@ -129,16 +147,16 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    // The provider's answers (status, payload, model ids) stay in the server logs above, not in the response.
     return NextResponse.json(
-      {
-        error: "Hugging Face inpaint failed on primary + fallback models",
-        primary,
-        fallback,
-      },
+      { error: "Hugging Face inpaint failed on primary + fallback models" },
       { status: 500 }
     )
   } catch (e: unknown) {
     console.error("[api/inpaint] unexpected error", e)
-    return NextResponse.json({ error: e instanceof Error ? e.message : "Unknown error" }, { status: 500 })
+    return NextResponse.json(
+      { error: isProduction() ? "Inpaint failed" : e instanceof Error ? e.message : "Unknown error" },
+      { status: 500 }
+    )
   }
 }

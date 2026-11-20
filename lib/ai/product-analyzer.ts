@@ -3,7 +3,7 @@ import "server-only"
 import { classifyAffisellProduct } from "@/lib/ai/classify-product"
 import { CATEGORIES_AFFISELL } from "@/lib/ai/categories"
 import { groqChatText } from "@/lib/ai/groq-client"
-import { hasOpenAiFallback, openaiChatText } from "@/lib/ai/openai-chat-fallback"
+import { hasOpenAiFallback, openaiChatCompletion } from "@/lib/ai/openai-chat-fallback"
 import {
   isAiVisionCascadeEnabled,
   isAiVisionV2Enabled,
@@ -18,8 +18,10 @@ import {
   shouldRequireManualFallback,
 } from "@/lib/ai/product-vision-v2-parse"
 import { tryVisionCascadeMatch } from "@/lib/ai/product-vision-cascade"
+import { buildPipelineRecord, classifyAiError, recordAiUsage, runWithAiUsageContext } from "@/lib/ai/usage-log"
 import { resolveVisionImageForOpenAI } from "@/lib/ai/vision-image-url"
 import { buildCategoryBrowse, fetchAllCategoriesForBrowse } from "@/lib/category-browse"
+import { stageFromVisionModel, type InstantScanProvenance, type InstantScanStage } from "@/lib/instantscan/stages"
 import { prisma } from "@/lib/prisma"
 
 export type ProductAnalysisResult = {
@@ -30,14 +32,20 @@ export type ProductAnalysisResult = {
   attributes: Record<string, string>
   suggestedPrice: number | null
   cached: boolean
-  /** Present when ENABLE_AI_VISION_V2 — model self-reported + audited score. */
+  /**
+   * ONLY when the vision model wrote a confidence about itself (then capped by a few deterministic rules in
+   * `auditProductVisionConfidence`). It is a self-report, NOT a calibrated probability; it is absent for a catalog match
+   * (no accuracy was measured) and whenever the model gave none. See `provenance.confidenceSource`.
+   */
   confidence?: number
-  /** True when confidence is below threshold — UI should warn but still prefill. */
+  /** True when the result must be checked by the supplier (low / missing confidence, or a catalog match). */
   needsReview?: boolean
   visionVersion?: "v1" | "v2" | "v2.2"
   detectedModel?: string | null
-  /** InstantScan cascade stage (embed fast-path, gpt4o fallback, groq legacy). */
-  instantScanStage?: "embed" | "mini" | "gpt4o" | "groq"
+  /** Which step produced the answer (see lib/instantscan/stages.ts). */
+  instantScanStage?: InstantScanStage
+  /** How the answer was produced: model really used, fallback flag, where confidence / price come from. */
+  provenance?: InstantScanProvenance
   latencyMs?: number
 }
 
@@ -100,13 +108,15 @@ async function resolveCategoryMatch(args: {
   const allowedBreadcrumbs =
     leafPaths.length > 0 ? leafPaths.map((lp) => lp.breadcrumb) : [...CATEGORIES_AFFISELL]
 
-  const { suggestions } = await classifyAffisellProduct(
-    {
-      title: args.title || "Produit",
-      description: args.description,
-      imageUrl: args.imageUrl,
-    },
-    { allowedBreadcrumbs, leafPaths }
+  const { suggestions } = await runWithAiUsageContext({ feature: "instantscan", tier: "category_match" }, () =>
+    classifyAffisellProduct(
+      {
+        title: args.title || "Produit",
+        description: args.description,
+        imageUrl: args.imageUrl,
+      },
+      { allowedBreadcrumbs, leafPaths }
+    )
   )
 
   const top = suggestions[0]
@@ -160,7 +170,7 @@ async function analyzeProductFromImageV2(args: {
           category: categoryLabel,
           categoryId,
           visionVersion: "v2.2",
-          instantScanStage: "embed",
+          instantScanStage: "catalog_match",
           latencyMs: cascade.latencyMs,
         }
       }
@@ -185,24 +195,31 @@ async function analyzeProductFromImageV2Gpt(
 
   const started = Date.now()
   let raw: string | null = null
+  let modelUsed: string | null = null
+  let fallbackUsed = false
   try {
-    raw = await openaiChatText({
-      model: resolveProductVisionV2Model(),
-      vision: true,
-      temperature: PRODUCT_VISION_V2_TEMPERATURE,
-      max_tokens: 700,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: PRODUCT_VISION_V2_SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Analyse cette image produit et remplis le JSON." },
-            { type: "image_url", image_url: { url: imageUrl } },
-          ],
-        },
-      ],
-    })
+    const completion = await runWithAiUsageContext({ feature: "instantscan", tier: "vision_full" }, () =>
+      openaiChatCompletion({
+        model: resolveProductVisionV2Model(),
+        vision: true,
+        temperature: PRODUCT_VISION_V2_TEMPERATURE,
+        max_tokens: 700,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: PRODUCT_VISION_V2_SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "Analyse cette image produit et remplis le JSON." },
+              { type: "image_url", image_url: { url: imageUrl } },
+            ],
+          },
+        ],
+      })
+    )
+    raw = completion?.text ?? null
+    modelUsed = completion?.modelUsed ?? null
+    fallbackUsed = completion?.fallbackUsed ?? false
     if (!raw) throw new Error("ai_unavailable")
   } catch (err) {
     console.error("INSTANTSCAN ERROR FULL:", err)
@@ -216,7 +233,9 @@ async function analyzeProductFromImageV2Gpt(
 
   const parsed = parseVisionV2Payload(raw)
   const confidence = auditProductVisionConfidence(parsed)
-  const needsReview = shouldRequireManualFallback(confidence)
+  // `parsed.confidence` is a neutral placeholder when the model wrote none: then no confidence is reported at all.
+  const confidenceReported = parsed.confidenceReported !== false
+  const needsReview = !confidenceReported || shouldRequireManualFallback(confidence)
 
   // Hard gate only when nothing usable — never block solely on medium confidence.
   if (!hasUsableVisionExtraction(parsed)) {
@@ -233,7 +252,7 @@ async function analyzeProductFromImageV2Gpt(
   if (needsReview) {
     console.log("[product-analyzer]", {
       result: "v2_low_confidence_soft",
-      confidence,
+      confidence: confidenceReported ? confidence : null,
       threshold: process.env.AI_VISION_V2_CONFIDENCE_THRESHOLD ?? "0.4",
       productType: parsed.productType,
       detectedModel: parsed.detectedModel,
@@ -244,6 +263,8 @@ async function analyzeProductFromImageV2Gpt(
       confidence,
       productType: parsed.productType,
       detectedModel: parsed.detectedModel,
+      modelUsed,
+      fallbackUsed,
       latencyMs: Date.now() - started,
     })
   }
@@ -262,19 +283,63 @@ async function analyzeProductFromImageV2Gpt(
     categoryId,
     attributes: parsed.attributes,
     suggestedPrice: parsed.suggestedPrice,
-    confidence,
+    ...(confidenceReported ? { confidence } : {}),
     needsReview,
     visionVersion: "v2",
     detectedModel: parsed.detectedModel,
-    instantScanStage: "gpt4o",
+    // The stage is the model that REALLY answered: after a silent fallback to gpt-4o-mini it is "mini", never "gpt4o".
+    instantScanStage: stageFromVisionModel(modelUsed),
+    provenance: {
+      method: "vision_llm",
+      modelUsed,
+      fallbackUsed,
+      confidenceSource: confidenceReported ? "model_self_reported" : "none",
+      priceSource: parsed.suggestedPrice == null ? "none" : "model_estimate",
+    },
     latencyMs: Date.now() - started,
   }
 }
 
 /**
  * Vision + category leaf match. Caller handles cache read/write.
+ *
+ * Measured end to end: one `pipeline` record per call (final stage, latency, success/failure) in the usage journal
+ * (lib/ai/usage-log.ts), on top of one `model_call` record per request to a model provider.
  */
 export async function analyzeProductFromImage(
+  input: AnalyzeProductImageInput
+): Promise<Omit<ProductAnalysisResult, "cached">> {
+  const started = Date.now()
+  try {
+    const result = await analyzeProductFromImageUnmetered(input)
+    await recordAiUsage(
+      buildPipelineRecord({
+        feature: "instantscan",
+        tier: result.instantScanStage ?? "unknown",
+        latencyMs: Date.now() - started,
+        ok: true,
+        error: null,
+        modelUsed: result.provenance?.modelUsed ?? null,
+        fallbackUsed: result.provenance?.fallbackUsed ?? false,
+      })
+    )
+    return result
+  } catch (err) {
+    const message = err instanceof Error ? err.message : ""
+    await recordAiUsage(
+      buildPipelineRecord({
+        feature: "instantscan",
+        tier: "error",
+        latencyMs: Date.now() - started,
+        ok: false,
+        error: /^[a-z_]{3,40}$/.test(message) ? message : classifyAiError(err),
+      })
+    )
+    throw err
+  }
+}
+
+async function analyzeProductFromImageUnmetered(
   input: AnalyzeProductImageInput
 ): Promise<Omit<ProductAnalysisResult, "cached">> {
   if (!input.imageUrl?.trim() && !input.imageDataUrl?.trim()) {
@@ -314,12 +379,14 @@ Prix suggestedPrice en EUR TTC catalogue fournisseur plausible.`
 
   let raw: string | null = null
   try {
-    raw = await groqChatText({
-      messages: [{ role: "user", content }],
-      vision: true,
-      temperature: 0.2,
-      max_tokens: 800,
-    })
+    raw = await runWithAiUsageContext({ feature: "instantscan", tier: "vision_legacy" }, () =>
+      groqChatText({
+        messages: [{ role: "user", content }],
+        vision: true,
+        temperature: 0.2,
+        max_tokens: 800,
+      })
+    )
     if (!raw) throw new Error("ai_unavailable")
   } catch (err) {
     console.log("[product-analyzer]", { result: "vision_failed", error: String(err) })
@@ -348,8 +415,18 @@ Prix suggestedPrice en EUR TTC catalogue fournisseur plausible.`
     categoryId,
     attributes: parsed.attributes,
     suggestedPrice: parsed.suggestedPrice,
+    // No confidence is produced on this legacy path, so nothing can be asserted: always ask for review.
+    needsReview: true,
     visionVersion: "v1",
     instantScanStage: "groq",
+    provenance: {
+      method: "vision_llm_legacy",
+      // groqChatText may itself fall back to OpenAI: the exact model of each request is in the usage journal.
+      modelUsed: null,
+      fallbackUsed: false,
+      confidenceSource: "none",
+      priceSource: parsed.suggestedPrice == null ? "none" : "model_estimate",
+    },
     latencyMs: Date.now() - started,
   }
 }

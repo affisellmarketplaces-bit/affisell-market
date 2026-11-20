@@ -18,6 +18,7 @@ export const ORDER_TRACKING_EVENT_SOURCES = [
   "supplier_fulfillment_webhook",
   "supplier_sync",
   "autods",
+  "aliexpress_ds_tracking",
 ] as const
 
 export type OrderTrackingEventSource = (typeof ORDER_TRACKING_EVENT_SOURCES)[number]

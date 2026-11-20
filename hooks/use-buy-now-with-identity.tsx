@@ -1,6 +1,8 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useCallback, useRef, useState } from "react"
+import { toast } from "sonner"
 
 import {
   CartCheckoutIdentitySheet,
@@ -8,12 +10,14 @@ import {
 } from "@/components/cart/cart-checkout-identity-sheet"
 import { useCheckoutHandoff } from "@/hooks/use-checkout-handoff"
 import { fetchBuyerSessionSnapshot } from "@/lib/buyer-session-client"
+import { checkoutStockMessage } from "@/lib/checkout-stock-client"
 import {
   buyNowWithoutLogin,
   type BuyNowOutcome,
   type BuyNowWithoutLoginMeta,
 } from "@/lib/guest-buy-now-client"
 import type { FastCheckoutBody } from "@/lib/fast-checkout-client"
+import { hasVariantChoice, listingRequiresVariantChoice, variantChoicePageHref } from "@/lib/variant-choice-client"
 
 type PendingBuyNow = {
   body: FastCheckoutBody
@@ -25,6 +29,7 @@ export function useBuyNowWithIdentity() {
   const [checkoutPayload, setCheckoutPayload] = useState<CheckoutIdentityPayload | null>(null)
   const pendingRef = useRef<PendingBuyNow | null>(null)
   const { overlay: checkoutHandoff, beginHandoff, endHandoff } = useCheckoutHandoff()
+  const tStock = useTranslations("cart.stock")
 
   const runBuyNow = useCallback(
     async (body: FastCheckoutBody, meta: BuyNowWithoutLoginMeta) => {
@@ -33,16 +38,30 @@ export function useBuyNowWithIdentity() {
       if (outcome !== "stripe") {
         endHandoff()
       }
+      // Every caller (PDP, grid cards, discover feed, Pulse) gets the same translated feedback — never a raw code, never silence.
+      if (typeof outcome === "object" && outcome.kind === "no_stock") {
+        toast.error(checkoutStockMessage(outcome.refusal, tStock))
+      }
       return outcome
     },
-    [beginHandoff, endHandoff]
+    [beginHandoff, endHandoff, tStock]
   )
 
   const buyNow = useCallback(
     async (
       body: FastCheckoutBody,
       meta: BuyNowWithoutLoginMeta
-    ): Promise<BuyNowOutcome | "needs_identity"> => {
+    ): Promise<BuyNowOutcome | "needs_identity" | "needs_variant_choice"> => {
+      // A card buys with no size / colour: a product that needs one is chosen on its page first (nothing is picked
+      // for the shopper, and no payment is prepared for an undetermined variant).
+      const listingId = (body.productId ?? body.affiliateProductId ?? "").trim()
+      if (listingId && !body.items && !hasVariantChoice(body) && (await listingRequiresVariantChoice(listingId))) {
+        // The caller's return page is the product page only when it names this listing (a card); Pulse / discover
+        // return to their feed, so the shopper is sent to the product page instead.
+        const page = body.cancelPath && body.cancelPath.includes(listingId) ? body.cancelPath : null
+        window.location.assign(variantChoicePageHref(listingId, page))
+        return "needs_variant_choice"
+      }
       const session = await fetchBuyerSessionSnapshot()
       if (!session.isCustomerBuyer) {
         pendingRef.current = { body, meta }

@@ -46,24 +46,35 @@ export async function cancelBookingOrderForBuyer(args: {
     return { ok: false, error: "forbidden", status: 403 }
   }
 
-  if (order.bookingCancelledAt || order.status === "refunded" || order.status === "cancelled") {
+  // Done only when the money went back. A booking already cancelled by an earlier attempt whose refund FAILED is not
+  // done: the buyer's retry goes straight to the refund (finalisation D5 — that retry used to answer "ok" and the refund
+  // was never made again: seats released, order "cancelled", buyer still charged).
+  const settlement = (order.paymentSettlementStatus ?? "").trim().toUpperCase()
+  if (order.status === "refunded" || settlement === "REFUNDED" || settlement === "REFUND_PENDING_CLAWBACK") {
+    return { ok: true, refundPending: false }
+  }
+  const alreadyCancelled = Boolean(order.bookingCancelledAt) || order.status === "cancelled"
+  if (alreadyCancelled && settlement === "CANCELLED") {
+    // Cancelled before any payment was captured (e.g. an unpaid hold): nothing to refund.
     return { ok: true, refundPending: false }
   }
 
-  if (!order.bookingConfirmedAt || !order.bookingSlotId) {
-    return { ok: false, error: "not_a_confirmed_booking", status: 400 }
+  if (!alreadyCancelled) {
+    if (!order.bookingConfirmedAt || !order.bookingSlotId) {
+      return { ok: false, error: "not_a_confirmed_booking", status: 400 }
+    }
+
+    const { canBuyerCancelBooking } = await import("@/lib/booking/cancellation-policy")
+    const cancelCheck = canBuyerCancelBooking({
+      bookingSnapshot: order.bookingSnapshot,
+      bookingConfirmedAt: order.bookingConfirmedAt,
+    })
+    if (!cancelCheck.allowed) {
+      return { ok: false, error: cancelCheck.reason ?? "past_deadline", status: 409 }
+    }
   }
 
-  const { canBuyerCancelBooking } = await import("@/lib/booking/cancellation-policy")
-  const cancelCheck = canBuyerCancelBooking({
-    bookingSnapshot: order.bookingSnapshot,
-    bookingConfirmedAt: order.bookingConfirmedAt,
-  })
-  if (!cancelCheck.allowed) {
-    return { ok: false, error: cancelCheck.reason ?? "past_deadline", status: 409 }
-  }
-
-  await prisma.$transaction(async (tx) => {
+  if (!alreadyCancelled) await prisma.$transaction(async (tx) => {
     await releaseConfirmedBookingSeatsInTransaction(tx, {
       orderId: order.id,
       slotId: order.bookingSlotId!,
@@ -94,7 +105,19 @@ export async function cancelBookingOrderForBuyer(args: {
   })
 
   if (!refund.ok && refund.skipped !== "already_refunded") {
+    // The booking stays cancelled (seats released) and NOT refunded: a retry of this call re-attempts the refund (the
+    // pipeline is idempotent and capped). A human must know if nobody retries.
+    const { opsWebhookAlert } = await import("@/lib/ops-webhook")
+    await opsWebhookAlert(
+      `Réservation ${order.id} annulée par l'acheteur mais remboursement Stripe en échec (${refund.error ?? refund.skipped ?? "inconnu"}). ` +
+        `L'acheteur peut réessayer ; sinon rembourser depuis l'admin.`
+    ).catch(() => undefined)
     return { ok: false, error: refund.error ?? "refund_failed", status: 502 }
+  }
+
+  if (alreadyCancelled) {
+    // A retry after a failed refund: the cancellation e-mail and the waitlist already went out the first time.
+    return { ok: true, stripeRefundId: refund.stripeRefundId, refundPending: true }
   }
 
   const { processBookingWaitlistNotifications } = await import("@/lib/booking/waitlist")

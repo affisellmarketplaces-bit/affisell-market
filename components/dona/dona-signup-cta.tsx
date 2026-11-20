@@ -7,7 +7,7 @@ import { useDonaLinkClick } from "@/components/dona/dona-navigation"
 import { DONA_LOGIN_PATH, DONA_SIGNUP_PATH, type DonaRole } from "@/lib/dona/dona-links"
 import type { DonaSignupIntent } from "@/lib/dona/dona-signup-intent"
 import type { AppLocale } from "@/lib/i18n-locale"
-import { tMessage } from "@/lib/i18n-pick-message"
+import { useMessagePicker } from "@/hooks/use-message-picker"
 
 const ROLES_FOR: Record<DonaSignupIntent, readonly DonaRole[]> = {
   supplier: ["supplier"],
@@ -20,10 +20,11 @@ const ROLES_FOR: Record<DonaSignupIntent, readonly DonaRole[]> = {
  * pointed suppliers at the login page, or written a path in a form that did not link); this card is always right and
  * always tappable.
  */
-export function DonaSignupCta({ intent, locale }: { intent: DonaSignupIntent; locale: AppLocale }) {
+export function DonaSignupCta({ intent }: { intent: DonaSignupIntent; locale: AppLocale }) {
   const onLinkClick = useDonaLinkClick()
   const roles = ROLES_FOR[intent]
-  const t = (key: string) => tMessage(locale, `donaWidget.public.signupCta.${key}`)
+  const pick = useMessagePicker()
+  const t = (key: string) => pick(`donaWidget.public.signupCta.${key}`)
 
   return (
     <div

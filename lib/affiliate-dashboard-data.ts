@@ -5,7 +5,6 @@ import { prisma } from "@/lib/prisma"
 
 const supplierPick = {
   select: {
-    email: true,
     store: { select: { name: true, slug: true } },
   },
 } as const

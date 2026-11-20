@@ -10,6 +10,7 @@ import { parseAffiliateVariantPricingJson, serializeVariantPricingForDb } from "
 import { buildAffiliateVariantOptions } from "@/lib/affiliate-storefront-variants"
 import { authorizeCronRequest } from "@/lib/cron/authorize-cron-request"
 import { prisma } from "@/lib/prisma"
+import { updateListingWithPriceSource } from "@/lib/listing-price-history/record.server"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 
 export const runtime = "nodejs"
@@ -97,14 +98,17 @@ export async function GET(req: Request) {
     }
 
     const serialized = serializeVariantPricingForDb(next)
-    await prisma.affiliateProduct.update({
-      where: { id: listing.id },
-      data: {
-        variantPricing:
-          serialized === null ? Prisma.DbNull : (serialized as Prisma.InputJsonValue),
-        pricingAutoAdjustLastRun: new Date(),
+    await updateListingWithPriceSource(
+      {
+        where: { id: listing.id },
+        data: {
+          variantPricing:
+            serialized === null ? Prisma.DbNull : (serialized as Prisma.InputJsonValue),
+          pricingAutoAdjustLastRun: new Date(),
+        },
       },
-    })
+      { source: "auto_adjust", actorId: null }
+    )
 
     console.log("[variant-pricing-cron]", {
       listingId: listing.id,

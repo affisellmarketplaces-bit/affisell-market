@@ -111,6 +111,8 @@ export type UrlImportScrapedProduct = {
   suggested_price?: unknown
   basePrice?: unknown
   stock?: unknown
+  /** `source` = the quantity was read from the source (lib/import-stock.ts); anything else = not provided. */
+  stockProvenance?: unknown
   images?: unknown
   videos?: unknown
   brand?: unknown
@@ -494,7 +496,9 @@ export function buildUrlImportFormPatch(
     images,
     illustrationImages: illustrationImages.filter((u) => !galleryImages.includes(u)).slice(0, 40),
     illustrationVideos,
-    stock: String(stockN || 0),
+    // Only a quantity the source really gave is prefilled; otherwise the field stays EMPTY for the supplier to fill
+    // (never a 0 or a fallback presented as an inventory — lib/import-stock.ts).
+    stock: p.stockProvenance === "source" ? String(stockN) : "",
     price: priceUsd > 0 ? priceUsd.toFixed(2) : "",
     compareAt,
     brand,

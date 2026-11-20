@@ -1,2 +1,0 @@
-import { i as useCompositeHover, n as CompositeHoverOptions, r as CompositeHoverProps, t as CompositeHover } from "../composite-hover-BpXq3T8J.js";
-export { CompositeHover, CompositeHoverOptions, CompositeHoverProps, useCompositeHover };

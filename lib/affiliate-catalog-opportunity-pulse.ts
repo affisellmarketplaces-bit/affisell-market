@@ -1,6 +1,7 @@
 import { estimateTotalPartnerGainCents } from "@/lib/affiliate-catalog-margin-display"
 import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
+import { resellerFacingSupplierLabel } from "@/lib/supplier-public-label"
 import {
   AFFILIATE_CREATORS_WATCHING_MIN,
 } from "@/lib/affiliate-product-opportunity-pulse-shared"
@@ -147,7 +148,6 @@ export async function loadAffiliateOpportunityPulsePicks(
     if (!row) continue
 
     const supplier = row.supplier as unknown as {
-      email: string
       store: { name: string; slug: string } | null
     }
     const listing = row.affiliateProducts?.[0]
@@ -156,8 +156,7 @@ export async function loadAffiliateOpportunityPulsePicks(
       variants: row.variants,
       basePriceCents: row.basePriceCents,
     })
-    const supplierLabel =
-      supplier.store?.name?.trim() || supplier.email.trim() || "Fournisseur"
+    const supplierLabel = resellerFacingSupplierLabel(supplier.store)
 
     picks.push({
       productId: row.id,

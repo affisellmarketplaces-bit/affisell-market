@@ -68,6 +68,9 @@ export function ResetPasswordForm({ token }: Props) {
       if (!res.ok) {
         if (data.error === "invalid_token") setError(t("invalidToken"))
         else if (data.error === "password_too_short") setError(t("passwordTooShort"))
+        else if (data.error === "password_too_long") setError(t("passwordTooLong"))
+        else if (data.error === "password_too_common") setError(t("passwordTooCommon"))
+        else if (data.error === "password_matches_email") setError(t("passwordMatchesEmail"))
         else setError(t("resetFailed"))
         return
       }

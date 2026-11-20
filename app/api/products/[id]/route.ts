@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server"
+import { checkSupplierMayActivate } from "@/lib/products/affisell-suspension.server"
+import { STOCK_UNCONFIRMED_ERROR, STOCK_UNCONFIRMED_KEY } from "@/lib/import-stock"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
@@ -88,6 +90,18 @@ export async function PATCH(
 
   if (existing.supplierId !== session.user.id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
+  // A supplier pause can be lifted by the supplier; an Affisell suspension (open recall) can not.
+  if (Boolean(body.active)) {
+    const hold = await checkSupplierMayActivate(id)
+    if (hold.held) return NextResponse.json({ error: hold.error }, { status: 409 })
+    // An imported quantity never confirmed (lib/import-stock.ts) must be confirmed in the product form first.
+    const marker = await prisma.productAttribute.findFirst({
+      where: { productId: id, key: STOCK_UNCONFIRMED_KEY },
+      select: { id: true },
+    })
+    if (marker) return NextResponse.json({ error: STOCK_UNCONFIRMED_ERROR }, { status: 409 })
   }
 
   const updated = await prisma.product.update({

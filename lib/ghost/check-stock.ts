@@ -10,7 +10,7 @@ import { opsWebhookAlert } from "@/lib/ops-webhook"
 import { prisma } from "@/lib/prisma"
 import {
   GHOST_CHECK_TIMEOUT_MS,
-  GHOST_FAILS_BEFORE_DRAFT,
+  GHOST_FAILS_BEFORE_UNKNOWN,
   type StockResult,
 } from "@/lib/ghost/types"
 
@@ -94,15 +94,27 @@ function fallbackInStock(product: GhostProductInput, reason: string): StockResul
   }
 }
 
-async function maybeAutoDraft(productId: string, fails: number): Promise<void> {
-  if (fails < GHOST_FAILS_BEFORE_DRAFT) return
+/** Pure: what a run of consecutive technical failures does. Never a publication or commercial-status change. */
+export function ghostFailureEffect(fails: number): "none" | "mark_unknown_and_alert" | "keep_unknown" {
+  if (fails < GHOST_FAILS_BEFORE_UNKNOWN) return "none"
+  return fails === GHOST_FAILS_BEFORE_UNKNOWN ? "mark_unknown_and_alert" : "keep_unknown"
+}
+
+/**
+ * After repeated TECHNICAL failures the availability becomes `unknown` — the product stays published and on sale
+ * (lifecycle rule 3: a technical failure never changes a status). Ops are alerted once, when the threshold is reached.
+ */
+async function markAvailabilityUnknownAfterFailures(productId: string, fails: number): Promise<void> {
+  const effect = ghostFailureEffect(fails)
+  if (effect === "none") return
   await prisma.product.update({
     where: { id: productId },
-    data: { isDraft: true, active: false },
+    data: { lastStockStatus: "unknown" },
   })
-  console.log("[ghost-stock]", { productId, result: "auto_draft", fails })
+  if (effect !== "mark_unknown_and_alert") return
+  console.log("[ghost-stock]", { productId, result: "availability_unknown", fails })
   void opsWebhookAlert(
-    `[Ghost] Produit ${productId} passé en draft après ${fails} échecs stock check`
+    `[Ghost] Produit ${productId} : disponibilité inconnue après ${fails} échecs techniques de vérification (produit laissé publié)`
   )
 }
 
@@ -196,7 +208,7 @@ export async function checkStock(
       data: { stockCheckFails: { increment: 1 } },
       select: { stockCheckFails: true },
     })
-    await maybeAutoDraft(product.id, updated.stockCheckFails)
+    await markAvailabilityUnknownAfterFailures(product.id, updated.stockCheckFails)
     console.log("[ghost-stock]", {
       productId: product.id,
       result: "error",

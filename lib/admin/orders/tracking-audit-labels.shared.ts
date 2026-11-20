@@ -13,6 +13,7 @@ const SOURCE_LABELS: Record<OrderTrackingEventSource, string> = {
   supplier_fulfillment_webhook: "Webhook partenaire",
   supplier_sync: "Sync partenaire (cron)",
   autods: "AutoDS",
+  aliexpress_ds_tracking: "Suivi AliExpress (cron)",
 }
 
 const DELIVERED_AT_SOURCE_LABELS: Record<string, string> = {

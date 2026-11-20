@@ -93,6 +93,7 @@ export function ImportJobResultClient({
         return
       }
       let ok = 0
+      let pendingReview = 0
       const newlyListed: string[] = []
       for (const id of ids) {
         const res = await fetch(`/api/affiliate/listings/${encodeURIComponent(id)}`, {
@@ -104,6 +105,9 @@ export function ImportJobResultClient({
         if (res.ok) {
           ok += 1
           newlyListed.push(id)
+        } else if (res.status === 409) {
+          const err = (await res.json().catch(() => null)) as { error?: string } | null
+          if (err?.error === "product_not_reviewed") pendingReview += 1
         }
       }
       // The PATCHes succeed server-side regardless — without this, the Status column kept
@@ -111,9 +115,10 @@ export function ImportJobResultClient({
       if (newlyListed.length > 0) {
         setListedIds((prev) => new Set([...prev, ...newlyListed]))
       }
+      if (pendingReview > 0) toast.message(t("jobToastPendingReview", { count: pendingReview }))
       if (ok === ids.length) {
         toast.success(t("jobToastListed", { ok, total: ids.length }))
-      } else {
+      } else if (ok + pendingReview < ids.length) {
         toast.error(t("jobToastListed", { ok, total: ids.length }))
       }
     } catch {

@@ -10,6 +10,11 @@ export type ProductVisionV2Raw = {
   attributes: Record<string, string>
   suggestedPrice: number | null
   confidence: number
+  /**
+   * False when the model returned no usable `confidence`. `confidence` then holds a neutral 0.5 placeholder that must NOT be
+   * shown as the model's own estimate (the analyzer reports no confidence and asks for review in that case).
+   */
+  confidenceReported?: boolean
   productType: string
   detectedBrand: string | null
   detectedModel: string | null
@@ -36,6 +41,7 @@ export function parseVisionV2Payload(raw: string): ProductVisionV2Raw {
     attributes: {},
     suggestedPrice: null,
     confidence: 0,
+    confidenceReported: false,
     productType: "other",
     detectedBrand: null,
     detectedModel: null,
@@ -63,7 +69,8 @@ export function parseVisionV2Payload(raw: string): ProductVisionV2Raw {
         ? Number(o.suggestedPrice)
         : null
 
-  let confidence = typeof o.confidence === "number" && Number.isFinite(o.confidence) ? o.confidence : 0.5
+  const confidenceReported = typeof o.confidence === "number" && Number.isFinite(o.confidence)
+  let confidence = confidenceReported ? (o.confidence as number) : 0.5
   confidence = Math.max(0, Math.min(1, confidence))
 
   const attributes: Record<string, string> = {}
@@ -80,13 +87,18 @@ export function parseVisionV2Payload(raw: string): ProductVisionV2Raw {
     attributes,
     suggestedPrice,
     confidence,
+    confidenceReported,
     productType,
     detectedBrand,
     detectedModel,
   }
 }
 
-/** Penalize common hallucinations (device mislabeled as accessory, empty title, etc.). */
+/**
+ * Penalize common hallucinations (device mislabeled as accessory, empty title, etc.).
+ * DETERMINISTIC RULES applied on top of the number the MODEL wrote about itself: the result is a capped self-report, not a
+ * calibrated probability of being right (no accuracy has been measured against labelled data).
+ */
 export function auditProductVisionConfidence(raw: ProductVisionV2Raw): number {
   let confidence = raw.confidence
 

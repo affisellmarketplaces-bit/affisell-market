@@ -38,8 +38,15 @@ import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-
 import { syncProductVariants } from "@/lib/product-variant-sku"
 import { runProductImportAgent, type ProductImportAgentResult } from "@/lib/product-import-agent"
 import { prisma } from "@/lib/prisma"
+import {
+  importReviewStateAfterImport,
+  importReviewStateFromTags,
+  mayListOnProduct,
+  withImportReviewState,
+} from "@/lib/reseller-import/review"
 import type { SupplierScrapedProduct } from "@/lib/supplier-import-url-handler"
 import { normalizeImportBrand } from "@/lib/url-import-apply"
+import { STOCK_UNCONFIRMED_KEY, stockFromSource } from "@/lib/import-stock"
 
 export const RESELLER_IMPORT_VAULT_EMAIL = "import-vault@affisell.internal"
 export const RESELLER_URL_IMPORT_SOURCE = "reseller_url_import"
@@ -189,7 +196,10 @@ function asPreview(
     currency: product.currency || "EUR",
     brand: normalizeImportBrand(product.brand || "", product.title),
     category: (product.category || "").slice(0, 120),
-    stock: Math.max(0, Math.min(9999, Math.round(product.stock || 99))),
+    // The source's quantity with its provenance — never a fallback (was 99).
+    ...(product.stockProvenance === "source"
+      ? stockFromSource(product.stock)
+      : { stock: 0, stockProvenance: "not_provided" as const }),
     platform: meta.platform,
     marketplaceLabel: meta.marketplaceLabel,
     method: meta.method,
@@ -334,7 +344,8 @@ async function scrapeOpenGraphPreview(url: string): Promise<SupplierScrapedProdu
         'meta[property="og:price:amount"]',
         'meta[itemprop="price"]'
       ) || "0"
-    const price = Math.max(0, parseFloat(priceRaw.replace(",", ".")) || 0) || 9.9
+    // No invented price (was 9.90 €): a page without a readable price gives 0 and the import is refused as incomplete.
+    const price = Math.max(0, parseFloat(priceRaw.replace(",", ".")) || 0)
     const suggested = psychologicalPrice(price * 2.8)
     return {
       title: title.slice(0, 200),
@@ -352,7 +363,8 @@ async function scrapeOpenGraphPreview(url: string): Promise<SupplierScrapedProdu
       brand: "",
       category: "",
       sku: "",
-      stock: 99,
+      stock: 0,
+      stockProvenance: "not_provided",
       shipping: {
         from_country: "",
         delivery_time: "",
@@ -475,6 +487,7 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
         brand: "Generic",
         category: market.label,
         stock: Math.max(0, catalog.stock),
+        stockProvenance: "source" as const, // the Affisell catalogue product's own stock
         platform: market.scrapePlatform,
         marketplaceLabel: market.label,
         method: "catalog-match",
@@ -764,10 +777,10 @@ function sanitizeCommitSnapshot(
         : "Generic",
     category:
       typeof o.category === "string" ? o.category.slice(0, 120) : market.label,
-    stock:
-      typeof o.stock === "number" && Number.isFinite(o.stock)
-        ? Math.max(0, Math.min(9999, Math.round(o.stock)))
-        : 99,
+    // A browser snapshot's number is only kept when the snapshot says it read it from the page.
+    ...(o.stockProvenance === "source"
+      ? stockFromSource(o.stock)
+      : { stock: 0, stockProvenance: "not_provided" as const }),
     platform:
       typeof o.platform === "string" && o.platform
         ? o.platform
@@ -822,6 +835,8 @@ export async function commitResellerUrlImport(args: {
       shopHref: string
       editHref: string
       isListed: boolean
+      /** The product waits for Affisell's review: nothing can be bought until it is approved. */
+      reviewPending: boolean
     }
   | { ok: false; error: string; status: number }
 > {
@@ -855,6 +870,7 @@ export async function commitResellerUrlImport(args: {
         suggestedPrice: suggested,
         profitPerSale: Math.max(0, Number((suggested - cost).toFixed(2))),
         stock: Math.max(0, catalog.stock),
+        stockProvenance: "source" as const, // the Affisell catalogue product's own stock
         method: "catalog-match",
         catalogProductId: catalog.id,
         warnings: ["Produit catalogue Affisell — listage direct."],
@@ -957,8 +973,15 @@ export async function commitResellerUrlImport(args: {
           ...(aeId ? [{ aliexpressProductId: aeId }] : []),
         ],
       },
-      select: { id: true },
+      select: { id: true, tags: true },
     })
+    // Import → validation → publication (lib/reseller-import/review.ts): a new import is a DRAFT pending Affisell's
+    // review; a re-import refreshes the content and never changes an existing decision or publication.
+    // A product imported BEFORE this flow existed (no review tag) keeps its state: pulling live products silently is a
+    // commercial decision (founder), they are listed for review by the admin route instead.
+    const reviewState = existingProduct
+      ? importReviewStateFromTags(existingProduct.tags)
+      : importReviewStateAfterImport(null)
 
     const productData = {
       name: persist.name,
@@ -970,11 +993,12 @@ export async function commitResellerUrlImport(args: {
       ...(persist.colorImages != null ? { colorImages: persist.colorImages } : {}),
       ...(persist.variants != null ? { variants: persist.variants } : {}),
       categories: preview.category ? [preview.category] : [],
-      tags: persist.tags,
+      tags: reviewState ? withImportReviewState(persist.tags, reviewState) : persist.tags,
       basePriceCents: costCents,
       ...(persist.compareAt ? { compareAt: persist.compareAt } : {}),
       commissionRate: 15,
-      stock: persist.stock,
+      // A re-import without a source quantity never overwrites the stock an existing product has (lib/import-stock.ts).
+      ...(existingProduct && !persist.stockConfirmed ? {} : { stock: persist.stock }),
       sourceUrl: preview.sourceUrl,
       importSource: RESELLER_URL_IMPORT_SOURCE,
       supplierTag: "reseller-import",
@@ -986,8 +1010,6 @@ export async function commitResellerUrlImport(args: {
       shipsFrom: persist.shipsFrom,
       hasVariants: persist.variantInputs.length > 0,
       ...(aeId ? { aliexpressProductId: aeId, autoFulfill: true, autoBuyEnabled: true } : {}),
-      active: true,
-      isDraft: false,
     }
 
     const product = existingProduct
@@ -1000,6 +1022,9 @@ export async function commitResellerUrlImport(args: {
           data: {
             supplierId,
             ...productData,
+            // Never sellable before Affisell's review.
+            active: false,
+            isDraft: true,
           },
           select: { id: true },
         })
@@ -1007,6 +1032,8 @@ export async function commitResellerUrlImport(args: {
 
     if (persist.attributes.length > 0) {
       for (const attr of persist.attributes) {
+        // The « quantity to confirm » marker is only put on a NEW product (existing data is never degraded).
+        if (existingProduct && attr.key === STOCK_UNCONFIRMED_KEY) continue
         await prisma.productAttribute.upsert({
           where: {
             productId_key: { productId, key: attr.key },
@@ -1023,6 +1050,10 @@ export async function commitResellerUrlImport(args: {
           },
         })
       }
+    }
+    // The source now reports a quantity: an older « to confirm » marker is lifted.
+    if (existingProduct && persist.stockConfirmed) {
+      await prisma.productAttribute.deleteMany({ where: { productId: productId, key: STOCK_UNCONFIRMED_KEY } })
     }
 
     if (persist.variantInputs.length > 0) {
@@ -1046,6 +1077,15 @@ export async function commitResellerUrlImport(args: {
     })
   }
 
+  // A listing goes live only on a product that is published, on sale and (for an import) approved. Otherwise the
+  // reseller's wish is recorded and honoured at approval time.
+  const productState = await prisma.product.findUnique({
+    where: { id: productId },
+    select: { active: true, isDraft: true, tags: true },
+  })
+  const listNow = listLive && productState != null && mayListOnProduct(productState)
+  const reviewPending = productState != null && !mayListOnProduct(productState)
+
   const listing = await prisma.affiliateProduct.upsert({
     where: {
       affiliateId_productId: {
@@ -1061,7 +1101,7 @@ export async function commitResellerUrlImport(args: {
       customTitle: preview.title,
       customDescription: preview.description,
       customImages: persist.images,
-      isListed: listLive,
+      isListed: listNow,
     },
     update: {
       sellingPriceCents,
@@ -1069,10 +1109,36 @@ export async function commitResellerUrlImport(args: {
       customTitle: preview.title,
       customDescription: preview.description,
       customImages: persist.images,
-      isListed: listLive,
+      isListed: listNow,
     },
     select: { id: true, isListed: true },
   })
+
+  if (reviewPending) {
+    // One row per listing: what the reseller asked for, read by the admin review when it approves.
+    const requestId = `reseller-import-request:${listing.id}`
+    const payload = { productId, affiliateProductId: listing.id, affiliateId: args.affiliateId, listRequested: listLive }
+    await prisma.auditLog
+      .upsert({
+        where: { id: requestId },
+        create: {
+          id: requestId,
+          action: "reseller_import.submitted",
+          entityType: "Product",
+          entityId: productId,
+          actorId: args.affiliateId,
+          payload,
+        },
+        update: { payload },
+      })
+      .catch((error: unknown) => {
+        console.error("[affiliate-url-import]", {
+          productId,
+          result: "review_request_not_recorded",
+          error: error instanceof Error ? error.message : String(error),
+        })
+      })
+  }
 
   console.log("[affiliate-url-import]", {
     affiliateId: args.affiliateId,
@@ -1098,6 +1164,7 @@ export async function commitResellerUrlImport(args: {
     shopHref: shopListingPath(store.slug, listing.id),
     editHref: `/dashboard/affiliate/catalog?productId=${encodeURIComponent(productId)}`,
     isListed: listing.isListed,
+    reviewPending,
   }
 }
 

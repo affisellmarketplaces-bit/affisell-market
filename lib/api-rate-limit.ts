@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { getRedisUrl } from "@/lib/auto-order/redis"
+import { redisKey } from "@/lib/redis-namespace"
 import { mustEnforceProductionSecrets } from "@/lib/require-production-secret"
 
 type Bucket = { resetAt: number; count: number }
@@ -80,7 +81,8 @@ async function consumeRateLimitRedis(
 ): Promise<{ ok: true } | { ok: false; retrySec: number }> {
   const { getRedisConnection } = await import("@/lib/auto-order/redis")
   const redis = getRedisConnection()
-  const mapKey = `rl:${opts.prefix ?? "rl"}:${key}`
+  // Namespaced (lib/redis-namespace.ts): a Preview must not spend — or be throttled by — production's counters.
+  const mapKey = redisKey(`rl:${opts.prefix ?? "rl"}:${key}`)
   const windowSec = Math.max(1, Math.ceil(opts.windowMs / 1000))
 
   if (redis.status === "wait") {

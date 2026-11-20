@@ -19,7 +19,7 @@ import { DonaAvatarImage } from "@/components/dona/dona-avatar-image"
 import { DonaFabOrb } from "@/components/dona/dona-fab-orb"
 import { DonaLinkifiedText } from "@/components/dona/dona-linkify-text"
 import { DonaNavigationProvider } from "@/components/dona/dona-navigation"
-import { tMessage } from "@/lib/i18n-pick-message"
+import { useMessagePicker } from "@/hooks/use-message-picker"
 
 type CaptainMeta = {
   env: string
@@ -72,6 +72,7 @@ function assistantHasVisibleParts(m: UIMessage): boolean {
 export function DonaCaptainWidget() {
   const pathname = usePathname() ?? ""
   const locale = useAppLocale()
+  const pick = useMessagePicker()
   const [isOpen, setIsOpen] = useState(false)
   const [meta, setMeta] = useState<CaptainMeta | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -98,19 +99,19 @@ export function DonaCaptainWidget() {
 
   const busy = status === "submitted" || status === "streaming"
   const visible = shouldShowCaptain(pathname)
-  const errorText = donaResolvedError(error, locale, donaCaptainGenericError(locale))
+  const errorText = donaResolvedError(error, locale, donaCaptainGenericError(pick))
 
-  const welcome = useMemo(() => tMessage(locale, "donaWidget.captain.welcome"), [locale])
-  const dialogLabel = tMessage(locale, "donaWidget.captain.dialogLabel")
-  const headerTitle = tMessage(locale, "donaWidget.captain.headerTitle")
-  const captainBadge = tMessage(locale, "donaWidget.captain.captainBadge")
-  const typingLabel = tMessage(locale, "donaWidget.captain.typing")
-  const placeholder = tMessage(locale, "donaWidget.captain.placeholder")
-  const sendAria = tMessage(locale, "donaWidget.captain.sendAria")
-  const closeAria = tMessage(locale, "donaWidget.captain.closeAria")
-  const openFabAria = tMessage(locale, "donaWidget.captain.openFabAria")
-  const fabBadge = tMessage(locale, "donaWidget.captain.fabBadge")
-  const trustFooter = tMessage(locale, "donaWidget.captain.trustFooter")
+  const welcome = useMemo(() => pick("donaWidget.captain.welcome"), [pick])
+  const dialogLabel = pick("donaWidget.captain.dialogLabel")
+  const headerTitle = pick("donaWidget.captain.headerTitle")
+  const captainBadge = pick("donaWidget.captain.captainBadge")
+  const typingLabel = pick("donaWidget.captain.typing")
+  const placeholder = pick("donaWidget.captain.placeholder")
+  const sendAria = pick("donaWidget.captain.sendAria")
+  const closeAria = pick("donaWidget.captain.closeAria")
+  const openFabAria = pick("donaWidget.captain.openFabAria")
+  const fabBadge = pick("donaWidget.captain.fabBadge")
+  const trustFooter = pick("donaWidget.captain.trustFooter")
 
   const renderableMessages = useMemo(
     () => messages.filter(assistantHasVisibleParts),
@@ -146,7 +147,7 @@ export function DonaCaptainWidget() {
 
   const envLabel = meta?.label ?? "STAGING"
   const envHost = meta?.dbHost ?? "…"
-  const captainEnvBadge = tMessage(locale, "donaWidget.captain.captainEnvBadge").replace(
+  const captainEnvBadge = pick("donaWidget.captain.captainEnvBadge").replace(
     "{env}",
     envLabel
   )
@@ -232,7 +233,7 @@ export function DonaCaptainWidget() {
                               className="mr-auto max-w-[95%] rounded-xl border border-violet-500/25 bg-violet-950/30 px-3 py-2 text-xs text-violet-100"
                             >
                               <p className="font-medium">
-                                {tMessage(locale, "donaWidget.captain.toolConsult").replace(
+                                {pick("donaWidget.captain.toolConsult").replace(
                                   "{name}",
                                   name + (!hasOutput ? "…" : "")
                                 )}

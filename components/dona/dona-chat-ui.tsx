@@ -10,7 +10,6 @@ import {
   type DonaProductToolPart,
 } from "@/components/dona/dona-product-tools-rail"
 import type { AppLocale } from "@/lib/i18n-locale"
-import { tMessage } from "@/lib/i18n-pick-message"
 import { resolveDonaChatError } from "@/lib/dona/dona-errors"
 import {
   donaAssistantHasContent,
@@ -23,12 +22,15 @@ export function formatDonaTime(date: Date): string {
   return date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
 }
 
-export function donaGenericError(locale: AppLocale): string {
-  return tMessage(locale, "donaWidget.errors.genericPublic")
+type MessagePicker = (path: string, fallback?: string) => string
+
+/** `pick` = `useMessagePicker()` (messages already in the provider — never the whole catalogues). */
+export function donaGenericError(pick: MessagePicker): string {
+  return pick("donaWidget.errors.genericPublic")
 }
 
-export function donaCaptainGenericError(locale: AppLocale): string {
-  return tMessage(locale, "donaWidget.errors.genericCaptain")
+export function donaCaptainGenericError(pick: MessagePicker): string {
+  return pick("donaWidget.errors.genericCaptain")
 }
 
 export function donaResolvedError(

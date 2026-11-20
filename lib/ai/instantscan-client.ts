@@ -1,3 +1,5 @@
+import type { InstantScanProvenance, InstantScanStage } from "@/lib/instantscan/stages"
+
 export const INSTANTSCAN_FETCH_TIMEOUT_MS = 60_000
 export const INSTANTSCAN_MAX_RETRY_ATTEMPTS = 2
 
@@ -6,11 +8,14 @@ export type InstantScanAnalyzeResponse = {
   description?: string
   categoryId?: string | null
   suggestedPrice?: number | null
+  /** Only present when the vision model wrote one (self-report, not a probability). Absent for a catalog match. */
   confidence?: number
   needsReview?: boolean
   detectedModel?: string | null
   visionVersion?: string
-  instantScanStage?: "embed" | "mini" | "gpt4o" | "groq"
+  instantScanStage?: InstantScanStage
+  /** Model really used, fallback flag, origin of confidence / price (see lib/instantscan/stages.ts). */
+  provenance?: InstantScanProvenance
   latencyMs?: number
   error?: string
   detail?: string

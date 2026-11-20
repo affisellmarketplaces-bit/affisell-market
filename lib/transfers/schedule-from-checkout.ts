@@ -18,6 +18,11 @@ import {
   PAYOUT_EXCEEDS_LINE_ERROR,
   platformSubsidyCents,
 } from "@/lib/money/split-guard"
+import {
+  isOrderClosedForPayout,
+  settlementAfterSchedule,
+  statusAfterPaymentConfirmed,
+} from "@/lib/orders/payment-state"
 import { computeSplitStatusFromAttempts } from "@/lib/transfers/compute-split-status"
 import { alertSplitTransferFailed } from "@/lib/transfers/split-slack-alert"
 import { logStripeWebhookError, logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
@@ -80,6 +85,19 @@ export async function scheduleMarketplaceTransferAttempts(
     },
   })
   if (!order) return { orderId, scheduled: false, reason: "order_not_found" }
+
+  // A refunded / cancelled order must never get payouts (nor be reopened as "paid"): the money went back to the buyer.
+  // Webhook retries and the reconcile cron can reach this point after a refund (finalisation master doc, D1).
+  if (isOrderClosedForPayout(order)) {
+    logStripeWebhookInfo({
+      metric: "split_skipped_order_closed",
+      orderId,
+      sessionId: session.id,
+      orderStatus: order.status,
+      settlementStatus: order.paymentSettlementStatus,
+    })
+    return { orderId, scheduled: false, reason: "order_closed" }
+  }
 
   const existingSuccess = order.transferAttempts.filter((a) => a.status === "SUCCESS")
   if (existingSuccess.length >= 2) {
@@ -251,6 +269,19 @@ export async function scheduleMarketplaceTransferAttempts(
     }
   }
 
+  // `Order.stripeChargeId` is UNIQUE, but the orders of a multi-line cart are siblings paid by ONE charge: writing the
+  // same id on the second order raised a unique violation and aborted its settlement (no payout for that supplier).
+  // The charge id stays on the first order that recorded it; siblings keep theirs empty and are found through their
+  // Checkout Session (`<session>:line:<n>`, see orderIdsForStripeCharge / chargeIdForOrder).
+  let chargeIdToRecord = order.stripeChargeId
+  if (chargeId && chargeId !== order.stripeChargeId) {
+    const holder = await db.order.findFirst({
+      where: { stripeChargeId: chargeId, NOT: { id: orderId } },
+      select: { id: true },
+    })
+    if (!holder) chargeIdToRecord = chargeId
+  }
+
   const paidAnchor = order.paidAt ?? new Date()
   await db.order.update({
     where: { id: orderId },
@@ -264,9 +295,14 @@ export async function scheduleMarketplaceTransferAttempts(
       affisellFeeCents: amounts.affisellFeeCents,
       stripeFeesCents: amounts.stripeFeeCents,
       stripeSessionId: order.stripeSessionId || session.id,
-      stripeChargeId: chargeId ?? order.stripeChargeId,
+      stripeChargeId: chargeIdToRecord,
       splitStatus: "PENDING",
-      status: "paid",
+      // Only an order that is not yet past "paid" becomes "paid": never move shipped / preparing / fulfilling back. When the
+      // status does not change it is not written AT ALL: `order` was read before this update, and a concurrent writer (the
+      // AliExpress purchase paths set "fulfilling", suppliers set "shipped") must not be overwritten with a stale value.
+      ...(statusAfterPaymentConfirmed(order.status) !== order.status
+        ? { status: statusAfterPaymentConfirmed(order.status) }
+        : {}),
       paidAt: order.paidAt ?? paidAnchor,
       shipDeadlineAt:
         order.shipDeadlineAt ??
@@ -275,7 +311,7 @@ export async function scheduleMarketplaceTransferAttempts(
           order.product?.shippingCountry ?? null,
           extractShippingCountryIso2FromAddress(order.shippingAddress)
         ),
-      paymentSettlementStatus: "PAID",
+      paymentSettlementStatus: settlementAfterSchedule(order.paymentSettlementStatus),
       affiliateStripeAccountId: affiliateDestination,
     },
   })

@@ -18,11 +18,17 @@ export async function GET(req: Request) {
   })
   if (limited) return limited
 
-  const { events, source, countries } = await aggregateRadarLiveEvents()
+  const { events, source, countries, syntheticCount } = await aggregateRadarLiveEvents()
   const payload = {
     ok: true as const,
     events,
+    /** Truthful provenance: `live` only when no generated event is in the list; `mixed` / `demo` otherwise. */
     source,
+    isDemo: source !== "live",
+    /** Language-neutral banner code the UI translates (`null` = every event is real). */
+    dataNotice: (source === "live" ? null : source) as "mixed" | "demo" | null,
+    /** Events flagged `synthetic: true` one by one in `events`. */
+    syntheticCount,
     countries,
     refreshedAt: new Date().toISOString(),
   }

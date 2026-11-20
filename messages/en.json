@@ -47,7 +47,9 @@
       "brandStudio": "Brand Studio",
       "brandStudioShort": "Brand",
       "magicLab": "Magic Systems",
-      "magicLabShort": "Lab"
+      "magicLabShort": "Lab",
+      "opportunities": "Opportunities (real sales)",
+      "opportunitiesShort": "Opportunities"
     },
     "supplier": {
       "badge": "Supplier",
@@ -506,6 +508,8 @@
     "invalid_password": "Incorrect password.",
     "account_not_found": "No Affisell account found with this email.",
     "password_login_unavailable": "This account uses social sign-in. Use Google or set a password via “Forgot password”.",
+    "invalid_credentials": "Incorrect email or password. If your account uses social sign-in, use it or set a password via “Forgot password”.",
+    "too_many_attempts": "Too many sign-in attempts for this account. Try again in 15 minutes or reset your password.",
     "passwordReset": {
       "secureBadge": "Affisell secure access",
       "forgotLink": "Forgot password?",
@@ -522,10 +526,18 @@
       "confirmPassword": "Confirm password",
       "savePassword": "Save password",
       "passwordTooShort": "Password must be at least 8 characters.",
+      "passwordTooLong": "The password is too long (72 bytes maximum).",
+      "passwordTooCommon": "This password is too common. Please choose another one.",
+      "passwordMatchesEmail": "The password must not be your email address.",
       "passwordMismatch": "Passwords do not match.",
       "invalidToken": "This link is invalid or expired. Request a new one.",
       "resetFailed": "Could not update your password.",
       "resetSuccessLogin": "Password updated. You can sign in now."
+    },
+    "emailVerification": {
+      "done": "Email address confirmed. You can sign in.",
+      "invalid": "This confirmation link is invalid or has already been used.",
+      "expired": "This confirmation link has expired. Sign in to get a new one."
     },
     "signupFail": "Could not register.",
     "signupLoginFail": "Account created but sign-in failed. Try logging in.",
@@ -857,6 +869,15 @@
     }
   },
   "cart": {
+    "stock": {
+      "outOfStock": "This product is out of stock.",
+      "insufficient": "Only {count} left in stock.",
+      "priceUpdating": "This product's price is being updated. Please try again in a few minutes.",
+      "variantUnavailable": "The option you chose (size or colour) no longer exists for this product: pick another one on its page.",
+      "variantUnavailableWith": "The option you chose no longer exists for this product. Still available: {options}.",
+      "chooseOptions": "Choose every option (colour, size, capacity…) before continuing.",
+      "chooseOnPage": "This product comes in several sizes or colours: choose yours on its page."
+    },
     "title": "Cart",
     "loading": "Loading cart…",
     "empty": "Your cart is empty",
@@ -918,10 +939,12 @@
       "handoffPowered": "Affisell encrypted handoff",
       "legalNote": "By continuing, you agree to create an Affisell buyer account for cashback rewards.",
       "identifyFailed": "Could not continue. Try again.",
+      "accountExists": "An account already exists with this identifier. Sign in to continue.",
       "signInFailed": "Sign-in failed after identification.",
       "networkError": "Network unavailable. Try again."
     },
-    "tryPulse": "Try Affisell Pulse"
+    "tryPulse": "Try Affisell Pulse",
+    "storageLabel": "Capacity"
   },
   "buyerBestsellers": {
     "metaTitle": "Top sellers · 7 days",
@@ -1205,7 +1228,11 @@
       "merchantVerificationPending": "Merchant verification required — complete your KYC file at /dashboard/verification before publishing.",
       "affiliateCommissionRequired": "Set the commission offered to affiliates on each sale (> 0%). The category grid is indicative only.",
       "productImagesRequiredHosted": "Add at least one hosted product photo (upload complete) before publishing.",
-      "variantsInvalidGeneric": "Fix the variants / SKU rows (invalid fields)."
+      "variantsInvalidGeneric": "Fix the variants / SKU rows (invalid fields).",
+      "productRecalled": "This product is under a safety recall opened by Affisell, so it can't be put back on sale for now. Contact Affisell support to learn how the recall can be lifted.",
+      "productSuspended": "Affisell has suspended sales of this product, so it can't be put back on sale for now. Contact Affisell support to learn why and how the suspension can be lifted.",
+      "productHoldUnverifiable": "We couldn't check whether this product can be put back on sale. Please try again in a moment.",
+      "stockUnconfirmed": "This imported product's quantity was never confirmed: the source gave none. Enter the quantity really available, save, then publish."
     },
     "descriptionField": {
       "label": "Description",
@@ -1807,7 +1834,16 @@
       "publishSuccessToast": "🎉 Product published — +10 XP",
       "aliexpressImportedToast": "AliExpress imported — {imgCount, plural, one {# photo} other {# photos}}, {specCount, plural, one {# spec} other {# specs}}",
       "productImportedToast": "Product imported — check the preview",
-      "titleNotFoundError": "Title not found — try again or switch to Pro mode"
+      "titleNotFoundError": "Title not found — try again or switch to Pro mode",
+      "stockLabel": "Quantity available",
+      "stockHint": "The number of units you can really ship. It is never filled in for you.",
+      "stockFromVariantsHint": "The quantity is set on each variant (variant table).",
+      "declaration": {
+        "price_required": "Enter the catalogue price before publishing.",
+        "stock_required": "Enter the quantity available before publishing (a whole number).",
+        "stock_zero": "Quantity 0: the product would show as sold out. Enter the quantity really available.",
+        "variant_stock_required": "Every variant needs its quantity available before publishing."
+      }
     },
     "categoryPicker": {
       "loading": "Loading categories…",
@@ -2182,6 +2218,103 @@
       "optionDays": "{days} days",
       "hint": "How long after delivery a buyer can return this product. 14 days is the legal minimum for every buyer; offering more can win sales.",
       "cost": "Returns accepted in this window are at your expense, like a return inside the legal 14 days: the buyer is refunded and your share of the sale is taken back. The window is frozen when someone buys, so shortening it later never affects orders already placed."
+    },
+    "supplyCost": {
+      "title": "Supply costs (confidential)",
+      "confidential": "Visible only to you and to Affisell. These amounts change neither your price, the commission nor the listing: they are used to check that a future way of selling stays profitable for you.",
+      "unitCost": "Cost to buy or make one unit, excl. VAT (€)",
+      "deliveryCost": "Cost to deliver one unit to the buyer, excl. VAT (€)",
+      "source": "Where the product comes from",
+      "sources": {
+        "own_stock": "My own stock",
+        "manufacturer": "I make it or buy from the manufacturer",
+        "wholesaler": "Wholesaler",
+        "dropship_source": "Drop-shipping supplier",
+        "other": "Other"
+      },
+      "leadTime": "Time before shipping (days, optional)",
+      "minimumOrder": "Minimum quantity at your source (optional)",
+      "note": "Note for Affisell (optional)",
+      "save": "Save my costs",
+      "saved": "Costs saved.",
+      "invalid": "Invalid amount: enter a number in euros, for example 12.50.",
+      "error": "Saving failed. Please try again.",
+      "warnAbovePrice": "Your declared costs are above your supplier price: please check the amounts.",
+      "lastDeclared": "Last declared: {date}",
+      "qualification": {
+        "label": "Declaration status",
+        "unverified": "Not verified",
+        "document_provided": "Supporting document announced",
+        "verified": "Verified by Affisell",
+        "disputed": "Disputed by Affisell",
+        "expired": "Expired"
+      },
+      "documentTitle": "Do you have a supporting document (invoice, supplier price list)?",
+      "documentHint": "Describe the document sent to Affisell (type, date, number). Affisell will check it; this status is not a verification.",
+      "documentPlaceholder": "E.g. wholesaler invoice no. 2026-114 of 3 November",
+      "documentSubmit": "Report the document",
+      "documentSent": "Document reported.",
+      "newDeclarationResets": "Any new declaration starts again as “not verified”.",
+      "effectiveFrom": "Applies from",
+      "effectiveFromHint": "Leave empty for today. A past date is refused: orders already paid keep the cost in force at the time.",
+      "effectiveLater": "This declaration will apply from {date}.",
+      "variants": {
+        "scope": "Cost declared for",
+        "wholeProduct": "The whole product (default)",
+        "wholeProductHint": "Applies to every variant without its own declaration.",
+        "variantHint": "Applies to this variant only; never to another one.",
+        "ambiguous": "Some variants have the same name: they can not get their own cost until they are told apart.",
+        "tableTitle": "Costs declared per variant",
+        "gone": "variant removed",
+        "notInForce": "not in force yet",
+        "fallbackHint": "A variant without its own cost uses the product's declaration, if there is one."
+      }
+    },
+    "productJourney": {
+      "title": "Path to sale",
+      "next": "Next step: {step}",
+      "allDone": "Everything is ready: your product can be sold.",
+      "steps": {
+        "sheet": "Product sheet",
+        "safety": "Product safety",
+        "stock": "Stock",
+        "commission": "Reseller commission",
+        "publication": "Publication",
+        "resellers": "Picked by resellers",
+        "sales": "Sales (30 days)",
+        "costs": "Supply costs"
+      },
+      "status": {
+        "done": "done",
+        "todo": "to do",
+        "blocked": "blocked by Affisell",
+        "waiting": "waiting",
+        "optional": "optional"
+      },
+      "missing": {
+        "name": "name",
+        "photo": "photo",
+        "category": "category"
+      },
+      "safetyMissing": "{count, plural, one {# missing item} other {# missing items}}",
+      "units": "{count, plural, =0 {no unit available} one {# unit} other {# units}}",
+      "publication": {
+        "draft": "draft",
+        "paused": "paused",
+        "product_recalled": "safety recall open",
+        "product_suspended": "sales suspended by Affisell",
+        "product_hold_unverifiable": "cannot be checked right now"
+      },
+      "resellers": "{count, plural, =0 {no reseller} one {# reseller} other {# resellers}}",
+      "sales": "{count, plural, =0 {no order} one {# order} other {# orders}}",
+      "costs": {
+        "unverified": "declared, not verified",
+        "document_provided": "document announced",
+        "verified": "verified by Affisell",
+        "disputed": "disputed by Affisell",
+        "expired": "expired"
+      },
+      "costsNote": "Supply costs are optional and confidential: they never condition publication, price or commission."
     }
   },
   "affiliate": {
@@ -2377,7 +2510,11 @@
       "estimatedRevenue": "Estimated reseller earnings",
       "estimatedRevenueHint": "Commission + margin at {markupPct}% suggested markup",
       "sortRevenueDesc": "Reseller earnings · high → low",
-      "supplierSheetAria": "Supplier product page"
+      "supplierSheetAria": "Supplier product page",
+      "netShort": "Net",
+      "netRevenue": "Your net gain per sale",
+      "netBreakdown": "{gross} commission + margin − {fee} Affisell fee ({feePct}%)",
+      "priceIsHt": "Prices exclude VAT: the buyer pays VAT on top."
     },
     "catalogFilters": {
       "groupAria": "Storefront and date-added filters",
@@ -2780,6 +2917,315 @@
       "pendingVerification": "Pending",
       "setDefault": "Set as default",
       "delete": "Delete"
+    },
+    "opportunities": {
+      "title": "Opportunities based on real sales",
+      "intro": "Decision board built from paid orders: your own products first, then the catalogue ranked by what the last {days} days of sales earned resellers, after Affisell fees and the amounts refunded over {qualityDays} days. These are past figures, not a forecast.",
+      "platformRate": "Platform refund rate: {rate} of the amounts charged ({orders} paid orders over 90 days).",
+      "emptyRanked": "No paid order in the last {days} days: nothing can be ranked from real sales yet.",
+      "col": {
+        "product": "Product",
+        "units": "Units sold ({days} d)",
+        "perUnit": "Earning per sale",
+        "refundRate": "Refunded (by value)",
+        "observedNet": "Observed net earnings ({days} d)",
+        "checks": "To check",
+        "disputeRate": "Disputes"
+      },
+      "inStore": "Already in your store",
+      "rateOwn": "product rate",
+      "ratePlatform": "sample too small: platform rate",
+      "flags": {
+        "high_refund_rate": "High refund rate",
+        "disputes_seen": "Disputes seen",
+        "slow_delivery": "Slow delivery (9 orders in 10 over 12 days)",
+        "supplier_price_rising": "Supplier price rising or unstable",
+        "thin_sample": "Few orders: fragile figures",
+        "sales_falling": "Sales falling (−30% or more)",
+        "payout_per_unit_down": "Earnings per sale down over 30 days",
+        "out_of_stock": "Declared out of stock",
+        "stock_not_maintained": "Stock probably not maintained (import default value)"
+      },
+      "howToRead": "“Observed net earnings” = units sold × earning per sale after the refund rate. You can add your own markup to the selling price: it is not counted here.",
+      "noSalesTitle": "No sales data",
+      "noSalesIntro": "These products have no paid order in the period: they are not ranked, for lack of real data.",
+      "perUnitShort": "{amount} per sale",
+      "toCatalog": "Open the catalogue →",
+      "vsPrevious": "{prev} in the previous 30 days",
+      "perUnitWas": "{amount} 30 days ago",
+      "truncated": "Very high volume: the figures shown are a minimum.",
+      "documentedTitle": "Well-documented opportunities",
+      "documentedIntro": "At least {min} paid orders over {qualityDays} days: the product's own rates are used.",
+      "documentedEmpty": "No product has enough orders yet to be judged on its own figures.",
+      "limitedTitle": "Insufficient data",
+      "limitedIntro": "These products have sales, but too few to be reliable: the refund rate applied is the higher of theirs and the platform's.",
+      "mine": {
+        "title": "Your products",
+        "intro": "Computed only from your paid orders: net earnings = commissions recorded on your orders, minus the share taken back by refunds (pro rata). Period: {days} days, compared with the previous {days} days.",
+        "totals": "{net} net over {days} days ({orders} orders) — {prevNet} over the previous period ({prevOrders} orders).",
+        "empty": "No paid order in the last {days} days.",
+        "attentionTitle": "To handle today",
+        "attentionEmpty": "Nothing to report on your products.",
+        "topTitle": "What earns you the most ({days} d)",
+        "decliningTitle": "What is becoming less profitable",
+        "decliningEmpty": "No product declining (compared from 3 orders in the previous period).",
+        "netChange": "{from} → {to}",
+        "notComparable": "too few orders to compare",
+        "col": {
+          "product": "Product",
+          "orders": "Orders",
+          "net": "Net earnings",
+          "perUnit": "Net per unit",
+          "refundShare": "Refunded",
+          "previous": "Previous period"
+        },
+        "reasons": {
+          "volume_down": "fewer sales",
+          "your_price_down": "you lowered your selling price",
+          "collected_price_down": "lower price collected with no price cut recorded from you (discounts, variants sold)",
+          "supplier_price_up": "supplier price up (your markup shrinks)",
+          "commission_down": "supplier commission down",
+          "fees_up": "higher Affisell fees",
+          "refunds_up": "more refunds",
+          "disputes_up": "more disputes",
+          "unknown": "no significant cause identifiable in the data"
+        },
+        "attention": {
+          "open_dispute": "{orders} order(s) with an open dispute",
+          "no_longer_for_sale": "no longer for sale on the marketplace",
+          "sold_out": "out of stock",
+          "margin_review": "margin to review: the supplier price changed",
+          "supplier_price_changed": "supplier price went from {from} to {to} this week",
+          "return_requested": "{returns} return(s) requested, awaiting the supplier"
+        },
+        "drivers": {
+          "volume": "Volume",
+          "selling_price": "Your price",
+          "supplier_price": "Supplier price",
+          "commission": "Commission",
+          "fees": "Fees",
+          "refunds": "Refunds",
+          "residual": "Unexplained"
+        },
+        "priceCut": "price lowered from {from} to {to} on {date}",
+        "partlyUnexplained": "A large part of the change is not explained by the data (fixed margin, discounts, rounding).",
+        "impactTitle": "Effect of your price changes",
+        "impactIntro": "Your orders in the 30 days before each change of your selling price, compared with the days after. An observation over two periods: it does not prove the price is the only cause.",
+        "impactEmpty": "No price change recorded in the last 90 days.",
+        "impactChange": "{from} → {to} on {date}",
+        "impactFigures": "Before ({beforeDays} d, {beforeOrders} orders): {beforePerDay}/day, {beforePerUnit} per sale — After ({afterDays} d, {afterOrders} orders): {afterPerDay}/day, {afterPerUnit} per sale.",
+        "impactStatus": {
+          "too_recent": "Too recent to measure (under 7 days).",
+          "insufficient_orders": "Not enough orders before or after (at least 3 on each side)."
+        },
+        "simTitle": "Price simulations",
+        "simIntro": "A calculation, not a forecast: net earnings per sale at each price, with today's supplier price, commission and fees, after your refund rate; and the number of sales needed to earn as much as the last 30 days. Nothing changes without your action.",
+        "simEmpty": "Not enough sales over 30 days to simulate (at least 5 orders).",
+        "simAssumptions": "Assumptions: supplier price {supplier}, commission {commission}, fees {fee}, refunds {refunds} — observed: {orders} orders, {net} net over 30 d.",
+        "simCol": {
+          "price": "Selling price excl. VAT",
+          "netPerSale": "Net per sale",
+          "salesToMatch": "Sales to match 30 d"
+        },
+        "simCurrent": "(current)",
+        "simRestore": "(restore your markup)",
+        "simEdit": "Edit my price →"
+      }
+    },
+    "profitAlerts": {
+      "title": "Profitability down: {product}",
+      "change": "Your net earnings went from {from} to {to} (−{drop}): last 30 days ({currentOrders} orders) compared with the 30 before ({previousOrders} orders).",
+      "sincePeriod": "Observed over the last 30 days compared with the 30 before.",
+      "since": {
+        "price_cut": "Since your price change on {date}.",
+        "supplier_price_change": "Since the supplier price increase on {date}."
+      },
+      "causeWithAmount": "{cause} (−{amount})",
+      "causes": {
+        "supplier_price_up": "the supplier price went up and cut your markup",
+        "your_price_down": "you lowered your selling price",
+        "collected_price_down": "the price collected is lower, with no price cut recorded from you (discounts, variants sold)",
+        "commission_down": "the supplier's commission went down",
+        "fees_up": "the Affisell fees applied are higher",
+        "refunds_up": "more sales were refunded",
+        "volume_down": "you are selling clearly less",
+        "disputes_up": "more disputes"
+      },
+      "suggestion": {
+        "restore_markup": "Simulation: at {price} you would restore your markup — about {net} net per sale; {sales} sales would match your last 30 days.",
+        "previous_price": "Simulation: at your previous price of {price}, a sale would earn about {net} net; {sales} sales would match your last 30 days.",
+        "none": {
+          "supplier_price_up": "Check your price against the new supplier price.",
+          "your_price_down": "Compare your sales before and after your price change on your board.",
+          "collected_price_down": "Check discounts and the variants sold: your displayed price did not change.",
+          "commission_down": "The supplier reduced their commission: check that your markup is still enough.",
+          "fees_up": "Your fees went up: check your markup on your board.",
+          "refunds_up": "Look at the refund reasons of these orders.",
+          "volume_down": "Check the product's visibility and stock; no price simulation can predict sales.",
+          "disputes_up": "Look at the disputes of these orders."
+        }
+      },
+      "short": "{product}: net earnings down {drop} — {cause}",
+      "disclaimer": "Figures computed from your own paid orders; simulations are calculations, not forecasts. No price changes without your action.",
+      "causesTitle": "Established causes",
+      "suggestionTitle": "What you can do",
+      "ctaEdit": "Edit my price →",
+      "ctaBoard": "Open my profitability board →",
+      "emailFooter": "You receive this e-mail because you switched on profitability alerts by e-mail. To switch them off:",
+      "panelTitle": "Profitability alerts",
+      "panelIntro": "An alert is sent only when the product was really earning (at least 5 orders and €20 net), the drop is material (at least €10 and 25%) and its cause is established by the data. At most one alert per product every 14 days.",
+      "panelEmpty": "No alert: none of your profitable products dropped significantly.",
+      "dismiss": "Dismiss",
+      "prefTitle": "Receive alerts",
+      "prefInApp": "In the app",
+      "prefEmail": "By e-mail",
+      "prefStatus": {
+        "idle": "",
+        "saving": "Saving…",
+        "saved": "Saved",
+        "error": "Could not save"
+      }
+    },
+    "copilot": {
+      "title": "Reseller copilot — your ready-to-sell selection",
+      "subtitle": "Catalogue products you can really sell, ranked by what one sale really pays you after Affisell's fee. Tick the ones you keep and add them in one go.",
+      "addCta": "Add the selection ({count})",
+      "adding": "Adding…",
+      "added": "{added} product(s) added to your shop.",
+      "addedPartial": "{added} added, {refused} refused: their situation changed since the page loaded.",
+      "addError": "Adding failed. Try again.",
+      "loading": "Analysing the catalogue…",
+      "empty": "No new sellable product right now: everything sellable is already in your shop, or nothing is available.",
+      "pick": "Keep {name}",
+      "netPerSale": "net per sale, after Affisell's fee",
+      "priceLine": "Suggested price {price} excl. VAT · the buyer pays about {ttc} incl. VAT",
+      "demandSeen": "{orders} paid order(s) on the marketplace in 30 days",
+      "demandNone": "No sale observed yet",
+      "resellers": "{count, plural, =0 {no reseller sells it} one {# reseller sells it} other {# resellers sell it}}",
+      "feeDefault": "Computed with Affisell's standard fee (20% of your commission and margin).",
+      "feeNegotiated": "Computed with your Affisell fee rate ({pct}%).",
+      "honesty": "The net is computed from the supplier's published terms, not a promise of sales. Sales shown are observed on Affisell, not a forecast.",
+      "blockedToggle": "{count} product(s) left out: see why",
+      "reasons": {
+        "awaiting_affisell_review": "awaiting Affisell review",
+        "no_explicit_commission": "no commission set: a sale could not be recorded",
+        "no_supplier_price": "no supplier price",
+        "out_of_stock": "out of stock",
+        "stock_unknown": "stock can not be checked",
+        "low_stock": "very few units in stock",
+        "low_net_per_sale": "low gain per sale",
+        "rising_on_affisell": "A product whose orders accelerate clearly faster than Affisell as a whole, across at least two resellers (statistical test on observed sales, not a forecast)."
+      },
+      "rising": "Rising fast on Affisell · {recent, plural, one {# paid order} other {# paid orders}} over the last 14 days, against {prior} over the previous 42 days — clearly ahead of the marketplace",
+      "risingNature": "An observed signal (statistical test on paid orders, several resellers and several days), not a forecast. It only lifts a product whose net per sale is at least the median of the selection.",
+      "fit": {
+        "your_categories": "In your categories",
+        "discovery": "Discovery"
+      },
+      "personalisedNote": "Selection adapted to the categories you already sell or list, always with a share of other categories to discover. A product from your categories never passes one that pays you clearly more (over 15 % more net per sale)."
+    },
+    "supplierAffisell": "Affisell supplier",
+    "replacement": {
+      "title": "What to do with « {product} »?",
+      "loading": "Looking for reliable alternatives…",
+      "error": "The alternatives could not be loaded.",
+      "errorChanged": "That alternative is no longer available: the list was refreshed.",
+      "retry": "Retry",
+      "problem": {
+        "out_of_stock": "The supplier is out of stock: your buyers see it sold out and can not buy it.",
+        "product_unavailable": "The supplier withdrew or paused it: it can no longer be bought.",
+        "awaiting_review": "This product is awaiting Affisell's validation: it can not be sold yet.",
+        "no_commission": "The supplier set no commission: a sale could not be credited to you.",
+        "none": "This product can be sold today. You can still compare alternatives."
+      },
+      "currentLine": "Today: selling price {price} excl. VAT · you earn {net} net per sale.",
+      "none": {
+        "no_sellable_candidate": "No alternative can be sold today in your catalogue.",
+        "no_reliable_match": "No alternative is close enough: we would rather propose nothing than a different product."
+      },
+      "noneHint": "You can withdraw this product from your shop; it can come back if the supplier fixes the problem and you put it on sale again.",
+      "match": {
+        "identique": "Same product (same barcode)",
+        "similaire": "Similar product"
+      },
+      "identity": {
+        "same_gtin": "Same barcode",
+        "similar": "Similar"
+      },
+      "availableLine": "{n} in stock · {supplier}",
+      "netLine": "You earn {net} net per sale (selling price {price} excl. VAT)",
+      "col": {
+        "what": "Item",
+        "before": "Current",
+        "after": "Alternative"
+      },
+      "field": {
+        "selling_price": "Selling price excl. VAT",
+        "net_per_sale": "Your net per sale",
+        "supplier_price": "Supplier price",
+        "commission": "Commission",
+        "delivery": "Maximum delivery",
+        "return_window": "Returns accepted",
+        "variants_missing": "Options not offered",
+        "brand": "Brand",
+        "supplier": "Supplier"
+      },
+      "days": "{n, plural, one {# day} other {# days}}",
+      "replaceCta": "Replace with this product",
+      "confirmQuestion": "Replace? The old product leaves your shop; its history and orders are kept.",
+      "confirmYes": "Yes, replace",
+      "working": "Replacing…",
+      "cancel": "Cancel",
+      "withdrawOnly": "Only withdraw this product from my shop",
+      "withdrawConfirm": "Withdraw this product from your shop?",
+      "withdrawYes": "Yes, withdraw",
+      "doneReplaced": "Done: the alternative is on sale in your shop.",
+      "doneReplacedPending": "The alternative was added to your shop; it goes on sale once your account check is complete.",
+      "doneWithdrawn": "The product was withdrawn from your shop.",
+      "historyKept": "Nothing is deleted: history, statistics and past orders stay intact.",
+      "backToShop": "Back to my space",
+      "honesty": "Net = commission + markup − Affisell's fee, computed like your payouts. Prices exclude VAT; only the barcode proves it is the same product.",
+      "bellMessage": "« {product} » can no longer be bought in your shop. Withdraw it or replace it with an equivalent product.",
+      "partialTitle": "Replacement partly done",
+      "partialBody": "“{alternative}” was added to your shop, but “{product}” could not be withdrawn from it: both are on sale right now.",
+      "partialHint": "Finishing only withdraws the old product from your shop. Nothing is added twice, nothing is deleted.",
+      "finishCta": "Finish the replacement",
+      "partialUnnamed": "the chosen alternative",
+      "partialNow": "The alternative was added, but the old product could not be withdrawn. Finish the replacement below.",
+      "digestMessage": "{count, plural, one {# product in your shop can no longer be sold} other {# products in your shop can no longer be sold}}: see the list to withdraw or replace them.",
+      "listTitle": "Unsellable products in your shop",
+      "listSubtitle": "{count, plural, =0 {No product affected.} one {# product can't be bought today.} other {# products can't be bought today.}}",
+      "listEmpty": "Every product in your shop can be bought.",
+      "listCta": "Withdraw or replace"
+    },
+    "shopDemand": {
+      "title": "Buyers of your shop waiting",
+      "signal": "{count, plural, one {# buyer of your shop is waiting for} other {# buyers of your shop are waiting for}} {variant} of “{product}”.",
+      "noSignal": "Fewer than three buyers of your shop are still waiting for this variant: no signal to show.",
+      "why": "Counted: distinct buyers of your shop, active unexpired requests, on this exact variant, while it is sold out. A request is not a guaranteed sale.",
+      "matchSame": "Same reference (barcode)",
+      "matchSimilar": "Similar product",
+      "altFacts": "{units} units of this variant · price {price} · you earn {net} per sale (current: {originalNet})",
+      "lowStock": "Few units available for this variant.",
+      "missingOptions": "Some options of the original product are not offered.",
+      "supplier": "Supplier: {supplier}",
+      "inShop": "Already in your shop",
+      "offer": "Offer in my shop",
+      "confirm": "Confirm adding",
+      "cancel": "Cancel",
+      "chosenAdded": "Alternative added to your shop. The requested product stays on sale.",
+      "chosenAlready": "This alternative is already in your shop.",
+      "chooseFailed": "It could not be added. Try again.",
+      "noneReliable": "No reliable alternative offers this variant.",
+      "noneSellable": "No alternative sellable today offers this variant.",
+      "buyerChoice": "Affisell never replaces the requested product automatically: buyers' requests stay unchanged and the buyer keeps the choice.",
+      "backToCatalog": "Back to catalogue",
+      "recovery": {
+        "title": "Follow-up of your answers (90 days)",
+        "counts": "{shown} proposals viewed · {chosen} alternatives added · {open} requests without a solution",
+        "orders": "{orders} paid orders of the chosen alternatives within 30 days ({refunded} cancelled or refunded) · {waiting} of them by buyers who were waiting",
+        "caveat": "An observed association, not proof that the proposal caused the sale."
+      }
     }
   },
   "marketplace": {
@@ -3334,7 +3780,7 @@
         "beta": "BETA",
         "multiHint": "Apply AI will set margins on {count} selected variant(s), scaled by wholesale.",
         "yourPrice": "Your price",
-        "aiSuggests": "AI Suggests",
+        "aiSuggests": "Calculated suggestion",
         "marketAvg": "Market avg",
         "competitors": "Competitors",
         "salesPerMonth": "{count} sales/mo",
@@ -3353,7 +3799,8 @@
         "noDataBody": "No comparable listings found in this category yet — showing a general starting estimate. It will improve as real sales come in.",
         "salesUnknown": "No recent sales data",
         "comparableListings": "{count, plural, one {# comparable listing} other {# comparable listings}}",
-        "loadFailed": "Could not load market data — try again."
+        "loadFailed": "Could not load market data — try again.",
+        "ruleNote": "Statistical calculation over comparable Affisell listings — a calculation rule, not an AI model. Without enough data: supplier price × 1.4."
       },
       "variantMargins": {
         "title": "Variants & margins",
@@ -4937,6 +5384,12 @@
         "ASSOCIATION": "Association partner",
         "FOREIGN": "International partner"
       }
+    },
+    "variantAlternatives": {
+      "title": "This option ({variant}) is sold out — available in this shop:",
+      "same": "Same reference",
+      "similar": "Similar product",
+      "note": "A suggestion: the product you chose stays on sale; the choice is yours."
     }
   },
   "success": {
@@ -4976,6 +5429,16 @@
       "pushBody": "Shipping and delivery alerts on this device — no spam.",
       "pushEnable": "Enable alerts",
       "pushLoading": "Notifications…"
+    },
+    "unallocatedBadge": "Payment received",
+    "unallocatedTitle": "Item not confirmed",
+    "unallocatedBody": "Your payment was received, but the item could not be confirmed. It will not be shipped.",
+    "unallocatedSome": "{count, plural, one {# item could not be confirmed and will not be shipped.} other {# items could not be confirmed and will not be shipped.}}",
+    "unallocatedRefund": {
+      "notTriggered": "No refund has been issued for this amount yet. Our team has been informed.",
+      "requested": "A refund of this amount has been requested.",
+      "inProgress": "The refund of this amount is being processed.",
+      "confirmed": "This amount has been refunded to you. Depending on your bank, it may take a few days to appear on your statement."
     }
   },
   "cancel": {
@@ -6952,6 +7415,15 @@
       "footerNote": "Didn't request this? Ignore this email — your password stays unchanged.",
       "legal": "© Affisell — affiliate marketplace · affisell.com"
     },
+    "emailVerification": {
+      "preview": "Confirm your Affisell email address — {accountEmail}",
+      "subject": "Confirm your email address · {accountEmail}",
+      "badge": "Affisell security · Verification",
+      "title": "Confirm your email address",
+      "body": "An Affisell account was just created with this address. Confirm that it is yours; the link expires in 48 hours.",
+      "cta": "Confirm my address",
+      "footerNote": "Didn't create an account? Ignore this email: the address will not be confirmed."
+    },
     "contactAcknowledgment": {
       "preview": "Message received — Affisell #{ticketRef}",
       "subject": "[Affisell] Message received — #{ticketRef}",
@@ -6971,6 +7443,26 @@
       "body": "You started a purchase on Affisell. Your selection is still available — secure Stripe checkout and tracked delivery.",
       "cta": "Resume my purchase",
       "footer": "Questions? Check the FAQ or the support assistant on Affisell."
+    },
+    "unallocatedLine": {
+      "subject": "Your payment: an item could not be confirmed",
+      "subjectConfirmed": "Your refund has been issued",
+      "preview": "Part of your purchase will not be shipped.",
+      "previewConfirmed": "Your refund has been issued.",
+      "heading": "An item could not be confirmed",
+      "headingConfirmed": "Refund issued",
+      "greeting": "Hello,",
+      "intro": "Your payment was received, but part of your purchase could not be confirmed. The items concerned will not be shipped. The rest of your order, if any, is not affected.",
+      "introConfirmed": "Following your recent payment, the items that could not be confirmed have been refunded.",
+      "amountLine": "Amount concerned: {amount}",
+      "refund": {
+        "notTriggered": "No refund has been issued for this amount yet. Our team has been informed and will get back to you.",
+        "requested": "A refund of this amount has been requested. We will write to you once it has been issued.",
+        "inProgress": "The refund of this amount is being processed.",
+        "confirmed": "This amount has been refunded to you. Depending on your bank, it may take a few days to appear on your statement."
+      },
+      "ctaSupport": "Contact support",
+      "footerNote": "You are receiving this e-mail because a payment was made with this address."
     }
   },
   "errors": {
@@ -7149,6 +7641,7 @@
     "jobToastCsv": "CSV exported",
     "jobToastNoDraft": "No catalog draft to list",
     "jobToastListed": "{ok}/{total} products listed on the storefront",
+    "jobToastPendingReview": "{count} product(s) awaiting Affisell's review: they will go live once checked.",
     "jobToastListFailed": "Bulk listing failed",
     "arbTip": "Bought {cost}€ → Sold {sale}€ = +{margin}€",
     "arbTipScore": "Bought {cost}€ → Sold {sale}€ = +{margin}€ | Score {score}/100",
@@ -7205,7 +7698,8 @@
       "slaWarning": "outside typical SLA",
       "provenanceLabel": "Origin",
       "complianceLabel": "Compliance requirements",
-      "complianceCount": "{count, plural, one {# requirement} other {# requirements}}"
+      "complianceCount": "{count, plural, one {# requirement} other {# requirements}}",
+      "supplierAffisell": "Affisell supplier"
     },
     "sla": {
       "singleMarket": "For {code}, reasonable delivery: {idealDays}–{maxDays} days. Beyond {maxDays} days, your return rate rises ~40%.",
@@ -7766,6 +8260,14 @@
     "lastAnalysis": "Last analysis {when}",
     "refreshing": "Refreshing…",
     "tagline": "E-commerce signals · Arbitrage Score™ · Saturation · Affisell Supplier Match",
+    "demoBadge": "DEMO",
+    "demoBannerMock": "Demo data: these winners are produced by a calculation rule, not by a real market scan. Do not use them as a sales signal.",
+    "demoBannerMixed": "Mixed data: some rows are simulated (marked “Demo”).",
+    "demoBannerDemo": "Hand-written sample data: no real scan.",
+    "scoresAreRules": "Arbitrage Score™ and Saturation are formulas (rules), not an AI model.",
+    "trendingDemo": "Demo keywords: a hand-written list with random variations, no market measurement.",
+    "trendingNone": "No real trending keywords for this market: no trends source returned any data (nothing is made up).",
+    "countriesMockNotice": "Radar database unreachable: the market list is shown without any scan data. Every market opens in demo mode.",
     "searchLabel": "Search",
     "searchPlaceholder": "Search a product, country…",
     "comingSoon": "Coming soon",
@@ -8307,7 +8809,15 @@
     "curve24": "24h curve",
     "copyWinner": "Copy this winner → 10s import",
     "fullPage": "View full page",
-    "tickerAgo": "{n} min ago"
+    "tickerAgo": "{n} min ago",
+    "badgeLive": "LIVE",
+    "badgeMixed": "MIXED",
+    "badgeDemo": "DEMO",
+    "demoNotice": "Demo data: these events are generated to fill the globe and do not correspond to any real sale.",
+    "mixedNotice": "Mixed data: some events are generated to fill the globe (marked “demo”).",
+    "demoEvent": "demo",
+    "demoEventNotice": "Demo event: generated to fill the globe, no real sale or import behind it.",
+    "estimatedLocation": "Estimated location: the city is picked automatically, not where the event really happened."
   },
   "radarPricing": {
     "starterEyebrow": "Signal trial",
@@ -8706,7 +9216,11 @@
     "browseCatalog": "Browse the catalog",
     "reviewMargins": "Review my margins",
     "viewInvitation": "View the invitation",
-    "viewAffiliateInvites": "View reseller invitations"
+    "viewAffiliateInvites": "View reseller invitations",
+    "viewProfitAlert": "View alert",
+    "viewReplacement": "Withdraw or replace",
+    "viewUnsellableList": "See the list",
+    "viewBlockedDemand": "See blocked products"
   },
   "aiConnect": {
     "title": "Connect an AI",
@@ -8830,5 +9344,520 @@
       "dimensions": "Dimensions"
     },
     "returnWindowBadge": "Returns accepted within {days} days"
+  },
+  "supplierReturns": {
+    "disposition": {
+      "title": "Returned goods — inspection and decision",
+      "outcomeLabel": "Condition observed",
+      "noteLabel": "Note (what you saw)",
+      "record": "Record inspection",
+      "decideRestock": "Validate restock",
+      "decideKeepOut": "Keep out of stock",
+      "decisionNoteLabel": "Reason for the decision",
+      "timeline": "History",
+      "stage": {
+        "awaiting_reception": "Awaiting reception",
+        "awaiting_inspection": "To inspect",
+        "inspected_not_resellable": "Inspected — not resellable",
+        "awaiting_decision": "Resellable — decision needed",
+        "kept_out": "Kept out of stock",
+        "restock_validated_not_applied": "Restock validated — not applied",
+        "restocked": "Restocked"
+      },
+      "outcome": {
+        "resellable": "Resellable (as new, complete)",
+        "damaged": "Damaged",
+        "defective": "Defective",
+        "missing_parts": "Missing parts",
+        "wrong_item_returned": "Wrong item returned",
+        "not_received": "Nothing received"
+      },
+      "event": {
+        "received": "Received",
+        "inspected": "Inspected",
+        "decided": "Decision",
+        "restocked": "Restocked ({qty})"
+      },
+      "decision": {
+        "restock": "restock validated",
+        "keep_out": "kept out of stock"
+      },
+      "modeOff": "Automatic restocking is switched off on Affisell: your decision is recorded, stock is not changed.",
+      "modeObserve": "Observation mode: your decision is recorded, the restock is only calculated.",
+      "inspectionSaved": "Inspection recorded.",
+      "decisionSaved": "Decision recorded.",
+      "restocked": "Units returned to stock.",
+      "error": "The action failed.",
+      "errNotResellable": "The latest inspection does not allow a restock.",
+      "errNotInspected": "Inspect the goods first.",
+      "errAlreadyRestocked": "Already restocked."
+    }
+  },
+  "catalogHealth": {
+    "title": "Your catalogue health",
+    "subtitle": "What stops your products from selling, ranked by observed commercial impact. Each point names the data it rests on.",
+    "summary": "{checked, plural, one {# product checked} other {# products checked}} · {blocked, plural, =0 {none blocked} one {# blocked} other {# blocked}} · {healthy, plural, =0 {none on sale without issues} one {# on sale without issues} other {# on sale without issues}}",
+    "truncated": "Only your 1,000 most recent products are analysed.",
+    "loading": "Analysing your catalogue…",
+    "error": "The analysis could not be loaded.",
+    "retry": "Retry",
+    "filterLabel": "Filter by type",
+    "filterAll": "All ({count})",
+    "emptyCatalogue": "You have no products yet.",
+    "nothingHere": "Nothing to report in this category.",
+    "showMore": "Show {count} more",
+    "openLink": "See the full catalogue health",
+    "demandLine": "{orders, plural, =0 {no paid order} one {# paid order} other {# paid orders}} in 30 days · {resellers, plural, =0 {no reseller} one {# reseller lists it} other {# resellers list it}}",
+    "method": "Ranking: issues on products that sell or that resellers list come first (paid orders over 30 days and resellers observed). This is not a forecast. Recommendations are optional.",
+    "class": {
+      "blocage": {
+        "label": "Blocker",
+        "definition": "Really prevents an operation today (buying, publishing or allocating the sale)."
+      },
+      "anomalie": {
+        "label": "Anomaly",
+        "definition": "Incoherent or probably wrong data — it may be right: you confirm."
+      },
+      "avertissement": {
+        "label": "Warning",
+        "definition": "A risk or a fact that deserves attention. Nothing is blocked."
+      },
+      "recommandation": {
+        "label": "Recommendation",
+        "definition": "Optional improvement. Nothing is mandatory."
+      }
+    },
+    "source": {
+      "fiche": "Source: your product sheet",
+      "observe": "Source: observed orders and resellers",
+      "affisell": "Source: an Affisell rule or decision",
+      "calcul": "Source: calculated from your data"
+    },
+    "fix": {
+      "edit": "Open the product",
+      "hold": "Affisell took this product off sale: you cannot put it back on sale yourself. Details are on the product page; the conversation goes through Affisell support.",
+      "stockLabel": "Quantity really available",
+      "stockSave": "Save",
+      "saving": "Saving…",
+      "stockSaved": "Quantity saved.",
+      "stockError": "The quantity could not be saved.",
+      "stockInvalid": "Enter a whole number."
+    },
+    "issues": {
+      "held_by_affisell": {
+        "title": "Taken off sale by Affisell",
+        "why": "{hold, select, product_recalled {A safety recall is open on this product.} other {Affisell suspended this product.}} Nobody can buy it until this is lifted."
+      },
+      "price_missing": {
+        "title": "Missing price",
+        "why": "The catalogue price is empty or zero: the product cannot be sold."
+      },
+      "commission_not_explicit": {
+        "title": "No reseller commission set",
+        "why": "Without an explicit commission a paid sale cannot become an order: it is set aside and must be refunded."
+      },
+      "out_of_stock": {
+        "title": "Sold out",
+        "why": "Quantity available: 0. The product page shows « sold out », nobody can buy it."
+      },
+      "safety_blocks_publication": {
+        "title": "Publication refused: product safety",
+        "why": "{missingCount, plural, one {# product-safety detail is missing} other {# product-safety details are missing}} (manufacturer, address, EU responsible person…). The check is enforced: publication is refused."
+      },
+      "stock_nominal": {
+        "title": "Quantity to confirm",
+        "why": "Quantity {stock}: a value typically written by an import or an assistant, not necessarily your real inventory."
+      },
+      "variant_stock_mismatch": {
+        "title": "Stock does not add up",
+        "why": "The product stock ({productStock}) does not match the sum of its variants ({rowsTotal})."
+      },
+      "variant_stock_untracked": {
+        "title": "Variant stock unknown",
+        "why": "The variants' quantities are not in the table read at purchase: real availability is unknown."
+      },
+      "delivery_window_inverted": {
+        "title": "Delivery time does not add up",
+        "why": "The minimum time ({min} d) is longer than the maximum ({max} d)."
+      },
+      "duplicate_name": {
+        "title": "Possible duplicate",
+        "why": "{others, plural, one {# other product of yours has} other {# other products of yours have}} the same name: a duplicate, or names to tell apart for resellers."
+      },
+      "hold_unverifiable": {
+        "title": "Status cannot be checked",
+        "why": "The recall or suspension status could not be read. Try again later."
+      },
+      "safety_data_missing": {
+        "title": "Product-safety details missing",
+        "why": "{missingCount, plural, one {# detail is missing} other {# details are missing}}. Not refused today (check in observation mode{live, select, 1 {, product already published} other {}}), but a new publication may be once the check is enforced."
+      },
+      "paused_but_listed": {
+        "title": "Paused while resellers list it",
+        "why": "You paused it; {resellers, plural, one {# reseller lists it} other {# resellers list it}} without being able to sell it."
+      },
+      "low_stock": {
+        "title": "Low stock",
+        "why": "Only {available, plural, one {# unit} other {# units}} left ({paidOrders30d, plural, =0 {no paid order} one {# paid order} other {# paid orders}} in 30 days)."
+      },
+      "no_photo": {
+        "title": "No photo",
+        "why": "Without a photo the product is hardly visible and hard for resellers to present."
+      },
+      "no_category": {
+        "title": "No category",
+        "why": "Resellers cannot find it through the catalogue's category filters."
+      },
+      "no_reseller": {
+        "title": "No reseller lists it",
+        "why": "On sale for {ageDays} days, no shop offers it: it is sold nowhere."
+      },
+      "listed_no_sales": {
+        "title": "Listed but not sold",
+        "why": "{resellers, plural, one {# reseller lists it} other {# resellers list it}}, no paid order over {days} days. Price, photos or description may be the cause — a lead, not a finding."
+      },
+      "draft_ready": {
+        "title": "Draft ready to publish",
+        "why": "Price, quantity, commission and photo are filled in. Publish it if you wish."
+      },
+      "few_photos": {
+        "title": "Few photos",
+        "why": "{photos, plural, one {# photo} other {# photos}}. Optional: several views help resellers present it."
+      },
+      "short_description": {
+        "title": "Short description",
+        "why": "{characters} characters. Optional: a fuller description helps the buyer decide."
+      },
+      "no_gtin": {
+        "title": "No barcode",
+        "why": "Optional: a GTIN / EAN lets the European safety alerts be checked and duplicates spotted."
+      },
+      "stock_unconfirmed": {
+        "title": "Quantity to confirm",
+        "why": "Imported without a quantity from the source: stock is 0 and publication is refused until you enter the quantity really available."
+      },
+      "stock_cover_short": {
+        "title": "Running out at the current pace",
+        "why": "Declared stock: {available} units. At the pace of the last 30 days ({units30d, plural, one {# unit sold} other {# units sold}}), it covers about {days, plural, =0 {less than a day} one {# day} other {# days}}, below the indicative threshold of {threshold} days{leadKnown, select, 1 { (your declared restock lead time: {leadTimeDays} days)} other {}}.{reservedNotDeducted, select, 1 { If the {reserved} units of paid, unshipped orders are still counted in this stock, it covers only {daysIfReserved} days.} other {}}{stale, select, 1 { The sheet has not been changed for {sheetAgeDays} days: check that the declared quantity is up to date.} other {}} An indicative calculation, not a forecast."
+      },
+      "variant_rows_indistinct": {
+        "title": "Variants that can not be told apart",
+        "why": "{rows} variants ({labels}) share the same colour, size and capacity: buyers can not choose between them and their stock is never deducted. Give them distinct names."
+      }
+    },
+    "availability": {
+      "title": "Availability in your resellers' shops",
+      "none": "None of your products offered by resellers has an availability problem.",
+      "summaryBlocked": "{products, plural, one {# product can't be bought} other {# products can't be bought}} in {shops, plural, one {# reseller shop} other {# reseller shops}}. Over the last 30 days these products made {orders, plural, =0 {no paid order} one {# paid order} other {# paid orders}} ({amount} for you).",
+      "summaryAtRisk": "{products, plural, one {# product still on sale} other {# products still on sale}} may soon stop being available ({shops, plural, one {# shop} other {# shops}}).",
+      "shopsBlocked": "Unsellable in {shops, plural, one {# reseller shop} other {# reseller shops}}.",
+      "shopsAtRisk": "On sale in {shops, plural, one {# reseller shop} other {# reseller shops}}, but at risk.",
+      "observed": "Last 30 days: {orders, plural, =0 {no paid order} one {# paid order} other {# paid orders}}, {units, plural, =0 {no unit} one {# unit} other {# units}}, {amount} for you (before refunds).",
+      "lastSale": "Last sale {days, plural, =0 {less than a day ago} one {# day ago} other {# days ago}}.",
+      "neverSold": "Never sold.",
+      "cause": "Cause:",
+      "also": "Also:",
+      "severity": {
+        "blocked": "Unsellable",
+        "at_risk": "At risk"
+      },
+      "reactivate": "Put back on sale",
+      "reactivating": "Putting back on sale…",
+      "reactivated": "Product back on sale.",
+      "reactivateError": "Putting it back on sale did not work.",
+      "refused": {
+        "product_recalled": "Refused: a safety recall is open.",
+        "product_suspended": "Refused: Affisell suspended this product.",
+        "stock_unconfirmed": "Refused: first enter the quantity really available in the product sheet."
+      },
+      "showAll": "See all {count} products",
+      "showLess": "Show less",
+      "method": "Observed on your paid orders and your resellers' shops; amounts before refunds. What these products were doing, not a loss forecast.",
+      "stockLine": "Declared stock: {declared} {confirmed, select, 1 {(confirmed by you)} other {(not confirmed)}} · reserved (paid, unshipped orders): {reserved} {deducted, select, 1 {(already deducted from stock)} other {(not deducted by Affisell)}}",
+      "declaredUnknown": "Declared stock: unknown (per-variant quantities unreadable)",
+      "restockTitle": "Restock calculation — to read, nothing is filled in or applied",
+      "restockMain": "To cover {target} days after a {lead}-day lead time, at the observed pace: about {units} units (between {low} and {high} depending on how sales vary).",
+      "restockZero": "At the observed pace, your available stock already covers {target} days after the lead time.",
+      "restockExplain": "Detail: {needed} units needed ({sold} sold in 30 days, scaled to {lead} + {target} days) − {available} units available.",
+      "restockLeadNotDeclared": "Restock lead time not declared: the calculation counts 0 days. Declare it under « Supply costs » in the product sheet for a better calculation.",
+      "restockReservedNote": "The {reserved} reserved units (paid, unshipped, not deducted by Affisell) are taken out of the declared stock in this calculation, to be safe."
+    },
+    "blockedDemand": {
+      "title": "Demand blocked by unavailability",
+      "subtitle": "Your products that resellers offer, that were selling or that buyers paid for, and that can no longer be bought today. Only observed facts are counted — never a visit or mere interest.",
+      "empty": "No blocked demand on your products right now.",
+      "bellSingle": "Buyers can no longer order “{product}”: it is unavailable in your resellers' shops.",
+      "bellDigest": "{count} of your products sold by your resellers can no longer be ordered.",
+      "cause": {
+        "out_of_stock": "Sold out: the available quantity is 0.",
+        "stock_unconfirmed": "Quantity never confirmed: the product cannot be sold until it is.",
+        "paused_by_supplier": "Paused or unpublished from your product sheet.",
+        "no_commission": "No explicit reseller commission: a sale could not be recorded."
+      },
+      "fix": {
+        "update_stock": "Update the quantity",
+        "confirm_stock": "Confirm the quantity",
+        "reactivate": "Put back on sale",
+        "set_commission": "Set the commission"
+      },
+      "ordersBefore": "{count, plural, one {# paid order} other {# paid orders}} in the 30 days before the unavailability (observed)",
+      "ordersSince": "{count, plural, one {# paid order} other {# paid orders}} since (observed)",
+      "failedLines": "{count, plural, one {# payment received could not become an order} other {# payments received could not become orders}} because of the unavailability (observed; buyers refunded or to be refunded)",
+      "shops": "In {count, plural, one {# reseller shop} other {# reseller shops}}",
+      "lastSale": "Last paid order on {date}",
+      "since": "Unavailable since {date} at the latest ({days, plural, =0 {today} one {# day} other {# days}})",
+      "sinceUnknown": "Start date not yet recorded by the daily monitor.",
+      "estimate": "Estimate: at the pace of the previous 30 days, about {orders} orders (between {low} and {high}) over this period. This is not an observed loss.",
+      "note": "No reseller name or reseller-specific figure is shown. Nothing is changed automatically: you update your product sheet.",
+      "pref": "Notify me in the bell (at most one notification a day)",
+      "prefSaved": "Preference saved",
+      "truncated": "Capped read: the list may be incomplete.",
+      "riskSingle": "The stock of “{product}” could run out in about {days} days, before your restock.",
+      "attentionDigest": "{count} of your products sold by your resellers need your attention (unavailable, sold out in some sizes or colours, or soon out of stock).",
+      "variantSoldOutSingle": "“{product}”: {count, plural, one {the {labels} variant is sold out} other {# variants are sold out ({labels})}} although buyers were ordering it; {available, plural, =0 {no other variant is on sale} one {# other is still on sale} other {# others are still on sale}}.",
+      "variantRiskSingle": "“{product}”: {count, plural, one {the {labels} variant could run out} other {# variants could run out ({labels})}} before your restock."
+    },
+    "stockout": {
+      "title": "Stock-outs to anticipate",
+      "subtitle": "Your products in your resellers' shops whose stock could run out before a restock arrives. Facts, calculations, assumptions and limits are kept apart; nothing is ordered or changed.",
+      "empty": "No product to watch for now.",
+      "truncated": "Capped read: the list may be incomplete.",
+      "risk": {
+        "sous_le_delai": "Out of stock before restock, even at the slow pace",
+        "probable": "Likely out of stock before restock",
+        "a_surveiller": "To watch",
+        "suffisant": "Enough cover",
+        "non_evaluable": "Cannot be assessed"
+      },
+      "confidence": {
+        "high": "high confidence",
+        "medium": "medium confidence",
+        "low": "low confidence"
+      },
+      "factsTitle": "Facts",
+      "calcTitle": "Calculation",
+      "declared": "Declared stock: {units}",
+      "declaredUnknown": "Declared stock unknown (variants not tracked)",
+      "reservedDeducted": "{units} units reserved by paid, unshipped orders, already deducted by the platform",
+      "reservedNotDeducted": "{units} units reserved by paid, unshipped orders, still included in the declared stock",
+      "sold": "{units} units sold in 30 days, on {days} distinct days",
+      "confirmedOn": "Quantity confirmed on {date}",
+      "neverConfirmed": "Quantity never confirmed",
+      "sheetAge": "Sheet modified {days} days ago (this is not a stock confirmation)",
+      "leadKnown": "Declared restock lead time: {days} days",
+      "leadUnknown": "Restock lead time not declared",
+      "available": "Available after reservations: {units}",
+      "pace": "Pace: {pace} a day (between {low} and {high})",
+      "cover": "Estimated cover: {days} days (between {low} and {high})",
+      "coverOpen": "Estimated cover: {days} days (at least {low})",
+      "comparedLead": "Compared with your declared lead time of {days} days",
+      "comparedIndicative": "Compared with an indicative lead time of {days} days (yours is not declared)",
+      "notCalculated": "No calculation: the data do not allow it (see the limits).",
+      "hypothesesTitle": "Assumptions:",
+      "hypothesis": {
+        "pace_constant": "the pace of the last 30 days continues",
+        "no_incoming_restock": "no incoming restock is known to Affisell",
+        "lead_time_indicative": "14-day lead time is indicative"
+      },
+      "limitsTitle": "Limits:",
+      "limit": {
+        "too_few_sales": "fewer than 5 sales in 30 days",
+        "sales_on_few_days": "sales on fewer than 3 days",
+        "declared_unknown": "declared stock unknown",
+        "never_confirmed": "quantity never confirmed",
+        "confirmation_old": "confirmation older than 30 days",
+        "confirmation_too_old": "confirmation older than 120 days: quantity not usable",
+        "unconfirmed_marker": "imported quantity never confirmed",
+        "lead_time_unknown": "restock lead time not declared"
+      },
+      "action": {
+        "restock_now": "Restock now",
+        "plan_restock": "Plan a restock",
+        "confirm_quantity": "Confirm or correct the quantity",
+        "declare_lead_time": "Declare your restock lead time"
+      },
+      "openSheet": "Open the product sheet",
+      "confirmButton": "The quantity {units} is right",
+      "confirmResult": {
+        "ok": "Quantity confirmed.",
+        "quantity_changed": "The quantity changed meanwhile: reload the page.",
+        "unconfirmed_import": "Imported quantity: type it in the sheet.",
+        "quantity_unknown": "Quantity unknown: use the sheet.",
+        "error": "Confirmation not possible right now."
+      },
+      "note": "A calculation, not a certainty. No restock order is created or sent. Your resellers do not see this information."
+    },
+    "variantStock": {
+      "title": "Stock per variant",
+      "subtitle": "A sufficient total can hide a size or colour that has run out. Each variant is judged on its own stock, sales and reservations; the total is never split across variants.",
+      "empty": "No variant sold out or at risk on your products in shops.",
+      "truncated": "Capped read: the list may be incomplete.",
+      "shops": "{count, plural, one {# reseller shop} other {# reseller shops}}",
+      "notTracked": "This product's variants are not tracked one by one (no stock per row): it is impossible to tell which one runs out. Cannot be assessed.",
+      "partial": "{count, plural, one {# variant sold out} other {# variants sold out}} while others are still on sale",
+      "col": {
+        "variant": "Variant",
+        "declared": "Declared stock",
+        "sold": "Observed sales (90 d)",
+        "cover": "Estimated cover",
+        "state": "State"
+      },
+      "unknown": "unknown",
+      "soldValue": "{units} ({pct}% of sales)",
+      "noSale": "no observed sale",
+      "resellers": "sold by {count} resellers",
+      "resellersFew": "sold by fewer than 2 resellers",
+      "coverValue": "{days} d (at least {low})",
+      "ambiguous": "ambiguous: name shared by two rows",
+      "notEvaluable": "cannot be assessed",
+      "soldOut": "sold out",
+      "unattributed": "{units} units sold without a recognised variant: counted apart, never spread.",
+      "confirmationScope": "The quantity confirmation covers the whole sheet.",
+      "fixTrack": "Track stock per variant in the sheet",
+      "fixRows": "Update the variant's quantity",
+      "note": "Observed sales and calculations are kept apart. A sold-out variant is not presented as lost sales: no missed sale is tied to a variant in Affisell's data. No reseller name is shown.",
+      "waitingBuyers": "{count, plural, one {# buyer waiting for it} other {# buyers waiting for it}}"
+    },
+    "restockDemand": {
+      "title": "Buyers waiting for a restock",
+      "subtitle": "Sold-out variants for which at least {min} distinct buyers asked to be told when they are back.",
+      "buyers": "{count, plural, one {# buyer is} other {# buyers are}} waiting for it",
+      "fix": "Update the quantity",
+      "truncated": "Very large catalogue: only part of the products was examined.",
+      "disclaimer": "Explicit buyer requests, counted once per buyer and per variant. An indication of real demand, not a sales forecast: a notified buyer may not buy.",
+      "noneNow": "No variant reaches the threshold right now.",
+      "followUp": {
+        "title": "Demand follow-up (last 90 days)",
+        "counts": "{episodes} grouped demands: {waiting} waiting, {returned} variants back in stock, {lapsed} closed without a return.",
+        "delay": "Median time from demand to return: {days} days.",
+        "orders": "After the returns: {orders} orders of these variants, {refunded} of them refunded or cancelled, {waitingBuyers} placed by buyers who were waiting.",
+        "notEvaluable": "For {count} returns, orders can not be tied to the variant (not counted).",
+        "partial": "{count} returns with fewer units than buyers waiting.",
+        "resoldOut": "{count} variants sold out again after their return.",
+        "caveat": "What happened after the demand, as observed. An order after a restock does not prove the demand or the recommendation caused it."
+      }
+    },
+    "listingQuality": {
+      "title": "What goes with more sales on Affisell",
+      "intro": "On Affisell, over {days} days, sheets with these elements made more sales per day in a shop than sheets of the same category, price band and age without them. These sheets do not have them yet:",
+      "evidence": "On Affisell: {ratio}× more sales per day in a shop (at least {lo}×, margin of error included).",
+      "cta": "Complete the sheet",
+      "caveat": "An observed association, not a promise: shop traffic, the reseller's price and other factors are not measured. Nothing is changed without you.",
+      "feature": {
+        "photos_3plus": "Add at least 3 photos.",
+        "photos_5plus": "Add at least 5 photos.",
+        "title_precise": "Make the title more precise (at least 3 words, no all caps).",
+        "description_200plus": "Write a description of at least 200 characters.",
+        "specs_3plus": "Fill in at least 3 specifications.",
+        "variants_distinct": "Make every variant distinct (colour, size, capacity).",
+        "gtin_valid": "Enter a valid barcode (GTIN).",
+        "brand_declared": "Enter the brand.",
+        "delivery_declared": "Enter the delivery time.",
+        "return_extended": "Offer a return window longer than 14 days.",
+        "safety_complete": "Complete the product-safety information.",
+        "stock_confirmed": "Enter a real quantity in stock."
+      }
+    }
+  },
+  "nextActions": {
+    "title": "Your next actions",
+    "subtitle": "One to three actions drawn from your own data.",
+    "honesty": "Potential impact: what was observed on this product over the last 30 days, not a promised result.",
+    "priority": {
+      "haute": "High priority",
+      "moyenne": "Medium priority",
+      "basse": "Low priority"
+    },
+    "kind": {
+      "fix_blocage": "Unblock « {product} »",
+      "resolve_availability": "Sort out the availability of « {product} »",
+      "promote_to_resellers": "Make « {product} » known to resellers",
+      "publish_draft": "Publish « {product} »",
+      "complete_sheet": "Improve the « {product} » sheet",
+      "fix_shop_listing": "Fix « {product} » in your shop",
+      "review_profit_drop": "Look into the drop on « {product} »",
+      "add_ready_product": "Add « {product} » to your shop",
+      "answer_restock_demand": "Answer the demand on {product}",
+      "answer_shop_demand": "Buyers of your shop are waiting for {product}"
+    },
+    "cta": {
+      "fix_blocage": "Open the product",
+      "resolve_availability": "Open the product",
+      "promote_to_resellers": "Invite resellers",
+      "publish_draft": "Open the draft",
+      "complete_sheet": "Open the product",
+      "fix_shop_listing": "Withdraw or replace",
+      "review_profit_drop": "See the analysis",
+      "add_ready_product": "See it in the catalogue",
+      "answer_restock_demand": "Update availability",
+      "answer_shop_demand": "See the demand and alternatives"
+    },
+    "impact": {
+      "label": "Potential impact:",
+      "orders": "{count, plural, =0 {no paid order in 30 d} one {# paid order in 30 d} other {# paid orders in 30 d}}",
+      "resellers": "{count, plural, =0 {no reseller} one {# reseller} other {# resellers}}",
+      "netPerSale": "{amount} net per sale (calculated)",
+      "netChange": "{amount} less net earnings (observed)",
+      "waitingBuyers": "{count, plural, one {# buyer waiting} other {# buyers waiting}}"
+    },
+    "reason": {
+      "price_missing": "The price is missing: the product cannot be sold.",
+      "commission_not_explicit": "No reseller commission is set: a sale cannot be allocated.",
+      "safety_blocks_publication": "Product-safety details are missing and publication is refused.",
+      "out_of_stock": "Quantity is 0: the product page shows « sold out ».",
+      "low_stock": "Very few units left on a product that sells.",
+      "stock_nominal": "The quantity looks like an import value, not your inventory.",
+      "variant_stock_mismatch": "Product stock and variant stock do not match.",
+      "variant_stock_untracked": "Variant stock is not known at purchase.",
+      "no_reseller": "It is on sale but no shop offers it.",
+      "draft_ready": "The draft is complete.",
+      "no_photo": "It has no photo.",
+      "no_category": "It has no category: resellers cannot find it.",
+      "duplicate_name": "Another product of yours has the same name.",
+      "delivery_window_inverted": "The minimum delivery time exceeds the maximum.",
+      "safety_data_missing": "Product-safety details are missing.",
+      "paused_but_listed": "It is paused while resellers list it.",
+      "listed_no_sales": "Resellers list it but it does not sell.",
+      "few_photos": "It has few photos although it has demand.",
+      "short_description": "Its description is short although it has demand.",
+      "no_gtin": "It has no barcode although it has demand.",
+      "shop_out_of_stock": "The supplier is out of stock: your buyers see it sold out.",
+      "shop_product_unavailable": "The supplier withdrew or paused it: it can no longer be bought.",
+      "shop_awaiting_review": "The product is awaiting Affisell's validation.",
+      "shop_no_commission": "The supplier set no commission: a sale could not be allocated.",
+      "drop_volume_down": "Your sales of this product fell.",
+      "drop_your_price_down": "You lowered your price.",
+      "drop_collected_price_down": "The price collected fell.",
+      "drop_supplier_price_up": "The supplier price rose.",
+      "drop_commission_down": "The commission fell.",
+      "drop_fees_up": "Fees rose.",
+      "drop_refunds_up": "Refunds rose.",
+      "drop_disputes_up": "Disputes rose.",
+      "drop_other": "Your net earnings on this product fell.",
+      "ready_to_sell": "It can be sold today and is not in your shop yet.",
+      "stock_unconfirmed": "The import's source gave no quantity: publication waits for yours.",
+      "stock_cover_short": "At the current sales pace, the stock runs out in less than two weeks (calculation).",
+      "variant_rows_indistinct": "Some variants share the same colour, size and capacity: buyers can not choose between them.",
+      "restock_demand": "{count, plural, one {# buyer is} other {# buyers are}} waiting for {variant}. Update this variant's availability to answer this demand.",
+      "shop_restock_demand": "{count, plural, one {# buyer of your shop is waiting for} other {# buyers of your shop are waiting for}} {variant}. You can offer them an available alternative; this is not a guaranteed sale."
+    }
+  },
+  "restockWatch": {
+    "cta": "Notify me when this option is back",
+    "watching": "You'll be notified — cancel",
+    "hint": "One notification when this option is available again. No restock date is known.",
+    "hintNotActive": "Your request is saved, but alerts are not switched on yet. No restock date is known.",
+    "saved": "Done: one notification when it's back, only once.",
+    "savedNotActive": "Request saved. Alerts are not being sent yet — check back.",
+    "cancelled": "Request cancelled.",
+    "pushDenied": "Notifications are blocked in your browser: allow them to be notified.",
+    "pushUnsupported": "Your browser does not support notifications.",
+    "availableNow": "Good news: this option is available now.",
+    "tooMany": "You already have too many pending requests.",
+    "error": "Could not save right now.",
+    "signInPrompt": "Sign in to be notified when this option is back.",
+    "signIn": "Sign in",
+    "pushTitle": "Back: {product}",
+    "pushBody": "{variant} is available again. Quantities may be limited."
   }
 }

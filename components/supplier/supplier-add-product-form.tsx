@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Image as ImageIcon,
   Loader2,
+  Lock,
   Plus,
   Recycle,
   RotateCcw,
@@ -74,7 +75,7 @@ import { suggestFromTitle, titleSuggestionAttributes } from "@/lib/title-parser"
 import {
   applyOptimizedSimpleColorNames,
   type OptimizeVariantsResult,
-} from "@/lib/supplier-optimize-variants"
+} from "@/lib/supplier-optimize-variants-shared"
 import type { ListingCategorySuggestion } from "@/lib/supplier-suggest-listing"
 import {
   SupplierCategoryPicker,
@@ -88,6 +89,9 @@ import { SupplierTitleQualityHint } from "@/components/supplier/supplier-title-q
 import { SupplierShippingCarriersPicker } from "@/components/supplier/supplier-shipping-carriers-picker"
 import { SupplierShippingIncludedNotice } from "@/components/supplier/shipping-included-notice"
 import { ReturnWindowField } from "@/components/supplier/return-window-field"
+import { SupplyCostSection } from "@/components/supplier/supply-cost-section"
+import { ProductJourneyPanel } from "@/components/supplier/product-journey-panel"
+import { variantStockBaselineFromRows } from "@/lib/stock/partner-stock"
 import { CANONICAL_RETURN_WINDOW_LABEL, parseReturnWindowDays, RETURN_WINDOW_KEY } from "@/lib/return-terms"
 import { shippingMethodsFromCarrierIds } from "@/lib/shipping/supplier-carrier-offers-shared"
 import { SupplierOfferModePicker } from "@/components/supplier/supplier-offer-mode-picker"
@@ -403,6 +407,8 @@ export function SupplierAddProductForm({
   const tForm = useTranslations("supplier.form")
   const tShippingIncluded = useTranslations("supplier.shippingIncluded")
   const tReturnTerms = useTranslations("supplier.returnTerms")
+  const tSupplyCost = useTranslations("supplier.supplyCost")
+  const tJourney = useTranslations("supplier.productJourney")
   const tCompliance = useTranslations("supplier.compliance")
   const tVariantComposer = useTranslations("supplier.variantComposer")
   const locale = useLocale() as "fr" | "en"
@@ -431,6 +437,10 @@ export function SupplierAddProductForm({
   const [pendingDraftListingId, setPendingDraftListingId] = useState("")
   const [productIsDraft, setProductIsDraft] = useState(false)
   const draftIdRef = useRef("")
+  /** Stock as last loaded from / saved to the server: sent as `stockBaseline` so a save never resurrects units sold meanwhile. */
+  const stockBaselineRef = useRef<number | null>(null)
+  /** Same, per SKU row of the advanced table (key = `variantStockBaselineKey`), sent as `variantStockBaseline`. */
+  const variantStockBaselineRef = useRef<Record<string, number> | null>(null)
   const autosaveListingId = editId || draftIdFromUrlUsable || pendingDraftListingId
   const step = useSupplierProductWizardStore((s) => s.step)
   const trySetStep = useSupplierProductWizardStore((s) => s.trySetStep)
@@ -1049,6 +1059,7 @@ export function SupplierAddProductForm({
       const cmp = data.compareAt
       setCompareAt(cmp != null && Number(cmp) > 0 ? Number(cmp).toFixed(2) : "")
       setStock(String(data.stock ?? 0))
+      stockBaselineRef.current = Math.max(0, Math.round(Number(data.stock ?? 0) || 0))
       const lk = String(data.listingKind ?? "PHYSICAL").toUpperCase()
       setListingKind(LISTING_KINDS.includes(lk as ListingKind) ? (lk as ListingKind) : "PHYSICAL")
       setDigitalAccessUrl(typeof data.digitalAccessUrl === "string" ? data.digitalAccessUrl : "")
@@ -1138,6 +1149,7 @@ export function SupplierAddProductForm({
       const parsedListingVariants = parseVariantsPayload(
         (data as { listingVariants?: unknown }).listingVariants ?? data.variants
       )
+      variantStockBaselineRef.current = variantStockBaselineFromRows(parsedListingVariants?.variantRows)
 
       if (hasSkuMatrix) {
         const apiRows = data.variants as Array<{
@@ -1906,7 +1918,13 @@ export function SupplierAddProductForm({
               headers: { "Content-Type": "application/json" },
               credentials: "include",
               signal: saveSignal,
-              body: JSON.stringify(body),
+              body: JSON.stringify(
+                {
+                  ...body,
+                  ...(stockBaselineRef.current != null ? { stockBaseline: stockBaselineRef.current } : {}),
+                  ...(variantStockBaselineRef.current ? { variantStockBaseline: variantStockBaselineRef.current } : {}),
+                }
+              ),
             })
             const json = await readJsonResponse<{ error?: string }>(res)
             if (res.status === 404) {
@@ -1925,6 +1943,11 @@ export function SupplierAddProductForm({
           } else {
             await saveViaPost()
           }
+
+          const savedStock = Number(body.stock)
+          if (Number.isFinite(savedStock)) stockBaselineRef.current = Math.max(0, Math.round(savedStock))
+          const savedRows = (body.variants as { variantRows?: unknown } | undefined)?.variantRows
+          if (Array.isArray(savedRows)) variantStockBaselineRef.current = variantStockBaselineFromRows(savedRows)
 
           if (!isLatestAutosaveGeneration(generation, autosaveGenerationRef.current)) {
             // Newer edit already queued — keep chain going without flipping UI to error/saved from stale write.
@@ -4048,6 +4071,18 @@ export function SupplierAddProductForm({
                     onChange={(next) => setSpecValues((prev) => ({ ...prev, [RETURN_WINDOW_KEY]: next }))}
                   />
                 </SectionCard>
+
+                {editId ? (
+                  <SectionCard id="add-product-journey" icon={ChevronRight} title={tJourney("title")}>
+                    <ProductJourneyPanel productId={editId} />
+                  </SectionCard>
+                ) : null}
+
+                {editId ? (
+                  <SectionCard id="add-product-supply-cost" icon={Lock} title={tSupplyCost("title")}>
+                    <SupplyCostSection productId={editId} />
+                  </SectionCard>
+                ) : null}
 
                 <SectionCard
                   icon={Globe2}

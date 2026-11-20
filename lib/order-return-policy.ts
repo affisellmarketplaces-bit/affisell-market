@@ -5,7 +5,7 @@ import {
   isWithinEuWithdrawalWindow,
   withdrawalAnchorAt,
 } from "@/lib/buyer-withdrawal-window"
-import { isTerminalReturnStatus } from "@/lib/order-return-types"
+import { isTerminalReturnStatus } from "@/lib/order-return-status"
 
 /** Return window from order date (proxy for “delivered + X days” until we track delivery). */
 export const ORDER_RETURN_WINDOW_DAYS = 30

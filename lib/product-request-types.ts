@@ -205,8 +205,8 @@ export type ProductQuoteDto = {
   id: string
   requestId: string
   supplierId: string
+  /** Public store name — never the account e-mail or the person's name (null = « Fournisseur Affisell »). */
   supplierName: string | null
-  supplierEmail: string | null
   price: number
   moq: number
   deliveryDays: number
@@ -534,21 +534,20 @@ export function serializeProductQuote(row: {
   id: string
   requestId: string
   supplierId: string
-  supplierName: string | null
-  supplierEmail: string | null
   price: number
   moq: number
   deliveryDays: number
   message: string | null
   status: string
   createdAt: Date
-}): ProductQuoteDto {
+}, storeNames?: ReadonlyMap<string, string>): ProductQuoteDto {
+  // The stored supplierName / supplierEmail columns (personal name, account e-mail)
+  // are never serialized: founder decision 2026-11-19.
   return {
     id: row.id,
     requestId: row.requestId,
     supplierId: row.supplierId,
-    supplierName: row.supplierName,
-    supplierEmail: row.supplierEmail,
+    supplierName: storeNames?.get(row.supplierId) ?? null,
     price: row.price,
     moq: row.moq,
     deliveryDays: row.deliveryDays,

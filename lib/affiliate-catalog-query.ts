@@ -10,6 +10,7 @@ import {
   parseCatalogVitrineFilter,
 } from "@/lib/affiliate-catalog-filters-shared"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
+import { resellerFacingSupplierLabel } from "@/lib/supplier-public-label"
 import {
   AFFILIATE_CATALOG_NICHES,
   type AffiliateCatalogHighlightCard,
@@ -21,6 +22,7 @@ import { buildCategoryScopeProductFilter } from "@/lib/marketplace-category-prod
 import { catalogExclusivityWhere } from "@/lib/product-exclusivity-shared"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
+import { DEMO_LAB_TAG, isDemoLabEmail } from "@/lib/demo/demo-accounts-shared"
 
 export {
   AFFILIATE_CATALOG_NICHES,
@@ -40,7 +42,6 @@ type DiscoverRow = Awaited<
 
 function normalizeCatalogRow(row: DiscoverRow): AffiliateCatalogProduct {
   const supplier = row.supplier as unknown as {
-    email: string
     store: { name: string; slug: string } | null
   }
   const colors = row.colors ?? []
@@ -66,16 +67,13 @@ function normalizeCatalogRow(row: DiscoverRow): AffiliateCatalogProduct {
       conversions: a.conversions,
     })),
     supplier: {
-      email: supplier.email,
       store: supplier.store,
     },
   }
 }
 
 function supplierLabel(p: AffiliateCatalogProduct): string {
-  const brand = p.supplier.store?.name?.trim()
-  if (brand) return brand
-  return p.supplier.email
+  return resellerFacingSupplierLabel(p.supplier.store)
 }
 
 function mapProductToHighlight(
@@ -99,6 +97,16 @@ function mapProductToHighlight(
   }
 }
 
+async function viewerIsDemoAccount(affiliateId: string | undefined): Promise<boolean> {
+  if (!affiliateId) return false
+  try {
+    const u = await prisma.user.findUnique({ where: { id: affiliateId }, select: { email: true } })
+    return isDemoLabEmail(u?.email)
+  } catch {
+    return false
+  }
+}
+
 export async function buildAffiliateCatalogProductWhere(
   searchParams: URLSearchParams,
   opts?: { affiliateId?: string }
@@ -113,6 +121,10 @@ export async function buildAffiliateCatalogProductWhere(
   const addedSince = catalogAddedSinceDate(addedWindow)
 
   const andParts: Prisma.ProductWhereInput[] = [{ active: true, isDraft: false }]
+
+  // Demo Lab sandbox SKUs only for the Demo Lab accounts themselves (founder decision 2026-11-19: demo data strictly
+  // apart from real commercial data). Unreadable account = not a demo account.
+  if (!(await viewerIsDemoAccount(opts?.affiliateId))) andParts.push({ NOT: { tags: { has: DEMO_LAB_TAG } } })
 
   if (scopeRootId) {
     const scope = await buildCategoryScopeProductFilter(prisma, scopeRootId)

@@ -1,2 +1,0 @@
-import { i as usePopoverHeading, n as PopoverHeadingOptions, r as PopoverHeadingProps, t as PopoverHeading } from "../popover-heading-DC8rYnwo.js";
-export { PopoverHeading, PopoverHeadingOptions, PopoverHeadingProps, usePopoverHeading };
