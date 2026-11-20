@@ -9736,6 +9736,27 @@
         "resoldOut": "{count} Varianten nach ihrer Rückkehr erneut ausverkauft.",
         "caveat": "Was nach der Nachfrage geschah, beobachtet. Eine Bestellung nach einer Wiederauffüllung beweist nicht, dass Nachfrage oder Empfehlung sie ausgelöst haben."
       }
+    },
+    "listingQuality": {
+      "title": "Was auf Affisell mit mehr Verkäufen einhergeht",
+      "intro": "Auf Affisell haben Produktseiten mit diesen Elementen in {days} Tagen mehr Verkäufe pro Tag im Shop erzielt als Seiten derselben Kategorie, Preisklasse und desselben Alters ohne sie. Diesen Seiten fehlen sie noch:",
+      "evidence": "Auf Affisell: {ratio}-mal mehr Verkäufe pro Tag im Shop (mindestens {lo}-mal, Fehlerspanne inbegriffen).",
+      "cta": "Seite vervollständigen",
+      "caveat": "Ein beobachteter Zusammenhang, kein Versprechen: Shop-Traffic, Preis des Wiederverkäufers und andere Faktoren werden nicht gemessen. Ohne Sie wird nichts geändert.",
+      "feature": {
+        "photos_3plus": "Fügen Sie mindestens 3 Fotos hinzu.",
+        "photos_5plus": "Fügen Sie mindestens 5 Fotos hinzu.",
+        "title_precise": "Machen Sie den Titel genauer (mindestens 3 Wörter, keine durchgehenden Großbuchstaben).",
+        "description_200plus": "Schreiben Sie eine Beschreibung mit mindestens 200 Zeichen.",
+        "specs_3plus": "Geben Sie mindestens 3 Merkmale an.",
+        "variants_distinct": "Machen Sie jede Variante unterscheidbar (Farbe, Größe, Kapazität).",
+        "gtin_valid": "Geben Sie einen gültigen Barcode (GTIN) an.",
+        "brand_declared": "Geben Sie die Marke an.",
+        "delivery_declared": "Geben Sie die Lieferzeit an.",
+        "return_extended": "Bieten Sie eine Rückgabefrist von mehr als 14 Tagen an.",
+        "safety_complete": "Vervollständigen Sie die Produktsicherheitsangaben.",
+        "stock_confirmed": "Geben Sie eine reale Lagermenge an."
+      }
     }
   },
   "nextActions": {

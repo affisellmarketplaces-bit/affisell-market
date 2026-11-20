@@ -9736,6 +9736,27 @@
         "resoldOut": "{count} variants sold out again after their return.",
         "caveat": "What happened after the demand, as observed. An order after a restock does not prove the demand or the recommendation caused it."
       }
+    },
+    "listingQuality": {
+      "title": "What goes with more sales on Affisell",
+      "intro": "On Affisell, over {days} days, sheets with these elements made more sales per day in a shop than sheets of the same category, price band and age without them. These sheets do not have them yet:",
+      "evidence": "On Affisell: {ratio}× more sales per day in a shop (at least {lo}×, margin of error included).",
+      "cta": "Complete the sheet",
+      "caveat": "An observed association, not a promise: shop traffic, the reseller's price and other factors are not measured. Nothing is changed without you.",
+      "feature": {
+        "photos_3plus": "Add at least 3 photos.",
+        "photos_5plus": "Add at least 5 photos.",
+        "title_precise": "Make the title more precise (at least 3 words, no all caps).",
+        "description_200plus": "Write a description of at least 200 characters.",
+        "specs_3plus": "Fill in at least 3 specifications.",
+        "variants_distinct": "Make every variant distinct (colour, size, capacity).",
+        "gtin_valid": "Enter a valid barcode (GTIN).",
+        "brand_declared": "Enter the brand.",
+        "delivery_declared": "Enter the delivery time.",
+        "return_extended": "Offer a return window longer than 14 days.",
+        "safety_complete": "Complete the product-safety information.",
+        "stock_confirmed": "Enter a real quantity in stock."
+      }
     }
   },
   "nextActions": {

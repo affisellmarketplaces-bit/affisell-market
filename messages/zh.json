@@ -9736,6 +9736,27 @@
         "resoldOut": "{count} 个款式补货后再次售罄。",
         "caveat": "需求之后实际发生的情况。补货后的订单并不证明是需求或推荐促成的。"
       }
+    },
+    "listingQuality": {
+      "title": "在 Affisell 上与更多销量相关的要素",
+      "intro": "在 Affisell 上，{days} 天内，具备这些要素的商品页在店铺中每天的销量，高于同类目、同价格段、同上架时长但不具备这些要素的商品页。以下商品页尚未具备：",
+      "evidence": "在 Affisell 上：店铺中每天销量为 {ratio} 倍（考虑误差后至少 {lo} 倍）。",
+      "cta": "完善商品页",
+      "caveat": "这是观察到的关联，不是承诺：店铺流量、转售商价格等因素未被测量。未经您同意不会做任何修改。",
+      "feature": {
+        "photos_3plus": "至少添加 3 张照片。",
+        "photos_5plus": "至少添加 5 张照片。",
+        "title_precise": "让标题更准确（至少 3 个词，不要全部大写）。",
+        "description_200plus": "撰写至少 200 个字符的描述。",
+        "specs_3plus": "填写至少 3 项规格。",
+        "variants_distinct": "让每个款式可区分（颜色、尺码、容量）。",
+        "gtin_valid": "填写有效的条形码（GTIN）。",
+        "brand_declared": "填写品牌。",
+        "delivery_declared": "填写配送时间。",
+        "return_extended": "提供超过 14 天的退货期。",
+        "safety_complete": "完善产品安全信息。",
+        "stock_confirmed": "填写真实库存数量。"
+      }
     }
   },
   "nextActions": {

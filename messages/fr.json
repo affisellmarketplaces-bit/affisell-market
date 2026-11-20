@@ -9736,6 +9736,27 @@
         "resoldOut": "{count} déclinaisons de nouveau épuisées après leur retour.",
         "caveat": "Ce qui s'est passé après la demande, constaté. Une commande après un retour en stock ne prouve pas que la demande ou la recommandation l'a provoquée."
       }
+    },
+    "listingQuality": {
+      "title": "Ce qui va avec plus de ventes sur Affisell",
+      "intro": "Sur Affisell, sur {days} jours, les fiches qui ont ces éléments ont fait plus de ventes par jour de présence en boutique que celles de même catégorie, même gamme de prix et même ancienneté qui ne les ont pas. Ces fiches ne les ont pas encore :",
+      "evidence": "Sur Affisell : {ratio} fois plus de ventes par jour en boutique (au moins {lo} fois, marge d'erreur comprise).",
+      "cta": "Compléter la fiche",
+      "caveat": "Association observée, pas une promesse : le trafic des boutiques, le prix du revendeur et d'autres facteurs ne sont pas mesurés. Rien n'est modifié sans vous.",
+      "feature": {
+        "photos_3plus": "Ajoutez au moins 3 photos.",
+        "photos_5plus": "Ajoutez au moins 5 photos.",
+        "title_precise": "Rendez le titre plus précis (au moins 3 mots, sans majuscules continues).",
+        "description_200plus": "Écrivez une description d'au moins 200 caractères.",
+        "specs_3plus": "Renseignez au moins 3 caractéristiques.",
+        "variants_distinct": "Rendez chaque déclinaison distincte (couleur, taille, capacité).",
+        "gtin_valid": "Indiquez un code-barres (GTIN) valide.",
+        "brand_declared": "Indiquez la marque.",
+        "delivery_declared": "Indiquez le délai de livraison.",
+        "return_extended": "Proposez un délai de retour supérieur à 14 jours.",
+        "safety_complete": "Complétez les informations de sécurité du produit.",
+        "stock_confirmed": "Indiquez une quantité réelle en stock."
+      }
     }
   },
   "nextActions": {

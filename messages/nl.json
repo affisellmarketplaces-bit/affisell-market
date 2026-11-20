@@ -9736,6 +9736,27 @@
         "resoldOut": "{count} varianten na terugkeer opnieuw uitverkocht.",
         "caveat": "Wat er na de vraag gebeurde, vastgesteld. Een bestelling na aanvulling bewijst niet dat de vraag of de aanbeveling die veroorzaakte."
       }
+    },
+    "listingQuality": {
+      "title": "Wat op Affisell samengaat met meer verkopen",
+      "intro": "Op Affisell verkochten productpagina's met deze elementen in {days} dagen meer per dag in een winkel dan pagina's van dezelfde categorie, prijsklasse en leeftijd zonder. Deze pagina's hebben ze nog niet:",
+      "evidence": "Op Affisell: {ratio}× meer verkopen per dag in een winkel (minstens {lo}×, foutmarge inbegrepen).",
+      "cta": "Pagina aanvullen",
+      "caveat": "Een waargenomen verband, geen belofte: winkelverkeer, de prijs van de wederverkoper en andere factoren worden niet gemeten. Niets wordt zonder jou gewijzigd.",
+      "feature": {
+        "photos_3plus": "Voeg minstens 3 foto's toe.",
+        "photos_5plus": "Voeg minstens 5 foto's toe.",
+        "title_precise": "Maak de titel nauwkeuriger (minstens 3 woorden, geen doorlopende hoofdletters).",
+        "description_200plus": "Schrijf een beschrijving van minstens 200 tekens.",
+        "specs_3plus": "Vul minstens 3 kenmerken in.",
+        "variants_distinct": "Maak elke variant onderscheidbaar (kleur, maat, capaciteit).",
+        "gtin_valid": "Vul een geldige barcode (GTIN) in.",
+        "brand_declared": "Vul het merk in.",
+        "delivery_declared": "Vul de levertijd in.",
+        "return_extended": "Bied een retourtermijn van meer dan 14 dagen.",
+        "safety_complete": "Vul de productveiligheidsgegevens aan.",
+        "stock_confirmed": "Vul een echte voorraad in."
+      }
     }
   },
   "nextActions": {

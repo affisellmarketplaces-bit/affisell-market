@@ -9736,6 +9736,27 @@
         "resoldOut": "{count} wariantów ponownie wyprzedanych po powrocie.",
         "caveat": "To, co nastąpiło po prośbach, stwierdzone. Zamówienie po uzupełnieniu nie dowodzi, że spowodowała je prośba lub rekomendacja."
       }
+    },
+    "listingQuality": {
+      "title": "Co idzie w parze z większą sprzedażą na Affisell",
+      "intro": "Na Affisell w ciągu {days} dni karty z tymi elementami sprzedawały więcej na dzień w sklepie niż karty tej samej kategorii, przedziału cenowego i wieku bez nich. Te karty jeszcze ich nie mają:",
+      "evidence": "Na Affisell: {ratio}× więcej sprzedaży na dzień w sklepie (co najmniej {lo}×, z marginesem błędu).",
+      "cta": "Uzupełnij kartę",
+      "caveat": "Zaobserwowany związek, nie obietnica: ruch w sklepach, cena sprzedawcy i inne czynniki nie są mierzone. Nic nie zmienia się bez Ciebie.",
+      "feature": {
+        "photos_3plus": "Dodaj co najmniej 3 zdjęcia.",
+        "photos_5plus": "Dodaj co najmniej 5 zdjęć.",
+        "title_precise": "Doprecyzuj tytuł (co najmniej 3 słowa, bez samych wielkich liter).",
+        "description_200plus": "Napisz opis o długości co najmniej 200 znaków.",
+        "specs_3plus": "Uzupełnij co najmniej 3 cechy.",
+        "variants_distinct": "Spraw, by każdy wariant był rozróżnialny (kolor, rozmiar, pojemność).",
+        "gtin_valid": "Podaj prawidłowy kod kreskowy (GTIN).",
+        "brand_declared": "Podaj markę.",
+        "delivery_declared": "Podaj czas dostawy.",
+        "return_extended": "Zaproponuj termin zwrotu dłuższy niż 14 dni.",
+        "safety_complete": "Uzupełnij informacje o bezpieczeństwie produktu.",
+        "stock_confirmed": "Podaj rzeczywistą ilość w magazynie."
+      }
     }
   },
   "nextActions": {
