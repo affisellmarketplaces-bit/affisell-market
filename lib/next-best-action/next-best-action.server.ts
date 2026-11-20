@@ -10,6 +10,7 @@ import {
 import { prisma } from "@/lib/prisma"
 import { loadSupplierRestockDemand } from "@/lib/restock-watch/restock-demand.server"
 import { markRestockRecommendationShown } from "@/lib/restock-watch/restock-funnel.server"
+import { loadShopRestockDemand, markShopDemandRecommended } from "@/lib/restock-watch/shop-demand.server"
 import { listingProblem } from "@/lib/reseller-replacement/listing-state"
 import { loadResellerSelection } from "@/lib/reseller-copilot/selection.server"
 import { loadSupplierCatalogHealth } from "@/lib/supplier-catalog-health/diagnose.server"
@@ -61,7 +62,7 @@ export async function loadResellerNextActions(affiliateId: string, now = new Dat
     },
   })
   const productIds = [...new Set(listings.map((l) => l.productId))]
-  const [orders, alerts, selection] = await Promise.all([
+  const [orders, alerts, selection, shopDemand] = await Promise.all([
     productIds.length
       ? prisma.order.groupBy({
           by: ["productId"],
@@ -71,6 +72,8 @@ export async function loadResellerNextActions(affiliateId: string, now = new Dat
       : Promise.resolve([]),
     loadResellerAlerts(affiliateId, 10),
     loadResellerSelection(affiliateId, 5).catch(() => null),
+    // The shop's own buyers' restock requests: an extra reason, never a condition (a failed read = no such action).
+    loadShopRestockDemand(affiliateId, now).catch(() => []),
   ])
   const ordersBy = new Map(orders.map((o) => [o.productId as string, o._count._all]))
 
@@ -80,7 +83,7 @@ export async function loadResellerNextActions(affiliateId: string, now = new Dat
     return { listingId: l.id, productId: l.productId, name: p.name, problem, paidOrders30d: ordersBy.get(l.productId) ?? 0 }
   })
 
-  return resellerNextActions({
+  const actions = resellerNextActions({
     listings: states,
     drops: alerts.map((a) => ({
       alertId: a.id,
@@ -98,5 +101,16 @@ export async function loadResellerNextActions(affiliateId: string, now = new Dat
         paidOrders30d: s.demand.paidOrders30d,
         resellersListing: s.demand.resellersListing,
       })),
+    shopDemand,
   })
+  // Recovery chain, step « recommendation shown »: recorded once per shop demand, never blocking the answer.
+  const served = actions.filter((a) => a.kind === "answer_shop_demand")
+  await markShopDemandRecommended(
+    affiliateId,
+    served.map((a) => {
+      const [, listingId, ...rest] = a.key.split(":")
+      return { listingId: listingId!, variantKey: rest.join(":") }
+    })
+  )
+  return actions
 }

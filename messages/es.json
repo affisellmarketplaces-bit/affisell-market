@@ -3197,6 +3197,35 @@
       "listSubtitle": "{count, plural, =0 {Ningún producto afectado.} one {# producto no se puede comprar hoy.} other {# productos no se pueden comprar hoy.}}",
       "listEmpty": "Todos los productos de tu tienda se pueden comprar.",
       "listCta": "Retirar o sustituir"
+    },
+    "shopDemand": {
+      "title": "Compradores de tu tienda en espera",
+      "signal": "{count, plural, one {# comprador de tu tienda espera} other {# compradores de tu tienda esperan}} {variant} de «{product}».",
+      "noSignal": "Menos de tres compradores de tu tienda esperan todavía esta variante: no hay señal que mostrar.",
+      "why": "Se cuentan: compradores distintos de tu tienda, solicitudes activas y no caducadas, en esta variante exacta, mientras esté agotada. Una solicitud no es una venta garantizada.",
+      "matchSame": "Misma referencia (código de barras)",
+      "matchSimilar": "Producto similar",
+      "altFacts": "{units} unidades de esta variante · precio {price} · ganas {net} por venta (actual: {originalNet})",
+      "lowStock": "Pocas unidades disponibles de esta variante.",
+      "missingOptions": "Algunas opciones del producto original no se ofrecen.",
+      "supplier": "Proveedor: {supplier}",
+      "inShop": "Ya está en tu tienda",
+      "offer": "Ofrecer en mi tienda",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar",
+      "chosenAdded": "Alternativa añadida a tu tienda. El producto solicitado sigue a la venta.",
+      "chosenAlready": "Esta alternativa ya está en tu tienda.",
+      "chooseFailed": "No se pudo añadir. Inténtalo de nuevo.",
+      "noneReliable": "Ninguna alternativa fiable ofrece esta variante.",
+      "noneSellable": "Ninguna alternativa vendible hoy ofrece esta variante.",
+      "buyerChoice": "Affisell nunca sustituye automáticamente el producto solicitado: las solicitudes de los compradores no cambian y el comprador elige libremente.",
+      "backToCatalog": "Volver al catálogo",
+      "recovery": {
+        "title": "Seguimiento de tus respuestas (90 días)",
+        "counts": "{shown} propuestas consultadas · {chosen} alternativas añadidas · {open} solicitudes sin solución",
+        "orders": "{orders} pedidos pagados de las alternativas elegidas en 30 días ({refunded} cancelados o reembolsados) · {waiting} de compradores que esperaban",
+        "caveat": "Asociación observada, no prueba de que la propuesta causara la venta."
+      }
     }
   },
   "marketplace": {
@@ -9721,7 +9750,8 @@
       "fix_shop_listing": "Resolver « {product} » en su tienda",
       "review_profit_drop": "Examinar la bajada de « {product} »",
       "add_ready_product": "Añadir « {product} » a su tienda",
-      "answer_restock_demand": "Responder a la demanda de {product}"
+      "answer_restock_demand": "Responder a la demanda de {product}",
+      "answer_shop_demand": "Compradores de tu tienda esperan {product}"
     },
     "cta": {
       "fix_blocage": "Abrir el producto",
@@ -9732,7 +9762,8 @@
       "fix_shop_listing": "Retirar o sustituir",
       "review_profit_drop": "Ver el análisis",
       "add_ready_product": "Ver en el catálogo",
-      "answer_restock_demand": "Actualizar la disponibilidad"
+      "answer_restock_demand": "Actualizar la disponibilidad",
+      "answer_shop_demand": "Ver la demanda y las alternativas"
     },
     "impact": {
       "label": "Impacto potencial:",
@@ -9780,7 +9811,8 @@
       "stock_unconfirmed": "La fuente de la importación no daba cantidad: la publicación espera la suya.",
       "stock_cover_short": "Al ritmo actual de ventas, el stock se agotará en menos de dos semanas (cálculo).",
       "variant_rows_indistinct": "Varias variantes tienen el mismo color, talla y capacidad: el comprador no puede elegir entre ellas.",
-      "restock_demand": "{count, plural, one {# comprador espera} other {# compradores esperan}} {variant}. Actualiza la disponibilidad de esta variante para responder a esta demanda."
+      "restock_demand": "{count, plural, one {# comprador espera} other {# compradores esperan}} {variant}. Actualiza la disponibilidad de esta variante para responder a esta demanda.",
+      "shop_restock_demand": "{count, plural, one {# comprador de tu tienda espera} other {# compradores de tu tienda esperan}} {variant}. Puedes ofrecerles una alternativa disponible; no es una venta garantizada."
     }
   },
   "restockWatch": {

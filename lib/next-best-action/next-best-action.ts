@@ -13,6 +13,7 @@
  * product is available) the same product. Pure, client-safe.
  */
 import type { RestockDemandProduct } from "@/lib/restock-watch/restock-demand"
+import type { ShopDemandItem } from "@/lib/restock-watch/shop-demand"
 import type { HealthClass, HealthIssue, HealthIssueCode, HealthReport } from "@/lib/supplier-catalog-health/diagnose"
 
 export type ActionPriority = "haute" | "moyenne" | "basse"
@@ -31,6 +32,7 @@ export type NextAction = {
     | "fix_shop_listing"
     | "review_profit_drop"
     | "add_ready_product"
+    | "answer_shop_demand"
   productId: string
   productName: string
   reason: string
@@ -222,11 +224,39 @@ const DROP_CAUSES = new Set([
   "disputes_up",
 ])
 
+/** The shop page where the reseller sees the waited variant's demand and the alternatives (replace page, demand mode). */
+export function shopDemandHref(listingId: string, variantKey: string): string {
+  return `/dashboard/affiliate/products/${encodeURIComponent(listingId)}/replace?variant=${encodeURIComponent(variantKey)}`
+}
+
 export function resellerNextActions(
-  input: { listings: ShopListingState[]; drops: ProfitDrop[]; ready: ReadyProduct[] },
+  input: { listings: ShopListingState[]; drops: ProfitDrop[]; ready: ReadyProduct[]; shopDemand?: ReadonlyArray<ShopDemandItem> },
   max = 3
 ): NextAction[] {
   const cands: Array<NextAction & { score: number }> = []
+  // « 5 buyers of your shop are waiting for Noir / M »: one action per waited variant of the shop (same key while that
+  // demand lasts, gone with it). A listing that can not be bought at all keeps its own « fix » action (scored higher),
+  // so the same product is not recommended twice for overlapping reasons.
+  const unsellable = new Set(input.listings.filter((l) => l.problem).map((l) => l.listingId))
+  for (const d of input.shopDemand ?? []) {
+    if (d.buyers < 3 || unsellable.has(d.listingId)) continue
+    cands.push({
+      key: `answer_shop_demand:${d.listingId}:${d.variantKey}`,
+      kind: "answer_shop_demand",
+      productId: d.productId,
+      productName: d.productName,
+      variantLabel: d.variantLabel,
+      reason: "shop_restock_demand",
+      priority: "haute",
+      evidence: {
+        variant: { value: d.variantLabel, qualification: "fiche" },
+        waitingBuyers: { value: d.buyers, qualification: "observe" },
+      },
+      impact: { qualification: "potentiel", waitingBuyers: d.buyers },
+      href: shopDemandHref(d.listingId, d.variantKey),
+      score: 2500 + d.buyers,
+    })
+  }
   for (const l of input.listings) {
     if (!l.problem) continue
     cands.push({

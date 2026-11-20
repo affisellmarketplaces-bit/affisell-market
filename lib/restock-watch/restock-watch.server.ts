@@ -358,7 +358,9 @@ export type { RestockWatchMode }
 export async function loadRestockWatchObservations(
   days = 30,
   now = new Date()
-): Promise<RestockObservationReport & { mode: RestockWatchMode; funnel: import("@/lib/restock-watch/restock-funnel").DemandFunnelSummary | null }> {
+): Promise<RestockObservationReport & { mode: RestockWatchMode; funnel: import("@/lib/restock-watch/restock-funnel").DemandFunnelSummary | null
+  resellerRecovery: import("@/lib/restock-watch/shop-demand").ShopRecoverySummary | null
+}> {
   const span = Math.min(Math.max(1, Math.round(days)), 90)
   const since = new Date(now.getTime() - span * 86_400_000)
   const dayOf = (d: Date) => d.toISOString().slice(0, 10)
@@ -371,9 +373,12 @@ export async function loadRestockWatchObservations(
   const funnel = await loadDemandEpisodes({ supplierId: null, days: span, now })
     .then((r) => r.summary)
     .catch(() => null)
+  const { loadShopRecovery } = await import("@/lib/restock-watch/shop-demand.server")
+  const resellerRecovery = await loadShopRecovery({ affiliateId: null, days: span, now }).catch(() => null)
   return {
     mode: readRestockWatchMode(),
     funnel,
+    resellerRecovery,
     ...summarizeRestockObservations({
       snapshots: snapshots.map((s) => ({ day: s.entityId ?? "", payload: s.payload })).filter((s) => s.day),
       observedMarkerDays: observed.map((o) => dayOf(o.createdAt)),

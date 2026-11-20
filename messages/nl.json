@@ -3197,6 +3197,35 @@
       "listSubtitle": "{count, plural, =0 {Geen product betrokken.} one {# product kan vandaag niet gekocht worden.} other {# producten kunnen vandaag niet gekocht worden.}}",
       "listEmpty": "Alle producten in je winkel kunnen gekocht worden.",
       "listCta": "Terugtrekken of vervangen"
+    },
+    "shopDemand": {
+      "title": "Wachtende kopers van je winkel",
+      "signal": "{count, plural, one {# koper van je winkel wacht op} other {# kopers van je winkel wachten op}} {variant} van „{product}”.",
+      "noSignal": "Minder dan drie kopers van je winkel wachten nog op deze variant: geen signaal.",
+      "why": "Geteld: verschillende kopers van je winkel, actieve niet-verlopen aanvragen, op precies deze variant, zolang die uitverkocht is. Een aanvraag is geen gegarandeerde verkoop.",
+      "matchSame": "Zelfde referentie (barcode)",
+      "matchSimilar": "Vergelijkbaar product",
+      "altFacts": "{units} stuks van deze variant · prijs {price} · je verdient {net} per verkoop (nu: {originalNet})",
+      "lowStock": "Weinig stuks van deze variant beschikbaar.",
+      "missingOptions": "Sommige opties van het oorspronkelijke product worden niet aangeboden.",
+      "supplier": "Leverancier: {supplier}",
+      "inShop": "Al in je winkel",
+      "offer": "Aanbieden in mijn winkel",
+      "confirm": "Toevoegen bevestigen",
+      "cancel": "Annuleren",
+      "chosenAdded": "Alternatief toegevoegd aan je winkel. Het gevraagde product blijft te koop.",
+      "chosenAlready": "Dit alternatief staat al in je winkel.",
+      "chooseFailed": "Toevoegen mislukt. Probeer opnieuw.",
+      "noneReliable": "Geen betrouwbaar alternatief biedt deze variant.",
+      "noneSellable": "Geen vandaag verkoopbaar alternatief biedt deze variant.",
+      "buyerChoice": "Affisell vervangt het gevraagde product nooit automatisch: de aanvragen van kopers blijven ongewijzigd en de koper kiest vrij.",
+      "backToCatalog": "Terug naar de catalogus",
+      "recovery": {
+        "title": "Opvolging van je antwoorden (90 dagen)",
+        "counts": "{shown} bekeken voorstellen · {chosen} toegevoegde alternatieven · {open} aanvragen zonder oplossing",
+        "orders": "{orders} betaalde bestellingen van gekozen alternatieven binnen 30 dagen ({refunded} geannuleerd of terugbetaald) · {waiting} door wachtende kopers",
+        "caveat": "Waargenomen verband, geen bewijs dat het voorstel de verkoop veroorzaakte."
+      }
     }
   },
   "marketplace": {
@@ -9721,7 +9750,8 @@
       "fix_shop_listing": "« {product} » in uw winkel regelen",
       "review_profit_drop": "Daling bij « {product} » bekijken",
       "add_ready_product": "« {product} » aan uw winkel toevoegen",
-      "answer_restock_demand": "Reageer op de vraag naar {product}"
+      "answer_restock_demand": "Reageer op de vraag naar {product}",
+      "answer_shop_demand": "Kopers van je winkel wachten op {product}"
     },
     "cta": {
       "fix_blocage": "Product openen",
@@ -9732,7 +9762,8 @@
       "fix_shop_listing": "Verwijderen of vervangen",
       "review_profit_drop": "Analyse bekijken",
       "add_ready_product": "In de catalogus bekijken",
-      "answer_restock_demand": "Beschikbaarheid bijwerken"
+      "answer_restock_demand": "Beschikbaarheid bijwerken",
+      "answer_shop_demand": "Bekijk de vraag en alternatieven"
     },
     "impact": {
       "label": "Mogelijke impact:",
@@ -9780,7 +9811,8 @@
       "stock_unconfirmed": "De importbron gaf geen hoeveelheid: de publicatie wacht op de uwe.",
       "stock_cover_short": "In het huidige verkooptempo is de voorraad binnen twee weken op (berekening).",
       "variant_rows_indistinct": "Sommige varianten hebben dezelfde kleur, maat en capaciteit: kopers kunnen er niet tussen kiezen.",
-      "restock_demand": "{count, plural, one {# koper wacht} other {# kopers wachten}} op {variant}. Werk de beschikbaarheid van deze variant bij om aan de vraag te voldoen."
+      "restock_demand": "{count, plural, one {# koper wacht} other {# kopers wachten}} op {variant}. Werk de beschikbaarheid van deze variant bij om aan de vraag te voldoen.",
+      "shop_restock_demand": "{count, plural, one {# koper van je winkel wacht op} other {# kopers van je winkel wachten op}} {variant}. Je kunt een beschikbaar alternatief aanbieden; dit is geen gegarandeerde verkoop."
     }
   },
   "restockWatch": {

@@ -3197,6 +3197,35 @@
       "listSubtitle": "{count, plural, =0 {没有受影响的商品。} other {今天有 # 件商品无法购买。}}",
       "listEmpty": "您店铺中的所有商品均可购买。",
       "listCta": "下架或替换"
+    },
+    "shopDemand": {
+      "title": "您店铺正在等待的买家",
+      "signal": "您店铺有 {count} 位买家在等待「{product}」的 {variant}。",
+      "noSignal": "等待该款式的本店买家少于三位：暂无信号。",
+      "why": "统计：本店不同买家、有效未过期的请求、该确切款式，且仅在缺货期间。请求不代表确定的销售。",
+      "matchSame": "相同编号（条形码）",
+      "matchSimilar": "相似商品",
+      "altFacts": "该款式 {units} 件 · 价格 {price} · 每单您赚 {net}（当前：{originalNet}）",
+      "lowStock": "该款式库存较少。",
+      "missingOptions": "原商品的部分选项未提供。",
+      "supplier": "供应商：{supplier}",
+      "inShop": "已在您的店铺中",
+      "offer": "在我的店铺中提供",
+      "confirm": "确认添加",
+      "cancel": "取消",
+      "chosenAdded": "替代品已加入您的店铺。买家请求的商品仍在售。",
+      "chosenAlready": "该替代品已在您的店铺中。",
+      "chooseFailed": "添加失败，请重试。",
+      "noneReliable": "没有可靠的替代品提供该款式。",
+      "noneSellable": "今天没有可售的替代品提供该款式。",
+      "buyerChoice": "Affisell 从不自动替换买家请求的商品：买家的请求保持不变，由买家自由选择。",
+      "backToCatalog": "返回商品目录",
+      "recovery": {
+        "title": "您的回应追踪（90 天）",
+        "counts": "{shown} 次查看建议 · {chosen} 个替代品已添加 · {open} 个请求暂无解决方案",
+        "orders": "所选替代品 30 天内 {orders} 笔已付订单（{refunded} 笔取消或退款）· 其中 {waiting} 笔来自等待中的买家",
+        "caveat": "这是观察到的关联，不能证明建议促成了销售。"
+      }
     }
   },
   "marketplace": {
@@ -9721,7 +9750,8 @@
       "fix_shop_listing": "处理您店铺中的「{product}」",
       "review_profit_drop": "查看「{product}」的下降原因",
       "add_ready_product": "将「{product}」加入您的店铺",
-      "answer_restock_demand": "回应 {product} 的需求"
+      "answer_restock_demand": "回应 {product} 的需求",
+      "answer_shop_demand": "您店铺的买家在等待 {product}"
     },
     "cta": {
       "fix_blocage": "打开商品",
@@ -9732,7 +9762,8 @@
       "fix_shop_listing": "下架或替换",
       "review_profit_drop": "查看分析",
       "add_ready_product": "在目录中查看",
-      "answer_restock_demand": "更新库存"
+      "answer_restock_demand": "更新库存",
+      "answer_shop_demand": "查看需求和替代品"
     },
     "impact": {
       "label": "潜在影响：",
@@ -9780,7 +9811,8 @@
       "stock_unconfirmed": "导入来源未提供数量：发布需等待您填写数量。",
       "stock_cover_short": "按当前销售速度，库存将在两周内售罄（计算）。",
       "variant_rows_indistinct": "部分规格的颜色、尺码和容量完全相同：买家无法在它们之间选择。",
-      "restock_demand": "{count} 位买家正在等待 {variant}。请更新该款式的库存以回应这一需求。"
+      "restock_demand": "{count} 位买家正在等待 {variant}。请更新该款式的库存以回应这一需求。",
+      "shop_restock_demand": "您店铺有 {count} 位买家在等待 {variant}。您可以为他们提供有货的替代品；这不是确定的销售。"
     }
   },
   "restockWatch": {

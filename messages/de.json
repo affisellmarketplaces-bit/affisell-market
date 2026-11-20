@@ -3197,6 +3197,35 @@
       "listSubtitle": "{count, plural, =0 {Kein Produkt betroffen.} one {# Produkt kann heute nicht gekauft werden.} other {# Produkte können heute nicht gekauft werden.}}",
       "listEmpty": "Alle Produkte Ihres Shops können gekauft werden.",
       "listCta": "Zurückziehen oder ersetzen"
+    },
+    "shopDemand": {
+      "title": "Wartende Käufer Ihres Shops",
+      "signal": "{count, plural, one {# Käufer Ihres Shops wartet auf} other {# Käufer Ihres Shops warten auf}} {variant} von „{product}“.",
+      "noSignal": "Weniger als drei Käufer Ihres Shops warten noch auf diese Variante: kein Signal.",
+      "why": "Gezählt: verschiedene Käufer Ihres Shops, aktive, nicht abgelaufene Anfragen, genau diese Variante, solange sie ausverkauft ist. Eine Anfrage ist kein garantierter Verkauf.",
+      "matchSame": "Gleiche Referenz (Barcode)",
+      "matchSimilar": "Ähnliches Produkt",
+      "altFacts": "{units} Einheiten dieser Variante · Preis {price} · Sie verdienen {net} pro Verkauf (aktuell: {originalNet})",
+      "lowStock": "Wenige Einheiten dieser Variante verfügbar.",
+      "missingOptions": "Einige Optionen des Originalprodukts werden nicht angeboten.",
+      "supplier": "Lieferant: {supplier}",
+      "inShop": "Bereits in Ihrem Shop",
+      "offer": "In meinem Shop anbieten",
+      "confirm": "Hinzufügen bestätigen",
+      "cancel": "Abbrechen",
+      "chosenAdded": "Alternative zu Ihrem Shop hinzugefügt. Das angefragte Produkt bleibt im Verkauf.",
+      "chosenAlready": "Diese Alternative ist bereits in Ihrem Shop.",
+      "chooseFailed": "Hinzufügen fehlgeschlagen. Bitte erneut versuchen.",
+      "noneReliable": "Keine verlässliche Alternative bietet diese Variante.",
+      "noneSellable": "Keine heute verkaufbare Alternative bietet diese Variante.",
+      "buyerChoice": "Affisell ersetzt das angefragte Produkt nie automatisch: Die Anfragen der Käufer bleiben unverändert, der Käufer entscheidet frei.",
+      "backToCatalog": "Zurück zum Katalog",
+      "recovery": {
+        "title": "Verlauf Ihrer Antworten (90 Tage)",
+        "counts": "{shown} angesehene Vorschläge · {chosen} hinzugefügte Alternativen · {open} Anfragen ohne Lösung",
+        "orders": "{orders} bezahlte Bestellungen der gewählten Alternativen innerhalb von 30 Tagen ({refunded} storniert oder erstattet) · davon {waiting} von wartenden Käufern",
+        "caveat": "Beobachteter Zusammenhang, kein Beweis, dass der Vorschlag den Verkauf verursacht hat."
+      }
     }
   },
   "marketplace": {
@@ -9721,7 +9750,8 @@
       "fix_shop_listing": "« {product} » in Ihrem Shop klären",
       "review_profit_drop": "Rückgang bei « {product} » prüfen",
       "add_ready_product": "« {product} » in Ihren Shop aufnehmen",
-      "answer_restock_demand": "Auf die Nachfrage nach {product} reagieren"
+      "answer_restock_demand": "Auf die Nachfrage nach {product} reagieren",
+      "answer_shop_demand": "Käufer Ihres Shops warten auf {product}"
     },
     "cta": {
       "fix_blocage": "Produkt öffnen",
@@ -9732,7 +9762,8 @@
       "fix_shop_listing": "Entfernen oder ersetzen",
       "review_profit_drop": "Analyse ansehen",
       "add_ready_product": "Im Katalog ansehen",
-      "answer_restock_demand": "Verfügbarkeit aktualisieren"
+      "answer_restock_demand": "Verfügbarkeit aktualisieren",
+      "answer_shop_demand": "Nachfrage und Alternativen ansehen"
     },
     "impact": {
       "label": "Mögliche Wirkung:",
@@ -9780,7 +9811,8 @@
       "stock_unconfirmed": "Die Importquelle gab keine Menge an: Die Veröffentlichung wartet auf Ihre.",
       "stock_cover_short": "Beim aktuellen Verkaufstempo ist der Bestand in weniger als zwei Wochen aufgebraucht (Berechnung).",
       "variant_rows_indistinct": "Einige Varianten haben dieselbe Farbe, Größe und Kapazität: Käufer können nicht zwischen ihnen wählen.",
-      "restock_demand": "{count, plural, one {# Käufer wartet} other {# Käufer warten}} auf {variant}. Aktualisieren Sie die Verfügbarkeit dieser Variante, um die Nachfrage zu bedienen."
+      "restock_demand": "{count, plural, one {# Käufer wartet} other {# Käufer warten}} auf {variant}. Aktualisieren Sie die Verfügbarkeit dieser Variante, um die Nachfrage zu bedienen.",
+      "shop_restock_demand": "{count, plural, one {# Käufer Ihres Shops wartet auf} other {# Käufer Ihres Shops warten auf}} {variant}. Sie können eine verfügbare Alternative anbieten; das ist kein garantierter Verkauf."
     }
   },
   "restockWatch": {

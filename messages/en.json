@@ -3197,6 +3197,35 @@
       "listSubtitle": "{count, plural, =0 {No product affected.} one {# product can't be bought today.} other {# products can't be bought today.}}",
       "listEmpty": "Every product in your shop can be bought.",
       "listCta": "Withdraw or replace"
+    },
+    "shopDemand": {
+      "title": "Buyers of your shop waiting",
+      "signal": "{count, plural, one {# buyer of your shop is waiting for} other {# buyers of your shop are waiting for}} {variant} of “{product}”.",
+      "noSignal": "Fewer than three buyers of your shop are still waiting for this variant: no signal to show.",
+      "why": "Counted: distinct buyers of your shop, active unexpired requests, on this exact variant, while it is sold out. A request is not a guaranteed sale.",
+      "matchSame": "Same reference (barcode)",
+      "matchSimilar": "Similar product",
+      "altFacts": "{units} units of this variant · price {price} · you earn {net} per sale (current: {originalNet})",
+      "lowStock": "Few units available for this variant.",
+      "missingOptions": "Some options of the original product are not offered.",
+      "supplier": "Supplier: {supplier}",
+      "inShop": "Already in your shop",
+      "offer": "Offer in my shop",
+      "confirm": "Confirm adding",
+      "cancel": "Cancel",
+      "chosenAdded": "Alternative added to your shop. The requested product stays on sale.",
+      "chosenAlready": "This alternative is already in your shop.",
+      "chooseFailed": "It could not be added. Try again.",
+      "noneReliable": "No reliable alternative offers this variant.",
+      "noneSellable": "No alternative sellable today offers this variant.",
+      "buyerChoice": "Affisell never replaces the requested product automatically: buyers' requests stay unchanged and the buyer keeps the choice.",
+      "backToCatalog": "Back to catalogue",
+      "recovery": {
+        "title": "Follow-up of your answers (90 days)",
+        "counts": "{shown} proposals viewed · {chosen} alternatives added · {open} requests without a solution",
+        "orders": "{orders} paid orders of the chosen alternatives within 30 days ({refunded} cancelled or refunded) · {waiting} of them by buyers who were waiting",
+        "caveat": "An observed association, not proof that the proposal caused the sale."
+      }
     }
   },
   "marketplace": {
@@ -9721,7 +9750,8 @@
       "fix_shop_listing": "Fix « {product} » in your shop",
       "review_profit_drop": "Look into the drop on « {product} »",
       "add_ready_product": "Add « {product} » to your shop",
-      "answer_restock_demand": "Answer the demand on {product}"
+      "answer_restock_demand": "Answer the demand on {product}",
+      "answer_shop_demand": "Buyers of your shop are waiting for {product}"
     },
     "cta": {
       "fix_blocage": "Open the product",
@@ -9732,7 +9762,8 @@
       "fix_shop_listing": "Withdraw or replace",
       "review_profit_drop": "See the analysis",
       "add_ready_product": "See it in the catalogue",
-      "answer_restock_demand": "Update availability"
+      "answer_restock_demand": "Update availability",
+      "answer_shop_demand": "See the demand and alternatives"
     },
     "impact": {
       "label": "Potential impact:",
@@ -9780,7 +9811,8 @@
       "stock_unconfirmed": "The import's source gave no quantity: publication waits for yours.",
       "stock_cover_short": "At the current sales pace, the stock runs out in less than two weeks (calculation).",
       "variant_rows_indistinct": "Some variants share the same colour, size and capacity: buyers can not choose between them.",
-      "restock_demand": "{count, plural, one {# buyer is} other {# buyers are}} waiting for {variant}. Update this variant's availability to answer this demand."
+      "restock_demand": "{count, plural, one {# buyer is} other {# buyers are}} waiting for {variant}. Update this variant's availability to answer this demand.",
+      "shop_restock_demand": "{count, plural, one {# buyer of your shop is waiting for} other {# buyers of your shop are waiting for}} {variant}. You can offer them an available alternative; this is not a guaranteed sale."
     }
   },
   "restockWatch": {

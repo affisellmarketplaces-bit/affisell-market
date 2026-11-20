@@ -63,6 +63,11 @@ export type ReplacementCandidate = {
   existingListing: { sellingPriceCents: number; isListed: boolean } | null
   /** What the quick add would write for a new listing. */
   defaultSellingPriceCents: number
+  /**
+   * « Wanted variant » mode only (a buyer demand for ONE exact variant of the original): that same variant in THIS
+   * candidate, located with the shared variant rule. Absent / not found / ambiguous = the candidate can not serve it.
+   */
+  wantedVariant?: { status: "found"; stock: number } | { status: "gone" | "ambiguous" | "unknown" }
 }
 
 export type Difference = {
@@ -77,6 +82,7 @@ export type Difference = {
     | "variants_missing"
     | "brand"
     | "supplier"
+    | "variant_low_stock"
   before: string | number | null
   after: string | number | null
   /** better / worse for the reseller or its buyers; neutral when it is only different. */
@@ -94,6 +100,10 @@ export type Alternative = {
   net: ResellerNet
   available: number
   differences: Difference[]
+  /** Wanted-variant mode: units of the wanted variant in this alternative (> 0, as declared by its supplier). */
+  wantedVariantUnits?: number
+  /** Wanted-variant mode: the alternative is already live in this shop (nothing to add — point buyers to it). */
+  inShop?: boolean
 }
 
 export type ReplacementProposal =
@@ -141,6 +151,20 @@ export function variantCoverage(original: { colors: string[]; sizes: string[] },
   return { coverage: (want.length - missing.length) / want.length, missing: missing.map((m) => m.slice(2)) }
 }
 
+/** Wanted-variant mode: an alternative already live in the shop is the best answer (nothing to add). */
+function sellableForVariant(c: ReplacementCandidate): boolean {
+  return (
+    c.commissionExplicit &&
+    c.mayList &&
+    c.supplierPriceCents > 0 &&
+    c.wantedVariant?.status === "found" &&
+    c.wantedVariant.stock > 0
+  )
+}
+
+/** Units at or below which a proposed variant is flagged as a stock-out risk. */
+export const LOW_VARIANT_UNITS = 3
+
 function sellable(c: ReplacementCandidate): boolean {
   return (
     c.commissionExplicit &&
@@ -160,7 +184,7 @@ function dir(before: number | null, after: number | null, higherIsBetter: boolea
 export function buildReplacementProposal(
   original: OriginalListing,
   candidates: ReadonlyArray<ReplacementCandidate>,
-  opts: { affiliateFeeBps: number | null }
+  opts: { affiliateFeeBps: number | null; wantedVariant?: boolean }
 ): ReplacementProposal {
   const originalNet = computeResellerNetPerSale({
     supplierPriceCents: original.supplierPriceCents,
@@ -168,7 +192,7 @@ export function buildReplacementProposal(
     sellingPriceHtCents: original.sellingPriceHtCents,
     affiliateFeeBps: opts.affiliateFeeBps,
   })
-  const pool = candidates.filter((c) => c.productId !== original.productId && sellable(c))
+  const pool = candidates.filter((c) => c.productId !== original.productId && (opts.wantedVariant ? sellableForVariant(c) : sellable(c)))
   if (pool.length === 0) return { status: "none", original, originalNet, reason: "no_sellable_candidate" }
 
   const alternatives: Alternative[] = []
@@ -226,6 +250,10 @@ export function buildReplacementProposal(
     if (original.brand && c.brand && norm(original.brand) !== norm(c.brand)) {
       d.push({ field: "brand", before: original.brand, after: c.brand, direction: "neutral" })
     }
+    const wantedUnits = opts.wantedVariant && c.wantedVariant?.status === "found" ? c.wantedVariant.stock : undefined
+    if (wantedUnits !== undefined && wantedUnits <= LOW_VARIANT_UNITS) {
+      d.push({ field: "variant_low_stock", before: null, after: wantedUnits, direction: "worse" })
+    }
     alternatives.push({
       productId: c.productId,
       name: c.name,
@@ -235,8 +263,9 @@ export function buildReplacementProposal(
       similarity: identical ? 1 : Math.round(similarity * 100) / 100,
       sellingPriceHtCents,
       net,
-      available: c.available as number,
+      available: (c.available ?? wantedUnits ?? 0) as number,
       differences: d,
+      ...(opts.wantedVariant ? { wantedVariantUnits: wantedUnits, inShop: c.existingListing?.isListed ?? false } : {}),
     })
   }
 

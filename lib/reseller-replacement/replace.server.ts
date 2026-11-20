@@ -28,6 +28,8 @@ import {
   type PendingReplacement,
   type ReplacementStart,
 } from "@/lib/reseller-replacement/resume"
+import { locateWatchedVariant } from "@/lib/restock-watch/restock-watch"
+import { rowsForChoice } from "@/lib/variant-selection"
 import { effectiveReturnWindowDays, parseReturnWindowDays, RETURN_WINDOW_KEY } from "@/lib/return-terms"
 import { explicitSupplierCommissionPct, productHasExplicitSupplierCommission } from "@/lib/supplier-explicit-commission"
 import { resellerFacingSupplierLabel } from "@/lib/supplier-public-label"
@@ -52,6 +54,8 @@ const PRODUCT_SELECT = {
   tags: true,
   colors: true,
   deliveryMax: true,
+  customColumns: true,
+  productVariants: { select: { color: true, size: true, stock: true, customData: true }, take: 200 },
   supplier: { select: { store: { select: { name: true } } } },
   attributes: { where: { key: { in: ATTR_KEYS } }, select: { key: true, value: true } },
 } satisfies Prisma.ProductSelect
@@ -79,7 +83,11 @@ export type LoadedProposal =
  * READ-ONLY: the listing's problem and up to three really equivalent, sellable alternatives with the reseller's real
  * net per sale on each side and the differences. Scoped to the reseller (another reseller's listing = not found).
  */
-export async function loadReplacementProposal(affiliateId: string, listingId: string): Promise<LoadedProposal> {
+export async function loadReplacementProposal(
+  affiliateId: string,
+  listingId: string,
+  opts: { wantedVariantKey?: string } = {}
+): Promise<LoadedProposal> {
   const listing = await prisma.affiliateProduct.findFirst({
     where: { id: listingId, affiliateId },
     select: { id: true, isListed: true, sellingPriceCents: true, product: { select: PRODUCT_SELECT } },
@@ -116,7 +124,11 @@ export async function loadReplacementProposal(affiliateId: string, listingId: st
     or.push({ attributes: { some: { key: IDENTITY_KEYS.gtin, value: { in: spellings } } } })
   }
   if (or.length === 0) {
-    return { ok: true, proposal: buildReplacementProposal(original, [], { affiliateFeeBps: user?.affiliatePlatformFeeBps ?? null }), listingIsListed: listing.isListed }
+    return {
+      ok: true,
+      proposal: buildReplacementProposal(original, [], { affiliateFeeBps: user?.affiliatePlatformFeeBps ?? null, wantedVariant: Boolean(opts.wantedVariantKey) }),
+      listingIsListed: listing.isListed,
+    }
   }
   const rows = await prisma.product.findMany({
     where: { AND: [visible, { id: { not: p.id } }, { OR: or }] },
@@ -155,11 +167,21 @@ export async function loadReplacementProposal(affiliateId: string, listingId: st
     returnWindowDays: returnWindow(r),
     existingListing: existingBy.get(r.id) ?? null,
     defaultSellingPriceCents: suggestedSellingPriceCents(r.basePriceCents),
+    // Wanted-variant mode: the SAME exact variant (shared key) in the candidate — never « a similar size ».
+    ...(opts.wantedVariantKey
+      ? (() => {
+          const v = locateWatchedVariant(rowsForChoice(r.variants, r.productVariants, r.customColumns), r.customColumns, opts.wantedVariantKey!)
+          return { wantedVariant: v.status === "found" ? { status: "found" as const, stock: v.stock } : { status: v.status } }
+        })()
+      : {}),
   }))
 
   return {
     ok: true,
-    proposal: buildReplacementProposal(original, candidates, { affiliateFeeBps: user?.affiliatePlatformFeeBps ?? null }),
+    proposal: buildReplacementProposal(original, candidates, {
+      affiliateFeeBps: user?.affiliatePlatformFeeBps ?? null,
+      wantedVariant: Boolean(opts.wantedVariantKey),
+    }),
     listingIsListed: listing.isListed,
   }
 }
