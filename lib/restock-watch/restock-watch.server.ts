@@ -37,6 +37,7 @@ const MAX_WATCHES_PER_RUN = 2_000
 
 const listingSelect = {
   id: true,
+  affiliateId: true,
   isListed: true,
   productId: true,
   customTitle: true,
@@ -70,6 +71,13 @@ function rowsOf(l: WatchListing) {
 }
 
 /** The row the buyer's choice names, with its exact key — or why there is none. Same rule as checkout. */
+export async function resolveListingVariant(listingId: string, choice: VariantChoice) {
+  const l = await loadListing(listingId)
+  if (!l) return { ok: false as const, error: "listing_not_found" as const }
+  const r = resolveWatchedRow(l, choice)
+  return r.ok ? { ...r, affiliateId: l.affiliateId, isListed: l.isListed } : r
+}
+
 function resolveWatchedRow(l: WatchListing, choice: VariantChoice) {
   const rows = rowsOf(l)
   const r = resolveVariantChoice(rows, choice, l.product.customColumns)

@@ -5384,6 +5384,12 @@
         "ASSOCIATION": "Socio asociación",
         "FOREIGN": "Socio internacional"
       }
+    },
+    "variantAlternatives": {
+      "title": "Esta variante ({variant}) está agotada: disponible en esta tienda:",
+      "same": "Misma referencia",
+      "similar": "Producto similar",
+      "note": "Una sugerencia: el producto elegido sigue a la venta; tú decides."
     }
   },
   "success": {

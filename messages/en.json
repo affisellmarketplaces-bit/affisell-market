@@ -5384,6 +5384,12 @@
         "ASSOCIATION": "Association partner",
         "FOREIGN": "International partner"
       }
+    },
+    "variantAlternatives": {
+      "title": "This option ({variant}) is sold out — available in this shop:",
+      "same": "Same reference",
+      "similar": "Similar product",
+      "note": "A suggestion: the product you chose stays on sale; the choice is yours."
     }
   },
   "success": {

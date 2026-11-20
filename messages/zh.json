@@ -5384,6 +5384,12 @@
         "ASSOCIATION": "协会合作伙伴",
         "FOREIGN": "国际合作伙伴"
       }
+    },
+    "variantAlternatives": {
+      "title": "该款式（{variant}）已售罄——本店有货：",
+      "same": "相同编号",
+      "similar": "相似商品",
+      "note": "仅为建议：您选择的商品仍在售，由您决定。"
     }
   },
   "success": {

@@ -184,7 +184,7 @@ function dir(before: number | null, after: number | null, higherIsBetter: boolea
 export function buildReplacementProposal(
   original: OriginalListing,
   candidates: ReadonlyArray<ReplacementCandidate>,
-  opts: { affiliateFeeBps: number | null; wantedVariant?: boolean }
+  opts: { affiliateFeeBps: number | null; wantedVariant?: boolean; inShopOnly?: boolean }
 ): ReplacementProposal {
   const originalNet = computeResellerNetPerSale({
     supplierPriceCents: original.supplierPriceCents,
@@ -192,7 +192,13 @@ export function buildReplacementProposal(
     sellingPriceHtCents: original.sellingPriceHtCents,
     affiliateFeeBps: opts.affiliateFeeBps,
   })
-  const pool = candidates.filter((c) => c.productId !== original.productId && (opts.wantedVariant ? sellableForVariant(c) : sellable(c)))
+  const pool = candidates.filter(
+    (c) =>
+      c.productId !== original.productId &&
+      (opts.wantedVariant ? sellableForVariant(c) : sellable(c)) &&
+      // Buyer-facing mode: only products ALREADY live in this same shop — what a buyer of the shop can open right now.
+      (!opts.inShopOnly || (opts.wantedVariant === true && (c.existingListing?.isListed ?? false)))
+  )
   if (pool.length === 0) return { status: "none", original, originalNet, reason: "no_sellable_candidate" }
 
   const alternatives: Alternative[] = []

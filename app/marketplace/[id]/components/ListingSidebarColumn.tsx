@@ -15,6 +15,7 @@ import { ListingPurchaseDock } from "./ListingPurchaseDock"
 import { ListingDetailsPanel } from "./ListingDetailsPanel"
 import { ListingStorefrontCard } from "./ListingStorefrontCard"
 import { RestockWatchButton } from "@/components/restock/restock-watch-button"
+import { ShopVariantAlternatives } from "@/components/restock/shop-variant-alternatives"
 
 const BookingComingSoonRail = nextDynamic(
   () =>
@@ -245,6 +246,7 @@ export function ListingSidebarColumn({
         {restockWatch ? (
           <div className="px-4 py-2 lg:px-0">
             <RestockWatchButton choice={restockWatch} />
+            {storefront?.slug ? <ShopVariantAlternatives choice={restockWatch} storeSlug={storefront.slug} /> : null}
           </div>
         ) : null}
 

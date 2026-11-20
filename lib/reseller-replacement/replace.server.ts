@@ -86,7 +86,7 @@ export type LoadedProposal =
 export async function loadReplacementProposal(
   affiliateId: string,
   listingId: string,
-  opts: { wantedVariantKey?: string } = {}
+  opts: { wantedVariantKey?: string; inShopOnly?: boolean } = {}
 ): Promise<LoadedProposal> {
   const listing = await prisma.affiliateProduct.findFirst({
     where: { id: listingId, affiliateId },
@@ -181,6 +181,7 @@ export async function loadReplacementProposal(
     proposal: buildReplacementProposal(original, candidates, {
       affiliateFeeBps: user?.affiliatePlatformFeeBps ?? null,
       wantedVariant: Boolean(opts.wantedVariantKey),
+      inShopOnly: opts.inShopOnly === true,
     }),
     listingIsListed: listing.isListed,
   }

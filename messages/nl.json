@@ -5384,6 +5384,12 @@
         "ASSOCIATION": "Verenigingspartner",
         "FOREIGN": "Internationale partner"
       }
+    },
+    "variantAlternatives": {
+      "title": "Deze variant ({variant}) is uitverkocht — beschikbaar in deze winkel:",
+      "same": "Zelfde referentie",
+      "similar": "Vergelijkbaar product",
+      "note": "Een suggestie: het gekozen product blijft te koop, jij kiest."
     }
   },
   "success": {
