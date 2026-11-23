@@ -14,6 +14,7 @@ import { loadQualityEvidenceSafe } from "@/lib/commercial-readiness/readiness-co
 import { buildSheetChecklist, type QualityEvidence } from "@/lib/listing-quality/sheet-checklist"
 import { QUALITY_RESERVED_KEYS, sheetSignals } from "@/lib/listing-quality/sheet-facts"
 import { priceBandOf } from "@/lib/reseller-copilot/opportunity"
+import { loadSituationTracksForResellers, recordCopilotAdds, recordProposalSnapshots } from "@/lib/reseller-copilot/learning.server"
 
 /**
  * Reads what the reseller copilot needs (rules: selection.ts). READ-ONLY apart from `addSelection`, which goes through
@@ -244,26 +245,38 @@ async function loadMyCategories(affiliateId: string, now = new Date()): Promise<
  * The middle half of the reseller's OWN live selling prices (HT) — its usual price range. Its own data only; a failed
  * read or fewer than 5 listings = not judged.
  */
-async function loadMyPriceBand(affiliateId: string): Promise<{ p25: number; p75: number } | null> {
+async function loadMyPriceBand(affiliateId: string): Promise<{ band: { p25: number; p75: number } | null; listings: number | null }> {
   try {
     const rows = await prisma.affiliateProduct.findMany({ where: { affiliateId, isListed: true }, select: { sellingPriceCents: true }, take: 1000 })
-    return priceBandOf(rows.map((r) => r.sellingPriceCents))
+    return { band: priceBandOf(rows.map((r) => r.sellingPriceCents)), listings: rows.length }
   } catch (error) {
     console.error("[copilot] price_band_unreadable", error instanceof Error ? error.message : "unknown")
-    return null
+    return { band: null, listings: null }
   }
 }
 
 export async function loadResellerSelection(affiliateId: string, limit = 12) {
   const evidence = await loadQualityEvidenceSafe()
-  const [{ candidates, truncated }, feeBps, myCategories, priceBand] = await Promise.all([
+  const [{ candidates, truncated }, feeBps, myCategories, shop, situationTracks] = await Promise.all([
     loadCandidates(affiliateId, undefined, new Date(), evidence),
     feeBpsOf(affiliateId),
     loadMyCategories(affiliateId),
     loadMyPriceBand(affiliateId),
+    loadSituationTracksForResellers().catch(() => null),
   ])
+  const built = buildSelection(candidates, { affiliateFeeBps: feeBps, limit, myCategories, priceBand: shop.band, situationTracks })
+  // Learning loop (COPILOT_LEARNING_MODE, off by default): freeze what was really served, as it was served.
+  const byId = new Map(candidates.map((c) => [c.productId, c]))
+  await recordProposalSnapshots(
+    affiliateId,
+    built.selection.map((s) => {
+      const c = byId.get(s.productId)
+      return { ...s, categoryId: c?.categoryId ?? null, supplierPriceCents: c?.basePriceCents ?? 0, ageDays: c?.ageDays ?? null, offerMissing: c?.offerMissingMeasured ? c.offerMissingMeasured.length : null, stockKnown: c?.stockKnown ?? false }
+    }),
+    { shopListings: shop.listings },
+  )
   return {
-    ...buildSelection(candidates, { affiliateFeeBps: feeBps, limit, myCategories, priceBand }),
+    ...built,
     truncated,
     affiliateFeeBps: feeBps,
     personalised: myCategories.size > 0,
@@ -299,5 +312,6 @@ export async function addSelection(affiliateId: string, productIds: ReadonlyArra
     const r = await quickAddAffiliateListing({ affiliateId, productId })
     out.push(r.ok ? { productId, ok: true, created: r.created, listed: r.listing.isListed, publishBlocked: r.publishBlocked ?? null } : { productId, ok: false, error: r.error })
   }
+  await recordCopilotAdds(affiliateId, out.filter((o) => o.ok && o.created).map((o) => o.productId))
   return out
 }

@@ -3369,7 +3369,8 @@
           "category_affinity": "Prima di «{other}»: è nelle tue categorie, con un guadagno vicino (al massimo il 15 % di scarto).",
           "demand": "Prima di «{other}»: a pari guadagno, ha più ordini pagati.",
           "tie": "Alla pari con «{other}» su tutti i criteri."
-        }
+        },
+        "track": "Esperienza di Affisell su questa situazione: su {adds} aggiunte di {resellers} rivenditori, il {pct} % ha registrato almeno una vendita nel negozio entro 30 giorni (tra il {lo} e il {hi} %). Un'osservazione passata, non una promessa."
       }
     },
     "supplierAffisell": "Fornitore Affisell",

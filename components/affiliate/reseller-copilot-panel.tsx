@@ -245,6 +245,18 @@ function OpportunityDetails({ o }: { o: Opportunity }) {
       <p className="mt-1.5 font-medium">{t("actionTitle")}</p>
       <p className="text-zinc-700 dark:text-zinc-300">{t(`action.${o.action}`)}</p>
       {o.rankedAbove ? <p className="mt-1.5 text-zinc-500">{t(`rank.${o.rankedAbove.criterion}`, { other: o.rankedAbove.name })}</p> : null}
+      {o.track && o.track.saleShare != null && o.track.lo != null && o.track.hi != null ? (
+        <p className="mt-1.5 text-zinc-600 dark:text-zinc-400">
+          <span className={`mr-1 rounded px-1 text-[10px] font-medium uppercase ${QUAL_STYLE.fait}`}>{t("qualification.fait")}</span>
+          {t("track", {
+            adds: o.track.matureAdds,
+            resellers: o.track.resellers,
+            pct: Math.round(o.track.saleShare * 100),
+            lo: Math.round(o.track.lo * 100),
+            hi: Math.round(o.track.hi * 100),
+          })}
+        </p>
+      ) : null}
       <p className="mt-1.5 text-[11px] text-zinc-500">{t("honesty")}</p>
     </details>
   )

@@ -29,6 +29,7 @@
  */
 import type { QualityFeature } from "@/lib/listing-quality/quality-effect"
 import type { ResellerNet } from "@/lib/reseller-copilot/net-per-sale"
+import type { SituationTrack } from "@/lib/reseller-copilot/learning"
 
 export type FactQualification = "fait" | "calcul" | "estimation" | "insuffisant"
 export type Fact = { code: string; qualification: FactQualification; params?: Record<string, number | string> }
@@ -73,6 +74,11 @@ export type Opportunity = {
   action: OpportunityAction
   /** Pourquoi avant le suivant — the first criterion of the ranking that separates it from the next product. */
   rankedAbove?: { productId: string; name: string; criterion: RankCriterion }
+  /**
+   * What the copilot's advice in THIS situation was followed by on Affisell (learning loop, mode `on` only, measured
+   * groups only: ≥ 20 mature additions from ≥ 5 resellers). Aggregates; an observation, never a promise.
+   */
+  track?: Pick<SituationTrack, "matureAdds" | "resellers" | "saleShare" | "lo" | "hi">
 }
 
 export type OpportunityInput = {

@@ -3369,7 +3369,8 @@
           "category_affinity": "Vor „{other}“ eingeordnet: Es liegt in Ihren Kategorien, bei ähnlichem Gewinn (höchstens 15 % Abstand).",
           "demand": "Vor „{other}“ eingeordnet: Bei gleichem Gewinn hat es mehr bezahlte Bestellungen.",
           "tie": "Gleichauf mit „{other}“ bei allen Kriterien."
-        }
+        },
+        "track": "Erfahrung von Affisell mit dieser Situation: Von {adds} Aufnahmen durch {resellers} Wiederverkäufer verzeichneten {pct} % mindestens einen Verkauf im Shop innerhalb von 30 Tagen (zwischen {lo} und {hi} %). Eine vergangene Beobachtung, kein Versprechen."
       }
     },
     "supplierAffisell": "Affisell-Lieferant",

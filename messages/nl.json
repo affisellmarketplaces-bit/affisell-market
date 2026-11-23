@@ -3369,7 +3369,8 @@
           "category_affinity": "Vóór „{other}” geplaatst: het zit in uw categorieën, voor een vergelijkbare winst (hoogstens 15 % verschil).",
           "demand": "Vóór „{other}” geplaatst: bij gelijke winst heeft het meer betaalde bestellingen.",
           "tie": "Gelijk met „{other}” op alle criteria."
-        }
+        },
+        "track": "Ervaring van Affisell met deze situatie: van {adds} toevoegingen door {resellers} wederverkopers registreerde {pct} % minstens één verkoop in de winkel binnen 30 dagen (tussen {lo} en {hi} %). Een waarneming uit het verleden, geen belofte."
       }
     },
     "supplierAffisell": "Affisell-leverancier",

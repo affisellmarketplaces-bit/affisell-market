@@ -3369,7 +3369,8 @@
           "category_affinity": "Przed „{other}”: jest w Twoich kategoriach, przy zbliżonym zysku (różnica najwyżej 15 %).",
           "demand": "Przed „{other}”: przy równym zysku ma więcej opłaconych zamówień.",
           "tie": "Na równi z „{other}” we wszystkich kryteriach."
-        }
+        },
+        "track": "Doświadczenie Affisell w tej sytuacji: z {adds} dodań przez {resellers} sprzedawców {pct} % odnotowało co najmniej jedną sprzedaż w sklepie w ciągu 30 dni (od {lo} do {hi} %). Obserwacja z przeszłości, nie obietnica."
       }
     },
     "supplierAffisell": "Dostawca Affisell",

@@ -3369,7 +3369,8 @@
           "category_affinity": "Placé avant « {other} » : il est dans vos catégories, pour un gain proche (écart de 15 % au plus).",
           "demand": "Placé avant « {other} » : à gain égal, il a plus de commandes payées.",
           "tie": "À égalité avec « {other} » sur tous les critères."
-        }
+        },
+        "track": "Recul d'Affisell sur cette situation : sur {adds} ajouts par {resellers} revendeurs, {pct} % ont enregistré au moins une vente dans la boutique sous 30 jours (entre {lo} et {hi} %). Constat passé, pas une promesse."
       }
     },
     "supplierAffisell": "Fournisseur Affisell",

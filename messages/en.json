@@ -3369,7 +3369,8 @@
           "category_affinity": "Placed before “{other}”: it is in your categories, for a close gain (at most 15% apart).",
           "demand": "Placed before “{other}”: for an equal gain, it has more paid orders.",
           "tie": "Tied with “{other}” on every criterion."
-        }
+        },
+        "track": "Affisell's hindsight on this situation: of {adds} additions by {resellers} resellers, {pct}% recorded at least one sale in the shop within 30 days (between {lo} and {hi}%). A past observation, not a promise."
       }
     },
     "supplierAffisell": "Affisell supplier",

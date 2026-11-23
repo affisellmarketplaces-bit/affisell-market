@@ -3369,7 +3369,8 @@
           "category_affinity": "排在「{other}」之前：它属于您的类目，收益相近（差距不超过 15%）。",
           "demand": "排在「{other}」之前：收益相同的情况下，它的已付款订单更多。",
           "tie": "在所有标准上与「{other}」并列。"
-        }
+        },
+        "track": "Affisell 对此情形的经验：在 {resellers} 个分销商的 {adds} 次上架中，{pct}% 在 30 天内于店铺中至少有一笔销售（{lo}% 至 {hi}% 之间）。这是过去的观察，不是承诺。"
       }
     },
     "supplierAffisell": "Affisell 供应商",

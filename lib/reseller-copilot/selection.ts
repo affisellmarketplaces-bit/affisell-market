@@ -16,6 +16,7 @@
 import { computeResellerNetPerSale, type ResellerNet } from "@/lib/reseller-copilot/net-per-sale"
 import type { QualityFeature } from "@/lib/listing-quality/quality-effect"
 import { assessOpportunity, categoryStanding, type Opportunity, type RankCriterion } from "@/lib/reseller-copilot/opportunity"
+import { trackForProfile, type SituationTrack } from "@/lib/reseller-copilot/learning"
 
 export type Qualification = "catalogue" | "calcul" | "observe" | "suggestion"
 
@@ -170,7 +171,14 @@ export function risingLifts(item: Pick<SelectionItem, "trend" | "net">, medianNe
  */
 export function buildSelection(
   candidates: ReadonlyArray<SelectionCandidate>,
-  opts: { affiliateFeeBps: number | null; limit: number; myCategories?: ReadonlySet<string> | null; priceBand?: { p25: number; p75: number } | null }
+  opts: {
+    affiliateFeeBps: number | null
+    limit: number
+    myCategories?: ReadonlySet<string> | null
+    priceBand?: { p25: number; p75: number } | null
+    /** Learning loop (mode `on`): measured situations, shown beside the reading — never used to rank. */
+    situationTracks?: readonly SituationTrack[] | null
+  }
 ): { selection: SelectionItem[]; blocked: SelectionItem[]; considered: number; alreadyInShop: number } {
   const fresh = candidates.filter((c) => !c.inMyShop)
   const personalised = Boolean(opts.myCategories && opts.myCategories.size > 0)
@@ -247,6 +255,8 @@ export function buildSelection(
       priceBand: opts.priceBand ?? null,
       fit: a.fit,
     })
+    const track = trackForProfile(opts.situationTracks ?? null, a.opportunity.profile)
+    if (track && track.verdict === "mesure") a.opportunity.track = { matureAdds: track.matureAdds, resellers: track.resellers, saleShare: track.saleShare, lo: track.lo, hi: track.hi }
     const next = picked[idx + 1]
     if (next) a.opportunity.rankedAbove = { productId: next.productId, name: next.name, criterion: rankCriterion(a, next) }
   })

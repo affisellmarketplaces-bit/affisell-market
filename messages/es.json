@@ -3369,7 +3369,8 @@
           "category_affinity": "Situado antes de «{other}»: está en sus categorías, con una ganancia cercana (15 % de diferencia como máximo).",
           "demand": "Situado antes de «{other}»: con igual ganancia, tiene más pedidos pagados.",
           "tie": "Empatado con «{other}» en todos los criterios."
-        }
+        },
+        "track": "Experiencia de Affisell en esta situación: de {adds} incorporaciones de {resellers} revendedores, el {pct} % registró al menos una venta en la tienda en 30 días (entre el {lo} y el {hi} %). Una observación pasada, no una promesa."
       }
     },
     "supplierAffisell": "Proveedor Affisell",
