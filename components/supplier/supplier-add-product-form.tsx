@@ -91,6 +91,8 @@ import { SupplierShippingIncludedNotice } from "@/components/supplier/shipping-i
 import { ReturnWindowField } from "@/components/supplier/return-window-field"
 import { SupplyCostSection } from "@/components/supplier/supply-cost-section"
 import { ProductJourneyPanel } from "@/components/supplier/product-journey-panel"
+import { SheetQualityChecklist } from "@/components/supplier/sheet-quality-checklist"
+import { countSpecifications, sheetSignals } from "@/lib/listing-quality/sheet-facts"
 import { variantStockBaselineFromRows } from "@/lib/stock/partner-stock"
 import { CANONICAL_RETURN_WINDOW_LABEL, parseReturnWindowDays, RETURN_WINDOW_KEY } from "@/lib/return-terms"
 import { shippingMethodsFromCarrierIds } from "@/lib/shipping/supplier-carrier-offers-shared"
@@ -572,6 +574,27 @@ export function SupplierAddProductForm({
   } | null>(null)
   const [, setAttrsLoading] = useState(false)
   const mergedCategoryAttrs = useMemo(() => mergeCoreCategoryAttrs(categoryAttrs), [categoryAttrs])
+  // Live sheet check: the same 12 elements and rules as the sheet-quality measure, read on what is typed now.
+  const sheetQualitySignals = useMemo(() => {
+    const attributes = Object.entries(specValues).map(([key, value]) => ({ key, value: value ?? "" }))
+    const filledSku = variantFormMode === "advanced" ? advancedSkuRows.filter((r) => r.color.trim()) : []
+    const num = (v: string) => (v.trim() !== "" && Number.isFinite(Number(v)) ? Number(v) : null)
+    const stockN =
+      variantFormMode === "advanced" && filledSku.length > 0 ? sumSkuTableStock(filledSku) : Math.max(0, Math.round(Number(stock) || 0))
+    return sheetSignals({
+      name,
+      descriptionHtml: description,
+      imageCount: images.filter((u) => u.trim()).length,
+      listingKind,
+      stock: stockN,
+      variants: filledSku.length > 1 ? { variantRows: skuTableRowsToProductVariantLines(filledSku, 100) } : null,
+      customColumns: skuCustomColumns,
+      deliveryMin: num(deliveryMin),
+      deliveryMax: num(deliveryMax),
+      attributes,
+      specCount: countSpecifications(attributes),
+    })
+  }, [specValues, variantFormMode, advancedSkuRows, stock, name, description, images, listingKind, skuCustomColumns, deliveryMin, deliveryMax])
 
   const commissionMax = affiliateCommissionMaxPct(listingKind)
 
@@ -3454,6 +3477,7 @@ export function SupplierAddProductForm({
                         />
                       </SectionCard>
                     ) : null}
+                    <SheetQualityChecklist signals={sheetQualitySignals} />
                   </div>
 
                   {editId ? (

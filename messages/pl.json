@@ -2315,6 +2315,31 @@
         "expired": "wygasłe"
       },
       "costsNote": "Koszty zaopatrzenia są opcjonalne i poufne: nie warunkują publikacji, ceny ani prowizji."
+    },
+    "sheetChecklist": {
+      "title": "Kontrola oferty",
+      "intro": "12 elementów, które pomiar jakości Affisell odczytuje w ofercie w sprzedaży, sprawdzanych podczas pisania.",
+      "summary": "Obecne elementy: {present} z {applicable}",
+      "missingTitle": "Do uzupełnienia",
+      "presentTitle": "Już obecne",
+      "evidence": "Zaobserwowano na Affisell: porównywalne oferty z tym elementem odnotowały {ratio} razy więcej sprzedaży dziennie w sklepie (co najmniej {lo} razy).",
+      "caveat": "Związek statystyczny, a nie udowodniona zależność przyczynowo-skutkowa. Uzupełnienie elementu nie gwarantuje żadnej dodatkowej sprzedaży.",
+      "noEvidence": "Dla tych elementów nie ustalono jeszcze żadnego związku na Affisell: są wymienione jako fakty, bez obietnicy sprzedaży.",
+      "allDone": "Wszystkie 12 mających zastosowanie elementów jest obecnych.",
+      "label": {
+        "photos_3plus": "3 zdjęcia lub więcej",
+        "photos_5plus": "5 zdjęć lub więcej",
+        "title_precise": "Precyzyjny tytuł",
+        "description_200plus": "Opis od 200 znaków",
+        "specs_3plus": "3 cechy lub więcej",
+        "variants_distinct": "Rozróżnialne warianty",
+        "gtin_valid": "Prawidłowy kod kreskowy (GTIN)",
+        "brand_declared": "Podana marka",
+        "delivery_declared": "Podany czas dostawy",
+        "return_extended": "Zwrot powyżej 14 dni",
+        "safety_complete": "Kompletne dane bezpieczeństwa produktu",
+        "stock_confirmed": "Rzeczywista ilość w magazynie"
+      }
     }
   },
   "affiliate": {

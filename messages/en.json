@@ -2315,6 +2315,31 @@
         "expired": "expired"
       },
       "costsNote": "Supply costs are optional and confidential: they never condition publication, price or commission."
+    },
+    "sheetChecklist": {
+      "title": "Sheet check",
+      "intro": "The 12 elements Affisell's quality measure reads on a live sheet, checked while you write.",
+      "summary": "{present} of {applicable} elements present",
+      "missingTitle": "To complete",
+      "presentTitle": "Already present",
+      "evidence": "Observed on Affisell: comparable listings with this element recorded {ratio} times more sales per day in shops (at least {lo} times).",
+      "caveat": "Statistical association, not a demonstrated cause and effect. Completing an element does not guarantee any extra sale.",
+      "noEvidence": "No association is established on Affisell yet for these elements: they are listed as facts, with no sales promise.",
+      "allDone": "All 12 applicable elements are present.",
+      "label": {
+        "photos_3plus": "3 photos or more",
+        "photos_5plus": "5 photos or more",
+        "title_precise": "Precise title",
+        "description_200plus": "Description of 200 characters or more",
+        "specs_3plus": "3 specifications or more",
+        "variants_distinct": "Distinct variants",
+        "gtin_valid": "Valid barcode (GTIN)",
+        "brand_declared": "Brand stated",
+        "delivery_declared": "Delivery time stated",
+        "return_extended": "Returns beyond 14 days",
+        "safety_complete": "Product safety complete",
+        "stock_confirmed": "Real quantity in stock"
+      }
     }
   },
   "affiliate": {

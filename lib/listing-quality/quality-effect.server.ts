@@ -2,10 +2,6 @@ import "server-only"
 
 import { unstable_cache } from "next/cache"
 
-import { isStockUnconfirmed, STOCK_UNCONFIRMED_KEY } from "@/lib/import-stock"
-import { evaluateListingReadiness } from "@/lib/listing-compliance/evaluate"
-import { isValidGtin } from "@/lib/listing-compliance/gtin"
-import { IDENTITY_KEYS, LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
 import {
   buildQualityEffectReport,
   listingDaysInWindow,
@@ -16,20 +12,15 @@ import {
   type QualityProduct,
   type QualityRecommendation,
 } from "@/lib/listing-quality/quality-effect"
+import { QUALITY_RESERVED_KEYS, sheetSignals } from "@/lib/listing-quality/sheet-facts"
 import { isOrderClosedForPayout } from "@/lib/orders/payment-state"
 import { prisma } from "@/lib/prisma"
-import { effectiveReturnWindowDays, parseReturnWindowDays, RETURN_WINDOW_KEY } from "@/lib/return-terms"
 import { rootOfCategory } from "@/lib/strategic-intelligence/catalog-opportunities"
-import { indistinctVariantRows } from "@/lib/variant-selection"
 
 const DAY = 86_400_000
 const MAX_PRODUCTS = 5_000
 const MAX_ROWS = 60_000
-// Same set as the catalogue health (`diagnose.ts`): one definition of « physical » for the supplier.
-const NON_PHYSICAL = new Set(["SOFTWARE", "SUBSCRIPTION", "SERVICE", "EXPERIENCE"])
-const READ_KEYS = [...new Set([...LISTING_COMPLIANCE_KEYS, IDENTITY_KEYS.gtin, IDENTITY_KEYS.brand, STOCK_UNCONFIRMED_KEY, RETURN_WINDOW_KEY])]
-
-const stripHtml = (s: string) => s.replace(/<[^>]*>/g, " ").replace(/&[a-z#0-9]+;/gi, " ").replace(/\s+/g, " ").trim()
+const READ_KEYS = [...QUALITY_RESERVED_KEYS]
 
 async function readProducts(where: { supplierId?: string }) {
   const rows = await prisma.product.findMany({
@@ -59,18 +50,13 @@ async function readProducts(where: { supplierId?: string }) {
   const ids = products.map((p) => p.id)
   const [specCounts, cats] = await Promise.all([
     ids.length
-      ? prisma.productAttribute.groupBy({ by: ["productId"], where: { productId: { in: ids }, key: { notIn: READ_KEYS } }, _count: { _all: true } })
+      ? prisma.productAttribute.groupBy({ by: ["productId"], where: { productId: { in: ids }, key: { notIn: READ_KEYS }, NOT: { value: "" } }, _count: { _all: true } })
       : Promise.resolve([]),
     prisma.category.findMany({ select: { id: true, parentId: true }, take: 50_000 }),
   ])
   const specBy = new Map(specCounts.map((s) => [s.productId, s._count._all]))
   const parentOf = new Map(cats.map((c) => [c.id, c.parentId]))
   const quality: Array<QualityProduct & { name: string }> = products.map((p) => {
-    const attr = (k: string) => p.attributes.find((a) => a.key === k)?.value?.trim() ?? ""
-    const physical = !NON_PHYSICAL.has((p.listingKind ?? "PHYSICAL").trim().toUpperCase())
-    const readiness = evaluateListingReadiness({ listingKind: p.listingKind, attributes: p.attributes })
-    const rows = (p.variants as { variantRows?: unknown[] } | null)?.variantRows
-    const hasRows = Array.isArray(rows) && rows.length > 1
     return {
       id: p.id,
       supplierId: p.supplierId,
@@ -78,20 +64,20 @@ async function readProducts(where: { supplierId?: string }) {
       rootCategoryId: rootOfCategory(p.categoryId, parentOf),
       basePriceCents: p.basePriceCents,
       createdAt: p.createdAt,
-      imageCount: p.images.length,
-      title: p.name,
-      descriptionText: stripHtml(p.description ?? ""),
-      specCount: specBy.get(p.id) ?? 0,
-      variantsDistinct: hasRows ? indistinctVariantRows(p.variants, p.customColumns).rows <= 1 : null,
-      gtinValid: isValidGtin(attr(IDENTITY_KEYS.gtin)),
-      brandDeclared: attr(IDENTITY_KEYS.brand).length > 0,
-      deliveryMin: p.deliveryMin,
-      deliveryMax: p.deliveryMax,
-      returnWindowDays: effectiveReturnWindowDays(parseReturnWindowDays(attr(RETURN_WINDOW_KEY))),
-      safetyComplete: readiness.applicable ? readiness.blocking.length === 0 : null,
-      physical,
-      stock: p.stock,
-      stockUnconfirmed: isStockUnconfirmed(p.attributes),
+      // ONE definition shared with the supplier's forms (lib/listing-quality/sheet-facts.ts).
+      ...sheetSignals({
+        name: p.name,
+        descriptionHtml: p.description ?? "",
+        imageCount: p.images.length,
+        listingKind: p.listingKind,
+        stock: p.stock,
+        variants: p.variants,
+        customColumns: p.customColumns,
+        deliveryMin: p.deliveryMin,
+        deliveryMax: p.deliveryMax,
+        attributes: p.attributes,
+        specCount: specBy.get(p.id) ?? 0,
+      }),
     }
   })
   return { quality, truncated }

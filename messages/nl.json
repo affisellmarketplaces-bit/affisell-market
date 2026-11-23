@@ -2315,6 +2315,31 @@
         "expired": "verlopen"
       },
       "costsNote": "Inkoopkosten zijn optioneel en vertrouwelijk: ze bepalen publicatie, prijs en commissie niet."
+    },
+    "sheetChecklist": {
+      "title": "Controle van de productpagina",
+      "intro": "De 12 elementen die de kwaliteitsmeting van Affisell leest op een pagina die te koop staat, gecontroleerd terwijl u schrijft.",
+      "summary": "{present} van {applicable} elementen aanwezig",
+      "missingTitle": "Aan te vullen",
+      "presentTitle": "Al aanwezig",
+      "evidence": "Waargenomen op Affisell: vergelijkbare productpagina's met dit element hadden {ratio} keer meer verkopen per dag in de winkel (minstens {lo} keer).",
+      "caveat": "Statistisch verband, geen aangetoond oorzakelijk verband. Een element aanvullen garandeert geen extra verkoop.",
+      "noEvidence": "Voor deze elementen is op Affisell nog geen verband vastgesteld: ze worden als feiten vermeld, zonder verkoopbelofte.",
+      "allDone": "Alle 12 toepasselijke elementen zijn aanwezig.",
+      "label": {
+        "photos_3plus": "3 foto's of meer",
+        "photos_5plus": "5 foto's of meer",
+        "title_precise": "Precieze titel",
+        "description_200plus": "Beschrijving van 200 tekens of meer",
+        "specs_3plus": "3 kenmerken of meer",
+        "variants_distinct": "Onderscheidbare varianten",
+        "gtin_valid": "Geldige barcode (GTIN)",
+        "brand_declared": "Merk vermeld",
+        "delivery_declared": "Levertijd vermeld",
+        "return_extended": "Retour langer dan 14 dagen",
+        "safety_complete": "Productveiligheid volledig",
+        "stock_confirmed": "Echte voorraad"
+      }
     }
   },
   "affiliate": {

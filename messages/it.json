@@ -2315,6 +2315,31 @@
         "expired": "scaduti"
       },
       "costsNote": "I costi di approvvigionamento sono facoltativi e riservati: non condizionano la pubblicazione, il prezzo o la commissione."
+    },
+    "sheetChecklist": {
+      "title": "Controllo della scheda",
+      "intro": "I 12 elementi che la misura di qualità di Affisell legge su una scheda in vendita, verificati mentre scrive.",
+      "summary": "{present} elementi su {applicable} presenti",
+      "missingTitle": "Da completare",
+      "presentTitle": "Già presenti",
+      "evidence": "Osservato su Affisell: le schede comparabili con questo elemento hanno registrato {ratio} volte più vendite al giorno in negozio (almeno {lo} volte).",
+      "caveat": "Associazione statistica, non un rapporto di causa-effetto dimostrato. Completare un elemento non garantisce alcuna vendita in più.",
+      "noEvidence": "Su Affisell non è ancora stabilita alcuna associazione per questi elementi: sono elencati come fatti, senza promessa di vendite.",
+      "allDone": "Tutti i 12 elementi applicabili sono presenti.",
+      "label": {
+        "photos_3plus": "3 foto o più",
+        "photos_5plus": "5 foto o più",
+        "title_precise": "Titolo preciso",
+        "description_200plus": "Descrizione di 200 caratteri o più",
+        "specs_3plus": "3 caratteristiche o più",
+        "variants_distinct": "Varianti distinguibili",
+        "gtin_valid": "Codice a barre (GTIN) valido",
+        "brand_declared": "Marca indicata",
+        "delivery_declared": "Tempi di consegna indicati",
+        "return_extended": "Reso oltre 14 giorni",
+        "safety_complete": "Sicurezza del prodotto completa",
+        "stock_confirmed": "Quantità reale in magazzino"
+      }
     }
   },
   "affiliate": {

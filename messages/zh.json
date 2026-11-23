@@ -2315,6 +2315,31 @@
         "expired": "已过期"
       },
       "costsNote": "供货成本为可选且保密信息：不影响发布、价格或佣金。"
+    },
+    "sheetChecklist": {
+      "title": "商品页检查",
+      "intro": "Affisell 质量测量在在售商品页上读取的 12 个要素，在您填写时即时检查。",
+      "summary": "已具备 {present}/{applicable} 个要素",
+      "missingTitle": "待补充",
+      "presentTitle": "已具备",
+      "evidence": "在 Affisell 上观察到：具备该要素的可比商品页每天店铺销量是其他商品页的 {ratio} 倍（至少 {lo} 倍）。",
+      "caveat": "这是统计关联，并非已证实的因果关系。补充某个要素并不保证带来任何额外销量。",
+      "noEvidence": "Affisell 尚未就这些要素确立任何关联：它们仅作为事实列出，不承诺销量。",
+      "allDone": "全部 12 个适用要素均已具备。",
+      "label": {
+        "photos_3plus": "3 张及以上照片",
+        "photos_5plus": "5 张及以上照片",
+        "title_precise": "标题精确",
+        "description_200plus": "描述不少于 200 个字符",
+        "specs_3plus": "3 项及以上规格",
+        "variants_distinct": "变体可区分",
+        "gtin_valid": "有效条码（GTIN）",
+        "brand_declared": "已填写品牌",
+        "delivery_declared": "已填写交货时间",
+        "return_extended": "退货期超过 14 天",
+        "safety_complete": "产品安全信息完整",
+        "stock_confirmed": "真实库存数量"
+      }
     }
   },
   "affiliate": {
