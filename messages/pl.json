@@ -9738,11 +9738,11 @@
       }
     },
     "listingQuality": {
-      "title": "Co idzie w parze z większą sprzedażą na Affisell",
+      "title": "Elementy powiązane z większą sprzedażą na Affisell",
       "intro": "Na Affisell w ciągu {days} dni karty z tymi elementami sprzedawały więcej na dzień w sklepie niż karty tej samej kategorii, przedziału cenowego i wieku bez nich. Te karty jeszcze ich nie mają:",
-      "evidence": "Na Affisell: {ratio}× więcej sprzedaży na dzień w sklepie (co najmniej {lo}×, z marginesem błędu).",
+      "evidence": "Zaobserwowano na Affisell: porównywalne oferty z tym elementem odnotowały {ratio} razy więcej sprzedaży dziennie w sklepie (co najmniej {lo} razy, z uwzględnieniem marginesu błędu).",
       "cta": "Uzupełnij kartę",
-      "caveat": "Zaobserwowany związek, nie obietnica: ruch w sklepach, cena sprzedawcy i inne czynniki nie są mierzone. Nic nie zmienia się bez Ciebie.",
+      "caveat": "Związek statystyczny, a nie udowodniona zależność przyczynowo-skutkowa: ruch w sklepach, cena odsprzedawcy i inne czynniki nie są mierzone. Dodanie tego elementu nie gwarantuje żadnej dodatkowej sprzedaży. Nic nie jest zmieniane bez Państwa zgody.",
       "feature": {
         "photos_3plus": "Dodaj co najmniej 3 zdjęcia.",
         "photos_5plus": "Dodaj co najmniej 5 zdjęć.",
@@ -9847,7 +9847,7 @@
       "quality_delivery_declared": "Nie podano czasu dostawy.",
       "quality_return_extended": "Termin zwrotu to tylko 14 dni."
     },
-    "qualityEvidence": "Na Affisell porównywalne karty z tym elementem sprzedają {ratio}× więcej na dzień w sklepie (co najmniej {lo}×) — zaobserwowany związek, nie obietnica."
+    "qualityEvidence": "Zaobserwowano na Affisell: porównywalne oferty z tym elementem odnotowały {ratio} razy więcej sprzedaży dziennie w sklepie (co najmniej {lo} razy). Związek statystyczny, a nie dowód, że jego dodanie zwiększy sprzedaż."
   },
   "restockWatch": {
     "cta": "Powiadom mnie, gdy ten wariant wróci",

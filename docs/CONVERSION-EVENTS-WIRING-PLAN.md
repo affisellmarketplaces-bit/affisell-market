@@ -1,6 +1,6 @@
 # Plan de branchement des événements de conversion — à valider
 
-Statut : **plan uniquement** (2026-11-23). Rien n'est branché, aucune collecte, aucun consentement modifié, aucune migration appliquée.
+Statut : **décisions D1–D6 prises le 2026-11-23 (§8)** ; préparation technique faite sur la branche, **rien n'est branché dans les pages, aucune collecte, aucune migration appliquée, aucun déploiement**.
 Objectif : relier vues de fiches → ajouts panier → checkout → commandes, pour l'intelligence commerciale (dont la mesure qualité des fiches, `lib/listing-quality/`), avec un minimum de données personnelles.
 
 ## 1. Ce qui existe déjà (lu dans le code)
@@ -81,3 +81,30 @@ Objectif : relier vues de fiches → ajouts panier → checkout → commandes, p
 5. Activation en préproduction, contrôle des volumes et des doublons, puis décision d'activation en production.
 
 **Sous mon autonomie, sans rien activer** : fonctions pures d'agrégation et de dédoublonnage, lecteur de consentement côté serveur, tests, documentation. **Soumis à ta validation** : tout ce qui collecte (S3 branché, S4, S5), les migrations, la purge, les textes légaux.
+
+## 8. Décisions du fondateur (2026-11-23) et ce qui est préparé
+
+| Décision | Retenu | Fait sur la branche (rien d'activé) |
+|---|---|---|
+| D1 | L'ancien suivi respecte le consentement | `/api/track`, `/api/pulse/view` et la ligne `checkout_initiated` de l'assistant n'écrivent plus rien sans consentement analytique, lu **côté serveur** dans le cookie (`lib/events/consent.ts`, prudent : cookie illisible = refus). Le navigateur n'envoie plus rien sans consentement (`lib/affisell-track-client.ts`). Le compteur anonyme des publications Pulse (+1, sans identifiant) est conservé. **Minimisation en plus** : l'identifiant de compte n'est gardé que pour un compte revendeur (`legacyTrackingUserId`), car les trois seuls lecteurs comptent des revendeurs ; l'identifiant d'un acheteur n'est plus jamais enregistré. **Effet attendu une fois déployé** : moins de vues dans les sept lecteurs (seuls les visiteurs consentants comptent). |
+| D2 | Pas de compteur sans cookie | Rien construit. |
+| D3 | 90 jours de lignes brutes, puis agrégats, purge vérifiable | `lib/events/aggregate.ts` (agrégats par fiche × jour UTC : vues dédoublonnées par session × fiche × 30 min, vues uniques, panier, débuts de paiement ; fiches inconnues écartées ; session > 300 événements / jour exclue ; seuils d'affichage) et `lib/events/purge.ts` (`EVENTS_PURGE_MODE` off par défaut / observe / enforce : un jour n'est supprimé **que si ses agrégats sont stockés**, sinon il est bloqué ; chaque jour supprimé est recompté et prouvé ; un reste ≠ 0 arrête la purge). Non planifié, non relié à la base : sans table d'agrégats (D5), aucune suppression n'est possible. |
+| D4 | Mesure agrégée uniquement | Le point d'entrée n'enregistre ni identifiant de compte ni identifiant visiteur durable : seulement un identifiant d'onglet (`sessionStorage`), suffisant pour les vues uniques. Aucun lien vers la commande. Le ratio s'appelle « commandes pour 100 vues mesurées », masqué sous 100 vues ; vues uniques masquées sous 5. |
+| D5 | Vérifier, ne rien appliquer | Voir §9. |
+| D6 | Préparer les textes, sans publier | `docs/CONVERSION-EVENTS-LEGAL-TEXTS-DRAFT.md` (avec trois écarts constatés entre le code et les textes publiés). |
+
+**Point d'entrée** `POST /api/events` (S3) : interrupteur `CONVERSION_EVENTS_MODE` (seul « on » l'ouvre ; par défaut il répond sans lire la requête), même site, limite par IP (60 / min) et par session (120 / h), taille ≤ 16 Ko, consentement relu dans le cookie **avant** de lire le corps, robots écartés, schéma strict existant, écrivain existant. **Client** `lib/events/client.ts` : double verrou (`NEXT_PUBLIC_CONVERSION_EVENTS_MODE=on` + consentement à chaque envoi), file vidée et identifiant effacé au retrait du consentement ; **importé par aucune page** (un test le vérifie). Tests : `conversion-events-wiring`, `conversion-events-client`.
+
+## 9. Migrations — état vérifié dans le dépôt (D5, rien appliqué, aucune connexion à une base)
+
+- `20261007140000_event_spine` (table `AffisellTrackEvent` enrichie) est **déjà sur `main`**. Son application en production est probable (le build Vercel vérifie le schéma avant de servir), mais **non vérifiée** : `npm run schema:verify` contre la production demande ton accord.
+- Six migrations n'existent **que sur cette branche** : `product_price_history`, `listing_price_history`, `reseller_profit_alerts`, `intelligence_decision_journal`, `intelligence_signal_log`, `procurement_debit_register`. **Conséquence** : un déploiement de cette branche échouera à l'étape de vérification du schéma (sortie 5) tant qu'elles ne sont pas appliquées, à la main, avant le push (`schema:migrate -- --expect-endpoint <ep>`). Les lecteurs concernés sont défensifs (table absente = « pas de données »).
+- **À créer plus tard (non écrite)** : une table d'agrégats journaliers, seule condition pour que la purge D3 puisse supprimer quoi que ce soit. Proposition : `ListingEventDaily(day DATE, listingId TEXT, views INT, uniqueViews INT, addToCart INT, removeFromCart INT, checkoutsStarted INT, computedAt TIMESTAMPTZ, PRIMARY KEY (day, listingId))` + un registre des jours agrégés et des preuves de purge (comptes seulement). Aucun identifiant de personne. Elle n'est pas ajoutée maintenant pour ne pas alourdir la liste des migrations à appliquer avant déploiement.
+- **Index** : la purge par jour s'appuie sur `createdAt` ; l'index `(eventType, createdAt)` existe. À mesurer en préproduction avant toute purge réelle.
+
+## 10. Prochaines étapes, toutes soumises à ton autorisation
+
+1. Relecture juridique et publication des textes (D6), traduits en 8 langues.
+2. Déploiement de D1 (réduit la collecte ; possible avant les nouveaux textes).
+3. Création et application de la table d'agrégats (migration), puis purge en `observe` en préproduction.
+4. Branchement S4 (vues, panier) dans les pages, puis activation en préproduction et contrôle des volumes et des doublons.

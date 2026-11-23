@@ -310,3 +310,33 @@ describe("next best action — sheet improvements backed by the measure", () => 
     }
   })
 })
+
+describe("wording: an association, never a promised gain (founder rule 2026-11-23)", () => {
+  const load = (loc: string) => JSON.parse(readFileSync(join(process.cwd(), `messages/${loc}.json`), "utf8")) as {
+    catalogHealth: { listingQuality: Record<string, string> }
+    nextActions: Record<string, unknown> & { qualityEvidence: string }
+  }
+  it("every locale states the limit beside the figure, in the past tense of what was recorded", () => {
+    for (const loc of ["fr", "en", "de", "es", "it", "nl", "pl", "zh"]) {
+      const m = load(loc)
+      for (const s of [m.catalogHealth.listingQuality.evidence, m.nextActions.qualityEvidence]) {
+        expect(s, loc).toContain("{ratio}")
+        expect(s, loc).toContain("{lo}")
+      }
+      expect(m.catalogHealth.listingQuality.caveat.length, loc).toBeGreaterThan(40)
+    }
+    const fr = load("fr")
+    expect(fr.catalogHealth.listingQuality.caveat).toContain("pas une relation de cause à effet démontrée")
+    expect(fr.catalogHealth.listingQuality.caveat).toContain("ne garantit aucune vente supplémentaire")
+    expect(fr.nextActions.qualityEvidence).toContain("Association statistique")
+    expect(fr.nextActions.qualityEvidence).toContain("ont enregistré")
+    const en = load("en")
+    expect(en.catalogHealth.listingQuality.caveat).toContain("not a demonstrated cause and effect")
+    expect(en.nextActions.qualityEvidence).toContain("not proof")
+  })
+  it("the quality figure is never shown as the action's « potential impact »", () => {
+    const card = readFileSync(join(process.cwd(), "components/next-best-action/next-actions-card.tsx"), "utf8")
+    const impactFn = card.slice(card.indexOf("const impactLine"), card.indexOf("return `${t(\"impact.label\")}"))
+    expect(impactFn).not.toContain("qualityRatio")
+  })
+})

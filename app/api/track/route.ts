@@ -1,14 +1,22 @@
 import { auth } from "@/auth"
+import { analyticsConsentFromCookieHeader, legacyTrackingUserId } from "@/lib/events/consent"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
 
 const ALLOWED = new Set(["view", "hover", "add_to_cart", "checkout_initiated"])
 
-/** Carousel / PDP lightweight analytics. */
+/**
+ * Carousel / PDP lightweight analytics (legacy, read by social proof and the supplier / reseller dashboards).
+ * Founder decision D1 (2026-11-23): written ONLY with the visitor's analytics consent, read server-side from the
+ * consent cookie — without it nothing is read from the body and nothing is stored.
+ */
 export async function POST(req: Request) {
+  if (!analyticsConsentFromCookieHeader(req.headers.get("cookie"))) {
+    return Response.json({ ok: false, skipped: true })
+  }
   const session = await auth()
-  const userId = session?.user?.id ?? null
+  const userId = legacyTrackingUserId(session?.user)
 
   let body: unknown
   try {

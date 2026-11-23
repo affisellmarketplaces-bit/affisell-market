@@ -1,4 +1,5 @@
 import { getOrCreateAgentSessionId } from "@/lib/agent-session"
+import { hasAnalyticsConsent } from "@/lib/legal/cookie-consent-runtime"
 
 type TrackType = "view" | "hover" | "add_to_cart"
 
@@ -7,6 +8,8 @@ export function trackAffisellEvent(
   productId: string | undefined,
   options?: { durationMs?: number }
 ) {
+  // D1: nothing is sent (and no session id is created for it) without analytics consent; the server checks again.
+  if (!hasAnalyticsConsent()) return
   const sessionId = getOrCreateAgentSessionId()
   void fetch("/api/track", {
     method: "POST",

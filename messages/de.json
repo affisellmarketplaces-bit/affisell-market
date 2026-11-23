@@ -9738,11 +9738,11 @@
       }
     },
     "listingQuality": {
-      "title": "Was auf Affisell mit mehr Verkäufen einhergeht",
+      "title": "Elemente, die auf Affisell mit mehr Verkäufen einhergehen",
       "intro": "Auf Affisell haben Produktseiten mit diesen Elementen in {days} Tagen mehr Verkäufe pro Tag im Shop erzielt als Seiten derselben Kategorie, Preisklasse und desselben Alters ohne sie. Diesen Seiten fehlen sie noch:",
-      "evidence": "Auf Affisell: {ratio}-mal mehr Verkäufe pro Tag im Shop (mindestens {lo}-mal, Fehlerspanne inbegriffen).",
+      "evidence": "Auf Affisell beobachtet: Vergleichbare Angebote mit diesem Element verzeichneten {ratio}-mal mehr Verkäufe pro Tag im Shop (mindestens {lo}-mal, Fehlerspanne eingerechnet).",
       "cta": "Seite vervollständigen",
-      "caveat": "Ein beobachteter Zusammenhang, kein Versprechen: Shop-Traffic, Preis des Wiederverkäufers und andere Faktoren werden nicht gemessen. Ohne Sie wird nichts geändert.",
+      "caveat": "Statistischer Zusammenhang, kein nachgewiesener Ursache-Wirkungs-Zusammenhang: Shop-Traffic, Preis des Wiederverkäufers und andere Faktoren werden nicht gemessen. Das Hinzufügen dieses Elements garantiert keinen zusätzlichen Verkauf. Ohne Sie wird nichts geändert.",
       "feature": {
         "photos_3plus": "Fügen Sie mindestens 3 Fotos hinzu.",
         "photos_5plus": "Fügen Sie mindestens 5 Fotos hinzu.",
@@ -9847,7 +9847,7 @@
       "quality_delivery_declared": "Die Lieferzeit ist nicht angegeben.",
       "quality_return_extended": "Die Rückgabefrist beträgt nur 14 Tage."
     },
-    "qualityEvidence": "Auf Affisell erzielen vergleichbare Seiten mit diesem Element {ratio}-mal mehr Verkäufe pro Tag im Shop (mindestens {lo}-mal) – ein beobachteter Zusammenhang, kein Versprechen."
+    "qualityEvidence": "Auf Affisell beobachtet: Vergleichbare Angebote mit diesem Element verzeichneten {ratio}-mal mehr Verkäufe pro Tag im Shop (mindestens {lo}-mal). Statistischer Zusammenhang, kein Beweis, dass es den Verkauf steigert."
   },
   "restockWatch": {
     "cta": "Benachrichtigen, wenn diese Variante zurück ist",

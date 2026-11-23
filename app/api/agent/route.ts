@@ -22,6 +22,7 @@ import { compactAgentMessagesForModel } from "@/lib/agent-message-compact"
 import { validateAgentMessages } from "@/lib/agent-message-bounds"
 import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
 import { createCheckoutSession } from "@/lib/agent-checkout"
+import { analyticsConsentFromCookieHeader } from "@/lib/events/consent"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
 
@@ -141,7 +142,9 @@ export async function POST(req: Request) {
         error: "Je n'ai pas trouvé de produit récent. Lancez une recherche puis dites \"je prends\".",
       })
     }
-    const checkout = await createCheckoutSession(candidateProductId, userId ?? undefined)
+    const checkout = await createCheckoutSession(candidateProductId, userId ?? undefined, {
+      analyticsConsent: analyticsConsentFromCookieHeader(req.headers.get("cookie")),
+    })
     if (checkout && checkout.checkoutUrl === null && checkout.reason === "out_of_stock") {
       return Response.json({ error: `${checkout.name} n'est plus en stock. Voulez-vous voir des alternatives ?` })
     }

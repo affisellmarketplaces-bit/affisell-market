@@ -81,7 +81,11 @@ export type AgentCheckoutResult =
   | { checkoutUrl: null; reason: "out_of_stock" | "price_updating"; name: string }
   | { checkoutUrl: null; reason: "variant_choice_required"; name: string; productPath: string }
 
-export async function createCheckoutSession(productId: string, userId?: string): Promise<AgentCheckoutResult | null> {
+export async function createCheckoutSession(
+  productId: string,
+  userId?: string,
+  opts: { analyticsConsent?: boolean } = {},
+): Promise<AgentCheckoutResult | null> {
   const stripe = getStripeClient()
   const id = productId.trim()
   if (!id) return null
@@ -164,13 +168,15 @@ export async function createCheckoutSession(productId: string, userId?: string):
     },
   })
 
-  await prisma.affisellTrackEvent.create({
-    data: {
-      eventType: "checkout_initiated",
-      productId: listing.productId,
-      userId: userId ?? undefined,
-    },
-  })
+  // Legacy behavioural row: only with analytics consent (D1), and without the buyer's account id (no reader uses it).
+  if (opts.analyticsConsent === true) {
+    await prisma.affisellTrackEvent.create({
+      data: {
+        eventType: "checkout_initiated",
+        productId: listing.productId,
+      },
+    })
+  }
 
   if (!session.url) return null
 

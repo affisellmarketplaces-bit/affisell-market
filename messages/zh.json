@@ -9740,9 +9740,9 @@
     "listingQuality": {
       "title": "在 Affisell 上与更多销量相关的要素",
       "intro": "在 Affisell 上，{days} 天内，具备这些要素的商品页在店铺中每天的销量，高于同类目、同价格段、同上架时长但不具备这些要素的商品页。以下商品页尚未具备：",
-      "evidence": "在 Affisell 上：店铺中每天销量为 {ratio} 倍（考虑误差后至少 {lo} 倍）。",
+      "evidence": "在 Affisell 上观察到：具备该要素的可比商品页在店铺中每天的销量是其他商品页的 {ratio} 倍（计入误差后至少 {lo} 倍）。",
       "cta": "完善商品页",
-      "caveat": "这是观察到的关联，不是承诺：店铺流量、转售商价格等因素未被测量。未经您同意不会做任何修改。",
+      "caveat": "这是统计上的关联，并非已证实的因果关系：店铺流量、分销商定价及其他因素均未被测量。添加该要素并不保证带来任何额外销量。未经您同意，不会做任何更改。",
       "feature": {
         "photos_3plus": "至少添加 3 张照片。",
         "photos_5plus": "至少添加 5 张照片。",
@@ -9847,7 +9847,7 @@
       "quality_delivery_declared": "未填写配送时间。",
       "quality_return_extended": "退货期仅为 14 天。"
     },
-    "qualityEvidence": "在 Affisell 上，具备该要素的同类商品页每天在店铺中的销量为 {ratio} 倍（至少 {lo} 倍）——这是观察到的关联，不是承诺。"
+    "qualityEvidence": "在 Affisell 上观察到：具备该要素的可比商品页每天店铺销量是其他商品页的 {ratio} 倍（至少 {lo} 倍）。这只是统计关联，不能证明添加后会卖得更多。"
   },
   "restockWatch": {
     "cta": "此款式到货时通知我",

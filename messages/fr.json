@@ -9738,11 +9738,11 @@
       }
     },
     "listingQuality": {
-      "title": "Ce qui va avec plus de ventes sur Affisell",
+      "title": "Éléments associés à plus de ventes sur Affisell",
       "intro": "Sur Affisell, sur {days} jours, les fiches qui ont ces éléments ont fait plus de ventes par jour de présence en boutique que celles de même catégorie, même gamme de prix et même ancienneté qui ne les ont pas. Ces fiches ne les ont pas encore :",
-      "evidence": "Sur Affisell : {ratio} fois plus de ventes par jour en boutique (au moins {lo} fois, marge d'erreur comprise).",
+      "evidence": "Observé sur Affisell : les fiches comparables qui ont cet élément ont enregistré {ratio} fois plus de ventes par jour en boutique (au moins {lo} fois, marge d'erreur comprise).",
       "cta": "Compléter la fiche",
-      "caveat": "Association observée, pas une promesse : le trafic des boutiques, le prix du revendeur et d'autres facteurs ne sont pas mesurés. Rien n'est modifié sans vous.",
+      "caveat": "Association statistique, pas une relation de cause à effet démontrée : le trafic des boutiques, le prix du revendeur et d'autres facteurs ne sont pas mesurés. Ajouter cet élément ne garantit aucune vente supplémentaire. Rien n'est modifié sans vous.",
       "feature": {
         "photos_3plus": "Ajoutez au moins 3 photos.",
         "photos_5plus": "Ajoutez au moins 5 photos.",
@@ -9847,7 +9847,7 @@
       "quality_delivery_declared": "Le délai de livraison n'est pas indiqué.",
       "quality_return_extended": "Le délai de retour est de 14 jours seulement."
     },
-    "qualityEvidence": "Sur Affisell, les fiches comparables qui ont cet élément font {ratio} fois plus de ventes par jour en boutique (au moins {lo} fois) — association observée, pas une promesse."
+    "qualityEvidence": "Observé sur Affisell : les fiches comparables qui ont cet élément ont enregistré {ratio} fois plus de ventes par jour en boutique (au moins {lo} fois). Association statistique, pas une preuve que l'ajouter fera vendre davantage."
   },
   "restockWatch": {
     "cta": "Me prévenir au retour de cette déclinaison",

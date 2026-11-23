@@ -9738,11 +9738,11 @@
       }
     },
     "listingQuality": {
-      "title": "Wat op Affisell samengaat met meer verkopen",
+      "title": "Elementen die op Affisell samengaan met meer verkopen",
       "intro": "Op Affisell verkochten productpagina's met deze elementen in {days} dagen meer per dag in een winkel dan pagina's van dezelfde categorie, prijsklasse en leeftijd zonder. Deze pagina's hebben ze nog niet:",
-      "evidence": "Op Affisell: {ratio}× meer verkopen per dag in een winkel (minstens {lo}×, foutmarge inbegrepen).",
+      "evidence": "Waargenomen op Affisell: vergelijkbare productpagina's met dit element hadden {ratio} keer meer verkopen per dag in de winkel (minstens {lo} keer, foutmarge inbegrepen).",
       "cta": "Pagina aanvullen",
-      "caveat": "Een waargenomen verband, geen belofte: winkelverkeer, de prijs van de wederverkoper en andere factoren worden niet gemeten. Niets wordt zonder jou gewijzigd.",
+      "caveat": "Statistisch verband, geen aangetoond oorzakelijk verband: winkelverkeer, de prijs van de wederverkoper en andere factoren worden niet gemeten. Dit element toevoegen garandeert geen extra verkoop. Er wordt niets gewijzigd zonder u.",
       "feature": {
         "photos_3plus": "Voeg minstens 3 foto's toe.",
         "photos_5plus": "Voeg minstens 5 foto's toe.",
@@ -9847,7 +9847,7 @@
       "quality_delivery_declared": "De levertijd is niet vermeld.",
       "quality_return_extended": "De retourtermijn is slechts 14 dagen."
     },
-    "qualityEvidence": "Op Affisell verkopen vergelijkbare pagina's met dit element {ratio}× meer per dag in een winkel (minstens {lo}×) — een waargenomen verband, geen belofte."
+    "qualityEvidence": "Waargenomen op Affisell: vergelijkbare productpagina's met dit element hadden {ratio} keer meer verkopen per dag in de winkel (minstens {lo} keer). Statistisch verband, geen bewijs dat toevoegen meer verkopen oplevert."
   },
   "restockWatch": {
     "cta": "Laat het me weten als deze variant terug is",

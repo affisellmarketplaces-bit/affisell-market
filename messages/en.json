@@ -9738,11 +9738,11 @@
       }
     },
     "listingQuality": {
-      "title": "What goes with more sales on Affisell",
+      "title": "Elements associated with more sales on Affisell",
       "intro": "On Affisell, over {days} days, sheets with these elements made more sales per day in a shop than sheets of the same category, price band and age without them. These sheets do not have them yet:",
-      "evidence": "On Affisell: {ratio}× more sales per day in a shop (at least {lo}×, margin of error included).",
+      "evidence": "Observed on Affisell: comparable listings with this element recorded {ratio} times more sales per day in shops (at least {lo} times, margin of error included).",
       "cta": "Complete the sheet",
-      "caveat": "An observed association, not a promise: shop traffic, the reseller's price and other factors are not measured. Nothing is changed without you.",
+      "caveat": "Statistical association, not a demonstrated cause and effect: shop traffic, the reseller's price and other factors are not measured. Adding this element does not guarantee any extra sale. Nothing is changed without you.",
       "feature": {
         "photos_3plus": "Add at least 3 photos.",
         "photos_5plus": "Add at least 5 photos.",
@@ -9847,7 +9847,7 @@
       "quality_delivery_declared": "The delivery time is not given.",
       "quality_return_extended": "The return window is only 14 days."
     },
-    "qualityEvidence": "On Affisell, comparable sheets with this element make {ratio}× more sales per day in a shop (at least {lo}×) — an observed association, not a promise."
+    "qualityEvidence": "Observed on Affisell: comparable listings with this element recorded {ratio} times more sales per day in shops (at least {lo} times). Statistical association, not proof that adding it will sell more."
   },
   "restockWatch": {
     "cta": "Notify me when this option is back",

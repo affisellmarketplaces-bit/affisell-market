@@ -9738,11 +9738,11 @@
       }
     },
     "listingQuality": {
-      "title": "Cosa va con più vendite su Affisell",
+      "title": "Elementi associati a più vendite su Affisell",
       "intro": "Su Affisell, in {days} giorni, le schede con questi elementi hanno venduto di più per giorno in negozio rispetto a quelle della stessa categoria, fascia di prezzo e anzianità senza. Queste schede non li hanno ancora:",
-      "evidence": "Su Affisell: {ratio} volte più vendite per giorno in negozio (almeno {lo} volte, margine d'errore incluso).",
+      "evidence": "Osservato su Affisell: le schede comparabili con questo elemento hanno registrato {ratio} volte più vendite al giorno in negozio (almeno {lo} volte, margine di errore incluso).",
       "cta": "Completa la scheda",
-      "caveat": "Associazione osservata, non una promessa: traffico dei negozi, prezzo del rivenditore e altri fattori non sono misurati. Nulla viene modificato senza di te.",
+      "caveat": "Associazione statistica, non un rapporto di causa-effetto dimostrato: il traffico dei negozi, il prezzo del rivenditore e altri fattori non sono misurati. Aggiungere questo elemento non garantisce alcuna vendita in più. Nulla viene modificato senza di lei.",
       "feature": {
         "photos_3plus": "Aggiungi almeno 3 foto.",
         "photos_5plus": "Aggiungi almeno 5 foto.",
@@ -9847,7 +9847,7 @@
       "quality_delivery_declared": "I tempi di consegna non sono indicati.",
       "quality_return_extended": "Il periodo di reso è di soli 14 giorni."
     },
-    "qualityEvidence": "Su Affisell, le schede comparabili con questo elemento vendono {ratio} volte di più per giorno in negozio (almeno {lo} volte) — associazione osservata, non una promessa."
+    "qualityEvidence": "Osservato su Affisell: le schede comparabili con questo elemento hanno registrato {ratio} volte più vendite al giorno in negozio (almeno {lo} volte). Associazione statistica, non una prova che aggiungerlo faccia vendere di più."
   },
   "restockWatch": {
     "cta": "Avvisami quando torna questa variante",

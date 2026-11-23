@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { analyticsConsentFromCookieHeader, legacyTrackingUserId } from "@/lib/events/consent"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-/** Increment Pulse clip view count (community posts). */
+/**
+ * Increment Pulse clip view count (community posts) — an anonymous +1 on the post, no identifier, kept as is.
+ * The per-product view ROW (it carries the account id) is written only with analytics consent (founder decision D1).
+ */
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as {
     source?: string
@@ -25,9 +29,9 @@ export async function POST(req: Request) {
     })
   }
 
-  const session = await auth()
-  const userId = session?.user?.id ?? null
-  if (productId) {
+  if (productId && analyticsConsentFromCookieHeader(req.headers.get("cookie"))) {
+    const session = await auth()
+    const userId = legacyTrackingUserId(session?.user)
     await prisma.affisellTrackEvent.create({
       data: {
         eventType: "view",

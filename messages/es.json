@@ -9738,11 +9738,11 @@
       }
     },
     "listingQuality": {
-      "title": "Lo que va con más ventas en Affisell",
+      "title": "Elementos asociados a más ventas en Affisell",
       "intro": "En Affisell, en {days} días, las fichas con estos elementos vendieron más por día en tienda que las de la misma categoría, franja de precio y antigüedad sin ellos. Estas fichas aún no los tienen:",
-      "evidence": "En Affisell: {ratio} veces más ventas por día en tienda (al menos {lo} veces, margen de error incluido).",
+      "evidence": "Observado en Affisell: las fichas comparables con este elemento registraron {ratio} veces más ventas por día en tienda (al menos {lo} veces, margen de error incluido).",
       "cta": "Completar la ficha",
-      "caveat": "Asociación observada, no una promesa: el tráfico de las tiendas, el precio del revendedor y otros factores no se miden. Nada se cambia sin ti.",
+      "caveat": "Asociación estadística, no una relación causa-efecto demostrada: el tráfico de las tiendas, el precio del revendedor y otros factores no se miden. Añadir este elemento no garantiza ninguna venta adicional. Nada se modifica sin usted.",
       "feature": {
         "photos_3plus": "Añade al menos 3 fotos.",
         "photos_5plus": "Añade al menos 5 fotos.",
@@ -9847,7 +9847,7 @@
       "quality_delivery_declared": "No se indica el plazo de entrega.",
       "quality_return_extended": "El plazo de devolución es solo de 14 días."
     },
-    "qualityEvidence": "En Affisell, las fichas comparables con este elemento venden {ratio} veces más por día en tienda (al menos {lo} veces): asociación observada, no una promesa."
+    "qualityEvidence": "Observado en Affisell: las fichas comparables con este elemento registraron {ratio} veces más ventas por día en tienda (al menos {lo} veces). Asociación estadística, no una prueba de que añadirlo hará vender más."
   },
   "restockWatch": {
     "cta": "Avisarme cuando vuelva esta opción",
