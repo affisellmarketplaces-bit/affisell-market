@@ -9,6 +9,7 @@ import {
 } from "@/lib/next-best-action/next-best-action"
 import { prisma } from "@/lib/prisma"
 import { loadSupplierRestockDemand } from "@/lib/restock-watch/restock-demand.server"
+import { loadSupplierQualityRecommendations } from "@/lib/listing-quality/quality-effect.server"
 import { markRestockRecommendationShown } from "@/lib/restock-watch/restock-funnel.server"
 import { loadShopRestockDemand, markShopDemandRecommended } from "@/lib/restock-watch/shop-demand.server"
 import { listingProblem } from "@/lib/reseller-replacement/listing-state"
@@ -20,12 +21,16 @@ const MAX_LISTINGS = 300
 
 /** Supplier: 1–3 actions from its own catalogue health. Read-only. */
 export async function loadSupplierNextActions(supplierId: string): Promise<NextAction[]> {
-  const [health, demand] = await Promise.all([
+  const [health, demand, quality] = await Promise.all([
     loadSupplierCatalogHealth(supplierId),
     // The buyers' restock signal is an extra reason, never a condition: a failed read = no restock action.
     loadSupplierRestockDemand(supplierId).catch(() => null),
+    // Sheet-quality evidence (marketplace aggregate): an extra reason, never a condition.
+    loadSupplierQualityRecommendations(supplierId)
+      .then((r) => r.recommendations)
+      .catch(() => []),
   ])
-  const actions = supplierNextActions(health, 3, demand?.products ?? [])
+  const actions = supplierNextActions(health, 3, demand?.products ?? [], quality)
   // Step 2 of the measurement chain: the recommendation was really served to this supplier (first time only).
   for (const a of actions) {
     if (a.kind !== "answer_restock_demand") continue

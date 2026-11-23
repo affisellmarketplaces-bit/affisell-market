@@ -14,6 +14,7 @@
  */
 import type { RestockDemandProduct } from "@/lib/restock-watch/restock-demand"
 import type { ShopDemandItem } from "@/lib/restock-watch/shop-demand"
+import type { QualityFeature, QualityRecommendation } from "@/lib/listing-quality/quality-effect"
 import type { HealthClass, HealthIssue, HealthIssueCode, HealthReport } from "@/lib/supplier-catalog-health/diagnose"
 
 export type ActionPriority = "haute" | "moyenne" | "basse"
@@ -47,6 +48,13 @@ export type NextAction = {
     netChangeCents?: number
     /** Distinct buyers who explicitly asked to be told when THIS variant is back (≥ 3) — demand, not a sales forecast. */
     waitingBuyers?: number
+    /**
+     * Marketplace AGGREGATE association for the sheet element this action is about (same category, price band, age;
+     * ≥ 5 suppliers each side): sales per day in a shop with the element ÷ without, and the interval's lower bound.
+     * An association, never a promise.
+     */
+    qualityRatio?: number
+    qualityRatioLow?: number
   }
   /** The exact variant the action is about (its label in the supplier's own sheet), when it is about one. */
   variantLabel?: string
@@ -152,8 +160,30 @@ export function restockDemandCandidates(demand: ReadonlyArray<RestockDemandProdu
   return out
 }
 
-export function supplierNextActions(report: HealthReport, max = 3, restockDemand: ReadonlyArray<RestockDemandProduct> = []): NextAction[] {
+/** Catalogue-health codes that ARE a sheet element the quality measure judges. */
+const ISSUE_FEATURE: Partial<Record<HealthIssueCode, QualityFeature>> = {
+  few_photos: "photos_3plus",
+  short_description: "description_200plus",
+  no_gtin: "gtin_valid",
+}
+/** Sheet elements the health report does not diagnose: they become an action ONLY on measured evidence. */
+const EVIDENCE_ONLY_FEATURES: ReadonlySet<QualityFeature> = new Set([
+  "title_precise",
+  "specs_3plus",
+  "photos_5plus",
+  "brand_declared",
+  "delivery_declared",
+  "return_extended",
+])
+
+export function supplierNextActions(
+  report: HealthReport,
+  max = 3,
+  restockDemand: ReadonlyArray<RestockDemandProduct> = [],
+  quality: ReadonlyArray<QualityRecommendation> = []
+): NextAction[] {
   const cands: Array<NextAction & { score: number }> = [...restockDemandCandidates(restockDemand)]
+  const qualityBy = new Map(quality.map((q) => [`${q.productId}\u0000${q.feature}`, q]))
   const demandProducts = new Set(cands.map((c) => c.productId))
   for (const i of report.issues) {
     const kind = SUPPLIER_KIND[i.code]
@@ -165,21 +195,44 @@ export function supplierNextActions(report: HealthReport, max = 3, restockDemand
     for (const [k, v] of Object.entries(i.evidence)) evidence[k] = { value: v, qualification: i.source }
     evidence.paidOrders30d = { value: i.demand.paidOrders30d, qualification: "observe" }
     evidence.resellersListing = { value: i.demand.resellersListing, qualification: "observe" }
+    // A sheet gap with an ESTABLISHED association on Affisell gets the evidence and one priority step (never above « moyenne »).
+    const feature = ISSUE_FEATURE[i.code]
+    const q = feature ? qualityBy.get(`${i.productId}\u0000${feature}`) : undefined
     cands.push({
       key: `${kind}:${i.productId}`,
       kind,
       productId: i.productId,
       productName: i.productName,
       reason: i.code,
-      priority: PRIORITY_BY_CLASS[i.cls],
+      priority: q && PRIORITY_BY_CLASS[i.cls] === "basse" ? "moyenne" : PRIORITY_BY_CLASS[i.cls],
       evidence,
       impact: {
         qualification: "potentiel",
         paidOrders30d: i.demand.paidOrders30d,
         resellersListing: i.demand.resellersListing,
+        ...(q ? { qualityRatio: q.adjustedRatio, qualityRatioLow: q.lo } : {}),
       },
       href: hrefForSupplier(i, kind),
-      score: i.impactScore,
+      score: q ? i.impactScore * q.lo : i.impactScore,
+    })
+  }
+  // Elements the health report does not diagnose: an action only with measured evidence AND some distribution.
+  for (const q of quality) {
+    if (!EVIDENCE_ONLY_FEATURES.has(q.feature) || q.resellersListing + q.paidOrders90d === 0) continue
+    cands.push({
+      key: `complete_sheet:${q.productId}`,
+      kind: "complete_sheet",
+      productId: q.productId,
+      productName: q.productName,
+      reason: `quality_${q.feature}`,
+      priority: "moyenne",
+      evidence: {
+        resellersListing: { value: q.resellersListing, qualification: "observe" },
+        qualityRatioLow: { value: Math.round(q.lo * 10) / 10, qualification: "calcul" },
+      },
+      impact: { qualification: "potentiel", resellersListing: q.resellersListing, qualityRatio: q.adjustedRatio, qualityRatioLow: q.lo },
+      href: `/dashboard/supplier/products/${encodeURIComponent(q.productId)}/edit`,
+      score: 100 * (q.lo - 1) * (1 + q.resellersListing + q.paidOrders90d),
     })
   }
   return pickDistinct(cands, Math.max(1, Math.min(3, max))).map(({ score: _s, ...a }) => a)

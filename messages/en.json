@@ -9839,8 +9839,15 @@
       "stock_cover_short": "At the current sales pace, the stock runs out in less than two weeks (calculation).",
       "variant_rows_indistinct": "Some variants share the same colour, size and capacity: buyers can not choose between them.",
       "restock_demand": "{count, plural, one {# buyer is} other {# buyers are}} waiting for {variant}. Update this variant's availability to answer this demand.",
-      "shop_restock_demand": "{count, plural, one {# buyer of your shop is waiting for} other {# buyers of your shop are waiting for}} {variant}. You can offer them an available alternative; this is not a guaranteed sale."
-    }
+      "shop_restock_demand": "{count, plural, one {# buyer of your shop is waiting for} other {# buyers of your shop are waiting for}} {variant}. You can offer them an available alternative; this is not a guaranteed sale.",
+      "quality_title_precise": "The title is not precise (under 3 words, too short or in capitals).",
+      "quality_specs_3plus": "Fewer than 3 specifications filled in.",
+      "quality_photos_5plus": "Fewer than 5 photos.",
+      "quality_brand_declared": "The brand is not given.",
+      "quality_delivery_declared": "The delivery time is not given.",
+      "quality_return_extended": "The return window is only 14 days."
+    },
+    "qualityEvidence": "On Affisell, comparable sheets with this element make {ratio}× more sales per day in a shop (at least {lo}×) — an observed association, not a promise."
   },
   "restockWatch": {
     "cta": "Notify me when this option is back",

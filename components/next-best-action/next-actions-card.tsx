@@ -74,6 +74,11 @@ export function NextActionsCard({ role }: { role: "supplier" | "affiliate" }) {
               </span>
             </div>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{t(`reason.${a.reason}`, { variant: a.variantLabel ?? "", count: a.impact.waitingBuyers ?? 0 })}</p>
+            {a.impact.qualityRatio != null && a.impact.qualityRatioLow != null ? (
+              <p className="mt-1 text-xs text-zinc-500">
+                {t("qualityEvidence", { ratio: a.impact.qualityRatio.toFixed(1), lo: a.impact.qualityRatioLow.toFixed(1) })}
+              </p>
+            ) : null}
             <p className="mt-1 text-xs text-zinc-500">{impactLine(a)}</p>
             <Link href={a.href} className="mt-2 inline-block text-sm font-medium text-violet-700 underline">
               {t(`cta.${a.kind}`)}

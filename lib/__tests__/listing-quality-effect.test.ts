@@ -253,3 +253,60 @@ describe("8 locales", () => {
     }
   })
 })
+
+// ── From measure to action: the supplier's next best action carries the evidence ──────────────────────────────────
+import { supplierNextActions } from "@/lib/next-best-action/next-best-action"
+import type { HealthIssue, HealthReport } from "@/lib/supplier-catalog-health/diagnose"
+import type { QualityRecommendation } from "@/lib/listing-quality/quality-effect"
+
+describe("next best action — sheet improvements backed by the measure", () => {
+  const issue = (over: Partial<HealthIssue>): HealthIssue => ({
+    code: "few_photos",
+    cls: "recommandation",
+    productId: "p1",
+    productName: "Lampe",
+    source: "fiche",
+    fix: "edit_product",
+    evidence: { photos: 1 },
+    demand: { paidOrders30d: 2, resellersListing: 3 },
+    impactScore: 10,
+    ...over,
+  })
+  const report = (issues: HealthIssue[]): HealthReport =>
+    ({ productsChecked: 1, issues, counts: { blocage: 0, anomalie: 0, avertissement: 0, recommandation: issues.length }, blockedProducts: 0, healthyProducts: 0, truncated: false })
+  const rec = (over: Partial<QualityRecommendation>): QualityRecommendation => ({
+    productId: "p1",
+    productName: "Lampe",
+    feature: "photos_3plus",
+    adjustedRatio: 2,
+    lo: 1.4,
+    resellersListing: 3,
+    paidOrders90d: 4,
+    priority: 1,
+    ...over,
+  })
+
+  it("a diagnosed gap with an established association carries the ratio and moves from « basse » to « moyenne »", () => {
+    const [a] = supplierNextActions(report([issue({})]), 3, [], [rec({})])
+    expect(a).toMatchObject({ kind: "complete_sheet", reason: "few_photos", priority: "moyenne", impact: { qualityRatio: 2, qualityRatioLow: 1.4 } })
+  })
+  it("without evidence nothing changes (same priority, no ratio)", () => {
+    const [a] = supplierNextActions(report([issue({})]), 3, [], [])
+    expect(a!.priority).toBe("basse")
+    expect(a!.impact).not.toHaveProperty("qualityRatio")
+  })
+  it("an element the health report does not diagnose becomes an action only with evidence and some distribution", () => {
+    const [a] = supplierNextActions(report([]), 3, [], [rec({ feature: "specs_3plus" })])
+    expect(a).toMatchObject({ kind: "complete_sheet", reason: "quality_specs_3plus", href: "/dashboard/supplier/products/p1/edit" })
+    expect(supplierNextActions(report([]), 3, [], [rec({ feature: "specs_3plus", resellersListing: 0, paidOrders90d: 0 })])).toEqual([])
+    // Elements owned by other actions (stock, safety, variants) never come in through this door.
+    expect(supplierNextActions(report([]), 3, [], [rec({ feature: "stock_confirmed" })])).toEqual([])
+  })
+  it("every new reason has its text in 8 locales", () => {
+    for (const l of ["fr", "en", "de", "es", "it", "nl", "pl", "zh"]) {
+      const m = JSON.parse(readFileSync(join(process.cwd(), `messages/${l}.json`), "utf8")) as { nextActions: { qualityEvidence: string; reason: Record<string, string> } }
+      expect(m.nextActions.qualityEvidence).toContain("{lo}")
+      for (const f of ["title_precise", "specs_3plus", "photos_5plus", "brand_declared", "delivery_declared", "return_extended"]) expect(m.nextActions.reason[`quality_${f}`]).toBeTruthy()
+    }
+  })
+})

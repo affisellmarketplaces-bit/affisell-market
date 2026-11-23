@@ -9839,8 +9839,15 @@
       "stock_cover_short": "Przy obecnym tempie sprzedaży zapas wyczerpie się w mniej niż dwa tygodnie (obliczenie).",
       "variant_rows_indistinct": "Niektóre warianty mają ten sam kolor, rozmiar i pojemność: kupujący nie może wybrać między nimi.",
       "restock_demand": "{count, plural, one {# kupujący czeka} few {# kupujących czeka} many {# kupujących czeka} other {# kupującego czeka}} na {variant}. Zaktualizuj dostępność tego wariantu, aby odpowiedzieć na popyt.",
-      "shop_restock_demand": "{count, plural, one {# kupujący z Twojego sklepu czeka na} few {# kupujących z Twojego sklepu czeka na} many {# kupujących z Twojego sklepu czeka na} other {# kupującego z Twojego sklepu czeka na}} {variant}. Możesz zaproponować dostępną alternatywę; to nie jest gwarantowana sprzedaż."
-    }
+      "shop_restock_demand": "{count, plural, one {# kupujący z Twojego sklepu czeka na} few {# kupujących z Twojego sklepu czeka na} many {# kupujących z Twojego sklepu czeka na} other {# kupującego z Twojego sklepu czeka na}} {variant}. Możesz zaproponować dostępną alternatywę; to nie jest gwarantowana sprzedaż.",
+      "quality_title_precise": "Tytuł jest nieprecyzyjny (mniej niż 3 słowa, za krótki lub wielkimi literami).",
+      "quality_specs_3plus": "Uzupełniono mniej niż 3 cechy.",
+      "quality_photos_5plus": "Mniej niż 5 zdjęć.",
+      "quality_brand_declared": "Nie podano marki.",
+      "quality_delivery_declared": "Nie podano czasu dostawy.",
+      "quality_return_extended": "Termin zwrotu to tylko 14 dni."
+    },
+    "qualityEvidence": "Na Affisell porównywalne karty z tym elementem sprzedają {ratio}× więcej na dzień w sklepie (co najmniej {lo}×) — zaobserwowany związek, nie obietnica."
   },
   "restockWatch": {
     "cta": "Powiadom mnie, gdy ten wariant wróci",

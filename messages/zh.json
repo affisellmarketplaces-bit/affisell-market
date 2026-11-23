@@ -9839,8 +9839,15 @@
       "stock_cover_short": "按当前销售速度，库存将在两周内售罄（计算）。",
       "variant_rows_indistinct": "部分规格的颜色、尺码和容量完全相同：买家无法在它们之间选择。",
       "restock_demand": "{count} 位买家正在等待 {variant}。请更新该款式的库存以回应这一需求。",
-      "shop_restock_demand": "您店铺有 {count} 位买家在等待 {variant}。您可以为他们提供有货的替代品；这不是确定的销售。"
-    }
+      "shop_restock_demand": "您店铺有 {count} 位买家在等待 {variant}。您可以为他们提供有货的替代品；这不是确定的销售。",
+      "quality_title_precise": "标题不够准确（少于 3 个词、过短或全部大写）。",
+      "quality_specs_3plus": "填写的规格少于 3 项。",
+      "quality_photos_5plus": "照片少于 5 张。",
+      "quality_brand_declared": "未填写品牌。",
+      "quality_delivery_declared": "未填写配送时间。",
+      "quality_return_extended": "退货期仅为 14 天。"
+    },
+    "qualityEvidence": "在 Affisell 上，具备该要素的同类商品页每天在店铺中的销量为 {ratio} 倍（至少 {lo} 倍）——这是观察到的关联，不是承诺。"
   },
   "restockWatch": {
     "cta": "此款式到货时通知我",

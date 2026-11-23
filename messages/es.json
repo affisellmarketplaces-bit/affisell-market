@@ -9839,8 +9839,15 @@
       "stock_cover_short": "Al ritmo actual de ventas, el stock se agotará en menos de dos semanas (cálculo).",
       "variant_rows_indistinct": "Varias variantes tienen el mismo color, talla y capacidad: el comprador no puede elegir entre ellas.",
       "restock_demand": "{count, plural, one {# comprador espera} other {# compradores esperan}} {variant}. Actualiza la disponibilidad de esta variante para responder a esta demanda.",
-      "shop_restock_demand": "{count, plural, one {# comprador de tu tienda espera} other {# compradores de tu tienda esperan}} {variant}. Puedes ofrecerles una alternativa disponible; no es una venta garantizada."
-    }
+      "shop_restock_demand": "{count, plural, one {# comprador de tu tienda espera} other {# compradores de tu tienda esperan}} {variant}. Puedes ofrecerles una alternativa disponible; no es una venta garantizada.",
+      "quality_title_precise": "El título es poco preciso (menos de 3 palabras, demasiado corto o en mayúsculas).",
+      "quality_specs_3plus": "Menos de 3 características indicadas.",
+      "quality_photos_5plus": "Menos de 5 fotos.",
+      "quality_brand_declared": "No se indica la marca.",
+      "quality_delivery_declared": "No se indica el plazo de entrega.",
+      "quality_return_extended": "El plazo de devolución es solo de 14 días."
+    },
+    "qualityEvidence": "En Affisell, las fichas comparables con este elemento venden {ratio} veces más por día en tienda (al menos {lo} veces): asociación observada, no una promesa."
   },
   "restockWatch": {
     "cta": "Avisarme cuando vuelva esta opción",

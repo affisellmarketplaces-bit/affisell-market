@@ -9839,8 +9839,15 @@
       "stock_cover_short": "In het huidige verkooptempo is de voorraad binnen twee weken op (berekening).",
       "variant_rows_indistinct": "Sommige varianten hebben dezelfde kleur, maat en capaciteit: kopers kunnen er niet tussen kiezen.",
       "restock_demand": "{count, plural, one {# koper wacht} other {# kopers wachten}} op {variant}. Werk de beschikbaarheid van deze variant bij om aan de vraag te voldoen.",
-      "shop_restock_demand": "{count, plural, one {# koper van je winkel wacht op} other {# kopers van je winkel wachten op}} {variant}. Je kunt een beschikbaar alternatief aanbieden; dit is geen gegarandeerde verkoop."
-    }
+      "shop_restock_demand": "{count, plural, one {# koper van je winkel wacht op} other {# kopers van je winkel wachten op}} {variant}. Je kunt een beschikbaar alternatief aanbieden; dit is geen gegarandeerde verkoop.",
+      "quality_title_precise": "De titel is onnauwkeurig (minder dan 3 woorden, te kort of in hoofdletters).",
+      "quality_specs_3plus": "Minder dan 3 kenmerken ingevuld.",
+      "quality_photos_5plus": "Minder dan 5 foto's.",
+      "quality_brand_declared": "Het merk is niet vermeld.",
+      "quality_delivery_declared": "De levertijd is niet vermeld.",
+      "quality_return_extended": "De retourtermijn is slechts 14 dagen."
+    },
+    "qualityEvidence": "Op Affisell verkopen vergelijkbare pagina's met dit element {ratio}× meer per dag in een winkel (minstens {lo}×) — een waargenomen verband, geen belofte."
   },
   "restockWatch": {
     "cta": "Laat het me weten als deze variant terug is",
