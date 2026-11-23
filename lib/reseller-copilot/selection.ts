@@ -163,6 +163,55 @@ export function risingLifts(item: Pick<SelectionItem, "trend" | "net">, medianNe
 }
 
 /**
+ * THE copilot order, one definition shared by `buildSelection` and the blind-spot detector: readiness → tested rise
+ * (lifting only at ≥ median net) → net (× 1 + tolerance in the reseller's own categories) → observed demand → id.
+ */
+export function selectionOrder(selectable: ReadonlyArray<SelectionItem>): {
+  compare: (a: SelectionItem, b: SelectionItem) => number
+  rankCriterion: (a: SelectionItem, b: SelectionItem) => RankCriterion
+  medianNetCents: number
+} {
+  const median = medianNet(selectable)
+  const lifted = (a: SelectionItem) => (risingLifts(a, median) ? 1 : 0)
+  // Net used for ordering only: an in-category product counts its net × (1 + tolerance). Shown figures never change.
+  const rankNet = (a: SelectionItem) => (a.fit === "your_categories" ? a.net.netCents * (1 + CATEGORY_AFFINITY_TOLERANCE) : a.net.netCents)
+  const compare = (a: SelectionItem, b: SelectionItem) =>
+    RANK[a.readiness] - RANK[b.readiness] ||
+    lifted(b) - lifted(a) ||
+    rankNet(b) - rankNet(a) ||
+    b.demand.paidOrders30d - a.demand.paidOrders30d ||
+    a.productId.localeCompare(b.productId)
+  /** The FIRST criterion of `compare` that puts `a` before `b` — the ranking explained by itself, nothing added. */
+  const rankCriterion = (a: SelectionItem, b: SelectionItem): RankCriterion =>
+    RANK[a.readiness] !== RANK[b.readiness]
+      ? "readiness"
+      : lifted(a) !== lifted(b)
+        ? "rising"
+        : rankNet(a) !== rankNet(b)
+          ? a.net.netCents >= b.net.netCents
+            ? "net"
+            : "category_affinity"
+          : a.demand.paidOrders30d !== b.demand.paidOrders30d
+            ? "demand"
+            : "tie"
+  return { compare, rankCriterion, medianNetCents: median }
+}
+
+/**
+ * The copilot's GENERIC order over the WHOLE eligible catalogue (no shop filter, no personalisation, no cap): what
+ * a reseller with no history would be shown, in order. Used by the blind-spot detector to see beyond the 12.
+ */
+export function rankGeneric(
+  candidates: ReadonlyArray<SelectionCandidate>,
+  affiliateFeeBps: number | null,
+): { ranked: SelectionItem[]; blocked: SelectionItem[] } {
+  const assessed = candidates.map((c) => assessCandidate(c, affiliateFeeBps))
+  const selectable = assessed.filter((a) => a.readiness !== "bloque")
+  const { compare } = selectionOrder(selectable)
+  return { ranked: selectable.sort(compare), blocked: assessed.filter((a) => a.readiness === "bloque") }
+}
+
+/**
  * The selection: products not yet in the reseller's shop, ready first, then to check; within each, the highest real net
  * per sale, then the most observed demand. Popularity never replaces profitability (founder rule 2026-11-19): a product
  * rising on Affisell is lifted ONLY when its own net per sale is at least the median net of the selectable products
@@ -191,30 +240,8 @@ export function buildSelection(
     return item
   })
   const selectable = assessed.filter((a) => a.readiness !== "bloque")
-  const median = medianNet(selectable)
-  const lifted = (a: SelectionItem) => (risingLifts(a, median) ? 1 : 0)
-  // Net used for ordering only: an in-category product counts its net × (1 + tolerance). Shown figures never change.
-  const rankNet = (a: SelectionItem) => (a.fit === "your_categories" ? a.net.netCents * (1 + CATEGORY_AFFINITY_TOLERANCE) : a.net.netCents)
-  const compare = (a: SelectionItem, b: SelectionItem) =>
-    RANK[a.readiness] - RANK[b.readiness] ||
-    lifted(b) - lifted(a) ||
-    rankNet(b) - rankNet(a) ||
-    b.demand.paidOrders30d - a.demand.paidOrders30d ||
-    a.productId.localeCompare(b.productId)
+  const { compare, rankCriterion } = selectionOrder(selectable)
   const ok = selectable.sort(compare)
-  /** The FIRST criterion of `compare` that puts `a` before `b` — the ranking explained by itself, nothing added. */
-  const rankCriterion = (a: SelectionItem, b: SelectionItem): RankCriterion =>
-    RANK[a.readiness] !== RANK[b.readiness]
-      ? "readiness"
-      : lifted(a) !== lifted(b)
-        ? "rising"
-        : rankNet(a) !== rankNet(b)
-          ? a.net.netCents >= b.net.netCents
-            ? "net"
-            : "category_affinity"
-          : a.demand.paidOrders30d !== b.demand.paidOrders30d
-            ? "demand"
-            : "tie"
   const limit = Math.max(1, Math.min(50, Math.floor(opts.limit)))
   const picked = ok.slice(0, limit)
   if (personalised) {

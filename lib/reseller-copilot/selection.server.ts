@@ -70,8 +70,18 @@ function offerMissingMeasured(
     .map((i) => ({ feature: i.feature, lo: i.evidence!.lo }))
 }
 
-async function loadCandidates(affiliateId: string, onlyIds?: ReadonlyArray<string>, now = new Date(), evidence: readonly QualityEvidence[] = []) {
-  const base = await buildAffiliateCatalogProductWhere(new URLSearchParams(), { affiliateId })
+/**
+ * Candidates as the copilot reads them. `affiliateId` null = the marketplace-wide view (blind-spot detector: no shop,
+ * no reseller exclusivity, `inMyShop` always false); `max` = how many newest products are read.
+ */
+export async function loadCandidates(
+  affiliateId: string | null,
+  onlyIds?: ReadonlyArray<string>,
+  now = new Date(),
+  evidence: readonly QualityEvidence[] = [],
+  max = SELECTION_MAX_CANDIDATES,
+) {
+  const base = await buildAffiliateCatalogProductWhere(new URLSearchParams(), affiliateId ? { affiliateId } : {})
   const where = onlyIds ? { AND: [base, { id: { in: [...onlyIds] } }] } : base
   const rows = await prisma.product.findMany({
     where,
@@ -97,10 +107,11 @@ async function loadCandidates(affiliateId: string, onlyIds?: ReadonlyArray<strin
       deliveryMax: true,
       // Reserved keys only (return window, identity, product safety, stock marker): the public sheet's quality inputs.
       attributes: { where: { key: { in: [...QUALITY_RESERVED_KEYS] } }, select: { key: true, value: true } },
-      affiliateProducts: { where: { affiliateId }, select: { id: true } },
+      // Marketplace view: an empty id matches no listing, so `inMyShop` is false for every product.
+      affiliateProducts: { where: { affiliateId: affiliateId ?? "" }, select: { id: true } },
     },
     orderBy: { createdAt: "desc" },
-    take: SELECTION_MAX_CANDIDATES,
+    take: max,
   })
   const ids = rows.map((r) => r.id)
   const categoryIds = [...new Set(rows.map((r) => r.categoryId).filter((c): c is string => Boolean(c)))]
@@ -144,7 +155,7 @@ async function loadCandidates(affiliateId: string, onlyIds?: ReadonlyArray<strin
       offerMissingMeasured: offerMissingMeasured(r, specBy.get(r.id) ?? 0, evidence),
     }
   })
-  return { candidates, truncated: rows.length >= SELECTION_MAX_CANDIDATES }
+  return { candidates, truncated: rows.length >= max }
 }
 
 /**
