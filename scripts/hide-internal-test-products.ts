@@ -30,7 +30,9 @@ async function main() {
   const ids = products.map((p) => p.id)
   console.log("Found:", products.map((p) => `${p.id} (${p.name})`).join(", "))
 
-  const [productUpdate, listingUpdate] = await prisma.$transaction([
+  const [, productUpdate, listingUpdate] = await prisma.$transaction([
+    // Declares the presence-history source of this transaction (migration 20261124090000; harmless without it).
+    prisma.$queryRaw`SELECT set_config('affisell.listing_presence_source', 'script', true)::text AS s`,
     prisma.product.updateMany({
       where: { id: { in: ids } },
       data: { active: false, isDraft: true },

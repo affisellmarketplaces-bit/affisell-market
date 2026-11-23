@@ -4,6 +4,7 @@ import { suggestedSellingPriceCents } from "@/lib/affiliate-catalog-margin-displ
 import { publishAffiliateListingIfAllowed } from "@/lib/affiliate-publish-listing.server"
 import type { MerchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
+import { withListingPresenceSource } from "@/lib/listing-presence/record.server"
 import { checkAffiliateMayListProduct } from "@/lib/product-exclusivity-guard.server"
 import { exclusivityBlockBody, exclusivityConflictBody } from "@/lib/product-exclusivity-shared"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
@@ -108,7 +109,7 @@ export async function quickAddAffiliateListing(
   const customImages = listingImagesFromProduct(product.images)
   const position = (maxPos._max.position ?? -1) + 1
 
-  const row = await prisma.affiliateProduct.create({
+  const row = await withListingPresenceSource(prisma, { source: "listing_create" }, (tx) => tx.affiliateProduct.create({
     data: {
       affiliateId: input.affiliateId,
       productId: product.id,
@@ -123,7 +124,7 @@ export async function quickAddAffiliateListing(
       position,
     },
     select: { id: true, productId: true, sellingPriceCents: true, isListed: true },
-  })
+  }))
 
   const live = await autoLiveAfterImport({
     affiliateId: input.affiliateId,

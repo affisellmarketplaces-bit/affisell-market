@@ -28,6 +28,7 @@
 import { LOW_NET_CENTS, rankGeneric, selectionOrder, type SelectionCandidate, type SelectionItem } from "@/lib/reseller-copilot/selection"
 import { ageBandOf, benjaminiHochberg, competitionBandOf, normalP, priceBandOfCents } from "@/lib/reseller-copilot/learning"
 import type { RankCriterion } from "@/lib/reseller-copilot/opportunity"
+import { listedDaysInWindow, type PresenceHistory } from "@/lib/listing-presence/periods"
 
 const DAY = 86_400_000
 export const BLIND_SPOT_WINDOW_DAYS = 90
@@ -58,12 +59,34 @@ export type BlindSpotProductInput = {
   orders: readonly BlindSpotOrder[]
   /** Real proposals from learning snapshots in the window (null = no learning data). */
   proposals: { shown: number; meanRank: number } | null
+  /**
+   * Presence history of EVERY listing of the product, withdrawn and deleted ones included (`ListingPresenceEvent`,
+   * `loadPresenceForProducts`). Absent / null = history unavailable: the live-listing exposure is used, unchanged.
+   */
+  presence?: ReadonlyArray<{ affiliateId: string; history: PresenceHistory }> | null
 }
 
 export type BlindSpotStatus = "opportunite_confirmee" | "signal_prometteur" | "hypothese" | "donnees_insuffisantes" | "non_concluante" | "non_eligible"
 export type NotEligibleReason = "bloque" | "gain_faible" | "stock_faible" | "stock_inconnu"
 
-export type Exposure = { listingDays: number; orders: number; units: number; closedOrders: number; netCents: number; resellers: number; sellingResellers: number; maxResellerShare: number; matureShops: number; sellingMatureShops: number }
+export type Exposure = {
+  listingDays: number
+  orders: number
+  units: number
+  closedOrders: number
+  netCents: number
+  resellers: number
+  sellingResellers: number
+  maxResellerShare: number
+  matureShops: number
+  sellingMatureShops: number
+  /** `presence_history` = known listed days of every listing (withdrawn ones included); `live_listings` = today's live listings only. */
+  basis?: "presence_history" | "live_listings"
+  /** Days of the window whose presence is unknown (before history, around a missing event) — never counted as listed. */
+  unknownDays?: number
+  /** Listings withdrawn or deleted that the live-only reading leaves out (presence basis only). */
+  withdrawnListings?: number
+}
 
 export type ProductFinding = {
   productId: string
@@ -125,12 +148,15 @@ export type BlindSpotReport = {
   rankingBiases: Partial<Record<RankCriterion, number>>
   simulation: { trainDays: number; testDays: number; rules: RuleResult[]; reason: string | null }
   truncated: boolean
+  /** Which exposure each product was judged on: the presence history (withdrawn listings included) or live listings only. */
+  exposureBasis: { presenceHistory: number; liveListingsOnly: number; withdrawnListingsCounted: number; unknownListingDays: number }
   limits: string[]
 }
 
 export const BLIND_SPOT_LIMITS = [
   "exposition = jours de référencement en boutique, pas le trafic (non mesuré par Affisell)",
-  "référencements retirés non enregistrés : seuls les référencements actifs aujourd'hui et leurs commandes comptent",
+  "référencements retirés non enregistrés : seuls les référencements actifs aujourd'hui et leurs commandes comptent (sauf pour les produits jugés sur l'historique de présence)",
+  "présence en boutique ≠ disponibilité réelle : un produit listé peut avoir été en rupture ou en pause (non historisé)",
   "le classement générique est recalculé avec la fiche, le prix et le stock d'aujourd'hui",
   "les produits du haut du classement sont plus souvent ajoutés : un biais de position reste possible même par jour de référencement",
   "association observée, jamais une cause démontrée",
@@ -172,8 +198,89 @@ export function productFeatures(c: SelectionCandidate, item: SelectionItem): str
   ]
 }
 
-/** Exposure in [from, to): listing-days of live listings + the orders of those shops after their listing date. */
+/**
+ * Exposure in [from, to). With a presence history: the KNOWN listed days of every listing (withdrawn / deleted ones
+ * included) and only the orders paid while that shop's listing was known to be listed; days of unknown presence are
+ * counted apart, never as listed. Without: today's live listings (`liveExposureOf`, the previous behaviour).
+ */
 export function exposureOf(p: BlindSpotProductInput, from: Date, to: Date): Exposure {
+  if (p.presence && p.presence.length > 0) return presenceExposureOf(p, from, to)
+  return { ...liveExposureOf(p, from, to), basis: "live_listings" }
+}
+
+/** Known listed intervals of one history inside [f, t), uncertain periods excluded. */
+function knownIntervals(h: PresenceHistory, f: number, t: number): Array<[number, number]> {
+  if (h.status === "indisponible" || !h.observedFrom) return []
+  const obs = h.observedFrom.getTime()
+  const out: Array<[number, number]> = []
+  for (const per of h.periods) {
+    if (per.uncertain) continue
+    const lo = Math.max(f, obs, per.start ? per.start.getTime() : obs)
+    const hi = Math.min(t, per.end ? per.end.getTime() : t)
+    if (hi > lo) out.push([lo, hi])
+  }
+  return out
+}
+
+export function presenceExposureOf(p: BlindSpotProductInput, from: Date, to: Date): Exposure {
+  const f = from.getTime()
+  const t = to.getTime()
+  const histories = p.presence ?? []
+  const intervalsBy = new Map<string, Array<[number, number]>>()
+  let listingDays = 0
+  let unknownDays = 0
+  let matureShops = 0
+  let withdrawn = 0
+  for (const { affiliateId, history } of histories) {
+    const iv = knownIntervals(history, f, t)
+    intervalsBy.set(affiliateId, [...(intervalsBy.get(affiliateId) ?? []), ...iv])
+    const known = listedDaysInWindow(history, from, to)
+    listingDays += iv.reduce((a, [lo, hi]) => a + (hi - lo) / DAY, 0)
+    unknownDays += known.unknownDays
+    if (iv.reduce((a, [lo, hi]) => a + (hi - lo), 0) >= 30 * DAY) matureShops++
+    const last = history.periods.at(-1)
+    if (history.deleted || (last && !last.ongoing)) withdrawn++
+  }
+  let orders = 0
+  let units = 0
+  let closedOrders = 0
+  let netCents = 0
+  const by = new Map<string, number>()
+  for (const o of p.orders) {
+    const ts = o.paidAt.getTime()
+    const iv = intervalsBy.get(o.affiliateId)
+    if (!iv || !iv.some(([lo, hi]) => ts >= lo && ts < hi)) continue
+    if (o.closed) {
+      closedOrders++
+      continue
+    }
+    orders++
+    units += Math.max(1, o.quantity)
+    netCents += o.netCents
+    by.set(o.affiliateId, (by.get(o.affiliateId) ?? 0) + 1)
+  }
+  let sellingMatureShops = 0
+  for (const [aff, iv] of intervalsBy) if (iv.reduce((a, [lo, hi]) => a + (hi - lo), 0) >= 30 * DAY && (by.get(aff) ?? 0) > 0) sellingMatureShops++
+  const resellers = [...intervalsBy.entries()].filter(([, iv]) => iv.length > 0).length
+  return {
+    listingDays: Math.round(listingDays * 10) / 10,
+    orders,
+    units,
+    closedOrders,
+    netCents,
+    resellers,
+    sellingResellers: by.size,
+    maxResellerShare: orders > 0 ? Math.round((Math.max(...by.values()) / orders) * 1000) / 1000 : 0,
+    matureShops,
+    sellingMatureShops,
+    basis: "presence_history",
+    unknownDays: Math.round(unknownDays * 10) / 10,
+    withdrawnListings: withdrawn,
+  }
+}
+
+/** Exposure in [from, to): listing-days of live listings + the orders of those shops after their listing date. */
+export function liveExposureOf(p: BlindSpotProductInput, from: Date, to: Date): Exposure {
   const f = from.getTime()
   const t = to.getTime()
   let listingDays = 0
@@ -418,6 +525,8 @@ export function buildBlindSpotReport(
     if (e.orders < BS_MIN_ORDERS) missing.push("trop_peu_de_commandes")
     if (!p.proposals) missing.push("propositions_non_observees")
     if (p.candidate.offerMissingMeasured == null) missing.push("offre_non_mesuree")
+    if (e.basis === "presence_history" && (e.unknownDays ?? 0) > e.listingDays) missing.push("presence_partiellement_inconnue")
+    if (e.basis !== "presence_history") missing.push("historique_de_presence_absent")
     findings.push({
       productId: it.productId,
       name: e.resellers >= BS_MIN_RESELLERS ? p.candidate.name : null,
@@ -472,7 +581,16 @@ export function buildBlindSpotReport(
     rankingBiases,
     simulation: opts.truncated ? { trainDays: BLIND_SPOT_WINDOW_DAYS / 2, testDays: BLIND_SPOT_WINDOW_DAYS / 2, rules: [], reason: "lecture_tronquee" } : simulateCorrections(products, now, fee),
     truncated: Boolean(opts.truncated),
-    limits: [...BLIND_SPOT_LIMITS],
+    exposureBasis: (() => {
+      const all = [...exposureBy.values()]
+      return {
+        presenceHistory: all.filter((e) => e.basis === "presence_history").length,
+        liveListingsOnly: all.filter((e) => e.basis !== "presence_history").length,
+        withdrawnListingsCounted: all.reduce((a, e) => a + (e.withdrawnListings ?? 0), 0),
+        unknownListingDays: Math.round(all.reduce((a, e) => a + (e.unknownDays ?? 0), 0)),
+      }
+    })(),
+    limits: BLIND_SPOT_LIMITS.filter((l) => !(l.startsWith("référencements retirés") && [...exposureBy.values()].every((e) => e.basis === "presence_history"))),
   }
 }
 

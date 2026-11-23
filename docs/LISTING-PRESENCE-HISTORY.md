@@ -102,4 +102,5 @@ un compte supprimé garde son passé jusqu'à la rétention). Trois index (réf�
   millisecondes à secondes sur une longue transaction).
 - La présence en boutique ne dit pas à elle seule si l'acheteur pouvait acheter (produit en pause, rupture, suspension
   Affisell) : ces axes restent à croiser.
-- Plusieurs chemins écrivent encore sans déclarer leur source (`unattributed`) : publication, imports, scripts.
+- Depuis le 2026-11-24 la publication, les créations et les imports déclarent leur source ; restent `unattributed` les seeds, la démo, les fixtures et la plupart des scripts. La part réelle est mesurée (`loadPresenceSourceCoverage`).
+- Consommateurs : détecteur d'angles morts (exposition, quand l'historique couvre toute la fenêtre) et moteur des opportunités temporelles (`docs` : `AGENTS.md`).

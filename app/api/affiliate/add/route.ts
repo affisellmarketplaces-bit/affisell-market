@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { exclusivityBlockBody } from "@/lib/product-exclusivity-shared"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
+import { withListingPresenceSource } from "@/lib/listing-presence/record.server"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 import { revalidateListingCardImage } from "@/lib/revalidate-listing-card-image"
 
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
   const maxP = maxPos._max.position
   const position = (maxP == null ? -1 : maxP) + 1
 
-  const row = await prisma.affiliateProduct.upsert({
+  const row = await withListingPresenceSource(prisma, { source: "listing_create" }, (tx) => tx.affiliateProduct.upsert({
     where: {
       affiliateId_productId: {
         affiliateId: session.user.id,
@@ -86,7 +87,7 @@ export async function POST(request: Request) {
       sellingPriceCents,
       isListed: true,
     },
-  })
+  }))
 
   const { onAffiliateListingLiveFromSupplierInvite } = await import(
     "@/lib/supplier-affiliate-invitation"

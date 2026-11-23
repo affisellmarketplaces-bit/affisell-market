@@ -137,6 +137,17 @@ describe.skipIf(!RUN_DB)("ListingPresenceEvent — real database", { timeout: 12
     ])
   })
 
+  it("a creation through the shared wrapper is attributed (listing creators and imports use it)", async () => {
+    const extra = await prisma.user.create({ data: { email: `${stamp}-c@affisell.test`, role: "AFFILIATE", name: "c" } })
+    const row = await rec.withListingPresenceSource(prisma, { source: "listing_create" }, (tx) =>
+      tx.affiliateProduct.create({ data: { affiliateId: extra.id, productId: ids.product, sellingPriceCents: 3200 } }),
+    )
+    expect((await events(row.id)).map((e) => [e.kind, e.source])).toEqual([["created", "listing_create"]])
+    await prisma.affiliateProduct.delete({ where: { id: row.id } })
+    await prisma.$transaction((tx) => rec.purgeAffiliatePresenceInTransaction(tx, extra.id))
+    await prisma.user.delete({ where: { id: extra.id } })
+  })
+
   it("records a deletion and rebuilds the real periods", async () => {
     const other = await prisma.affiliateProduct.create({ data: { affiliateId: ids.other, productId: ids.product, sellingPriceCents: 3100, isListed: false } })
     await prisma.affiliateProduct.update({ where: { id: other.id }, data: { isListed: true } })

@@ -17,6 +17,8 @@ import {
 import { parseSnapshot, readCopilotLearningMode } from "@/lib/reseller-copilot/learning"
 import { PROPOSAL_ACTION } from "@/lib/reseller-copilot/learning.server"
 import { loadCandidates } from "@/lib/reseller-copilot/selection.server"
+import { loadPresenceForProducts } from "@/lib/listing-presence/presence.server"
+import type { PresenceHistory } from "@/lib/listing-presence/periods"
 
 /**
  * READ-ONLY reads of the blind-spot detector (rules: blind-spots.ts). Marketplace-wide view of the copilot's candidates
@@ -35,6 +37,16 @@ export async function loadBlindSpotInputs(now = new Date()): Promise<{ products:
   if (ids.length === 0) return { products: [], truncated: candTruncated }
   const since = new Date(now.getTime() - BLIND_SPOT_WINDOW_DAYS * DAY)
   const learning = readCopilotLearningMode() !== "off"
+  // Presence history (migration 20261124090000): used ONLY when available and read in full — a capped read would
+  // judge some products on part of their listings, so it falls back to live listings for everyone.
+  const presenceRead = await loadPresenceForProducts(ids).catch(() => null)
+  const presenceBy = new Map<string, Array<{ affiliateId: string; history: PresenceHistory }>>()
+  // And only once the history covers the WHOLE window: before that, presence-based exposure would count only the
+  // few days since the migration and turn almost every product into « données insuffisantes ».
+  const historyCoversWindow = Boolean(presenceRead?.trackingStartedAt && presenceRead.trackingStartedAt.getTime() <= since.getTime())
+  if (presenceRead?.available && !presenceRead.truncated && historyCoversWindow) {
+    for (const l of presenceRead.listings) presenceBy.set(l.productId, [...(presenceBy.get(l.productId) ?? []), { affiliateId: l.affiliateId, history: l.history }])
+  }
   const [listings, orders, proposals] = await Promise.all([
     prisma.affiliateProduct.findMany({
       where: { productId: { in: ids }, isListed: true },
@@ -83,6 +95,7 @@ export async function loadBlindSpotInputs(now = new Date()): Promise<{ products:
       candidate: c,
       listings: listingsBy.get(c.productId) ?? [],
       orders: ordersBy.get(c.productId) ?? [],
+      presence: presenceBy.get(c.productId) ?? null,
       // With the learning loop recording, « never shown » is an observed 0; without it, unknown (null).
       proposals: learning ? { shown: s?.shown ?? 0, meanRank: s ? Math.round((s.rankSum / s.shown) * 10) / 10 : 0 } : null,
     }

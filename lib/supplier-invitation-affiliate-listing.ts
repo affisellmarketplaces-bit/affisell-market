@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { withListingPresenceSource } from "@/lib/listing-presence/record.server"
 
 /**
  * When an invited supplier publishes their first SKU, prepare a draft listing for the inviting affiliate.
@@ -30,7 +31,7 @@ export async function ensureInviterDraftListingForInvite(args: {
   })
   const position = (maxPos._max.position ?? -1) + 1
 
-  const row = await prisma.affiliateProduct.create({
+  const row = await withListingPresenceSource(prisma, { source: "listing_create" }, (tx) => tx.affiliateProduct.create({
     data: {
       affiliateId: args.affiliateId,
       productId: args.productId,
@@ -40,7 +41,7 @@ export async function ensureInviterDraftListingForInvite(args: {
       position,
     },
     select: { id: true },
-  })
+  }))
 
   return { created: true, listingId: row.id }
 }

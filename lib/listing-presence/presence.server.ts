@@ -119,3 +119,27 @@ export async function loadPresenceForProducts(
     throw error
   }
 }
+
+/**
+ * How presence events are attributed (founder brief 2026-11-24 §6): counts per declared source over a window, so the
+ * share of « unattributed » events is measured, not assumed. Aggregates only; null = history unavailable.
+ */
+export async function loadPresenceSourceCoverage(days = 90, now = new Date()): Promise<{ total: number; bySource: Record<string, number>; unattributedShare: number | null } | null> {
+  try {
+    const rows = await prisma.listingPresenceEvent.groupBy({
+      by: ["source"],
+      where: { effectiveAt: { gte: new Date(now.getTime() - days * 86_400_000) } },
+      _count: { _all: true },
+    })
+    const bySource: Record<string, number> = {}
+    let total = 0
+    for (const r of rows) {
+      bySource[r.source] = r._count._all
+      total += r._count._all
+    }
+    return { total, bySource, unattributedShare: total > 0 ? Math.round(((bySource.unattributed ?? 0) / total) * 1000) / 1000 : null }
+  } catch (error) {
+    if (isMissingTable(error)) return null
+    throw error
+  }
+}

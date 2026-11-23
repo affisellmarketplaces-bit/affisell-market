@@ -36,6 +36,7 @@ import {
 import { syncProductVariants } from "@/lib/product-variant-sku"
 import { decideImportPublication } from "@/lib/listing-compliance/import-publication.server"
 import { prisma } from "@/lib/prisma"
+import { declareListingPresenceSource, withListingPresenceSource } from "@/lib/listing-presence/record.server"
 import type { SupplierScrapedProduct } from "@/lib/supplier-import-url-handler"
 import { normalizeImportBrand } from "@/lib/url-import-apply"
 
@@ -412,7 +413,7 @@ export async function importMarketplaceFromUrl(rawUrl: string): Promise<Marketpl
     baseRetailEur,
   })
 
-  const listing = await prisma.affiliateProduct.upsert({
+  const listing = await withListingPresenceSource(prisma, { source: "import" }, (tx) => tx.affiliateProduct.upsert({
     where: {
       affiliateId_productId: {
         affiliateId: affiliate.id,
@@ -446,7 +447,7 @@ export async function importMarketplaceFromUrl(rawUrl: string): Promise<Marketpl
         : {}),
     },
     select: { id: true },
-  })
+  }))
 
   const slug = listingPublicSegment(listing.id, customSlug)
   const previewUrl = `/marketplace/${slug}?preview=affiliate`
@@ -534,6 +535,7 @@ export async function publishMarketplaceImport(args: {
   }
 
   await prisma.$transaction([
+    declareListingPresenceSource(prisma, { source: "import" }) as Prisma.PrismaPromise<unknown>,
     prisma.product.update({
       where: { id: listing.productId },
       data: { active: true, isDraft: false },

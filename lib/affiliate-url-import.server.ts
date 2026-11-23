@@ -38,6 +38,7 @@ import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-
 import { syncProductVariants } from "@/lib/product-variant-sku"
 import { runProductImportAgent, type ProductImportAgentResult } from "@/lib/product-import-agent"
 import { prisma } from "@/lib/prisma"
+import { withListingPresenceSource } from "@/lib/listing-presence/record.server"
 import {
   importReviewStateAfterImport,
   importReviewStateFromTags,
@@ -1086,7 +1087,7 @@ export async function commitResellerUrlImport(args: {
   const listNow = listLive && productState != null && mayListOnProduct(productState)
   const reviewPending = productState != null && !mayListOnProduct(productState)
 
-  const listing = await prisma.affiliateProduct.upsert({
+  const listing = await withListingPresenceSource(prisma, { source: "import" }, (tx) => tx.affiliateProduct.upsert({
     where: {
       affiliateId_productId: {
         affiliateId: args.affiliateId,
@@ -1112,7 +1113,7 @@ export async function commitResellerUrlImport(args: {
       isListed: listNow,
     },
     select: { id: true, isListed: true },
-  })
+  }))
 
   if (reviewPending) {
     // One row per listing: what the reseller asked for, read by the admin review when it approves.

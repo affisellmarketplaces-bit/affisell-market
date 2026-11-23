@@ -1,5 +1,6 @@
 import { merchantVerificationGate, type MerchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
+import { withListingPresenceSource } from "@/lib/listing-presence/record.server"
 import { checkAffiliateMayListProduct } from "@/lib/product-exclusivity-guard.server"
 import { catalogExclusivityWhere } from "@/lib/product-exclusivity-shared"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
@@ -44,10 +45,10 @@ export async function publishAffiliateListingIfAllowed(args: {
     return { ok: false, reason: "kyc", gate }
   }
 
-  await prisma.affiliateProduct.update({
+  await withListingPresenceSource(prisma, { source: "reseller_ui" }, (tx) => tx.affiliateProduct.update({
     where: { id: row.id },
     data: { isListed: true },
-  })
+  }))
 
   console.log("[affiliate-publish]", {
     affiliateId: args.affiliateId,
@@ -78,10 +79,10 @@ export async function syncAffiliateStorefrontListingsLive(
     return { publishedCount: 0, kycBlocked: false }
   }
 
-  const updated = await prisma.affiliateProduct.updateMany({
+  const updated = await withListingPresenceSource(prisma, { source: "reseller_ui" }, (tx) => tx.affiliateProduct.updateMany({
     where: publishable,
     data: { isListed: true },
-  })
+  }))
 
   if (updated.count > 0) {
     await revalidateAffiliateShopfront(affiliateId)

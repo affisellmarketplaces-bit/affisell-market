@@ -47,6 +47,11 @@ export type PresencePeriod = {
   ongoing: boolean
   /** A boundary is uncertain because events are missing around it. */
   uncertain: boolean
+  /** Who opened / closed it, as the database recorded it (null = unknown or not recorded). */
+  startSource?: string | null
+  endSource?: string | null
+  /** Closed by a deletion of the listing (not a mere withdrawal). */
+  endedByDeletion?: boolean
 }
 
 export type PresenceHistory = {
@@ -90,9 +95,11 @@ export function rebuildPresence(s: ListingSnapshot): PresenceHistory {
   const st = { lastEndAt: null as Date | null, lastEndExact: false, hadPeriod: listed === true }
   const gapsDays: number[] = []
 
-  const close = (at: Date | null, uncertain: boolean) => {
+  const close = (at: Date | null, uncertain: boolean, source: string | null = null, deletion = false) => {
     if (!open) return
     open.end = at
+    open.endSource = source
+    open.endedByDeletion = deletion
     open.ongoing = false
     open.uncertain = open.uncertain || uncertain
     periods.push(open)
@@ -101,8 +108,8 @@ export function rebuildPresence(s: ListingSnapshot): PresenceHistory {
     st.hadPeriod = true
     open = null
   }
-  const openAt = (at: Date | null, uncertain: boolean) => {
-    open = { start: at, startKnown: at != null && !uncertain, startLowerBound: at ? null : createdAt, end: null, ongoing: true, uncertain }
+  const openAt = (at: Date | null, uncertain: boolean, source: string | null = null) => {
+    open = { start: at, startKnown: at != null && !uncertain, startLowerBound: at ? null : createdAt, end: null, ongoing: true, uncertain, startSource: source, endSource: null }
     st.lastEndAt = null
   }
 
@@ -115,21 +122,21 @@ export function rebuildPresence(s: ListingSnapshot): PresenceHistory {
       listed = e.previousListed
     }
     if (e.kind === "created") {
-      if (e.newListed) openAt(e.effectiveAt, false)
+      if (e.newListed) openAt(e.effectiveAt, false, e.source ?? null)
       listed = Boolean(e.newListed)
     } else if (e.kind === "listed") {
       if (st.hadPeriod) relistings++ // a « remise en vente »: the product had been on sale before
       if (st.lastEndAt && st.lastEndExact) gapsDays.push((e.effectiveAt.getTime() - st.lastEndAt.getTime()) / DAY)
-      openAt(e.effectiveAt, false)
+      openAt(e.effectiveAt, false, e.source ?? null)
       listed = true
     } else if (e.kind === "unlisted") {
       withdrawals++
-      close(e.effectiveAt, false)
+      close(e.effectiveAt, false, e.source ?? null)
       listed = false
     } else if (e.kind === "deleted") {
       if (listed) {
         withdrawals++
-        close(e.effectiveAt, false)
+        close(e.effectiveAt, false, e.source ?? null, true)
       }
       deleted = true
       listed = null

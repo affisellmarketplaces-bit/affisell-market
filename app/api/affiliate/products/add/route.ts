@@ -21,6 +21,7 @@ import {
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { exclusivityBlockBody } from "@/lib/product-exclusivity-shared"
 import { prisma } from "@/lib/prisma"
+import { withListingPresenceSource } from "@/lib/listing-presence/record.server"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 import { revalidateListingCardImage } from "@/lib/revalidate-listing-card-image"
 
@@ -310,7 +311,7 @@ export async function POST(request: Request) {
       : {}
 
   try {
-    const row = await prisma.affiliateProduct.upsert({
+    const row = await withListingPresenceSource(prisma, { source: "listing_create" }, (tx) => tx.affiliateProduct.upsert({
       where: {
         affiliateId_productId: { affiliateId: session.user.id, productId },
       },
@@ -368,7 +369,7 @@ export async function POST(request: Request) {
         ...(pricingAutoAdjustPatch !== undefined ? { pricingAutoAdjust: pricingAutoAdjustPatch } : {}),
         ...marginReviewClearPatch,
       },
-    })
+    }))
 
     if (isListed && !saveDraft) {
       const { onAffiliateListingLiveFromSupplierInvite } = await import(
