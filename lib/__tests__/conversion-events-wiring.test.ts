@@ -3,6 +3,7 @@
  * consent, D2 no cookie-free counter, D3 90 days raw then aggregates with a verifiable purge, D4 aggregated only).
  * Nothing here is wired or switched on: these tests pin that it stays inert by default.
  */
+import { execSync } from "node:child_process"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
@@ -174,7 +175,6 @@ describe("legacy tracking respects consent (D1)", () => {
     expect(src.indexOf("if (!hasAnalyticsConsent()) return")).toBeLessThan(src.indexOf("getOrCreateAgentSessionId()\n"))
   })
   it("no page wires the new browser client yet (S4 needs the founder's go)", () => {
-    const { execSync } = require("node:child_process") as typeof import("node:child_process")
     const hits = execSync("grep -rl 'lib/events/client' app components hooks lib --include=*.ts --include=*.tsx || true", { encoding: "utf8" })
       .split("\n")
       .filter((f) => f && !f.includes("__tests__"))
