@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react"
 
 import { SheetQualityChecklist, useQualityEvidence } from "@/components/supplier/sheet-quality-checklist"
 import { useSupplierFeeBps } from "@/components/supplier/use-supplier-fee-bps"
-import { assessCommercialReadiness, type ReadinessFinding } from "@/lib/commercial-readiness/readiness"
+import { assessCommercialReadiness, type ReadinessFinding, type ReadinessStage } from "@/lib/commercial-readiness/readiness"
 import type { ListingReadinessMode } from "@/lib/listing-compliance/mode"
 
 type PublicationRules = { listingReadinessMode: ListingReadinessMode | null; merchantVerified: boolean | null; catalogCapReached: boolean | null }
@@ -51,6 +51,7 @@ export function CommercialReadinessPanel({
   creating,
   deliveryTypedBySupplier,
   categoryFieldsMissing,
+  stage,
 }: {
   /** The request body the form would send now. */
   body: Record<string, unknown>
@@ -58,6 +59,8 @@ export function CommercialReadinessPanel({
   creating: boolean
   deliveryTypedBySupplier?: boolean
   categoryFieldsMissing?: string[] | null
+  /** Saved product being edited: `draft` or `live` (rules of THAT stage — a live product is never shown fake refusals). Default: `new` when creating. */
+  stage?: ReadinessStage
 }) {
   const t = useTranslations("supplier.readiness")
   const tFeature = useTranslations("catalogHealth.listingQuality.feature")
@@ -69,17 +72,18 @@ export function CommercialReadinessPanel({
       assessCommercialReadiness(body, {
         listingReadinessMode: rules.listingReadinessMode,
         merchantVerified: rules.merchantVerified,
-        catalogCapReached: creating ? rules.catalogCapReached : null,
+        catalogCapReached: creating || stage === "draft" ? rules.catalogCapReached : null,
+        stage: stage ?? (creating ? "new" : undefined),
         supplierFeeBps: bps,
         categoryFieldsMissing,
         deliveryTypedBySupplier,
         evidence,
       }),
-    [body, rules, creating, bps, categoryFieldsMissing, deliveryTypedBySupplier, evidence],
+    [body, rules, creating, stage, bps, categoryFieldsMissing, deliveryTypedBySupplier, evidence],
   )
 
   const title = (f: ReadinessFinding) => (f.feature ? tFeature(f.feature) : t(`finding.${f.code}.title`))
-  const why = (f: ReadinessFinding) => (f.feature ? t("qualityWhy") : t(`finding.${f.code}.why`))
+  const why = (f: ReadinessFinding) => (f.feature ? t("qualityWhy") : t(`finding.${f.code}.${f.live ? "whyLive" : "why"}`))
   const others = report.findings.filter((f) => f !== report.nextFix && f.level !== "recommande")
 
   return (

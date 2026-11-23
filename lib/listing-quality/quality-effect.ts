@@ -404,3 +404,16 @@ export function supplierQualityRecommendations(args: {
   }
   return out.sort((a, b) => b.priority - a.priority).slice(0, args.max ?? 10)
 }
+
+/**
+ * The marketplace associations a supplier may be shown: POSITIVE verdicts only (whole interval above 1), as
+ * `{ feature, adjustedRatio, lo }`. ONE filter for the listing-quality API, the readiness panel and the catalogue health.
+ */
+export function positiveQualityEvidence(report: Pick<QualityEffectReport, "effects">): Array<{ feature: QualityFeature; adjustedRatio: number; lo: number }> {
+  const out: Array<{ feature: QualityFeature; adjustedRatio: number; lo: number }> = []
+  for (const e of report.effects) {
+    if (e.verdict !== "positive" || typeof e.estimated.adjustedRatio !== "number" || typeof e.estimated.lo !== "number") continue
+    out.push({ feature: e.feature, adjustedRatio: e.estimated.adjustedRatio, lo: e.estimated.lo })
+  }
+  return out
+}

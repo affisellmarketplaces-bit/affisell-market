@@ -2367,18 +2367,23 @@
         "not_buyable": "销售必需：商品页可以发布，但会显示为售罄，无人能购买。",
         "platform_rule": "Affisell 会检查但发布时暂不强制的规则：随时可能变为强制。",
         "observed_risk": "真实风险，但不会被拒绝：可以发布，但可能影响销售或配送。",
-        "measured_association": "基于 Affisell 质量测量的建议。"
+        "measured_association": "基于 Affisell 质量测量的建议。",
+        "save_refusal": "必须项：商品仍按原样在售，但缺少此项时，Affisell 会拒绝保存对商品页的修改。",
+        "publication_rule_live": "已在售：商品继续在售，不会被下架。新发布时此项为必填。",
+        "affisell_decision": "Affisell 的决定：这不是您在商品页中可以修正的。"
       },
       "finding": {
         "name_missing": {
           "title": "商品名称为空",
           "why": "没有名称的商品页无法发布。",
-          "fix": "请填写准确的商品名称。"
+          "fix": "请填写准确的商品名称。",
+          "whyLive": "商品在售，但在没有名称之前，对商品页的修改会被拒绝。"
         },
         "category_missing": {
           "title": "未选择确切类目",
           "why": "发布需要目录中的末级类目：它决定商品在搜索中的位置以及 Affisell 的费用。",
-          "fix": "请选择最准确的商品类目。"
+          "fix": "请选择最准确的商品类目。",
+          "whyLive": "在售但没有末级类目：在搜索中位置不佳，新发布时为必填。"
         },
         "category_fields_missing": {
           "title": "缺少类目必填规格",
@@ -2388,27 +2393,32 @@
         "price_missing": {
           "title": "未填写价格",
           "why": "没有价格，商品无法发布。",
-          "fix": "请填写不含税的供应商价格。"
+          "fix": "请填写不含税的供应商价格。",
+          "whyLive": "商品在售，但在没有价格之前，对商品页的修改会被拒绝。"
         },
         "photo_missing": {
           "title": "没有已保存的照片",
           "why": "发布至少需要一张已上传的照片；这也是买家看到的第一样东西。",
-          "fix": "请至少添加一张商品照片，并等待上传完成。"
+          "fix": "请至少添加一张商品照片，并等待上传完成。",
+          "whyLive": "在售但没有托管图片：这是买家看到的第一样东西，新发布时为必填。"
         },
         "warehouse_missing": {
           "title": "未填写发货区域",
           "why": "发布必须填写仓库区域：用于显示可信的配送时间。",
-          "fix": "请选择包裹的发货地（本地、区域或国际）。"
+          "fix": "请选择包裹的发货地（本地、区域或国际）。",
+          "whyLive": "在售但没有仓库区域：公布的时效可信度较低，新发布时为必填。"
         },
         "delivery_countries_missing": {
           "title": "未选择配送国家",
           "why": "没有配送国家时发布会被拒绝，买家也无法下单。",
-          "fix": "请选择您配送的国家。"
+          "fix": "请选择您配送的国家。",
+          "whyLive": "在售但未声明配送国家：新发布时为必填。"
         },
         "commission_not_explicit": {
           "title": "未设置分销商佣金",
           "why": "发布前必须明确设置给分销商的佣金；否则订单无法分账。",
-          "fix": "请填写您给分销商的佣金。"
+          "fix": "请填写您给分销商的佣金。",
+          "whyLive": "在售但没有明确佣金：已付款的销售无法分账，也不会生成订单。"
         },
         "merchant_unverified": {
           "title": "供应商账户尚未验证",
@@ -2423,12 +2433,14 @@
         "safety_incomplete": {
           "title": "产品安全信息不完整",
           "why": "制造商信息，以及欧盟以外制造时的欧盟负责人：Affisell 会对实物商品检查这些数据。",
-          "fix": "请补全“产品安全”部分。"
+          "fix": "请补全“产品安全”部分。",
+          "whyLive": "已在售：产品安全检查仅适用于新发布，但实物商品仍需提供这些信息。"
         },
         "stock_missing": {
           "title": "库存数量为零",
           "why": "商品可以发布，但会显示为售罄：没有买家能下单。",
-          "fix": "请填写实际可用的数量。"
+          "fix": "请填写实际可用的数量。",
+          "whyLive": "商品在售但显示为售罄：没有买家能够下单。"
         },
         "delivery_time_default": {
           "title": "未填写配送时间",
@@ -2449,6 +2461,22 @@
           "title": "这笔销售您没有收益",
           "why": "按此价格、此佣金和您的 Affisell 费用计算，每单净收益为零或负数。",
           "fix": "请调整价格或给分销商的佣金。"
+        },
+        "stock_unconfirmed": {
+          "title": "导入数量未确认",
+          "why": "导入未提供任何数量：在您填写数量之前，发布会被拒绝。",
+          "whyLive": "导入的数量从未确认：商品显示为售罄，无人能够购买。",
+          "fix": "在商品页中填写实际可售数量。"
+        },
+        "held_by_affisell": {
+          "title": "被 Affisell 暂扣",
+          "why": "安全召回或 Affisell 的暂停使该商品无法销售。",
+          "fix": "在商品页查看原因；只有 Affisell 能解除暂扣。"
+        },
+        "hold_unverifiable": {
+          "title": "无法核实销售状态",
+          "why": "Affisell 无法读取该商品的召回和暂停记录：核实之前不会显示为就绪。",
+          "fix": "商品页中无需操作：请稍后刷新页面。"
         }
       }
     }
@@ -9893,6 +9921,36 @@
         "safety_complete": "完善产品安全信息。",
         "stock_confirmed": "填写真实库存数量。"
       }
+    },
+    "readiness": {
+      "title": "可以销售了吗？— 您已保存的商品页",
+      "subtitle": "与撰写时相同的检查，按各商品页所处阶段（草稿或在售）的规则，应用于每个已保存的商品页。",
+      "countsLive": "在售：{ready} 个就绪 · {toFix} 个待修正 · {blocked} 个受阻",
+      "countsDraft": "草稿：{ready} 个就绪 · {toFix} 个待修正 · {blocked} 个受阻",
+      "toFixTitle": "优先修正 — 每个商品页一项修正",
+      "nothingToFix": "没有已保存的商品页存在阻碍或优先事项。",
+      "readyNotSellingTitle": "技术上已就绪，但不易销售",
+      "readyNotSellingIntro": "这些商品页符合规则，可以购买。以下每一点单独读取并注明来源；没有总评分。",
+      "qualification": {
+        "affisell": "Affisell 规则",
+        "fiche": "商品页",
+        "calcul": "计算",
+        "observe": "观察"
+      },
+      "weak": {
+        "disponibilite": "供货不稳：本页已为该商品标示断货或不可售风险。",
+        "rentabilite_revendeur": "分销商收益低：按副驾驶向分销商建议的价格（不含税 {price}，标准分销费），每笔销售收益 {net}。低于 {threshold} 时，副驾驶会向他们将该商品标为「待核实」。佣金和价格在商品页中设置，由您决定。",
+        "offre": "商品信息不完整：缺少 {count} 项商品页元素，这些元素在 Affisell 上与更多销量相关（最明显的一项至少 {lo} 倍）。这是统计关联，不保证销售。",
+        "demande": "在售 {ageDays} 天后仍没有分销商上架。",
+        "performance": "已有 {resellers} 个分销商上架，{windowDays} 天内没有已付款的销售。"
+      },
+      "openSheet": "打开商品页",
+      "stage": {
+        "draft": "草稿",
+        "live": "已发布"
+      },
+      "moreInSheet": "商品页中还有 {count} 项",
+      "method": "根据您已保存的商品页和您自己的销售计算，采用 Affisell 在各阶段应用的规则。本页不会发布、下架或修改任何内容。"
     }
   },
   "nextActions": {
@@ -9914,7 +9972,8 @@
       "review_profit_drop": "查看「{product}」的下降原因",
       "add_ready_product": "将「{product}」加入您的店铺",
       "answer_restock_demand": "回应 {product} 的需求",
-      "answer_shop_demand": "您店铺的买家在等待 {product}"
+      "answer_shop_demand": "您店铺的买家在等待 {product}",
+      "prepare_listing": "让「{product}」准备好销售"
     },
     "cta": {
       "fix_blocage": "打开商品",
@@ -9926,7 +9985,8 @@
       "review_profit_drop": "查看分析",
       "add_ready_product": "在目录中查看",
       "answer_restock_demand": "更新库存",
-      "answer_shop_demand": "查看需求和替代品"
+      "answer_shop_demand": "查看需求和替代品",
+      "prepare_listing": "打开商品页"
     },
     "impact": {
       "label": "潜在影响：",
@@ -9981,7 +10041,8 @@
       "quality_photos_5plus": "照片少于 5 张。",
       "quality_brand_declared": "未填写品牌。",
       "quality_delivery_declared": "未填写配送时间。",
-      "quality_return_extended": "退货期仅为 14 天。"
+      "quality_return_extended": "退货期仅为 14 天。",
+      "readiness_next_fix": "由「可以销售了吗？」检查选出的商品页下一项修正。"
     },
     "qualityEvidence": "在 Affisell 上观察到：具备该要素的可比商品页每天店铺销量是其他商品页的 {ratio} 倍（至少 {lo} 倍）。这只是统计关联，不能证明添加后会卖得更多。"
   },

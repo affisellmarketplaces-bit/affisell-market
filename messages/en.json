@@ -2367,18 +2367,23 @@
         "not_buyable": "Requirement to sell: the sheet can be published, but it shows as sold out and nobody can buy it.",
         "platform_rule": "Affisell rule checked but not yet required at publication: it may become required at any time.",
         "observed_risk": "Real risk, no refusal: publication goes through, but this can hurt the sale or the delivery.",
-        "measured_association": "Recommendation based on Affisell's quality measure."
+        "measured_association": "Recommendation based on Affisell's quality measure.",
+        "save_refusal": "Requirement: the product stays on sale as it is, but Affisell refuses to save a change to the sheet while this is missing.",
+        "publication_rule_live": "Already on sale: it stays on sale, nothing is withdrawn. This would be required for a new publication.",
+        "affisell_decision": "Affisell decision: this is not something you fix in the sheet."
       },
       "finding": {
         "name_missing": {
           "title": "The product name is empty",
           "why": "A sheet with no name can not be published.",
-          "fix": "Enter the product's exact name."
+          "fix": "Enter the product's exact name.",
+          "whyLive": "The product is on sale, but a change to the sheet will be refused while it has no name."
         },
         "category_missing": {
           "title": "No exact category",
           "why": "Publication needs a final catalogue category: it places the product in searches and sets Affisell's fees.",
-          "fix": "Choose the product's most precise category."
+          "fix": "Choose the product's most precise category.",
+          "whyLive": "On sale without a final category: it is poorly placed in searches, and a new publication would require it."
         },
         "category_fields_missing": {
           "title": "Required category fields missing",
@@ -2388,27 +2393,32 @@
         "price_missing": {
           "title": "No price",
           "why": "Without a price the product can not be published.",
-          "fix": "Enter your supplier price excluding VAT."
+          "fix": "Enter your supplier price excluding VAT.",
+          "whyLive": "The product is on sale, but a change to the sheet will be refused while it has no price."
         },
         "photo_missing": {
           "title": "No saved photo",
           "why": "Publication needs at least one hosted photo; it is also the first thing a buyer sees.",
-          "fix": "Add at least one product photo and wait for its upload to finish."
+          "fix": "Add at least one product photo and wait for its upload to finish.",
+          "whyLive": "On sale without a hosted photo: it is the first thing a buyer sees, and a new publication would require it."
         },
         "warehouse_missing": {
           "title": "Shipping zone not set",
           "why": "The warehouse zone is required to publish: it is used to announce credible delivery times.",
-          "fix": "Choose where the parcel ships from (local, regional or international)."
+          "fix": "Choose where the parcel ships from (local, regional or international).",
+          "whyLive": "On sale without a warehouse zone: announced delivery times are less credible, and a new publication would require it."
         },
         "delivery_countries_missing": {
           "title": "No delivery country",
           "why": "Without delivery countries the publication is refused and no buyer could order.",
-          "fix": "Choose the countries you deliver to."
+          "fix": "Choose the countries you deliver to.",
+          "whyLive": "On sale without declared delivery countries: a new publication would require them."
         },
         "commission_not_explicit": {
           "title": "Reseller commission not set",
           "why": "The commission paid to resellers must be explicit to publish; without it a sale could not be split.",
-          "fix": "Enter the commission you offer resellers."
+          "fix": "Enter the commission you offer resellers.",
+          "whyLive": "On sale without an explicit commission: a paid sale could not be split and would not become an order."
         },
         "merchant_unverified": {
           "title": "Supplier account not verified yet",
@@ -2423,12 +2433,14 @@
         "safety_incomplete": {
           "title": "Product safety information incomplete",
           "why": "Manufacturer and, outside the EU, an EU responsible person: Affisell checks this data for physical products.",
-          "fix": "Complete the Product safety section."
+          "fix": "Complete the Product safety section.",
+          "whyLive": "Already on sale: the product-safety check only applies to new publications, but this data is still expected for a physical product."
         },
         "stock_missing": {
           "title": "No quantity in stock",
           "why": "The product would be published but shown as sold out: no buyer could order it.",
-          "fix": "Enter the quantity really available."
+          "fix": "Enter the quantity really available.",
+          "whyLive": "The product is on sale but shows as sold out: no buyer can order it."
         },
         "delivery_time_default": {
           "title": "Delivery time not entered",
@@ -2449,6 +2461,22 @@
           "title": "You earn nothing on this sale",
           "why": "With this price, this commission and your Affisell fees, your net per sale is zero or negative.",
           "fix": "Review your price or the commission you offer resellers."
+        },
+        "stock_unconfirmed": {
+          "title": "Imported quantity not confirmed",
+          "why": "The import gave no quantity: publication is refused until you enter one.",
+          "whyLive": "The imported quantity was never confirmed: the product shows as sold out and nobody can buy it.",
+          "fix": "Enter the quantity really available in the sheet."
+        },
+        "held_by_affisell": {
+          "title": "Held by Affisell",
+          "why": "A safety recall or an Affisell suspension prevents this product from being sold.",
+          "fix": "See the reason in the sheet; only Affisell can lift this hold."
+        },
+        "hold_unverifiable": {
+          "title": "Commercial status could not be checked",
+          "why": "Affisell could not read this product's recalls and suspensions: it is not shown as ready until that is checked.",
+          "fix": "Nothing to do in the sheet: reload the page later."
         }
       }
     }
@@ -9893,6 +9921,36 @@
         "safety_complete": "Complete the product-safety information.",
         "stock_confirmed": "Enter a real quantity in stock."
       }
+    },
+    "readiness": {
+      "title": "Ready to sell? — your saved sheets",
+      "subtitle": "The same check as while writing, applied to every saved sheet with the rules of its stage: draft or on sale.",
+      "countsLive": "On sale: {ready} ready · {toFix} to fix · {blocked} blocked",
+      "countsDraft": "Drafts: {ready} ready · {toFix} to fix · {blocked} blocked",
+      "toFixTitle": "Fix first — one fix per sheet",
+      "nothingToFix": "No saved sheet has a blocker or a priority issue.",
+      "readyNotSellingTitle": "Technically ready, but hard to sell",
+      "readyNotSellingIntro": "These sheets meet the rules and can be bought. Each point below is read separately, with its source; there is no overall score.",
+      "qualification": {
+        "affisell": "Affisell rule",
+        "fiche": "sheet",
+        "calcul": "calculation",
+        "observe": "observed"
+      },
+      "weak": {
+        "disponibilite": "Fragile availability: a stock-out or unavailability risk is reported on this page for this product.",
+        "rentabilite_revendeur": "Low reseller gain: {net} per sale at the price the copilot suggests to resellers ({price} excl. VAT, standard reseller fee). Below {threshold}, the copilot shows the product to them as “to check”. Commission and price are set in the sheet, your decision.",
+        "offre": "Incomplete offer: {count, plural, one {# sheet element is missing} other {# sheet elements are missing}}, associated on Affisell with more sales (at least {lo} times for the clearest). A statistical association, not a guarantee of sales.",
+        "demande": "No reseller offers it after {ageDays} days on sale.",
+        "performance": "{resellers, plural, one {Offered by # reseller} other {Offered by # resellers}}, no paid sale over {windowDays} days."
+      },
+      "openSheet": "Open the sheet",
+      "stage": {
+        "draft": "draft",
+        "live": "published"
+      },
+      "moreInSheet": "{count, plural, one {# more point in the sheet} other {# more points in the sheet}}",
+      "method": "Computed from your saved sheets and your own sales, with the rules Affisell applies at each stage. Nothing is published, withdrawn or changed from this page."
     }
   },
   "nextActions": {
@@ -9914,7 +9972,8 @@
       "review_profit_drop": "Look into the drop on « {product} »",
       "add_ready_product": "Add « {product} » to your shop",
       "answer_restock_demand": "Answer the demand on {product}",
-      "answer_shop_demand": "Buyers of your shop are waiting for {product}"
+      "answer_shop_demand": "Buyers of your shop are waiting for {product}",
+      "prepare_listing": "Get “{product}” ready to sell"
     },
     "cta": {
       "fix_blocage": "Open the product",
@@ -9926,7 +9985,8 @@
       "review_profit_drop": "See the analysis",
       "add_ready_product": "See it in the catalogue",
       "answer_restock_demand": "Update availability",
-      "answer_shop_demand": "See the demand and alternatives"
+      "answer_shop_demand": "See the demand and alternatives",
+      "prepare_listing": "Open the sheet"
     },
     "impact": {
       "label": "Potential impact:",
@@ -9981,7 +10041,8 @@
       "quality_photos_5plus": "Fewer than 5 photos.",
       "quality_brand_declared": "The brand is not given.",
       "quality_delivery_declared": "The delivery time is not given.",
-      "quality_return_extended": "The return window is only 14 days."
+      "quality_return_extended": "The return window is only 14 days.",
+      "readiness_next_fix": "The sheet's next fix, chosen by the “Ready to sell?” check."
     },
     "qualityEvidence": "Observed on Affisell: comparable listings with this element recorded {ratio} times more sales per day in shops (at least {lo} times). Statistical association, not proof that adding it will sell more."
   },

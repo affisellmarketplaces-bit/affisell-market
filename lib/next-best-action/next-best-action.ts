@@ -16,6 +16,7 @@ import type { RestockDemandProduct } from "@/lib/restock-watch/restock-demand"
 import type { ShopDemandItem } from "@/lib/restock-watch/shop-demand"
 import type { QualityFeature, QualityRecommendation } from "@/lib/listing-quality/quality-effect"
 import type { HealthClass, HealthIssue, HealthIssueCode, HealthReport } from "@/lib/supplier-catalog-health/diagnose"
+import type { ProductReadinessSummary } from "@/lib/commercial-readiness/catalog-readiness"
 
 export type ActionPriority = "haute" | "moyenne" | "basse"
 export type Qualified = { value: string | number | boolean | null; qualification: "fiche" | "observe" | "affisell" | "calcul" }
@@ -34,6 +35,7 @@ export type NextAction = {
     | "review_profit_drop"
     | "add_ready_product"
     | "answer_shop_demand"
+    | "prepare_listing"
   productId: string
   productName: string
   reason: string
@@ -58,6 +60,11 @@ export type NextAction = {
   }
   /** The exact variant the action is about (its label in the supplier's own sheet), when it is about one. */
   variantLabel?: string
+  /**
+   * `prepare_listing`: the commercial-readiness engine's ONE next fix for this saved product (same engine as the
+   * supplier's forms). `live` = worded for a product already on sale; `basis` = the rule that decides it.
+   */
+  readiness?: { code: string; level: "bloquant" | "prioritaire"; basis: string; feature?: QualityFeature; live?: boolean }
   /** Where the account acts. */
   href: string
 }
@@ -176,19 +183,65 @@ const EVIDENCE_ONLY_FEATURES: ReadonlySet<QualityFeature> = new Set([
   "return_extended",
 ])
 
+/** Readiness codes that are about the product's stock / holds: the availability actions already carry them. */
+const READINESS_AVAILABILITY_CODES = new Set(["stock_missing", "stock_unconfirmed", "stock_low", "held_by_affisell", "hold_unverifiable"])
+/** Health actions about the SHEET: replaced on a product by its readiness next fix (the engine already chose among them). */
+const SHEET_KINDS = new Set<NextAction["kind"]>(["fix_blocage", "complete_sheet"])
+
+/**
+ * The commercial-readiness engine's next fix of a saved product, as an action: a blocker on any product (a draft the
+ * supplier is preparing, or a live one), a priority only on a product with observed demand or a draft. Score = the
+ * health report's own scale (blocker 1000 / priority 100 × observed demand), so both kinds of action compare honestly.
+ * Never an Affisell decision (not fixable), never a recommendation (the quality evidence path handles those).
+ */
+export function readinessCandidates(readiness: ReadonlyArray<ProductReadinessSummary>): Array<NextAction & { score: number }> {
+  const out: Array<NextAction & { score: number }> = []
+  for (const r of readiness) {
+    const f = r.nextFix
+    if (!f || f.level === "recommande" || READINESS_AVAILABILITY_CODES.has(f.code)) continue
+    const demand = r.demand.paidOrders30d + r.demand.resellersListing
+    if (f.level === "prioritaire" && r.stage === "live" && demand === 0) continue
+    const weight = 1 + 3 * r.demand.paidOrders30d + r.demand.resellersListing
+    out.push({
+      key: `prepare_listing:${r.productId}:${f.code}`,
+      kind: "prepare_listing",
+      productId: r.productId,
+      productName: r.productName,
+      reason: "readiness_next_fix",
+      priority: f.level === "bloquant" ? "haute" : "moyenne",
+      readiness: { code: f.code, level: f.level, basis: f.basis, ...(f.feature ? { feature: f.feature } : {}), ...(f.live ? { live: true } : {}) },
+      evidence: {
+        stage: { value: r.stage, qualification: "fiche" },
+        verdict: { value: r.verdict, qualification: "affisell" },
+        paidOrders30d: { value: r.demand.paidOrders30d, qualification: "observe" },
+        resellersListing: { value: r.demand.resellersListing, qualification: "observe" },
+      },
+      impact: { qualification: "potentiel", paidOrders30d: r.demand.paidOrders30d, resellersListing: r.demand.resellersListing },
+      href: `/dashboard/supplier/products/${encodeURIComponent(r.productId)}/edit`,
+      score: (f.level === "bloquant" ? 1000 : 100) * weight,
+    })
+  }
+  return out
+}
+
 export function supplierNextActions(
   report: HealthReport,
   max = 3,
   restockDemand: ReadonlyArray<RestockDemandProduct> = [],
-  quality: ReadonlyArray<QualityRecommendation> = []
+  quality: ReadonlyArray<QualityRecommendation> = [],
+  readiness: ReadonlyArray<ProductReadinessSummary> = []
 ): NextAction[] {
-  const cands: Array<NextAction & { score: number }> = [...restockDemandCandidates(restockDemand)]
+  const ready = readinessCandidates(readiness)
+  const cands: Array<NextAction & { score: number }> = [...restockDemandCandidates(restockDemand), ...ready]
   const qualityBy = new Map(quality.map((q) => [`${q.productId}\u0000${q.feature}`, q]))
-  const demandProducts = new Set(cands.map((c) => c.productId))
+  const demandProducts = new Set(restockDemandCandidates(restockDemand).map((c) => c.productId))
+  const readinessProducts = new Set(ready.map((c) => c.productId))
   for (const i of report.issues) {
     const kind = SUPPLIER_KIND[i.code]
     if (!kind) continue
     if (kind === "resolve_availability" && demandProducts.has(i.productId)) continue
+    // ONE next fix per product for its sheet: the readiness engine's, never a second, competing one.
+    if (SHEET_KINDS.has(kind) && readinessProducts.has(i.productId)) continue
     const demand = i.demand.paidOrders30d + i.demand.resellersListing
     if (NEEDS_DEMAND.has(i.code) && demand === 0) continue
     const evidence: Record<string, Qualified> = {}
@@ -219,6 +272,7 @@ export function supplierNextActions(
   // Elements the health report does not diagnose: an action only with measured evidence AND some distribution.
   for (const q of quality) {
     if (!EVIDENCE_ONLY_FEATURES.has(q.feature) || q.resellersListing + q.paidOrders90d === 0) continue
+    if (readinessProducts.has(q.productId)) continue
     cands.push({
       key: `complete_sheet:${q.productId}`,
       kind: "complete_sheet",

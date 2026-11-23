@@ -14,15 +14,16 @@ import { markRestockRecommendationShown } from "@/lib/restock-watch/restock-funn
 import { loadShopRestockDemand, markShopDemandRecommended } from "@/lib/restock-watch/shop-demand.server"
 import { listingProblem } from "@/lib/reseller-replacement/listing-state"
 import { loadResellerSelection } from "@/lib/reseller-copilot/selection.server"
-import { loadSupplierCatalogHealth } from "@/lib/supplier-catalog-health/diagnose.server"
+import { loadSupplierCatalogHealthAndReadiness } from "@/lib/supplier-catalog-health/diagnose.server"
 
 const DAY = 86_400_000
 const MAX_LISTINGS = 300
 
 /** Supplier: 1–3 actions from its own catalogue health. Read-only. */
 export async function loadSupplierNextActions(supplierId: string): Promise<NextAction[]> {
-  const [health, demand, quality] = await Promise.all([
-    loadSupplierCatalogHealth(supplierId),
+  const [{ report: health, readiness }, demand, quality] = await Promise.all([
+    // Health report + the commercial-readiness verdict of every saved product (same reads, same engine as the forms).
+    loadSupplierCatalogHealthAndReadiness(supplierId),
     // The buyers' restock signal is an extra reason, never a condition: a failed read = no restock action.
     loadSupplierRestockDemand(supplierId).catch(() => null),
     // Sheet-quality evidence (marketplace aggregate): an extra reason, never a condition.
@@ -30,7 +31,7 @@ export async function loadSupplierNextActions(supplierId: string): Promise<NextA
       .then((r) => r.recommendations)
       .catch(() => []),
   ])
-  const actions = supplierNextActions(health, 3, demand?.products ?? [], quality)
+  const actions = supplierNextActions(health, 3, demand?.products ?? [], quality, readiness?.all ?? [])
   // Step 2 of the measurement chain: the recommendation was really served to this supplier (first time only).
   for (const a of actions) {
     if (a.kind !== "answer_restock_demand") continue

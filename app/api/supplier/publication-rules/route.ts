@@ -2,9 +2,7 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { rateLimitClientKey, rateLimitResponseAsync } from "@/lib/api-rate-limit"
-import { assertProductCreationAllowed } from "@/lib/growth/catalog-cap.server"
-import { readListingReadinessMode } from "@/lib/listing-compliance/mode"
-import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
+import { loadPublicationRules } from "@/lib/commercial-readiness/readiness-context.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -21,13 +19,5 @@ export async function GET(req: Request) {
   if (session.user.role !== "SUPPLIER") return NextResponse.json({ error: "forbidden" }, { status: 403 })
   const limited = await rateLimitResponseAsync(rateLimitClientKey(req, session.user.id), { prefix: "publication-rules", limit: 20, windowMs: 60_000 })
   if (limited) return limited
-  const userId = session.user.id
-  const [merchant, cap] = await Promise.all([
-    merchantVerificationGate(userId).then((g) => g.allowed).catch(() => null),
-    assertProductCreationAllowed(userId).then((c) => !c.allowed).catch(() => null),
-  ])
-  return NextResponse.json(
-    { listingReadinessMode: readListingReadinessMode(), merchantVerified: merchant, catalogCapReached: cap },
-    { headers: { "Cache-Control": "no-store" } },
-  )
+  return NextResponse.json(await loadPublicationRules(session.user.id), { headers: { "Cache-Control": "no-store" } })
 }

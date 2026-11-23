@@ -3475,7 +3475,7 @@ export function SupplierAddProductForm({
                         />
                       </SectionCard>
                     ) : null}
-                    <CommercialReadinessPanel body={readinessBody} creating={!editId} categoryFieldsMissing={readinessCategoryErrors} />
+                    <CommercialReadinessPanel body={readinessBody} creating={!editId} stage={!editId ? "new" : productIsDraft ? "draft" : "live"} categoryFieldsMissing={readinessCategoryErrors} />
                   </div>
 
                   {editId ? (

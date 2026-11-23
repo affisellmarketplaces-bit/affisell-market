@@ -18,10 +18,14 @@ import {
   type ProductSales,
 } from "@/lib/supplier-catalog-health/availability-impact"
 import { buildHealthReport, type HealthProduct, type HealthReport } from "@/lib/supplier-catalog-health/diagnose"
+import { buildCatalogReadiness, type CatalogReadiness, type CatalogReadinessProduct } from "@/lib/commercial-readiness/catalog-readiness"
+import { loadPublicationRules, loadQualityEvidenceSafe, loadSupplierFeeBpsByCategory } from "@/lib/commercial-readiness/readiness-context.server"
+import { QUALITY_RESERVED_KEYS } from "@/lib/listing-quality/sheet-facts"
 
 /** Newest products first; beyond that the report says it is truncated. */
 export const HEALTH_MAX_PRODUCTS = 1000
 const DAY = 86_400_000
+const READ_KEYS = [...new Set([...LISTING_COMPLIANCE_KEYS, IDENTITY_KEYS.gtin, STOCK_UNCONFIRMED_KEY, ...QUALITY_RESERVED_KEYS])]
 
 /**
  * Health of ONE supplier's catalogue. READ-ONLY, scoped to `supplierId`: every
@@ -31,18 +35,33 @@ export async function loadSupplierCatalogHealth(supplierId: string, now = new Da
   return (await loadSupplierCatalogHealthDetailed(supplierId, now)).report
 }
 
-export type CatalogHealthWithImpact = HealthReport & { availability: AvailabilityImpact }
+/** The browser gets the two short lists and the counts — never every product's summary. */
+export type CatalogReadinessView = Omit<CatalogReadiness, "all">
+export type CatalogHealthWithImpact = HealthReport & { availability: AvailabilityImpact; readiness: CatalogReadinessView | null }
 
 /** The health report + what each availability problem costs in the resellers' shops (same reads, read-only). */
 export async function loadSupplierCatalogHealthWithImpact(supplierId: string, now = new Date()): Promise<CatalogHealthWithImpact> {
-  const { report, sales } = await loadSupplierCatalogHealthDetailed(supplierId, now)
-  return { ...report, availability: buildAvailabilityImpact(report.issues, sales, now) }
+  const { report, sales, readiness } = await loadSupplierCatalogHealthDetailed(supplierId, now)
+  return {
+    ...report,
+    availability: buildAvailabilityImpact(report.issues, sales, now),
+    readiness: readiness ? { byStage: readiness.byStage, toFix: readiness.toFix, readyNotSelling: readiness.readyNotSelling } : null,
+  }
+}
+
+/** Health report + the commercial-readiness verdict of every saved product (same reads; for the next best action). */
+export async function loadSupplierCatalogHealthAndReadiness(
+  supplierId: string,
+  now = new Date(),
+): Promise<{ report: HealthReport; readiness: CatalogReadiness | null }> {
+  const { report, readiness } = await loadSupplierCatalogHealthDetailed(supplierId, now)
+  return { report, readiness }
 }
 
 async function loadSupplierCatalogHealthDetailed(
   supplierId: string,
   now: Date,
-): Promise<{ report: HealthReport; sales: Map<string, ProductSales> }> {
+): Promise<{ report: HealthReport; sales: Map<string, ProductSales>; readiness: CatalogReadiness | null }> {
   const rows = await prisma.product.findMany({
     where: { supplierId },
     orderBy: { createdAt: "desc" },
@@ -65,10 +84,13 @@ async function loadSupplierCatalogHealthDetailed(
       offerMode: true,
       deliveryMin: true,
       deliveryMax: true,
+      warehouseType: true,
+      deliveryCountryCodes: true,
       createdAt: true,
       updatedAt: true,
       attributes: {
-        where: { key: { in: [...new Set([...LISTING_COMPLIANCE_KEYS, IDENTITY_KEYS.gtin, STOCK_UNCONFIRMED_KEY])] } },
+        // Reserved keys only: product safety, identity, stock marker, return window (the 12 sheet elements' inputs).
+        where: { key: { in: READ_KEYS } },
         select: { key: true, value: true },
       },
     },
@@ -76,7 +98,7 @@ async function loadSupplierCatalogHealthDetailed(
   const truncated = rows.length > HEALTH_MAX_PRODUCTS
   const products = rows.slice(0, HEALTH_MAX_PRODUCTS)
   const ids = products.map((p) => p.id)
-  if (ids.length === 0) return { report: buildHealthReport([], { now, readinessMode: readListingReadinessMode() }), sales: new Map() }
+  if (ids.length === 0) return { report: buildHealthReport([], { now, readinessMode: readListingReadinessMode() }), sales: new Map(), readiness: null }
 
   const since = new Date(now.getTime() - 30 * DAY)
   const [orders, lastPaid, listings, holds, pendingRows, leadTimes] = await Promise.all([
@@ -182,7 +204,104 @@ async function loadSupplierCatalogHealthDetailed(
       sheetUpdatedAt: hp.sheetUpdatedAt ?? null,
     }
   }
-  return { report: buildHealthReport(input, { now, readinessMode: readListingReadinessMode() }, { truncated }), sales }
+  const report = buildHealthReport(input, { now, readinessMode: readListingReadinessMode() }, { truncated })
+  const readiness = await loadCatalogReadiness(supplierId, products, holds, input, report, now)
+  return { report, sales, readiness }
+}
+
+/**
+ * The commercial-readiness verdict of each saved product — the forms' engine on the stored row (spec counts, fee per
+ * category, publication rules and quality evidence read with the same functions as the forms' sources). Read-only;
+ * any failure = no readiness block (the health report is still served), never a fake verdict.
+ */
+async function loadCatalogReadiness(
+  supplierId: string,
+  products: Array<{
+    id: string
+    name: string
+    description: string | null
+    images: string[]
+    categoryId: string | null
+    listingKind: string | null
+    isDraft: boolean
+    active: boolean
+    basePriceCents: number
+    stock: number
+    hasVariants: boolean
+    variants: unknown
+    customColumns: unknown
+    commissionRate: number
+    offerMode: string | null
+    deliveryMin: number | null
+    deliveryMax: number | null
+    warehouseType: string | null
+    deliveryCountryCodes: string[]
+    createdAt: Date
+    attributes: Array<{ key: string; value: string }>
+  }>,
+  holds: Map<string, Array<"product_recalled" | "product_suspended">> | null,
+  input: HealthProduct[],
+  report: HealthReport,
+  now: Date,
+): Promise<CatalogReadiness | null> {
+  try {
+    const ids = products.map((p) => p.id)
+    const [specCounts, rules, fees, evidence] = await Promise.all([
+      prisma.productAttribute.groupBy({
+        by: ["productId"],
+        where: { productId: { in: ids }, key: { notIn: [...QUALITY_RESERVED_KEYS] }, NOT: { value: "" } },
+        _count: { _all: true },
+      }),
+      loadPublicationRules(supplierId),
+      loadSupplierFeeBpsByCategory(supplierId, products.map((p) => p.categoryId)),
+      loadQualityEvidenceSafe(),
+    ])
+    const specBy = new Map(specCounts.map((s) => [s.productId, s._count._all]))
+    const codesBy = new Map<string, Set<string>>()
+    for (const i of report.issues) codesBy.set(i.productId, (codesBy.get(i.productId) ?? new Set()).add(i.code))
+    const healthBy = new Map(input.map((h) => [h.id, h]))
+    const items: CatalogReadinessProduct[] = products.map((p) => ({
+      productId: p.id,
+      productName: p.name,
+      active: p.active,
+      holds: holds === null ? null : holds.get(p.id) ?? [],
+      paidOrders30d: healthBy.get(p.id)?.paidOrders30d ?? 0,
+      resellersListing: healthBy.get(p.id)?.resellersListing ?? 0,
+      ageDays: Math.floor((now.getTime() - p.createdAt.getTime()) / DAY),
+      healthCodes: codesBy.get(p.id) ?? new Set(),
+      row: {
+        name: p.name,
+        description: p.description,
+        images: p.images,
+        categoryId: p.categoryId,
+        listingKind: p.listingKind,
+        basePriceCents: p.basePriceCents,
+        offerMode: p.offerMode,
+        commissionRate: p.commissionRate,
+        variants: p.variants,
+        customColumns: p.customColumns,
+        stock: p.stock,
+        hasVariants: p.hasVariants,
+        warehouseType: p.warehouseType,
+        deliveryCountryCodes: p.deliveryCountryCodes,
+        deliveryMin: p.deliveryMin,
+        deliveryMax: p.deliveryMax,
+        isDraft: p.isDraft,
+        attributes: p.attributes,
+        specCount: specBy.get(p.id) ?? 0,
+      },
+    }))
+    return buildCatalogReadiness(items, {
+      listingReadinessMode: rules.listingReadinessMode,
+      merchantVerified: rules.merchantVerified,
+      catalogCapReached: rules.catalogCapReached,
+      feeBpsByCategory: fees,
+      evidence,
+    })
+  } catch (error) {
+    console.error("[catalog-health] readiness_unavailable", error instanceof Error ? error.message : "unknown")
+    return null
+  }
 }
 
 /**

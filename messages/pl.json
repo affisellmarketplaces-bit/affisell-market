@@ -2367,18 +2367,23 @@
         "not_buyable": "Obowiązek do sprzedaży: ofertę można opublikować, ale wyświetla się jako wyprzedana i nikt nie może jej kupić.",
         "platform_rule": "Zasada Affisell sprawdzana, ale jeszcze niewymagana przy publikacji: może stać się wymagana w każdej chwili.",
         "observed_risk": "Realne ryzyko bez odrzucenia: publikacja przejdzie, ale może to zaszkodzić sprzedaży lub dostawie.",
-        "measured_association": "Zalecenie oparte na pomiarze jakości Affisell."
+        "measured_association": "Zalecenie oparte na pomiarze jakości Affisell.",
+        "save_refusal": "Wymóg: produkt pozostaje w sprzedaży bez zmian, ale Affisell odmawia zapisania zmiany karty, dopóki brakuje tego punktu.",
+        "publication_rule_live": "Już w sprzedaży: pozostaje w sprzedaży, nic nie jest wycofywane. Ten punkt byłby wymagany przy nowej publikacji.",
+        "affisell_decision": "Decyzja Affisell: tego nie poprawia się w karcie."
       },
       "finding": {
         "name_missing": {
           "title": "Nazwa produktu jest pusta",
           "why": "Oferty bez nazwy nie można opublikować.",
-          "fix": "Podaj dokładną nazwę produktu."
+          "fix": "Podaj dokładną nazwę produktu.",
+          "whyLive": "Produkt jest w sprzedaży, ale zmiana karty zostanie odrzucona, dopóki nie ma nazwy."
         },
         "category_missing": {
           "title": "Brak dokładnej kategorii",
           "why": "Publikacja wymaga kategorii końcowej katalogu: umieszcza ona produkt w wyszukiwaniu i ustala opłaty Affisell.",
-          "fix": "Wybierz najdokładniejszą kategorię produktu."
+          "fix": "Wybierz najdokładniejszą kategorię produktu.",
+          "whyLive": "W sprzedaży bez kategorii końcowej: jest źle umieszczony w wyszukiwaniu, a nowa publikacja by jej wymagała."
         },
         "category_fields_missing": {
           "title": "Brak obowiązkowych cech kategorii",
@@ -2388,27 +2393,32 @@
         "price_missing": {
           "title": "Brak ceny",
           "why": "Bez ceny produktu nie można opublikować.",
-          "fix": "Podaj swoją cenę dostawcy netto."
+          "fix": "Podaj swoją cenę dostawcy netto.",
+          "whyLive": "Produkt jest w sprzedaży, ale zmiana karty zostanie odrzucona, dopóki nie ma ceny."
         },
         "photo_missing": {
           "title": "Brak zapisanego zdjęcia",
           "why": "Publikacja wymaga co najmniej jednego hostowanego zdjęcia; to także pierwsze, co widzi kupujący.",
-          "fix": "Dodaj co najmniej jedno zdjęcie produktu i poczekaj na zakończenie przesyłania."
+          "fix": "Dodaj co najmniej jedno zdjęcie produktu i poczekaj na zakończenie przesyłania.",
+          "whyLive": "W sprzedaży bez hostowanego zdjęcia: to pierwsze, co widzi kupujący, a nowa publikacja by go wymagała."
         },
         "warehouse_missing": {
           "title": "Nie podano strefy wysyłki",
           "why": "Strefa magazynu jest wymagana do publikacji: służy do podawania wiarygodnych terminów.",
-          "fix": "Wybierz, skąd wysyłana jest paczka (lokalnie, regionalnie lub międzynarodowo)."
+          "fix": "Wybierz, skąd wysyłana jest paczka (lokalnie, regionalnie lub międzynarodowo).",
+          "whyLive": "W sprzedaży bez strefy magazynu: zapowiadane terminy są mniej wiarygodne, a nowa publikacja by jej wymagała."
         },
         "delivery_countries_missing": {
           "title": "Brak kraju dostawy",
           "why": "Bez krajów dostawy publikacja jest odrzucana i żaden kupujący nie mógłby zamówić.",
-          "fix": "Wybierz kraje, do których dostarczasz."
+          "fix": "Wybierz kraje, do których dostarczasz.",
+          "whyLive": "W sprzedaży bez zadeklarowanych krajów dostawy: nowa publikacja by ich wymagała."
         },
         "commission_not_explicit": {
           "title": "Prowizja dla odsprzedawców nieustalona",
           "why": "Prowizja dla odsprzedawców musi być jawnie podana, aby opublikować; bez niej sprzedaży nie da się rozliczyć.",
-          "fix": "Podaj prowizję, którą oferujesz odsprzedawcom."
+          "fix": "Podaj prowizję, którą oferujesz odsprzedawcom.",
+          "whyLive": "W sprzedaży bez jawnej prowizji: opłaconej sprzedaży nie dałoby się rozliczyć i nie stałaby się zamówieniem."
         },
         "merchant_unverified": {
           "title": "Konto dostawcy jeszcze niezweryfikowane",
@@ -2423,12 +2433,14 @@
         "safety_incomplete": {
           "title": "Niepełne informacje o bezpieczeństwie produktu",
           "why": "Producent i, spoza UE, osoba odpowiedzialna w UE: Affisell sprawdza te dane dla produktów fizycznych.",
-          "fix": "Uzupełnij sekcję Bezpieczeństwo produktu."
+          "fix": "Uzupełnij sekcję Bezpieczeństwo produktu.",
+          "whyLive": "Już w sprzedaży: kontrola bezpieczeństwa produktu dotyczy tylko nowych publikacji, ale te dane są nadal oczekiwane dla produktu fizycznego."
         },
         "stock_missing": {
           "title": "Brak ilości w magazynie",
           "why": "Produkt zostałby opublikowany, ale wyświetlony jako wyprzedany: nikt nie mógłby go zamówić.",
-          "fix": "Podaj rzeczywiście dostępną ilość."
+          "fix": "Podaj rzeczywiście dostępną ilość.",
+          "whyLive": "Produkt jest w sprzedaży, ale pokazywany jako wyprzedany: żaden kupujący nie może go zamówić."
         },
         "delivery_time_default": {
           "title": "Nie podano czasu dostawy",
@@ -2449,6 +2461,22 @@
           "title": "Nic nie zarabiasz na tej sprzedaży",
           "why": "Przy tej cenie, tej prowizji i opłatach Affisell twój zysk netto na sprzedaży wynosi zero lub mniej.",
           "fix": "Przejrzyj cenę lub prowizję oferowaną odsprzedawcom."
+        },
+        "stock_unconfirmed": {
+          "title": "Zaimportowana ilość niepotwierdzona",
+          "why": "Import nie podał żadnej ilości: publikacja jest odrzucana, dopóki jej nie wpiszesz.",
+          "whyLive": "Zaimportowana ilość nigdy nie została potwierdzona: produkt jest pokazywany jako wyprzedany i nikt nie może go kupić.",
+          "fix": "Wpisz w karcie ilość rzeczywiście dostępną."
+        },
+        "held_by_affisell": {
+          "title": "Wstrzymany przez Affisell",
+          "why": "Wycofanie ze względów bezpieczeństwa lub zawieszenie przez Affisell uniemożliwia sprzedaż tego produktu.",
+          "fix": "Sprawdź powód w karcie; tylko Affisell może znieść wstrzymanie."
+        },
+        "hold_unverifiable": {
+          "title": "Nie można sprawdzić statusu handlowego",
+          "why": "Affisell nie mógł odczytać wycofań i zawieszeń tego produktu: nie jest pokazywany jako gotowy, dopóki nie zostanie to sprawdzone.",
+          "fix": "Nic do zrobienia w karcie: odśwież stronę później."
         }
       }
     }
@@ -9893,6 +9921,36 @@
         "safety_complete": "Uzupełnij informacje o bezpieczeństwie produktu.",
         "stock_confirmed": "Podaj rzeczywistą ilość w magazynie."
       }
+    },
+    "readiness": {
+      "title": "Gotowy do sprzedaży? — Twoje zapisane karty",
+      "subtitle": "Ta sama kontrola co podczas tworzenia, zastosowana do każdej zapisanej karty z zasadami jej etapu: szkic lub w sprzedaży.",
+      "countsLive": "W sprzedaży: {ready} gotowe · {toFix} do poprawy · {blocked} zablokowane",
+      "countsDraft": "Szkice: {ready} gotowe · {toFix} do poprawy · {blocked} zablokowane",
+      "toFixTitle": "Najpierw do poprawy — jedna poprawka na kartę",
+      "nothingToFix": "Żadna zapisana karta nie ma blokady ani punktu priorytetowego.",
+      "readyNotSellingTitle": "Technicznie gotowe, ale trudne do sprzedania",
+      "readyNotSellingIntro": "Te karty spełniają zasady i można je kupić. Każdy punkt jest czytany osobno, ze swoim źródłem; nie ma oceny łącznej.",
+      "qualification": {
+        "affisell": "zasada Affisell",
+        "fiche": "karta",
+        "calcul": "obliczenie",
+        "observe": "zaobserwowane"
+      },
+      "weak": {
+        "disponibilite": "Niepewna dostępność: na tej stronie zgłoszono dla tego produktu ryzyko wyczerpania lub niedostępności.",
+        "rentabilite_revendeur": "Niski zysk sprzedawcy: {net} na sprzedaży przy cenie, którą copilot proponuje sprzedawcom ({price} netto, standardowa opłata). Poniżej {threshold} copilot pokazuje im produkt jako „do sprawdzenia”. Prowizję i cenę ustalasz w karcie, według własnej decyzji.",
+        "offre": "Niepełna oferta: {count, plural, one {brakuje # elementu karty} other {brakuje # elementów karty}}, powiązanych na Affisell z większą sprzedażą (co najmniej {lo} razy dla najwyraźniejszego). Związek statystyczny, nie gwarancja sprzedaży.",
+        "demande": "Żaden sprzedawca nie oferuje go po {ageDays} dniach w sprzedaży.",
+        "performance": "{resellers, plural, one {Oferowany przez # sprzedawcę} few {Oferowany przez # sprzedawców} many {Oferowany przez # sprzedawców} other {Oferowany przez # sprzedawców}}, brak opłaconej sprzedaży w ciągu {windowDays} dni."
+      },
+      "openSheet": "Otwórz kartę",
+      "stage": {
+        "draft": "szkic",
+        "live": "opublikowany"
+      },
+      "moreInSheet": "{count, plural, one {jeszcze # punkt w karcie} few {jeszcze # punkty w karcie} many {jeszcze # punktów w karcie} other {jeszcze # punktów w karcie}}",
+      "method": "Obliczone na podstawie Twoich zapisanych kart i Twojej własnej sprzedaży, z zasadami, które Affisell stosuje na każdym etapie. Z tej strony nic nie jest publikowane, wycofywane ani zmieniane."
     }
   },
   "nextActions": {
@@ -9914,7 +9972,8 @@
       "review_profit_drop": "Sprawdź spadek dla « {product} »",
       "add_ready_product": "Dodaj « {product} » do swojego sklepu",
       "answer_restock_demand": "Odpowiedz na popyt na {product}",
-      "answer_shop_demand": "Kupujący z Twojego sklepu czekają na {product}"
+      "answer_shop_demand": "Kupujący z Twojego sklepu czekają na {product}",
+      "prepare_listing": "Przygotuj „{product}” do sprzedaży"
     },
     "cta": {
       "fix_blocage": "Otwórz produkt",
@@ -9926,7 +9985,8 @@
       "review_profit_drop": "Zobacz analizę",
       "add_ready_product": "Zobacz w katalogu",
       "answer_restock_demand": "Zaktualizuj dostępność",
-      "answer_shop_demand": "Zobacz popyt i alternatywy"
+      "answer_shop_demand": "Zobacz popyt i alternatywy",
+      "prepare_listing": "Otwórz kartę"
     },
     "impact": {
       "label": "Potencjalny wpływ:",
@@ -9981,7 +10041,8 @@
       "quality_photos_5plus": "Mniej niż 5 zdjęć.",
       "quality_brand_declared": "Nie podano marki.",
       "quality_delivery_declared": "Nie podano czasu dostawy.",
-      "quality_return_extended": "Termin zwrotu to tylko 14 dni."
+      "quality_return_extended": "Termin zwrotu to tylko 14 dni.",
+      "readiness_next_fix": "Następna poprawka karty, wybrana przez kontrolę „Gotowy do sprzedaży?”."
     },
     "qualityEvidence": "Zaobserwowano na Affisell: porównywalne oferty z tym elementem odnotowały {ratio} razy więcej sprzedaży dziennie w sklepie (co najmniej {lo} razy). Związek statystyczny, a nie dowód, że jego dodanie zwiększy sprzedaż."
   },

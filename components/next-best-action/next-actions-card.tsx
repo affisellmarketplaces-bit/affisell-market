@@ -22,6 +22,7 @@ const money = (c: number) => formatStoreCurrencyFromCents(c, { maximumFractionDi
  */
 export function NextActionsCard({ role }: { role: "supplier" | "affiliate" }) {
   const t = useTranslations("nextActions")
+  const tReady = useTranslations("supplier.readiness")
   const [actions, setActions] = useState<NextAction[] | null>(null)
   const [failed, setFailed] = useState(false)
 
@@ -73,7 +74,16 @@ export function NextActionsCard({ role }: { role: "supplier" | "affiliate" }) {
                 {t(`kind.${a.kind}`, { product: a.productName })}
               </span>
             </div>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{t(`reason.${a.reason}`, { variant: a.variantLabel ?? "", count: a.impact.waitingBuyers ?? 0 })}</p>
+            {a.readiness ? (
+              // The commercial-readiness engine's next fix — same texts as the supplier's form panel.
+              <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                <p className="font-medium text-zinc-800 dark:text-zinc-200">{tReady(`finding.${a.readiness.code}.title`)}</p>
+                <p>{tReady(`finding.${a.readiness.code}.${a.readiness.live ? "whyLive" : "why"}`)}</p>
+                <p className="mt-0.5 text-xs text-zinc-500">{tReady(`basis.${a.readiness.basis}`)}</p>
+              </div>
+            ) : (
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{t(`reason.${a.reason}`, { variant: a.variantLabel ?? "", count: a.impact.waitingBuyers ?? 0 })}</p>
+            )}
             {a.impact.qualityRatio != null && a.impact.qualityRatioLow != null ? (
               <p className="mt-1 text-xs text-zinc-500">
                 {t("qualityEvidence", { ratio: a.impact.qualityRatio.toFixed(1), lo: a.impact.qualityRatioLow.toFixed(1) })}

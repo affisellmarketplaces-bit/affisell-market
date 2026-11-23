@@ -181,12 +181,30 @@ function isPhysical(p: HealthProduct): boolean {
   return !NON_PHYSICAL.has((p.listingKind ?? "PHYSICAL").trim().toUpperCase())
 }
 
-function rowStocks(p: HealthProduct): number[] | null {
+function rowStocks(p: Pick<HealthProduct, "variantRowStocks">): number[] | null {
   if (!Array.isArray(p.variantRowStocks) || p.variantRowStocks.length === 0) return null
   return p.variantRowStocks.map((v) => {
     const n = typeof v === "number" ? v : typeof v === "string" && v.trim() ? Number(v) : NaN
     return Number.isFinite(n) ? Math.max(0, Math.round(n)) : NaN
   })
+}
+
+/**
+ * The quantity a buyer can see, as the sheet DECLARES it — ONE definition for the catalogue health and the commercial
+ * readiness of a saved product: SKU rows (their sum) when the sheet has them, else `Product.stock`; a product whose
+ * variants live only in the `ProductVariant` table, or whose rows are unreadable, is « not known » (never judged sold out).
+ */
+export function declaredAvailability(p: Pick<HealthProduct, "listingKind" | "variantRowStocks" | "hasVariants" | "stock">): {
+  rows: number[] | null
+  rowsUnreadable: boolean
+  available: number | null
+  stockKnown: boolean
+} {
+  const rows = rowStocks(p)
+  const rowsUnreadable = rows != null && rows.some((n) => Number.isNaN(n))
+  const available = rows && !rowsUnreadable ? rows.reduce((a, b) => a + b, 0) : rows ? null : p.stock
+  const stockKnown = !NON_PHYSICAL.has((p.listingKind ?? "PHYSICAL").trim().toUpperCase()) && !(p.hasVariants && rows == null) && available != null
+  return { rows, rowsUnreadable, available, stockKnown }
 }
 
 export function normalizeProductName(name: string): string {
@@ -209,10 +227,7 @@ export function diagnoseProduct(p: HealthProduct, ctx: HealthContext, duplicates
   const held = p.holds != null && p.holds.length > 0
   const onSale = published && p.active && !held
   const ageDays = Math.floor((ctx.now.getTime() - p.createdAt.getTime()) / DAY)
-  const rows = rowStocks(p)
-  const rowsUnreadable = rows != null && rows.some((n) => Number.isNaN(n))
-  const available = rows && !rowsUnreadable ? rows.reduce((a, b) => a + b, 0) : rows ? null : p.stock
-  const stockKnown = physical && !(p.hasVariants && rows == null) && available != null
+  const { rows, rowsUnreadable, available, stockKnown } = declaredAvailability(p)
 
   // ---- blocage -----------------------------------------------------------
   // The import's source gave no quantity: the product can not be published until the supplier types one. Its stock is 0

@@ -7,8 +7,10 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import type { AvailabilityImpact, AvailabilityImpactItem } from "@/lib/supplier-catalog-health/availability-impact"
 import type { HealthClass, HealthIssue, HealthReport } from "@/lib/supplier-catalog-health/diagnose"
+import type { CatalogReadiness, ProductReadinessSummary } from "@/lib/commercial-readiness/catalog-readiness"
+import type { DimensionReading } from "@/lib/commercial-readiness/commercial-standing"
 
-type HealthPayload = HealthReport & { availability?: AvailabilityImpact }
+type HealthPayload = HealthReport & { availability?: AvailabilityImpact; readiness?: Omit<CatalogReadiness, "all"> | null }
 const money = (c: number) => formatStoreCurrencyFromCents(c, { maximumFractionDigits: 0 })
 
 const CLASSES: HealthClass[] = ["blocage", "anomalie", "avertissement", "recommandation"]
@@ -91,6 +93,7 @@ export function CatalogHealthPanel() {
       </header>
 
       {report.availability ? <AvailabilityImpactSection impact={report.availability} onFixed={() => void load()} /> : null}
+      {report.readiness ? <SavedReadinessSection readiness={report.readiness} /> : null}
 
       <div className="flex flex-wrap gap-2" role="tablist" aria-label={t("filterLabel")}>
         {(["all", ...CLASSES] as const).map((c) => (
@@ -418,5 +421,124 @@ function StockFix({ productId, current, onFixed }: { productId: string; current:
       </button>
       {msg ? <span className="text-xs text-zinc-600 dark:text-zinc-400" role="status">{msg}</span> : null}
     </div>
+  )
+}
+
+const VERDICT_CHIP = {
+  bloquant: "bg-red-100 text-red-800 dark:bg-red-950/50 dark:text-red-200",
+  a_corriger: "bg-amber-100 text-amber-900 dark:bg-amber-950/50 dark:text-amber-100",
+  pret: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100",
+} as const
+
+/**
+ * « Prêt à commercialiser ? » on the SAVED catalogue — the forms' engine run on every stored sheet
+ * (lib/commercial-readiness/catalog-readiness.ts): counts by stage, the products to fix first with their ONE next fix,
+ * and the products technically ready but weak commercially, each weak dimension said separately (no score).
+ * Read-only: nothing is published, withdrawn or changed from here.
+ */
+function SavedReadinessSection({ readiness }: { readiness: Omit<CatalogReadiness, "all"> }) {
+  const t = useTranslations("catalogHealth.readiness")
+  const { byStage, toFix, readyNotSelling } = readiness
+  if (byStage.live.pret + byStage.live.a_corriger + byStage.live.bloquant + byStage.draft.pret + byStage.draft.a_corriger + byStage.draft.bloquant === 0) return null
+  return (
+    <section className="space-y-3 rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800" aria-labelledby="saved-readiness-title">
+      <header className="space-y-1">
+        <h2 id="saved-readiness-title" className="text-base font-semibold text-zinc-900 dark:text-zinc-50">{t("title")}</h2>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">{t("subtitle")}</p>
+        <p className="text-xs text-zinc-500">
+          {t("countsLive", { ready: byStage.live.pret, toFix: byStage.live.a_corriger, blocked: byStage.live.bloquant })}
+          {" · "}
+          {t("countsDraft", { ready: byStage.draft.pret, toFix: byStage.draft.a_corriger, blocked: byStage.draft.bloquant })}
+        </p>
+      </header>
+
+      {toFix.length > 0 ? (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{t("toFixTitle")}</h3>
+          <ul className="space-y-2">
+            {toFix.map((p) => (
+              <ReadinessRow key={p.productId} p={p} />
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <p className="text-sm text-emerald-800 dark:text-emerald-200">{t("nothingToFix")}</p>
+      )}
+
+      {readyNotSelling.length > 0 ? (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{t("readyNotSellingTitle")}</h3>
+          <p className="text-xs text-zinc-500">{t("readyNotSellingIntro")}</p>
+          <ul className="space-y-2">
+            {readyNotSelling.map((p) => (
+              <li key={p.productId} className="rounded-xl border border-zinc-200 p-3 text-sm dark:border-zinc-800">
+                <p className="font-medium text-zinc-900 dark:text-zinc-100">{p.productName}</p>
+                <ul className="mt-1 space-y-1">
+                  {p.standing.dimensions
+                    .filter((d) => d.state === "faible")
+                    .sort((a, b) => p.standing.weak.indexOf(a.dimension) - p.standing.weak.indexOf(b.dimension))
+                    .map((d) => (
+                      <li key={d.dimension} className="text-xs text-zinc-700 dark:text-zinc-300">
+                        <span className="mr-1 rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                          {t(`qualification.${d.qualification}`)}
+                        </span>
+                        {t(`weak.${d.dimension}`, dimensionParams(d))}
+                      </li>
+                    ))}
+                </ul>
+                <Link href={`/dashboard/supplier/products/${encodeURIComponent(p.productId)}/edit`} className="mt-2 inline-block text-xs font-medium text-violet-700 underline">
+                  {t("openSheet")}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      <p className="text-[11px] text-zinc-500">{t("method")}</p>
+    </section>
+  )
+}
+
+function dimensionParams(d: DimensionReading): Record<string, string | number> {
+  const e = d.evidence
+  const num = (k: string) => (typeof e[k] === "number" ? (e[k] as number) : 0)
+  return {
+    net: money(num("netCents")),
+    price: money(num("suggestedPriceHtCents")),
+    threshold: money(num("thresholdCents")),
+    count: num("count"),
+    lo: num("bestLo").toFixed(1),
+    ageDays: num("ageDays"),
+    resellers: num("resellersListing"),
+    windowDays: num("windowDays"),
+  }
+}
+
+function ReadinessRow({ p }: { p: ProductReadinessSummary }) {
+  const t = useTranslations("catalogHealth.readiness")
+  const tReady = useTranslations("supplier.readiness")
+  const f = p.nextFix
+  return (
+    <li className="rounded-xl border border-zinc-200 p-3 text-sm dark:border-zinc-800">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${VERDICT_CHIP[p.verdict]}`}>{tReady(`verdict.${p.verdict}`)}</span>
+        <span className="font-medium text-zinc-900 dark:text-zinc-100">{p.productName}</span>
+        <span className="text-xs text-zinc-500">{t(`stage.${p.stage}`)}</span>
+      </div>
+      {f ? (
+        <div className="mt-1">
+          <p className="text-xs font-medium text-violet-700 dark:text-violet-300">{tReady("nextFix")} · {tReady(`finding.${f.code}.title`)}</p>
+          <p className="text-xs text-zinc-700 dark:text-zinc-300">{tReady(`finding.${f.code}.${f.live ? "whyLive" : "why"}`)}</p>
+          <p className="text-xs text-zinc-600 dark:text-zinc-400">{tReady(`finding.${f.code}.fix`)}</p>
+          <p className="mt-0.5 text-[11px] text-zinc-500">{tReady(`basis.${f.basis}`)}</p>
+        </div>
+      ) : null}
+      {p.counts.bloquant + p.counts.prioritaire > 1 ? (
+        <p className="mt-1 text-[11px] text-zinc-500">{t("moreInSheet", { count: p.counts.bloquant + p.counts.prioritaire - 1 })}</p>
+      ) : null}
+      <Link href={`/dashboard/supplier/products/${encodeURIComponent(p.productId)}/edit`} className="mt-2 inline-block text-xs font-medium text-violet-700 underline">
+        {t("openSheet")}
+      </Link>
+    </li>
   )
 }

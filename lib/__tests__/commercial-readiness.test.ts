@@ -154,19 +154,19 @@ describe("no rule invented", () => {
 describe("texts", () => {
   it("every code the engine can emit (outside quality elements) has its title, why and fix in 8 locales", () => {
     const src = readFileSync(join(process.cwd(), "lib/commercial-readiness/readiness.ts"), "utf8")
-    const emitted = [...src.matchAll(/code: "([a-z_]+)"/g)].map((m) => m[1])
-    expect(emitted.length).toBeGreaterThanOrEqual(16)
+    const emitted = [...new Set([...src.matchAll(/(?:code: |publishRule\(|saveRule\()"([a-z_]+)"/g)].map((m) => m[1]))]
+    expect(emitted.length).toBeGreaterThanOrEqual(19)
     for (const loc of ["fr", "en", "de", "es", "it", "nl", "pl", "zh"]) {
       const r = (JSON.parse(readFileSync(join(process.cwd(), `messages/${loc}.json`), "utf8")) as { supplier: { readiness: { finding: Record<string, Record<string, string>>; basis: Record<string, string>; verdict: Record<string, string>; level: Record<string, string> } } }).supplier.readiness
       for (const code of emitted) for (const k of ["title", "why", "fix"]) expect(typeof r.finding[code]?.[k], `${loc} ${code}.${k}`).toBe("string")
-      for (const b of ["server_refusal", "not_buyable", "platform_rule", "observed_risk", "measured_association"]) expect(typeof r.basis[b], `${loc} basis.${b}`).toBe("string")
+      for (const b of ["server_refusal", "save_refusal", "not_buyable", "platform_rule", "publication_rule_live", "affisell_decision", "observed_risk", "measured_association"]) expect(typeof r.basis[b], `${loc} basis.${b}`).toBe("string")
       for (const v of ["bloquant", "a_corriger", "pret"]) expect(typeof r.verdict[v]).toBe("string")
       for (const l of ["bloquant", "prioritaire", "recommande"]) expect(typeof r.level[l]).toBe("string")
     }
   })
   it("the three supplier flows show the readiness panel on the body they send", () => {
     const classic = readFileSync(join(process.cwd(), "components/supplier/supplier-add-product-form.tsx"), "utf8")
-    expect(classic).toContain("<CommercialReadinessPanel body={readinessBody} creating={!editId} categoryFieldsMissing={readinessCategoryErrors} />")
+    expect(classic).toContain('<CommercialReadinessPanel body={readinessBody} creating={!editId} stage={!editId ? "new" : productIsDraft ? "draft" : "live"} categoryFieldsMissing={readinessCategoryErrors} />')
     const guided = readFileSync(join(process.cwd(), "components/supplier/guided-add-product-button.tsx"), "utf8")
     expect(guided).toContain("buildGuidedProductBody({ form, allImages, shipDefaults, asDraft: false, priceValid, stockN, withLeaf: true })")
     expect(guided).toContain("<CommercialReadinessPanel body={readinessBody} creating />")

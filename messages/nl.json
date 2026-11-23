@@ -2367,18 +2367,23 @@
         "not_buyable": "Verplichting om te verkopen: de pagina kan gepubliceerd worden, maar staat als uitverkocht en niemand kan kopen.",
         "platform_rule": "Affisell-regel die gecontroleerd wordt maar nog niet vereist is bij publicatie: dat kan op elk moment veranderen.",
         "observed_risk": "Echt risico, geen weigering: de publicatie gaat door, maar dit kan de verkoop of levering schaden.",
-        "measured_association": "Aanbeveling op basis van de kwaliteitsmeting van Affisell."
+        "measured_association": "Aanbeveling op basis van de kwaliteitsmeting van Affisell.",
+        "save_refusal": "Verplichting: het product blijft ongewijzigd te koop, maar Affisell weigert een wijziging van de fiche op te slaan zolang dit punt ontbreekt.",
+        "publication_rule_live": "Al te koop: het blijft te koop, er wordt niets teruggetrokken. Voor een nieuwe publicatie zou dit punt vereist zijn.",
+        "affisell_decision": "Beslissing van Affisell: dit is niet iets wat u in de fiche corrigeert."
       },
       "finding": {
         "name_missing": {
           "title": "De productnaam is leeg",
           "why": "Een pagina zonder naam kan niet gepubliceerd worden.",
-          "fix": "Vul de exacte productnaam in."
+          "fix": "Vul de exacte productnaam in.",
+          "whyLive": "Het product is te koop, maar een wijziging van de fiche wordt geweigerd zolang het geen naam heeft."
         },
         "category_missing": {
           "title": "Geen exacte categorie",
           "why": "Publicatie vereist een eindcategorie van de catalogus: die bepaalt de vindbaarheid en de Affisell-kosten.",
-          "fix": "Kies de meest precieze categorie van het product."
+          "fix": "Kies de meest precieze categorie van het product.",
+          "whyLive": "Te koop zonder eindcategorie: het staat slecht in zoekresultaten, en een nieuwe publicatie zou die vereisen."
         },
         "category_fields_missing": {
           "title": "Verplichte categoriekenmerken ontbreken",
@@ -2388,27 +2393,32 @@
         "price_missing": {
           "title": "Geen prijs",
           "why": "Zonder prijs kan het product niet gepubliceerd worden.",
-          "fix": "Vul uw leveranciersprijs exclusief btw in."
+          "fix": "Vul uw leveranciersprijs exclusief btw in.",
+          "whyLive": "Het product is te koop, maar een wijziging van de fiche wordt geweigerd zolang het geen prijs heeft."
         },
         "photo_missing": {
           "title": "Geen opgeslagen foto",
           "why": "Publicatie vereist minstens één gehoste foto; het is ook het eerste wat een koper ziet.",
-          "fix": "Voeg minstens één productfoto toe en wacht tot het uploaden klaar is."
+          "fix": "Voeg minstens één productfoto toe en wacht tot het uploaden klaar is.",
+          "whyLive": "Te koop zonder gehoste foto: het is het eerste wat een koper ziet, en een nieuwe publicatie zou die vereisen."
         },
         "warehouse_missing": {
           "title": "Verzendzone niet ingevuld",
           "why": "De magazijnzone is verplicht om te publiceren: ze dient voor geloofwaardige levertijden.",
-          "fix": "Kies vanwaar het pakket vertrekt (lokaal, regionaal of internationaal)."
+          "fix": "Kies vanwaar het pakket vertrekt (lokaal, regionaal of internationaal).",
+          "whyLive": "Te koop zonder magazijnzone: aangekondigde levertijden zijn minder geloofwaardig, en een nieuwe publicatie zou die vereisen."
         },
         "delivery_countries_missing": {
           "title": "Geen leverland",
           "why": "Zonder leverlanden wordt de publicatie geweigerd en kan geen koper bestellen.",
-          "fix": "Kies de landen waar u levert."
+          "fix": "Kies de landen waar u levert.",
+          "whyLive": "Te koop zonder opgegeven leveringslanden: een nieuwe publicatie zou die vereisen."
         },
         "commission_not_explicit": {
           "title": "Commissie voor wederverkopers niet ingesteld",
           "why": "De commissie voor wederverkopers moet expliciet zijn om te publiceren; anders kan een verkoop niet verdeeld worden.",
-          "fix": "Vul de commissie in die u wederverkopers biedt."
+          "fix": "Vul de commissie in die u wederverkopers biedt.",
+          "whyLive": "Te koop zonder expliciete commissie: een betaalde verkoop kan niet worden verdeeld en wordt geen bestelling."
         },
         "merchant_unverified": {
           "title": "Leveranciersaccount nog niet geverifieerd",
@@ -2423,12 +2433,14 @@
         "safety_incomplete": {
           "title": "Productveiligheidsgegevens onvolledig",
           "why": "Fabrikant en, buiten de EU, een verantwoordelijke persoon in de EU: Affisell controleert deze gegevens voor fysieke producten.",
-          "fix": "Vul de sectie Productveiligheid aan."
+          "fix": "Vul de sectie Productveiligheid aan.",
+          "whyLive": "Al te koop: de productveiligheidscontrole geldt alleen voor nieuwe publicaties, maar deze gegevens blijven verwacht voor een fysiek product."
         },
         "stock_missing": {
           "title": "Geen voorraad",
           "why": "Het product zou gepubliceerd worden maar als uitverkocht staan: geen koper zou het kunnen bestellen.",
-          "fix": "Vul de werkelijk beschikbare hoeveelheid in."
+          "fix": "Vul de werkelijk beschikbare hoeveelheid in.",
+          "whyLive": "Het product is te koop maar staat uitverkocht: geen koper kan het bestellen."
         },
         "delivery_time_default": {
           "title": "Levertijd niet ingevuld",
@@ -2449,6 +2461,22 @@
           "title": "U verdient niets aan deze verkoop",
           "why": "Met deze prijs, deze commissie en uw Affisell-kosten is uw netto per verkoop nul of negatief.",
           "fix": "Herzie uw prijs of de commissie voor wederverkopers."
+        },
+        "stock_unconfirmed": {
+          "title": "Geïmporteerde hoeveelheid niet bevestigd",
+          "why": "De import gaf geen hoeveelheid: publicatie wordt geweigerd tot u er een invoert.",
+          "whyLive": "De geïmporteerde hoeveelheid is nooit bevestigd: het product staat uitverkocht en niemand kan het kopen.",
+          "fix": "Voer in de fiche de werkelijk beschikbare hoeveelheid in."
+        },
+        "held_by_affisell": {
+          "title": "Tegengehouden door Affisell",
+          "why": "Een veiligheidsterugroeping of een opschorting door Affisell verhindert de verkoop van dit product.",
+          "fix": "Bekijk de reden in de fiche; alleen Affisell kan dit opheffen."
+        },
+        "hold_unverifiable": {
+          "title": "Commerciële status niet controleerbaar",
+          "why": "Affisell kon de terugroepingen en opschortingen van dit product niet lezen: het wordt niet als klaar getoond tot dat gecontroleerd is.",
+          "fix": "Niets te doen in de fiche: laad de pagina later opnieuw."
         }
       }
     }
@@ -9893,6 +9921,36 @@
         "safety_complete": "Vul de productveiligheidsgegevens aan.",
         "stock_confirmed": "Vul een echte voorraad in."
       }
+    },
+    "readiness": {
+      "title": "Klaar om te verkopen? — uw opgeslagen fiches",
+      "subtitle": "Dezelfde controle als tijdens het schrijven, toegepast op elke opgeslagen fiche met de regels van haar fase: concept of te koop.",
+      "countsLive": "Te koop: {ready} klaar · {toFix} te corrigeren · {blocked} geblokkeerd",
+      "countsDraft": "Concepten: {ready} klaar · {toFix} te corrigeren · {blocked} geblokkeerd",
+      "toFixTitle": "Eerst corrigeren — één correctie per fiche",
+      "nothingToFix": "Geen enkele opgeslagen fiche heeft een blokkade of een prioritair punt.",
+      "readyNotSellingTitle": "Technisch klaar, maar moeilijk verkoopbaar",
+      "readyNotSellingIntro": "Deze fiches voldoen aan de regels en kunnen gekocht worden. Elk punt wordt apart gelezen, met zijn bron; er is geen totaalscore.",
+      "qualification": {
+        "affisell": "Affisell-regel",
+        "fiche": "fiche",
+        "calcul": "berekening",
+        "observe": "waargenomen"
+      },
+      "weak": {
+        "disponibilite": "Kwetsbare beschikbaarheid: op deze pagina wordt voor dit product een risico op uitverkoop of onbeschikbaarheid gemeld.",
+        "rentabilite_revendeur": "Lage winst voor de wederverkoper: {net} per verkoop tegen de prijs die de copiloot wederverkopers voorstelt ({price} excl. btw, standaardvergoeding). Onder {threshold} toont de copiloot het product hen als „te controleren”. Commissie en prijs stelt u in de fiche in, naar uw beslissing.",
+        "offre": "Onvolledig aanbod: {count, plural, one {# element van de fiche ontbreekt} other {# elementen van de fiche ontbreken}}, op Affisell verbonden met meer verkopen (minstens {lo} keer voor het duidelijkste). Een statistisch verband, geen verkoopgarantie.",
+        "demande": "Geen enkele wederverkoper biedt het aan na {ageDays} dagen te koop.",
+        "performance": "{resellers, plural, one {Aangeboden door # wederverkoper} other {Aangeboden door # wederverkopers}}, geen betaalde verkoop in {windowDays} dagen."
+      },
+      "openSheet": "Fiche openen",
+      "stage": {
+        "draft": "concept",
+        "live": "gepubliceerd"
+      },
+      "moreInSheet": "{count, plural, one {nog # punt in de fiche} other {nog # punten in de fiche}}",
+      "method": "Berekend op basis van uw opgeslagen fiches en uw eigen verkopen, met de regels die Affisell in elke fase toepast. Vanaf deze pagina wordt niets gepubliceerd, teruggetrokken of gewijzigd."
     }
   },
   "nextActions": {
@@ -9914,7 +9972,8 @@
       "review_profit_drop": "Daling bij « {product} » bekijken",
       "add_ready_product": "« {product} » aan uw winkel toevoegen",
       "answer_restock_demand": "Reageer op de vraag naar {product}",
-      "answer_shop_demand": "Kopers van je winkel wachten op {product}"
+      "answer_shop_demand": "Kopers van je winkel wachten op {product}",
+      "prepare_listing": "„{product}” verkoopklaar maken"
     },
     "cta": {
       "fix_blocage": "Product openen",
@@ -9926,7 +9985,8 @@
       "review_profit_drop": "Analyse bekijken",
       "add_ready_product": "In de catalogus bekijken",
       "answer_restock_demand": "Beschikbaarheid bijwerken",
-      "answer_shop_demand": "Bekijk de vraag en alternatieven"
+      "answer_shop_demand": "Bekijk de vraag en alternatieven",
+      "prepare_listing": "Fiche openen"
     },
     "impact": {
       "label": "Mogelijke impact:",
@@ -9981,7 +10041,8 @@
       "quality_photos_5plus": "Minder dan 5 foto's.",
       "quality_brand_declared": "Het merk is niet vermeld.",
       "quality_delivery_declared": "De levertijd is niet vermeld.",
-      "quality_return_extended": "De retourtermijn is slechts 14 dagen."
+      "quality_return_extended": "De retourtermijn is slechts 14 dagen.",
+      "readiness_next_fix": "De volgende correctie van de fiche, gekozen door de controle „Klaar om te verkopen?”."
     },
     "qualityEvidence": "Waargenomen op Affisell: vergelijkbare productpagina's met dit element hadden {ratio} keer meer verkopen per dag in de winkel (minstens {lo} keer). Statistisch verband, geen bewijs dat toevoegen meer verkopen oplevert."
   },

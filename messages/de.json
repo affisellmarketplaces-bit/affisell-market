@@ -2367,18 +2367,23 @@
         "not_buyable": "Pflicht für den Verkauf: Das Angebot kann veröffentlicht werden, wird aber als ausverkauft angezeigt und niemand kann es kaufen.",
         "platform_rule": "Affisell-Regel, geprüft, aber bei der Veröffentlichung noch nicht verlangt: Sie kann jederzeit verpflichtend werden.",
         "observed_risk": "Echtes Risiko ohne Ablehnung: Die Veröffentlichung geht durch, kann aber Verkauf oder Lieferung schaden.",
-        "measured_association": "Empfehlung auf Grundlage der Qualitätsmessung von Affisell."
+        "measured_association": "Empfehlung auf Grundlage der Qualitätsmessung von Affisell.",
+        "save_refusal": "Pflicht: Das Produkt bleibt unverändert im Verkauf, aber Affisell lehnt das Speichern einer Änderung ab, solange dieser Punkt fehlt.",
+        "publication_rule_live": "Bereits im Verkauf: Es bleibt im Verkauf, nichts wird entfernt. Für eine neue Veröffentlichung wäre dieser Punkt erforderlich.",
+        "affisell_decision": "Entscheidung von Affisell: Das können Sie nicht im Produktblatt korrigieren."
       },
       "finding": {
         "name_missing": {
           "title": "Der Produktname ist leer",
           "why": "Ein Angebot ohne Namen kann nicht veröffentlicht werden.",
-          "fix": "Geben Sie den genauen Produktnamen ein."
+          "fix": "Geben Sie den genauen Produktnamen ein.",
+          "whyLive": "Das Produkt ist im Verkauf, aber eine Änderung des Produktblatts wird abgelehnt, solange es keinen Namen hat."
         },
         "category_missing": {
           "title": "Keine genaue Kategorie",
           "why": "Für die Veröffentlichung ist eine Endkategorie des Katalogs nötig: Sie bestimmt die Auffindbarkeit und die Affisell-Gebühren.",
-          "fix": "Wählen Sie die genaueste Kategorie des Produkts."
+          "fix": "Wählen Sie die genaueste Kategorie des Produkts.",
+          "whyLive": "Im Verkauf ohne finale Kategorie: Es ist in der Suche schlecht platziert, und eine neue Veröffentlichung würde sie verlangen."
         },
         "category_fields_missing": {
           "title": "Pflichtangaben der Kategorie fehlen",
@@ -2388,27 +2393,32 @@
         "price_missing": {
           "title": "Kein Preis",
           "why": "Ohne Preis kann das Produkt nicht veröffentlicht werden.",
-          "fix": "Geben Sie Ihren Lieferantenpreis ohne MwSt. ein."
+          "fix": "Geben Sie Ihren Lieferantenpreis ohne MwSt. ein.",
+          "whyLive": "Das Produkt ist im Verkauf, aber eine Änderung des Produktblatts wird abgelehnt, solange es keinen Preis hat."
         },
         "photo_missing": {
           "title": "Kein gespeichertes Foto",
           "why": "Für die Veröffentlichung ist mindestens ein gehostetes Foto nötig; es ist auch das Erste, was Käufer sehen.",
-          "fix": "Fügen Sie mindestens ein Produktfoto hinzu und warten Sie, bis es hochgeladen ist."
+          "fix": "Fügen Sie mindestens ein Produktfoto hinzu und warten Sie, bis es hochgeladen ist.",
+          "whyLive": "Im Verkauf ohne gehostetes Foto: Es ist das Erste, was Käufer sehen, und eine neue Veröffentlichung würde es verlangen."
         },
         "warehouse_missing": {
           "title": "Versandzone nicht angegeben",
           "why": "Die Lagerzone ist für die Veröffentlichung Pflicht: Sie dient glaubwürdigen Lieferzeiten.",
-          "fix": "Wählen Sie, woher das Paket versandt wird (lokal, regional oder international)."
+          "fix": "Wählen Sie, woher das Paket versandt wird (lokal, regional oder international).",
+          "whyLive": "Im Verkauf ohne Lagerzone: Angekündigte Lieferzeiten sind weniger glaubwürdig, und eine neue Veröffentlichung würde sie verlangen."
         },
         "delivery_countries_missing": {
           "title": "Kein Lieferland",
           "why": "Ohne Lieferländer wird die Veröffentlichung abgelehnt und niemand könnte bestellen.",
-          "fix": "Wählen Sie die Länder, in die Sie liefern."
+          "fix": "Wählen Sie die Länder, in die Sie liefern.",
+          "whyLive": "Im Verkauf ohne angegebene Lieferländer: Eine neue Veröffentlichung würde sie verlangen."
         },
         "commission_not_explicit": {
           "title": "Wiederverkäuferprovision nicht festgelegt",
           "why": "Die Provision für Wiederverkäufer muss für die Veröffentlichung ausdrücklich angegeben sein; sonst könnte ein Verkauf nicht aufgeteilt werden.",
-          "fix": "Geben Sie die Provision an, die Sie Wiederverkäufern bieten."
+          "fix": "Geben Sie die Provision an, die Sie Wiederverkäufern bieten.",
+          "whyLive": "Im Verkauf ohne ausdrückliche Provision: Ein bezahlter Verkauf könnte nicht aufgeteilt werden und würde keine Bestellung."
         },
         "merchant_unverified": {
           "title": "Lieferantenkonto noch nicht verifiziert",
@@ -2423,12 +2433,14 @@
         "safety_incomplete": {
           "title": "Produktsicherheitsangaben unvollständig",
           "why": "Hersteller und außerhalb der EU eine verantwortliche Person in der EU: Affisell prüft diese Daten für physische Produkte.",
-          "fix": "Vervollständigen Sie den Bereich Produktsicherheit."
+          "fix": "Vervollständigen Sie den Bereich Produktsicherheit.",
+          "whyLive": "Bereits im Verkauf: Die Produktsicherheitsprüfung gilt nur für neue Veröffentlichungen, diese Angaben werden für ein physisches Produkt aber weiterhin erwartet."
         },
         "stock_missing": {
           "title": "Keine Menge auf Lager",
           "why": "Das Produkt würde veröffentlicht, aber als ausverkauft angezeigt: Niemand könnte es bestellen.",
-          "fix": "Geben Sie die tatsächlich verfügbare Menge an."
+          "fix": "Geben Sie die tatsächlich verfügbare Menge an.",
+          "whyLive": "Das Produkt ist im Verkauf, erscheint aber ausverkauft: Kein Käufer kann es bestellen."
         },
         "delivery_time_default": {
           "title": "Lieferzeit nicht eingegeben",
@@ -2449,6 +2461,22 @@
           "title": "Sie verdienen an diesem Verkauf nichts",
           "why": "Mit diesem Preis, dieser Provision und Ihren Affisell-Gebühren ist Ihr Nettoerlös pro Verkauf null oder negativ.",
           "fix": "Überprüfen Sie Ihren Preis oder die Provision für Wiederverkäufer."
+        },
+        "stock_unconfirmed": {
+          "title": "Importierte Menge nicht bestätigt",
+          "why": "Der Import lieferte keine Menge: Die Veröffentlichung wird abgelehnt, bis Sie eine eingeben.",
+          "whyLive": "Die importierte Menge wurde nie bestätigt: Das Produkt erscheint ausverkauft und niemand kann es kaufen.",
+          "fix": "Geben Sie im Produktblatt die tatsächlich verfügbare Menge ein."
+        },
+        "held_by_affisell": {
+          "title": "Von Affisell zurückgehalten",
+          "why": "Ein Sicherheitsrückruf oder eine Sperre durch Affisell verhindert den Verkauf dieses Produkts.",
+          "fix": "Sehen Sie den Grund im Produktblatt ein; nur Affisell kann die Sperre aufheben."
+        },
+        "hold_unverifiable": {
+          "title": "Handelsstatus nicht prüfbar",
+          "why": "Affisell konnte Rückrufe und Sperren dieses Produkts nicht lesen: Es wird nicht als bereit angezeigt, bis das geprüft ist.",
+          "fix": "Im Produktblatt ist nichts zu tun: Laden Sie die Seite später neu."
         }
       }
     }
@@ -9893,6 +9921,36 @@
         "safety_complete": "Vervollständigen Sie die Produktsicherheitsangaben.",
         "stock_confirmed": "Geben Sie eine reale Lagermenge an."
       }
+    },
+    "readiness": {
+      "title": "Bereit zum Verkauf? — Ihre gespeicherten Produktblätter",
+      "subtitle": "Dieselbe Prüfung wie beim Erstellen, angewendet auf jedes gespeicherte Produktblatt mit den Regeln seiner Phase: Entwurf oder im Verkauf.",
+      "countsLive": "Im Verkauf: {ready} bereit · {toFix} zu korrigieren · {blocked} blockiert",
+      "countsDraft": "Entwürfe: {ready} bereit · {toFix} zu korrigieren · {blocked} blockiert",
+      "toFixTitle": "Zuerst korrigieren — eine Korrektur pro Produktblatt",
+      "nothingToFix": "Kein gespeichertes Produktblatt hat eine Blockade oder einen vorrangigen Punkt.",
+      "readyNotSellingTitle": "Technisch bereit, aber schwer verkäuflich",
+      "readyNotSellingIntro": "Diese Produktblätter erfüllen die Regeln und können gekauft werden. Jeder Punkt unten wird getrennt gelesen, mit seiner Quelle; es gibt keine Gesamtnote.",
+      "qualification": {
+        "affisell": "Affisell-Regel",
+        "fiche": "Produktblatt",
+        "calcul": "Berechnung",
+        "observe": "beobachtet"
+      },
+      "weak": {
+        "disponibilite": "Unsichere Verfügbarkeit: Auf dieser Seite wird für dieses Produkt ein Ausverkaufs- oder Verfügbarkeitsrisiko gemeldet.",
+        "rentabilite_revendeur": "Geringer Wiederverkäufergewinn: {net} pro Verkauf zum Preis, den der Copilot Wiederverkäufern vorschlägt ({price} netto, Standardgebühr). Unter {threshold} zeigt der Copilot ihnen das Produkt als „zu prüfen“. Provision und Preis legen Sie im Produktblatt fest, nach Ihrer Entscheidung.",
+        "offre": "Unvollständiges Angebot: {count, plural, one {# Element des Produktblatts fehlt} other {# Elemente des Produktblatts fehlen}}, auf Affisell mit mehr Verkäufen verbunden (mindestens {lo}-fach beim deutlichsten). Eine statistische Verbindung, keine Verkaufsgarantie.",
+        "demande": "Kein Wiederverkäufer bietet es nach {ageDays} Tagen im Verkauf an.",
+        "performance": "{resellers, plural, one {Von # Wiederverkäufer angeboten} other {Von # Wiederverkäufern angeboten}}, kein bezahlter Verkauf in {windowDays} Tagen."
+      },
+      "openSheet": "Produktblatt öffnen",
+      "stage": {
+        "draft": "Entwurf",
+        "live": "veröffentlicht"
+      },
+      "moreInSheet": "{count, plural, one {# weiterer Punkt im Produktblatt} other {# weitere Punkte im Produktblatt}}",
+      "method": "Berechnet aus Ihren gespeicherten Produktblättern und Ihren eigenen Verkäufen, mit den Regeln, die Affisell in jeder Phase anwendet. Auf dieser Seite wird nichts veröffentlicht, entfernt oder geändert."
     }
   },
   "nextActions": {
@@ -9914,7 +9972,8 @@
       "review_profit_drop": "Rückgang bei « {product} » prüfen",
       "add_ready_product": "« {product} » in Ihren Shop aufnehmen",
       "answer_restock_demand": "Auf die Nachfrage nach {product} reagieren",
-      "answer_shop_demand": "Käufer Ihres Shops warten auf {product}"
+      "answer_shop_demand": "Käufer Ihres Shops warten auf {product}",
+      "prepare_listing": "„{product}“ verkaufsbereit machen"
     },
     "cta": {
       "fix_blocage": "Produkt öffnen",
@@ -9926,7 +9985,8 @@
       "review_profit_drop": "Analyse ansehen",
       "add_ready_product": "Im Katalog ansehen",
       "answer_restock_demand": "Verfügbarkeit aktualisieren",
-      "answer_shop_demand": "Nachfrage und Alternativen ansehen"
+      "answer_shop_demand": "Nachfrage und Alternativen ansehen",
+      "prepare_listing": "Produktblatt öffnen"
     },
     "impact": {
       "label": "Mögliche Wirkung:",
@@ -9981,7 +10041,8 @@
       "quality_photos_5plus": "Weniger als 5 Fotos.",
       "quality_brand_declared": "Die Marke ist nicht angegeben.",
       "quality_delivery_declared": "Die Lieferzeit ist nicht angegeben.",
-      "quality_return_extended": "Die Rückgabefrist beträgt nur 14 Tage."
+      "quality_return_extended": "Die Rückgabefrist beträgt nur 14 Tage.",
+      "readiness_next_fix": "Die nächste Korrektur des Produktblatts, ausgewählt von der Prüfung „Bereit zum Verkauf?“."
     },
     "qualityEvidence": "Auf Affisell beobachtet: Vergleichbare Angebote mit diesem Element verzeichneten {ratio}-mal mehr Verkäufe pro Tag im Shop (mindestens {lo}-mal). Statistischer Zusammenhang, kein Beweis, dass es den Verkauf steigert."
   },
