@@ -2339,7 +2339,9 @@
         "return_extended": "退货期超过 14 天",
         "safety_complete": "产品安全信息完整",
         "stock_confirmed": "真实库存数量"
-      }
+      },
+      "defaultTag": "默认值",
+      "deliveryDefault": "未填写交货时间：Affisell 将默认显示 {min} 至 {max} 天。请填写您的实际交货时间。"
     }
   },
   "affiliate": {

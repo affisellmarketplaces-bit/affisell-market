@@ -57,8 +57,8 @@ describe("shared sheet signals", () => {
     expect(server).toContain("...sheetSignals({")
     expect(server).not.toMatch(/isValidGtin|indistinctVariantRows|evaluateListingReadiness/)
     const form = readFileSync(join(process.cwd(), "components/supplier/supplier-add-product-form.tsx"), "utf8")
-    expect(form).toContain("sheetSignals({")
-    expect(form).toContain("<SheetQualityChecklist signals={sheetQualitySignals} />")
+    expect(form).toContain("sheetSignalsFromProductBody({")
+    expect(form).toContain("<SheetQualityChecklist sheet={sheetQuality} />")
   })
 })
 
@@ -90,13 +90,13 @@ describe("checklist", () => {
   })
   it("never computes a gain: items carry a state and, at most, the marketplace ratio", () => {
     const c = buildSheetChecklist(sheetSignals(facts()), [{ feature: "photos_3plus", adjustedRatio: 2, lo: 1.3 }])
-    for (const i of c.items) expect(Object.keys(i).sort()).toEqual(["evidence", "feature", "state"])
+    for (const i of c.items) expect(Object.keys(i).sort()).toEqual(["evidence", "feature", "fromDefault", "state"])
   })
   it("the panel's texts state the limit in every locale", () => {
     for (const loc of ["fr", "en", "de", "es", "it", "nl", "pl", "zh"]) {
       const m = JSON.parse(readFileSync(join(process.cwd(), `messages/${loc}.json`), "utf8")) as { supplier: { sheetChecklist: Record<string, unknown> & { label: Record<string, string> } } }
       const c = m.supplier.sheetChecklist
-      for (const k of ["title", "intro", "summary", "missingTitle", "presentTitle", "evidence", "caveat", "noEvidence", "allDone"]) expect(typeof c[k], `${loc}.${k}`).toBe("string")
+      for (const k of ["title", "intro", "summary", "missingTitle", "presentTitle", "evidence", "caveat", "noEvidence", "allDone", "defaultTag", "deliveryDefault"]) expect(typeof c[k], `${loc}.${k}`).toBe("string")
       for (const f of QUALITY_FEATURES) expect(typeof c.label[f], `${loc}.label.${f}`).toBe("string")
     }
     const fr = JSON.parse(readFileSync(join(process.cwd(), "messages/fr.json"), "utf8")) as { supplier: { sheetChecklist: Record<string, string> } }

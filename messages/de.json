@@ -2339,7 +2339,9 @@
         "return_extended": "Rückgabe über 14 Tage",
         "safety_complete": "Produktsicherheit vollständig",
         "stock_confirmed": "Echte Menge auf Lager"
-      }
+      },
+      "defaultTag": "Standard",
+      "deliveryDefault": "Keine Lieferzeit eingegeben: Affisell zeigt standardmäßig {min} bis {max} Tage an. Geben Sie Ihre tatsächliche Lieferzeit an."
     }
   },
   "affiliate": {

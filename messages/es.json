@@ -2339,7 +2339,9 @@
         "return_extended": "Devolución de más de 14 días",
         "safety_complete": "Seguridad del producto completa",
         "stock_confirmed": "Cantidad real en stock"
-      }
+      },
+      "defaultTag": "por defecto",
+      "deliveryDefault": "No se ha indicado ningún plazo de entrega: Affisell mostrará de {min} a {max} días por defecto. Indique su plazo real."
     }
   },
   "affiliate": {

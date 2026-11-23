@@ -2339,7 +2339,9 @@
         "return_extended": "Reso oltre 14 giorni",
         "safety_complete": "Sicurezza del prodotto completa",
         "stock_confirmed": "Quantità reale in magazzino"
-      }
+      },
+      "defaultTag": "predefinito",
+      "deliveryDefault": "Nessun tempo di consegna inserito: Affisell mostrerà da {min} a {max} giorni per impostazione predefinita. Indichi il tempo reale."
     }
   },
   "affiliate": {

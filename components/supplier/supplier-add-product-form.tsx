@@ -92,9 +92,10 @@ import { ReturnWindowField } from "@/components/supplier/return-window-field"
 import { SupplyCostSection } from "@/components/supplier/supply-cost-section"
 import { ProductJourneyPanel } from "@/components/supplier/product-journey-panel"
 import { SheetQualityChecklist } from "@/components/supplier/sheet-quality-checklist"
-import { countSpecifications, sheetSignals } from "@/lib/listing-quality/sheet-facts"
+import { sheetSignalsFromProductBody } from "@/lib/listing-quality/sheet-facts-body"
+import { buildFormProductAttributes } from "@/lib/supplier-form-product-attributes"
 import { variantStockBaselineFromRows } from "@/lib/stock/partner-stock"
-import { CANONICAL_RETURN_WINDOW_LABEL, parseReturnWindowDays, RETURN_WINDOW_KEY } from "@/lib/return-terms"
+import { RETURN_WINDOW_KEY } from "@/lib/return-terms"
 import { shippingMethodsFromCarrierIds } from "@/lib/shipping/supplier-carrier-offers-shared"
 import { SupplierOfferModePicker } from "@/components/supplier/supplier-offer-mode-picker"
 import { SupplierKycPublishBanner } from "@/components/supplier/supplier-kyc-publish-banner"
@@ -126,7 +127,7 @@ import {
 import { DynamicAttributes } from "@/components/product-form-dynamic"
 import { ListingComplianceSection } from "@/components/supplier/listing-compliance/listing-compliance-section"
 import type { ReadinessIssue } from "@/lib/listing-compliance/evaluate"
-import { CANONICAL_LABELS, LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
+import { LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
 import type { CategoryAttributeDto } from "@/lib/category-attribute-api"
 import {
   SupplierAiPublishPanel,
@@ -574,27 +575,25 @@ export function SupplierAddProductForm({
   } | null>(null)
   const [, setAttrsLoading] = useState(false)
   const mergedCategoryAttrs = useMemo(() => mergeCoreCategoryAttrs(categoryAttrs), [categoryAttrs])
-  // Live sheet check: the same 12 elements and rules as the sheet-quality measure, read on what is typed now.
-  const sheetQualitySignals = useMemo(() => {
-    const attributes = Object.entries(specValues).map(([key, value]) => ({ key, value: value ?? "" }))
+  // Live sheet check: the body this form sends (same attribute builder, same delivery and image rules as the save),
+  // read by the server's own parsers — what is shown is what the sheet-quality measure will read once saved.
+  const sheetQuality = useMemo(() => {
     const filledSku = variantFormMode === "advanced" ? advancedSkuRows.filter((r) => r.color.trim()) : []
-    const num = (v: string) => (v.trim() !== "" && Number.isFinite(Number(v)) ? Number(v) : null)
     const stockN =
       variantFormMode === "advanced" && filledSku.length > 0 ? sumSkuTableStock(filledSku) : Math.max(0, Math.round(Number(stock) || 0))
-    return sheetSignals({
+    return sheetSignalsFromProductBody({
       name,
-      descriptionHtml: description,
-      imageCount: images.filter((u) => u.trim()).length,
+      description,
+      images: durableSupplierProductImageUrls(images),
       listingKind,
       stock: stockN,
-      variants: filledSku.length > 1 ? { variantRows: skuTableRowsToProductVariantLines(filledSku, 100) } : null,
-      customColumns: skuCustomColumns,
-      deliveryMin: num(deliveryMin),
-      deliveryMax: num(deliveryMax),
-      attributes,
-      specCount: countSpecifications(attributes),
+      deliveryMin: Math.round(Number(deliveryMin) || 2),
+      deliveryMax: Math.round(Number(deliveryMax) || 5),
+      productAttributes: buildFormProductAttributes(mergedCategoryAttrs, specValues),
+      ...(filledSku.length > 0 ? { listingVariants: { variantRows: skuTableRowsToProductVariantLines(filledSku, 100) } } : {}),
+      customColumns: skuCustomColumns.map((c) => ({ key: c.key, label: c.label, type: c.type })),
     })
-  }, [specValues, variantFormMode, advancedSkuRows, stock, name, description, images, listingKind, skuCustomColumns, deliveryMin, deliveryMax])
+  }, [specValues, mergedCategoryAttrs, variantFormMode, advancedSkuRows, stock, name, description, images, listingKind, skuCustomColumns, deliveryMin, deliveryMax])
 
   const commissionMax = affiliateCommissionMaxPct(listingKind)
 
@@ -1356,27 +1355,8 @@ export function SupplierAddProductForm({
 
   const assembleListingPayload = useCallback(
     (draftPriceFallback: boolean): Record<string, unknown> => {
-      const productAttributes = mergedCategoryAttrs
-        .map((a) => ({
-          key: a.key,
-          label: a.label,
-          value: (specValues[a.key] ?? "").trim(),
-        }))
-        .filter((row) => row.value.length > 0)
-      // Identity + product-safety rows (reserved keys) are not category attributes: add them unless a category field
-      // already carries the same key (e.g. the category's own barcode field).
-      {
-        const have = new Set(productAttributes.map((r) => r.key))
-        for (const key of LISTING_COMPLIANCE_KEYS) {
-          const value = (specValues[key] ?? "").trim()
-          if (value && !have.has(key)) productAttributes.push({ key, label: CANONICAL_LABELS[key] ?? key, value })
-        }
-        // Return window the supplier offers beyond the legal 14 days (empty = legal window, no row).
-        const returnDays = parseReturnWindowDays(specValues[RETURN_WINDOW_KEY])
-        if (returnDays) {
-          productAttributes.push({ key: RETURN_WINDOW_KEY, label: CANONICAL_RETURN_WINDOW_LABEL, value: String(returnDays) })
-        }
-      }
+      // One builder for the save and the live sheet check (lib/supplier-form-product-attributes.ts).
+      const productAttributes = buildFormProductAttributes(mergedCategoryAttrs, specValues)
 
       let priceN =
         effectiveSupplierCatalogPriceEur({
@@ -3477,7 +3457,7 @@ export function SupplierAddProductForm({
                         />
                       </SectionCard>
                     ) : null}
-                    <SheetQualityChecklist signals={sheetQualitySignals} />
+                    <SheetQualityChecklist sheet={sheetQuality} />
                   </div>
 
                   {editId ? (

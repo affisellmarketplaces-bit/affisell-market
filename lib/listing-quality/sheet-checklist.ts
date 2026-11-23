@@ -16,6 +16,8 @@ export type ChecklistItem = {
   state: "present" | "missing" | "not_applicable"
   /** Marketplace aggregate (association, not a cause) — only for an established positive association. */
   evidence: { ratio: number; lo: number } | null
+  /** Present only because the server fills in a default the supplier did not type (delivery 2–5 days). */
+  fromDefault: boolean
 }
 
 export type SheetChecklist = {
@@ -27,7 +29,11 @@ export type SheetChecklist = {
 }
 
 /** Order: missing with evidence (strongest lower bound first), then missing, then present, then not applicable. */
-export function buildSheetChecklist(signals: SheetSignals, evidence: readonly QualityEvidence[] = []): SheetChecklist {
+export function buildSheetChecklist(
+  signals: SheetSignals,
+  evidence: readonly QualityEvidence[] = [],
+  defaulted: { delivery?: boolean } = {},
+): SheetChecklist {
   const product: QualityProduct = { id: "", supplierId: "", rootCategoryId: null, basePriceCents: 0, createdAt: new Date(0), ...signals }
   const ev = new Map(evidence.filter((e) => Number.isFinite(e.lo) && e.lo > 1 && Number.isFinite(e.adjustedRatio)).map((e) => [e.feature, e]))
   const items: ChecklistItem[] = QUALITY_FEATURES.map((feature) => {
@@ -37,6 +43,7 @@ export function buildSheetChecklist(signals: SheetSignals, evidence: readonly Qu
       feature,
       state: v === null ? "not_applicable" : v ? "present" : "missing",
       evidence: e ? { ratio: Math.round(e.adjustedRatio * 10) / 10, lo: Math.round(e.lo * 10) / 10 } : null,
+      fromDefault: feature === "delivery_declared" && v === true && defaulted.delivery === true,
     }
   })
   const rank = (i: ChecklistItem) => (i.state === "missing" ? (i.evidence ? 0 : 1) : i.state === "present" ? 2 : 3)

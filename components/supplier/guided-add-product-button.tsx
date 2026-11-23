@@ -31,6 +31,8 @@ import {
 } from "@/lib/guided-product-ai-shared"
 import { ListingComplianceSection } from "@/components/supplier/listing-compliance/listing-compliance-section"
 import { ReturnWindowField } from "@/components/supplier/return-window-field"
+import { SheetQualityChecklist } from "@/components/supplier/sheet-quality-checklist"
+import { sheetSignalsFromProductBody } from "@/lib/listing-quality/sheet-facts-body"
 import { CANONICAL_RETURN_WINDOW_LABEL, parseReturnWindowDays, RETURN_WINDOW_KEY } from "@/lib/return-terms"
 import { evaluateListingReadiness } from "@/lib/listing-compliance/evaluate"
 import { CANONICAL_LABELS, LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
@@ -194,6 +196,60 @@ function toDraftForm(form: FormState): GuidedDraftForm {
     extraImages: form.extraImages,
     compliance: form.compliance,
     returnWindowDays: form.returnWindowDays,
+  }
+}
+
+/**
+ * The body the guided wizard SENDS to `POST /api/supplier/products` — one builder for the publication, the draft save
+ * and the live sheet check (which reads it through the server's own parsers, `sheetSignalsFromProductBody`).
+ */
+function buildGuidedProductBody(a: {
+  form: FormState
+  allImages: string[]
+  shipDefaults: ShippingDefaults
+  asDraft: boolean
+  priceValid: boolean
+  stockN: number
+  withLeaf: boolean
+}): Record<string, unknown> {
+  const { form, asDraft, shipDefaults, withLeaf } = a
+  const categoryValue = GUIDED_WIZARD_CATEGORIES.find((c) => c.label === form.category)?.value
+  // Canonical (English) labels: buyers see the label translated from the KEY, never the stored text.
+  const productAttributes = [
+    { key: "material", label: "Material", value: form.material.trim() },
+    { key: "color", label: "Color", value: form.color.trim() },
+    { key: "dimensions", label: "Dimensions", value: form.dimensions.trim() },
+    ...LISTING_COMPLIANCE_KEYS.map((key) => ({
+      key,
+      label: CANONICAL_LABELS[key] ?? key,
+      value: (form.compliance[key] ?? "").trim(),
+    })),
+  ].filter((r) => r.value.length > 0)
+  // Return window beyond the legal 14 days (empty = legal window, no row) — same row as the classic form.
+  const returnDays = parseReturnWindowDays(form.returnWindowDays)
+  if (returnDays) {
+    productAttributes.push({ key: RETURN_WINDOW_KEY, label: CANONICAL_RETURN_WINDOW_LABEL, value: String(returnDays) })
+  }
+  return {
+    name: form.title.trim(),
+    description: form.description.trim(),
+    descriptionBullets: form.descriptionBullets,
+    // A draft may be incomplete: only send what the supplier actually filled in.
+    ...(a.priceValid || !asDraft ? { price: Number.parseFloat(form.price.replace(",", ".")) } : {}),
+    ...(form.stock.trim() || !asDraft ? { stock: a.stockN } : {}),
+    images: a.allImages,
+    // With an exact taxonomy category the coarse shelf is redundant (the full form sends only categoryId).
+    categories: categoryValue && !(withLeaf && form.leafId) ? [categoryValue] : [],
+    // Exact category of the real taxonomy when chosen (better discovery, right commission grid).
+    ...(withLeaf && form.leafId ? { categoryId: form.leafId } : {}),
+    colors: form.color.trim() ? [form.color.trim()] : [],
+    commissionRate: shipDefaults.commissionPct,
+    listingKind: "PHYSICAL",
+    warehouseType: shipDefaults.warehouseType,
+    shippingCountry: shipDefaults.countryCode,
+    deliveryCountryCodes: shipDefaults.deliveryCountryCodes,
+    productAttributes,
+    saveAsDraft: asDraft,
   }
 }
 
@@ -444,6 +500,11 @@ export function GuidedAddProductButton({
     () => [form.imageUrl, ...form.extraImages].filter((u): u is string => Boolean(u)),
     [form.imageUrl, form.extraImages]
   )
+  // Live sheet check on the exact body the wizard will send (same builder), parsed like the server stores it.
+  const sheetQuality = useMemo(
+    () => sheetSignalsFromProductBody(buildGuidedProductBody({ form, allImages, shipDefaults, asDraft: false, priceValid, stockN, withLeaf: true })),
+    [form, allImages, shipDefaults, priceValid, stockN],
+  )
 
   async function handleExtraImagesPick(files: File[]) {
     if (files.length === 0) return
@@ -686,49 +747,12 @@ export function GuidedAddProductButton({
     else setPublishing(true)
     setStepError(null)
     try {
-      // Canonical (English) labels: buyers see the label translated from the KEY, never the stored text.
-      const productAttributes = [
-        { key: "material", label: "Material", value: form.material.trim() },
-        { key: "color", label: "Color", value: form.color.trim() },
-        { key: "dimensions", label: "Dimensions", value: form.dimensions.trim() },
-        ...LISTING_COMPLIANCE_KEYS.map((key) => ({
-          key,
-          label: CANONICAL_LABELS[key] ?? key,
-          value: (form.compliance[key] ?? "").trim(),
-        })),
-      ].filter((a) => a.value.length > 0)
-      // Return window beyond the legal 14 days (empty = legal window, no row) — same row as the classic form.
-      const returnDays = parseReturnWindowDays(form.returnWindowDays)
-      if (returnDays) {
-        productAttributes.push({ key: RETURN_WINDOW_KEY, label: CANONICAL_RETURN_WINDOW_LABEL, value: String(returnDays) })
-      }
-
       const send = (withLeaf: boolean) =>
         fetch("/api/supplier/products", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({
-            name: form.title.trim(),
-            description: form.description.trim(),
-            descriptionBullets: form.descriptionBullets,
-            // A draft may be incomplete: only send what the supplier actually filled in.
-            ...(priceValid || !asDraft ? { price: Number.parseFloat(form.price.replace(",", ".")) } : {}),
-            ...(form.stock.trim() || !asDraft ? { stock: stockN } : {}),
-            images: allImages,
-            // With an exact taxonomy category the coarse shelf is redundant (the full form sends only categoryId).
-            categories: categoryValue && !(withLeaf && form.leafId) ? [categoryValue] : [],
-            // Exact category of the real taxonomy when chosen (better discovery, right commission grid).
-            ...(withLeaf && form.leafId ? { categoryId: form.leafId } : {}),
-            colors: form.color.trim() ? [form.color.trim()] : [],
-            commissionRate: shipDefaults.commissionPct,
-            listingKind: "PHYSICAL",
-            warehouseType: shipDefaults.warehouseType,
-            shippingCountry: shipDefaults.countryCode,
-            deliveryCountryCodes: shipDefaults.deliveryCountryCodes,
-            productAttributes,
-            saveAsDraft: asDraft,
-          }),
+          body: JSON.stringify(buildGuidedProductBody({ form, allImages, shipDefaults, asDraft, priceValid, stockN, withLeaf })),
         })
 
       let res = await send(true)
@@ -1192,6 +1216,7 @@ export function GuidedAddProductButton({
                   </div>
                 </BentoCard>
                 <SupplierEarningPreview priceEur={priceValid ? priceCents / 100 : 0} commissionPct={shipDefaults.commissionPct} categoryId={form.leafId} />
+                <SheetQualityChecklist sheet={sheetQuality} />
                 <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 text-sm dark:border-zinc-700 dark:bg-zinc-900/60">
                   <p className="font-semibold text-zinc-900 dark:text-zinc-50">{tDef("title")}</p>
                   <ul className="mt-1.5 space-y-0.5 text-zinc-600 dark:text-zinc-300">

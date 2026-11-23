@@ -2339,7 +2339,9 @@
         "return_extended": "Returns beyond 14 days",
         "safety_complete": "Product safety complete",
         "stock_confirmed": "Real quantity in stock"
-      }
+      },
+      "defaultTag": "default",
+      "deliveryDefault": "No delivery time was entered: Affisell will show {min} to {max} days by default. Enter your real delivery time."
     }
   },
   "affiliate": {

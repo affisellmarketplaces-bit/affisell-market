@@ -2339,7 +2339,9 @@
         "return_extended": "Retour langer dan 14 dagen",
         "safety_complete": "Productveiligheid volledig",
         "stock_confirmed": "Echte voorraad"
-      }
+      },
+      "defaultTag": "standaard",
+      "deliveryDefault": "Er is geen levertijd ingevuld: Affisell toont standaard {min} tot {max} dagen. Vul uw echte levertijd in."
     }
   },
   "affiliate": {

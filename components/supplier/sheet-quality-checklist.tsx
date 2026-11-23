@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react"
 
 import type { QualityFeature } from "@/lib/listing-quality/quality-effect"
 import { buildSheetChecklist, type QualityEvidence } from "@/lib/listing-quality/sheet-checklist"
-import type { SheetSignals } from "@/lib/listing-quality/sheet-facts"
+import type { BodySheetSignals } from "@/lib/listing-quality/sheet-facts-body"
 
 const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 1, minimumFractionDigits: 1 })
 
@@ -34,16 +34,17 @@ function useQualityEvidence(): QualityEvidence[] {
 
 /**
  * Live sheet check in the supplier's form: the 12 elements of the sheet-quality measure, read with the SAME rules
- * (`sheetSignals` + `featureValue`) on what is typed now. A figure appears only for an established marketplace
+ * (`sheetSignals` + `featureValue`) on the body the form is about to send, parsed like the server stores it. A figure appears only for an established marketplace
  * association, with its limit; otherwise elements are facts. Nothing is saved or changed from here.
  */
-export function SheetQualityChecklist({ signals }: { signals: SheetSignals }) {
+export function SheetQualityChecklist({ sheet }: { sheet: BodySheetSignals }) {
   const t = useTranslations("supplier.sheetChecklist")
   const tHint = useTranslations("catalogHealth.listingQuality.feature")
   const evidence = useQualityEvidence()
-  const list = useMemo(() => buildSheetChecklist(signals, evidence), [signals, evidence])
+  const list = useMemo(() => buildSheetChecklist(sheet.signals, evidence, sheet.defaulted), [sheet, evidence])
   const missing = list.items.filter((i) => i.state === "missing")
   const present = list.items.filter((i) => i.state === "present")
+  const defaultedItems = present.filter((i) => i.fromDefault)
   const anyEvidence = list.items.some((i) => i.evidence)
 
   return (
@@ -75,9 +76,11 @@ export function SheetQualityChecklist({ signals }: { signals: SheetSignals }) {
             {present.map((i) => (
               <li key={i.feature} className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300">
                 {t(`label.${i.feature}`)}
+                {i.fromDefault ? ` · ${t("defaultTag")}` : ""}
               </li>
             ))}
           </ul>
+          {defaultedItems.length > 0 ? <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">{t("deliveryDefault", { min: sheet.signals.deliveryMin ?? 0, max: sheet.signals.deliveryMax ?? 0 })}</p> : null}
         </div>
       ) : null}
       <p className="text-xs text-zinc-500">{anyEvidence ? t("caveat") : t("noEvidence")}</p>

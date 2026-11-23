@@ -2339,7 +2339,9 @@
         "return_extended": "Zwrot powyżej 14 dni",
         "safety_complete": "Kompletne dane bezpieczeństwa produktu",
         "stock_confirmed": "Rzeczywista ilość w magazynie"
-      }
+      },
+      "defaultTag": "domyślnie",
+      "deliveryDefault": "Nie podano czasu dostawy: Affisell domyślnie wyświetli od {min} do {max} dni. Proszę podać rzeczywisty czas dostawy."
     }
   },
   "affiliate": {

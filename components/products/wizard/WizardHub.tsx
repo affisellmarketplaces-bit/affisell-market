@@ -11,6 +11,8 @@ import { CategoryAutosuggest } from "@/components/product/CategoryAutosuggest"
 import { SmartMarginAiPanel } from "@/components/supplier/smart-margin-ai-panel"
 import { ListingComplianceSection } from "@/components/supplier/listing-compliance/listing-compliance-section"
 import { ReturnWindowField } from "@/components/supplier/return-window-field"
+import { SheetQualityChecklist } from "@/components/supplier/sheet-quality-checklist"
+import { sheetSignalsFromProductBody, type BodySheetSignals } from "@/lib/listing-quality/sheet-facts-body"
 import { CANONICAL_RETURN_WINDOW_LABEL, parseReturnWindowDays, RETURN_WINDOW_KEY } from "@/lib/return-terms"
 import type { ReadinessIssue } from "@/lib/listing-compliance/evaluate"
 import { CANONICAL_LABELS, LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
@@ -33,6 +35,7 @@ import {
   trackWizardV2View,
 } from "@/lib/analytics/wizard-v2-posthog"
 import {
+  buildWizardV2PreviewBody,
   buildWizardV2PublishBody,
   WizardPublishDeclarationError,
 } from "@/lib/product-wizard-v2/build-publish-payload"
@@ -198,6 +201,8 @@ type ExpressTabProps = {
   onComplianceChange: (key: string, value: string) => void
   /** Set when the server refused the publication for missing safety data: opens the section and marks the fields. */
   complianceIssues: ReadinessIssue[] | null
+  /** Live sheet check on the body this tab would publish (null until the supplier's defaults are loaded). */
+  sheetQuality: BodySheetSignals | null
 }
 
 function WizardExpressTab(props: ExpressTabProps) {
@@ -445,6 +450,8 @@ function WizardExpressTab(props: ExpressTabProps) {
               />
             </div>
           </details>
+
+          {props.sheetQuality ? <SheetQualityChecklist sheet={props.sheetQuality} /> : null}
 
           <Button
             type="button"
@@ -849,6 +856,36 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
     }
   }, [applyExpressImportData, expressUrl, publishing, t])
 
+  // ONE draft for the publication and the live sheet check — the check reads the same body the server will store.
+  const buildExpressDraft = useCallback((priceN: number) => ({
+    name,
+    description: stripDescriptionImageMarkers(description),
+    price: priceN,
+    stock: stockQty,
+    categoryId,
+    images,
+    commission: commissionPct,
+    descriptionIllustrationImages: expressImportPatch?.illustrationImages,
+    skuVariants,
+    attributes: [
+      ...LISTING_COMPLIANCE_KEYS.map((key) => ({
+        key,
+        label: CANONICAL_LABELS[key] ?? key,
+        value: (compliance[key] ?? "").trim(),
+      })),
+      // Return window beyond the legal 14 days (empty / invalid = legal window, no row).
+      {
+        key: RETURN_WINDOW_KEY,
+        label: CANONICAL_RETURN_WINDOW_LABEL,
+        value: String(parseReturnWindowDays(compliance[RETURN_WINDOW_KEY]) ?? ""),
+      },
+    ].filter((a) => a.value.length > 0),
+  }), [name, description, stockQty, categoryId, images, commissionPct, expressImportPatch, skuVariants, compliance])
+  // The wizard sends 2–7 days of delivery the supplier never typed: shown as a default.
+  const sheetQuality = defaults
+    ? sheetSignalsFromProductBody(buildWizardV2PreviewBody(buildExpressDraft(Number(price)), defaults), { deliveryTypedBySupplier: false })
+    : null
+
   const publish = useCallback(async () => {
     if (publishing) return
     if (!defaults) {
@@ -912,33 +949,7 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
 
     setPublishing(true)
     try {
-      const body = buildWizardV2PublishBody(
-        {
-          name,
-          description: stripDescriptionImageMarkers(description),
-          price: priceN,
-          stock: stockQty,
-          categoryId,
-          images,
-          commission: commissionPct,
-          descriptionIllustrationImages: expressImportPatch?.illustrationImages,
-          skuVariants,
-          attributes: [
-            ...LISTING_COMPLIANCE_KEYS.map((key) => ({
-              key,
-              label: CANONICAL_LABELS[key] ?? key,
-              value: (compliance[key] ?? "").trim(),
-            })),
-            // Return window beyond the legal 14 days (empty / invalid = legal window, no row).
-            {
-              key: RETURN_WINDOW_KEY,
-              label: CANONICAL_RETURN_WINDOW_LABEL,
-              value: String(parseReturnWindowDays(compliance[RETURN_WINDOW_KEY]) ?? ""),
-            },
-          ].filter((a) => a.value.length > 0),
-        },
-        defaults
-      )
+      const body = buildWizardV2PublishBody(buildExpressDraft(priceN), defaults)
 
       const res = await fetch("/api/supplier/products", {
         method: "POST",
@@ -986,6 +997,7 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
       setPublishing(false)
     }
   }, [
+    buildExpressDraft,
     categoryId,
     commissionPct,
     defaults,
@@ -1059,6 +1071,7 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
               onComplianceChange={onComplianceChange}
               complianceIssues={complianceIssues}
               previewData={previewData}
+              sheetQuality={sheetQuality}
             />
           )}
         </div>

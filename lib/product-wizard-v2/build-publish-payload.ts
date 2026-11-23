@@ -49,7 +49,27 @@ export function buildWizardV2PublishBody(
     variantStocks: withSkuRows && sku ? sku.variants.map((v) => v.stock) : null,
   })
   if (!declaration.ok) throw new WizardPublishDeclarationError(declaration.errors)
-  const price = declaration.priceEur
+  return assembleWizardV2Body(draft, defaults, declaration.priceEur, declaration.stock)
+}
+
+/**
+ * The SAME body as `buildWizardV2PublishBody`, for a draft not yet complete — used only to show the live sheet check
+ * (`sheetSignalsFromProductBody`). Never sent: an incomplete price or quantity is kept as typed (0 when absent),
+ * nothing is invented, and publication still goes through the declaration check above.
+ */
+export function buildWizardV2PreviewBody(draft: WizardV2Draft, defaults: MerchantDefaultsRow): Record<string, unknown> {
+  const n = Number(draft.stock)
+  return assembleWizardV2Body(draft, defaults, Number.isFinite(draft.price) ? draft.price : 0, Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0)
+}
+
+function assembleWizardV2Body(
+  draft: WizardV2Draft,
+  defaults: MerchantDefaultsRow,
+  price: number,
+  stock: number | null,
+): Record<string, unknown> {
+  const sku = draft.skuVariants
+  const withSkuRows = Boolean(sku?.hasVariants && Array.isArray(sku.variants) && sku.variants.length > 1)
   const commission = defaults.defaultCommissionPct ?? 15
   const rate =
     Number.isFinite(draft.commission) && draft.commission > 0 ? draft.commission : commission
@@ -58,7 +78,7 @@ export function buildWizardV2PublishBody(
     name: draft.name.trim(),
     description: draft.description.trim(),
     price,
-    stock: declaration.stock,
+    stock,
     commission: rate,
     listingKind: "PHYSICAL",
     images: draft.images.filter((u) => u.startsWith("http")),
@@ -91,7 +111,7 @@ export function buildWizardV2PublishBody(
     }))
     body.hasVariants = true
     body.variants = withCommission
-    body.stock = declaration.stock
+    body.stock = stock
   }
 
   return body
