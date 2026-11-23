@@ -31,8 +31,7 @@ import {
 } from "@/lib/guided-product-ai-shared"
 import { ListingComplianceSection } from "@/components/supplier/listing-compliance/listing-compliance-section"
 import { ReturnWindowField } from "@/components/supplier/return-window-field"
-import { SheetQualityChecklist } from "@/components/supplier/sheet-quality-checklist"
-import { sheetSignalsFromProductBody } from "@/lib/listing-quality/sheet-facts-body"
+import { CommercialReadinessPanel } from "@/components/supplier/commercial-readiness-panel"
 import { CANONICAL_RETURN_WINDOW_LABEL, parseReturnWindowDays, RETURN_WINDOW_KEY } from "@/lib/return-terms"
 import { evaluateListingReadiness } from "@/lib/listing-compliance/evaluate"
 import { CANONICAL_LABELS, LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
@@ -500,9 +499,9 @@ export function GuidedAddProductButton({
     () => [form.imageUrl, ...form.extraImages].filter((u): u is string => Boolean(u)),
     [form.imageUrl, form.extraImages]
   )
-  // Live sheet check on the exact body the wizard will send (same builder), parsed like the server stores it.
-  const sheetQuality = useMemo(
-    () => sheetSignalsFromProductBody(buildGuidedProductBody({ form, allImages, shipDefaults, asDraft: false, priceValid, stockN, withLeaf: true })),
+  // Commercial readiness on the exact body the wizard will publish (same builder), judged with the server's rules.
+  const readinessBody = useMemo(
+    () => buildGuidedProductBody({ form, allImages, shipDefaults, asDraft: false, priceValid, stockN, withLeaf: true }),
     [form, allImages, shipDefaults, priceValid, stockN],
   )
 
@@ -737,6 +736,13 @@ export function GuidedAddProductButton({
 
     const categoryValue = GUIDED_WIZARD_CATEGORIES.find((c) => c.label === form.category)?.value
     if (!asDraft && ((!categoryValue && !form.leafId) || !form.imageUrl)) return
+    // Publishing needs an exact category of the taxonomy: the create route refuses a live listing without one
+    // (`category_required`). A shelf alone is enough for a draft only.
+    if (!asDraft && !form.leafId) {
+      setStepError(tWiz("errLeafCategory"))
+      setStep(0)
+      return
+    }
 
     if (blockIfHoneypotValue(honeypotRef.current?.value)) {
       toast.error(tWiz("botDetected"))
@@ -760,7 +766,10 @@ export function GuidedAddProductButton({
       // list). Never block the supplier: retry with the coarse shelf — background auto-categorisation still applies.
       if (res.status === 400 && form.leafId) {
         const probe = (await res.clone().json().catch(() => ({}))) as { errors?: unknown }
-        if (probe.errors) res = await send(false)
+        // A draft may fall back to the shelf; a publication can not (the route needs the exact category), so it
+        // says which step to complete instead of retrying a request that would be refused.
+        if (probe.errors && asDraft) res = await send(false)
+        else if (probe.errors) throw new Error(tWiz("errCategoryFields"))
       }
 
       const data = (await res.json()) as { id?: string; error?: string; verificationStatus?: string }
@@ -1216,7 +1225,7 @@ export function GuidedAddProductButton({
                   </div>
                 </BentoCard>
                 <SupplierEarningPreview priceEur={priceValid ? priceCents / 100 : 0} commissionPct={shipDefaults.commissionPct} categoryId={form.leafId} />
-                <SheetQualityChecklist sheet={sheetQuality} />
+                <CommercialReadinessPanel body={readinessBody} creating />
                 <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 text-sm dark:border-zinc-700 dark:bg-zinc-900/60">
                   <p className="font-semibold text-zinc-900 dark:text-zinc-50">{tDef("title")}</p>
                   <ul className="mt-1.5 space-y-0.5 text-zinc-600 dark:text-zinc-300">

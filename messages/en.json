@@ -2004,7 +2004,9 @@
       "draftUntitled": "Untitled product",
       "draftResume": "Resume",
       "draftDiscard": "Start over",
-      "draftAutosaved": "Draft saved on this device"
+      "draftAutosaved": "Draft saved on this device",
+      "errLeafCategory": "Choose the product's exact category to publish it (a shelf is enough for a draft).",
+      "errCategoryFields": "This category needs specifications the wizard does not collect: save a draft, then complete it in the full form."
     },
     "guidedDefaults": {
       "title": "Applied from your shop settings",
@@ -2342,6 +2344,113 @@
       },
       "defaultTag": "default",
       "deliveryDefault": "No delivery time was entered: Affisell will show {min} to {max} days by default. Enter your real delivery time."
+    },
+    "readiness": {
+      "verdict": {
+        "bloquant": "Not ready to sell yet",
+        "a_corriger": "Publishable — fix priorities first",
+        "pret": "Ready to sell"
+      },
+      "counts": "{blocking, plural, =0 {no blocker} one {# blocker} other {# blockers}} · {priority, plural, =0 {no priority} one {# priority} other {# priorities}} · {recommended, plural, =0 {no improvement} one {# possible improvement} other {# possible improvements}}",
+      "nextFix": "Next fix",
+      "evidence": "Observed on Affisell: comparable listings with this element recorded {ratio} times more sales per day in shops (at least {lo} times). Statistical association, not a guaranteed sale.",
+      "qualityWhy": "Optional improvement of the sheet: it prevents neither publication nor sale.",
+      "qualityDetail": "Detail of the sheet's 12 elements",
+      "footer": "Computed on what the form is about to send, with the rules Affisell applies. Nothing is saved or changed from this panel.",
+      "level": {
+        "bloquant": "Blocking",
+        "prioritaire": "Fix first",
+        "recommande": "Recommended"
+      },
+      "basis": {
+        "server_refusal": "Requirement: Affisell refuses the publication while this is missing.",
+        "not_buyable": "Requirement to sell: the sheet can be published, but it shows as sold out and nobody can buy it.",
+        "platform_rule": "Affisell rule checked but not yet required at publication: it may become required at any time.",
+        "observed_risk": "Real risk, no refusal: publication goes through, but this can hurt the sale or the delivery.",
+        "measured_association": "Recommendation based on Affisell's quality measure."
+      },
+      "finding": {
+        "name_missing": {
+          "title": "The product name is empty",
+          "why": "A sheet with no name can not be published.",
+          "fix": "Enter the product's exact name."
+        },
+        "category_missing": {
+          "title": "No exact category",
+          "why": "Publication needs a final catalogue category: it places the product in searches and sets Affisell's fees.",
+          "fix": "Choose the product's most precise category."
+        },
+        "category_fields_missing": {
+          "title": "Required category fields missing",
+          "why": "The chosen category requires this information; without it the publication is refused.",
+          "fix": "Fill in the fields flagged in the category section."
+        },
+        "price_missing": {
+          "title": "No price",
+          "why": "Without a price the product can not be published.",
+          "fix": "Enter your supplier price excluding VAT."
+        },
+        "photo_missing": {
+          "title": "No saved photo",
+          "why": "Publication needs at least one hosted photo; it is also the first thing a buyer sees.",
+          "fix": "Add at least one product photo and wait for its upload to finish."
+        },
+        "warehouse_missing": {
+          "title": "Shipping zone not set",
+          "why": "The warehouse zone is required to publish: it is used to announce credible delivery times.",
+          "fix": "Choose where the parcel ships from (local, regional or international)."
+        },
+        "delivery_countries_missing": {
+          "title": "No delivery country",
+          "why": "Without delivery countries the publication is refused and no buyer could order.",
+          "fix": "Choose the countries you deliver to."
+        },
+        "commission_not_explicit": {
+          "title": "Reseller commission not set",
+          "why": "The commission paid to resellers must be explicit to publish; without it a sale could not be split.",
+          "fix": "Enter the commission you offer resellers."
+        },
+        "merchant_unverified": {
+          "title": "Supplier account not verified yet",
+          "why": "Until your account verification is complete, Affisell refuses every publication.",
+          "fix": "Finish your account verification in your settings; you can save a draft meanwhile."
+        },
+        "catalog_cap_reached": {
+          "title": "Live product limit reached",
+          "why": "Your plan limits the number of live products: a new one would be refused.",
+          "fix": "Take another product offline or change plan; you can save a draft."
+        },
+        "safety_incomplete": {
+          "title": "Product safety information incomplete",
+          "why": "Manufacturer and, outside the EU, an EU responsible person: Affisell checks this data for physical products.",
+          "fix": "Complete the Product safety section."
+        },
+        "stock_missing": {
+          "title": "No quantity in stock",
+          "why": "The product would be published but shown as sold out: no buyer could order it.",
+          "fix": "Enter the quantity really available."
+        },
+        "delivery_time_default": {
+          "title": "Delivery time not entered",
+          "why": "A default delivery time will be shown in your name; if it is not true, delays turn into disputes.",
+          "fix": "Enter your real delivery time (in the full form if this flow does not offer it)."
+        },
+        "variants_indistinct": {
+          "title": "Variants that can not be told apart",
+          "why": "Two rows share the same colour, size or capacity: the buyer can not choose precisely and these rows' stock is not tracked.",
+          "fix": "Make each variant unique or merge the duplicates."
+        },
+        "stock_low": {
+          "title": "Very few units",
+          "why": "With 3 units or fewer the product may sell out with the resellers' first sales.",
+          "fix": "Check your available quantity and restock if you can."
+        },
+        "net_not_positive": {
+          "title": "You earn nothing on this sale",
+          "why": "With this price, this commission and your Affisell fees, your net per sale is zero or negative.",
+          "fix": "Review your price or the commission you offer resellers."
+        }
+      }
     }
   },
   "affiliate": {

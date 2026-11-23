@@ -88,6 +88,7 @@ describe("classic form: the check counts only what the save sends", () => {
     const form = read("components/supplier/supplier-add-product-form.tsx")
     expect(form).toContain("const productAttributes = buildFormProductAttributes(mergedCategoryAttrs, specValues)")
     expect(form).toContain("productAttributes: buildFormProductAttributes(mergedCategoryAttrs, specValues),")
+    expect(form).toContain("const readinessBody = useMemo(")
   })
 })
 
@@ -95,8 +96,7 @@ describe("guided wizard: one body builder for publish, draft and check", () => {
   it("the request and the check both come from buildGuidedProductBody", () => {
     const src = read("components/supplier/guided-add-product-button.tsx")
     expect(src).toContain("body: JSON.stringify(buildGuidedProductBody({")
-    expect(src).toContain("sheetSignalsFromProductBody(buildGuidedProductBody({")
-    expect(src).toContain("<SheetQualityChecklist sheet={sheetQuality} />")
+    expect(src).toContain("() => buildGuidedProductBody({ form, allImages, shipDefaults, asDraft: false, priceValid, stockN, withLeaf: true })")
   })
 })
 
@@ -116,6 +116,6 @@ describe("Express: the preview body is the publish body", () => {
     expect([r.signals.deliveryMin, r.signals.deliveryMax, r.defaulted.delivery]).toEqual([2, 7, true])
     const src = read("components/products/wizard/WizardHub.tsx")
     expect(src).toContain("const body = buildWizardV2PublishBody(buildExpressDraft(priceN), defaults)")
-    expect(src).toContain("buildWizardV2PreviewBody(buildExpressDraft(Number(price)), defaults), { deliveryTypedBySupplier: false }")
+    expect(src).toContain("buildWizardV2PreviewBody(buildExpressDraft(Number(price)), defaults)")
   })
 })

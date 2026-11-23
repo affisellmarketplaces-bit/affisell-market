@@ -4,7 +4,7 @@ import {
   validatePublishDeclaration,
   type PublishDeclarationError,
 } from "@/lib/product-availability"
-import { DELIVERY_WORLDWIDE } from "@/lib/supplier-delivery-countries"
+import { DELIVERY_WORLDWIDE } from "@/lib/supplier-delivery-countries-rules"
 
 export type WizardV2Draft = {
   name: string

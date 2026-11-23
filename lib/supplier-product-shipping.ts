@@ -5,6 +5,7 @@ import {
 } from "@/lib/shipping/supplier-carrier-offers-shared"
 
 import { EU_MEMBER_SET as EU_COUNTRIES } from "@/lib/eu-market-countries"
+import { parseWarehouseType, validateWarehouseTypePublish } from "@/lib/supplier-delivery-countries-rules"
 import { parseDeliveryWindow, parseIntInRange } from "@/lib/supplier-delivery-window"
 import {
   DELIVERY_COUNTRIES_REQUIRED_ERROR,
@@ -12,7 +13,6 @@ import {
   validateDeliveryCountriesForPublish,
 } from "@/lib/supplier-delivery-countries"
 
-const WAREHOUSE_TYPES = new Set(["local", "regional", "international"])
 const METHOD_KEYS = new Set(["standard", "express", "pickup"])
 
 export type ParsedProductShipping = {
@@ -33,8 +33,7 @@ export function parseSupplierProductShippingBody(body: Record<string, unknown>):
   const countryRaw = typeof body.shippingCountry === "string" ? body.shippingCountry.trim().toUpperCase() : ""
   const shippingCountry = countryRaw.length === 2 ? countryRaw : null
 
-  const wtRaw = typeof body.warehouseType === "string" ? body.warehouseType.trim().toLowerCase() : ""
-  const warehouseType = WAREHOUSE_TYPES.has(wtRaw) ? wtRaw : null
+  const warehouseType = parseWarehouseType(body.warehouseType)
 
   const warehouseCity =
     typeof body.warehouseCity === "string" ? body.warehouseCity.trim().slice(0, 120) || null : null
@@ -88,11 +87,8 @@ export function parseSupplierProductShippingBody(body: Record<string, unknown>):
   }
 }
 
-/** Publish gate — warehouse zone required on live listings. */
-export function validateWarehouseTypePublish(warehouseType: string | null): "warehouse_type_required" | null {
-  if (!warehouseType || !WAREHOUSE_TYPES.has(warehouseType)) return "warehouse_type_required"
-  return null
-}
+/** Publish gate — warehouse zone required on live listings (rule shared with the forms). */
+export { validateWarehouseTypePublish }
 
 /** Publish gate — at least one deliver-to country (or worldwide). */
 export function validateDeliveryCountriesPublish(

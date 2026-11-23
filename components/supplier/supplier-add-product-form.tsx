@@ -91,8 +91,8 @@ import { SupplierShippingIncludedNotice } from "@/components/supplier/shipping-i
 import { ReturnWindowField } from "@/components/supplier/return-window-field"
 import { SupplyCostSection } from "@/components/supplier/supply-cost-section"
 import { ProductJourneyPanel } from "@/components/supplier/product-journey-panel"
-import { SheetQualityChecklist } from "@/components/supplier/sheet-quality-checklist"
-import { sheetSignalsFromProductBody } from "@/lib/listing-quality/sheet-facts-body"
+import { CommercialReadinessPanel } from "@/components/supplier/commercial-readiness-panel"
+import { collectVisibleCategoryAttributeErrors, normalizeCategoryAttributeValues } from "@/lib/category-attribute-rules-shared"
 import { buildFormProductAttributes } from "@/lib/supplier-form-product-attributes"
 import { variantStockBaselineFromRows } from "@/lib/stock/partner-stock"
 import { RETURN_WINDOW_KEY } from "@/lib/return-terms"
@@ -575,15 +575,22 @@ export function SupplierAddProductForm({
   } | null>(null)
   const [, setAttrsLoading] = useState(false)
   const mergedCategoryAttrs = useMemo(() => mergeCoreCategoryAttrs(categoryAttrs), [categoryAttrs])
-  // Live sheet check: the body this form sends (same attribute builder, same delivery and image rules as the save),
-  // read by the server's own parsers — what is shown is what the sheet-quality measure will read once saved.
-  const sheetQuality = useMemo(() => {
+  // Commercial readiness + live sheet check: the body this form sends (same attribute builder, same price, delivery
+  // and image rules as the save), judged with the server's own parsers and publication rules.
+  const readinessBody = useMemo(() => {
     const filledSku = variantFormMode === "advanced" ? advancedSkuRows.filter((r) => r.color.trim()) : []
     const stockN =
       variantFormMode === "advanced" && filledSku.length > 0 ? sumSkuTableStock(filledSku) : Math.max(0, Math.round(Number(stock) || 0))
-    return sheetSignalsFromProductBody({
+    const priceEur = effectiveSupplierCatalogPriceEur({ variantFormMode, priceFieldEur: price, skuRows: advancedSkuRows }) ?? Number(price)
+    return {
       name,
       description,
+      price: priceEur,
+      categoryId,
+      commission: Math.round(Number(commission) || 0),
+      offerMode,
+      warehouseType,
+      deliveryCountryCodes,
       images: durableSupplierProductImageUrls(images),
       listingKind,
       stock: stockN,
@@ -592,8 +599,19 @@ export function SupplierAddProductForm({
       productAttributes: buildFormProductAttributes(mergedCategoryAttrs, specValues),
       ...(filledSku.length > 0 ? { listingVariants: { variantRows: skuTableRowsToProductVariantLines(filledSku, 100) } } : {}),
       customColumns: skuCustomColumns.map((c) => ({ key: c.key, label: c.label, type: c.type })),
-    })
-  }, [specValues, mergedCategoryAttrs, variantFormMode, advancedSkuRows, stock, name, description, images, listingKind, skuCustomColumns, deliveryMin, deliveryMax])
+    } as Record<string, unknown>
+  }, [specValues, mergedCategoryAttrs, variantFormMode, advancedSkuRows, stock, price, name, description, categoryId, commission, offerMode, warehouseType, deliveryCountryCodes, images, listingKind, skuCustomColumns, deliveryMin, deliveryMax])
+  // Required category fields, judged like the server does on the rows it receives (shared rule).
+  const readinessCategoryErrors = useMemo(
+    () =>
+      categoryId
+        ? collectVisibleCategoryAttributeErrors(
+            mergedCategoryAttrs,
+            normalizeCategoryAttributeValues(buildFormProductAttributes(mergedCategoryAttrs, specValues)),
+          )
+        : null,
+    [categoryId, mergedCategoryAttrs, specValues],
+  )
 
   const commissionMax = affiliateCommissionMaxPct(listingKind)
 
@@ -3457,7 +3475,7 @@ export function SupplierAddProductForm({
                         />
                       </SectionCard>
                     ) : null}
-                    <SheetQualityChecklist sheet={sheetQuality} />
+                    <CommercialReadinessPanel body={readinessBody} creating={!editId} categoryFieldsMissing={readinessCategoryErrors} />
                   </div>
 
                   {editId ? (

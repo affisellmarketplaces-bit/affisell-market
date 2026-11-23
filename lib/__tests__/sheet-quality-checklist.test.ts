@@ -57,8 +57,7 @@ describe("shared sheet signals", () => {
     expect(server).toContain("...sheetSignals({")
     expect(server).not.toMatch(/isValidGtin|indistinctVariantRows|evaluateListingReadiness/)
     const form = readFileSync(join(process.cwd(), "components/supplier/supplier-add-product-form.tsx"), "utf8")
-    expect(form).toContain("sheetSignalsFromProductBody({")
-    expect(form).toContain("<SheetQualityChecklist sheet={sheetQuality} />")
+    expect(form).toContain("<CommercialReadinessPanel body={readinessBody}")
   })
 })
 

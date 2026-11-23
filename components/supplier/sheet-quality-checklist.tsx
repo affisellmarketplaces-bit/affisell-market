@@ -10,9 +10,10 @@ import type { BodySheetSignals } from "@/lib/listing-quality/sheet-facts-body"
 const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 1, minimumFractionDigits: 1 })
 
 /** Evidence is the marketplace aggregate (≥ 5 suppliers each side) — fetched once, empty on any failure. */
-function useQualityEvidence(): QualityEvidence[] {
+export function useQualityEvidence(enabled = true): QualityEvidence[] {
   const [evidence, setEvidence] = useState<QualityEvidence[]>([])
   useEffect(() => {
+    if (!enabled) return
     let alive = true
     void fetch("/api/supplier/listing-quality", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
@@ -28,7 +29,7 @@ function useQualityEvidence(): QualityEvidence[] {
     return () => {
       alive = false
     }
-  }, [])
+  }, [enabled])
   return evidence
 }
 
@@ -37,10 +38,11 @@ function useQualityEvidence(): QualityEvidence[] {
  * (`sheetSignals` + `featureValue`) on the body the form is about to send, parsed like the server stores it. A figure appears only for an established marketplace
  * association, with its limit; otherwise elements are facts. Nothing is saved or changed from here.
  */
-export function SheetQualityChecklist({ sheet }: { sheet: BodySheetSignals }) {
+export function SheetQualityChecklist({ sheet, evidence: given }: { sheet: BodySheetSignals; evidence?: QualityEvidence[] }) {
   const t = useTranslations("supplier.sheetChecklist")
   const tHint = useTranslations("catalogHealth.listingQuality.feature")
-  const evidence = useQualityEvidence()
+  const fetched = useQualityEvidence(given === undefined)
+  const evidence = given ?? fetched
   const list = useMemo(() => buildSheetChecklist(sheet.signals, evidence, sheet.defaulted), [sheet, evidence])
   const missing = list.items.filter((i) => i.state === "missing")
   const present = list.items.filter((i) => i.state === "present")

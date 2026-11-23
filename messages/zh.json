@@ -2004,7 +2004,9 @@
       "draftUntitled": "未命名产品",
       "draftResume": "继续",
       "draftDiscard": "重新开始",
-      "draftAutosaved": "草稿已保存在此设备上"
+      "draftAutosaved": "草稿已保存在此设备上",
+      "errLeafCategory": "请选择商品的确切类目后再发布（保存草稿时选择大类即可）。",
+      "errCategoryFields": "该类目需要向导未收集的规格：请先保存草稿，再在完整表单中补充。"
     },
     "guidedDefaults": {
       "title": "已应用您的店铺设置",
@@ -2342,6 +2344,113 @@
       },
       "defaultTag": "默认值",
       "deliveryDefault": "未填写交货时间：Affisell 将默认显示 {min} 至 {max} 天。请填写您的实际交货时间。"
+    },
+    "readiness": {
+      "verdict": {
+        "bloquant": "尚不能销售",
+        "a_corriger": "可以发布——请先处理优先项",
+        "pret": "可以销售"
+      },
+      "counts": "{blocking, plural, =0 {无阻碍项} other {# 个阻碍项}} · {priority, plural, =0 {无优先项} other {# 个优先项}} · {recommended, plural, =0 {无改进建议} other {# 个可改进项}}",
+      "nextFix": "下一步修改",
+      "evidence": "在 Affisell 上观察到：具备该要素的可比商品页每天店铺销量是其他商品页的 {ratio} 倍（至少 {lo} 倍）。这只是统计关联，并不保证销量。",
+      "qualityWhy": "商品页的可选改进：既不影响发布，也不影响销售。",
+      "qualityDetail": "商品页 12 个要素的详情",
+      "footer": "根据表单即将提交的内容，按 Affisell 实际执行的规则计算。本面板不会保存或修改任何内容。",
+      "level": {
+        "bloquant": "阻碍",
+        "prioritaire": "优先处理",
+        "recommande": "建议"
+      },
+      "basis": {
+        "server_refusal": "必须：缺少此项时 Affisell 会拒绝发布。",
+        "not_buyable": "销售必需：商品页可以发布，但会显示为售罄，无人能购买。",
+        "platform_rule": "Affisell 会检查但发布时暂不强制的规则：随时可能变为强制。",
+        "observed_risk": "真实风险，但不会被拒绝：可以发布，但可能影响销售或配送。",
+        "measured_association": "基于 Affisell 质量测量的建议。"
+      },
+      "finding": {
+        "name_missing": {
+          "title": "商品名称为空",
+          "why": "没有名称的商品页无法发布。",
+          "fix": "请填写准确的商品名称。"
+        },
+        "category_missing": {
+          "title": "未选择确切类目",
+          "why": "发布需要目录中的末级类目：它决定商品在搜索中的位置以及 Affisell 的费用。",
+          "fix": "请选择最准确的商品类目。"
+        },
+        "category_fields_missing": {
+          "title": "缺少类目必填规格",
+          "why": "所选类目要求这些信息；缺少时发布会被拒绝。",
+          "fix": "请填写类目区域中标出的规格。"
+        },
+        "price_missing": {
+          "title": "未填写价格",
+          "why": "没有价格，商品无法发布。",
+          "fix": "请填写不含税的供应商价格。"
+        },
+        "photo_missing": {
+          "title": "没有已保存的照片",
+          "why": "发布至少需要一张已上传的照片；这也是买家看到的第一样东西。",
+          "fix": "请至少添加一张商品照片，并等待上传完成。"
+        },
+        "warehouse_missing": {
+          "title": "未填写发货区域",
+          "why": "发布必须填写仓库区域：用于显示可信的配送时间。",
+          "fix": "请选择包裹的发货地（本地、区域或国际）。"
+        },
+        "delivery_countries_missing": {
+          "title": "未选择配送国家",
+          "why": "没有配送国家时发布会被拒绝，买家也无法下单。",
+          "fix": "请选择您配送的国家。"
+        },
+        "commission_not_explicit": {
+          "title": "未设置分销商佣金",
+          "why": "发布前必须明确设置给分销商的佣金；否则订单无法分账。",
+          "fix": "请填写您给分销商的佣金。"
+        },
+        "merchant_unverified": {
+          "title": "供应商账户尚未验证",
+          "why": "账户验证完成前，Affisell 会拒绝任何发布。",
+          "fix": "请在设置中完成账户验证；在此期间可以保存草稿。"
+        },
+        "catalog_cap_reached": {
+          "title": "已达到在线商品上限",
+          "why": "您的套餐限制了在线商品数量：新商品会被拒绝。",
+          "fix": "请下架其他商品或更换套餐；可以保存草稿。"
+        },
+        "safety_incomplete": {
+          "title": "产品安全信息不完整",
+          "why": "制造商信息，以及欧盟以外制造时的欧盟负责人：Affisell 会对实物商品检查这些数据。",
+          "fix": "请补全“产品安全”部分。"
+        },
+        "stock_missing": {
+          "title": "库存数量为零",
+          "why": "商品可以发布，但会显示为售罄：没有买家能下单。",
+          "fix": "请填写实际可用的数量。"
+        },
+        "delivery_time_default": {
+          "title": "未填写配送时间",
+          "why": "系统会以您的名义显示默认配送时间；如果与实际不符，延误会变成纠纷。",
+          "fix": "请填写实际配送时间（若此流程不提供，请在完整表单中填写）。"
+        },
+        "variants_indistinct": {
+          "title": "变体无法区分",
+          "why": "两行的颜色、尺码或容量相同：买家无法准确选择，这些行的库存也不会被跟踪。",
+          "fix": "请让每个变体唯一，或合并重复项。"
+        },
+        "stock_low": {
+          "title": "数量很少",
+          "why": "仅有 3 件或更少时，分销商的头几笔订单就可能售罄。",
+          "fix": "请核对可用数量，并尽可能补货。"
+        },
+        "net_not_positive": {
+          "title": "这笔销售您没有收益",
+          "why": "按此价格、此佣金和您的 Affisell 费用计算，每单净收益为零或负数。",
+          "fix": "请调整价格或给分销商的佣金。"
+        }
+      }
     }
   },
   "affiliate": {

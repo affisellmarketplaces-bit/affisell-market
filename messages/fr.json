@@ -2004,7 +2004,9 @@
       "draftUntitled": "Produit sans titre",
       "draftResume": "Reprendre",
       "draftDiscard": "Recommencer",
-      "draftAutosaved": "Brouillon enregistré sur cet appareil"
+      "draftAutosaved": "Brouillon enregistré sur cet appareil",
+      "errLeafCategory": "Choisissez la catégorie exacte du produit pour le publier (un rayon suffit pour un brouillon).",
+      "errCategoryFields": "Cette catégorie demande des caractéristiques que l'assistant ne collecte pas : enregistrez un brouillon puis complétez-le dans le formulaire complet."
     },
     "guidedDefaults": {
       "title": "Repris de vos réglages boutique",
@@ -2342,6 +2344,113 @@
       },
       "defaultTag": "par défaut",
       "deliveryDefault": "Aucun délai de livraison n'a été saisi : Affisell affichera {min} à {max} jours par défaut. Indiquez votre délai réel."
+    },
+    "readiness": {
+      "verdict": {
+        "bloquant": "Pas encore commercialisable",
+        "a_corriger": "Publiable — à corriger en priorité",
+        "pret": "Prêt à commercialiser"
+      },
+      "counts": "{blocking, plural, =0 {aucun blocage} one {# blocage} other {# blocages}} · {priority, plural, =0 {aucune priorité} one {# priorité} other {# priorités}} · {recommended, plural, =0 {aucune amélioration} one {# amélioration possible} other {# améliorations possibles}}",
+      "nextFix": "Prochaine correction",
+      "evidence": "Observé sur Affisell : les fiches comparables qui ont cet élément ont enregistré {ratio} fois plus de ventes par jour en boutique (au moins {lo} fois). Association statistique, pas une garantie de vente.",
+      "qualityWhy": "Amélioration facultative de la fiche : elle n'empêche ni la publication ni la vente.",
+      "qualityDetail": "Détail des 12 éléments de la fiche",
+      "footer": "Calculé sur ce que le formulaire va envoyer, avec les règles appliquées par Affisell. Rien n'est enregistré ni modifié depuis ce panneau.",
+      "level": {
+        "bloquant": "Bloquant",
+        "prioritaire": "À corriger en priorité",
+        "recommande": "Recommandé"
+      },
+      "basis": {
+        "server_refusal": "Obligation : Affisell refuse la publication tant que ce point manque.",
+        "not_buyable": "Obligation pour vendre : la fiche peut être publiée, mais elle s'affiche épuisée et personne ne peut l'acheter.",
+        "platform_rule": "Règle Affisell vérifiée sans être encore exigée à la publication : elle peut le devenir à tout moment.",
+        "observed_risk": "Risque réel, sans refus : la publication passe, mais ce point peut nuire à la vente ou à la livraison.",
+        "measured_association": "Recommandation fondée sur la mesure de qualité d'Affisell."
+      },
+      "finding": {
+        "name_missing": {
+          "title": "Le nom du produit est vide",
+          "why": "Une fiche sans nom ne peut pas être publiée.",
+          "fix": "Indiquez le nom exact du produit."
+        },
+        "category_missing": {
+          "title": "Aucune catégorie exacte",
+          "why": "La publication exige une catégorie finale du catalogue : c'est elle qui place le produit dans les recherches et fixe les frais Affisell.",
+          "fix": "Choisissez la catégorie la plus précise du produit."
+        },
+        "category_fields_missing": {
+          "title": "Caractéristiques obligatoires de la catégorie manquantes",
+          "why": "La catégorie choisie impose ces informations ; sans elles, la publication est refusée.",
+          "fix": "Remplissez les caractéristiques signalées dans la section de la catégorie."
+        },
+        "price_missing": {
+          "title": "Prix absent",
+          "why": "Sans prix, le produit ne peut pas être publié.",
+          "fix": "Indiquez votre prix fournisseur hors taxes."
+        },
+        "photo_missing": {
+          "title": "Aucune photo enregistrée",
+          "why": "La publication exige au moins une photo hébergée ; c'est aussi la première chose que voit l'acheteur.",
+          "fix": "Ajoutez au moins une photo du produit et attendez la fin de son envoi."
+        },
+        "warehouse_missing": {
+          "title": "Zone d'expédition non indiquée",
+          "why": "La zone d'entrepôt est obligatoire pour publier : elle sert à annoncer des délais crédibles.",
+          "fix": "Choisissez d'où part le colis (local, régional ou international)."
+        },
+        "delivery_countries_missing": {
+          "title": "Aucun pays de livraison",
+          "why": "Sans pays de livraison, la publication est refusée et aucun acheteur ne pourrait commander.",
+          "fix": "Choisissez les pays où vous livrez."
+        },
+        "commission_not_explicit": {
+          "title": "Commission revendeur non fixée",
+          "why": "La commission versée aux revendeurs doit être explicite pour publier ; sans elle, une vente ne pourrait pas être répartie.",
+          "fix": "Indiquez la commission que vous offrez aux revendeurs."
+        },
+        "merchant_unverified": {
+          "title": "Compte fournisseur pas encore vérifié",
+          "why": "Tant que la vérification du compte n'est pas terminée, Affisell refuse toute publication.",
+          "fix": "Terminez la vérification de votre compte depuis vos paramètres ; vous pouvez enregistrer un brouillon en attendant."
+        },
+        "catalog_cap_reached": {
+          "title": "Limite de produits en ligne atteinte",
+          "why": "Votre formule limite le nombre de produits en ligne : un nouveau produit serait refusé.",
+          "fix": "Mettez un autre produit hors ligne ou changez de formule ; vous pouvez enregistrer un brouillon."
+        },
+        "safety_incomplete": {
+          "title": "Informations de sécurité produit incomplètes",
+          "why": "Fabricant et, hors UE, personne responsable dans l'UE : ces données sont vérifiées par Affisell pour les produits physiques.",
+          "fix": "Complétez la section Sécurité du produit."
+        },
+        "stock_missing": {
+          "title": "Aucune quantité en stock",
+          "why": "Le produit serait publié mais affiché épuisé : aucun acheteur ne pourrait le commander.",
+          "fix": "Indiquez la quantité réellement disponible."
+        },
+        "delivery_time_default": {
+          "title": "Délai de livraison non saisi",
+          "why": "Un délai par défaut sera affiché en votre nom ; s'il ne correspond pas à la réalité, les retards deviennent des litiges.",
+          "fix": "Indiquez votre délai réel (dans le formulaire complet si ce parcours ne le propose pas)."
+        },
+        "variants_indistinct": {
+          "title": "Déclinaisons impossibles à distinguer",
+          "why": "Deux lignes ont la même couleur, taille ou capacité : l'acheteur ne peut pas choisir précisément et le stock de ces lignes n'est pas suivi.",
+          "fix": "Rendez chaque déclinaison unique ou fusionnez les doublons."
+        },
+        "stock_low": {
+          "title": "Très peu d'unités",
+          "why": "Avec 3 unités ou moins, le produit risque d'être épuisé dès les premières ventes des revendeurs.",
+          "fix": "Vérifiez votre quantité disponible et réapprovisionnez si possible."
+        },
+        "net_not_positive": {
+          "title": "Vous ne gagnez rien sur cette vente",
+          "why": "Avec ce prix, cette commission et vos frais Affisell, votre gain net par vente est nul ou négatif.",
+          "fix": "Revoyez votre prix ou la commission offerte aux revendeurs."
+        }
+      }
     }
   },
   "affiliate": {

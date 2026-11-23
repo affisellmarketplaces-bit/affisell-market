@@ -2004,7 +2004,9 @@
       "draftUntitled": "Product zonder titel",
       "draftResume": "Hervatten",
       "draftDiscard": "Opnieuw beginnen",
-      "draftAutosaved": "Concept opgeslagen op dit apparaat"
+      "draftAutosaved": "Concept opgeslagen op dit apparaat",
+      "errLeafCategory": "Kies de exacte categorie van het product om het te publiceren (voor een concept volstaat een afdeling).",
+      "errCategoryFields": "Deze categorie vraagt kenmerken die de assistent niet verzamelt: sla een concept op en vul het aan in het volledige formulier."
     },
     "guidedDefaults": {
       "title": "Overgenomen uit je winkelinstellingen",
@@ -2342,6 +2344,113 @@
       },
       "defaultTag": "standaard",
       "deliveryDefault": "Er is geen levertijd ingevuld: Affisell toont standaard {min} tot {max} dagen. Vul uw echte levertijd in."
+    },
+    "readiness": {
+      "verdict": {
+        "bloquant": "Nog niet verkoopklaar",
+        "a_corriger": "Publiceerbaar — los eerst de prioriteiten op",
+        "pret": "Klaar om te verkopen"
+      },
+      "counts": "{blocking, plural, =0 {geen blokkade} one {# blokkade} other {# blokkades}} · {priority, plural, =0 {geen prioriteit} one {# prioriteit} other {# prioriteiten}} · {recommended, plural, =0 {geen verbetering} one {# mogelijke verbetering} other {# mogelijke verbeteringen}}",
+      "nextFix": "Volgende correctie",
+      "evidence": "Waargenomen op Affisell: vergelijkbare productpagina's met dit element hadden {ratio} keer meer verkopen per dag in de winkel (minstens {lo} keer). Statistisch verband, geen gegarandeerde verkoop.",
+      "qualityWhy": "Optionele verbetering van de pagina: ze verhindert publicatie noch verkoop.",
+      "qualityDetail": "Details van de 12 elementen van de pagina",
+      "footer": "Berekend op wat het formulier gaat versturen, met de regels die Affisell toepast. Vanuit dit paneel wordt niets opgeslagen of gewijzigd.",
+      "level": {
+        "bloquant": "Blokkerend",
+        "prioritaire": "Eerst oplossen",
+        "recommande": "Aanbevolen"
+      },
+      "basis": {
+        "server_refusal": "Verplichting: Affisell weigert de publicatie zolang dit ontbreekt.",
+        "not_buyable": "Verplichting om te verkopen: de pagina kan gepubliceerd worden, maar staat als uitverkocht en niemand kan kopen.",
+        "platform_rule": "Affisell-regel die gecontroleerd wordt maar nog niet vereist is bij publicatie: dat kan op elk moment veranderen.",
+        "observed_risk": "Echt risico, geen weigering: de publicatie gaat door, maar dit kan de verkoop of levering schaden.",
+        "measured_association": "Aanbeveling op basis van de kwaliteitsmeting van Affisell."
+      },
+      "finding": {
+        "name_missing": {
+          "title": "De productnaam is leeg",
+          "why": "Een pagina zonder naam kan niet gepubliceerd worden.",
+          "fix": "Vul de exacte productnaam in."
+        },
+        "category_missing": {
+          "title": "Geen exacte categorie",
+          "why": "Publicatie vereist een eindcategorie van de catalogus: die bepaalt de vindbaarheid en de Affisell-kosten.",
+          "fix": "Kies de meest precieze categorie van het product."
+        },
+        "category_fields_missing": {
+          "title": "Verplichte categoriekenmerken ontbreken",
+          "why": "De gekozen categorie vereist deze gegevens; zonder deze wordt de publicatie geweigerd.",
+          "fix": "Vul de gemarkeerde kenmerken in de categoriesectie in."
+        },
+        "price_missing": {
+          "title": "Geen prijs",
+          "why": "Zonder prijs kan het product niet gepubliceerd worden.",
+          "fix": "Vul uw leveranciersprijs exclusief btw in."
+        },
+        "photo_missing": {
+          "title": "Geen opgeslagen foto",
+          "why": "Publicatie vereist minstens één gehoste foto; het is ook het eerste wat een koper ziet.",
+          "fix": "Voeg minstens één productfoto toe en wacht tot het uploaden klaar is."
+        },
+        "warehouse_missing": {
+          "title": "Verzendzone niet ingevuld",
+          "why": "De magazijnzone is verplicht om te publiceren: ze dient voor geloofwaardige levertijden.",
+          "fix": "Kies vanwaar het pakket vertrekt (lokaal, regionaal of internationaal)."
+        },
+        "delivery_countries_missing": {
+          "title": "Geen leverland",
+          "why": "Zonder leverlanden wordt de publicatie geweigerd en kan geen koper bestellen.",
+          "fix": "Kies de landen waar u levert."
+        },
+        "commission_not_explicit": {
+          "title": "Commissie voor wederverkopers niet ingesteld",
+          "why": "De commissie voor wederverkopers moet expliciet zijn om te publiceren; anders kan een verkoop niet verdeeld worden.",
+          "fix": "Vul de commissie in die u wederverkopers biedt."
+        },
+        "merchant_unverified": {
+          "title": "Leveranciersaccount nog niet geverifieerd",
+          "why": "Zolang de verificatie van uw account niet klaar is, weigert Affisell elke publicatie.",
+          "fix": "Rond de verificatie af in uw instellingen; intussen kunt u een concept opslaan."
+        },
+        "catalog_cap_reached": {
+          "title": "Limiet van online producten bereikt",
+          "why": "Uw abonnement beperkt het aantal online producten: een nieuw product zou geweigerd worden.",
+          "fix": "Haal een ander product offline of wijzig uw abonnement; een concept opslaan kan."
+        },
+        "safety_incomplete": {
+          "title": "Productveiligheidsgegevens onvolledig",
+          "why": "Fabrikant en, buiten de EU, een verantwoordelijke persoon in de EU: Affisell controleert deze gegevens voor fysieke producten.",
+          "fix": "Vul de sectie Productveiligheid aan."
+        },
+        "stock_missing": {
+          "title": "Geen voorraad",
+          "why": "Het product zou gepubliceerd worden maar als uitverkocht staan: geen koper zou het kunnen bestellen.",
+          "fix": "Vul de werkelijk beschikbare hoeveelheid in."
+        },
+        "delivery_time_default": {
+          "title": "Levertijd niet ingevuld",
+          "why": "Er wordt in uw naam een standaardlevertijd getoond; klopt die niet, dan worden vertragingen geschillen.",
+          "fix": "Vul uw echte levertijd in (in het volledige formulier als deze route dat niet biedt)."
+        },
+        "variants_indistinct": {
+          "title": "Varianten die niet te onderscheiden zijn",
+          "why": "Twee rijen hebben dezelfde kleur, maat of capaciteit: de koper kan niet precies kiezen en de voorraad van die rijen wordt niet gevolgd.",
+          "fix": "Maak elke variant uniek of voeg dubbele samen."
+        },
+        "stock_low": {
+          "title": "Zeer weinig eenheden",
+          "why": "Met 3 eenheden of minder kan het product al bij de eerste verkopen van wederverkopers uitverkocht raken.",
+          "fix": "Controleer uw beschikbare hoeveelheid en vul indien mogelijk aan."
+        },
+        "net_not_positive": {
+          "title": "U verdient niets aan deze verkoop",
+          "why": "Met deze prijs, deze commissie en uw Affisell-kosten is uw netto per verkoop nul of negatief.",
+          "fix": "Herzie uw prijs of de commissie voor wederverkopers."
+        }
+      }
     }
   },
   "affiliate": {
