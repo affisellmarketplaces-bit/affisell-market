@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma"
 import { findExclusiveProductsBlockedForAffiliate } from "@/lib/product-exclusivity-guard.server"
 import { mayListOnProduct } from "@/lib/reseller-import/review"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
+import { withListingPresenceSource } from "@/lib/listing-presence/record.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -81,10 +82,13 @@ export async function PATCH(request: Request) {
         listedWhere = { ...where, id: { in: candidates.filter((c) => !refused.has(c.id)).map((c) => c.id) } }
       }
     }
-    await prisma.affiliateProduct.updateMany({
-      where: listedWhere,
-      data: { isListed: body.isListed },
-    })
+    const nextListed = body.isListed
+    await withListingPresenceSource(prisma, { source: "reseller_bulk", actorId: session.user.id }, (tx) =>
+      tx.affiliateProduct.updateMany({
+        where: listedWhere,
+        data: { isListed: nextListed },
+      }),
+    )
     if (!body.isListed) {
       await cancelAuctionsForListings(ids)
       await prisma.affiliateProduct.updateMany({

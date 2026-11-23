@@ -1,3 +1,4 @@
+import { purgeAffiliatePresenceInTransaction } from "@/lib/listing-presence/record.server"
 import { prisma } from "@/lib/prisma"
 
 export type DeleteMerchantAccountResult =
@@ -25,6 +26,7 @@ export async function deleteMerchantUser(
 
     await prisma.$transaction(async (tx) => {
       await tx.affiliateProduct.deleteMany({ where: { affiliateId: userId } })
+      await purgeAffiliatePresenceInTransaction(tx, userId)
       await tx.notification.deleteMany({ where: { userId } })
       await tx.user.delete({ where: { id: userId } })
     })

@@ -33,6 +33,7 @@ import { rowsForChoice } from "@/lib/variant-selection"
 import { effectiveReturnWindowDays, parseReturnWindowDays, RETURN_WINDOW_KEY } from "@/lib/return-terms"
 import { explicitSupplierCommissionPct, productHasExplicitSupplierCommission } from "@/lib/supplier-explicit-commission"
 import { resellerFacingSupplierLabel } from "@/lib/supplier-public-label"
+import { declareListingPresenceSource } from "@/lib/listing-presence/record.server"
 
 const MAX_CANDIDATES = 200
 const ATTR_KEYS = [IDENTITY_KEYS.gtin, "brand", RETURN_WINDOW_KEY]
@@ -281,6 +282,7 @@ async function withdrawReplacedListing(args: {
     const result = await prisma.$transaction(async (tx) => {
       const already = await tx.auditLog.findUnique({ where: { id: replaceDoneId(args.listingId, args.toProductId) }, select: { id: true } })
       if (already) return "already_done" as const
+      await declareListingPresenceSource(tx, { source: "replacement", actorId: args.affiliateId })
       await tx.affiliateProduct.updateMany({
         where: { id: args.listingId, affiliateId: args.affiliateId },
         data: { isListed: false },
@@ -446,6 +448,7 @@ export async function finishReplacement(args: {
 /** Withdraw only (no alternative): the listing leaves the shop, everything about it is kept. Traced. */
 export async function withdrawListing(affiliateId: string, listingId: string): Promise<{ ok: boolean }> {
   const res = await prisma.$transaction(async (tx) => {
+    await declareListingPresenceSource(tx, { source: "replacement", actorId: affiliateId })
     const r = await tx.affiliateProduct.updateMany({ where: { id: listingId, affiliateId }, data: { isListed: false } })
     if (r.count === 0) return 0
     await tx.auditLog.create({

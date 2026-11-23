@@ -12,6 +12,7 @@ import {
   withImportReviewState,
   type ReviewDecision,
 } from "@/lib/reseller-import/review"
+import { declareListingPresenceSource } from "@/lib/listing-presence/record.server"
 
 export type ResellerImportReviewRow = {
   productId: string
@@ -143,6 +144,7 @@ export async function applyResellerImportReview(args: {
   const listingIds = publishNow ? await requestedListingIds(product.id) : []
 
   return prisma.$transaction(async (tx) => {
+    await declareListingPresenceSource(tx, { source: "admin_review", actorId: args.adminId })
     let listed = 0
     let unlisted = 0
     if (args.decision === "approve") {
@@ -221,6 +223,7 @@ export async function publishApprovedResellerImport(args: { productId: string; a
   }
   const listingIds = await requestedListingIds(product.id)
   return prisma.$transaction(async (tx) => {
+    await declareListingPresenceSource(tx, { source: "admin_review", actorId: args.adminId })
     await tx.product.update({ where: { id: product.id }, data: { active: true, isDraft: false } })
     const listed =
       listingIds.length > 0

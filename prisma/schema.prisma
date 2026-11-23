@@ -542,6 +542,28 @@ model ListingPriceHistory {
   @@index([affiliateProductId, variantKey, id])
 }
 
+/// Presence of a product in a reseller's shop, one row per REAL change, written by the database trigger of migration
+/// 20261124090000_listing_presence_history (append-only; lib/listing-presence). No foreign key on purpose: a listing,
+/// product or account removed later keeps its recorded past (retention: lib/listing-presence/retention).
+model ListingPresenceEvent {
+  id                 BigInt   @id @default(autoincrement())
+  affiliateProductId String
+  affiliateId        String
+  productId          String
+  /// created | listed | unlisted | deleted
+  kind               String
+  previousListed     Boolean?
+  newListed          Boolean?
+  /// Declared by the writer for its transaction, else the price-history declaration, else "unattributed".
+  source             String   @default("unattributed")
+  actorId            String?
+  effectiveAt        DateTime @default(now())
+
+  @@index([affiliateProductId, id])
+  @@index([productId, effectiveAt])
+  @@index([affiliateId, effectiveAt])
+}
+
 model ProductPriceHistory {
   id            BigInt   @id @default(autoincrement())
   productId     String

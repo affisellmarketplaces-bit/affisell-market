@@ -104,3 +104,4 @@ jobs:
           lib/__tests__/procurement-debit-register-db.test.ts
           lib/__tests__/supplier-cost-variants-db.test.ts
           lib/__tests__/unallocated-buyer-notice-db.test.ts
+          lib/__tests__/listing-presence-db.test.ts
