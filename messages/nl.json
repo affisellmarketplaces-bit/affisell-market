@@ -3286,7 +3286,91 @@
         "your_categories": "In je categorieën",
         "discovery": "Ontdekking"
       },
-      "personalisedNote": "Selectie afgestemd op de categorieën die je al verkoopt of aanbiedt, altijd met een deel andere categorieën om te ontdekken. Een product uit je categorieën passeert nooit een product dat je duidelijk meer oplevert (meer dan 15 % nettowinst per verkoop)."
+      "personalisedNote": "Selectie afgestemd op de categorieën die je al verkoopt of aanbiedt, altijd met een deel andere categorieën om te ontdekken. Een product uit je categorieën passeert nooit een product dat je duidelijk meer oplevert (meer dan 15 % nettowinst per verkoop).",
+      "opportunity": {
+        "toggle": "Waarom dit product?",
+        "earningsTitle": "Wat u per verkoop verdient",
+        "earningsLine": "Commissie {commission} + uw marge {markup} − Affisell-vergoeding {fee} = {net} per verkoop, tegen de voorgestelde prijs van {price} excl. btw.",
+        "feeDefault": "Affisell-vergoeding tegen het standaardtarief ({pct} %): u hebt geen onderhandeld tarief.",
+        "feeYours": "Affisell-vergoeding tegen uw tarief ({pct} %).",
+        "strengthsTitle": "Wat de kans interessant maakt",
+        "risksTitle": "Wat uw winst kan verkleinen",
+        "missingTitle": "Wat nog niet bekend is",
+        "actionTitle": "Voorgestelde actie",
+        "honesty": "Een lezing van de gegevens van Affisell: geen voorspelling en geen verkoopgarantie. De verkoopprijs blijft uw beslissing.",
+        "qualification": {
+          "fait": "feit",
+          "calcul": "berekening",
+          "estimation": "schatting",
+          "insuffisant": "ontbrekend gegeven"
+        },
+        "profile": {
+          "forte_demande_gain_faible": {
+            "title": "Sterke vraag, lage winst per verkoop",
+            "meaning": "Het product verkoopt op Affisell, maar levert u tegen de voorgestelde prijs weinig per verkoop op."
+          },
+          "gain_faible": {
+            "title": "Lage winst per verkoop",
+            "meaning": "Tegen de voorgestelde prijs levert een verkoop weinig op, zonder duidelijke vraag als compensatie."
+          },
+          "rentable_valide": {
+            "title": "Winstgevend en al bevestigd door verkopen",
+            "meaning": "Goede winst per verkoop en recente betaalde bestellingen op Affisell."
+          },
+          "prometteur_peu_de_donnees": {
+            "title": "Veelbelovend, nog te recent om te beoordelen",
+            "meaning": "Goede winst per verkoop; het product staat te kort op Affisell om de vraag te beoordelen. Dat is geen slecht teken."
+          },
+          "rentable_demande_a_construire": {
+            "title": "Winstgevend, vraag nog op te bouwen",
+            "meaning": "Goede winst per verkoop, maar weinig of geen recente bestellingen op Affisell: de vraag moet nog ontstaan."
+          }
+        },
+        "fact": {
+          "sellable_now": "Vandaag verkoopbaar: voorraad, commissie en publicatie in orde.",
+          "sellable_to_check": "Verkoopbaar, met één punt om te controleren voor u het promoot.",
+          "net_below_threshold": "{net} per verkoop, onder de drempel van {threshold} die de copiloot als laag beschouwt.",
+          "net_above_threshold": "{net} per verkoop, boven de drempel van {threshold}.",
+          "orders_observed": "{orders, plural, one {# betaalde bestelling} other {# betaalde bestellingen}} op Affisell in de laatste 30 dagen.",
+          "rising_tested": "De bestellingen groeien duidelijk sneller dan die van Affisell (statistische toets).",
+          "in_your_categories": "In een categorie die u al verkoopt.",
+          "discovery": "In een categorie die nieuw is voor uw winkel.",
+          "net_per_sale": "{net} per verkoop.",
+          "validated_by_sales": "Bevestigd door {orders, plural, one {# betaalde bestelling} other {# betaalde bestellingen}} in 30 dagen.",
+          "little_competition": "Weinig concurrentie: {resellers, plural, =0 {geen enkele wederverkoper biedt het aan} one {slechts één wederverkoper biedt het aan} other {# wederverkopers bieden het aan}}.",
+          "many_resellers": "{resellers} wederverkopers bieden het al aan: sterke concurrentie.",
+          "strong_in_category": "In zijn categorie „{category}” hoort het, van de {peers} producten die u kunt aanbieden, bij het bovenste kwart van de betaalde bestellingen over 30 dagen. Waar in deze categorie, niet per se elders.",
+          "in_your_price_range": "Voorgestelde prijs binnen uw gebruikelijke bereik ({low} tot {high} excl. btw).",
+          "outside_your_price_range": "Voorgestelde prijs buiten uw gebruikelijke bereik ({low} tot {high} excl. btw).",
+          "low_net": "{net} per verkoop, onder de drempel van {threshold}.",
+          "below_supplier_price": "De verkoopprijs ligt onder de leveranciersprijs: alleen de commissie blijft over.",
+          "low_stock": "Slechts {units, plural, one {# eenheid} other {# eenheden}} op voorraad: mogelijk uitverkocht bij de eerste verkopen.",
+          "short_cover": "Ongeveer {days} dagen voorraad ({units} eenheden) bij het op Affisell waargenomen tempo.",
+          "offer_incomplete": "{count, plural, one {Er ontbreekt één element van de fiche} other {Er ontbreken # elementen van de fiche}}, op Affisell verbonden met meer verkopen (een verband, geen garantie).",
+          "too_recent": "Sinds {days} dagen op Affisell: te vroeg om de vraag te beoordelen.",
+          "age_unknown": "Publicatiedatum onbekend.",
+          "stock_unknown": "Voorraad niet leesbaar (varianten buiten de gevolgde tabel).",
+          "cover_not_projectable": "Te weinig verkopen om te schatten hoe lang de voorraad meegaat.",
+          "no_sales_yet": "Geen betaalde bestelling in de laatste 30 dagen: de vraag is nog niet gemeten.",
+          "offer_not_measured": "Kwaliteit van de fiche niet vergeleken: op Affisell is nog geen verband vastgesteld.",
+          "fee_default": "Berekend tegen het standaardtarief van {pct} %: u hebt geen onderhandeld tarief.",
+          "category_not_comparable": "Te weinig vergelijkbare producten in zijn categorie om zijn verkopen te situeren."
+        },
+        "action": {
+          "ajouter": "Voeg het toe aan uw winkel.",
+          "ajouter_surveiller_stock": "Voeg het toe en houd de voorraad in de gaten voor u het uitlicht.",
+          "decider_sur_le_gain": "Beslis met kennis van zaken: de winst per verkoop is laag tegen de voorgestelde prijs.",
+          "tester_avant_de_promouvoir": "Voeg het toe en volg het voor u in promotie investeert."
+        },
+        "rank": {
+          "readiness": "Vóór „{other}” geplaatst: het is verkoopbaar zonder te controleren punt.",
+          "rising": "Vóór „{other}” geplaatst: de vraag groeit duidelijk, met een winst minstens gelijk aan de mediaan.",
+          "net": "Vóór „{other}” geplaatst: het levert meer per verkoop op.",
+          "category_affinity": "Vóór „{other}” geplaatst: het zit in uw categorieën, voor een vergelijkbare winst (hoogstens 15 % verschil).",
+          "demand": "Vóór „{other}” geplaatst: bij gelijke winst heeft het meer betaalde bestellingen.",
+          "tie": "Gelijk met „{other}” op alle criteria."
+        }
+      }
     },
     "supplierAffisell": "Affisell-leverancier",
     "replacement": {

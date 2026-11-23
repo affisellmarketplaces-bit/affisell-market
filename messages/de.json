@@ -3286,7 +3286,91 @@
         "your_categories": "In Ihren Kategorien",
         "discovery": "Entdeckung"
       },
-      "personalisedNote": "Auswahl angepasst an die Kategorien, die Sie bereits verkaufen oder anbieten, immer mit einem Anteil anderer Kategorien zum Entdecken. Ein Produkt Ihrer Kategorien überholt nie eines, das Ihnen deutlich mehr bringt (über 15 % mehr Nettogewinn pro Verkauf)."
+      "personalisedNote": "Auswahl angepasst an die Kategorien, die Sie bereits verkaufen oder anbieten, immer mit einem Anteil anderer Kategorien zum Entdecken. Ein Produkt Ihrer Kategorien überholt nie eines, das Ihnen deutlich mehr bringt (über 15 % mehr Nettogewinn pro Verkauf).",
+      "opportunity": {
+        "toggle": "Warum dieses Produkt?",
+        "earningsTitle": "Was Sie pro Verkauf verdienen",
+        "earningsLine": "Provision {commission} + Ihre Marge {markup} − Affisell-Gebühr {fee} = {net} pro Verkauf, zum vorgeschlagenen Preis von {price} netto.",
+        "feeDefault": "Affisell-Gebühr zum Standardsatz ({pct} %): Sie haben keinen ausgehandelten Satz.",
+        "feeYours": "Affisell-Gebühr zu Ihrem Satz ({pct} %).",
+        "strengthsTitle": "Was die Gelegenheit interessant macht",
+        "risksTitle": "Was Ihren Gewinn schmälern könnte",
+        "missingTitle": "Was noch nicht bekannt ist",
+        "actionTitle": "Vorgeschlagene Aktion",
+        "honesty": "Eine Auswertung der Affisell-Daten: weder Prognose noch Verkaufsgarantie. Der Verkaufspreis bleibt Ihre Entscheidung.",
+        "qualification": {
+          "fait": "Fakt",
+          "calcul": "Berechnung",
+          "estimation": "Schätzung",
+          "insuffisant": "fehlende Daten"
+        },
+        "profile": {
+          "forte_demande_gain_faible": {
+            "title": "Starke Nachfrage, geringer Gewinn pro Verkauf",
+            "meaning": "Das Produkt verkauft sich auf Affisell, bringt Ihnen zum vorgeschlagenen Preis aber wenig pro Verkauf."
+          },
+          "gain_faible": {
+            "title": "Geringer Gewinn pro Verkauf",
+            "meaning": "Zum vorgeschlagenen Preis bringt ein Verkauf wenig, ohne ausgeprägte Nachfrage als Ausgleich."
+          },
+          "rentable_valide": {
+            "title": "Rentabel und bereits durch Verkäufe bestätigt",
+            "meaning": "Guter Gewinn pro Verkauf und aktuelle bezahlte Bestellungen auf Affisell."
+          },
+          "prometteur_peu_de_donnees": {
+            "title": "Vielversprechend, noch zu neu für ein Urteil",
+            "meaning": "Guter Gewinn pro Verkauf; das Produkt ist zu kurz auf Affisell, um die Nachfrage zu beurteilen. Das ist kein schlechtes Zeichen."
+          },
+          "rentable_demande_a_construire": {
+            "title": "Rentabel, Nachfrage noch aufzubauen",
+            "meaning": "Guter Gewinn pro Verkauf, aber wenige oder keine aktuellen Bestellungen auf Affisell: Die Nachfrage muss erst entstehen."
+          }
+        },
+        "fact": {
+          "sellable_now": "Heute verkäuflich: Bestand, Provision und Veröffentlichung in Ordnung.",
+          "sellable_to_check": "Verkäuflich, mit einem Punkt, der vor der Bewerbung zu prüfen ist.",
+          "net_below_threshold": "{net} pro Verkauf, unter der Schwelle von {threshold}, die der Copilot als gering ansieht.",
+          "net_above_threshold": "{net} pro Verkauf, über der Schwelle von {threshold}.",
+          "orders_observed": "{orders, plural, one {# bezahlte Bestellung} other {# bezahlte Bestellungen}} auf Affisell in den letzten 30 Tagen.",
+          "rising_tested": "Seine Bestellungen wachsen deutlich schneller als die von Affisell (statistischer Test).",
+          "in_your_categories": "In einer Kategorie, die Sie bereits verkaufen.",
+          "discovery": "In einer für Ihren Shop neuen Kategorie.",
+          "net_per_sale": "{net} pro Verkauf.",
+          "validated_by_sales": "Bestätigt durch {orders, plural, one {# bezahlte Bestellung} other {# bezahlte Bestellungen}} in 30 Tagen.",
+          "little_competition": "Wenig Konkurrenz: {resellers, plural, =0 {kein Wiederverkäufer bietet es an} one {nur ein Wiederverkäufer bietet es an} other {# Wiederverkäufer bieten es an}}.",
+          "many_resellers": "{resellers} Wiederverkäufer bieten es bereits an: starke Konkurrenz.",
+          "strong_in_category": "In seiner Kategorie „{category}“ gehört es unter den {peers} Produkten, die Sie anbieten können, zum obersten Viertel der bezahlten Bestellungen über 30 Tage. Gilt in dieser Kategorie, nicht unbedingt anderswo.",
+          "in_your_price_range": "Vorgeschlagener Preis in Ihrer üblichen Spanne ({low} bis {high} netto).",
+          "outside_your_price_range": "Vorgeschlagener Preis außerhalb Ihrer üblichen Spanne ({low} bis {high} netto).",
+          "low_net": "{net} pro Verkauf, unter der Schwelle von {threshold}.",
+          "below_supplier_price": "Der Verkaufspreis liegt unter dem Lieferantenpreis: Nur die Provision bleibt.",
+          "low_stock": "Nur {units, plural, one {# Einheit} other {# Einheiten}} auf Lager: Ausverkauf schon bei den ersten Verkäufen möglich.",
+          "short_cover": "Etwa {days} Tage Bestand ({units} Einheiten) beim auf Affisell beobachteten Tempo.",
+          "offer_incomplete": "{count, plural, one {Ein Element des Produktblatts fehlt} other {# Elemente des Produktblatts fehlen}}, auf Affisell mit mehr Verkäufen verbunden (ein Zusammenhang, keine Garantie).",
+          "too_recent": "Seit {days} Tagen auf Affisell: zu früh, um die Nachfrage zu beurteilen.",
+          "age_unknown": "Datum der Veröffentlichung unbekannt.",
+          "stock_unknown": "Bestand nicht lesbar (Varianten außerhalb der geführten Tabelle).",
+          "cover_not_projectable": "Zu wenige Verkäufe, um abzuschätzen, wie lange der Bestand reicht.",
+          "no_sales_yet": "Keine bezahlte Bestellung in den letzten 30 Tagen: Die Nachfrage ist noch nicht gemessen.",
+          "offer_not_measured": "Qualität des Produktblatts nicht verglichen: Auf Affisell ist noch kein Zusammenhang belegt.",
+          "fee_default": "Berechnet zum Standardsatz von {pct} %: Sie haben keinen ausgehandelten Satz.",
+          "category_not_comparable": "Zu wenige vergleichbare Produkte in seiner Kategorie, um seine Verkäufe einzuordnen."
+        },
+        "action": {
+          "ajouter": "In Ihren Shop aufnehmen.",
+          "ajouter_surveiller_stock": "Aufnehmen und den Bestand beobachten, bevor Sie es hervorheben.",
+          "decider_sur_le_gain": "Bewusst entscheiden: Der Gewinn pro Verkauf ist zum vorgeschlagenen Preis gering.",
+          "tester_avant_de_promouvoir": "Aufnehmen und beobachten, bevor Sie in Werbung investieren."
+        },
+        "rank": {
+          "readiness": "Vor „{other}“ eingeordnet: Es ist verkäuflich, ohne zu prüfenden Punkt.",
+          "rising": "Vor „{other}“ eingeordnet: Seine Nachfrage wächst deutlich, bei einem Gewinn mindestens in Höhe des Medians.",
+          "net": "Vor „{other}“ eingeordnet: Es bringt mehr pro Verkauf.",
+          "category_affinity": "Vor „{other}“ eingeordnet: Es liegt in Ihren Kategorien, bei ähnlichem Gewinn (höchstens 15 % Abstand).",
+          "demand": "Vor „{other}“ eingeordnet: Bei gleichem Gewinn hat es mehr bezahlte Bestellungen.",
+          "tie": "Gleichauf mit „{other}“ bei allen Kriterien."
+        }
+      }
     },
     "supplierAffisell": "Affisell-Lieferant",
     "replacement": {

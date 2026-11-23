@@ -10,6 +10,10 @@ import { buildSelection, type SelectionCandidate } from "@/lib/reseller-copilot/
 import { mayListOnProduct } from "@/lib/reseller-import/review"
 import { effectiveReturnWindowDays, parseReturnWindowDays, RETURN_WINDOW_KEY } from "@/lib/return-terms"
 import { explicitSupplierCommissionPct, productHasExplicitSupplierCommission } from "@/lib/supplier-explicit-commission"
+import { loadQualityEvidenceSafe } from "@/lib/commercial-readiness/readiness-context.server"
+import { buildSheetChecklist, type QualityEvidence } from "@/lib/listing-quality/sheet-checklist"
+import { QUALITY_RESERVED_KEYS, sheetSignals } from "@/lib/listing-quality/sheet-facts"
+import { priceBandOf } from "@/lib/reseller-copilot/opportunity"
 
 /**
  * Reads what the reseller copilot needs (rules: selection.ts). READ-ONLY apart from `addSelection`, which goes through
@@ -36,7 +40,36 @@ function stockOf(p: { stock: number; hasVariants: boolean; variants: unknown }):
   return { units: Math.max(0, Math.round(p.stock || 0)), known: true }
 }
 
-async function loadCandidates(affiliateId: string, onlyIds?: ReadonlyArray<string>, now = new Date()) {
+/**
+ * Sheet elements this product's PUBLIC sheet lacks that have an ESTABLISHED marketplace association (same reading as the
+ * supplier's quality check: `sheetSignals` + `buildSheetChecklist`). null = no association is established on Affisell,
+ * so offer quality can not be judged (said as « not measured », never as weak).
+ */
+function offerMissingMeasured(
+  p: { name: string; description: string | null; images: string[]; listingKind: string | null; stock: number; variants: unknown; customColumns: unknown; deliveryMin: number | null; deliveryMax: number | null; attributes: Array<{ key: string; value: string }> },
+  specCount: number,
+  evidence: readonly QualityEvidence[],
+): Array<{ feature: QualityEvidence["feature"]; lo: number }> | null {
+  if (evidence.length === 0) return null
+  const signals = sheetSignals({
+    name: p.name,
+    descriptionHtml: p.description ?? "",
+    imageCount: p.images.length,
+    listingKind: p.listingKind,
+    stock: p.stock,
+    variants: p.variants,
+    customColumns: p.customColumns,
+    deliveryMin: p.deliveryMin,
+    deliveryMax: p.deliveryMax,
+    attributes: p.attributes,
+    specCount,
+  })
+  return buildSheetChecklist(signals, evidence)
+    .items.filter((i) => i.state === "missing" && i.evidence)
+    .map((i) => ({ feature: i.feature, lo: i.evidence!.lo }))
+}
+
+async function loadCandidates(affiliateId: string, onlyIds?: ReadonlyArray<string>, now = new Date(), evidence: readonly QualityEvidence[] = []) {
   const base = await buildAffiliateCatalogProductWhere(new URLSearchParams(), { affiliateId })
   const where = onlyIds ? { AND: [base, { id: { in: [...onlyIds] } }] } : base
   const rows = await prisma.product.findMany({
@@ -55,19 +88,34 @@ async function loadCandidates(affiliateId: string, onlyIds?: ReadonlyArray<strin
       active: true,
       isDraft: true,
       tags: true,
-      attributes: { where: { key: RETURN_WINDOW_KEY }, select: { value: true } },
+      createdAt: true,
+      description: true,
+      listingKind: true,
+      customColumns: true,
+      deliveryMin: true,
+      deliveryMax: true,
+      // Reserved keys only (return window, identity, product safety, stock marker): the public sheet's quality inputs.
+      attributes: { where: { key: { in: [...QUALITY_RESERVED_KEYS] } }, select: { key: true, value: true } },
       affiliateProducts: { where: { affiliateId }, select: { id: true } },
     },
     orderBy: { createdAt: "desc" },
     take: SELECTION_MAX_CANDIDATES,
   })
   const ids = rows.map((r) => r.id)
-  const [paid, listed] = ids.length
+  const categoryIds = [...new Set(rows.map((r) => r.categoryId).filter((c): c is string => Boolean(c)))]
+  const [paid, listed, specCounts, categories] = ids.length
     ? await Promise.all([
-        prisma.order.groupBy({ by: ["productId"], where: { productId: { in: ids }, paidAt: { gte: new Date(now.getTime() - 30 * DAY) } }, _count: { id: true } }),
+        prisma.order.groupBy({ by: ["productId"], where: { productId: { in: ids }, paidAt: { gte: new Date(now.getTime() - 30 * DAY) } }, _count: { id: true }, _sum: { quantity: true } }),
         prisma.affiliateProduct.groupBy({ by: ["productId"], where: { productId: { in: ids }, isListed: true }, _count: { id: true } }),
+        prisma.productAttribute
+          .groupBy({ by: ["productId"], where: { productId: { in: ids }, key: { notIn: [...QUALITY_RESERVED_KEYS] }, NOT: { value: "" } }, _count: { _all: true } })
+          .catch(() => []),
+        categoryIds.length ? prisma.category.findMany({ where: { id: { in: categoryIds } }, select: { id: true, name: true } }).catch(() => []) : Promise.resolve([]),
       ])
-    : [[], []]
+    : [[], [], [], []]
+  const specBy = new Map(specCounts.map((r) => [r.productId, r._count._all]))
+  const categoryName = new Map(categories.map((c) => [c.id, c.name]))
+  const unitsBy = new Map(paid.map((r) => [r.productId, r._sum.quantity ?? 0]))
   const rising = ids.length ? await loadRising(ids, now) : new Map<string, { recent14d: number; prior42d: number; distinctDays: number }>()
   const paidBy = new Map(paid.map((r) => [r.productId, r._count.id]))
   const listedBy = new Map(listed.map((r) => [r.productId, r._count.id]))
@@ -82,13 +130,17 @@ async function loadCandidates(affiliateId: string, onlyIds?: ReadonlyArray<strin
       commissionExplicit: productHasExplicitSupplierCommission({ commissionRate: Number(r.commissionRate) || 0, variants: r.variants, offerMode: r.offerMode }),
       stockUnits: stock.units,
       stockKnown: stock.known,
-      returnWindowDays: effectiveReturnWindowDays(parseReturnWindowDays(r.attributes[0]?.value)),
+      returnWindowDays: effectiveReturnWindowDays(parseReturnWindowDays(r.attributes.find((a) => a.key === RETURN_WINDOW_KEY)?.value)),
       paidOrders30d: paidBy.get(r.id) ?? 0,
       resellersListing: listedBy.get(r.id) ?? 0,
       inMyShop: r.affiliateProducts.length > 0,
       awaitingReview: !mayListOnProduct({ active: r.active, isDraft: r.isDraft, tags: r.tags }),
       rising: rising.get(r.id) ?? null,
       categoryId: r.categoryId ?? null,
+      categoryName: r.categoryId ? categoryName.get(r.categoryId) ?? null : null,
+      units30d: unitsBy.get(r.id) ?? 0,
+      ageDays: Math.max(0, Math.floor((now.getTime() - r.createdAt.getTime()) / DAY)),
+      offerMissingMeasured: offerMissingMeasured(r, specBy.get(r.id) ?? 0, evidence),
     }
   })
   return { candidates, truncated: rows.length >= SELECTION_MAX_CANDIDATES }
@@ -188,14 +240,30 @@ async function loadMyCategories(affiliateId: string, now = new Date()): Promise<
   }
 }
 
+/**
+ * The middle half of the reseller's OWN live selling prices (HT) — its usual price range. Its own data only; a failed
+ * read or fewer than 5 listings = not judged.
+ */
+async function loadMyPriceBand(affiliateId: string): Promise<{ p25: number; p75: number } | null> {
+  try {
+    const rows = await prisma.affiliateProduct.findMany({ where: { affiliateId, isListed: true }, select: { sellingPriceCents: true }, take: 1000 })
+    return priceBandOf(rows.map((r) => r.sellingPriceCents))
+  } catch (error) {
+    console.error("[copilot] price_band_unreadable", error instanceof Error ? error.message : "unknown")
+    return null
+  }
+}
+
 export async function loadResellerSelection(affiliateId: string, limit = 12) {
-  const [{ candidates, truncated }, feeBps, myCategories] = await Promise.all([
-    loadCandidates(affiliateId),
+  const evidence = await loadQualityEvidenceSafe()
+  const [{ candidates, truncated }, feeBps, myCategories, priceBand] = await Promise.all([
+    loadCandidates(affiliateId, undefined, new Date(), evidence),
     feeBpsOf(affiliateId),
     loadMyCategories(affiliateId),
+    loadMyPriceBand(affiliateId),
   ])
   return {
-    ...buildSelection(candidates, { affiliateFeeBps: feeBps, limit, myCategories }),
+    ...buildSelection(candidates, { affiliateFeeBps: feeBps, limit, myCategories, priceBand }),
     truncated,
     affiliateFeeBps: feeBps,
     personalised: myCategories.size > 0,

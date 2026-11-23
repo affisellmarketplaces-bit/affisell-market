@@ -14,6 +14,8 @@
  * forecast — no « you will earn X per month » is ever produced.
  */
 import { computeResellerNetPerSale, type ResellerNet } from "@/lib/reseller-copilot/net-per-sale"
+import type { QualityFeature } from "@/lib/listing-quality/quality-effect"
+import { assessOpportunity, categoryStanding, type Opportunity, type RankCriterion } from "@/lib/reseller-copilot/opportunity"
 
 export type Qualification = "catalogue" | "calcul" | "observe" | "suggestion"
 
@@ -48,6 +50,14 @@ export type SelectionCandidate = {
   rising?: { recent14d: number; prior42d: number; distinctDays?: number } | null
   /** Taxonomy category of the product (personalisation by the reseller's own categories). */
   categoryId?: string | null
+  /** Its category's label (for « strong in its category » — scoped, never generalised). */
+  categoryName?: string | null
+  /** Units sold on paid orders, marketplace, 30 days (null / absent = not read). */
+  units30d?: number | null
+  /** Days since the product was created (null / absent = unknown). */
+  ageDays?: number | null
+  /** Sheet elements missing with an ESTABLISHED marketplace association; null / absent = none established at all. */
+  offerMissingMeasured?: ReadonlyArray<{ feature: QualityFeature; lo: number }> | null
 }
 
 export type Reason = { code: string; qualification: Qualification }
@@ -69,6 +79,8 @@ export type SelectionItem = {
    */
   fit: "your_categories" | "discovery" | null
   returnWindowDays: number
+  /** « Pourquoi cette opportunité ? » — situation, qualified facts, net breakdown, risks, what is missing, one action. */
+  opportunity?: Opportunity
 }
 
 /** Same default as the existing quick add (lib/affiliate-catalog-margin-display.ts): supplier price + 30 %. */
@@ -158,7 +170,7 @@ export function risingLifts(item: Pick<SelectionItem, "trend" | "net">, medianNe
  */
 export function buildSelection(
   candidates: ReadonlyArray<SelectionCandidate>,
-  opts: { affiliateFeeBps: number | null; limit: number; myCategories?: ReadonlySet<string> | null }
+  opts: { affiliateFeeBps: number | null; limit: number; myCategories?: ReadonlySet<string> | null; priceBand?: { p25: number; p75: number } | null }
 ): { selection: SelectionItem[]; blocked: SelectionItem[]; considered: number; alreadyInShop: number } {
   const fresh = candidates.filter((c) => !c.inMyShop)
   const personalised = Boolean(opts.myCategories && opts.myCategories.size > 0)
@@ -182,6 +194,19 @@ export function buildSelection(
     b.demand.paidOrders30d - a.demand.paidOrders30d ||
     a.productId.localeCompare(b.productId)
   const ok = selectable.sort(compare)
+  /** The FIRST criterion of `compare` that puts `a` before `b` — the ranking explained by itself, nothing added. */
+  const rankCriterion = (a: SelectionItem, b: SelectionItem): RankCriterion =>
+    RANK[a.readiness] !== RANK[b.readiness]
+      ? "readiness"
+      : lifted(a) !== lifted(b)
+        ? "rising"
+        : rankNet(a) !== rankNet(b)
+          ? a.net.netCents >= b.net.netCents
+            ? "net"
+            : "category_affinity"
+          : a.demand.paidOrders30d !== b.demand.paidOrders30d
+            ? "demand"
+            : "tie"
   const limit = Math.max(1, Math.min(50, Math.floor(opts.limit)))
   const picked = ok.slice(0, limit)
   if (personalised) {
@@ -196,6 +221,35 @@ export function buildSelection(
     }
     picked.sort(compare)
   }
+  // « Pourquoi cette opportunité ? » for every proposed product, from the same candidates (no second read).
+  const byId = new Map(fresh.map((c) => [c.productId, c]))
+  const names = new Map<string, string>()
+  for (const c of candidates) if (c.categoryId && c.categoryName) names.set(c.categoryId, c.categoryName)
+  const standing = categoryStanding(
+    selectable.map((a) => ({ productId: a.productId, categoryId: byId.get(a.productId)?.categoryId ?? null, paidOrders30d: a.demand.paidOrders30d })),
+    names,
+  )
+  picked.forEach((a, idx) => {
+    const c = byId.get(a.productId)!
+    a.opportunity = assessOpportunity({
+      readiness: a.readiness,
+      net: a.net,
+      lowNetCents: LOW_NET_CENTS,
+      paidOrders30d: a.demand.paidOrders30d,
+      units30d: c.units30d ?? null,
+      resellersListing: a.demand.resellersListing,
+      rising: a.trend.rising,
+      stockUnits: c.stockUnits,
+      stockKnown: c.stockKnown,
+      ageDays: c.ageDays ?? null,
+      offerMissingMeasured: c.offerMissingMeasured ?? null,
+      category: standing.get(a.productId) ?? null,
+      priceBand: opts.priceBand ?? null,
+      fit: a.fit,
+    })
+    const next = picked[idx + 1]
+    if (next) a.opportunity.rankedAbove = { productId: next.productId, name: next.name, criterion: rankCriterion(a, next) }
+  })
   return {
     selection: picked,
     blocked: assessed.filter((a) => a.readiness === "bloque").slice(0, limit),

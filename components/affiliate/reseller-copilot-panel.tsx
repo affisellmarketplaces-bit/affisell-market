@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useState } from "react"
 
 import type { SelectionItem } from "@/lib/reseller-copilot/selection"
+import type { Fact, Opportunity } from "@/lib/reseller-copilot/opportunity"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 
 type Payload = {
@@ -143,6 +144,7 @@ export function ResellerCopilotPanel({ onAdded }: { onAdded?: () => void }) {
                   {" · "}
                   {t("resellers", { count: s.demand.resellersListing })}
                 </p>
+                {s.opportunity ? <OpportunityDetails o={s.opportunity} /> : null}
                 {s.readiness === "a_verifier" ? (
                   <p className="mt-1 text-xs text-amber-700">
                     {s.reasons
@@ -183,5 +185,67 @@ export function ResellerCopilotPanel({ onAdded }: { onAdded?: () => void }) {
         </footer>
       ) : null}
     </section>
+  )
+}
+
+const QUAL_STYLE: Record<Fact["qualification"], string> = {
+  fait: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
+  calcul: "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200",
+  estimation: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-100",
+  insuffisant: "bg-zinc-50 text-zinc-500 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-700",
+}
+
+/**
+ * « Pourquoi ce produit ? » (lib/reseller-copilot/opportunity.ts): its situation, what one sale pays and how, its
+ * strengths, its risks, what is not known yet, one action, and why it is placed before the next product. Every line says
+ * whether it is a fact, a calculation, an estimate or missing data. Read-only.
+ */
+function OpportunityDetails({ o }: { o: Opportunity }) {
+  const t = useTranslations("affiliate.copilot.opportunity")
+  const params = (f: Fact): Record<string, string | number> => {
+    const out: Record<string, string | number> = {}
+    for (const [k, v] of Object.entries(f.params ?? {})) out[k] = ["net", "threshold", "low", "high"].includes(k) && typeof v === "number" ? money(v) : v
+    return out
+  }
+  const line = (f: Fact) => (
+    <li key={f.code} className="flex gap-1.5">
+      <span className={`shrink-0 rounded px-1 text-[10px] font-medium uppercase ${QUAL_STYLE[f.qualification]}`}>{t(`qualification.${f.qualification}`)}</span>
+      <span>{t(`fact.${f.code}`, params(f))}</span>
+    </li>
+  )
+  const e = o.earnings
+  return (
+    <details className="mt-1.5 rounded-lg border border-zinc-200 p-2 text-xs dark:border-zinc-800">
+      <summary className="cursor-pointer font-medium text-emerald-800 dark:text-emerald-300">{t("toggle")}</summary>
+      <p className="mt-1.5 font-semibold text-zinc-900 dark:text-zinc-100">{t(`profile.${o.profile}.title`)}</p>
+      <p className="text-zinc-600 dark:text-zinc-400">{t(`profile.${o.profile}.meaning`)}</p>
+      <p className="mt-1.5 font-medium">{t("earningsTitle")}</p>
+      <p className="text-zinc-600 dark:text-zinc-400">
+        {t("earningsLine", { commission: money(e.commissionCents), markup: money(e.markupCents), fee: money(e.affisellFeeCents), net: money(e.netCents), price: money(e.sellingPriceHtCents) })}
+      </p>
+      <p className="text-zinc-500">{e.feeIsDefault ? t("feeDefault", { pct: Math.round(e.feeBps / 100) }) : t("feeYours", { pct: Math.round(e.feeBps / 100) })}</p>
+      {o.strengths.length > 0 ? (
+        <>
+          <p className="mt-1.5 font-medium">{t("strengthsTitle")}</p>
+          <ul className="space-y-0.5">{o.strengths.map(line)}</ul>
+        </>
+      ) : null}
+      {o.risks.length > 0 ? (
+        <>
+          <p className="mt-1.5 font-medium">{t("risksTitle")}</p>
+          <ul className="space-y-0.5">{o.risks.map(line)}</ul>
+        </>
+      ) : null}
+      {o.missing.length > 0 ? (
+        <>
+          <p className="mt-1.5 font-medium">{t("missingTitle")}</p>
+          <ul className="space-y-0.5">{o.missing.map(line)}</ul>
+        </>
+      ) : null}
+      <p className="mt-1.5 font-medium">{t("actionTitle")}</p>
+      <p className="text-zinc-700 dark:text-zinc-300">{t(`action.${o.action}`)}</p>
+      {o.rankedAbove ? <p className="mt-1.5 text-zinc-500">{t(`rank.${o.rankedAbove.criterion}`, { other: o.rankedAbove.name })}</p> : null}
+      <p className="mt-1.5 text-[11px] text-zinc-500">{t("honesty")}</p>
+    </details>
   )
 }

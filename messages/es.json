@@ -3286,7 +3286,91 @@
         "your_categories": "En tus categorías",
         "discovery": "Descubrimiento"
       },
-      "personalisedNote": "Selección adaptada a las categorías que ya vendes o propones, siempre con una parte de otras categorías por descubrir. Un producto de tus categorías nunca pasa delante de uno que te reporta claramente más (más de un 15 % de ganancia neta por venta)."
+      "personalisedNote": "Selección adaptada a las categorías que ya vendes o propones, siempre con una parte de otras categorías por descubrir. Un producto de tus categorías nunca pasa delante de uno que te reporta claramente más (más de un 15 % de ganancia neta por venta).",
+      "opportunity": {
+        "toggle": "¿Por qué este producto?",
+        "earningsTitle": "Lo que gana por venta",
+        "earningsLine": "Comisión {commission} + su margen {markup} − tarifa Affisell {fee} = {net} por venta, al precio sugerido de {price} sin IVA.",
+        "feeDefault": "Tarifa Affisell al tipo estándar ({pct} %): no tiene un tipo negociado.",
+        "feeYours": "Tarifa Affisell a su tipo ({pct} %).",
+        "strengthsTitle": "Lo que hace interesante la oportunidad",
+        "risksTitle": "Lo que podría reducir su rentabilidad",
+        "missingTitle": "Lo que aún no se sabe",
+        "actionTitle": "Acción propuesta",
+        "honesty": "Una lectura de los datos de Affisell: ni previsión ni garantía de venta. El precio de venta sigue siendo su decisión.",
+        "qualification": {
+          "fait": "hecho",
+          "calcul": "cálculo",
+          "estimation": "estimación",
+          "insuffisant": "dato ausente"
+        },
+        "profile": {
+          "forte_demande_gain_faible": {
+            "title": "Demanda fuerte, ganancia por venta baja",
+            "meaning": "El producto se vende en Affisell, pero al precio sugerido le aporta poco por venta."
+          },
+          "gain_faible": {
+            "title": "Ganancia por venta baja",
+            "meaning": "Al precio sugerido una venta le aporta poco, sin una demanda marcada que lo compense."
+          },
+          "rentable_valide": {
+            "title": "Rentable y ya validado por ventas",
+            "meaning": "Buena ganancia por venta y pedidos pagados recientes en Affisell."
+          },
+          "prometteur_peu_de_donnees": {
+            "title": "Prometedor, aún demasiado reciente para juzgar",
+            "meaning": "Buena ganancia por venta; el producto lleva demasiado poco tiempo en Affisell para juzgar la demanda. No es una mala señal."
+          },
+          "rentable_demande_a_construire": {
+            "title": "Rentable, demanda por construir",
+            "meaning": "Buena ganancia por venta, pero pocos o ningún pedido reciente en Affisell: la demanda está por crear."
+          }
+        },
+        "fact": {
+          "sellable_now": "Vendible hoy: stock, comisión y publicación en regla.",
+          "sellable_to_check": "Vendible, con un punto a verificar antes de promocionarlo.",
+          "net_below_threshold": "{net} por venta, por debajo del umbral de {threshold} que el copiloto considera bajo.",
+          "net_above_threshold": "{net} por venta, por encima del umbral de {threshold}.",
+          "orders_observed": "{orders, plural, one {# pedido pagado} other {# pedidos pagados}} en Affisell en los últimos 30 días.",
+          "rising_tested": "Sus pedidos crecen claramente más rápido que los de Affisell (prueba estadística).",
+          "in_your_categories": "En una categoría que ya vende.",
+          "discovery": "En una categoría nueva para su tienda.",
+          "net_per_sale": "{net} por venta.",
+          "validated_by_sales": "Validado por {orders, plural, one {# pedido pagado} other {# pedidos pagados}} en 30 días.",
+          "little_competition": "Poca competencia: {resellers, plural, =0 {ningún revendedor lo ofrece} one {un solo revendedor lo ofrece} other {# revendedores lo ofrecen}}.",
+          "many_resellers": "{resellers} revendedores ya lo ofrecen: competencia fuerte.",
+          "strong_in_category": "En su categoría «{category}», entre los {peers} productos que puede ofrecer, está en el primer cuarto de pedidos pagados en 30 días. Cierto en esta categoría, no necesariamente en otras.",
+          "in_your_price_range": "Precio sugerido dentro de su gama habitual ({low} a {high} sin IVA).",
+          "outside_your_price_range": "Precio sugerido fuera de su gama habitual ({low} a {high} sin IVA).",
+          "low_net": "{net} por venta, por debajo del umbral de {threshold}.",
+          "below_supplier_price": "El precio de venta está por debajo del precio del proveedor: solo queda la comisión.",
+          "low_stock": "Solo {units, plural, one {# unidad} other {# unidades}} en stock: puede agotarse con las primeras ventas.",
+          "short_cover": "Unos {days} días de stock ({units} unidades) al ritmo observado en Affisell.",
+          "offer_incomplete": "{count, plural, one {Falta un elemento de la ficha} other {Faltan # elementos de la ficha}}, asociados en Affisell con más ventas (una asociación, no una garantía).",
+          "too_recent": "En Affisell desde hace {days} días: demasiado pronto para juzgar la demanda.",
+          "age_unknown": "Fecha de publicación desconocida.",
+          "stock_unknown": "Stock no legible (variantes fuera de la tabla seguida).",
+          "cover_not_projectable": "Demasiado pocas ventas para estimar cuánto durará el stock.",
+          "no_sales_yet": "Ningún pedido pagado en los últimos 30 días: la demanda aún no se ha medido.",
+          "offer_not_measured": "Calidad de la ficha no comparada: aún no hay una asociación establecida en Affisell.",
+          "fee_default": "Calculado al tipo estándar del {pct} %: no tiene un tipo negociado.",
+          "category_not_comparable": "Muy pocos productos comparables en su categoría para situar sus ventas."
+        },
+        "action": {
+          "ajouter": "Añadirlo a su tienda.",
+          "ajouter_surveiller_stock": "Añadirlo, vigilando el stock antes de destacarlo.",
+          "decider_sur_le_gain": "Decidir con conocimiento de causa: la ganancia por venta es baja al precio sugerido.",
+          "tester_avant_de_promouvoir": "Añadirlo y observarlo antes de invertir en su promoción."
+        },
+        "rank": {
+          "readiness": "Situado antes de «{other}»: es vendible sin nada que verificar.",
+          "rising": "Situado antes de «{other}»: su demanda crece claramente, con una ganancia al menos igual a la mediana.",
+          "net": "Situado antes de «{other}»: aporta más por venta.",
+          "category_affinity": "Situado antes de «{other}»: está en sus categorías, con una ganancia cercana (15 % de diferencia como máximo).",
+          "demand": "Situado antes de «{other}»: con igual ganancia, tiene más pedidos pagados.",
+          "tie": "Empatado con «{other}» en todos los criterios."
+        }
+      }
     },
     "supplierAffisell": "Proveedor Affisell",
     "replacement": {

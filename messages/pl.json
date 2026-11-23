@@ -3286,7 +3286,91 @@
         "your_categories": "W Twoich kategoriach",
         "discovery": "Odkrycie"
       },
-      "personalisedNote": "Wybór dopasowany do kategorii, które już sprzedajesz lub oferujesz, zawsze z częścią innych kategorii do odkrycia. Produkt z Twoich kategorii nigdy nie wyprzedza takiego, który przynosi Ci wyraźnie więcej (ponad 15 % zysku netto na sprzedaży)."
+      "personalisedNote": "Wybór dopasowany do kategorii, które już sprzedajesz lub oferujesz, zawsze z częścią innych kategorii do odkrycia. Produkt z Twoich kategorii nigdy nie wyprzedza takiego, który przynosi Ci wyraźnie więcej (ponad 15 % zysku netto na sprzedaży).",
+      "opportunity": {
+        "toggle": "Dlaczego ten produkt?",
+        "earningsTitle": "Ile zarabiasz na sprzedaży",
+        "earningsLine": "Prowizja {commission} + Twoja marża {markup} − opłata Affisell {fee} = {net} na sprzedaży, przy sugerowanej cenie {price} netto.",
+        "feeDefault": "Opłata Affisell według stawki standardowej ({pct} %): nie masz wynegocjowanej stawki.",
+        "feeYours": "Opłata Affisell według Twojej stawki ({pct} %).",
+        "strengthsTitle": "Co czyni tę okazję interesującą",
+        "risksTitle": "Co może obniżyć Twoją rentowność",
+        "missingTitle": "Czego jeszcze nie wiadomo",
+        "actionTitle": "Proponowane działanie",
+        "honesty": "Odczyt danych Affisell: ani prognoza, ani gwarancja sprzedaży. Cena sprzedaży pozostaje Twoją decyzją.",
+        "qualification": {
+          "fait": "fakt",
+          "calcul": "obliczenie",
+          "estimation": "szacunek",
+          "insuffisant": "brak danych"
+        },
+        "profile": {
+          "forte_demande_gain_faible": {
+            "title": "Duży popyt, niski zysk na sprzedaży",
+            "meaning": "Produkt sprzedaje się na Affisell, ale przy sugerowanej cenie przynosi Ci mało na sprzedaży."
+          },
+          "gain_faible": {
+            "title": "Niski zysk na sprzedaży",
+            "meaning": "Przy sugerowanej cenie sprzedaż przynosi mało, bez wyraźnego popytu, który by to wyrównał."
+          },
+          "rentable_valide": {
+            "title": "Rentowny i już potwierdzony sprzedażą",
+            "meaning": "Dobry zysk na sprzedaży i niedawne opłacone zamówienia na Affisell."
+          },
+          "prometteur_peu_de_donnees": {
+            "title": "Obiecujący, wciąż zbyt nowy, by ocenić",
+            "meaning": "Dobry zysk na sprzedaży; produkt jest na Affisell zbyt krótko, by ocenić popyt. To nie jest zły znak."
+          },
+          "rentable_demande_a_construire": {
+            "title": "Rentowny, popyt do zbudowania",
+            "meaning": "Dobry zysk na sprzedaży, ale mało lub brak niedawnych zamówień na Affisell: popyt trzeba dopiero stworzyć."
+          }
+        },
+        "fact": {
+          "sellable_now": "Do sprzedaży dziś: stan, prowizja i publikacja w porządku.",
+          "sellable_to_check": "Do sprzedaży, z jednym punktem do sprawdzenia przed promocją.",
+          "net_below_threshold": "{net} na sprzedaży, poniżej progu {threshold}, który copilot uznaje za niski.",
+          "net_above_threshold": "{net} na sprzedaży, powyżej progu {threshold}.",
+          "orders_observed": "{orders, plural, one {# opłacone zamówienie} few {# opłacone zamówienia} many {# opłaconych zamówień} other {# opłaconych zamówień}} na Affisell w ciągu ostatnich 30 dni.",
+          "rising_tested": "Jego zamówienia rosną wyraźnie szybciej niż na całym Affisell (test statystyczny).",
+          "in_your_categories": "W kategorii, którą już sprzedajesz.",
+          "discovery": "W kategorii nowej dla Twojego sklepu.",
+          "net_per_sale": "{net} na sprzedaży.",
+          "validated_by_sales": "Potwierdzony przez {orders, plural, one {# opłacone zamówienie} few {# opłacone zamówienia} many {# opłaconych zamówień} other {# opłaconych zamówień}} w 30 dni.",
+          "little_competition": "Mała konkurencja: {resellers, plural, =0 {żaden sprzedawca go nie oferuje} one {oferuje go tylko jeden sprzedawca} few {oferuje go # sprzedawców} many {oferuje go # sprzedawców} other {oferuje go # sprzedawców}}.",
+          "many_resellers": "Oferuje go już {resellers} sprzedawców: silna konkurencja.",
+          "strong_in_category": "W swojej kategorii „{category}”, wśród {peers} produktów, które możesz oferować, jest w górnej ćwiartce opłaconych zamówień z 30 dni. Prawdziwe w tej kategorii, niekoniecznie gdzie indziej.",
+          "in_your_price_range": "Sugerowana cena w Twoim zwykłym przedziale ({low}–{high} netto).",
+          "outside_your_price_range": "Sugerowana cena poza Twoim zwykłym przedziałem ({low}–{high} netto).",
+          "low_net": "{net} na sprzedaży, poniżej progu {threshold}.",
+          "below_supplier_price": "Cena sprzedaży jest niższa od ceny dostawcy: zostaje tylko prowizja.",
+          "low_stock": "Tylko {units, plural, one {# sztuka} few {# sztuki} many {# sztuk} other {# sztuk}} na stanie: możliwe wyczerpanie przy pierwszych sprzedażach.",
+          "short_cover": "Około {days} dni zapasu ({units} szt.) przy tempie obserwowanym na Affisell.",
+          "offer_incomplete": "{count, plural, one {Brakuje # elementu karty} few {Brakuje # elementów karty} many {Brakuje # elementów karty} other {Brakuje # elementów karty}}, powiązanych na Affisell z większą sprzedażą (związek, nie gwarancja).",
+          "too_recent": "Na Affisell od {days} dni: za wcześnie, by ocenić popyt.",
+          "age_unknown": "Data publikacji nieznana.",
+          "stock_unknown": "Stan nieczytelny (warianty poza śledzoną tabelą).",
+          "cover_not_projectable": "Za mało sprzedaży, by oszacować, na jak długo starczy zapasu.",
+          "no_sales_yet": "Brak opłaconych zamówień w ciągu ostatnich 30 dni: popyt nie jest jeszcze zmierzony.",
+          "offer_not_measured": "Jakość karty nieporównana: na Affisell nie ustalono jeszcze żadnego związku.",
+          "fee_default": "Obliczone według stawki standardowej {pct} %: nie masz wynegocjowanej stawki.",
+          "category_not_comparable": "Za mało porównywalnych produktów w jego kategorii, by umiejscowić jego sprzedaż."
+        },
+        "action": {
+          "ajouter": "Dodaj go do swojego sklepu.",
+          "ajouter_surveiller_stock": "Dodaj go, obserwując stan, zanim go wyróżnisz.",
+          "decider_sur_le_gain": "Zdecyduj świadomie: zysk na sprzedaży jest niski przy sugerowanej cenie.",
+          "tester_avant_de_promouvoir": "Dodaj go i obserwuj, zanim zainwestujesz w promocję."
+        },
+        "rank": {
+          "readiness": "Przed „{other}”: można go sprzedawać bez punktu do sprawdzenia.",
+          "rising": "Przed „{other}”: jego popyt wyraźnie rośnie, przy zysku co najmniej równym medianie.",
+          "net": "Przed „{other}”: przynosi więcej na sprzedaży.",
+          "category_affinity": "Przed „{other}”: jest w Twoich kategoriach, przy zbliżonym zysku (różnica najwyżej 15 %).",
+          "demand": "Przed „{other}”: przy równym zysku ma więcej opłaconych zamówień.",
+          "tie": "Na równi z „{other}” we wszystkich kryteriach."
+        }
+      }
     },
     "supplierAffisell": "Dostawca Affisell",
     "replacement": {

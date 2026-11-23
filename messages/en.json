@@ -3286,7 +3286,91 @@
         "your_categories": "In your categories",
         "discovery": "Discovery"
       },
-      "personalisedNote": "Selection adapted to the categories you already sell or list, always with a share of other categories to discover. A product from your categories never passes one that pays you clearly more (over 15 % more net per sale)."
+      "personalisedNote": "Selection adapted to the categories you already sell or list, always with a share of other categories to discover. A product from your categories never passes one that pays you clearly more (over 15 % more net per sale).",
+      "opportunity": {
+        "toggle": "Why this product?",
+        "earningsTitle": "What you earn per sale",
+        "earningsLine": "Commission {commission} + your markup {markup} − Affisell fee {fee} = {net} per sale, at the suggested price of {price} excl. VAT.",
+        "feeDefault": "Affisell fee at the standard rate ({pct}%): you have no negotiated rate.",
+        "feeYours": "Affisell fee at your rate ({pct}%).",
+        "strengthsTitle": "What makes it interesting",
+        "risksTitle": "What could reduce your profit",
+        "missingTitle": "What is not known yet",
+        "actionTitle": "Suggested action",
+        "honesty": "A reading of Affisell's data: neither a forecast nor a sales guarantee. Your selling price stays your decision.",
+        "qualification": {
+          "fait": "fact",
+          "calcul": "calculation",
+          "estimation": "estimate",
+          "insuffisant": "missing data"
+        },
+        "profile": {
+          "forte_demande_gain_faible": {
+            "title": "Strong demand, low gain per sale",
+            "meaning": "The product sells on Affisell, but at the suggested price it earns you little per sale."
+          },
+          "gain_faible": {
+            "title": "Low gain per sale",
+            "meaning": "At the suggested price a sale earns you little, with no marked demand to make up for it."
+          },
+          "rentable_valide": {
+            "title": "Profitable and already validated by sales",
+            "meaning": "Good gain per sale, and recent paid orders on Affisell."
+          },
+          "prometteur_peu_de_donnees": {
+            "title": "Promising, too recent to judge",
+            "meaning": "Good gain per sale; the product has been on Affisell too briefly to judge demand. That is not a bad sign."
+          },
+          "rentable_demande_a_construire": {
+            "title": "Profitable, demand still to build",
+            "meaning": "Good gain per sale, but few or no recent orders on Affisell: demand is still to be created."
+          }
+        },
+        "fact": {
+          "sellable_now": "Sellable today: stock, commission and publication in order.",
+          "sellable_to_check": "Sellable, with one point to check before promoting it.",
+          "net_below_threshold": "{net} per sale, below the {threshold} the copilot considers low.",
+          "net_above_threshold": "{net} per sale, above the {threshold} threshold.",
+          "orders_observed": "{orders, plural, one {# paid order} other {# paid orders}} on Affisell over the last 30 days.",
+          "rising_tested": "Its orders grow clearly faster than Affisell's (statistical test).",
+          "in_your_categories": "In a category you already sell.",
+          "discovery": "In a category new to your shop.",
+          "net_per_sale": "{net} per sale.",
+          "validated_by_sales": "Validated by {orders, plural, one {# paid order} other {# paid orders}} in 30 days.",
+          "little_competition": "Little competition: {resellers, plural, =0 {no reseller offers it} one {a single reseller offers it} other {# resellers offer it}}.",
+          "many_resellers": "{resellers} resellers already offer it: strong competition.",
+          "strong_in_category": "In its category “{category}”, among the {peers} products you can offer, it is in the top quarter of paid orders over 30 days. True in this category, not necessarily elsewhere.",
+          "in_your_price_range": "Suggested price within your usual range ({low} to {high} excl. VAT).",
+          "outside_your_price_range": "Suggested price outside your usual range ({low} to {high} excl. VAT).",
+          "low_net": "{net} per sale, below the {threshold} threshold.",
+          "below_supplier_price": "The selling price is under the supplier price: only the commission remains.",
+          "low_stock": "Only {units, plural, one {# unit} other {# units}} in stock: it may sell out with the first sales.",
+          "short_cover": "About {days} days of stock ({units} units) at the pace observed on Affisell.",
+          "offer_incomplete": "{count, plural, one {One sheet element is missing} other {# sheet elements are missing}}, associated on Affisell with more sales (an association, not a guarantee).",
+          "too_recent": "On Affisell for {days} days: too early to judge demand.",
+          "age_unknown": "Listing date unknown.",
+          "stock_unknown": "Stock unreadable (variants outside the tracked table).",
+          "cover_not_projectable": "Too few sales to estimate how long the stock will last.",
+          "no_sales_yet": "No paid order over the last 30 days: demand is not measured yet.",
+          "offer_not_measured": "Sheet quality not compared: no association is established on Affisell yet.",
+          "fee_default": "Computed at the standard {pct}% rate: you have no negotiated rate.",
+          "category_not_comparable": "Too few comparable products in its category to place its sales."
+        },
+        "action": {
+          "ajouter": "Add it to your shop.",
+          "ajouter_surveiller_stock": "Add it, and watch the stock before featuring it.",
+          "decider_sur_le_gain": "Decide knowingly: the gain per sale is low at the suggested price.",
+          "tester_avant_de_promouvoir": "Add it and watch it before investing in promotion."
+        },
+        "rank": {
+          "readiness": "Placed before “{other}”: it is sellable with nothing to check.",
+          "rising": "Placed before “{other}”: its demand grows clearly, with a gain at least equal to the median gain.",
+          "net": "Placed before “{other}”: it earns more per sale.",
+          "category_affinity": "Placed before “{other}”: it is in your categories, for a close gain (at most 15% apart).",
+          "demand": "Placed before “{other}”: for an equal gain, it has more paid orders.",
+          "tie": "Tied with “{other}” on every criterion."
+        }
+      }
     },
     "supplierAffisell": "Affisell supplier",
     "replacement": {

@@ -3286,7 +3286,91 @@
         "your_categories": "您的品类",
         "discovery": "发现"
       },
-      "personalisedNote": "根据您已在销售或上架的品类定制，同时始终保留一部分其他品类供探索。您品类中的商品绝不会排在明显更赚钱的商品之前（每单净收益高出 15% 以上）。"
+      "personalisedNote": "根据您已在销售或上架的品类定制，同时始终保留一部分其他品类供探索。您品类中的商品绝不会排在明显更赚钱的商品之前（每单净收益高出 15% 以上）。",
+      "opportunity": {
+        "toggle": "为什么推荐这个商品？",
+        "earningsTitle": "每笔销售您的收益",
+        "earningsLine": "佣金 {commission} + 您的加价 {markup} − Affisell 费用 {fee} = 每笔销售 {net}，按建议价格 {price}（不含税）计算。",
+        "feeDefault": "Affisell 费用按标准费率（{pct}%）：您没有协商费率。",
+        "feeYours": "Affisell 费用按您的费率（{pct}%）。",
+        "strengthsTitle": "这个机会的亮点",
+        "risksTitle": "可能降低您收益的因素",
+        "missingTitle": "尚不清楚的信息",
+        "actionTitle": "建议操作",
+        "honesty": "基于 Affisell 数据的解读：既非预测，也不保证销售。售价仍由您决定。",
+        "qualification": {
+          "fait": "事实",
+          "calcul": "计算",
+          "estimation": "估算",
+          "insuffisant": "数据缺失"
+        },
+        "profile": {
+          "forte_demande_gain_faible": {
+            "title": "需求强，单笔收益低",
+            "meaning": "该商品在 Affisell 上有销量，但按建议价格每笔销售收益较低。"
+          },
+          "gain_faible": {
+            "title": "单笔收益低",
+            "meaning": "按建议价格，每笔销售收益较低，也没有明显需求来弥补。"
+          },
+          "rentable_valide": {
+            "title": "有利可图，且已有销售验证",
+            "meaning": "单笔收益良好，且在 Affisell 上有近期已付款订单。"
+          },
+          "prometteur_peu_de_donnees": {
+            "title": "有潜力，但上线时间太短无法判断",
+            "meaning": "单笔收益良好；商品在 Affisell 上的时间太短，无法判断需求。这并非不好的信号。"
+          },
+          "rentable_demande_a_construire": {
+            "title": "有利可图，需求有待培养",
+            "meaning": "单笔收益良好，但在 Affisell 上近期订单很少或没有：需求仍需培养。"
+          }
+        },
+        "fact": {
+          "sellable_now": "今天即可销售：库存、佣金和发布均正常。",
+          "sellable_to_check": "可以销售，但推广前有一点需要核实。",
+          "net_below_threshold": "每笔销售 {net}，低于副驾驶视为偏低的 {threshold} 门槛。",
+          "net_above_threshold": "每笔销售 {net}，高于 {threshold} 门槛。",
+          "orders_observed": "过去 30 天在 Affisell 上有 {orders} 笔已付款订单。",
+          "rising_tested": "其订单增速明显快于 Affisell 整体（统计检验）。",
+          "in_your_categories": "属于您已在销售的类目。",
+          "discovery": "属于您店铺的新类目。",
+          "net_per_sale": "每笔销售 {net}。",
+          "validated_by_sales": "30 天内有 {orders} 笔已付款订单验证。",
+          "little_competition": "竞争较少：{resellers, plural, =0 {尚无分销商上架} one {仅一个分销商上架} other {# 个分销商上架}}。",
+          "many_resellers": "已有 {resellers} 个分销商上架：竞争激烈。",
+          "strong_in_category": "在其类目「{category}」中，在您可上架的 {peers} 个商品里，它位于 30 天已付款订单的前四分之一。仅在该类目成立，其他地方未必如此。",
+          "in_your_price_range": "建议价格在您常用的价格区间内（不含税 {low} 至 {high}）。",
+          "outside_your_price_range": "建议价格在您常用的价格区间之外（不含税 {low} 至 {high}）。",
+          "low_net": "每笔销售 {net}，低于 {threshold} 门槛。",
+          "below_supplier_price": "售价低于供应商价格：只剩佣金。",
+          "low_stock": "库存仅剩 {units} 件：最初几笔销售后就可能断货。",
+          "short_cover": "按 Affisell 上观察到的销售速度，库存约可维持 {days} 天（{units} 件）。",
+          "offer_incomplete": "缺少 {count} 项商品页元素，这些元素在 Affisell 上与更多销量相关（相关性，不是保证）。",
+          "too_recent": "在 Affisell 上线 {days} 天：判断需求为时过早。",
+          "age_unknown": "上线日期未知。",
+          "stock_unknown": "库存无法读取（规格不在跟踪表中）。",
+          "cover_not_projectable": "销量太少，无法估算库存可维持多久。",
+          "no_sales_yet": "过去 30 天没有已付款订单：需求尚未得到衡量。",
+          "offer_not_measured": "商品页质量未比较：Affisell 上尚未建立任何相关性。",
+          "fee_default": "按 {pct}% 的标准费率计算：您没有协商费率。",
+          "category_not_comparable": "其类目中可比商品太少，无法定位其销量。"
+        },
+        "action": {
+          "ajouter": "将其加入您的店铺。",
+          "ajouter_surveiller_stock": "加入店铺，在重点推广前关注库存。",
+          "decider_sur_le_gain": "知情决策：按建议价格，单笔收益较低。",
+          "tester_avant_de_promouvoir": "加入店铺并观察，然后再投入推广。"
+        },
+        "rank": {
+          "readiness": "排在「{other}」之前：它可直接销售，无需核实。",
+          "rising": "排在「{other}」之前：其需求明显增长，且收益不低于中位数。",
+          "net": "排在「{other}」之前：每笔销售收益更高。",
+          "category_affinity": "排在「{other}」之前：它属于您的类目，收益相近（差距不超过 15%）。",
+          "demand": "排在「{other}」之前：收益相同的情况下，它的已付款订单更多。",
+          "tie": "在所有标准上与「{other}」并列。"
+        }
+      }
     },
     "supplierAffisell": "Affisell 供应商",
     "replacement": {
