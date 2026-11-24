@@ -55,7 +55,7 @@ describe.skipIf(!RUN_DB)("historical exposure — real database", { timeout: 120
       await tx.$executeRawUnsafe("SET LOCAL TIME ZONE 'Asia/Tokyo'")
       return op(tx)
     })
-  const pause = () => prisma.$queryRawUnsafe("SELECT pg_sleep(0.08)")
+  const pause = () => prisma.$queryRawUnsafe("SELECT pg_sleep(0.08)::text AS s")
   const historyOf = async (listingId: string, current: { isListed: boolean; createdAt: Date } | null) => {
     const rows = await prisma.listingPresenceEvent.findMany({ where: { affiliateProductId: listingId }, orderBy: { id: "asc" } })
     return {
