@@ -81,6 +81,11 @@ jobs:
           test "$(grep -c '^CREATE TABLE' "$RUNNER_TEMP/schema.sql")" -gt 100
           psql -v ON_ERROR_STOP=1 -q -f "$RUNNER_TEMP/schema.sql"
 
+      - name: Migration chain rebuilds the schema on its own (empty database, existing history, Prisma diff)
+        # docs/MIGRATION-LINEAGE.md — a chain that only works on databases built outside it must fail here,
+        # before it can reach a shared environment. Uses its own databases on the same service.
+        run: bash scripts/ci/migration-chain-check.sh
+
       - name: Point the DB tests at the throwaway database
         run: printf 'DATABASE_URL_TEST=postgresql://postgres@127.0.0.1:5432/affisell_test\n' > .env.test.local
 
