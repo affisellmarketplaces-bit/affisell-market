@@ -188,13 +188,24 @@ export const intervalIndexOf = (iv: ReadonlyArray<Interval>, ts: number) => iv.f
 
 export type ExposureReliability = "fiable" | "partielle" | "incertaine"
 
-/** Unknown days ≤ 10 % of the known + unknown time = « fiable »; ≤ 50 % = « partielle »; else « incertaine ». */
-export const EXPOSURE_UNKNOWN_TOLERANCE = 0.1
+/**
+ * How coverage and reliability fit together (founder brief 2026-11-24 « launch gate » §5):
+ *  - `windowCoverage` = TECHNICAL coverage of the window: history read in full and begun ≤ the window start. Under it,
+ *    no day of the window lies before history, so the ONLY way a product or case can still have unknown time is a
+ *    missing event (an `incoherent` history around the window).
+ *  - `exposureReliability` = whether THAT product's / case's own time is fully documented. The tolerance is ZERO: one
+ *    unknown day, or a missing event, and it is not « fiable » — so it is left out of every measure, never counted on the
+ *    known days only and presented as documented. (Until 2026-11-24 a 10 % tolerance existed; under complete coverage
+ *    it could only ever admit time made unknown by a missing event — removed rather than kept as a silent exception.)
+ *  - Neither is STATISTICAL quality: a fully documented window can still hold too few periods, resellers or sales —
+ *    that is each engine's floors and the data-maturity dimensions (lib/launch-gate/data-maturity.ts).
+ */
+export const EXPOSURE_UNKNOWN_TOLERANCE = 0
 export function exposureReliability(listedDays: number, unknownDays: number, anomaly = false): ExposureReliability {
   const total = listedDays + unknownDays
   if (total <= 0) return anomaly ? "incertaine" : "fiable"
   const share = unknownDays / total
-  if (share <= EXPOSURE_UNKNOWN_TOLERANCE && !anomaly) return "fiable"
+  if (unknownDays <= 0 && share <= EXPOSURE_UNKNOWN_TOLERANCE && !anomaly) return "fiable"
   if (share <= 0.5) return "partielle"
   return "incertaine"
 }

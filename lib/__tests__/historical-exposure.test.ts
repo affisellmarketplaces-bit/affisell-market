@@ -30,7 +30,7 @@ import {
   type QualityExposure,
   type QualityOrderFact,
 } from "@/lib/listing-quality/quality-effect"
-import { presenceExposureOf, type BlindSpotProductInput } from "@/lib/reseller-copilot/blind-spots"
+import { presenceExposureOf, presenceUndocumented, type BlindSpotProductInput } from "@/lib/reseller-copilot/blind-spots"
 import { buildSnapshot, classifyCase, type ProposalCase, type ShopOrder } from "@/lib/reseller-copilot/learning"
 import { discover } from "@/lib/reseller-copilot/learning-discovery"
 import {
@@ -341,6 +341,28 @@ describe("copilot learning on history — what a « no sale » means", () => {
     const { block, qualified } = buildExposureLearning(scored, NOW, { mode: "observe" })
     expect(historicalSaleOutcome(qualified, block)).toBeUndefined()
     expect(discover(scored).saleBasis).toBe("reference_30_jours")
+  })
+})
+
+describe("no window holding unknown time is ever presented as documented (tolerance zero)", () => {
+  it("one unknown day = not « fiable », whatever the share", () => {
+    expect(exposureReliability(1000, 0)).toBe("fiable")
+    expect(exposureReliability(1000, 0.5)).toBe("partielle")
+    expect(exposureReliability(1000, 0, true)).not.toBe("fiable")
+  })
+  it("the blind-spot detector applies the same rule (a product with unknown time is never judged)", () => {
+    const h = history([created(0), listed(20)], { isListed: true, createdAt: d(0) })
+    const e = presenceExposureOf({ presence: [{ affiliateId: "a", history: h }], orders: [], listings: [] } as unknown as BlindSpotProductInput, d(0), d(30))
+    expect(presenceUndocumented(e)).toBe(true)
+    expect(presenceUndocumented({ basis: "live_listings", unknownDays: 5 })).toBe(false)
+    expect(presenceUndocumented({ basis: "presence_history", unknownDays: 0 })).toBe(false)
+  })
+  it("a product with a missing event inside a covered window is left out of the quality measure", () => {
+    // History began before the window; the listing lost an event mid-window (incoherent) → unknown time → excluded.
+    const h = history([created(0), listed(20)], { isListed: true, createdAt: d(0) })
+    const { excluded, exposure } = historicalQualityExposure({ productIds: ["p"], presence: new Map([["p", [{ affiliateId: "a", history: h }]]]), orders: [], from: d(0), to: d(30) })
+    expect(exposure.get("p")!.unknownDays).toBeGreaterThan(0)
+    expect(excluded.has("p")).toBe(true)
   })
 })
 

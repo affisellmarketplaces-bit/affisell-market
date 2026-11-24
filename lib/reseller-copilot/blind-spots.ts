@@ -264,6 +264,9 @@ export function presenceExposureOf(p: BlindSpotProductInput, from: Date, to: Dat
   }
 }
 
+/** On the presence basis, any unknown time = not fully documented (tolerance zero, same rule as exposure.ts). */
+export const presenceUndocumented = (e: Pick<Exposure, "basis" | "unknownDays">) => e.basis === "presence_history" && (e.unknownDays ?? 0) > 0
+
 /** Exposure in [from, to): listing-days of live listings + the orders of those shops after their listing date. */
 export function liveExposureOf(p: BlindSpotProductInput, from: Date, to: Date): Exposure {
   const f = from.getTime()
@@ -510,7 +513,7 @@ export function buildBlindSpotReport(
     if (e.orders < BS_MIN_ORDERS) missing.push("trop_peu_de_commandes")
     if (!p.proposals) missing.push("propositions_non_observees")
     if (p.candidate.offerMissingMeasured == null) missing.push("offre_non_mesuree")
-    if (e.basis === "presence_history" && (e.unknownDays ?? 0) > e.listingDays) missing.push("presence_partiellement_inconnue")
+    if (presenceUndocumented(e)) missing.push("presence_partiellement_inconnue")
     if (e.basis !== "presence_history") missing.push("historique_de_presence_absent")
     findings.push({
       productId: it.productId,
@@ -540,6 +543,9 @@ export function buildBlindSpotReport(
       continue
     }
     f.status = judgeProduct(f.exposure, f.rateRatio, f.rateRatio?.q ?? null)
+    // Presence basis with unknown time (only possible around a missing event, the window being covered): the product is
+    // not fully documented, so it is never judged — same rule as the quality measure (tolerance zero).
+    if (presenceUndocumented(f.exposure)) f.status = "donnees_insuffisantes"
   }
   const statusCounts = { opportunite_confirmee: 0, signal_prometteur: 0, hypothese: 0, donnees_insuffisantes: 0, non_concluante: 0, non_eligible: 0 } as Record<BlindSpotStatus, number>
   for (const f of findings) if (!f.inTop) statusCounts[f.status]++

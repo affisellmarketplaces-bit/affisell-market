@@ -41,11 +41,13 @@ Only `complete` is usable. An applied migration is not enough, and neither is a 
 
 `exposureReliability(listed, unknown, anomaly)` is computed per product or per case:
 
-- `fiable`: unknown days are at most 10 % of the time, and no event is missing in the window;
+- `fiable`: **no** unknown day and no missing event in the window (tolerance zero since the launch-gate brief);
 - `partielle`: unknown days are at most 50 %;
 - `incertaine`: anything worse.
 
 Only `fiable` is measured.
+
+**How the two notions fit together.** `complete` coverage is technical: no day of the window lies before history. Under it, unknown time can only come from a missing event, so a product is either fully documented over the window or left out — it is never measured on its known days and presented as documented. Until 2026-11-24 a 10 % tolerance existed; under complete coverage it could only admit time made unknown by a missing event, so it was removed. Neither notion is statistical quality: a fully documented window can still hold too few periods, resellers or sales (each engine's floors; data-maturity dimensions, `docs/LAUNCH-GATE.md`).
 
 ## 4. Transition (`HISTORICAL_EXPOSURE_MODE`)
 

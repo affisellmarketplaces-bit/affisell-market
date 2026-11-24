@@ -116,6 +116,7 @@
     "report:checkout-stock": "tsx scripts/report-checkout-stock.ts",
     "report:fee-reconciliation": "tsx scripts/report-fee-reconciliation.ts",
     "report:legacy-reseller-imports": "tsx scripts/report-legacy-reseller-imports.ts",
+    "report:launch-gate": "tsx scripts/report-launch-gate.ts",
     "report:presence-readiness": "tsx scripts/report-presence-readiness.ts",
     "evaluate:external-demand": "tsx scripts/evaluate-external-demand.ts",
     "verify:pwa-shell": "node scripts/verify-pwa-shell-ready.mjs",
