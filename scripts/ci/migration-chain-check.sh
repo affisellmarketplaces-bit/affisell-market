@@ -122,7 +122,8 @@ retro_deploy() { # $1 db, $2 label, $3 expected added object names (space separa
   if grep -q '^<' "$WORK/$db.schema.diff"; then ko "$label: a pre-existing object was modified or removed (lines '<' above)"
   else ok "$label: every pre-existing object is byte-identical in pg_dump (no line removed or changed)"; fi
   local added want
-  added=$(grep -oE '^> -- Name: [^;]+' "$WORK/$db.schema.diff" | sed 's/^> -- Name: //' | sort -u | tr '\n' ' ')
+  # pg_dump names a constraint "<table> <constraint>": keep the object's own name (last word).
+  added=$(grep -oE '^> -- Name: [^;]+' "$WORK/$db.schema.diff" | sed -e 's/^> -- Name: //' -e 's/.* //' | sort -u | tr '\n' ' ')
   want=""; [ -n "$expected" ] && want=$(printf '%s\n' $expected | sort -u | tr '\n' ' ')
   if [ "$added" = "$want" ]; then ok "$label: objects added = exactly the expected ones [${want% }]"
   else ko "$label: objects added [${added% }] ≠ expected [${want% }]"; fi
