@@ -136,6 +136,11 @@ export type IntegrityFacts = {
   preExistingListings: number | null
   reintroducedPairs: number
   relistings: number
+  /** Newest `effectiveAt` (UTC) — the monitor's freshness / « no new observation » signal. Optional: older readers. */
+  newestEventAt?: Date | null
+  /** Share of the events carried by the single busiest reseller (0–1) and the number of resellers seen. */
+  topResellerEventShare?: number | null
+  resellersWithEvents?: number
 }
 
 /** Volumes (from the engines' own period rebuild). `null` = not computed. */
@@ -165,6 +170,23 @@ export type ReadinessInput = {
 }
 
 export type GlobalStatus = CheckStatus
+
+/** The raw facts behind the checks, COUNTS ONLY (no identifier, no free text) — what the collection monitor compares. */
+export type ReadinessFactsExport = {
+  migrationRow: CatalogFacts["migrationRow"]
+  migrationFinishedAt: string | null
+  tableExists: boolean
+  triggers: Array<{ name: string; enabled: string; defects: number }>
+  sessionReplicationRole: string | null
+  replicaDefaults: number | null
+  roleOwnsTable: boolean | null
+  roleHasTruncate: boolean | null
+  integrity: (Omit<IntegrityFacts, "newestEventAt"> & { newestEventAt: string | null }) | null
+}
+
+/** Which database the report read — the destination classification, never a URL. Filled by the script. */
+export type ReadinessTarget = { branch: "production" | "staging" | "local" | "unknown"; endpoint: string }
+
 export type PresenceReadinessReport = {
   generatedAt: string
   global: GlobalStatus
@@ -179,6 +201,8 @@ export type PresenceReadinessReport = {
   collectionConditions: string[]
   volumes: VolumeFacts | null
   limits: readonly string[]
+  facts?: ReadinessFactsExport | null
+  target?: ReadinessTarget | null
 }
 
 const has = (s: string, token: string) => s.toUpperCase().includes(token.toUpperCase())
@@ -529,6 +553,22 @@ export function buildPresenceReadinessReport(input: ReadinessInput): PresenceRea
     collectionConditions: [...COLLECTION_CONDITIONS],
     volumes: input.volumes,
     limits: READINESS_KIT_LIMITS,
+    facts: input.catalog
+      ? {
+          migrationRow: input.catalog.migrationRow,
+          migrationFinishedAt: input.catalog.migrationFinishedAt ? input.catalog.migrationFinishedAt.toISOString() : null,
+          tableExists: input.catalog.tableExists,
+          triggers: EXPECTED_TRIGGERS.map((e) => {
+            const t = input.catalog!.triggers.find((x) => x.name === e.name)
+            return { name: e.name, enabled: t ? t.enabled : "absent", defects: triggerDefects(e, t).length }
+          }),
+          sessionReplicationRole: input.catalog.sessionReplicationRole,
+          replicaDefaults: input.catalog.replicaDefaults,
+          roleOwnsTable: input.catalog.roleOwnsTable,
+          roleHasTruncate: input.catalog.roleHasTruncate,
+          integrity: input.integrity ? { ...input.integrity, newestEventAt: input.integrity.newestEventAt ? input.integrity.newestEventAt.toISOString() : null } : null,
+        }
+      : null,
   }
 }
 

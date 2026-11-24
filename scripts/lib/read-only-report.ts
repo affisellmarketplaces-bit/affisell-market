@@ -35,7 +35,7 @@ function databaseUrlSource(): ReportDatabaseTarget["source"] {
 export async function runReadOnlyReport<T>(
   scope: { tables: string[]; purpose: string },
   work: (tx: Prisma.TransactionClient) => Promise<T>,
-  print: (result: T) => void,
+  print: (result: T, target: ReportDatabaseTarget) => void,
   options: { allowProduction?: boolean; onNotRun?: (reason: string) => void } = {}
 ): Promise<void> {
   const source = databaseUrlSource()
@@ -67,7 +67,7 @@ export async function runReadOnlyReport<T>(
   const base = new PrismaClient()
   try {
     const result = await withReadOnlyTransaction(readOnlyPrismaClient(base), work)
-    print(result)
+    print(result, target)
   } finally {
     await base.$disconnect()
   }

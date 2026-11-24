@@ -106,7 +106,7 @@ export async function collectCatalogFacts(tx: Tx): Promise<CatalogFacts> {
 }
 
 export async function collectIntegrityFacts(tx: Tx, trackingStart: Date | null): Promise<IntegrityFacts> {
-  const base = await one<{ events: number; future: number; before: number | null }>(tx, Prisma.sql`SELECT count(*)::int AS events,
+  const base = await one<{ events: number; future: number; before: number | null; newest: Date | null }>(tx, Prisma.sql`SELECT count(*)::int AS events, max("effectiveAt") AS newest,
             count(*) FILTER (WHERE "effectiveAt" > (clock_timestamp() AT TIME ZONE 'UTC') + interval '5 minutes')::int AS future,
             CASE WHEN (${trackingStart?.toISOString() ?? null}::timestamptz AT TIME ZONE 'UTC') IS NULL THEN NULL ELSE count(*) FILTER (WHERE "effectiveAt" < (${trackingStart?.toISOString() ?? null}::timestamptz AT TIME ZONE 'UTC'))::int END AS before
        FROM ${TABLE}`)
@@ -133,6 +133,7 @@ export async function collectIntegrityFacts(tx: Tx, trackingStart: Date | null):
        FROM last LEFT JOIN "AffiliateProduct" ap ON ap.id = last.a`)
   const attr = await one<{ k: number }>(tx, Prisma.sql`SELECT count(*)::int AS k FROM ${TABLE} e JOIN "AffiliateProduct" ap ON ap.id = e."affiliateProductId"
       WHERE e."affiliateId" <> ap."affiliateId" OR e."productId" <> ap."productId"`)
+  const conc = await one<{ top: number; n: number }>(tx, Prisma.sql`SELECT coalesce(max(c), 0)::int AS top, count(*)::int AS n FROM (SELECT count(*) AS c FROM ${TABLE} GROUP BY "affiliateId") x`)
   const reintro = await one<{ k: number }>(tx, Prisma.sql`SELECT count(*)::int AS k FROM (SELECT 1 FROM ${TABLE} GROUP BY "affiliateId", "productId" HAVING count(DISTINCT "affiliateProductId") > 1) x`)
   let createdWithoutEvent: number | null = null
   let preExistingListings: number | null = null
@@ -165,6 +166,9 @@ export async function collectIntegrityFacts(tx: Tx, trackingStart: Date | null):
     preExistingListings,
     reintroducedPairs: n(reintro?.k),
     relistings: n(seq?.relistings),
+    newestEventAt: base?.newest ?? null,
+    topResellerEventShare: events > 0 ? Math.round((n(conc?.top) / events) * 1000) / 1000 : null,
+    resellersWithEvents: n(conc?.n),
   }
 }
 

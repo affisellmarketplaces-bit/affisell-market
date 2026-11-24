@@ -41,7 +41,9 @@ function staticFacts(): StaticFacts {
   }
 }
 
-function print(report: PresenceReadinessReport) {
+function print(report: PresenceReadinessReport, target?: { branch: string; endpoint: string }) {
+  // The destination classification travels with the report (the collection monitor never compares two databases).
+  if (target) report.target = { branch: target.branch as "production" | "staging" | "local" | "unknown", endpoint: target.endpoint }
   console.log(asJson ? JSON.stringify(report, null, 2) : `\nHistorique de présence — préparation à la collecte — ${report.generatedAt}\n\n${formatPresenceReadiness(report)}`)
   if (process.exitCode === undefined || process.exitCode === 0) {
     process.exitCode = report.global === "BLOCKED" ? 1 : report.global === "UNKNOWN" ? 3 : 0

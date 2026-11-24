@@ -145,6 +145,13 @@ describe.skipIf(!RUN_DB)("report:presence-readiness — real database", { timeou
     expect(check(r, "B_capture_observed").evidence.join(" ")).toContain("écarts entre l'état des annonces et le dernier événement : 0")
     expect(r.volumes?.listingsWithHistory).toBe(2)
     expect(r.engines?.length).toBe(5)
+    // The exported facts the collection monitor compares: counts, newest event (UTC), concentration — on the real database.
+    expect(r.facts?.integrity?.events).toBe(eventsBefore)
+    const newest = Date.parse(r.facts?.integrity?.newestEventAt ?? "")
+    expect(Math.abs(newest - Date.now())).toBeLessThan(10 * 60_000)
+    expect(r.facts?.integrity?.resellersWithEvents).toBeGreaterThanOrEqual(1)
+    expect(r.facts?.integrity?.topResellerEventShare).toBeGreaterThan(0)
+    expect(r.facts?.triggers.map((t) => t.enabled)).toEqual(["O", "O", "O"])
     // never a PASS overall while the migration is not recorded (CI schema comes from the datamodel)
     expect(r.global).not.toBe("PASS")
     const json = JSON.stringify(r)
