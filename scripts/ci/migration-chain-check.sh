@@ -39,14 +39,18 @@ hide_repairs() { for r in "${REPAIRS[@]}"; do mv "$MIG/$r" "$HIDDEN/"; done; }
 show_repairs() { for r in "${REPAIRS[@]}"; do [ -d "$HIDDEN/$r" ] && mv "$HIDDEN/$r" "$MIG/"; done; return 0; }
 trap show_repairs EXIT
 mig_rows() { psqlq -d "$1" -Atc "SELECT migration_name, count(*) FILTER (WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL), count(*) FROM \"_prisma_migrations\" GROUP BY 1 ORDER BY 1"; }
+# Prisma diff + catalogue of one database, judged against the strict baseline (prisma/schema-drift-baseline.json).
+drift_inputs() { # $1 db → $WORK/$1.prisma-diff.sql + $WORK/$1.catalog.txt
+  prisma_on "$1" migrate diff --from-url "$(url "$1")" --to-schema-datamodel "$ROOT/prisma/schema.prisma" --script > "$WORK/$1.prisma-diff.sql" 2>"$WORK/$1.prisma-diff.err" \
+    || { echo "prisma migrate diff failed on $1:"; cat "$WORK/$1.prisma-diff.err"; }
+  psqlq -d "$1" -At -f "$ROOT/scripts/ci/schema-catalog.sql" > "$WORK/$1.catalog.txt"
+}
 diff_prisma() { # $1 db, $2 label
-  prisma_on "$1" migrate diff --from-url "$(url "$1")" --to-schema-datamodel "$ROOT/prisma/schema.prisma" --script > "$WORK/$1.prisma-diff.sql" 2>"$WORK/$1.prisma-diff.err"
-  prisma_on "$1" migrate diff --from-url "$(url "$1")" --to-schema-datamodel "$ROOT/prisma/schema.prisma" --exit-code >/dev/null 2>&1
-  local rc=$?
-  echo "--- prisma migrate diff ($2) exit=$rc (0 = no difference, 2 = differences) ---"
-  cat "$WORK/$1.prisma-diff.sql"; [ -s "$WORK/$1.prisma-diff.err" ] && sed 's/^/stderr: /' "$WORK/$1.prisma-diff.err"
-  if [ "$rc" = 0 ]; then ok "$2: schema identical to prisma/schema.prisma (prisma migrate diff --exit-code = 0)"
-  else ko "$2: schema differs from prisma/schema.prisma (prisma migrate diff exit $rc, script above)"; fi
+  drift_inputs "$1"
+  echo "--- prisma migrate diff ($2) ---"; grep -v ensure-direct-url "$WORK/$1.prisma-diff.sql"
+  if npx tsx "$ROOT/scripts/ci/check-schema-drift.ts" --label "$2" --diff "$WORK/$1.prisma-diff.sql" --catalog "$WORK/$1.catalog.txt"; then
+    ok "$2: every difference from prisma/schema.prisma is a listed historical divergence, unchanged (strict baseline)"
+  else ko "$2: schema drift rejected by the baseline (report above)"; fi
 }
 expected_migration_count=$(ls "$MIG" | grep -vc '\.toml$')
 
@@ -162,9 +166,8 @@ ORDER BY 1;
 SQL
 }
 table_dump model_chain_test "$WORK/model.lineage.sql"; table_dump fresh_chain_test "$WORK/fresh.lineage.sql"
-# Prisma's datamodel cannot express CHECK constraints: the published migration 20260801210000 adds
-# SponsorCampaignCharge_status_check, which a datamodel-built database can never have. Listed, then set aside (only CHECKs).
-grep -E '^constraint [^ ]+ CHECK ' "$WORK/fresh.lineage.sql" | sed 's/^/CHECK constraint present in the chain, not expressible in the datamodel: /'
+# Prisma's datamodel cannot express CHECK constraints: they are judged by the baseline (nonPrismaConstraints, exact list
+# for these tables) in diff_prisma, and left out of this datamodel comparison.
 for f in model fresh; do grep -v -E '^constraint [^ ]+ CHECK ' "$WORK/$f.lineage.sql" > "$WORK/$f.lineage.nocheck.sql"; mv "$WORK/$f.lineage.nocheck.sql" "$WORK/$f.lineage.sql"; done
 echo "--- columns, types, defaults, keys, indexes, foreign keys of ${LINEAGE_TABLES[*]}: chain-built vs datamodel-built ---"
 if diff -u "$WORK/model.lineage.sql" "$WORK/fresh.lineage.sql"; then ok "S2b: ${LINEAGE_TABLES[*]} are structurally identical to the Prisma datamodel (columns, types, defaults, nullability, indexes, constraints)"
@@ -197,6 +200,29 @@ for db in fresh_chain_test hista_chain_test histb_chain_test; do
   dup=$(psqlq -d "$db" -Atc "SELECT count(*) FROM (SELECT migration_name FROM \"_prisma_migrations\" GROUP BY 1 HAVING count(*) > 1) d")
   if [ "$dup" = 0 ]; then ok "S4 $db: no duplicated migration row"; else ko "S4 $db: $dup duplicated migration rows"; fi
 done
+echo "::endgroup::"
+
+echo "::group::S5 — negative tests: deliberate new or modified divergences on throwaway clones MUST be rejected"
+negative() { # $1 name, $2 SQL that introduces the divergence, $3 marker the report must contain
+  local db="neg_$1_chain_test"
+  psqlq -d postgres -qc "DROP DATABASE IF EXISTS $db" -c "CREATE DATABASE $db TEMPLATE fresh_chain_test"
+  psqlq -d "$db" -qc "$2"
+  drift_inputs "$db"
+  if npx tsx "$ROOT/scripts/ci/check-schema-drift.ts" --label "negative $1" --diff "$WORK/$db.prisma-diff.sql" --catalog "$WORK/$db.catalog.txt" --expect-reject "$3"; then
+    ok "S5 $1: deliberate divergence rejected, report names « $3 »"
+  else ko "S5 $1: deliberate divergence NOT rejected as expected"; fi
+  psqlq -d postgres -qc "DROP DATABASE $db"
+}
+negative new_column 'ALTER TABLE "Order" ADD COLUMN "zz_unexpected" TEXT' 'zz_unexpected'
+negative new_index 'CREATE INDEX "zz_unexpected_idx" ON "Product"("name")' 'zz_unexpected_idx'
+negative modified_extra_index 'DROP INDEX "Category_parentId_idx"; CREATE INDEX "Category_parentId_idx" ON "Category"("id")' 'extra-index-category-parent'
+negative modified_default 'ALTER TABLE "IngNudgeLog" ALTER COLUMN "groupsCount" SET DEFAULT 1' 'default-ingnudgelog-groupscount'
+negative divergence_disappeared 'DROP INDEX "Order_trackingLockedAt_idx"' 'DISPARU'
+negative stripe_unique_removed 'DROP INDEX "MerchantPayoutLedger_stripeTransferId_key"' 'stripe-transfer-unique-partial'
+negative new_check_on_repaired_table 'ALTER TABLE "AdminAeCaptureSession" ADD CONSTRAINT "zz_check" CHECK (length("productId") > 0)' 'zz_check'
+negative repaired_table_changed 'ALTER TABLE "AdminAeCaptureSession" ADD COLUMN "zz_extra" TEXT' 'zz_extra'
+left=$(psqlq -d postgres -Atc "SELECT count(*) FROM pg_database WHERE datname LIKE 'neg%chain_test'")
+[ "$left" = 0 ] && ok "S5: every throwaway clone dropped" || ko "S5: $left throwaway clone(s) left"
 echo "::endgroup::"
 
 if [ "${#FAILURES[@]}" -gt 0 ]; then

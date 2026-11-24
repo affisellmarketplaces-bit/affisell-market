@@ -1,0 +1,21 @@
+check|SponsorCampaignCharge.SponsorCampaignCharge_status_check|CHECK ((status = ANY (ARRAY['ACCRUED'::text, 'REVERSED'::text])))
+column|Attribute.updatedAt|timestamp(3) without time zone | CURRENT_TIMESTAMP
+column|BookingSlot.updatedAt|timestamp(3) without time zone | CURRENT_TIMESTAMP
+column|BookingWaitlist.createdAt|timestamp with time zone | CURRENT_TIMESTAMP
+column|BookingWaitlist.notifiedAt|timestamp with time zone | <none>
+column|BookingWaitlist.smsNotifiedAt|timestamp with time zone | <none>
+column|ChinaBuyRouteLog.updatedAt|timestamp(3) without time zone | CURRENT_TIMESTAMP
+column|IngNudgeLog.groupsCount|integer | 0
+column|Order.bookingReminderHourSmsSentAt|timestamp with time zone | <none>
+column|Order.bookingSupplierAlertSentAt|timestamp with time zone | <none>
+column|Order.bookingSupplierDigestSentAt|timestamp with time zone | <none>
+index|AgentMission_supplierId_urgent_deadlineAt_idx|CREATE INDEX "AgentMission_supplierId_urgent_deadlineAt_idx" ON public."AgentMission" USING btree ("supplierId", urgent, "deadlineAt")
+index|Category_parentId_idx|CREATE INDEX "Category_parentId_idx" ON public."Category" USING btree ("parentId")
+index|CheckoutLaunchWaitlist_countryIso2_marketRegion_launchNotifiedA|CREATE INDEX "CheckoutLaunchWaitlist_countryIso2_marketRegion_launchNotifiedA" ON public."CheckoutLaunchWaitlist" USING btree ("countryIso2", "marketRegion", "launchNotifiedAt")
+index|MerchantPayoutLedger_stripeTransferId_key|CREATE UNIQUE INDEX "MerchantPayoutLedger_stripeTransferId_key" ON public."MerchantPayoutLedger" USING btree ("stripeTransferId") WHERE ("stripeTransferId" IS NOT NULL)
+index|Order_deliveredAtSource_idx|CREATE INDEX "Order_deliveredAtSource_idx" ON public."Order" USING btree ("deliveredAtSource")
+index|Order_trackingLockedAt_idx|CREATE INDEX "Order_trackingLockedAt_idx" ON public."Order" USING btree ("trackingLockedAt")
+index|ProductRequest_complianceRequirements_idx|CREATE INDEX "ProductRequest_complianceRequirements_idx" ON public."ProductRequest" USING gin ("complianceRequirements")
+index|ProductRequest_provenanceCountries_idx|CREATE INDEX "ProductRequest_provenanceCountries_idx" ON public."ProductRequest" USING gin ("provenanceCountries")
+index|ProductRequest_sourceProvenance_idx|CREATE INDEX "ProductRequest_sourceProvenance_idx" ON public."ProductRequest" USING btree ("sourceProvenance")
+index|Product_medusaVariantId_idx|CREATE INDEX "Product_medusaVariantId_idx" ON public."Product" USING btree ("medusaVariantId")

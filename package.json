@@ -23,7 +23,7 @@
     "dona": "node scripts/dona.mjs",
     "dona:avatars": "node scripts/generate-dona-avatars.mjs",
     "dona:check": "node scripts/dona.mjs",
-    "db:branch": "echo 'Crée branch Neon: Vercel Preview env → DATABASE_URL_STAGING | Neon Dashboard → Branches → Create from main'",
+    "db:branch": "echo 'Cr\u00e9e branch Neon: Vercel Preview env \u2192 DATABASE_URL_STAGING | Neon Dashboard \u2192 Branches \u2192 Create from main'",
     "dev:url": "node scripts/print-dev-url.mjs",
     "boutique:listings": "node scripts/boutique-list-listings.mjs",
     "dev:open:wizard-v2": "node scripts/open-dev-url.mjs /dashboard/supplier/products/new wizard=v2 mode=express compose=1",
@@ -189,7 +189,8 @@
     "test:db": "tsx scripts/check-test-db.ts && RUN_DB_TESTS=1 vitest run lib/__tests__/money-e2e-db.test.ts lib/__tests__/listing-sales-stats-db.test.ts lib/__tests__/category-attribute-v2-product-variants.test.ts lib/__tests__/invoice-number-db.test.ts",
     "test:db:check": "tsx scripts/check-test-db.ts",
     "env:rotate-db-password": "node scripts/rotate-db-password.mjs",
-    "rehearse:migrations": "bash scripts/rehearse-migration-chain.sh"
+    "rehearse:migrations": "bash scripts/rehearse-migration-chain.sh",
+    "check:schema-drift": "tsx scripts/ci/check-schema-drift.ts"
   },
   "dependencies": {
     "@ai-sdk/groq": "^3.0.38",
