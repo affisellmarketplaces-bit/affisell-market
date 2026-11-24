@@ -82,6 +82,7 @@ Les `INSERT` présents dans les fichiers se trouvent à l'intérieur des fonctio
   - **Les 206 migrations rejouées depuis une base vide : 204 passent, 2 échouent.** Ce sont `20260801210000_sponsor_success_fee` et `20260801220000_sponsor_charge_reversed_cents`, car les tables `SponsorCampaign` / `SponsorCampaignCharge` n'ont jamais été créées par une migration (anciennes passes `db push` ou d'auto-réparation).
     - Conséquence : **la chaîne seule ne reconstruit pas le schéma**. Une base de staging ne peut pas être reproduite fidèlement à partir du dépôt, et la CI construit son schéma depuis le modèle de données, pas depuis la chaîne.
     - Les dix migrations récentes s'appliquent proprement sur l'état produit par la chaîne.
+    - **Suite de l'enquête** (`docs/MIGRATION-LINEAGE.md`) : il n'y a qu'une seule cause racine, `SponsorCampaign`, la seconde migration en échec étant un échec induit. Un deuxième trou, silencieux, existe aussi : `AdminAeCaptureSession` n'est créée par aucune migration. Une réparation est proposée et testée en local ; elle n'est pas poussée.
   - Ré-application des dix : neuf sont idempotentes ; le n° 3 ne l'est pas.
   - Retour arrière de la présence : `down.sql` ramène à 0 déclencheur et supprime la table. Le SQL de la migration rejoué ramène les 3 déclencheurs et la table.
   - **Non vérifié** : un PITR Neon réel, la durée des verrous du n° 3 sur le vrai volume de `AffisellTrackEvent`, le comportement de `prisma migrate deploy` lui-même (moteur Prisma absent de cet environnement).
