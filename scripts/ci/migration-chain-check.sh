@@ -26,7 +26,9 @@ REPAIRS=(20260801205900_sponsor_campaign_lineage 20261124120000_migration_lineag
 WORK="$(mktemp -d)"; HIDDEN="$WORK/hidden-repairs"; mkdir -p "$HIDDEN"
 FAILURES=()
 
-url() { printf 'postgresql://%s@%s:%s/%s' "$PGU" "$HOST" "$PORT" "$1"; }
+# sslmode=disable: the CI service has no TLS, and scripts/ensure-direct-url.mjs (loaded by prisma.config.ts) would
+# otherwise add sslmode=require.
+url() { printf 'postgresql://%s@%s:%s/%s?sslmode=disable' "$PGU" "$HOST" "$PORT" "$1"; }
 psqlq() { psql -h "$HOST" -p "$PORT" -U "$PGU" -v ON_ERROR_STOP=1 -X "$@"; }
 prisma_on() { local db="$1"; shift; DATABASE_URL="$(url "$db")" DIRECT_URL="$(url "$db")" DATABASE_URL_UNPOOLED="$(url "$db")" npx prisma "$@"; }
 dump() { pg_dump -h "$HOST" -p "$PORT" -U "$PGU" -s --no-owner --no-privileges "$1" | grep -v -E '^\\(un)?restrict ' > "$2"; }
@@ -116,7 +118,7 @@ retro_deploy() { # $1 db, $2 label, $3 expected added object names (space separa
   else ok "$label: every pre-existing object is byte-identical in pg_dump (no line removed or changed)"; fi
   local added want
   added=$(grep -oE '^> -- Name: [^;]+' "$WORK/$db.schema.diff" | sed 's/^> -- Name: //' | sort -u | tr '\n' ' ')
-  want=$(printf '%s\n' $expected | sort -u | tr '\n' ' ')
+  want=""; [ -n "$expected" ] && want=$(printf '%s\n' $expected | sort -u | tr '\n' ' ')
   if [ "$added" = "$want" ]; then ok "$label: objects added = exactly the expected ones [${want% }]"
   else ko "$label: objects added [${added% }] ≠ expected [${want% }]"; fi
   diff_prisma "$db" "$label final"
