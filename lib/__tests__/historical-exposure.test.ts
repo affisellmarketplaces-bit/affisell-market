@@ -344,6 +344,23 @@ describe("copilot learning on history — what a « no sale » means", () => {
   })
 })
 
+describe("rounding never hides a real listing", () => {
+  it("a shop listed for a few minutes still counts as a reseller listing the product", () => {
+    const t = T0.getTime()
+    const h = rebuildPresence({
+      current: null,
+      events: [
+        { kind: "created", effectiveAt: new Date(t + 60_000), previousListed: null, newListed: true },
+        { kind: "deleted", effectiveAt: new Date(t + 4 * 60_000), previousListed: true, newListed: null },
+      ],
+      trackingStartedAt: T0,
+    })
+    const { exposure } = historicalQualityExposure({ productIds: ["p"], presence: new Map([["p", [{ affiliateId: "a", history: h }]]]), orders: [], from: d(0), to: d(1) })
+    expect(exposure.get("p")!.listingDays).toBe(0) // 3 minutes = 0.00 day once rounded
+    expect(exposure.get("p")!.resellersListing).toBe(1)
+  })
+})
+
 describe("old vs new — aggregate comparison", () => {
   it("tolerance: within 1 day or 5 % the methods agree", () => {
     const c = compareExposureMethods([

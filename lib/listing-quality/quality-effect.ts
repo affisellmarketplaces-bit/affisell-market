@@ -413,7 +413,7 @@ export function historicalQualityExposure(args: {
     const unknown = shops.reduce((a, s) => a + s.unknownDays, 0)
     const anomaly = shops.some((s) => s.anomaly && s.unknownDays > 0)
     const ivBy = new Map(shops.map((s) => [s.affiliateId, s.intervals]))
-    const e = { listingDays: Math.round(listed * 100) / 100, paidOrders: 0, units: 0, closedOrders: 0, resellersListing: shops.filter((s) => s.listedDays > 0).length, unknownDays: Math.round(unknown * 100) / 100, ordersOutsideKnownPeriods: 0 }
+    const e = { listingDays: Math.round(listed * 100) / 100, paidOrders: 0, units: 0, closedOrders: 0, resellersListing: shops.filter((s) => s.intervals.length > 0).length /* real listed time, not the rounded days */, unknownDays: Math.round(unknown * 100) / 100, ordersOutsideKnownPeriods: 0 }
     for (const o of ordersBy.get(id) ?? []) {
       const ts = o.paidAt.getTime()
       if (ts < args.from.getTime() || ts >= args.to.getTime()) continue
