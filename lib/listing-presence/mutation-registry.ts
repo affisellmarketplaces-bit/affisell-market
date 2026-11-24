@@ -16,7 +16,7 @@
 import type { ListingPresenceSource } from "./sources"
 
 export type ListingLifecycleChange = "create" | "list" | "unlist" | "relist" | "delete"
-export type ListingMutationActor = "reseller" | "supplier" | "admin" | "merchant_account" | "import" | "script" | "demo"
+export type ListingMutationActor = "reseller" | "supplier" | "admin" | "merchant_account" | "import" | "script" | "demo" | "sentinel"
 
 export type ListingMutationEntry = {
   key: string
@@ -79,6 +79,11 @@ export const LISTING_MUTATION_REGISTRY: readonly ListingMutationEntry[] = [
   { key: "prisma/clear-products.ts#main#deleteMany", changes: ["delete"], actor: "script", entry: "clear-products script", attribution: "declared", sources: ["script"], note: "declared 2026-11-24" },
   { key: "scripts/copy-to-prod.ts#main#upsert", changes: ["create"], actor: "script", entry: "copy-to-prod script", attribution: "declared", sources: ["script"], note: "declared 2026-11-24" },
   { key: "scripts/create-test-order-three-way.ts#main#create", changes: ["create"], actor: "script", entry: "test-order fixture script", attribution: "declared", sources: ["script"], note: "declared 2026-11-24" },
+  // ── Capture Sentinel (synthetic probe; every write rolled back, cleanup only of committed residue) ──────────────────
+  { key: "lib/listing-presence/capture-sentinel-run.ts#mutate#create", changes: ["create"], actor: "sentinel", entry: "probe:capture-sentinel / CI test — synthetic listing, transaction always rolled back", attribution: "declared", sources: ["capture_sentinel"] },
+  { key: "lib/listing-presence/capture-sentinel-run.ts#mutate#update", changes: ["list", "unlist"], actor: "sentinel", entry: "probe:capture-sentinel / CI test — synthetic listing, transaction always rolled back", attribution: "declared", sources: ["capture_sentinel"] },
+  { key: "lib/listing-presence/capture-sentinel-run.ts#mutate#delete", changes: ["delete"], actor: "sentinel", entry: "probe:capture-sentinel / CI test — synthetic listing, transaction always rolled back", attribution: "declared", sources: ["capture_sentinel"] },
+  { key: "lib/listing-presence/capture-sentinel-run.ts#cleanupSentinelResidue#deleteMany", changes: ["delete"], actor: "sentinel", entry: "cleanup of COMMITTED sentinel residue (rows carrying both sentinel markers; allowed destinations only)", attribution: "declared", sources: ["capture_sentinel"] },
   { key: "scripts/ensure-seo-parasite-fixture.ts#main#upsert", changes: ["create"], actor: "script", entry: "SEO fixture script", attribution: "declared", sources: ["script"], note: "declared 2026-11-24" },
   { key: "scripts/hide-internal-test-products.ts#main#updateMany", changes: ["unlist"], actor: "script", entry: "hide-internal-test-products script (raw set_config)", attribution: "declared", sources: ["script"] },
   { key: "scripts/seed-social-proof-local.ts#main#create", changes: ["create"], actor: "script", entry: "local social-proof seed", attribution: "declared", sources: ["script"], note: "declared 2026-11-24" },

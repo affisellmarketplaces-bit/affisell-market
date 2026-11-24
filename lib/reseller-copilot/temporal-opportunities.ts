@@ -59,6 +59,7 @@ export function withdrawalReason(source: string | null | undefined): WithdrawalR
     case "demo":
     case "admin":
     case "listing_create":
+    case "capture_sentinel":
       return "technique"
     default:
       return "inconnue"

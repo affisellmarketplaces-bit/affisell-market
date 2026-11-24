@@ -101,7 +101,16 @@ Engines are listed in the documented order: temporal, blind spots, observation p
 
 Every decision carries `executesAutomatically: false` and names the authorization it needs. Nothing changes a flag.
 
-## 7. Keeping the snapshots
+## 6 bis. Active proof — Capture Sentinel
+
+A snapshot can carry a Capture Sentinel result (`report:collection-snapshot -- --sentinel <result.json>`, see `docs/CAPTURE-SENTINEL.md`):
+
+- **Statuses:** confirmed, failed, inconclusive, expired, not run, or environment not verified. A probe counts only for the same identified environment, within 6 h of the snapshot.
+- **Confirmed probe:** the « no new event » anomalies become information (« activité calme »), and the J+1 / J+7 activity criteria are met.
+- **Failed probe:** blocking anomaly.
+- **Never affected:** the eight data-maturity dimensions.
+
+
 
 - **Where:** `~/.affisell/collection-snapshots/` by default, or any folder outside the repository. They are operational files and must not be committed.
 - **Naming:** `<branch>-<endpoint>-<UTC time>-<label>.json`.

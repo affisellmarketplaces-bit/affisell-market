@@ -18,6 +18,7 @@ export const LISTING_PRESENCE_SOURCES = [
   "account_deletion", // a merchant deleted its account (its listings, or the listings of its products, are deleted)
   "demo", // the Demo Lab fixtures (kept apart from real activity)
   "script", // a maintenance or seed script
+  "capture_sentinel", // Capture Sentinel: synthetic probe, always rolled back (an event with this source that SURVIVES is residue)
   "unattributed", // written without a declaration (default of the trigger)
 ] as const
 

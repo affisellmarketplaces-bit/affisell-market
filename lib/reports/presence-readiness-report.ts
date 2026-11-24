@@ -135,6 +135,8 @@ export async function collectIntegrityFacts(tx: Tx, trackingStart: Date | null):
       WHERE e."affiliateId" <> ap."affiliateId" OR e."productId" <> ap."productId"`)
   const conc = await one<{ top: number; n: number }>(tx, Prisma.sql`SELECT coalesce(max(c), 0)::int AS top, count(*)::int AS n FROM (SELECT count(*) AS c FROM ${TABLE} GROUP BY "affiliateId") x`)
   const reintro = await one<{ k: number }>(tx, Prisma.sql`SELECT count(*)::int AS k FROM (SELECT 1 FROM ${TABLE} GROUP BY "affiliateId", "productId" HAVING count(DISTINCT "affiliateProductId") > 1) x`)
+  // Capture Sentinel residue: a probe always rolls back, so a SURVIVING sentinel listing is a defect to clean.
+  const sentinel = await one<{ l: number }>(tx, Prisma.sql`SELECT count(*)::int AS l FROM "AffiliateProduct" WHERE id LIKE 'capture-sentinel-%'`)
   let createdWithoutEvent: number | null = null
   let preExistingListings: number | null = null
   if (trackingStart) {
@@ -169,6 +171,7 @@ export async function collectIntegrityFacts(tx: Tx, trackingStart: Date | null):
     newestEventAt: base?.newest ?? null,
     topResellerEventShare: events > 0 ? Math.round((n(conc?.top) / events) * 1000) / 1000 : null,
     resellersWithEvents: n(conc?.n),
+    sentinelResidueListings: n(sentinel?.l),
   }
 }
 

@@ -21,6 +21,7 @@ import { EXPECTED_TRIGGERS, PRESENCE_MIGRATION_NAME } from "../listing-presence/
 import { LISTING_PRESENCE_SOURCES } from "../listing-presence/sources"
 import type { ActivationReadinessReport, EngineId } from "../reseller-copilot/activation-readiness"
 import { ENGINES } from "../reseller-copilot/activation-readiness"
+import { captureProofLabel, sentinelForSnapshot, type SentinelResult, type SnapshotSentinel } from "../listing-presence/capture-sentinel"
 import { engineMaturity, type DimensionId, type DimensionValue } from "./data-maturity"
 import { ENGINE_OBSERVE_ORDER } from "./launch-gate"
 
@@ -35,7 +36,7 @@ const DAY = 24 * HOUR
 const INTEGRITY_KEYS = [
   "events", "truncated", "futureEvents", "beforeTrackingStart", "chainBreaks", "createdNotFirst", "afterDeleted", "orderInversions", "duplicates",
   "orphanListings", "deletedButPresent", "stateMismatches", "createdWithoutEvent", "attributionMismatches", "preExistingListings",
-  "reintroducedPairs", "relistings", "topResellerEventShare", "resellersWithEvents",
+  "reintroducedPairs", "relistings", "topResellerEventShare", "resellersWithEvents", "sentinelResidueListings",
 ] as const
 type IntegrityKey = (typeof INTEGRITY_KEYS)[number]
 
@@ -65,6 +66,8 @@ export type CollectionSnapshot = {
   volumes: { listingsWithHistory: number; products: number; resellers: number; completePeriods: number; ongoingPeriods: number; unjudgedPeriods: number; periodsWithSale: number; censoredPeriods: number; historyDays: number | null } | null
   integrity: SnapshotIntegrity | null
   activation: SnapshotActivation | null
+  /** Capture Sentinel result as it bears on THIS snapshot (same identified environment, within the validity window). */
+  sentinel?: SnapshotSentinel | null
   anomalies: Anomaly[]
   limits: readonly string[]
 }
@@ -102,6 +105,8 @@ export function buildCollectionSnapshot(i: {
   appCommit: string | null
   takenAt: Date
   label: SnapshotLabel
+  /** Optional Capture Sentinel result (`probe:capture-sentinel` JSON). Counts only for the same identified environment. */
+  sentinel?: SentinelResult | null
 }): CollectionSnapshot {
   const r = i.readiness
   const f = r.facts ?? null
@@ -158,9 +163,11 @@ export function buildCollectionSnapshot(i: {
           engines: a.engines.map((e) => ({ id: e.id, level: e.level, state: e.state, resellersRequired: e.resellersRequired, resellersMissing: e.resellersMissing, gaps: e.gaps.map((g) => ({ metric: String(g.metric).slice(0, 60), required: g.required, available: g.available, missing: g.missing })) })),
         }
       : null,
+    sentinel: null,
     anomalies: [],
     limits: SNAPSHOT_LIMITS,
   }
+  snap.sentinel = i.sentinel ? sentinelForSnapshot(i.sentinel, snap) : null
   snap.anomalies = detectAnomalies(snap)
   assertSnapshotClean(snap)
   return snap
@@ -177,6 +184,7 @@ export function parseSnapshot(json: unknown): CollectionSnapshot {
 // ── Anomalies ──────────────────────────────────────────────────────────────────────────────────────────────────────
 
 export type Severity = "bloquant" | "majeur" | "mineur" | "info"
+const ACTIVITY_AMBIGUOUS_CODES = new Set(["aucun_evenement", "aucun_nouvel_evenement", "plus_aucune_observation"])
 export type Anomaly = { code: string; severity: Severity; explanation: string }
 
 /** Newest event older than this while listings exist = « no new observation ». */
@@ -186,8 +194,14 @@ export const CONCENTRATION_SHARE = 0.6
 
 export function detectAnomalies(s: CollectionSnapshot, previous?: CollectionSnapshot | null): Anomaly[] {
   const out: Anomaly[] = []
-  const add = (code: string, severity: Severity, explanation: string) => out.push({ code, severity, explanation })
+  const proved = s.sentinel?.status === "confirmee"
+  const add = (code: string, severity: Severity, explanation: string) =>
+    // « No event » is ambiguous (quiet shop OR broken capture). A probe of the SAME environment that just proved the
+    // capture settles it: a quiet shop. That is the only thing the probe changes here.
+    out.push(proved && ACTIVITY_AMBIGUOUS_CODES.has(code) ? { code, severity: "info", explanation: `${explanation} — capture prouvée par la sonde du ${s.sentinel!.takenAt} : activité calme` } : { code, severity, explanation })
   const g = s.integrity
+  if (s.sentinel?.status === "echouee") add("sonde_echouee", "bloquant", `la sonde de capture a échoué sur cette base (${s.sentinel.failed.join(", ") || "étape inconnue"}) : une mutation contrôlée ne produit pas l'événement attendu`)
+  if (s.sentinel?.status === "inconcluante") add("sonde_inconcluante", "mineur", `sonde interrompue ou incomplète (${s.sentinel.unknown.join(", ") || "—"}) : à relancer`)
   const v = (k: IntegrityKey) => (g ? num(g[k]) ?? 0 : 0)
 
   if (s.schema.state === "non_lu") add("base_non_lue", "info", "le rapport ne contient aucun fait de base de données (mode statique ou destination refusée)")
@@ -216,6 +230,7 @@ export function detectAnomalies(s: CollectionSnapshot, previous?: CollectionSnap
   if (v("stateMismatches") > 0) add("annonce_differente_de_son_historique", "majeur", `${v("stateMismatches")} annonce(s) dont l'état actuel contredit le dernier événement`)
   if (v("deletedButPresent") > 0) add("supprimee_mais_presente", "majeur", "annonce présente alors que l'historique dit « supprimée »")
   if (v("orphanListings") > 0) add("annonces_disparues", "mineur", `${v("orphanListings")} annonce(s) disparue(s) sans événement « deleted »`)
+  if ((g.bySource?.capture_sentinel ?? 0) > 0 || v("sentinelResidueListings") > 0) add("residu_de_sonde", "bloquant", "des données de la sonde de capture ont survécu (elle annule toujours sa transaction) : à nettoyer (cleanupSentinelResidue) avant toute analyse")
   if (v("attributionMismatches") > 0) add("attribution_incoherente", "majeur", "événements rattachés à un autre revendeur ou produit que l'annonce")
 
   const events = v("events")
@@ -266,6 +281,8 @@ export type SnapshotComparison =
       comparable: true
       from: { takenAt: string; label: SnapshotLabel; appCommit: string | null }
       to: { takenAt: string; label: SnapshotLabel; appCommit: string | null }
+      /** Capture proof at the later snapshot, in words (Capture Sentinel + passive report). */
+      captureProof: string
       hoursBetween: number
       sameCommit: boolean
       global: { from: CheckStatus; to: CheckStatus; transition: Transition }
@@ -333,6 +350,7 @@ export function compareSnapshots(a: CollectionSnapshot, b: CollectionSnapshot): 
     comparable: true,
     from: { takenAt: x.takenAt, label: x.label, appCommit: x.appCommit },
     to: { takenAt: y.takenAt, label: y.label, appCommit: y.appCommit },
+    captureProof: captureProofLabel(y.sentinel, (y.global === "PASS" || y.global === "WARN") && !ya.some((an) => an.severity === "bloquant")),
     hoursBetween: Math.round(((Date.parse(y.takenAt) - Date.parse(x.takenAt)) / HOUR) * 10) / 10,
     sameCommit: x.appCommit != null && x.appCommit === y.appCommit,
     global: { from: x.global, to: y.global, transition: statusTransition(x.global, y.global) },
@@ -353,7 +371,7 @@ export type StabilityVerdict = "stable" | "instable" | "preuve_insuffisante" | "
 export type StabilityAssessment = { checkpoint: "J+1" | "J+7"; verdict: StabilityVerdict; criteria: Array<{ criterion: string; met: boolean | null; detail: string }>; executesAutomatically: false }
 
 /** Signals that a quiet period produces just as well as a broken capture (decided by the reconciliation, not alone). */
-export const ACTIVITY_AMBIGUOUS = new Set(["aucun_evenement", "aucun_nouvel_evenement", "plus_aucune_observation"])
+export const ACTIVITY_AMBIGUOUS = ACTIVITY_AMBIGUOUS_CODES
 
 /** Hours after the collection start each checkpoint needs at least (J+1 ≥ 20 h, J+7 ≥ 6.5 days). */
 export const CHECKPOINT_MIN_HOURS = { "J+1": 20, "J+7": 156 } as const
@@ -388,7 +406,12 @@ export function assessStability(checkpoint: "J+1" | "J+7", baseline: CollectionS
   criteria.push({ criterion: "rapport_global", met: current.global === "PASS" || current.global === "WARN" ? true : current.global === "UNKNOWN" ? null : false, detail: `rapport ${current.global}` })
   criteria.push({ criterion: "aucune_anomalie_bloquante", met: blocking.length === 0, detail: blocking.map((a) => a.code).join(", ") || "aucune" })
   const newEvents = (num(current.integrity?.events) ?? 0) - (num(baseline.integrity?.events) ?? 0)
-  criteria.push({ criterion: "nouveaux_evenements", met: current.integrity ? newEvents > 0 : null, detail: current.integrity ? `${newEvents} événement(s) depuis l'état initial` : "intégrité non lue" })
+  // A confirmed probe of the same environment taken AFTER the baseline proves the capture when the shops were quiet.
+  const probedSince = (t: string) => current.sentinel?.status === "confirmee" && !!current.sentinel.takenAt && Date.parse(current.sentinel.takenAt) > Date.parse(t)
+  const probeNote = (t: string) => (probedSince(t) ? ` ; aucun événement réel mais capture prouvée par la sonde du ${current.sentinel!.takenAt}` : "")
+  criteria.push({ criterion: "nouveaux_evenements", met: current.integrity ? newEvents > 0 || probedSince(baseline.takenAt) : null, detail: current.integrity ? `${newEvents} événement(s) depuis l'état initial${newEvents > 0 ? "" : probeNote(baseline.takenAt)}` : "intégrité non lue" })
+  // Only a conclusive probe adds a criterion: an absent or expired probe never makes a window with real events weaker.
+  if (current.sentinel && (current.sentinel.status === "confirmee" || current.sentinel.status === "echouee")) criteria.push({ criterion: "sonde_de_capture", met: current.sentinel.status === "confirmee" ? true : current.sentinel.status === "echouee" ? false : null, detail: captureProofLabel(current.sentinel, current.global === "PASS" || current.global === "WARN") })
   const reconciled = current.integrity ? (num(current.integrity.stateMismatches) ?? 0) === 0 && (num(current.integrity.createdWithoutEvent) ?? 1) === 0 : null
   criteria.push({ criterion: "annonces_concordent_avec_historique", met: reconciled, detail: "état actuel des annonces = dernier événement ; toute annonce créée après le début a son « created »" })
   const unattrNew = (current.integrity?.bySource?.unattributed ?? 0) - (baseline.integrity?.bySource?.unattributed ?? 0)
@@ -400,7 +423,8 @@ export function assessStability(checkpoint: "J+1" | "J+7", baseline: CollectionS
     criteria.push({ criterion: "controle_J+1_disponible", met: j1 ? true : null, detail: j1 ? `J+1 du ${j1.takenAt}` : "aucun instantané J+1 : la stabilité demande deux lectures après le début" })
     if (j1) {
       const progressed = (num(current.integrity?.events) ?? 0) > (num(j1.integrity?.events) ?? 0)
-      criteria.push({ criterion: "progression_depuis_J+1", met: progressed, detail: progressed ? "événements en hausse depuis J+1" : "aucun événement depuis J+1" })
+      const probed = !progressed && probedSince(j1.takenAt)
+      criteria.push({ criterion: "progression_depuis_J+1", met: progressed || probed, detail: progressed ? "événements en hausse depuis J+1" : probed ? `aucun événement réel depuis J+1${probeNote(j1.takenAt)}` : "aucun événement depuis J+1" })
       const regress = detectAnomalies(current, j1).filter((a) => a.severity === "bloquant")
       criteria.push({ criterion: "aucune_regression_depuis_J+1", met: regress.length === 0, detail: regress.map((a) => a.code).join(", ") || "aucune" })
       const periods = (current.volumes?.completePeriods ?? 0) + (current.volumes?.ongoingPeriods ?? 0)
@@ -476,7 +500,7 @@ export function formatMonitorReport(r: { comparison: SnapshotComparison; stabili
   if (!c.comparable) return `COMPARAISON IMPOSSIBLE — ${c.reason}`
   out.push(`Suivi de la collecte — ${c.from.label} (${c.from.takenAt}) → ${c.to.label} (${c.to.takenAt}), ${c.hoursBetween} h`)
   out.push(c.sameCommit ? `Commit applicatif identique (${c.to.appCommit})` : `COMMITS DIFFÉRENTS : ${c.from.appCommit ?? "inconnu"} → ${c.to.appCommit ?? "inconnu"}`)
-  out.push(`Rapport global : ${c.global.from} → ${c.global.to} (${c.global.transition})`, "", "CONTRÔLES")
+  out.push(`Rapport global : ${c.global.from} → ${c.global.to} (${c.global.transition})`, `Preuve de capture : ${c.captureProof}`, "", "CONTRÔLES")
   for (const k of c.checks) out.push(`  ${k.id} : ${k.from ?? "—"} → ${k.to ?? "—"} (${k.transition})`)
   out.push("", "VOLUMES (écarts — jamais un verdict de qualité)")
   for (const [k, v] of Object.entries(c.volumes)) out.push(`  ${k} : ${v.from ?? "?"} → ${v.to ?? "?"}${v.delta != null ? ` (${v.delta >= 0 ? "+" : ""}${v.delta})` : ""}`)

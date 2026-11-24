@@ -141,6 +141,8 @@ export type IntegrityFacts = {
   /** Share of the events carried by the single busiest reseller (0–1) and the number of resellers seen. */
   topResellerEventShare?: number | null
   resellersWithEvents?: number
+  /** Listings with a Capture Sentinel id still present (the probe always rolls back: any is residue). */
+  sentinelResidueListings?: number
 }
 
 /** Volumes (from the engines' own period rebuild). `null` = not computed. */
