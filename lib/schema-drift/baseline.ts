@@ -73,7 +73,7 @@ export function normalizeDiffScript(script: string): string[] {
   for (const raw of splitTopLevel(body, ";")) {
     const stmt = collapse(raw)
     if (!stmt) continue
-    const alter = /^ALTER TABLE ("(?:[^"]|"")+")\s+(.*)$/s.exec(stmt)
+    const alter = /^ALTER TABLE ("(?:[^"]|"")+")\s+([\s\S]*)$/.exec(stmt)
     if (alter) {
       const clauses = splitTopLevel(alter[2], ",").map(collapse).filter(Boolean)
       if (clauses.length > 1 && clauses.every((c) => /^(ALTER|ADD|DROP|RENAME)\b/.test(c))) {
