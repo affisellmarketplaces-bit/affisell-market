@@ -10,6 +10,8 @@
  * Absence of data is never zero: an unread volume is `null` and its check is UNKNOWN.
  */
 
+import { reconciliationFacts, type ReconciliationFacts, type ReconciliationReport } from "./reconciliation"
+
 export const PRESENCE_MIGRATION_NAME = "20261124090000_listing_presence_history"
 export const PRESENCE_TABLE = "ListingPresenceEvent"
 /** Same cap as the engines' read (`PRESENCE_MAX_EVENTS` in presence.server.ts, server-only there). */
@@ -169,6 +171,29 @@ export type ReadinessInput = {
   volumes: VolumeFacts | null
   engines: EngineLine[] | null
   databaseNotReadReason: string | null
+  /** Mutation / history reconciliation (lib/listing-presence/reconciliation.ts). Absent = not computed. */
+  reconciliation?: ReconciliationReport | null
+}
+
+/** One NON-critical check: a confirmed loss is BLOCKED (and a blocking anomaly for the monitor); « nothing verifiable »
+ * is UNKNOWN, never PASS — but it does not block the initial report, taken before any mutation exists. */
+export function reconciliationCheck(r: ReconciliationReport | null | undefined): Check | null {
+  if (!r) return null
+  const status: CheckStatus =
+    r.verdict === "anomalies_confirmees" ? "BLOCKED" : r.verdict === "attribution_a_verifier" ? "WARN" : r.verdict === "aucune_anomalie_sur_le_perimetre_verifie" ? "PASS" : "UNKNOWN"
+  const evidence = r.classes.map((c) =>
+    `${c.witnessClass} : ${c.witnesses} témoin(s), ${c.verifiable} vérifiable(s), ${c.outcomes.manquante} sans événement, ${Object.values(c.notVerifiable).reduce((s, n) => s + n, 0)} non vérifiable(s)${c.rate ? ` — ${c.rate.numerator}/${c.rate.denominator} cohérents` : ""}${c.available ? "" : " (source illisible)"}`,
+  )
+  return {
+    id: "C_rapprochement_mutations",
+    section: "C_integrite",
+    title: "Rapprochement mutations ↔ historique",
+    status,
+    critical: false,
+    executed: r.verdict !== "indisponible",
+    evidence: [...evidence, ...r.statements],
+    action: status === "BLOCKED" ? "des mutations prouvées n'ont pas d'événement : capture interrompue — vérifier déclencheur, mode réplique, rôle ; aucune analyse sur les jours en quarantaine" : undefined,
+  }
 }
 
 export type GlobalStatus = CheckStatus
@@ -184,6 +209,8 @@ export type ReadinessFactsExport = {
   roleOwnsTable: boolean | null
   roleHasTruncate: boolean | null
   integrity: (Omit<IntegrityFacts, "newestEventAt"> & { newestEventAt: string | null }) | null
+  /** Mutation / history reconciliation (counts only). Absent = not computed. */
+  reconciliation?: ReconciliationFacts | null
 }
 
 /** Which database the report read — the destination classification, never a URL. Filled by the script. */
@@ -515,6 +542,8 @@ export function buildPresenceReadinessReport(input: ReadinessInput): PresenceRea
     else if (input.catalog.tableExists)
       checks.push({ id: "C_integrite", section: "C_integrite", title: "Intégrité de l'historique", status: "UNKNOWN", critical: true, executed: false, evidence: ["non calculée"] })
     checks.push(...volumeChecks(input.volumes, input.engines))
+    const rc = reconciliationCheck(input.reconciliation)
+    if (rc) checks.push(rc)
   } else {
     const reason = input.databaseNotReadReason ?? "aucune base lue"
     for (const [id, section, title] of [
@@ -569,6 +598,7 @@ export function buildPresenceReadinessReport(input: ReadinessInput): PresenceRea
           roleOwnsTable: input.catalog.roleOwnsTable,
           roleHasTruncate: input.catalog.roleHasTruncate,
           integrity: input.integrity ? { ...input.integrity, newestEventAt: input.integrity.newestEventAt ? input.integrity.newestEventAt.toISOString() : null } : null,
+          reconciliation: input.reconciliation ? reconciliationFacts(input.reconciliation) : null,
         }
       : null,
   }

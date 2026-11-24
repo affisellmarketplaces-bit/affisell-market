@@ -14,6 +14,12 @@ import {
   type VolumeFacts,
 } from "../listing-presence/integrity"
 import { rebuildPresence, type PresenceEvent, type PresenceKind } from "../listing-presence/periods"
+import {
+  AUDIT_WITNESS_SOURCES,
+  CLOCK_MARGIN_NON_UTC_MS,
+  reconcileMutations,
+  type ReconciliationReport,
+} from "../listing-presence/reconciliation"
 import { isOrderClosedForPayout } from "../orders/payment-state"
 import { buildActivationReadiness } from "../reseller-copilot/activation-readiness"
 import { measurePeriods, type MeasuredPeriod } from "../reseller-copilot/temporal-opportunities"
@@ -255,6 +261,52 @@ export async function collectVolumes(tx: Tx, trackingStart: Date, now: Date): Pr
  * The whole report. `trackingStartOverride` exists for the CI database only (whose schema is not created by
  * `migrate deploy`, so `_prisma_migrations` has no row); the script never passes it.
  */
+const UTC_ZONES = new Set(["utc", "etc/utc", "gmt", "etc/gmt", "uct", "etc/uct", "universal", "etc/universal", "zulu", "etc/zulu", "gmt0", "etc/gmt0", "greenwich", "etc/greenwich", "gmt+0", "gmt-0", "etc/gmt+0", "etc/gmt-0"])
+
+/**
+ * Inputs of the mutation / history reconciliation — READ ONLY, bounded (a capped read is said, never concluded on).
+ * Witnesses older than the start minus the clock margin are not read: they could never be verified.
+ */
+export async function collectReconciliation(tx: Tx, trackingStart: Date | null, now: Date, integrity: IntegrityFacts | null): Promise<ReconciliationReport> {
+  // The time zone a session gets by default (role / database / server), not this session's own SET.
+  const tz = await one<{ v: string | null }>(tx, Prisma.sql`SELECT reset_val AS v FROM pg_settings WHERE name = 'TimeZone'`)
+  const clockMarginMs = tz?.v && UTC_ZONES.has(tz.v.toLowerCase()) ? 0 : CLOCK_MARGIN_NON_UTC_MS
+  const from = trackingStart ? new Date(trackingStart.getTime() - CLOCK_MARGIN_NON_UTC_MS) : null
+  const cap = READINESS_MAX_EVENTS
+  const evs = await tx.listingPresenceEvent.findMany({
+    orderBy: { id: "asc" },
+    take: cap + 1,
+    select: { affiliateProductId: true, kind: true, previousListed: true, newListed: true, source: true, effectiveAt: true },
+  })
+  const listings = await tx.affiliateProduct.findMany({ take: cap + 1, select: { id: true, isListed: true, createdAt: true } })
+  let creations: { rows: Array<{ listingId: string; at: Date }>; truncated: boolean } | null = null
+  const priceTable = await one<{ t: string | null }>(tx, Prisma.sql`SELECT to_regclass('"ListingPriceHistory"')::text AS t`)
+  if (priceTable?.t && from) {
+    const first = await rows<{ l: string; at: Date }>(tx, Prisma.sql`SELECT f.l, f.at FROM (
+        SELECT DISTINCT ON ("affiliateProductId") "affiliateProductId" AS l, "effectiveAt" AS at, "variantKey" AS vk, "previousCents" AS pc
+          FROM "ListingPriceHistory" ORDER BY "affiliateProductId", id) f
+       WHERE f.vk IS NULL AND f.pc IS NULL AND f.at >= (${from.toISOString()}::timestamptz AT TIME ZONE 'UTC')
+       LIMIT ${cap + 1}`)
+    creations = { rows: first.slice(0, cap).map((r) => ({ listingId: r.l, at: r.at })), truncated: first.length > cap }
+  }
+  const audits = from
+    ? await tx.auditLog.findMany({ where: { action: { in: Object.keys(AUDIT_WITNESS_SOURCES) }, createdAt: { gte: from } }, take: cap + 1, select: { entityId: true, action: true, createdAt: true } })
+    : []
+  return reconcileMutations({
+    now,
+    trackingStart,
+    clockMarginMs,
+    events: {
+      rows: evs.slice(0, cap).filter((e) => KINDS.includes(e.kind as PresenceKind)).map((e) => ({ listingId: e.affiliateProductId, kind: e.kind as PresenceKind, previousListed: e.previousListed, newListed: e.newListed, source: e.source, effectiveAt: e.effectiveAt })),
+      truncated: evs.length > cap,
+    },
+    listings: { rows: listings.slice(0, cap), truncated: listings.length > cap },
+    creations,
+    audits: from ? { rows: audits.slice(0, cap).filter((a) => a.entityId).map((a) => ({ listingId: a.entityId!, action: a.action, at: a.createdAt })), truncated: audits.length > cap } : null,
+    integrity,
+  })
+}
+
 export async function collectPresenceReadiness(
   tx: Tx,
   opts: { staticFacts: StaticFacts; now?: Date; trackingStartOverride?: Date },
@@ -264,6 +316,7 @@ export async function collectPresenceReadiness(
   const trackingStart = opts.trackingStartOverride ?? catalog.migrationFinishedAt
   const integrity = catalog.tableExists ? await collectIntegrityFacts(tx, trackingStart) : null
   const vol = catalog.tableExists && trackingStart && integrity && !integrity.truncated ? await collectVolumes(tx, trackingStart, now) : null
+  const reconciliation = catalog.tableExists ? await collectReconciliation(tx, trackingStart, now, integrity) : null
   return buildPresenceReadinessReport({
     now,
     staticFacts: opts.staticFacts,
@@ -272,5 +325,6 @@ export async function collectPresenceReadiness(
     volumes: vol?.volumes ?? null,
     engines: vol?.engines ?? null,
     databaseNotReadReason: null,
+    reconciliation,
   })
 }

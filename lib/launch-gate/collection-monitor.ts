@@ -21,6 +21,7 @@ import { EXPECTED_TRIGGERS, PRESENCE_MIGRATION_NAME } from "../listing-presence/
 import { LISTING_PRESENCE_SOURCES } from "../listing-presence/sources"
 import type { ActivationReadinessReport, EngineId } from "../reseller-copilot/activation-readiness"
 import { ENGINES } from "../reseller-copilot/activation-readiness"
+import { WITNESS_CLASSES, type ReconciliationFacts } from "../listing-presence/reconciliation"
 import { captureProofLabel, sentinelForSnapshot, type SentinelResult, type SnapshotSentinel } from "../listing-presence/capture-sentinel"
 import { engineMaturity, type DimensionId, type DimensionValue } from "./data-maturity"
 import { ENGINE_OBSERVE_ORDER } from "./launch-gate"
@@ -68,6 +69,8 @@ export type CollectionSnapshot = {
   activation: SnapshotActivation | null
   /** Capture Sentinel result as it bears on THIS snapshot (same identified environment, within the validity window). */
   sentinel?: SnapshotSentinel | null
+  /** Mutation / history reconciliation, counts only (from the readiness facts). */
+  reconciliation?: ReconciliationFacts | null
   anomalies: Anomaly[]
   limits: readonly string[]
 }
@@ -164,6 +167,7 @@ export function buildCollectionSnapshot(i: {
         }
       : null,
     sentinel: null,
+    reconciliation: sanitizeReconciliation(f?.reconciliation),
     anomalies: [],
     limits: SNAPSHOT_LIMITS,
   }
@@ -171,6 +175,31 @@ export function buildCollectionSnapshot(i: {
   snap.anomalies = detectAnomalies(snap)
   assertSnapshotClean(snap)
   return snap
+}
+
+const REC_VERDICTS = new Set(["indisponible", "lecture_tronquee", "anomalies_confirmees", "attribution_a_verifier", "aucune_anomalie_sur_le_perimetre_verifie", "rien_de_verifiable"])
+const REC_DEGRADATION = new Set(["rupture_datee", "pertes_isolees", "aucune", "indeterminee"])
+const isDay = (d: unknown): d is string => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d)
+
+function sanitizeReconciliation(r: ReconciliationFacts | null | undefined): ReconciliationFacts | null {
+  if (!r || !REC_VERDICTS.has(r.verdict)) return null
+  const n0 = (x: unknown) => num(x) ?? 0
+  return {
+    verdict: r.verdict,
+    periodFrom: isIso(r.periodFrom) ? r.periodFrom : null,
+    clockMarginHours: n0(r.clockMarginHours),
+    classes: (r.classes ?? [])
+      .filter((c) => (WITNESS_CLASSES as readonly string[]).includes(c.witnessClass))
+      .map((c) => ({
+        witnessClass: c.witnessClass, available: Boolean(c.available), truncated: Boolean(c.truncated), witnesses: n0(c.witnesses), verifiable: n0(c.verifiable),
+        missing: n0(c.missing), discordant: n0(c.discordant), unattributed: n0(c.unattributed), notVerifiable: n0(c.notVerifiable),
+        rate: num(c.rate), rateLow: num(c.rateLow), enough: Boolean(c.enough),
+      })),
+    confirmedMissing: n0(r.confirmedMissing),
+    degradation: REC_DEGRADATION.has(r.degradation) ? r.degradation : "indeterminee",
+    firstMissingDay: isDay(r.firstMissingDay) ? r.firstMissingDay : null,
+    quarantineDays: n0(r.quarantineDays),
+  }
 }
 
 /** Reads a snapshot file's JSON back, refusing anything that is not one or carries forbidden content. */
@@ -201,6 +230,15 @@ export function detectAnomalies(s: CollectionSnapshot, previous?: CollectionSnap
     out.push(proved && ACTIVITY_AMBIGUOUS_CODES.has(code) ? { code, severity: "info", explanation: `${explanation} — capture prouvée par la sonde du ${s.sentinel!.takenAt} : activité calme` } : { code, severity, explanation })
   const g = s.integrity
   if (s.sentinel?.status === "echouee") add("sonde_echouee", "bloquant", `la sonde de capture a échoué sur cette base (${s.sentinel.failed.join(", ") || "étape inconnue"}) : une mutation contrôlée ne produit pas l'événement attendu`)
+  const rec = s.reconciliation
+  if (rec?.verdict === "anomalies_confirmees")
+    add("mutations_sans_evenement", "bloquant", `${rec.confirmedMissing} mutation(s) prouvée(s) par un témoin indépendant sans événement d'historique${rec.firstMissingDay ? ` (dès le ${rec.firstMissingDay}` + (rec.degradation === "rupture_datee" ? ", rupture datée" : "") + ")" : ""} : ${rec.quarantineDays} jour(s) à exclure des analyses`)
+  else if (rec?.verdict === "attribution_a_verifier") {
+    const d = rec.classes.reduce((t, c) => t + c.discordant, 0)
+    const u = rec.classes.reduce((t, c) => t + c.unattributed, 0)
+    add("attribution_des_mutations", "majeur", `mutations enregistrées mais ${d} avec une source que le registre ne déclare pas pour ce chemin et ${u} « unattributed »`)
+  } else if (rec && (rec.verdict === "rien_de_verifiable" || rec.verdict === "lecture_tronquee"))
+    add("rapprochement_non_conclusif", "info", rec.verdict === "lecture_tronquee" ? "lecture plafonnée : rapprochement non conclu" : "aucun témoin vérifiable : absence de preuve, pas preuve d'absence")
   if (s.sentinel?.status === "inconcluante") add("sonde_inconcluante", "mineur", `sonde interrompue ou incomplète (${s.sentinel.unknown.join(", ") || "—"}) : à relancer`)
   const v = (k: IntegrityKey) => (g ? num(g[k]) ?? 0 : 0)
 
@@ -326,9 +364,14 @@ export function compareSnapshots(a: CollectionSnapshot, b: CollectionSnapshot): 
     return { comparable: false, reason: `environnements différents ou non identifiés (${a.environment.branch}/${a.environment.endpoint} ≠ ${b.environment.branch}/${b.environment.endpoint}) : jamais comparés comme une même base` }
   const [x, y] = Date.parse(a.takenAt) <= Date.parse(b.takenAt) ? [a, b] : [b, a]
   const ids = [...new Set([...x.checks.map((c) => c.id), ...y.checks.map((c) => c.id)])].sort()
-  const vol = (s: CollectionSnapshot, k: string): number | null => (s.volumes ? num((s.volumes as Record<string, unknown>)[k]) : null) ?? (k === "events" ? num(s.integrity?.events) : null)
+  const vol = (s: CollectionSnapshot, k: string): number | null =>
+    k === "temoinsVerifiables"
+      ? s.reconciliation ? s.reconciliation.classes.reduce((t, c) => t + c.verifiable, 0) : null
+      : k === "mutationsSansEvenement"
+        ? s.reconciliation ? s.reconciliation.confirmedMissing : null
+        : (s.volumes ? num((s.volumes as Record<string, unknown>)[k]) : null) ?? (k === "events" ? num(s.integrity?.events) : null)
   const volumes: Record<string, { from: number | null; to: number | null; delta: number | null }> = {}
-  for (const k of ["events", "listingsWithHistory", "products", "resellers", "completePeriods", "ongoingPeriods", "unjudgedPeriods", "periodsWithSale", "historyDays"]) {
+  for (const k of ["events", "listingsWithHistory", "products", "resellers", "completePeriods", "ongoingPeriods", "unjudgedPeriods", "periodsWithSale", "historyDays", "temoinsVerifiables", "mutationsSansEvenement"]) {
     const f = vol(x, k)
     const t = vol(y, k)
     volumes[k] = { from: f, to: t, delta: f != null && t != null ? t - f : null }
@@ -410,6 +453,10 @@ export function assessStability(checkpoint: "J+1" | "J+7", baseline: CollectionS
   const probedSince = (t: string) => current.sentinel?.status === "confirmee" && !!current.sentinel.takenAt && Date.parse(current.sentinel.takenAt) > Date.parse(t)
   const probeNote = (t: string) => (probedSince(t) ? ` ; aucun événement réel mais capture prouvée par la sonde du ${current.sentinel!.takenAt}` : "")
   criteria.push({ criterion: "nouveaux_evenements", met: current.integrity ? newEvents > 0 || probedSince(baseline.takenAt) : null, detail: current.integrity ? `${newEvents} événement(s) depuis l'état initial${newEvents > 0 ? "" : probeNote(baseline.takenAt)}` : "intégrité non lue" })
+  // The reconciliation adds a criterion only when it concluded: a proved loss, or witnesses all consistent.
+  const rec = current.reconciliation
+  if (rec && (rec.confirmedMissing > 0 || rec.verdict === "aucune_anomalie_sur_le_perimetre_verifie" || rec.verdict === "attribution_a_verifier"))
+    criteria.push({ criterion: "rapprochement_mutations", met: rec.confirmedMissing === 0, detail: rec.confirmedMissing > 0 ? `${rec.confirmedMissing} mutation(s) prouvée(s) sans événement` : `${rec.classes.reduce((t, c) => t + c.verifiable, 0)} témoin(s) vérifiable(s), tous cohérents` })
   // Only a conclusive probe adds a criterion: an absent or expired probe never makes a window with real events weaker.
   if (current.sentinel && (current.sentinel.status === "confirmee" || current.sentinel.status === "echouee")) criteria.push({ criterion: "sonde_de_capture", met: current.sentinel.status === "confirmee" ? true : current.sentinel.status === "echouee" ? false : null, detail: captureProofLabel(current.sentinel, current.global === "PASS" || current.global === "WARN") })
   const reconciled = current.integrity ? (num(current.integrity.stateMismatches) ?? 0) === 0 && (num(current.integrity.createdWithoutEvent) ?? 1) === 0 : null
