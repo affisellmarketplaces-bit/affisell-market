@@ -20,6 +20,8 @@ import {
   type ScoredCase,
   type SituationTrack,
 } from "@/lib/reseller-copilot/learning"
+import type { HistoricalExposureMode } from "@/lib/listing-presence/exposure"
+import { buildExposureLearning, historicalSaleOutcome, type ExposureLearning } from "@/lib/reseller-copilot/learning-exposure"
 import { simulateRanking, type RankingSimulation } from "@/lib/reseller-copilot/learning-ranking-sim"
 
 export type LearningReport = {
@@ -51,6 +53,8 @@ export type LearningReport = {
   }
   truncated: boolean
   limits: string[]
+  /** Presence-qualified outcomes (HISTORICAL_EXPOSURE_MODE observe / on); absent when the mode is off. */
+  exposure?: ExposureLearning
 }
 
 export const LEARNING_LIMITS = [
@@ -63,7 +67,7 @@ export const LEARNING_LIMITS = [
   "shop_traffic_unknown",
 ] as const
 
-export function buildLearningReport(cases: ReadonlyArray<ProposalCase>, now: Date, opts: { truncated?: boolean } = {}): LearningReport {
+export function buildLearningReport(cases: ReadonlyArray<ProposalCase>, now: Date, opts: { truncated?: boolean; exposureMode?: HistoricalExposureMode } = {}): LearningReport {
   const scored: ScoredCase[] = cases.map((c) => ({ c, o: classifyCase(c, now) }))
   const truncated = Boolean(opts.truncated)
   const funnel = {
@@ -93,7 +97,11 @@ export function buildLearningReport(cases: ReadonlyArray<ProposalCase>, now: Dat
     saleShareHi: ok(matureAdds.length, r(matureAdds)) ? w.hi : null,
     recommendationToSaleShare: ok(matureProps.length, r(matureProps)) ? matureProps.filter((x) => x.o.status === "vendu").length / matureProps.length : null,
   }
-  const discovery = discover(scored, { truncated })
+  const exposureMode = opts.exposureMode ?? "off"
+  const ex = exposureMode === "off" ? null : buildExposureLearning(scored, now, { mode: exposureMode, truncated })
+  // Mode `on` AND every mature addition covered → the discovery engine tests « sold within H listed days »; otherwise the
+  // reference outcome, unchanged (never a mix of the two inside one test).
+  const discovery = discover(scored, { truncated, saleOutcome: ex ? historicalSaleOutcome(ex.qualified, ex.block) : undefined })
   const ranking = truncated ? simulateRanking([]) : simulateRanking(scored)
   const firstFailure = discovery.discoveries.find((d) => d.kind === "surestime" || d.kind === "echec")
   const firstUnder = discovery.discoveries.find((d) => d.kind === "sous_estime")
@@ -120,5 +128,6 @@ export function buildLearningReport(cases: ReadonlyArray<ProposalCase>, now: Dat
     },
     truncated,
     limits: [...LEARNING_LIMITS],
+    ...(ex ? { exposure: ex.block } : {}),
   }
 }

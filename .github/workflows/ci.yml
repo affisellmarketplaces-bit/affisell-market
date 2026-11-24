@@ -108,3 +108,4 @@ jobs:
           lib/__tests__/observation-plan-db.test.ts
           lib/__tests__/presence-readiness-db.test.ts
           lib/__tests__/listing-mutation-provenance-db.test.ts
+          lib/__tests__/historical-exposure-db.test.ts

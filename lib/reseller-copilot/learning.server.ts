@@ -2,6 +2,8 @@ import "server-only"
 
 import { unstable_cache } from "next/cache"
 
+import { readHistoricalExposureMode } from "@/lib/listing-presence/exposure"
+import { loadPresenceForProducts } from "@/lib/listing-presence/presence.server"
 import { netAffiliateTransferCents } from "@/lib/marketplace-phase1-fees"
 import { isOrderClosedForPayout } from "@/lib/orders/payment-state"
 import { prisma } from "@/lib/prisma"
@@ -15,6 +17,7 @@ import {
   type ShopOrder,
   type SituationTrack,
 } from "@/lib/reseller-copilot/learning"
+import { presenceForCase } from "@/lib/reseller-copilot/learning-exposure"
 import { buildLearningReport, type LearningReport } from "@/lib/reseller-copilot/learning-report"
 import type { SelectionItem } from "@/lib/reseller-copilot/selection"
 
@@ -142,6 +145,13 @@ export async function loadLearningCases(now = new Date()): Promise<{ cases: Prop
     ])
   }
   const addIds = new Set(adds.map((a) => a.id))
+  // Presence history (HISTORICAL_EXPOSURE_MODE observe / on): each case gets ONLY its own shop's listing histories
+  // (`presenceForCase`). A failed read = no presence (the reference outcome), never a crash.
+  let presenceRead: Awaited<ReturnType<typeof loadPresenceForProducts>> | null = null
+  if (readHistoricalExposureMode() !== "off") {
+    const read = await loadPresenceForProducts(products).catch(() => null)
+    if (read?.available && read.trackingStartedAt) presenceRead = read
+  }
   const cases: ProposalCase[] = [...first.values()].map((r) => {
     const k = `${r.actorId}\u0000${r.entityId}`
     return {
@@ -152,6 +162,9 @@ export async function loadLearningCases(now = new Date()): Promise<{ cases: Prop
       listingCreatedAt: listingBy.get(k) ?? null,
       viaCopilot: addIds.has(copilotAddId(r.actorId!, r.entityId!)),
       orders: ordersBy.get(k) ?? [],
+      presence: presenceRead?.trackingStartedAt
+        ? { trackingStartedAt: presenceRead.trackingStartedAt, truncated: presenceRead.truncated, histories: presenceForCase(presenceRead.listings, r.actorId!, r.entityId!) }
+        : null,
     }
   })
   return { cases, truncated }
@@ -165,9 +178,9 @@ export async function loadCopilotLearningReport(now = new Date()): Promise<Learn
     return await unstable_cache(
       async () => {
         const { cases, truncated } = await loadLearningCases(now)
-        return buildLearningReport(cases, now, { truncated })
+        return buildLearningReport(cases, now, { truncated, exposureMode: readHistoricalExposureMode() })
       },
-      ["copilot-learning-report-v1", bucket],
+      ["copilot-learning-report-v2", bucket, readHistoricalExposureMode()],
       { revalidate: 6 * 3600 },
     )()
   } catch (error) {

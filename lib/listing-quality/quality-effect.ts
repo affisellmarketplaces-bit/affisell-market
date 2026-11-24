@@ -21,6 +21,18 @@
  * it, so the reader sees how much the comparison inside strata changed it.
  */
 
+import {
+  compareExposureMethods,
+  exposureReliability,
+  inIntervals,
+  shopExposures,
+  type CoverageLevel,
+  type ExposureComparison,
+  type HistoricalExposureMode,
+  type LifecycleProfile,
+} from "../listing-presence/exposure"
+import type { PresenceHistory } from "../listing-presence/periods"
+
 export const QUALITY_WINDOW_DAYS = 90
 const DAY = 86_400_000
 
@@ -317,6 +329,24 @@ export const QUALITY_LIMITS = [
   "returns_by_reason_not_included",
 ] as const
 
+/** Replaces `listing_history_estimated` when the report was measured on the presence history. */
+export const QUALITY_HISTORY_LIMITS = ["presence_is_not_traffic", "availability_history_not_recorded", "censoring_of_short_listings"] as const
+
+/** Which exposure a report was measured on — always stated, never mixed inside one report. */
+export type QualityExposureBasis = {
+  mode: HistoricalExposureMode
+  /** Coverage of the analysed window by the presence history (`windowCoverage`); null when the mode is off. */
+  coverage: CoverageLevel | null
+  /** What the verdicts were computed on. `presence_history` only in mode `on` with a covered window. */
+  used: "live_listings" | "presence_history"
+  /** Products measured on history / left out because their own history is not reliable over the window. */
+  productsHistorical: number
+  excludedUnreliable: number
+  /** Old (live) vs new (history) exposure over the same products — present whenever history was read. */
+  comparison: ExposureComparison | null
+  /** When listings sell over the life of a period, and after a relisting (descriptive; history read and covered only). */
+  lifecycle?: LifecycleProfile | null
+}
 export type QualityEffectReport = {
   windowDays: number
   generatedAt: string
@@ -326,6 +356,7 @@ export type QualityEffectReport = {
   bonferroniZ: number
   effects: FeatureEffect[]
   limits: readonly string[]
+  exposureBasis?: QualityExposureBasis
 }
 
 export function buildQualityEffectReport(args: {
@@ -333,6 +364,7 @@ export function buildQualityEffectReport(args: {
   exposure: ReadonlyMap<string, QualityExposure>
   now: Date
   truncated: boolean
+  exposureBasis?: QualityExposureBasis
 }): QualityEffectReport {
   const z = bonferroniZ(QUALITY_FEATURES.length)
   const effects = args.truncated
@@ -346,8 +378,97 @@ export function buildQualityEffectReport(args: {
     truncated: args.truncated,
     bonferroniZ: z,
     effects,
-    limits: QUALITY_LIMITS,
+    limits:
+      args.exposureBasis?.used === "presence_history"
+        ? [...QUALITY_LIMITS.filter((l) => l !== "listing_history_estimated"), ...QUALITY_HISTORY_LIMITS]
+        : QUALITY_LIMITS,
+    ...(args.exposureBasis ? { exposureBasis: args.exposureBasis } : {}),
   }
+}
+
+// ── Exposure from the presence history (lib/listing-presence/exposure.ts — one definition of a listed day) ──────────
+
+export type QualityOrderFact = { productId: string; affiliateId: string; paidAt: Date; quantity: number; closed: boolean }
+
+/**
+ * Historical exposure of each product in [from, to): KNOWN listed days of every listing (withdrawn and deleted ones
+ * included, relistings never double-counted), and only the orders paid while that shop's listing was known to be listed.
+ * A product whose own history is not reliable over the window (unknown days > 10 %, or a missing event) is NOT measured:
+ * it is counted in `excluded`, never measured on the live estimate instead (no mixing inside one report).
+ */
+export function historicalQualityExposure(args: {
+  productIds: ReadonlyArray<string>
+  presence: ReadonlyMap<string, ReadonlyArray<{ affiliateId: string; history: PresenceHistory }>>
+  orders: ReadonlyArray<QualityOrderFact>
+  from: Date
+  to: Date
+}): { exposure: Map<string, QualityExposure & { resellersListing: number; unknownDays: number; ordersOutsideKnownPeriods: number }>; excluded: Set<string> } {
+  const ordersBy = new Map<string, QualityOrderFact[]>()
+  for (const o of args.orders) ordersBy.set(o.productId, [...(ordersBy.get(o.productId) ?? []), o])
+  const exposure = new Map<string, QualityExposure & { resellersListing: number; unknownDays: number; ordersOutsideKnownPeriods: number }>()
+  const excluded = new Set<string>()
+  for (const id of args.productIds) {
+    const shops = shopExposures(args.presence.get(id) ?? [], args.from, args.to)
+    const listed = shops.reduce((a, s) => a + s.listedDays, 0)
+    const unknown = shops.reduce((a, s) => a + s.unknownDays, 0)
+    const anomaly = shops.some((s) => s.anomaly && s.unknownDays > 0)
+    const ivBy = new Map(shops.map((s) => [s.affiliateId, s.intervals]))
+    const e = { listingDays: Math.round(listed * 100) / 100, paidOrders: 0, units: 0, closedOrders: 0, resellersListing: shops.filter((s) => s.listedDays > 0).length, unknownDays: Math.round(unknown * 100) / 100, ordersOutsideKnownPeriods: 0 }
+    for (const o of ordersBy.get(id) ?? []) {
+      const ts = o.paidAt.getTime()
+      if (ts < args.from.getTime() || ts >= args.to.getTime()) continue
+      if (!inIntervals(ivBy.get(o.affiliateId) ?? [], ts)) {
+        e.ordersOutsideKnownPeriods++
+        continue
+      }
+      e.paidOrders++
+      e.units += Math.max(1, o.quantity)
+      if (o.closed) e.closedOrders++
+    }
+    exposure.set(id, e)
+    if (exposureReliability(listed, unknown, anomaly) !== "fiable") excluded.add(id)
+  }
+  return { exposure, excluded }
+}
+
+/**
+ * Which exposure the report is measured on — ONE rule: mode `on` AND a covered window → history (unreliable products
+ * left out, counted); anything else → the live estimate, with history only in the comparison. Never a mix.
+ */
+export function selectQualityExposure<L extends QualityExposure, H extends QualityExposure & { ordersOutsideKnownPeriods: number }>(args: {
+  mode: HistoricalExposureMode
+  coverage: CoverageLevel
+  usable: boolean
+  live: Map<string, L>
+  historical: { exposure: Map<string, H>; excluded: Set<string> } | null
+  lifecycle?: LifecycleProfile | null
+}): { exposure: Map<string, L | H>; basis: QualityExposureBasis } {
+  const comparison = args.historical && args.usable ? compareQualityExposure(args.live, args.historical.exposure) : null
+  const live: QualityExposureBasis = {
+    mode: args.mode,
+    coverage: args.coverage,
+    used: "live_listings",
+    productsHistorical: 0,
+    excludedUnreliable: 0,
+    comparison,
+    lifecycle: args.usable ? (args.lifecycle ?? null) : null,
+  }
+  if (args.mode !== "on" || !args.usable || !args.historical) return { exposure: args.live, basis: live }
+  const used = new Map<string, H>()
+  for (const [id, e] of args.historical.exposure) if (!args.historical.excluded.has(id)) used.set(id, e)
+  return { exposure: used, basis: { ...live, used: "presence_history", productsHistorical: used.size, excludedUnreliable: args.historical.excluded.size } }
+}
+
+/** Old vs new, product by product (only products the live estimate or history gives some exposure). */
+export function compareQualityExposure(
+  live: ReadonlyMap<string, QualityExposure>,
+  historical: ReadonlyMap<string, QualityExposure & { ordersOutsideKnownPeriods: number }>,
+): ExposureComparison {
+  const ids = new Set([...live.keys(), ...historical.keys()])
+  const rows = [...ids]
+    .map((id) => ({ liveDays: live.get(id)?.listingDays ?? 0, historicalDays: historical.get(id)?.listingDays ?? 0, ordersOutsideKnownPeriods: historical.get(id)?.ordersOutsideKnownPeriods ?? 0 }))
+    .filter((r) => r.liveDays > 0 || r.historicalDays > 0)
+  return compareExposureMethods(rows)
 }
 
 /** Listing-days of one listing inside the window (from its creation or the window start, to now). */

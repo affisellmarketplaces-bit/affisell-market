@@ -28,6 +28,7 @@
 import { LOW_NET_CENTS, rankGeneric, selectionOrder, type SelectionCandidate, type SelectionItem } from "@/lib/reseller-copilot/selection"
 import { ageBandOf, benjaminiHochberg, competitionBandOf, normalP, priceBandOfCents } from "@/lib/reseller-copilot/learning"
 import type { RankCriterion } from "@/lib/reseller-copilot/opportunity"
+import { knownListedIntervals } from "@/lib/listing-presence/exposure"
 import { listedDaysInWindow, type PresenceHistory } from "@/lib/listing-presence/periods"
 
 const DAY = 86_400_000
@@ -208,31 +209,15 @@ export function exposureOf(p: BlindSpotProductInput, from: Date, to: Date): Expo
   return { ...liveExposureOf(p, from, to), basis: "live_listings" }
 }
 
-/** Known listed intervals of one history inside [f, t), uncertain periods excluded. */
-function knownIntervals(h: PresenceHistory, f: number, t: number): Array<[number, number]> {
-  if (h.status === "indisponible" || !h.observedFrom) return []
-  const obs = h.observedFrom.getTime()
-  const out: Array<[number, number]> = []
-  for (const per of h.periods) {
-    if (per.uncertain) continue
-    const lo = Math.max(f, obs, per.start ? per.start.getTime() : obs)
-    const hi = Math.min(t, per.end ? per.end.getTime() : t)
-    if (hi > lo) out.push([lo, hi])
-  }
-  return out
-}
-
 export function presenceExposureOf(p: BlindSpotProductInput, from: Date, to: Date): Exposure {
-  const f = from.getTime()
-  const t = to.getTime()
   const histories = p.presence ?? []
-  const intervalsBy = new Map<string, Array<[number, number]>>()
+  const intervalsBy = new Map<string, Array<readonly [number, number]>>()
   let listingDays = 0
   let unknownDays = 0
   let matureShops = 0
   let withdrawn = 0
   for (const { affiliateId, history } of histories) {
-    const iv = knownIntervals(history, f, t)
+    const iv = knownListedIntervals(history, from, to)
     intervalsBy.set(affiliateId, [...(intervalsBy.get(affiliateId) ?? []), ...iv])
     const known = listedDaysInWindow(history, from, to)
     listingDays += iv.reduce((a, [lo, hi]) => a + (hi - lo) / DAY, 0)

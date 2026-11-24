@@ -216,6 +216,11 @@ export type ProposalCase = {
   viaCopilot: boolean
   /** Paid orders of that product in THAT reseller's shop (any date; the window is applied here). */
   orders: ReadonlyArray<ShopOrder>
+  /**
+   * Presence history of THAT reseller's listing(s) of the product (learning-exposure.ts), read only when
+   * HISTORICAL_EXPOSURE_MODE is not off. Never another shop's. Absent = not read: the reference outcome only.
+   */
+  presence?: { trackingStartedAt: Date; truncated: boolean; histories: ReadonlyArray<import("@/lib/listing-presence/periods").PresenceHistory> } | null
 }
 
 export type CaseOutcome = {

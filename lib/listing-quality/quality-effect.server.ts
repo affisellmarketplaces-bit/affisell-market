@@ -2,13 +2,20 @@ import "server-only"
 
 import { unstable_cache } from "next/cache"
 
+import { lifecycleProfile, readHistoricalExposureMode, windowCoverage, type HistoricalExposureMode } from "@/lib/listing-presence/exposure"
+import type { PresenceHistory } from "@/lib/listing-presence/periods"
+import { loadPresenceForProducts } from "@/lib/listing-presence/presence.server"
 import {
   buildQualityEffectReport,
+  historicalQualityExposure,
   listingDaysInWindow,
   QUALITY_WINDOW_DAYS,
+  selectQualityExposure,
   supplierQualityRecommendations,
   type QualityEffectReport,
   type QualityExposure,
+  type QualityExposureBasis,
+  type QualityOrderFact,
   type QualityProduct,
   type QualityRecommendation,
 } from "@/lib/listing-quality/quality-effect"
@@ -83,9 +90,9 @@ async function readProducts(where: { supplierId?: string }) {
   return { quality, truncated }
 }
 
-async function readExposure(ids: string[], now: Date) {
+async function readExposure(ids: string[], now: Date, mode: HistoricalExposureMode = readHistoricalExposureMode()) {
   const since = new Date(now.getTime() - QUALITY_WINDOW_DAYS * DAY)
-  if (ids.length === 0) return { exposure: new Map<string, QualityExposure & { resellersListing: number }>(), truncated: false }
+  if (ids.length === 0) return { exposure: new Map<string, QualityExposure & { resellersListing: number }>(), truncated: false, basis: undefined as QualityExposureBasis | undefined }
   const [listings, orders] = await Promise.all([
     prisma.affiliateProduct.findMany({
       where: { productId: { in: ids }, isListed: true },
@@ -94,7 +101,7 @@ async function readExposure(ids: string[], now: Date) {
     }),
     prisma.order.findMany({
       where: { productId: { in: ids }, paidAt: { gte: since } },
-      select: { productId: true, quantity: true, status: true, paymentSettlementStatus: true },
+      select: { productId: true, affiliateId: true, paidAt: true, quantity: true, status: true, paymentSettlementStatus: true },
       take: MAX_ROWS + 1,
     }),
   ])
@@ -118,20 +125,47 @@ async function readExposure(ids: string[], now: Date) {
     if (isOrderClosedForPayout(o)) e.closedOrders++
   }
   for (const [id, set] of resellers) get(id).resellersListing = set.size
-  return { exposure, truncated }
+  if (mode === "off") return { exposure, truncated, basis: undefined }
+  return { ...(await withHistoricalExposure({ ids, live: exposure, orders, since, now, mode })), truncated }
+}
+
+/**
+ * The presence history over the SAME window and products (lib/listing-presence/exposure.ts). Never mixes: in mode `on`
+ * with a covered window the whole report is measured on history (unreliable products left out, counted); otherwise
+ * the live estimate stays the measure and history only feeds the comparison. A failed read = live, said.
+ */
+async function withHistoricalExposure(args: {
+  ids: string[]
+  live: Map<string, QualityExposure & { resellersListing: number }>
+  orders: ReadonlyArray<{ productId: string | null; affiliateId: string; paidAt: Date | null; quantity: number | null; status: string; paymentSettlementStatus: string | null }>
+  since: Date
+  now: Date
+  mode: HistoricalExposureMode
+}): Promise<{ exposure: Map<string, QualityExposure & { resellersListing: number }>; basis: QualityExposureBasis }> {
+  const read = await loadPresenceForProducts(args.ids).catch(() => null)
+  const coverage = windowCoverage(read, args.since, args.now)
+  if (!read || !coverage.usable) return selectQualityExposure<QualityExposure & { resellersListing: number }, QualityExposure & { resellersListing: number; ordersOutsideKnownPeriods: number }>({ mode: args.mode, coverage: coverage.level, usable: false, live: args.live, historical: null })
+  const presence = new Map<string, Array<{ affiliateId: string; history: PresenceHistory }>>()
+  for (const l of read.listings) presence.set(l.productId, [...(presence.get(l.productId) ?? []), { affiliateId: l.affiliateId, history: l.history }])
+  const facts: QualityOrderFact[] = args.orders.flatMap((o) =>
+    o.productId && o.paidAt ? [{ productId: o.productId, affiliateId: o.affiliateId, paidAt: o.paidAt, quantity: o.quantity ?? 1, closed: isOrderClosedForPayout(o) }] : [],
+  )
+  const historical = historicalQualityExposure({ productIds: args.ids, presence, orders: facts, from: args.since, to: args.now })
+  const lifecycle = lifecycleProfile(read.listings, facts.filter((o) => !o.closed), args.since, args.now)
+  return selectQualityExposure({ mode: args.mode, coverage: coverage.level, usable: true, live: args.live, historical, lifecycle })
 }
 
 async function computeReport(nowIso: string): Promise<QualityEffectReport> {
   const now = new Date(nowIso)
   const { quality, truncated } = await readProducts({})
   const ex = await readExposure(quality.map((p) => p.id), now)
-  return buildQualityEffectReport({ products: quality, exposure: ex.exposure, now, truncated: truncated || ex.truncated })
+  return buildQualityEffectReport({ products: quality, exposure: ex.exposure, now, truncated: truncated || ex.truncated, exposureBasis: ex.basis })
 }
 
 /** Marketplace-wide AGGREGATE (no product, supplier or reseller identifier). Cached 6 h: the window is 90 days. */
 export async function loadQualityEffectReport(now = new Date()): Promise<QualityEffectReport> {
   const day = now.toISOString().slice(0, 13) // hour bucket → stable key within the cache life
-  return unstable_cache(() => computeReport(now.toISOString()), ["listing-quality-effect-v1", day], { revalidate: 6 * 3600 })()
+  return unstable_cache(() => computeReport(now.toISOString()), ["listing-quality-effect-v2", readHistoricalExposureMode(), day], { revalidate: 6 * 3600 })()
 }
 
 /** The supplier's OWN sheets × the aggregate evidence. Nothing about another supplier is read into the answer. */
@@ -141,6 +175,7 @@ export async function loadSupplierQualityRecommendations(supplierId: string, now
 }> {
   const report = await loadQualityEffectReport(now)
   const { quality } = await readProducts({ supplierId })
-  const { exposure } = await readExposure(quality.map((p) => p.id), now)
+  // The supplier's own exposure is read on the SAME basis as the marketplace report (one definition per answer).
+  const { exposure } = await readExposure(quality.map((p) => p.id), now, report.exposureBasis?.used === "presence_history" ? "on" : "off")
   return { report, recommendations: supplierQualityRecommendations({ ownProducts: quality, ownExposure: exposure, report, max: 10 }) }
 }

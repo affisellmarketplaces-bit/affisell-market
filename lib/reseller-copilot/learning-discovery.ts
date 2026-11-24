@@ -53,16 +53,28 @@ export type DiscoveryReport = {
   notJudgeable: string[]
   truncated: boolean
   nature: "association_observee"
+  /** Which sale outcome was tested: the reference (sold in 30 days) or the exposure-qualified one (sold within H listed days). */
+  saleBasis?: "reference_30_jours" | "historique_h_jours_en_vente"
 }
 
 type Unit = { affiliateId: string; features: string[]; success: boolean }
 
-function units(cases: ReadonlyArray<ScoredCase>, outcome: DiscoveryOutcome): Unit[] {
+/** null = the case is left out of the sale outcome (censored by the exposure rule). */
+export type SaleOutcome = (x: ScoredCase) => boolean | null
+
+function units(cases: ReadonlyArray<ScoredCase>, outcome: DiscoveryOutcome, saleOutcome?: SaleOutcome): Unit[] {
   const out: Unit[] = []
-  for (const { c, o } of cases) {
+  for (const x of cases) {
+    const { c, o } = x
     if (!c.snapshot) continue
     if (outcome === "vente" ? !isMatureAdd(o) : !isMatureProposal(o)) continue
-    out.push({ affiliateId: c.affiliateId, features: snapshotFeatures(c.snapshot), success: outcome === "vente" ? o.status === "vendu" : isMatureAdd(o) })
+    let success: boolean
+    if (outcome === "vente") {
+      const s = saleOutcome ? saleOutcome(x) : o.status === "vendu"
+      if (s === null) continue
+      success = s
+    } else success = isMatureAdd(o)
+    out.push({ affiliateId: c.affiliateId, features: snapshotFeatures(c.snapshot), success })
   }
   return out
 }
@@ -100,9 +112,10 @@ function kindOf(r: PatternResult): DiscoveryKind {
   return r.pattern.some((f) => STRONG.has(f)) ? "surestime" : "echec"
 }
 
-export function discover(cases: ReadonlyArray<ScoredCase>, opts: { truncated?: boolean } = {}): DiscoveryReport {
-  if (opts.truncated) return { tested: { vente: 0, ajout: 0 }, discoveries: [], noDifferenceDetected: [], notJudgeable: [], truncated: true, nature: "association_observee" }
-  const sale = testOutcome(units(cases, "vente"), "vente")
+export function discover(cases: ReadonlyArray<ScoredCase>, opts: { truncated?: boolean; saleOutcome?: SaleOutcome } = {}): DiscoveryReport {
+  const saleBasis = opts.saleOutcome ? ("historique_h_jours_en_vente" as const) : ("reference_30_jours" as const)
+  if (opts.truncated) return { tested: { vente: 0, ajout: 0 }, discoveries: [], noDifferenceDetected: [], notJudgeable: [], truncated: true, nature: "association_observee", saleBasis }
+  const sale = testOutcome(units(cases, "vente", opts.saleOutcome), "vente")
   const adopt = testOutcome(units(cases, "ajout"), "ajout")
   const discoveries = [...sale.results, ...adopt.results]
     .filter((r) => r.q <= DISCOVERY_FDR)
@@ -123,5 +136,5 @@ export function discover(cases: ReadonlyArray<ScoredCase>, opts: { truncated?: b
     if (rs.length < 2) notJudgeable.push(fam)
     else if (!rs.some((r) => r.q <= DISCOVERY_FDR)) noDifferenceDetected.push({ family: fam, values: rs.length, cases: rs.reduce((s, r) => s + r.cases, 0) })
   }
-  return { tested: { vente: sale.results.length, ajout: adopt.results.length }, discoveries: discoveries.slice(0, 50), noDifferenceDetected, notJudgeable, truncated: sale.truncated || adopt.truncated, nature: "association_observee" }
+  return { tested: { vente: sale.results.length, ajout: adopt.results.length }, discoveries: discoveries.slice(0, 50), noDifferenceDetected, notJudgeable, truncated: sale.truncated || adopt.truncated, nature: "association_observee", saleBasis }
 }
