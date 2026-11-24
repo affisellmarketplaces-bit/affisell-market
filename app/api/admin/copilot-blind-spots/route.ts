@@ -12,6 +12,7 @@ import { readPlanHoldoutPct, readPlanMode } from "@/lib/reseller-copilot/observa
 import { loadPlanEvaluation } from "@/lib/reseller-copilot/observation-plan.server"
 import { readContextualMode } from "@/lib/reseller-copilot/contextual-horizon"
 import { loadContextualAdminView } from "@/lib/reseller-copilot/contextual-horizon.server"
+import { loadActivationReadiness } from "@/lib/reseller-copilot/activation-readiness.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -31,10 +32,17 @@ export const dynamic = "force-dynamic"
  * `contextualHorizon` (switch `CONTEXTUAL_HORIZON_MODE`, off by default): which product / context factors are
  * associated with faster or later first sales, the models compared with today's rule on an independent later period,
  * calibration, controls, the verdict, and the drift of the retained factors over the daily snapshots. Aggregates only.
+ * `?readiness=1`: ONLY the activation readiness report of the five engines (maturity per dimension, data vs coded
+ * thresholds, missing volumes, ETA from a measured cadence only, activation sequence, post-migration checklist).
+ * Read-only, aggregates only, cached 6 h; independent of the five flags, which it reads and never changes.
  */
-export async function GET(): Promise<Response> {
+export async function GET(req: Request): Promise<Response> {
   const gate = await requireAdminSession()
   if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status })
+  if (new URL(req.url).searchParams.get("readiness") === "1") {
+    const readiness = await loadActivationReadiness()
+    return NextResponse.json({ readiness }, { status: readiness ? 200 : 503 })
+  }
   const mode = readBlindSpotsMode()
   const temporalMode = readTemporalMode()
   const retentionMode = readRetentionMode()
