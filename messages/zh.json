@@ -3475,6 +3475,24 @@
         "orders": "所选替代品 30 天内 {orders} 笔已付订单（{refunded} 笔取消或退款）· 其中 {waiting} 笔来自等待中的买家",
         "caveat": "这是观察到的关联，不能证明建议促成了销售。"
       }
+    },
+    "retentionAdvice": {
+      "eyebrow": "下架之前",
+      "title": "这个商品可能还没有足够时间卖出",
+      "current": "已在您的店铺上架 {days} 天，暂无销售。",
+      "typicalProduct": "在其他 {resellers} 位分销商处，它的首单通常在 {p25} 至 {p75} 天之间（中位数 {p50} 天）。",
+      "typicalCategory": "在同一类目中，其他 {resellers} 位分销商的首单通常在 {p25} 至 {p75} 天之间（中位数 {p50} 天）。",
+      "late": "这些首单中有 {pct}% 出现在 {days} 天之后。",
+      "conditional": "在 {days} 天时仍未售出的商品中，{pct}% 在 {recommended} 天前售出。",
+      "suggestion": "再保留 {extra} 天，可以按通常的观察时长（{recommended} 天）来判断。",
+      "noGuarantee": "这并不保证一定会卖出。",
+      "confidenceLow": "可靠性低",
+      "confidenceMedium": "可靠性中等",
+      "reason_echantillon_limite": "样本仍有限",
+      "reason_categorie_seulement": "按类目测量，而非本商品",
+      "reason_chance_non_mesurable": "售出概率无法测量",
+      "reason_echantillon_suffisant": "样本充足",
+      "yourCall": "您仍可以现在下架。"
     }
   },
   "marketplace": {

@@ -3475,6 +3475,24 @@
         "orders": "{orders} betaalde bestellingen van gekozen alternatieven binnen 30 dagen ({refunded} geannuleerd of terugbetaald) · {waiting} door wachtende kopers",
         "caveat": "Waargenomen verband, geen bewijs dat het voorstel de verkoop veroorzaakte."
       }
+    },
+    "retentionAdvice": {
+      "eyebrow": "Voor je het verwijdert",
+      "title": "Dit product heeft misschien nog geen tijd gehad om te verkopen",
+      "current": "Al {days} d in je winkel, nog geen verkoop.",
+      "typicalProduct": "Bij {resellers} andere resellers kwam de eerste verkoop meestal na {p25} tot {p75} d (mediaan {p50} d).",
+      "typicalCategory": "In zijn categorie komt de eerste verkoop bij {resellers} andere resellers meestal na {p25} tot {p75} d (mediaan {p50} d).",
+      "late": "{pct}% van die eerste verkopen kwam na {days} d.",
+      "conditional": "Van de vermeldingen zonder verkoop na {days} d verkocht {pct}% vóór {recommended} d.",
+      "suggestion": "Het {extra} d langer houden laat je oordelen over een gebruikelijke duur ({recommended} d).",
+      "noGuarantee": "Dit is geen verkoopgarantie.",
+      "confidenceLow": "Lage betrouwbaarheid",
+      "confidenceMedium": "Gemiddelde betrouwbaarheid",
+      "reason_echantillon_limite": "steekproef nog beperkt",
+      "reason_categorie_seulement": "gemeten op de categorie, niet op dit product",
+      "reason_chance_non_mesurable": "verkoopkans niet meetbaar",
+      "reason_echantillon_suffisant": "voldoende steekproef",
+      "yourCall": "Je kunt het nu gewoon verwijderen."
     }
   },
   "marketplace": {

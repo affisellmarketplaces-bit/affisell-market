@@ -3475,6 +3475,24 @@
         "orders": "{orders} opłaconych zamówień wybranych alternatyw w ciągu 30 dni ({refunded} anulowanych lub zwróconych) · {waiting} od czekających kupujących",
         "caveat": "Zaobserwowany związek, nie dowód, że propozycja spowodowała sprzedaż."
       }
+    },
+    "retentionAdvice": {
+      "eyebrow": "Zanim usuniesz",
+      "title": "Ten produkt mógł jeszcze nie zdążyć się sprzedać",
+      "current": "W sprzedaży od {days} dni w Twoim sklepie, na razie bez sprzedaży.",
+      "typicalProduct": "U {resellers} innych sprzedawców pierwsza sprzedaż przychodziła zwykle po {p25}–{p75} dniach (mediana {p50} dni).",
+      "typicalCategory": "W jego kategorii u {resellers} innych sprzedawców pierwsza sprzedaż przychodzi zwykle po {p25}–{p75} dniach (mediana {p50} dni).",
+      "late": "{pct}% tych pierwszych sprzedaży przyszło po {days} dniach.",
+      "conditional": "Spośród ofert wciąż bez sprzedaży po {days} dniach {pct}% sprzedało się przed {recommended} dniem.",
+      "suggestion": "Pozostawienie go o {extra} dni dłużej pozwoli ocenić go w zwykłym czasie ({recommended} dni).",
+      "noGuarantee": "To nie jest gwarancja sprzedaży.",
+      "confidenceLow": "Niska wiarygodność",
+      "confidenceMedium": "Średnia wiarygodność",
+      "reason_echantillon_limite": "próba wciąż ograniczona",
+      "reason_categorie_seulement": "mierzone na kategorii, nie na tym produkcie",
+      "reason_chance_non_mesurable": "szansa sprzedaży niemierzalna",
+      "reason_echantillon_suffisant": "wystarczająca próba",
+      "yourCall": "Możesz go usunąć już teraz."
     }
   },
   "marketplace": {

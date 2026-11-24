@@ -3475,6 +3475,24 @@
         "orders": "{orders} bezahlte Bestellungen der gewählten Alternativen innerhalb von 30 Tagen ({refunded} storniert oder erstattet) · davon {waiting} von wartenden Käufern",
         "caveat": "Beobachteter Zusammenhang, kein Beweis, dass der Vorschlag den Verkauf verursacht hat."
       }
+    },
+    "retentionAdvice": {
+      "eyebrow": "Vor dem Entfernen",
+      "title": "Dieses Produkt hatte vielleicht noch nicht genug Zeit, sich zu verkaufen",
+      "current": "Seit {days} T. in Ihrem Shop, bisher ohne Verkauf.",
+      "typicalProduct": "Bei {resellers} anderen Wiederverkäufern kam der erste Verkauf meist nach {p25} bis {p75} T. (Median {p50} T.).",
+      "typicalCategory": "In seiner Kategorie kommt der erste Verkauf bei {resellers} anderen Wiederverkäufern meist nach {p25} bis {p75} T. (Median {p50} T.).",
+      "late": "{pct} % dieser ersten Verkäufe kamen nach {days} T.",
+      "conditional": "Von den Angeboten ohne Verkauf nach {days} T. verkauften {pct} % vor {recommended} T.",
+      "suggestion": "{extra} T. länger behalten würde eine Beurteilung über die übliche Dauer ({recommended} T.) erlauben.",
+      "noGuarantee": "Das ist keine Verkaufsgarantie.",
+      "confidenceLow": "Geringe Verlässlichkeit",
+      "confidenceMedium": "Mittlere Verlässlichkeit",
+      "reason_echantillon_limite": "Stichprobe noch begrenzt",
+      "reason_categorie_seulement": "an der Kategorie gemessen, nicht an diesem Produkt",
+      "reason_chance_non_mesurable": "Verkaufschance nicht messbar",
+      "reason_echantillon_suffisant": "ausreichende Stichprobe",
+      "yourCall": "Sie können es jetzt trotzdem entfernen."
     }
   },
   "marketplace": {

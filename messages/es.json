@@ -3475,6 +3475,24 @@
         "orders": "{orders} pedidos pagados de las alternativas elegidas en 30 días ({refunded} cancelados o reembolsados) · {waiting} de compradores que esperaban",
         "caveat": "Asociación observada, no prueba de que la propuesta causara la venta."
       }
+    },
+    "retentionAdvice": {
+      "eyebrow": "Antes de retirarlo",
+      "title": "Quizá este producto aún no ha tenido tiempo de venderse",
+      "current": "En venta desde hace {days} d en tu tienda, sin ventas por ahora.",
+      "typicalProduct": "Con {resellers} otros revendedores, su primera venta llegó en general entre {p25} y {p75} d (mediana {p50} d).",
+      "typicalCategory": "En su categoría, con {resellers} otros revendedores, la primera venta llega en general entre {p25} y {p75} d (mediana {p50} d).",
+      "late": "El {pct} % de esas primeras ventas llegó después de {days} d.",
+      "conditional": "De las fichas aún sin venta a los {days} d, el {pct} % vendió antes de {recommended} d.",
+      "suggestion": "Mantenerlo {extra} d más permitiría juzgar sobre una duración habitual ({recommended} d).",
+      "noGuarantee": "No es una garantía de venta.",
+      "confidenceLow": "Fiabilidad baja",
+      "confidenceMedium": "Fiabilidad media",
+      "reason_echantillon_limite": "muestra aún limitada",
+      "reason_categorie_seulement": "medido en la categoría, no en este producto",
+      "reason_chance_non_mesurable": "probabilidad de venta no medible",
+      "reason_echantillon_suffisant": "muestra suficiente",
+      "yourCall": "Puedes retirarlo ahora si lo prefieres."
     }
   },
   "marketplace": {

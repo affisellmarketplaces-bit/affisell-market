@@ -5,6 +5,7 @@ import { Loader2, Pencil, Rocket, Sparkles, Undo2, Zap } from "lucide-react"
 import { useLocale } from "next-intl"
 import { useCallback, useState } from "react"
 
+import { RetentionAdviceNote } from "@/components/affiliate/retention-advice-note"
 import { Button } from "@/components/ui/button"
 import type { CatalogListingState } from "@/lib/affiliate-catalog-listing-state"
 import type { AppLocale } from "@/lib/i18n-locale"
@@ -194,7 +195,7 @@ export function DiscoverListingActions({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 16, scale: 0.98 }}
               transition={{ type: "spring", stiffness: 420, damping: 32 }}
-              className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 text-white shadow-2xl"
+              className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl border border-white/10 bg-zinc-950 text-white shadow-2xl"
               role="dialog"
               aria-modal="true"
               aria-labelledby="release-listing-title"
@@ -210,6 +211,7 @@ export function DiscoverListingActions({
                 </h2>
                 <p className="mt-3 text-sm leading-relaxed text-zinc-300">{t.releaseBody}</p>
                 <p className="mt-2 text-xs text-zinc-500">{t.releaseHint}</p>
+                <RetentionAdviceNote listingId={pendingId} />
                 <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                   <button
                     type="button"

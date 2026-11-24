@@ -3475,6 +3475,24 @@
         "orders": "{orders} paid orders of the chosen alternatives within 30 days ({refunded} cancelled or refunded) · {waiting} of them by buyers who were waiting",
         "caveat": "An observed association, not proof that the proposal caused the sale."
       }
+    },
+    "retentionAdvice": {
+      "eyebrow": "Before you remove it",
+      "title": "This product may not have had time to sell yet",
+      "current": "Listed for {days} d in your shop, no sale so far.",
+      "typicalProduct": "With {resellers} other resellers, its first sale usually came between {p25} and {p75} d (median {p50} d).",
+      "typicalCategory": "In its category, with {resellers} other resellers, the first sale usually comes between {p25} and {p75} d (median {p50} d).",
+      "late": "{pct}% of those first sales came after {days} d.",
+      "conditional": "Among listings still without a sale at {days} d, {pct}% sold before {recommended} d.",
+      "suggestion": "Keeping it {extra} more days would let you judge over a usual duration ({recommended} d).",
+      "noGuarantee": "This is not a guarantee of a sale.",
+      "confidenceLow": "Low reliability",
+      "confidenceMedium": "Medium reliability",
+      "reason_echantillon_limite": "sample still limited",
+      "reason_categorie_seulement": "measured on the category, not this product",
+      "reason_chance_non_mesurable": "chance of a sale not measurable",
+      "reason_echantillon_suffisant": "sufficient sample",
+      "yourCall": "You are free to remove it now."
     }
   },
   "marketplace": {

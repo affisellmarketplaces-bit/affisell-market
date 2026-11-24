@@ -3475,6 +3475,24 @@
         "orders": "{orders} commandes payées des alternatives choisies dans les 30 jours ({refunded} annulées ou remboursées) · dont {waiting} par des acheteurs qui attendaient",
         "caveat": "Association observée, pas une preuve que la proposition a causé la vente."
       }
+    },
+    "retentionAdvice": {
+      "eyebrow": "Avant de retirer",
+      "title": "Ce produit n'a peut-être pas encore eu le temps de se vendre",
+      "current": "En vente depuis {days} j dans votre boutique, sans vente pour l'instant.",
+      "typicalProduct": "Chez {resellers} autres revendeurs, sa première vente est arrivée en général entre {p25} et {p75} j (médiane {p50} j).",
+      "typicalCategory": "Dans sa catégorie, chez {resellers} autres revendeurs, la première vente arrive en général entre {p25} et {p75} j (médiane {p50} j).",
+      "late": "{pct} % de ces premières ventes sont arrivées après {days} j.",
+      "conditional": "Parmi les fiches encore sans vente à {days} j, {pct} % ont vendu avant {recommended} j.",
+      "suggestion": "Le garder {extra} j de plus permettrait de juger sur une durée habituelle ({recommended} j).",
+      "noGuarantee": "Ce n'est pas une garantie de vente.",
+      "confidenceLow": "Fiabilité faible",
+      "confidenceMedium": "Fiabilité moyenne",
+      "reason_echantillon_limite": "échantillon encore limité",
+      "reason_categorie_seulement": "mesuré sur la catégorie, pas sur ce produit",
+      "reason_chance_non_mesurable": "chance de vente non mesurable",
+      "reason_echantillon_suffisant": "échantillon suffisant",
+      "yourCall": "Vous restez libre de le retirer maintenant."
     }
   },
   "marketplace": {

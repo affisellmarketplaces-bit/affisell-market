@@ -6,6 +6,8 @@ import { loadCopilotBlindSpotReport } from "@/lib/reseller-copilot/blind-spots.s
 import { loadPresenceSourceCoverage } from "@/lib/listing-presence/presence.server"
 import { readTemporalMode } from "@/lib/reseller-copilot/temporal-opportunities"
 import { loadTemporalReport } from "@/lib/reseller-copilot/temporal-opportunities.server"
+import { readRetentionHoldoutPct, readRetentionMode } from "@/lib/reseller-copilot/retention-advisor"
+import { loadRetentionEvaluation } from "@/lib/reseller-copilot/retention-advisor.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -18,17 +20,24 @@ export const dynamic = "force-dynamic"
  * `temporal` (separate switch `COPILOT_TEMPORAL_MODE`, off by default): opportunities read from the listing presence
  * history — withdrawn too early, sold historically but live nowhere, late sales, relistings, biased exposure — and the
  * share of presence events per declared source (how many are still « unattributed »). Same rules: aggregates only.
+ * `retention` (switch `RETENTION_ADVISOR_MODE`, off by default): what followed each retention advice case, per arm
+ * (shown / held-out control / observe), per tier and per category with enough cases — associations, never causes.
  */
 export async function GET(): Promise<Response> {
   const gate = await requireAdminSession()
   if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status })
   const mode = readBlindSpotsMode()
   const temporalMode = readTemporalMode()
-  const [report, temporal, sources] = await Promise.all([
+  const retentionMode = readRetentionMode()
+  const [report, temporal, sources, retention] = await Promise.all([
     mode === "off" ? Promise.resolve(null) : loadCopilotBlindSpotReport(),
     temporalMode === "off" ? Promise.resolve(null) : loadTemporalReport(),
     temporalMode === "off" ? Promise.resolve(null) : loadPresenceSourceCoverage(),
+    retentionMode === "off" ? Promise.resolve(null) : loadRetentionEvaluation(),
   ])
-  const failed = (mode !== "off" && !report) || (temporalMode !== "off" && !temporal)
-  return NextResponse.json({ mode, report, temporalMode, temporal, presenceSources: sources }, { status: failed ? 503 : 200 })
+  const failed = (mode !== "off" && !report) || (temporalMode !== "off" && !temporal) || (retentionMode !== "off" && !retention)
+  return NextResponse.json(
+    { mode, report, temporalMode, temporal, presenceSources: sources, retentionMode, retentionHoldoutPct: readRetentionHoldoutPct(), retention },
+    { status: failed ? 503 : 200 },
+  )
 }
