@@ -67,19 +67,24 @@ diff_prisma fresh_chain_test "S2 fresh"
 dump fresh_chain_test "$WORK/fresh.sql"
 echo "::endgroup::"
 
+FIRST_SPONSOR=20260801210000_sponsor_success_fee
 history_db() { # $1 db name, $2 mode complete|partial
-  local db="$1" mode="$2"
+  local db="$1" mode="$2" later="$WORK/$1.later"; mkdir -p "$later"
   fresh_db "$db"
-  # Before 20260801210000 the shared databases already held "SponsorCampaign" (created outside the chain): the table and
-  # its indexes now, its foreign keys once "User" / "Product" exist (below).
-  psqlq -d "$db" -q -f <(awk '/^DO \$\$/{exit} {print}' "$MIG/${REPAIRS[0]}/migration.sql")
   hide_repairs
-  echo "--- old chain (repairs absent from the directory) applied by Prisma on $db ---"
-  prisma_on "$db" migrate deploy > "$WORK/$db.old.deploy" 2>&1 || ko "$db: old chain deploy failed"
-  tail -n 3 "$WORK/$db.old.deploy"
-  show_repairs
-  # The rest of what those databases got outside the chain.
+  # 1. Prisma applies the chain up to the migration just before 20260801210000, as the shared databases received it.
+  for d in $(ls "$MIG" | grep -v '\.toml$'); do [[ "$d" > "$FIRST_SPONSOR" || "$d" == "$FIRST_SPONSOR" ]] && mv "$MIG/$d" "$later/"; done
+  echo "--- $db: chain up to the migration before $FIRST_SPONSOR, applied by Prisma ---"
+  prisma_on "$db" migrate deploy > "$WORK/$db.old1.deploy" 2>&1 || { ko "$db: first part of the old chain failed"; cat "$WORK/$db.old1.deploy"; }
+  tail -n 2 "$WORK/$db.old1.deploy"
+  # 2. "SponsorCampaign" appears OUTSIDE the chain (as `prisma db push` did), with its keys: the lineage SQL as plain SQL.
   psqlq -d "$db" -q -f "$MIG/${REPAIRS[0]}/migration.sql"
+  # 3. Prisma applies the rest of the old chain (repairs still absent from the directory).
+  mv "$later"/* "$MIG/"
+  prisma_on "$db" migrate deploy > "$WORK/$db.old2.deploy" 2>&1 || { ko "$db: second part of the old chain failed"; cat "$WORK/$db.old2.deploy"; }
+  tail -n 2 "$WORK/$db.old2.deploy"
+  show_repairs
+  # 4. The rest of what those databases got outside the chain.
   psqlq -d "$db" -qc 'CREATE INDEX IF NOT EXISTS "SponsorCampaign_billingMode_status_idx" ON "SponsorCampaign"("billingMode", "status")'
   if [ "$mode" = complete ]; then psqlq -d "$db" -q -f "$MIG/${REPAIRS[1]}/migration.sql"; fi
   local pre; pre=$(psqlq -d "$db" -Atc "SELECT count(*) FROM \"_prisma_migrations\" WHERE migration_name IN ('${REPAIRS[0]}','${REPAIRS[1]}')")
@@ -122,9 +127,46 @@ retro_deploy() { # $1 db, $2 label, $3 expected added object names (space separa
   if [ "$added" = "$want" ]; then ok "$label: objects added = exactly the expected ones [${want% }]"
   else ko "$label: objects added [${added% }] ≠ expected [${want% }]"; fi
   diff_prisma "$db" "$label final"
+  if diff -q <(grep -v ensure-direct-url "$WORK/fresh_chain_test.prisma-diff.sql") <(grep -v ensure-direct-url "$WORK/$db.prisma-diff.sql") >/dev/null; then
+    ok "$label: its Prisma diff is identical to the fresh database's (no difference introduced by the history or the repairs)"
+  else ko "$label: its Prisma diff differs from the fresh database's"; fi
   if diff -u "$WORK/fresh.sql" "$WORK/$db.after.sql" > "$WORK/$db.vs-fresh.diff"; then ok "$label: final pg_dump identical to the fresh chain-built database"
   else ko "$label: final schema differs from the fresh database"; cat "$WORK/$db.vs-fresh.diff"; fi
 }
+
+echo "::group::S2b — structure of the repaired objects vs a database built from the Prisma datamodel"
+fresh_db model_chain_test
+prisma_on model_chain_test migrate diff --from-empty --to-schema-datamodel "$ROOT/prisma/schema.prisma" --script 2>/dev/null \
+  | grep -v '^\[ensure-direct-url\]' > "$WORK/model.sql"
+psqlq -d model_chain_test -q -f "$WORK/model.sql" > /dev/null
+LINEAGE_TABLES=(SponsorCampaign SponsorCampaignCharge AdminAeCaptureSession)
+# Order-insensitive catalogue of the tables (a column added later by ALTER sits at the end; Prisma ignores order too):
+# every column with type / nullability / default, every index definition, every constraint definition.
+table_dump() { psqlq -d "$1" -At > "$2" <<SQL
+SELECT 'column ' || c.relname || '.' || a.attname || ' ' || format_type(a.atttypid, a.atttypmod)
+       || CASE WHEN a.attnotnull THEN ' NOT NULL' ELSE ' NULL' END
+       || coalesce(' DEFAULT ' || pg_get_expr(d.adbin, d.adrelid), '')
+FROM pg_attribute a JOIN pg_class c ON c.oid = a.attrelid JOIN pg_namespace n ON n.oid = c.relnamespace
+LEFT JOIN pg_attrdef d ON d.adrelid = a.attrelid AND d.adnum = a.attnum
+WHERE n.nspname = 'public' AND c.relname IN ('SponsorCampaign','SponsorCampaignCharge','AdminAeCaptureSession')
+  AND a.attnum > 0 AND NOT a.attisdropped
+UNION ALL
+SELECT 'index ' || indexdef FROM pg_indexes
+WHERE schemaname = 'public' AND tablename IN ('SponsorCampaign','SponsorCampaignCharge','AdminAeCaptureSession')
+UNION ALL
+SELECT 'constraint ' || cl.relname || '.' || co.conname || ' ' || pg_get_constraintdef(co.oid)
+FROM pg_constraint co JOIN pg_class cl ON cl.oid = co.conrelid JOIN pg_namespace n ON n.oid = cl.relnamespace
+WHERE n.nspname = 'public' AND cl.relname IN ('SponsorCampaign','SponsorCampaignCharge','AdminAeCaptureSession')
+ORDER BY 1;
+SQL
+}
+table_dump model_chain_test "$WORK/model.lineage.sql"; table_dump fresh_chain_test "$WORK/fresh.lineage.sql"
+echo "--- columns, types, defaults, keys, indexes, foreign keys of ${LINEAGE_TABLES[*]}: chain-built vs datamodel-built ---"
+if diff -u "$WORK/model.lineage.sql" "$WORK/fresh.lineage.sql"; then ok "S2b: ${LINEAGE_TABLES[*]} are structurally identical to the Prisma datamodel (columns, types, defaults, nullability, indexes, constraints)"
+else ko "S2b: repaired tables differ structurally from the Prisma datamodel (diff above)"; fi
+if grep -qE 'SponsorCampaign|AdminAeCaptureSession' "$WORK/fresh_chain_test.prisma-diff.sql"; then ko "S2b: Prisma diff still mentions a repaired object"
+else ok "S2b: the Prisma diff of the fresh database mentions no repaired object (the remaining diff, if any, is drift outside the lineage repair)"; fi
+echo "::endgroup::"
 
 echo "::group::S3a — retroactive insertion on a COMPLETE existing history"
 history_db hista_chain_test complete
