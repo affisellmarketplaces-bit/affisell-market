@@ -78,7 +78,7 @@ history_db() { # $1 db name, $2 mode complete|partial
   prisma_on "$db" migrate deploy > "$WORK/$db.old1.deploy" 2>&1 || { ko "$db: first part of the old chain failed"; cat "$WORK/$db.old1.deploy"; }
   tail -n 2 "$WORK/$db.old1.deploy"
   # 2. "SponsorCampaign" appears OUTSIDE the chain (as `prisma db push` did), with its keys: the lineage SQL as plain SQL.
-  psqlq -d "$db" -q -f "$MIG/${REPAIRS[0]}/migration.sql"
+  psqlq -d "$db" -q -f "$HIDDEN/${REPAIRS[0]}/migration.sql"   # the repairs are hidden from Prisma at this point
   # 3. Prisma applies the rest of the old chain (repairs still absent from the directory).
   mv "$later"/* "$MIG/"
   prisma_on "$db" migrate deploy > "$WORK/$db.old2.deploy" 2>&1 || { ko "$db: second part of the old chain failed"; cat "$WORK/$db.old2.deploy"; }
@@ -161,6 +161,10 @@ ORDER BY 1;
 SQL
 }
 table_dump model_chain_test "$WORK/model.lineage.sql"; table_dump fresh_chain_test "$WORK/fresh.lineage.sql"
+# Prisma's datamodel cannot express CHECK constraints: the published migration 20260801210000 adds
+# SponsorCampaignCharge_status_check, which a datamodel-built database can never have. Listed, then set aside (only CHECKs).
+grep -E '^constraint [^ ]+ CHECK ' "$WORK/fresh.lineage.sql" | sed 's/^/CHECK constraint present in the chain, not expressible in the datamodel: /'
+for f in model fresh; do grep -v -E '^constraint [^ ]+ CHECK ' "$WORK/$f.lineage.sql" > "$WORK/$f.lineage.nocheck.sql"; mv "$WORK/$f.lineage.nocheck.sql" "$WORK/$f.lineage.sql"; done
 echo "--- columns, types, defaults, keys, indexes, foreign keys of ${LINEAGE_TABLES[*]}: chain-built vs datamodel-built ---"
 if diff -u "$WORK/model.lineage.sql" "$WORK/fresh.lineage.sql"; then ok "S2b: ${LINEAGE_TABLES[*]} are structurally identical to the Prisma datamodel (columns, types, defaults, nullability, indexes, constraints)"
 else ko "S2b: repaired tables differ structurally from the Prisma datamodel (diff above)"; fi
