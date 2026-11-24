@@ -2,6 +2,7 @@ import fs from "fs"
 import path from "path"
 
 import { PrismaClient } from "@prisma/client"
+import { withListingPresenceSource } from "../lib/listing-presence/declare"
 import { hash } from "bcryptjs"
 import { assertNotProductionByAccident } from "../scripts/lib/production-guard.mjs"
 
@@ -16,7 +17,7 @@ async function seedGoogleTaxonomy() {
   await prisma.order.deleteMany()
   await prisma.buyerRewardLedger.deleteMany()
   await prisma.cart.deleteMany()
-  await prisma.affiliateProduct.deleteMany()
+  await withListingPresenceSource(prisma, { source: "script" }, (tx) => tx.affiliateProduct.deleteMany())
   await prisma.wishlist.deleteMany()
   await prisma.review.deleteMany()
   await prisma.productReview.deleteMany()

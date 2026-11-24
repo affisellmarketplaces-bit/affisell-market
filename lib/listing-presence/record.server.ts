@@ -1,44 +1,9 @@
 import "server-only"
 
-import type { Prisma, PrismaClient } from "@prisma/client"
+import type { PrismaClient } from "@prisma/client"
 
-import { isListingPresenceSource, sanitizePresenceActor, type ListingPresenceSource } from "@/lib/listing-presence/sources"
-
-type Raw = Pick<PrismaClient, "$queryRaw">
-
-/**
- * Declares, for the CURRENT transaction only (`set_config(…, true)`), who is changing a listing's presence, so the
- * database trigger records it in ListingPresenceEvent. It records nothing by itself — the trigger records EVERY
- * presence change, declared or not. Must run inside the same transaction as the write (interactive `tx`, or first item
- * of a batch transaction). Setting a configuration parameter works whether or not the history table exists.
- */
-export function declareListingPresenceSource(
-  client: Raw,
-  args: { source: ListingPresenceSource; actorId?: string | null },
-): Prisma.PrismaPromise<unknown> | Promise<unknown> {
-  // Test doubles of a transaction may not implement raw queries: the declaration is optional by design.
-  if (typeof (client as { $queryRaw?: unknown }).$queryRaw !== "function") return Promise.resolve(null)
-  const source = isListingPresenceSource(args.source) ? args.source : "unattributed"
-  const actor = sanitizePresenceActor(args.actorId) ?? ""
-  return client.$queryRaw`SELECT set_config('affisell.listing_presence_source', ${source}, true)::text AS s, set_config('affisell.listing_presence_actor', ${actor}, true)::text AS a`
-}
-
-/**
- * Runs `op` in ONE transaction with the presence source declared first. When the client offers no interactive
- * transaction (a test double), `op` runs alone: the trigger still records the change, as `unattributed`.
- */
-export async function withListingPresenceSource<T>(
-  client: unknown,
-  declared: { source: ListingPresenceSource; actorId?: string | null },
-  op: (tx: Prisma.TransactionClient) => Promise<T>,
-): Promise<T> {
-  const c = client as { $transaction?: (fn: (tx: Prisma.TransactionClient) => Promise<T>) => Promise<T> }
-  if (typeof c.$transaction !== "function") return op(client as Prisma.TransactionClient)
-  return c.$transaction(async (tx) => {
-    await declareListingPresenceSource(tx, declared)
-    return op(tx)
-  })
-}
+// The declaration helpers live in `declare.ts` (no `server-only`): scripts and seeds use them too.
+export { declareListingPresenceSource, withListingPresenceSource } from "@/lib/listing-presence/declare"
 
 /**
  * Account deletion of a reseller (no order — `deleteMerchantUser`): its presence history serves nothing once the account

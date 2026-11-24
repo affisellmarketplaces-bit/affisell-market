@@ -20,6 +20,7 @@ config({ path: resolve(process.cwd(), ".env") })
 import { calculateRefundSplit, calculateSplit, COMMISSION_RATE } from "../lib/commission"
 import { marketplaceCheckoutPaymentSessionOptions } from "../lib/marketplace-checkout-payment-methods"
 import { marketplaceCheckoutTaxOptions } from "../lib/marketplace-stripe-checkout"
+import { withListingPresenceSource } from "../lib/listing-presence/declare"
 import { prisma } from "../lib/prisma"
 import { getStripeClient } from "../lib/stripe"
 import { appBaseUrl } from "../lib/stripe-pro"
@@ -145,19 +146,19 @@ async function ensureAffiliateListing(productId: string, affiliateId: string) {
     where: { productId, affiliateId },
   })
   if (existing) {
-    return prisma.affiliateProduct.update({
+    return withListingPresenceSource(prisma, { source: "script" }, (tx) => tx.affiliateProduct.update({
       where: { id: existing.id },
       data: { sellingPriceCents: HT_CENTS, isListed: true },
-    })
+    }))
   }
-  return prisma.affiliateProduct.create({
+  return withListingPresenceSource(prisma, { source: "script" }, (tx) => tx.affiliateProduct.create({
     data: {
       affiliateId,
       productId,
       sellingPriceCents: HT_CENTS,
       isListed: true,
     },
-  })
+  }))
 }
 
 async function ensureTestListing(supplierId: string, affiliateId: string) {

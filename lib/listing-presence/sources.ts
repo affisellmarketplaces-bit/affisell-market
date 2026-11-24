@@ -15,6 +15,8 @@ export const LISTING_PRESENCE_SOURCES = [
   "supplier_withdrawal", // the supplier removed / archived its product
   "import", // bulk / Radar / URL imports
   "admin", // another admin action
+  "account_deletion", // a merchant deleted its account (its listings, or the listings of its products, are deleted)
+  "demo", // the Demo Lab fixtures (kept apart from real activity)
   "script", // a maintenance or seed script
   "unattributed", // written without a declaration (default of the trigger)
 ] as const

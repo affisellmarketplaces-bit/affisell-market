@@ -8,6 +8,7 @@ import { existsSync } from "node:fs"
 import { resolve } from "node:path"
 
 import { PrismaClient } from "@prisma/client"
+import { withListingPresenceSource } from "../lib/listing-presence/declare"
 import { config as loadEnv } from "dotenv"
 
 import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
@@ -132,7 +133,7 @@ async function main() {
     })
 
     if (!listing) {
-      listing = await prisma.affiliateProduct.create({
+      listing = await withListingPresenceSource(prisma, { source: "script" }, (tx) => tx.affiliateProduct.create({
         data: {
           affiliateId: affiliate.id,
           productId: product.id,
@@ -143,7 +144,7 @@ async function main() {
           collections: [],
         },
         select: { id: true },
-      })
+      }))
     }
 
     const order = await prisma.order.create({

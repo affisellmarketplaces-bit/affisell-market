@@ -12,26 +12,66 @@ Base : commit `55c658b15`. Migration `20261124090000_listing_presence_history` �
   Aucune suppression en cascade : les clés étrangères vers `Product` et `User` sont en `RESTRICT`, donc une ligne ne
   disparaît que par une suppression explicite.
 
-## 2. Véritables points de mutation (écritures, pas lectures)
+## 2. Véritables points de mutation et provenance (verrouillés, 2026-11-24)
 
-Environ 78 fichiers mentionnent `isListed` ; la plupart sont des lectures (filtres de boutique, catalogue, SEO,
-statistiques). Les écritures réelles :
+**La liste n'est plus tenue à la main** : `lib/listing-presence/mutation-registry.ts` (`LISTING_MUTATION_REGISTRY`)
+est vérifié à chaque CI par `lib/__tests__/listing-mutation-provenance.test.ts`, qui analyse le dépôt avec le parseur
+TypeScript (`lib/testing/listing-mutation-scan.ts`) — pas une recherche de texte.
 
-| Mutation | Où | Source déclarée |
+**Ce qui compte comme mutation** (exactement ce qui déclenche l'enregistrement) :
+- INSERT : `create`, `createMany`, `createManyAndReturn`, `upsert` ;
+- DELETE : `delete`, `deleteMany` ;
+- UPDATE qui PEUT modifier `isListed` : son `data` n'est pas un littéral prouvé sans `isListed`. Les diffusions de littéraux et les conditions sont suivies.
+- écritures imbriquées par relation (`affiliateProducts: { create … }`) et SQL brut qui écrit la table ;
+- appels des helpers d'historique de prix (`updateListingWithPriceSource`, `upsertListingWithPriceSource`) : leur effet se lit dans leurs arguments.
+
+Les tests sont exclus du balayage, et le dépôt n'a aucune cascade de suppression vers `AffiliateProduct`.
+
+**Recensement au 2026-11-24.**
+- **60 écritures** au total ; 18 ne touchent pas `isListed` (prouvé), 42 peuvent changer la vie d'une annonce. Ces dernières se répartissent en :
+  - 40 points d'écriture attribués ;
+  - 2 helpers dont les appelants sont eux-mêmes listés.
+- **Toutes ont une provenance déclarée**, dans leur propre transaction :
+
+| Acteur | Chemins | Source |
 |---|---|---|
-| Création | `affiliate/add`, `affiliate/products/add`, `affiliate/listings` (POST), `affiliate-quick-add-listing`, `affiliate-url-import`, `marketplace/import-from-url`, `product-request-commission`, `supplier-invitation-affiliate-listing`, `radar-import-bridge`, `demo/ensure-demo-users`, scripts de seed / fixtures | héritée de l'historique des prix quand déclarée, sinon `unattributed` |
-| Activation / désactivation par le revendeur | `PATCH affiliate/listings/[id]`, `PATCH affiliate/products/[id]` (via `updateListingWithPriceSource` → `reseller_ui` hérité), `PATCH affiliate/products/bulk` | `reseller_ui` / `reseller_bulk` |
-| Publication | `affiliate-publish-listing.server.ts`, `marketplace/import-from-url` (mise en ligne) | `unattributed` |
-| Retrait / remplacement | `reseller-replacement/replace.server.ts` (retrait, fin de remplacement) | `replacement` |
-| Retrait ou suppression par le revendeur | `affiliate-listing-remove.ts` | `reseller_remove` |
-| Décision admin sur import revendeur | `reseller-import/review.server.ts` (approbation, publication, rejet) | `admin_review` |
-| Exclusivité accordée à un autre revendeur | `product-exclusivity.server.ts` | `exclusivity` |
-| Retrait du produit par le fournisseur | `supplier-product-remove.server.ts` (archivage, suppression) | `supplier_withdrawal` |
-| Suppression de compte | `delete-merchant-account.ts` | événements du revendeur purgés dans la même transaction |
-| Traitements / scripts | `radar-import-bridge` (mise hors ligne), `scripts/hide-internal-test-products.ts`, `prisma/seed.ts`, `prisma/clear-products.ts`, deux anciennes migrations SQL (`UPDATE "AffiliateProduct"`, sans effet sur `isListed`) | `unattributed` |
+| Revendeur | ajout (`affiliate/add`, `affiliate/products/add`, `affiliate/listings` POST, ajout rapide, invitation, devis), éditeur (`PATCH listings/[id]`, `PATCH products/[id]`), action groupée, retrait / suppression, publication, remplacement | `listing_create`, `reseller_ui` (hérité de l'historique des prix), `reseller_bulk`, `reseller_remove`, `replacement` |
+| Imports | import URL revendeur, import URL marketplace + publication, pont Radar | `import` |
+| Fournisseur | suppression, archivage, **suppression groupée de brouillons** | `supplier_withdrawal` |
+| Admin | exclusivité, décisions sur imports revendeurs | `exclusivity`, `admin_review` |
+| Compte | **suppression de compte revendeur et fournisseur** | `account_deletion` (nouveau) |
+| Démo | **fixtures Demo Lab** | `demo` (nouveau) |
+| Scripts | **seed, clear-products, copy-to-prod, fixtures de test**, hide-internal-test-products | `script` |
 
-Toutes ces écritures — et toute écriture future, SQL brut compris — sont capturées : c'est le déclencheur de base de
-données qui enregistre, pas le code applicatif. La déclaration de source ne sert qu'à qualifier.
+En gras : les chemins sans attribution avant le 2026-11-24 (11 points d'écriture).
+
+**Mécanisme unique.** Toutes les déclarations passent par `lib/listing-presence/declare.ts` (`withListingPresenceSource` / `declareListingPresenceSource`) :
+- le module n'a pas `server-only`, donc les scripts et les seeds l'utilisent aussi ;
+- `record.server.ts` le réexporte ;
+- la déclaration est un `set_config(…, true)` local à la transaction, lu par le déclencheur.
+
+**Défaut corrigé.** Appelé avec un client de transaction déjà ouvert (`tx`), `withListingPresenceSource` exécutait l'écriture **sans rien déclarer**. Elle était donc enregistrée « unattributed ». Elle déclare désormais dans cette transaction.
+
+**Ce que le verrou fait échouer en CI.**
+- Une nouvelle écriture absente du registre.
+- Une entrée périmée.
+- Une source déclarée différente de celle du registre.
+- Une déclaration faite dans une autre transaction que l'écriture.
+- Une source héritée inconnue de l'historique de présence.
+- Un chemin applicatif sans provenance.
+- Une source déclarée que le moteur temporel ne sait pas lire.
+
+Il ne bloque pas les écritures qui ne touchent pas `isListed`.
+
+**Inconnu, dit tel quel.**
+- Écriture faite hors application sans déclaration (console SQL) : « unattributed ».
+- Événements enregistrés avant la déclaration d'un chemin : jamais réécrits.
+- Annonces antérieures à l'historique : début inconnu.
+
+Une source inconnue n'est jamais transformée en provenance.
+
+Toutes les écritures, futures et SQL brut compris, restent capturées : c'est le déclencheur de base de données qui
+enregistre. La déclaration qualifie, le verrou garantit qu'elle existe.
 
 ## 3. Structure
 

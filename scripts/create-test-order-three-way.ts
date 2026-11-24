@@ -10,6 +10,7 @@ config({ path: ".env.local" })
  */
 import { randomUUID } from "node:crypto"
 import { Prisma, PrismaClient } from "@prisma/client"
+import { withListingPresenceSource } from "../lib/listing-presence/declare"
 import Stripe from "stripe"
 
 import { computeTransferAmountsFromOrder } from "../lib/marketplace-split-amounts"
@@ -200,7 +201,7 @@ async function main() {
     },
   })
 
-  const affiliateProduct = await prisma.affiliateProduct.create({
+  const affiliateProduct = await withListingPresenceSource(prisma, { source: "script" }, (tx) => tx.affiliateProduct.create({
     data: {
       affiliateId: affiliate.id,
       productId: product.id,
@@ -208,7 +209,7 @@ async function main() {
       marginCents: AFFILIATE_MARGIN_CENTS,
       isListed: true,
     },
-  })
+  }))
 
   const order = await prisma.order.create({
     data: {

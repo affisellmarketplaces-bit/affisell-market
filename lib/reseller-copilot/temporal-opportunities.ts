@@ -52,9 +52,11 @@ export function withdrawalReason(source: string | null | undefined): WithdrawalR
     case "admin_review":
     case "exclusivity":
     case "supplier_withdrawal":
+    case "account_deletion":
       return "contrainte"
     case "import":
     case "script":
+    case "demo":
     case "admin":
     case "listing_create":
       return "technique"

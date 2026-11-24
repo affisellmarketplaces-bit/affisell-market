@@ -8,6 +8,7 @@ import {
 import { resolveDemoPassword } from "@/lib/demo/demo-accounts-config"
 import { demoPersonaToPrisma, type DemoPersonaKey } from "@/lib/demo/demo-shared"
 import { ensureMerchantStore } from "@/lib/ensure-store"
+import { withListingPresenceSource } from "@/lib/listing-presence/declare"
 import { logBusiness } from "@/lib/business-log"
 import { prisma } from "@/lib/prisma"
 
@@ -84,23 +85,27 @@ async function ensureDemoAffiliateListing(affiliateId: string, productId: string
   })
   if (existing) {
     if (!existing.isListed) {
-      await prisma.affiliateProduct.update({
-        where: { id: existing.id },
-        data: { isListed: true },
-      })
+      await withListingPresenceSource(prisma, { source: "demo" }, (tx) =>
+        tx.affiliateProduct.update({
+          where: { id: existing.id },
+          data: { isListed: true },
+        }),
+      )
     }
     return existing
   }
 
-  return prisma.affiliateProduct.create({
-    data: {
-      affiliateId,
-      productId,
-      sellingPriceCents: 3999,
-      marginCents: 1500,
-      isListed: true,
-    },
-  })
+  return withListingPresenceSource(prisma, { source: "demo" }, (tx) =>
+    tx.affiliateProduct.create({
+      data: {
+        affiliateId,
+        productId,
+        sellingPriceCents: 3999,
+        marginCents: 1500,
+        isListed: true,
+      },
+    }),
+  )
 }
 
 /**

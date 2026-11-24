@@ -1,5 +1,8 @@
 import "server-only"
 
+import type { Prisma } from "@prisma/client"
+
+import { declareListingPresenceSource } from "@/lib/listing-presence/record.server"
 import { prisma } from "@/lib/prisma"
 import {
   normalizeSupplierBulkDeleteDraftIds,
@@ -49,6 +52,7 @@ export async function bulkDeleteSupplierDrafts(
     }
 
     await prisma.$transaction([
+      declareListingPresenceSource(prisma, { source: "supplier_withdrawal", actorId: supplierId }) as Prisma.PrismaPromise<unknown>,
       prisma.affiliateProduct.deleteMany({ where: { productId: id } }),
       prisma.product.delete({ where: { id, supplierId } }),
     ])
