@@ -41,6 +41,8 @@ export type PlanOutcome = {
   lateSale: boolean
   withdrawnWithPotential: boolean
   predictedSalePct: number | null
+  /** The plan's horizon came from the validated contextual model. */
+  contextual: boolean
 }
 
 export function planOutcome(c: PlanCaseInput, now: Date): PlanOutcome {
@@ -53,7 +55,7 @@ export function planOutcome(c: PlanCaseInput, now: Date): PlanOutcome {
   const ownEnd = own && !own.ongoing ? own.end?.getTime() ?? null : null
   const listedAt = (ts: number) => periods.some((p) => p.start && p.start.getTime() <= ts && (p.ongoing || (p.end != null && p.end.getTime() > ts)))
   const sales = c.orders.filter((o) => !o.closed && o.paidAt.getTime() >= planned && listedAt(o.paidAt.getTime())).map((o) => o.paidAt.getTime())
-  const blank = { arm: m.arm, tier: m.tier, categoryId: m.categoryId, affiliateId: c.affiliateId, predictedSalePct: m.saleSharePct }
+  const blank = { arm: m.arm, tier: m.tier, categoryId: m.categoryId, affiliateId: c.affiliateId, predictedSalePct: m.saleSharePct, contextual: m.contextual === true }
   if (horizonAt == null || !own) {
     return { ...blank, hasHorizon: horizonAt != null, mature: false, keptToHorizon: false, soldBeforeHorizon: false, withdrawnBeforeHorizon: false, keptNoSale: false, lateSale: false, withdrawnWithPotential: false }
   }
@@ -112,6 +114,12 @@ export type PlanEvaluation = {
   calibration: PlanCalibration[]
   comparison: PlanArmComparison[]
   recommendations: Array<{ recommendation: PlanRecommendation; count: number; followed: number; saleWithin30d: number; salePct: number | null }>
+  /**
+   * Horizons from the validated contextual model vs the standard ones, mature plans KEPT to their horizon only:
+   * sold before it (too long if almost always), late sale after it (too short), no sale. Descriptive — the products
+   * that got a contextual horizon are not a random sample.
+   */
+  horizonSource: Array<{ source: "contextuel" | "standard"; mature: number; keptToHorizon: number; soldBefore: number; lateSale: number; keptNoSale: number }>
   limits: readonly string[]
 }
 export const PLAN_EVAL_LIMITS = [
@@ -215,6 +223,11 @@ export function evaluatePlans(cases: readonly PlanCaseInput[], now: Date): PlanE
       saleWithin30d: r.sold,
       salePct: r.followed >= 10 ? pct(r.sold, r.followed) : null,
     })),
+    horizonSource: (["contextuel", "standard"] as const).map((source) => {
+      const m = outs.filter((o) => o.mature && o.hasHorizon && o.contextual === (source === "contextuel"))
+      const kept = m.filter((o) => o.keptToHorizon)
+      return { source, mature: m.length, keptToHorizon: kept.length, soldBefore: kept.filter((o) => o.soldBeforeHorizon).length, lateSale: kept.filter((o) => o.lateSale).length, keptNoSale: kept.filter((o) => o.keptNoSale).length }
+    }),
     limits: PLAN_EVAL_LIMITS,
   }
 }

@@ -3539,7 +3539,32 @@
         "retirer_ou_remplacer": "Rada: usunąć lub zastąpić — nie stanie się znowu dostępny sam z siebie."
       },
       "notMeasured": "Nie mierzone: ruch, wcześniejsza dostępność",
-      "free": "Nadal możesz go zmienić lub usunąć."
+      "free": "Nadal możesz go zmienić lub usunąć.",
+      "context": {
+        "later": "Dla produktów o tym profilu ({profile}) pierwsza sprzedaż przychodzi zwykle później niż średnio: około {days} dni zamiast {general} dni.",
+        "earlier": "Dla produktów o tym profilu ({profile}) pierwsza sprzedaż przychodzi zwykle wcześniej niż średnio: około {days} dni zamiast {general} dni.",
+        "basis": "Orientacyjne oszacowanie oparte na wcześniejszej sprzedaży porównywalnych produktów u {resellers} sprzedawców, zweryfikowane na niezależnym okresie.",
+        "profile": {
+          "categorie": "w swojej kategorii",
+          "anciennete_lt30": "nowy produkt (poniżej 30 dni)",
+          "anciennete_m1_6": "produkt od 1 do 6 miesięcy",
+          "anciennete_gt180": "produkt starszy niż 6 miesięcy",
+          "anciennete_inconnue": "wiek nieznany",
+          "concurrence_seul": "żaden inny sklep go nie oferuje",
+          "concurrence_un_deux": "oferowany przez 1–2 inne sklepy",
+          "concurrence_trois_plus": "oferowany przez 3 lub więcej innych sklepów",
+          "remise_en_vente_oui": "ponownie wystawiony",
+          "remise_en_vente_non": "pierwsze wystawienie",
+          "prix_lt25": "cena dostawcy poniżej 25 €",
+          "prix_p25_60": "cena dostawcy 25–60 €",
+          "prix_gt60": "cena dostawcy powyżej 60 €",
+          "offre_complete": "pełna oferta",
+          "offre_incomplete": "niepełna oferta",
+          "offre_non_mesuree": "oferta niezmierzona",
+          "retour_etendu": "wydłużony zwrot",
+          "retour_legal": "ustawowy termin zwrotu"
+        }
+      }
     }
   },
   "marketplace": {

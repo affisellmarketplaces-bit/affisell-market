@@ -3539,7 +3539,32 @@
         "retirer_ou_remplacer": "Consejo: retirarlo o sustituirlo — no puede volver a estar disponible por sí solo."
       },
       "notMeasured": "No medido: tráfico, disponibilidad pasada",
-      "free": "Sigues siendo libre de modificarlo o retirarlo."
+      "free": "Sigues siendo libre de modificarlo o retirarlo.",
+      "context": {
+        "later": "Para productos con este perfil ({profile}), las primeras ventas suelen llegar más tarde que la media: unos {days} d en lugar de {general} d.",
+        "earlier": "Para productos con este perfil ({profile}), las primeras ventas suelen llegar antes que la media: unos {days} d en lugar de {general} d.",
+        "basis": "Estimación orientativa basada en las ventas pasadas de productos comparables con {resellers} revendedores, validada en un periodo independiente.",
+        "profile": {
+          "categorie": "en su categoría",
+          "anciennete_lt30": "producto reciente (menos de 30 d)",
+          "anciennete_m1_6": "producto de 1 a 6 meses",
+          "anciennete_gt180": "producto de más de 6 meses",
+          "anciennete_inconnue": "antigüedad desconocida",
+          "concurrence_seul": "ninguna otra tienda lo ofrece",
+          "concurrence_un_deux": "ofrecido por 1 o 2 tiendas más",
+          "concurrence_trois_plus": "ofrecido por 3 o más tiendas",
+          "remise_en_vente_oui": "vuelto a poner a la venta",
+          "remise_en_vente_non": "primera puesta a la venta",
+          "prix_lt25": "precio de proveedor inferior a 25 €",
+          "prix_p25_60": "precio de proveedor de 25 a 60 €",
+          "prix_gt60": "precio de proveedor superior a 60 €",
+          "offre_complete": "ficha completa",
+          "offre_incomplete": "ficha incompleta",
+          "offre_non_mesuree": "ficha no medida",
+          "retour_etendu": "devoluciones ampliadas",
+          "retour_legal": "plazo de devolución legal"
+        }
+      }
     }
   },
   "marketplace": {

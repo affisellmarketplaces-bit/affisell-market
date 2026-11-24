@@ -1,3 +1,4 @@
+import type { ContextualHorizon } from "@/lib/reseller-copilot/contextual-horizon"
 import { LOW_NET_CENTS } from "@/lib/reseller-copilot/selection"
 import {
   TEMPORAL_MAX_OBSERVATION_DAYS,
@@ -99,6 +100,12 @@ export type ObservationPlan = {
   confidence: "faible" | "moyenne"
   confidenceReason: "echantillon_limite" | "categorie_seulement" | "reference_generale" | "echantillon_suffisant"
   limits: readonly string[]
+  /**
+   * Set only when the context-aware model was VALIDATED on independent data (contextual-horizon.ts) and this product's
+   * profile cell is reliable without the asking reseller: the horizon then follows the profile, said with the general
+   * horizon it departs from and the factors behind it.
+   */
+  context?: ContextualHorizon
 }
 
 export type PlanDecision = { plan: ObservationPlan; silence: null } | { plan: null; silence: PlanSilence }
@@ -110,6 +117,8 @@ export function planAtAdd(input: {
   constraint: boolean
   netPerSaleCents: number | null
   reference: PlanReference | null
+  /** A validated contextual horizon for this product's profile (null = keep the reference's horizon). */
+  contextual?: ContextualHorizon | null
   now: Date
 }): PlanDecision {
   if (input.constraint) return { plan: null, silence: "contrainte" }
@@ -118,12 +127,15 @@ export function planAtAdd(input: {
   const r = input.reference
   if (!r) return { plan: null, silence: "reference_insuffisante" }
   const strong = r.tier === "product" && r.resellers >= 5 && r.sales >= 30 && r.saleSharePct != null
+  // The product's OWN measured reference (product tier) is more specific than any profile: it is never overridden.
+  const ctx = r.tier !== "product" ? input.contextual ?? null : null
+  const horizonDays = ctx ? ctx.horizonDays : r.horizonDays
   return {
     silence: null,
     plan: {
-      horizonDays: r.horizonDays,
+      horizonDays,
       midpointDays: Math.max(1, r.quartiles.p50),
-      firstReviewAt: new Date(input.now.getTime() + r.horizonDays * DAY).toISOString(),
+      firstReviewAt: new Date(input.now.getTime() + horizonDays * DAY).toISOString(),
       tier: r.tier,
       resellers: r.resellers,
       sales: r.sales,
@@ -132,6 +144,7 @@ export function planAtAdd(input: {
       confidence: strong ? "moyenne" : "faible",
       confidenceReason: strong ? "echantillon_suffisant" : r.tier === "general" ? "reference_generale" : r.tier === "category" ? "categorie_seulement" : "echantillon_limite",
       limits: PLAN_LIMITS,
+      ...(ctx ? { context: ctx } : {}),
     },
   }
 }
@@ -287,7 +300,7 @@ export const PLAN_EVAL_ACTION = "copilot.observation_plan_evaluated"
 export const planMarkerId = (listingId: string, day: string) => `observation-plan:${listingId}:${day}`
 export const planEvalMarkerId = (listingId: string, day: string) => `observation-plan-eval:${listingId}:${day}`
 
-export const PLAN_PAYLOAD_KEYS = ["arm", "silence", "horizonDays", "tier", "saleSharePct", "confidence", "categoryId", "productId", "plannedAt"] as const
+export const PLAN_PAYLOAD_KEYS = ["arm", "silence", "horizonDays", "tier", "saleSharePct", "confidence", "categoryId", "productId", "plannedAt", "contextual"] as const
 export type PlanMarker = {
   arm: PlanArm
   silence: PlanSilence | null
@@ -298,6 +311,8 @@ export type PlanMarker = {
   categoryId: string | null
   productId: string
   plannedAt: string
+  /** The horizon came from the validated contextual model (absent on markers written before it existed). */
+  contextual?: boolean
 }
 export function buildPlanMarker(arm: PlanArm, d: PlanDecision, ids: { productId: string; categoryId: string | null }, now: Date): PlanMarker {
   return {
@@ -310,6 +325,7 @@ export function buildPlanMarker(arm: PlanArm, d: PlanDecision, ids: { productId:
     categoryId: ids.categoryId,
     productId: ids.productId,
     plannedAt: now.toISOString(),
+    contextual: Boolean(d.plan?.context),
   }
 }
 const SILENCES: readonly PlanSilence[] = ["contrainte", "non_vendable", "gain_faible", "reference_insuffisante"]
@@ -333,6 +349,7 @@ export function parsePlanMarker(raw: unknown): PlanMarker | null {
     categoryId: typeof r.categoryId === "string" ? r.categoryId : null,
     productId: r.productId,
     plannedAt: r.plannedAt,
+    contextual: r.contextual === true,
   }
 }
 export const PLAN_EVAL_PAYLOAD_KEYS = ["recommendation", "elapsedDays", "horizonDays", "sales"] as const

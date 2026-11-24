@@ -3539,7 +3539,32 @@
         "retirer_ou_remplacer": "建议：下架或替换 — 它不会自行恢复可售。"
       },
       "notMeasured": "未测量：流量、过去的可售状态",
-      "free": "您仍可随时修改或下架。"
+      "free": "您仍可随时修改或下架。",
+      "context": {
+        "later": "对于此类商品（{profile}），首单通常比平均更晚：约 {days} 天，而不是 {general} 天。",
+        "earlier": "对于此类商品（{profile}），首单通常比平均更早：约 {days} 天，而不是 {general} 天。",
+        "basis": "参考估算，基于 {resellers} 位分销商处同类商品的历史销售，并在独立时间段上验证。",
+        "profile": {
+          "categorie": "在其类目中",
+          "anciennete_lt30": "新上架商品（不足 30 天）",
+          "anciennete_m1_6": "上架 1 至 6 个月的商品",
+          "anciennete_gt180": "上架超过 6 个月的商品",
+          "anciennete_inconnue": "上架时长未知",
+          "concurrence_seul": "没有其他店铺销售",
+          "concurrence_un_deux": "另有 1 至 2 家店铺销售",
+          "concurrence_trois_plus": "另有 3 家或更多店铺销售",
+          "remise_en_vente_oui": "重新上架",
+          "remise_en_vente_non": "首次上架",
+          "prix_lt25": "供货价低于 25 €",
+          "prix_p25_60": "供货价 25 至 60 €",
+          "prix_gt60": "供货价高于 60 €",
+          "offre_complete": "商品页完整",
+          "offre_incomplete": "商品页不完整",
+          "offre_non_mesuree": "商品页未测量",
+          "retour_etendu": "延长退货",
+          "retour_legal": "法定退货期"
+        }
+      }
     }
   },
   "marketplace": {

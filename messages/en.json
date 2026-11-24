@@ -3539,7 +3539,32 @@
         "retirer_ou_remplacer": "Advice: remove or replace it — it cannot become available again by itself."
       },
       "notMeasured": "Not measured: traffic, past availability",
-      "free": "You remain free to edit or remove it."
+      "free": "You remain free to edit or remove it.",
+      "context": {
+        "later": "For products with this profile ({profile}), first sales usually come later than average: about {days} d instead of {general} d.",
+        "earlier": "For products with this profile ({profile}), first sales usually come earlier than average: about {days} d instead of {general} d.",
+        "basis": "Indicative estimate based on past sales of comparable products with {resellers} resellers, validated on an independent period.",
+        "profile": {
+          "categorie": "in its category",
+          "anciennete_lt30": "recent product (under 30 d)",
+          "anciennete_m1_6": "product 1 to 6 months old",
+          "anciennete_gt180": "product over 6 months old",
+          "anciennete_inconnue": "unknown age",
+          "concurrence_seul": "no other shop offers it",
+          "concurrence_un_deux": "offered by 1 to 2 other shops",
+          "concurrence_trois_plus": "offered by 3 or more other shops",
+          "remise_en_vente_oui": "relisted",
+          "remise_en_vente_non": "first listing",
+          "prix_lt25": "supplier price under €25",
+          "prix_p25_60": "supplier price €25 to €60",
+          "prix_gt60": "supplier price over €60",
+          "offre_complete": "complete listing",
+          "offre_incomplete": "incomplete listing",
+          "offre_non_mesuree": "listing not measured",
+          "retour_etendu": "extended returns",
+          "retour_legal": "legal return window"
+        }
+      }
     }
   },
   "marketplace": {

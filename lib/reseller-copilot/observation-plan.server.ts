@@ -29,6 +29,7 @@ import {
   type PlanStatus,
 } from "@/lib/reseller-copilot/observation-plan"
 import { evaluatePlans, type PlanCaseInput, type PlanEvaluation } from "@/lib/reseller-copilot/observation-plan-eval"
+import { contextualHorizonFor, readContextualMode } from "@/lib/reseller-copilot/contextual-horizon"
 import { LOW_STOCK_UNITS, rankGeneric } from "@/lib/reseller-copilot/selection"
 import { loadCandidates } from "@/lib/reseller-copilot/selection.server"
 
@@ -66,7 +67,16 @@ async function decideForProduct(viewer: string | null, excludeAffiliateId: strin
     now,
   })
   const reference = pickReference({ product: refs.productPeriods, category: refs.categoryPeriods, general: refs.generalPeriods })
-  return { decision: planAtAdd({ sellable, constraint, netPerSaleCents: net, reference, now }), categoryId: c.categoryId ?? null }
+  // Context-aware horizon (CONTEXTUAL_HORIZON_MODE=on AND validated on independent data); a failed read = none.
+  let contextual = null
+  if (readContextualMode() === "on") {
+    const ch = await import("@/lib/reseller-copilot/contextual-horizon.server").catch(() => null)
+    const bundle = ch ? await ch.loadContextualBundle(now).catch(() => null) : null
+    // The candidate's live listings include the reseller's own new listing after the add (viewer null): not a competitor.
+    const others = Math.max(0, c.resellersListing - (viewer == null ? 1 : 0))
+    contextual = bundle && ch ? contextualHorizonFor(bundle.model, ch.featuresNow(c, others), excludeAffiliateId) : null
+  }
+  return { decision: planAtAdd({ sellable, constraint, netPerSaleCents: net, reference, contextual, now }), categoryId: c.categoryId ?? null }
 }
 
 async function feeOf(affiliateId: string): Promise<number | null> {

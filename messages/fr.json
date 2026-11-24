@@ -3539,7 +3539,32 @@
         "retirer_ou_remplacer": "Conseil : le retirer ou le remplacer — il ne peut pas redevenir disponible de lui-même."
       },
       "notMeasured": "Non mesuré : trafic, disponibilité passée",
-      "free": "Vous restez libre de le modifier ou de le retirer."
+      "free": "Vous restez libre de le modifier ou de le retirer.",
+      "context": {
+        "later": "Pour des produits de ce profil ({profile}), les premières ventes arrivent généralement plus tard que la moyenne : environ {days} j au lieu de {general} j.",
+        "earlier": "Pour des produits de ce profil ({profile}), les premières ventes arrivent généralement plus tôt que la moyenne : environ {days} j au lieu de {general} j.",
+        "basis": "Estimation indicative fondée sur les ventes passées de produits comparables chez {resellers} revendeurs, validée sur une période indépendante.",
+        "profile": {
+          "categorie": "dans sa catégorie",
+          "anciennete_lt30": "produit récent (moins de 30 j)",
+          "anciennete_m1_6": "produit de 1 à 6 mois",
+          "anciennete_gt180": "produit de plus de 6 mois",
+          "anciennete_inconnue": "ancienneté inconnue",
+          "concurrence_seul": "aucune autre boutique ne le propose",
+          "concurrence_un_deux": "proposé par 1 à 2 autres boutiques",
+          "concurrence_trois_plus": "proposé par 3 autres boutiques ou plus",
+          "remise_en_vente_oui": "remis en vente",
+          "remise_en_vente_non": "première mise en vente",
+          "prix_lt25": "prix fournisseur sous 25 €",
+          "prix_p25_60": "prix fournisseur de 25 à 60 €",
+          "prix_gt60": "prix fournisseur au-delà de 60 €",
+          "offre_complete": "fiche complète",
+          "offre_incomplete": "fiche incomplète",
+          "offre_non_mesuree": "fiche non mesurée",
+          "retour_etendu": "retours étendus",
+          "retour_legal": "délai de retour légal"
+        }
+      }
     }
   },
   "marketplace": {

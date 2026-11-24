@@ -10,6 +10,8 @@ import { readRetentionHoldoutPct, readRetentionMode } from "@/lib/reseller-copil
 import { loadRetentionEvaluation } from "@/lib/reseller-copilot/retention-advisor.server"
 import { readPlanHoldoutPct, readPlanMode } from "@/lib/reseller-copilot/observation-plan"
 import { loadPlanEvaluation } from "@/lib/reseller-copilot/observation-plan.server"
+import { readContextualMode } from "@/lib/reseller-copilot/contextual-horizon"
+import { loadContextualAdminView } from "@/lib/reseller-copilot/contextual-horizon.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -26,6 +28,9 @@ export const dynamic = "force-dynamic"
  * (shown / held-out control / observe), per tier and per category with enough cases — associations, never causes.
  * `observationPlans` (switch `OBSERVATION_PLAN_MODE`, off by default): plans generated / with a horizon / silent by
  * reason, per arm, calibration of the announced sale share, shown vs held-out, what followed each recommendation.
+ * `contextualHorizon` (switch `CONTEXTUAL_HORIZON_MODE`, off by default): which product / context factors are
+ * associated with faster or later first sales, the models compared with today's rule on an independent later period,
+ * calibration, controls, the verdict, and the drift of the retained factors over the daily snapshots. Aggregates only.
  */
 export async function GET(): Promise<Response> {
   const gate = await requireAdminSession()
@@ -34,16 +39,18 @@ export async function GET(): Promise<Response> {
   const temporalMode = readTemporalMode()
   const retentionMode = readRetentionMode()
   const planMode = readPlanMode()
-  const [report, temporal, sources, retention, observationPlans] = await Promise.all([
+  const contextualMode = readContextualMode()
+  const [report, temporal, sources, retention, observationPlans, contextualHorizon] = await Promise.all([
     mode === "off" ? Promise.resolve(null) : loadCopilotBlindSpotReport(),
     temporalMode === "off" ? Promise.resolve(null) : loadTemporalReport(),
     temporalMode === "off" ? Promise.resolve(null) : loadPresenceSourceCoverage(),
     retentionMode === "off" ? Promise.resolve(null) : loadRetentionEvaluation(),
     planMode === "off" ? Promise.resolve(null) : loadPlanEvaluation(),
+    contextualMode === "off" ? Promise.resolve(null) : loadContextualAdminView(),
   ])
-  const failed = (mode !== "off" && !report) || (temporalMode !== "off" && !temporal) || (retentionMode !== "off" && !retention) || (planMode !== "off" && !observationPlans)
+  const failed = (mode !== "off" && !report) || (temporalMode !== "off" && !temporal) || (retentionMode !== "off" && !retention) || (planMode !== "off" && !observationPlans) || (contextualMode !== "off" && !contextualHorizon)
   return NextResponse.json(
-    { mode, report, temporalMode, temporal, presenceSources: sources, retentionMode, retentionHoldoutPct: readRetentionHoldoutPct(), retention, planMode, planHoldoutPct: readPlanHoldoutPct(), observationPlans },
+    { mode, report, temporalMode, temporal, presenceSources: sources, retentionMode, retentionHoldoutPct: readRetentionHoldoutPct(), retention, planMode, planHoldoutPct: readPlanHoldoutPct(), observationPlans, contextualMode, contextualHorizon },
     { status: failed ? 503 : 200 },
   )
 }

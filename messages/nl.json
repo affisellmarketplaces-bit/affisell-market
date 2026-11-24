@@ -3539,7 +3539,32 @@
         "retirer_ou_remplacer": "Advies: verwijderen of vervangen — het wordt niet vanzelf weer beschikbaar."
       },
       "notMeasured": "Niet gemeten: verkeer, eerdere beschikbaarheid",
-      "free": "Je blijft vrij om het te wijzigen of te verwijderen."
+      "free": "Je blijft vrij om het te wijzigen of te verwijderen.",
+      "context": {
+        "later": "Bij producten met dit profiel ({profile}) komen de eerste verkopen meestal later dan gemiddeld: ongeveer {days} d in plaats van {general} d.",
+        "earlier": "Bij producten met dit profiel ({profile}) komen de eerste verkopen meestal eerder dan gemiddeld: ongeveer {days} d in plaats van {general} d.",
+        "basis": "Indicatieve schatting op basis van eerdere verkopen van vergelijkbare producten bij {resellers} resellers, gecontroleerd op een onafhankelijke periode.",
+        "profile": {
+          "categorie": "in zijn categorie",
+          "anciennete_lt30": "recent product (minder dan 30 d)",
+          "anciennete_m1_6": "product van 1 tot 6 maanden",
+          "anciennete_gt180": "product ouder dan 6 maanden",
+          "anciennete_inconnue": "leeftijd onbekend",
+          "concurrence_seul": "geen andere winkel biedt het aan",
+          "concurrence_un_deux": "aangeboden door 1 tot 2 andere winkels",
+          "concurrence_trois_plus": "aangeboden door 3 of meer andere winkels",
+          "remise_en_vente_oui": "opnieuw te koop gezet",
+          "remise_en_vente_non": "eerste vermelding",
+          "prix_lt25": "leveranciersprijs onder € 25",
+          "prix_p25_60": "leveranciersprijs € 25 tot € 60",
+          "prix_gt60": "leveranciersprijs boven € 60",
+          "offre_complete": "volledige vermelding",
+          "offre_incomplete": "onvolledige vermelding",
+          "offre_non_mesuree": "vermelding niet gemeten",
+          "retour_etendu": "verlengde retourtermijn",
+          "retour_legal": "wettelijke retourtermijn"
+        }
+      }
     }
   },
   "marketplace": {
