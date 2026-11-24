@@ -188,7 +188,8 @@
     "audit:money": "node --env-file=.env.local scripts/audit-money-splits.mjs",
     "test:db": "tsx scripts/check-test-db.ts && RUN_DB_TESTS=1 vitest run lib/__tests__/money-e2e-db.test.ts lib/__tests__/listing-sales-stats-db.test.ts lib/__tests__/category-attribute-v2-product-variants.test.ts lib/__tests__/invoice-number-db.test.ts",
     "test:db:check": "tsx scripts/check-test-db.ts",
-    "env:rotate-db-password": "node scripts/rotate-db-password.mjs"
+    "env:rotate-db-password": "node scripts/rotate-db-password.mjs",
+    "rehearse:migrations": "bash scripts/rehearse-migration-chain.sh"
   },
   "dependencies": {
     "@ai-sdk/groq": "^3.0.38",

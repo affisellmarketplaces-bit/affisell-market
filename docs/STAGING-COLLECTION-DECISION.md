@@ -6,6 +6,8 @@
 
 **Authorize step B (apply the migration on staging) as one bounded operation, after the three prerequisites of §3.** Then follow §4 to J+7.
 
+**Preflight (2026-11-24, `docs/STAGING-MIGRATION-PREFLIGHT.md`)**: step B applies EVERY pending migration (Prisma has no single-migration apply), the staging migration state is unknown from the agent session, and the chain alone does not rebuild the schema (two sponsor migrations depend on tables created outside migrations). Read the staging state first (§1 of the preflight), read-only, on authorization.
+
 No further control layer is needed before that. What remains unproved can only be proved by real staging data.
 
 ## 2. What is proved, and what is not
