@@ -52,7 +52,9 @@ describe.skipIf(!RUN_DB)("mutation / history reconciliation — real database", 
   let run: typeof import("@/lib/strategic-intelligence/fee-reconciliation-run")
   let collector: typeof import("@/lib/reports/presence-readiness-report")
   let monitor: typeof import("@/lib/launch-gate/collection-monitor")
-  const ids = { supplier: "", affiliate: "", product: "", a: "", w: "", c: "", b: "" }
+  const ids = { supplier: "", affiliate: "", a: "", w: "", c: "", b: "" }
+  // (affiliateId, productId) is UNIQUE: one listing per product, so each listing of the scenario gets its own product.
+  const productIds: string[] = []
   let trackingStart = new Date()
   const staticFacts = { migrationFilePresent: true, migrationSql: readFileSync(PRESENCE, "utf8"), rollbackSql: readFileSync(ROLLBACK, "utf8") }
 
@@ -66,11 +68,18 @@ describe.skipIf(!RUN_DB)("mutation / history reconciliation — real database", 
     })
   const report = () =>
     run.withReadOnlyTransaction(run.readOnlyPrismaClient(base), (tx) => collector.collectPresenceReadiness(tx, { staticFacts, trackingStartOverride: trackingStart }))
-  const createListing = (listed: boolean) =>
-    base.$transaction(async (tx: typeof base) => {
+  const createProduct = async () => {
+    const product = await base.product.create({ data: { supplierId: ids.supplier, name: `MR ${productIds.length}`, description: "d", basePriceCents: 2000, commissionRate: 10 } })
+    productIds.push(product.id)
+    return product.id as string
+  }
+  const createListing = async (listed: boolean) => {
+    const productId = await createProduct()
+    return base.$transaction(async (tx: typeof base) => {
       await tx.$queryRaw`SELECT set_config('affisell.listing_presence_source', 'listing_create', true)::text AS s`
-      return tx.affiliateProduct.create({ data: { affiliateId: ids.affiliate, productId: ids.product, sellingPriceCents: 2500, isListed: listed } })
+      return tx.affiliateProduct.create({ data: { affiliateId: ids.affiliate, productId, sellingPriceCents: 2500, isListed: listed } })
     })
+  }
   // The replacement flow's own shape: source declared, update, AuditLog in the SAME transaction.
   const withdraw = (listingId: string) =>
     base.$transaction(async (tx: typeof base) => {
@@ -92,20 +101,19 @@ describe.skipIf(!RUN_DB)("mutation / history reconciliation — real database", 
     const mk = (tag: string, role: "SUPPLIER" | "AFFILIATE") => base.user.create({ data: { email: `${stamp}-${tag}@affisell.test`, role, name: tag } })
     ids.supplier = (await mk("s", "SUPPLIER")).id
     ids.affiliate = (await mk("a", "AFFILIATE")).id
-    ids.product = (await base.product.create({ data: { supplierId: ids.supplier, name: "MR", description: "d", basePriceCents: 2000, commissionRate: 10 } })).id
   }, 90_000)
 
   afterAll(async () => {
     if (!base) return
     await base.$executeRawUnsafe('ALTER TABLE "AffiliateProduct" ENABLE TRIGGER "AffiliateProduct_listing_presence_history"').catch(() => undefined)
-    await base.affiliateProduct.deleteMany({ where: { productId: ids.product } }).catch(() => undefined)
+    await base.affiliateProduct.deleteMany({ where: { productId: { in: productIds } } }).catch(() => undefined)
     await base.$transaction(async (tx: typeof base) => {
       await tx.$queryRaw`SELECT set_config('affisell.listing_presence_purge', 'on', true)::text AS p`
-      await tx.listingPresenceEvent.deleteMany({ where: { productId: ids.product } })
+      await tx.listingPresenceEvent.deleteMany({ where: { productId: { in: productIds } } })
     }).catch(() => undefined)
-    await base.listingPriceHistory.deleteMany({ where: { productId: ids.product } }).catch(() => undefined)
+    await base.listingPriceHistory.deleteMany({ where: { productId: { in: productIds } } }).catch(() => undefined)
     await base.auditLog.deleteMany({ where: { actorId: ids.affiliate } }).catch(() => undefined)
-    await base.product.deleteMany({ where: { id: ids.product } }).catch(() => undefined)
+    await base.product.deleteMany({ where: { id: { in: productIds } } }).catch(() => undefined)
     await base.user.deleteMany({ where: { id: { in: [ids.supplier, ids.affiliate].filter(Boolean) } } }).catch(() => undefined)
     await base.$disconnect()
   })
