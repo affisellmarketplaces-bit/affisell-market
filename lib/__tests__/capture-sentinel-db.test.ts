@@ -147,12 +147,24 @@ describe.skipIf(!RUN_DB)("Capture Sentinel — real database", { timeout: 180_00
     }
   })
 
-  it("function recording the wrong kind → FAIL « événement incorrect » (7)", async () => {
-    await base.$executeRawUnsafe(RECORD_FN.replace("THEN 'listed' ELSE 'unlisted' END", "THEN 'unlisted' ELSE 'listed' END"))
+  it("function recording the wrong reseller / product → FAIL « événement incorrect » (7)", async () => {
+    await base.$executeRawUnsafe(RECORD_FN.replace('NEW."id", NEW."affiliateId", NEW."productId",\n                CASE', 'NEW."id", NEW."productId", NEW."affiliateId",\n                CASE'))
     try {
       const r = await probe()
       expect(r.checks.find((c) => c.id === "evenement:list")?.detail).toMatch(/incorrect/)
       expect(r.overall).toBe("FAIL")
+    } finally {
+      await apply()
+    }
+  })
+
+  it("function recording an impossible kind: the table's shape CHECK makes the mutation fail, and the probe says so (7, 9)", async () => {
+    await base.$executeRawUnsafe(RECORD_FN.replace("THEN 'listed' ELSE 'unlisted' END", "THEN 'unlisted' ELSE 'listed' END"))
+    try {
+      const r = await probe()
+      expect(r.checks.find((c) => c.id === "mutation:list")?.status).toBe("FAIL")
+      expect(r.overall).toBe("FAIL")
+      expect(r.checks.find((c) => c.id === "isolation")?.status).toBe("PASS")
     } finally {
       await apply()
     }
