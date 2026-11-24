@@ -4,6 +4,7 @@ import { Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useState } from "react"
 
+import { ObservationPlanPreview } from "@/components/affiliate/observation-plan-preview"
 import type { SelectionItem } from "@/lib/reseller-copilot/selection"
 import type { Fact, Opportunity } from "@/lib/reseller-copilot/opportunity"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
@@ -144,7 +145,7 @@ export function ResellerCopilotPanel({ onAdded }: { onAdded?: () => void }) {
                   {" · "}
                   {t("resellers", { count: s.demand.resellersListing })}
                 </p>
-                {s.opportunity ? <OpportunityDetails o={s.opportunity} /> : null}
+                {s.opportunity ? <OpportunityDetails o={s.opportunity} productId={s.productId} /> : null}
                 {s.readiness === "a_verifier" ? (
                   <p className="mt-1 text-xs text-amber-700">
                     {s.reasons
@@ -200,8 +201,10 @@ const QUAL_STYLE: Record<Fact["qualification"], string> = {
  * strengths, its risks, what is not known yet, one action, and why it is placed before the next product. Every line says
  * whether it is a fact, a calculation, an estimate or missing data. Read-only.
  */
-function OpportunityDetails({ o }: { o: Opportunity }) {
+function OpportunityDetails({ o, productId }: { o: Opportunity; productId: string }) {
   const t = useTranslations("affiliate.copilot.opportunity")
+  // The observation plan is fetched only once the panel is opened (no request per product of the selection).
+  const [opened, setOpened] = useState(false)
   const params = (f: Fact): Record<string, string | number> => {
     const out: Record<string, string | number> = {}
     for (const [k, v] of Object.entries(f.params ?? {})) out[k] = ["net", "threshold", "low", "high"].includes(k) && typeof v === "number" ? money(v) : v
@@ -215,7 +218,12 @@ function OpportunityDetails({ o }: { o: Opportunity }) {
   )
   const e = o.earnings
   return (
-    <details className="mt-1.5 rounded-lg border border-zinc-200 p-2 text-xs dark:border-zinc-800">
+    <details
+      className="mt-1.5 rounded-lg border border-zinc-200 p-2 text-xs dark:border-zinc-800"
+      onToggle={(e) => {
+        if ((e.currentTarget as HTMLDetailsElement).open) setOpened(true)
+      }}
+    >
       <summary className="cursor-pointer font-medium text-emerald-800 dark:text-emerald-300">{t("toggle")}</summary>
       <p className="mt-1.5 font-semibold text-zinc-900 dark:text-zinc-100">{t(`profile.${o.profile}.title`)}</p>
       <p className="text-zinc-600 dark:text-zinc-400">{t(`profile.${o.profile}.meaning`)}</p>
@@ -244,6 +252,7 @@ function OpportunityDetails({ o }: { o: Opportunity }) {
       ) : null}
       <p className="mt-1.5 font-medium">{t("actionTitle")}</p>
       <p className="text-zinc-700 dark:text-zinc-300">{t(`action.${o.action}`)}</p>
+      {opened ? <ObservationPlanPreview productId={productId} /> : null}
       {o.rankedAbove ? <p className="mt-1.5 text-zinc-500">{t(`rank.${o.rankedAbove.criterion}`, { other: o.rankedAbove.name })}</p> : null}
       {o.track && o.track.saleShare != null && o.track.lo != null && o.track.hi != null ? (
         <p className="mt-1.5 text-zinc-600 dark:text-zinc-400">

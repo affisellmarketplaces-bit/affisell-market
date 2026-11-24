@@ -3493,6 +3493,53 @@
       "reason_chance_non_mesurable": "chance of a sale not measurable",
       "reason_echantillon_suffisant": "sufficient sample",
       "yourCall": "You are free to remove it now."
+    },
+    "observationPlan": {
+      "title": "Indicative observation plan",
+      "horizon": "Give it about {days} d before a first review (around {date}).",
+      "distribution": "With {resellers} other resellers, half of first sales came before {p50} d, three quarters before {p75} d.",
+      "saleShare": "{pct}% of the listings observed that long sold before {days} d.",
+      "tier": {
+        "product": "Measured on this product",
+        "category": "Measured on its category (too little history for this product)",
+        "general": "Affisell-wide reference (not specific to this product)"
+      },
+      "confidenceLow": "low reliability",
+      "confidenceMedium": "medium reliability",
+      "reason": {
+        "echantillon_limite": "limited sample",
+        "categorie_seulement": "category only",
+        "reference_generale": "general reference",
+        "echantillon_suffisant": "sufficient sample"
+      },
+      "noGuarantee": "This is not a guarantee of a sale.",
+      "limits": "Traffic and past availability are not measured.",
+      "silence": {
+        "reference_insuffisante": "Not enough data to suggest an observation period: no duration is given.",
+        "gain_faible": "Low earnings per sale at this price: no observation period is suggested.",
+        "non_vendable": "Product not sellable today: no observation plan.",
+        "contrainte": "Product blocked today: no observation plan."
+      },
+      "statusTitle": "Observation plan",
+      "phase": {
+        "observation": "Day {elapsed} of {horizon} on sale — too early to conclude.",
+        "evaluation": "Horizon reached: {elapsed} d on sale for {horizon} d planned, no sale in your shop.",
+        "vendu": "Sales in your shop since it was added: {sales}.",
+        "indisponible": "Product unavailable today: this time cannot be used to judge its sales.",
+        "sans_plan": "No reliable observation period for this product.",
+        "donnees_insuffisantes": "Incomplete history: no conclusion.",
+        "retire": "Product removed."
+      },
+      "horizonUpdated": "Period updated to {horizon} d with new data (initially {initial} d).",
+      "recommendation": {
+        "conserver": "Advice: keep it.",
+        "ameliorer": "Advice: improve the listing — elements associated with more sales on Affisell are missing.",
+        "surveiller": "Advice: keep an eye on it — without traffic data, no sale does not allow a conclusion.",
+        "reconsiderer": "Advice: reconsider it — low earnings per sale, or sales usually come faster.",
+        "retirer_ou_remplacer": "Advice: remove or replace it — it cannot become available again by itself."
+      },
+      "notMeasured": "Not measured: traffic, past availability",
+      "free": "You remain free to edit or remove it."
     }
   },
   "marketplace": {
@@ -10076,7 +10123,8 @@
       "add_ready_product": "Add « {product} » to your shop",
       "answer_restock_demand": "Answer the demand on {product}",
       "answer_shop_demand": "Buyers of your shop are waiting for {product}",
-      "prepare_listing": "Get “{product}” ready to sell"
+      "prepare_listing": "Get “{product}” ready to sell",
+      "review_observation_plan": "Review “{product}”"
     },
     "cta": {
       "fix_blocage": "Open the product",
@@ -10089,7 +10137,8 @@
       "add_ready_product": "See it in the catalogue",
       "answer_restock_demand": "Update availability",
       "answer_shop_demand": "See the demand and alternatives",
-      "prepare_listing": "Open the sheet"
+      "prepare_listing": "Open the sheet",
+      "review_observation_plan": "View my shop"
     },
     "impact": {
       "label": "Potential impact:",
@@ -10145,9 +10194,15 @@
       "quality_brand_declared": "The brand is not given.",
       "quality_delivery_declared": "The delivery time is not given.",
       "quality_return_extended": "The return window is only 14 days.",
-      "readiness_next_fix": "The sheet's next fix, chosen by the “Ready to sell?” check."
+      "readiness_next_fix": "The sheet's next fix, chosen by the “Ready to sell?” check.",
+      "plan_conserver": "Advice: keep it.",
+      "plan_ameliorer": "Advice: improve the listing — elements associated with more sales on Affisell are missing.",
+      "plan_surveiller": "Advice: keep an eye on it — without traffic data, no sale does not allow a conclusion.",
+      "plan_reconsiderer": "Advice: reconsider it — low earnings per sale, or sales usually come faster.",
+      "plan_retirer_ou_remplacer": "Advice: remove or replace it — it cannot become available again by itself."
     },
-    "qualityEvidence": "Observed on Affisell: comparable listings with this element recorded {ratio} times more sales per day in shops (at least {lo} times). Statistical association, not proof that adding it will sell more."
+    "qualityEvidence": "Observed on Affisell: comparable listings with this element recorded {ratio} times more sales per day in shops (at least {lo} times). Statistical association, not proof that adding it will sell more.",
+    "planLine": "{elapsed} d on sale of {horizon} d planned · {sales} sale(s) in your shop"
   },
   "restockWatch": {
     "cta": "Notify me when this option is back",

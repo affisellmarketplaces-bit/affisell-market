@@ -1,14 +1,10 @@
 import "server-only"
 
-import { unstable_cache } from "next/cache"
-
 import { loadListingPresence, loadPresenceForProducts } from "@/lib/listing-presence/presence.server"
 import { rebuildPresence } from "@/lib/listing-presence/periods"
-import { netAffiliateTransferCents } from "@/lib/marketplace-phase1-fees"
 import { isOrderClosedForPayout } from "@/lib/orders/payment-state"
 import { prisma } from "@/lib/prisma"
 import { availableUnits, listingProblem } from "@/lib/reseller-replacement/listing-state"
-import type { BlindSpotOrder } from "@/lib/reseller-copilot/blind-spots"
 import { computeResellerNetPerSale } from "@/lib/reseller-copilot/net-per-sale"
 import { LOW_STOCK_UNITS } from "@/lib/reseller-copilot/selection"
 import {
@@ -27,7 +23,7 @@ import {
   type RetentionMode,
 } from "@/lib/reseller-copilot/retention-advisor"
 import { evaluateRetention, type RetentionCaseInput, type RetentionEvaluation } from "@/lib/reseller-copilot/retention-advisor-eval"
-import { measurePeriods, type MeasuredPeriod } from "@/lib/reseller-copilot/temporal-opportunities"
+import { loadReferencePeriods } from "@/lib/reseller-copilot/observation-reference.server"
 
 /**
  * Smart Retention Advisor — server reads (rules: retention-advisor.ts). READ-ONLY on the catalogue, listings, presence
@@ -36,50 +32,9 @@ import { measurePeriods, type MeasuredPeriod } from "@/lib/reseller-copilot/temp
  * `RETENTION_ADVISOR_MODE=off` (DEFAULT) reads and writes nothing. Never fails the withdrawal: any error = no advice.
  */
 const DAY = 86_400_000
-export const RETENTION_MAX_CATEGORY_PRODUCTS = 300
 export const RETENTION_MAX_ORDERS = 50_000
 export const RETENTION_EVAL_MAX_MARKERS = 20_000
 export const RETENTION_EVAL_DAYS = 210
-
-/** Measured periods of the given products, every shop (callers drop the asking reseller). Capped read = none. */
-async function measuredPeriodsFor(productIds: readonly string[], now: Date): Promise<MeasuredPeriod[] | null> {
-  if (productIds.length === 0) return []
-  const presence = await loadPresenceForProducts(productIds)
-  if (!presence.available || presence.truncated || !presence.trackingStartedAt) return null
-  const orders = await prisma.order.findMany({
-    where: { productId: { in: [...productIds] }, paidAt: { gte: presence.trackingStartedAt } },
-    select: {
-      affiliateId: true, productId: true, paidAt: true, quantity: true, status: true, paymentSettlementStatus: true,
-      affiliatePayoutCents: true, affiliateMarginRetainedCents: true, affiliateFeeCents: true, affiliateMarginCents: true,
-    },
-    take: RETENTION_MAX_ORDERS + 1,
-  })
-  if (orders.length > RETENTION_MAX_ORDERS) return null
-  const by = new Map<string, BlindSpotOrder[]>()
-  for (const o of orders) {
-    if (!o.paidAt || !o.productId || !o.affiliateId) continue
-    const k = `${o.productId}\u0000${o.affiliateId}`
-    by.set(k, [
-      ...(by.get(k) ?? []),
-      {
-        affiliateId: o.affiliateId,
-        paidAt: o.paidAt,
-        quantity: Math.max(1, o.quantity ?? 1),
-        netCents: netAffiliateTransferCents({ affiliatePayoutCents: o.affiliatePayoutCents, affiliateMarginRetainedCents: o.affiliateMarginRetainedCents, affiliateFeeCents: o.affiliateFeeCents, affiliateMarginCents: o.affiliateMarginCents }),
-        closed: isOrderClosedForPayout({ status: o.status, paymentSettlementStatus: o.paymentSettlementStatus }),
-      },
-    ])
-  }
-  return presence.listings.flatMap(
-    (l) => measurePeriods({ productId: l.productId, affiliateId: l.affiliateId, history: l.history, orders: by.get(`${l.productId}\u0000${l.affiliateId}`) ?? [] }, now).periods,
-  )
-}
-
-/** Reference periods cached 6 h per product / category (shared by every reseller; the asking one is removed after). */
-function cachedPeriods(key: string, load: () => Promise<MeasuredPeriod[] | null>, now: Date) {
-  const bucket = now.toISOString().slice(0, 13)
-  return unstable_cache(load, ["retention-ref-v1", key, bucket], { revalidate: 6 * 3600 })()
-}
 
 function constraintOf(problem: ReturnType<typeof listingProblem>): RetentionConstraint | null {
   switch (problem) {
@@ -154,24 +109,14 @@ export async function loadRetentionAdvice(affiliateId: string, listingId: string
     })
     const ordersInPeriod = ownOrders.filter((o) => !isOrderClosedForPayout(o)).length
 
-    const productPeriods = ((await cachedPeriods(`p:${listing.productId}`, () => measuredPeriodsFor([listing.productId], now), now)) ?? []).filter(
-      (x) => x.affiliateId !== affiliateId,
-    )
-    const productOk =
-      new Set(productPeriods.filter((x) => x.firstSaleAfterDays != null).map((x) => x.affiliateId)).size >= RETENTION_TIERS.product.minResellers
-    let categoryPeriods: MeasuredPeriod[] = []
-    if (!productOk && p.categoryId) {
-      const categoryId = p.categoryId
-      const loaded = await cachedPeriods(
-        `c:${categoryId}`,
-        async () => {
-          const ids = await prisma.product.findMany({ where: { categoryId }, select: { id: true }, orderBy: { createdAt: "desc" }, take: RETENTION_MAX_CATEGORY_PRODUCTS })
-          return measuredPeriodsFor(ids.map((r) => r.id), now)
-        },
-        now,
-      )
-      categoryPeriods = (loaded ?? []).filter((x) => x.affiliateId !== affiliateId && x.productId !== listing.productId)
-    }
+    const { productPeriods, categoryPeriods } = await loadReferencePeriods({
+      productId: listing.productId,
+      categoryId: p.categoryId ?? null,
+      excludeAffiliateId: affiliateId,
+      needCategory: (periods) =>
+        new Set(periods.filter((x) => x.firstSaleAfterDays != null).map((x) => x.affiliateId)).size < RETENTION_TIERS.product.minResellers,
+      now,
+    })
 
     const decision = decideRetentionAdvice({
       current: { historyAvailable: true, listed: true, start: period.start, startKnown: true, uncertain: false, ordersInPeriod },

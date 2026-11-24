@@ -81,6 +81,10 @@ export async function loadResellerNextActions(affiliateId: string, now = new Dat
     // The shop's own buyers' restock requests: an extra reason, never a condition (a failed read = no such action).
     loadShopRestockDemand(affiliateId, now).catch(() => []),
   ])
+  // Observation plans whose evaluation is due (OBSERVATION_PLAN_MODE=on only; a failed read = no such action).
+  const planReviews = await import("@/lib/reseller-copilot/observation-plan.server")
+    .then((m) => m.loadDuePlanReviews(affiliateId, now))
+    .catch(() => [])
   const ordersBy = new Map(orders.map((o) => [o.productId as string, o._count._all]))
 
   const states: ShopListingState[] = listings.map((l) => {
@@ -108,6 +112,18 @@ export async function loadResellerNextActions(affiliateId: string, now = new Dat
         resellersListing: s.demand.resellersListing,
       })),
     shopDemand,
+    planReviews: planReviews
+      .filter((r) => r.status.recommendation && r.status.horizonDays != null)
+      .map((r) => ({
+        listingId: r.listingId,
+        productId: r.productId,
+        productName: r.productName,
+        plannedDay: r.plannedAt.slice(0, 10),
+        recommendation: r.status.recommendation!,
+        elapsedDays: r.status.elapsedDays,
+        horizonDays: r.status.horizonDays!,
+        sales: r.status.sales,
+      })),
   })
   // Recovery chain, step « recommendation shown »: recorded once per shop demand, never blocking the answer.
   const served = actions.filter((a) => a.kind === "answer_shop_demand")

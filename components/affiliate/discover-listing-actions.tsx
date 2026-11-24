@@ -5,6 +5,7 @@ import { Loader2, Pencil, Rocket, Sparkles, Undo2, Zap } from "lucide-react"
 import { useLocale } from "next-intl"
 import { useCallback, useState } from "react"
 
+import { ObservationPlanStatus } from "@/components/affiliate/observation-plan-status"
 import { RetentionAdviceNote } from "@/components/affiliate/retention-advice-note"
 import { Button } from "@/components/ui/button"
 import type { CatalogListingState } from "@/lib/affiliate-catalog-listing-state"
@@ -212,6 +213,7 @@ export function DiscoverListingActions({
                 <p className="mt-3 text-sm leading-relaxed text-zinc-300">{t.releaseBody}</p>
                 <p className="mt-2 text-xs text-zinc-500">{t.releaseHint}</p>
                 <RetentionAdviceNote listingId={pendingId} />
+                <ObservationPlanStatus listingId={pendingId} />
                 <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                   <button
                     type="button"

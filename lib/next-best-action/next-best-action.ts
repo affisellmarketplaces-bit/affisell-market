@@ -36,6 +36,7 @@ export type NextAction = {
     | "add_ready_product"
     | "answer_shop_demand"
     | "prepare_listing"
+    | "review_observation_plan"
   productId: string
   productName: string
   reason: string
@@ -65,6 +66,11 @@ export type NextAction = {
    * supplier's forms). `live` = worded for a product already on sale; `basis` = the rule that decides it.
    */
   readiness?: { code: string; level: "bloquant" | "prioritaire"; basis: string; feature?: QualityFeature; live?: boolean }
+  /**
+   * `review_observation_plan`: the observation plan's evaluation (lib/reseller-copilot/observation-plan.ts) — listed
+   * days really elapsed, the horizon, sales in this shop. Observed facts, never a forecast.
+   */
+  observationPlan?: { elapsedDays: number; horizonDays: number; sales: number; recommendation: string }
   /** Where the account acts. */
   href: string
 }
@@ -336,8 +342,26 @@ export function shopDemandHref(listingId: string, variantKey: string): string {
   return `/dashboard/affiliate/products/${encodeURIComponent(listingId)}/replace?variant=${encodeURIComponent(variantKey)}`
 }
 
+export type PlanReviewItem = {
+  listingId: string
+  productId: string
+  productName: string
+  plannedDay: string
+  recommendation: string
+  elapsedDays: number
+  horizonDays: number
+  sales: number
+}
+
 export function resellerNextActions(
-  input: { listings: ShopListingState[]; drops: ProfitDrop[]; ready: ReadyProduct[]; shopDemand?: ReadonlyArray<ShopDemandItem> },
+  input: {
+    listings: ShopListingState[]
+    drops: ProfitDrop[]
+    ready: ReadyProduct[]
+    shopDemand?: ReadonlyArray<ShopDemandItem>
+    /** Observation plans whose evaluation is due (`evaluationDue`) — offered once, for a limited window. */
+    planReviews?: ReadonlyArray<PlanReviewItem>
+  },
   max = 3
 ): NextAction[] {
   const cands: Array<NextAction & { score: number }> = []
@@ -396,6 +420,28 @@ export function resellerNextActions(
       impact: { qualification: "potentiel", netChangeCents: d.netChangeCents },
       href: "/dashboard/affiliate/opportunities",
       score: 2000 + Math.min(100_000, -d.netChangeCents) / 10,
+    })
+  }
+  // « Your observation plan has reached its horizon »: one evaluation per plan, never for a listing that already has its
+  // own « fix » action (same product, same reason twice).
+  for (const r of input.planReviews ?? []) {
+    if (unsellable.has(r.listingId)) continue
+    cands.push({
+      key: `review_observation_plan:${r.listingId}:${r.plannedDay}`,
+      kind: "review_observation_plan",
+      productId: r.productId,
+      productName: r.productName,
+      reason: `plan_${r.recommendation}`,
+      priority: r.recommendation === "reconsiderer" ? "moyenne" : "basse",
+      evidence: {
+        elapsedDays: { value: r.elapsedDays, qualification: "observe" },
+        horizonDays: { value: r.horizonDays, qualification: "calcul" },
+        sales: { value: r.sales, qualification: "observe" },
+      },
+      impact: { qualification: "potentiel" },
+      observationPlan: { elapsedDays: r.elapsedDays, horizonDays: r.horizonDays, sales: r.sales, recommendation: r.recommendation },
+      href: r.recommendation === "retirer_ou_remplacer" ? `/dashboard/affiliate/products/${encodeURIComponent(r.listingId)}/replace` : "/dashboard/affiliate",
+      score: 1500 + r.elapsedDays,
     })
   }
   for (const r of input.ready) {

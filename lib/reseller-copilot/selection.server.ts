@@ -1,5 +1,8 @@
 import "server-only"
 
+import { runAfterResponse } from "@/lib/after-response"
+import { readPlanMode } from "@/lib/reseller-copilot/observation-plan"
+
 import { detectEmerging, EMERGING_PRIOR_DAYS, EMERGING_RECENT_DAYS } from "@/lib/strategic-intelligence/emerging"
 
 import { buildAffiliateCatalogProductWhere } from "@/lib/affiliate-catalog-query"
@@ -306,6 +309,7 @@ export async function addSelection(affiliateId: string, productIds: ReadonlyArra
   const [{ candidates }, feeBps] = await Promise.all([loadCandidates(affiliateId, productIds), feeBpsOf(affiliateId)])
   const assessed = new Map(buildSelection(candidates, { affiliateFeeBps: feeBps, limit: 50 }).selection.map((s) => [s.productId, s]))
   const out: AddOutcome[] = []
+  const listed: Array<{ listingId: string; productId: string }> = []
   for (const productId of productIds) {
     const known = candidates.find((c) => c.productId === productId)
     if (!known) {
@@ -321,8 +325,15 @@ export async function addSelection(affiliateId: string, productIds: ReadonlyArra
       continue
     }
     const r = await quickAddAffiliateListing({ affiliateId, productId })
+    if (r.ok && r.created && r.listing.isListed) listed.push({ listingId: r.listing.id, productId })
     out.push(r.ok ? { productId, ok: true, created: r.created, listed: r.listing.isListed, publishBlocked: r.publishBlocked ?? null } : { productId, ok: false, error: r.error })
   }
   await recordCopilotAdds(affiliateId, out.filter((o) => o.ok && o.created).map((o) => o.productId))
+  // Observation plan (OBSERVATION_PLAN_MODE, off by default): frozen AFTER the response — the add never waits for it.
+  if (listed.length > 0 && readPlanMode() !== "off") await runAfterResponse("observation-plan", async () => {
+      // Loaded lazily: the plan module reads the catalogue through this module (no import cycle at load time).
+      const { recordPlansAfterAdd } = await import("@/lib/reseller-copilot/observation-plan.server")
+      await recordPlansAfterAdd(affiliateId, listed)
+    })
   return out
 }

@@ -3493,6 +3493,53 @@
       "reason_chance_non_mesurable": "chance de vente non mesurable",
       "reason_echantillon_suffisant": "échantillon suffisant",
       "yourCall": "Vous restez libre de le retirer maintenant."
+    },
+    "observationPlan": {
+      "title": "Plan d'observation indicatif",
+      "horizon": "Laissez-lui environ {days} j avant une première évaluation (vers le {date}).",
+      "distribution": "Chez {resellers} autres revendeurs, la moitié des premières ventes est arrivée avant {p50} j, les trois quarts avant {p75} j.",
+      "saleShare": "{pct} % des fiches observées jusqu'à ce stade ont vendu avant {days} j.",
+      "tier": {
+        "product": "Mesuré sur ce produit",
+        "category": "Mesuré sur sa catégorie (trop peu d'historique pour ce produit)",
+        "general": "Référence générale Affisell (peu spécifique à ce produit)"
+      },
+      "confidenceLow": "fiabilité faible",
+      "confidenceMedium": "fiabilité moyenne",
+      "reason": {
+        "echantillon_limite": "échantillon limité",
+        "categorie_seulement": "catégorie seulement",
+        "reference_generale": "référence générale",
+        "echantillon_suffisant": "échantillon suffisant"
+      },
+      "noGuarantee": "Ce n'est pas une garantie de vente.",
+      "limits": "Le trafic et la disponibilité passée ne sont pas mesurés.",
+      "silence": {
+        "reference_insuffisante": "Pas assez de données pour proposer une durée d'observation : aucun délai n'est indiqué.",
+        "gain_faible": "Gain par vente faible à ce prix : aucune durée d'observation n'est proposée.",
+        "non_vendable": "Produit non vendable aujourd'hui : pas de plan d'observation.",
+        "contrainte": "Produit bloqué aujourd'hui : pas de plan d'observation."
+      },
+      "statusTitle": "Plan d'observation",
+      "phase": {
+        "observation": "Jour {elapsed} sur {horizon} en vente — trop tôt pour conclure.",
+        "evaluation": "Horizon atteint : {elapsed} j en vente pour {horizon} j prévus, sans vente dans votre boutique.",
+        "vendu": "Ventes dans votre boutique depuis l'ajout : {sales}.",
+        "indisponible": "Produit indisponible aujourd'hui : ce temps ne permet pas de juger ses ventes.",
+        "sans_plan": "Pas de durée d'observation fiable pour ce produit.",
+        "donnees_insuffisantes": "Historique incomplet : pas de conclusion.",
+        "retire": "Produit retiré."
+      },
+      "horizonUpdated": "Durée mise à jour à {horizon} j avec de nouvelles données (initialement {initial} j).",
+      "recommendation": {
+        "conserver": "Conseil : le conserver.",
+        "ameliorer": "Conseil : améliorer la fiche — des éléments associés à plus de ventes sur Affisell lui manquent.",
+        "surveiller": "Conseil : le surveiller — sans mesure du trafic, une absence de vente ne permet pas de conclure.",
+        "reconsiderer": "Conseil : le reconsidérer — gain par vente faible, ou ventes habituellement plus rapides.",
+        "retirer_ou_remplacer": "Conseil : le retirer ou le remplacer — il ne peut pas redevenir disponible de lui-même."
+      },
+      "notMeasured": "Non mesuré : trafic, disponibilité passée",
+      "free": "Vous restez libre de le modifier ou de le retirer."
     }
   },
   "marketplace": {
@@ -10076,7 +10123,8 @@
       "add_ready_product": "Ajouter « {product} » à votre boutique",
       "answer_restock_demand": "Répondre à la demande sur {product}",
       "answer_shop_demand": "Des acheteurs de votre boutique attendent {product}",
-      "prepare_listing": "Préparer « {product} » à la vente"
+      "prepare_listing": "Préparer « {product} » à la vente",
+      "review_observation_plan": "Évaluer « {product} »"
     },
     "cta": {
       "fix_blocage": "Ouvrir la fiche",
@@ -10089,7 +10137,8 @@
       "add_ready_product": "Voir dans le catalogue",
       "answer_restock_demand": "Mettre à jour la disponibilité",
       "answer_shop_demand": "Voir la demande et les alternatives",
-      "prepare_listing": "Ouvrir la fiche"
+      "prepare_listing": "Ouvrir la fiche",
+      "review_observation_plan": "Voir ma boutique"
     },
     "impact": {
       "label": "Impact potentiel :",
@@ -10145,9 +10194,15 @@
       "quality_brand_declared": "La marque n'est pas indiquée.",
       "quality_delivery_declared": "Le délai de livraison n'est pas indiqué.",
       "quality_return_extended": "Le délai de retour est de 14 jours seulement.",
-      "readiness_next_fix": "Prochaine correction de la fiche, choisie par le contrôle « Prêt à commercialiser ? »."
+      "readiness_next_fix": "Prochaine correction de la fiche, choisie par le contrôle « Prêt à commercialiser ? ».",
+      "plan_conserver": "Conseil : le conserver.",
+      "plan_ameliorer": "Conseil : améliorer la fiche — des éléments associés à plus de ventes sur Affisell lui manquent.",
+      "plan_surveiller": "Conseil : le surveiller — sans mesure du trafic, une absence de vente ne permet pas de conclure.",
+      "plan_reconsiderer": "Conseil : le reconsidérer — gain par vente faible, ou ventes habituellement plus rapides.",
+      "plan_retirer_ou_remplacer": "Conseil : le retirer ou le remplacer — il ne peut pas redevenir disponible de lui-même."
     },
-    "qualityEvidence": "Observé sur Affisell : les fiches comparables qui ont cet élément ont enregistré {ratio} fois plus de ventes par jour en boutique (au moins {lo} fois). Association statistique, pas une preuve que l'ajouter fera vendre davantage."
+    "qualityEvidence": "Observé sur Affisell : les fiches comparables qui ont cet élément ont enregistré {ratio} fois plus de ventes par jour en boutique (au moins {lo} fois). Association statistique, pas une preuve que l'ajouter fera vendre davantage.",
+    "planLine": "{elapsed} j en vente sur {horizon} j prévus · {sales} vente(s) dans votre boutique"
   },
   "restockWatch": {
     "cta": "Me prévenir au retour de cette déclinaison",

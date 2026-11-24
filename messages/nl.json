@@ -3493,6 +3493,53 @@
       "reason_chance_non_mesurable": "verkoopkans niet meetbaar",
       "reason_echantillon_suffisant": "voldoende steekproef",
       "yourCall": "Je kunt het nu gewoon verwijderen."
+    },
+    "observationPlan": {
+      "title": "Indicatief observatieplan",
+      "horizon": "Geef het ongeveer {days} d voor een eerste beoordeling (rond {date}).",
+      "distribution": "Bij {resellers} andere resellers kwam de helft van de eerste verkopen vóór {p50} d, driekwart vóór {p75} d.",
+      "saleShare": "{pct}% van de zo lang gevolgde vermeldingen verkocht vóór {days} d.",
+      "tier": {
+        "product": "Gemeten op dit product",
+        "category": "Gemeten op zijn categorie (te weinig historie voor dit product)",
+        "general": "Algemene Affisell-referentie (weinig productspecifiek)"
+      },
+      "confidenceLow": "lage betrouwbaarheid",
+      "confidenceMedium": "gemiddelde betrouwbaarheid",
+      "reason": {
+        "echantillon_limite": "beperkte steekproef",
+        "categorie_seulement": "alleen categorie",
+        "reference_generale": "algemene referentie",
+        "echantillon_suffisant": "voldoende steekproef"
+      },
+      "noGuarantee": "Dit is geen verkoopgarantie.",
+      "limits": "Verkeer en eerdere beschikbaarheid worden niet gemeten.",
+      "silence": {
+        "reference_insuffisante": "Niet genoeg gegevens voor een observatieduur: er wordt geen duur gegeven.",
+        "gain_faible": "Lage opbrengst per verkoop tegen deze prijs: geen observatieduur voorgesteld.",
+        "non_vendable": "Product vandaag niet verkoopbaar: geen observatieplan.",
+        "contrainte": "Product vandaag geblokkeerd: geen observatieplan."
+      },
+      "statusTitle": "Observatieplan",
+      "phase": {
+        "observation": "Dag {elapsed} van {horizon} in de verkoop — te vroeg om te concluderen.",
+        "evaluation": "Horizon bereikt: {elapsed} d in de verkoop voor {horizon} d gepland, geen verkoop in je winkel.",
+        "vendu": "Verkopen in je winkel sinds het toevoegen: {sales}.",
+        "indisponible": "Product vandaag niet beschikbaar: deze tijd zegt niets over zijn verkopen.",
+        "sans_plan": "Geen betrouwbare observatieduur voor dit product.",
+        "donnees_insuffisantes": "Onvolledige historie: geen conclusie.",
+        "retire": "Product verwijderd."
+      },
+      "horizonUpdated": "Duur bijgewerkt naar {horizon} d met nieuwe gegevens (oorspronkelijk {initial} d).",
+      "recommendation": {
+        "conserver": "Advies: houden.",
+        "ameliorer": "Advies: de vermelding verbeteren — elementen die op Affisell met meer verkopen samengaan ontbreken.",
+        "surveiller": "Advies: in de gaten houden — zonder verkeersmeting laat geen verkoop geen conclusie toe.",
+        "reconsiderer": "Advies: heroverwegen — lage opbrengst per verkoop of verkopen komen meestal sneller.",
+        "retirer_ou_remplacer": "Advies: verwijderen of vervangen — het wordt niet vanzelf weer beschikbaar."
+      },
+      "notMeasured": "Niet gemeten: verkeer, eerdere beschikbaarheid",
+      "free": "Je blijft vrij om het te wijzigen of te verwijderen."
     }
   },
   "marketplace": {
@@ -10076,7 +10123,8 @@
       "add_ready_product": "« {product} » aan uw winkel toevoegen",
       "answer_restock_demand": "Reageer op de vraag naar {product}",
       "answer_shop_demand": "Kopers van je winkel wachten op {product}",
-      "prepare_listing": "„{product}” verkoopklaar maken"
+      "prepare_listing": "„{product}” verkoopklaar maken",
+      "review_observation_plan": "„{product}” beoordelen"
     },
     "cta": {
       "fix_blocage": "Product openen",
@@ -10089,7 +10137,8 @@
       "add_ready_product": "In de catalogus bekijken",
       "answer_restock_demand": "Beschikbaarheid bijwerken",
       "answer_shop_demand": "Bekijk de vraag en alternatieven",
-      "prepare_listing": "Fiche openen"
+      "prepare_listing": "Fiche openen",
+      "review_observation_plan": "Mijn winkel bekijken"
     },
     "impact": {
       "label": "Mogelijke impact:",
@@ -10145,9 +10194,15 @@
       "quality_brand_declared": "Het merk is niet vermeld.",
       "quality_delivery_declared": "De levertijd is niet vermeld.",
       "quality_return_extended": "De retourtermijn is slechts 14 dagen.",
-      "readiness_next_fix": "De volgende correctie van de fiche, gekozen door de controle „Klaar om te verkopen?”."
+      "readiness_next_fix": "De volgende correctie van de fiche, gekozen door de controle „Klaar om te verkopen?”.",
+      "plan_conserver": "Advies: houden.",
+      "plan_ameliorer": "Advies: de vermelding verbeteren — elementen die op Affisell met meer verkopen samengaan ontbreken.",
+      "plan_surveiller": "Advies: in de gaten houden — zonder verkeersmeting laat geen verkoop geen conclusie toe.",
+      "plan_reconsiderer": "Advies: heroverwegen — lage opbrengst per verkoop of verkopen komen meestal sneller.",
+      "plan_retirer_ou_remplacer": "Advies: verwijderen of vervangen — het wordt niet vanzelf weer beschikbaar."
     },
-    "qualityEvidence": "Waargenomen op Affisell: vergelijkbare productpagina's met dit element hadden {ratio} keer meer verkopen per dag in de winkel (minstens {lo} keer). Statistisch verband, geen bewijs dat toevoegen meer verkopen oplevert."
+    "qualityEvidence": "Waargenomen op Affisell: vergelijkbare productpagina's met dit element hadden {ratio} keer meer verkopen per dag in de winkel (minstens {lo} keer). Statistisch verband, geen bewijs dat toevoegen meer verkopen oplevert.",
+    "planLine": "{elapsed} d in de verkoop van {horizon} d gepland · {sales} verkoop/verkopen in je winkel"
   },
   "restockWatch": {
     "cta": "Laat het me weten als deze variant terug is",

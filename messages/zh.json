@@ -3493,6 +3493,53 @@
       "reason_chance_non_mesurable": "售出概率无法测量",
       "reason_echantillon_suffisant": "样本充足",
       "yourCall": "您仍可以现在下架。"
+    },
+    "observationPlan": {
+      "title": "参考观察计划",
+      "horizon": "建议给它约 {days} 天再做首次评估（约 {date}）。",
+      "distribution": "在其他 {resellers} 位分销商处，一半的首单出现在 {p50} 天内，四分之三在 {p75} 天内。",
+      "saleShare": "观察到这一阶段的商品中，有 {pct}% 在 {days} 天内售出。",
+      "tier": {
+        "product": "基于本商品测量",
+        "category": "基于其类目测量（本商品历史不足）",
+        "general": "Affisell 整体参考（针对性较弱）"
+      },
+      "confidenceLow": "可靠性低",
+      "confidenceMedium": "可靠性中等",
+      "reason": {
+        "echantillon_limite": "样本有限",
+        "categorie_seulement": "仅类目",
+        "reference_generale": "整体参考",
+        "echantillon_suffisant": "样本充足"
+      },
+      "noGuarantee": "这并不保证一定会卖出。",
+      "limits": "未测量流量和过去的可售状态。",
+      "silence": {
+        "reference_insuffisante": "数据不足，无法建议观察时长：不提供期限。",
+        "gain_faible": "按此价格每单收益较低：不建议观察时长。",
+        "non_vendable": "商品今天不可售：无观察计划。",
+        "contrainte": "商品今天被限制：无观察计划。"
+      },
+      "statusTitle": "观察计划",
+      "phase": {
+        "observation": "已上架第 {elapsed} 天，共 {horizon} 天 — 现在下结论为时尚早。",
+        "evaluation": "已到观察期：已上架 {elapsed} 天（计划 {horizon} 天），您的店铺暂无销售。",
+        "vendu": "添加以来您店铺的销售：{sales}。",
+        "indisponible": "商品今天不可售：这段时间不能用来判断销售。",
+        "sans_plan": "该商品暂无可靠的观察时长。",
+        "donnees_insuffisantes": "历史不完整：不下结论。",
+        "retire": "商品已下架。"
+      },
+      "horizonUpdated": "根据新数据，时长已更新为 {horizon} 天（最初为 {initial} 天）。",
+      "recommendation": {
+        "conserver": "建议：保留。",
+        "ameliorer": "建议：完善商品页 — 缺少在 Affisell 上与更多销售相关的要素。",
+        "surveiller": "建议：继续观察 — 没有流量数据时，未售出不能说明问题。",
+        "reconsiderer": "建议：重新考虑 — 每单收益低，或同类商品通常卖得更快。",
+        "retirer_ou_remplacer": "建议：下架或替换 — 它不会自行恢复可售。"
+      },
+      "notMeasured": "未测量：流量、过去的可售状态",
+      "free": "您仍可随时修改或下架。"
     }
   },
   "marketplace": {
@@ -10076,7 +10123,8 @@
       "add_ready_product": "将「{product}」加入您的店铺",
       "answer_restock_demand": "回应 {product} 的需求",
       "answer_shop_demand": "您店铺的买家在等待 {product}",
-      "prepare_listing": "让「{product}」准备好销售"
+      "prepare_listing": "让「{product}」准备好销售",
+      "review_observation_plan": "评估“{product}”"
     },
     "cta": {
       "fix_blocage": "打开商品",
@@ -10089,7 +10137,8 @@
       "add_ready_product": "在目录中查看",
       "answer_restock_demand": "更新库存",
       "answer_shop_demand": "查看需求和替代品",
-      "prepare_listing": "打开商品页"
+      "prepare_listing": "打开商品页",
+      "review_observation_plan": "查看我的店铺"
     },
     "impact": {
       "label": "潜在影响：",
@@ -10145,9 +10194,15 @@
       "quality_brand_declared": "未填写品牌。",
       "quality_delivery_declared": "未填写配送时间。",
       "quality_return_extended": "退货期仅为 14 天。",
-      "readiness_next_fix": "由「可以销售了吗？」检查选出的商品页下一项修正。"
+      "readiness_next_fix": "由「可以销售了吗？」检查选出的商品页下一项修正。",
+      "plan_conserver": "建议：保留。",
+      "plan_ameliorer": "建议：完善商品页 — 缺少在 Affisell 上与更多销售相关的要素。",
+      "plan_surveiller": "建议：继续观察 — 没有流量数据时，未售出不能说明问题。",
+      "plan_reconsiderer": "建议：重新考虑 — 每单收益低，或同类商品通常卖得更快。",
+      "plan_retirer_ou_remplacer": "建议：下架或替换 — 它不会自行恢复可售。"
     },
-    "qualityEvidence": "在 Affisell 上观察到：具备该要素的可比商品页每天店铺销量是其他商品页的 {ratio} 倍（至少 {lo} 倍）。这只是统计关联，不能证明添加后会卖得更多。"
+    "qualityEvidence": "在 Affisell 上观察到：具备该要素的可比商品页每天店铺销量是其他商品页的 {ratio} 倍（至少 {lo} 倍）。这只是统计关联，不能证明添加后会卖得更多。",
+    "planLine": "已上架 {elapsed} 天，计划 {horizon} 天 · 您店铺的销售：{sales}"
   },
   "restockWatch": {
     "cta": "此款式到货时通知我",

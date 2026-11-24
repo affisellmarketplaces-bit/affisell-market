@@ -3493,6 +3493,53 @@
       "reason_chance_non_mesurable": "Verkaufschance nicht messbar",
       "reason_echantillon_suffisant": "ausreichende Stichprobe",
       "yourCall": "Sie können es jetzt trotzdem entfernen."
+    },
+    "observationPlan": {
+      "title": "Indikativer Beobachtungsplan",
+      "horizon": "Geben Sie ihm etwa {days} T. bis zu einer ersten Bewertung (um den {date}).",
+      "distribution": "Bei {resellers} anderen Wiederverkäufern kam die Hälfte der ersten Verkäufe vor {p50} T., drei Viertel vor {p75} T.",
+      "saleShare": "{pct} % der so lange beobachteten Angebote verkauften vor {days} T.",
+      "tier": {
+        "product": "An diesem Produkt gemessen",
+        "category": "An seiner Kategorie gemessen (zu wenig Verlauf für dieses Produkt)",
+        "general": "Allgemeine Affisell-Referenz (wenig produktspezifisch)"
+      },
+      "confidenceLow": "geringe Verlässlichkeit",
+      "confidenceMedium": "mittlere Verlässlichkeit",
+      "reason": {
+        "echantillon_limite": "begrenzte Stichprobe",
+        "categorie_seulement": "nur Kategorie",
+        "reference_generale": "allgemeine Referenz",
+        "echantillon_suffisant": "ausreichende Stichprobe"
+      },
+      "noGuarantee": "Das ist keine Verkaufsgarantie.",
+      "limits": "Traffic und frühere Verfügbarkeit werden nicht gemessen.",
+      "silence": {
+        "reference_insuffisante": "Nicht genug Daten für eine Beobachtungsdauer: es wird keine Dauer angegeben.",
+        "gain_faible": "Geringer Ertrag pro Verkauf zu diesem Preis: keine Beobachtungsdauer vorgeschlagen.",
+        "non_vendable": "Produkt heute nicht verkaufbar: kein Beobachtungsplan.",
+        "contrainte": "Produkt heute blockiert: kein Beobachtungsplan."
+      },
+      "statusTitle": "Beobachtungsplan",
+      "phase": {
+        "observation": "Tag {elapsed} von {horizon} im Verkauf — zu früh für ein Urteil.",
+        "evaluation": "Horizont erreicht: {elapsed} T. im Verkauf bei {horizon} T. geplant, ohne Verkauf in Ihrem Shop.",
+        "vendu": "Verkäufe in Ihrem Shop seit dem Hinzufügen: {sales}.",
+        "indisponible": "Produkt heute nicht verfügbar: diese Zeit erlaubt kein Urteil über seine Verkäufe.",
+        "sans_plan": "Keine verlässliche Beobachtungsdauer für dieses Produkt.",
+        "donnees_insuffisantes": "Unvollständiger Verlauf: kein Urteil.",
+        "retire": "Produkt entfernt."
+      },
+      "horizonUpdated": "Dauer mit neuen Daten auf {horizon} T. aktualisiert (ursprünglich {initial} T.).",
+      "recommendation": {
+        "conserver": "Rat: behalten.",
+        "ameliorer": "Rat: Angebot verbessern — Elemente, die auf Affisell mit mehr Verkäufen verbunden sind, fehlen.",
+        "surveiller": "Rat: beobachten — ohne Traffic-Messung erlaubt ein fehlender Verkauf kein Urteil.",
+        "reconsiderer": "Rat: überdenken — geringer Ertrag pro Verkauf oder Verkäufe kommen meist schneller.",
+        "retirer_ou_remplacer": "Rat: entfernen oder ersetzen — es wird nicht von selbst wieder verfügbar."
+      },
+      "notMeasured": "Nicht gemessen: Traffic, frühere Verfügbarkeit",
+      "free": "Sie können es weiterhin ändern oder entfernen."
     }
   },
   "marketplace": {
@@ -10076,7 +10123,8 @@
       "add_ready_product": "« {product} » in Ihren Shop aufnehmen",
       "answer_restock_demand": "Auf die Nachfrage nach {product} reagieren",
       "answer_shop_demand": "Käufer Ihres Shops warten auf {product}",
-      "prepare_listing": "„{product}“ verkaufsbereit machen"
+      "prepare_listing": "„{product}“ verkaufsbereit machen",
+      "review_observation_plan": "„{product}“ bewerten"
     },
     "cta": {
       "fix_blocage": "Produkt öffnen",
@@ -10089,7 +10137,8 @@
       "add_ready_product": "Im Katalog ansehen",
       "answer_restock_demand": "Verfügbarkeit aktualisieren",
       "answer_shop_demand": "Nachfrage und Alternativen ansehen",
-      "prepare_listing": "Produktblatt öffnen"
+      "prepare_listing": "Produktblatt öffnen",
+      "review_observation_plan": "Meinen Shop ansehen"
     },
     "impact": {
       "label": "Mögliche Wirkung:",
@@ -10145,9 +10194,15 @@
       "quality_brand_declared": "Die Marke ist nicht angegeben.",
       "quality_delivery_declared": "Die Lieferzeit ist nicht angegeben.",
       "quality_return_extended": "Die Rückgabefrist beträgt nur 14 Tage.",
-      "readiness_next_fix": "Die nächste Korrektur des Produktblatts, ausgewählt von der Prüfung „Bereit zum Verkauf?“."
+      "readiness_next_fix": "Die nächste Korrektur des Produktblatts, ausgewählt von der Prüfung „Bereit zum Verkauf?“.",
+      "plan_conserver": "Rat: behalten.",
+      "plan_ameliorer": "Rat: Angebot verbessern — Elemente, die auf Affisell mit mehr Verkäufen verbunden sind, fehlen.",
+      "plan_surveiller": "Rat: beobachten — ohne Traffic-Messung erlaubt ein fehlender Verkauf kein Urteil.",
+      "plan_reconsiderer": "Rat: überdenken — geringer Ertrag pro Verkauf oder Verkäufe kommen meist schneller.",
+      "plan_retirer_ou_remplacer": "Rat: entfernen oder ersetzen — es wird nicht von selbst wieder verfügbar."
     },
-    "qualityEvidence": "Auf Affisell beobachtet: Vergleichbare Angebote mit diesem Element verzeichneten {ratio}-mal mehr Verkäufe pro Tag im Shop (mindestens {lo}-mal). Statistischer Zusammenhang, kein Beweis, dass es den Verkauf steigert."
+    "qualityEvidence": "Auf Affisell beobachtet: Vergleichbare Angebote mit diesem Element verzeichneten {ratio}-mal mehr Verkäufe pro Tag im Shop (mindestens {lo}-mal). Statistischer Zusammenhang, kein Beweis, dass es den Verkauf steigert.",
+    "planLine": "{elapsed} T. im Verkauf von {horizon} T. geplant · {sales} Verkauf/Verkäufe in Ihrem Shop"
   },
   "restockWatch": {
     "cta": "Benachrichtigen, wenn diese Variante zurück ist",
