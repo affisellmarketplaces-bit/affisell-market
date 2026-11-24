@@ -10,7 +10,8 @@
 --   * DELETE of a listing      -> kind 'deleted'  (previousListed = what it was, newListed NULL).
 -- Atomicity comes from the trigger itself: a failed or rolled-back transaction leaves no event, a committed change
 -- always has its event. Concurrent writers are serialised by the row lock of the UPDATE / DELETE, so the events of a
--- listing follow the real order of its changes (ordered by "id"; "effectiveAt" = clock_timestamp() of the write).
+-- listing follow the real order of its changes (ordered by "id"; "effectiveAt" = clock_timestamp() of the write, in
+-- UTC whatever the session TimeZone — the column has no time zone and Prisma reads it as UTC).
 --
 -- No date is ever invented: listings that exist when this migration is applied get NO backfilled event. Their state
 -- before the first event is read from that event's previousListed (or from the row when no event exists) and their
@@ -85,7 +86,7 @@ BEGIN
     IF TG_OP = 'INSERT' THEN
         INSERT INTO "ListingPresenceEvent"
             ("affiliateProductId", "affiliateId", "productId", "kind", "previousListed", "newListed", "source", "actorId", "effectiveAt")
-        VALUES (NEW."id", NEW."affiliateId", NEW."productId", 'created', NULL, coalesce(NEW."isListed", false), v_source, v_actor, clock_timestamp());
+        VALUES (NEW."id", NEW."affiliateId", NEW."productId", 'created', NULL, coalesce(NEW."isListed", false), v_source, v_actor, (clock_timestamp() AT TIME ZONE 'UTC'));
     ELSIF TG_OP = 'UPDATE' THEN
         IF coalesce(NEW."isListed", false) IS DISTINCT FROM coalesce(OLD."isListed", false) THEN
             INSERT INTO "ListingPresenceEvent"
@@ -93,13 +94,13 @@ BEGIN
             VALUES (
                 NEW."id", NEW."affiliateId", NEW."productId",
                 CASE WHEN coalesce(NEW."isListed", false) THEN 'listed' ELSE 'unlisted' END,
-                coalesce(OLD."isListed", false), coalesce(NEW."isListed", false), v_source, v_actor, clock_timestamp()
+                coalesce(OLD."isListed", false), coalesce(NEW."isListed", false), v_source, v_actor, (clock_timestamp() AT TIME ZONE 'UTC')
             );
         END IF;
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO "ListingPresenceEvent"
             ("affiliateProductId", "affiliateId", "productId", "kind", "previousListed", "newListed", "source", "actorId", "effectiveAt")
-        VALUES (OLD."id", OLD."affiliateId", OLD."productId", 'deleted', coalesce(OLD."isListed", false), NULL, v_source, v_actor, clock_timestamp());
+        VALUES (OLD."id", OLD."affiliateId", OLD."productId", 'deleted', coalesce(OLD."isListed", false), NULL, v_source, v_actor, (clock_timestamp() AT TIME ZONE 'UTC'));
     END IF;
     RETURN NULL;
 END;
@@ -123,3 +124,25 @@ DROP TRIGGER IF EXISTS "ListingPresenceEvent_append_only" ON "ListingPresenceEve
 CREATE TRIGGER "ListingPresenceEvent_append_only"
     BEFORE UPDATE OR DELETE ON "ListingPresenceEvent"
     FOR EACH ROW EXECUTE FUNCTION affisell_listing_presence_append_only();
+
+-- TRUNCATE guard (2026-11-24, presence readiness kit). A row-level trigger does not fire on TRUNCATE, so the
+-- append-only trigger above can not stop `TRUNCATE "ListingPresenceEvent"`, which would erase the whole history in one
+-- statement. This statement-level trigger refuses it. No code path truncates this table (purges use DELETE under the
+-- purge flag). Deliberate maintenance only: in ONE transaction, `SELECT set_config('affisell.listing_presence_truncate',
+-- 'on', true)` then TRUNCATE (procedure in docs/PRESENCE-READINESS-KIT.md). Limits, stated: the table OWNER can
+-- `ALTER TABLE … DISABLE TRIGGER`, and `session_replication_role = replica` silences ordinary triggers (this one
+-- included) — neither can be detected by a trigger; `npm run report:presence-readiness` reads the trigger state and
+-- reconciles the history with the listings to reveal such gaps afterwards.
+CREATE OR REPLACE FUNCTION affisell_listing_presence_no_truncate() RETURNS trigger AS $$
+BEGIN
+    IF coalesce(current_setting('affisell.listing_presence_truncate', true), '') = 'on' THEN
+        RETURN NULL;
+    END IF;
+    RAISE EXCEPTION 'ListingPresenceEvent can not be truncated (history is append-only)' USING ERRCODE = 'P0001';
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS "ListingPresenceEvent_no_truncate" ON "ListingPresenceEvent";
+CREATE TRIGGER "ListingPresenceEvent_no_truncate"
+    BEFORE TRUNCATE ON "ListingPresenceEvent"
+    FOR EACH STATEMENT EXECUTE FUNCTION affisell_listing_presence_no_truncate();

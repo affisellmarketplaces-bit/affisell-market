@@ -15,4 +15,8 @@ DROP TRIGGER IF EXISTS "ListingPresenceEvent_append_only" ON "ListingPresenceEve
 
 DROP FUNCTION IF EXISTS affisell_listing_presence_append_only();
 
+DROP TRIGGER IF EXISTS "ListingPresenceEvent_no_truncate" ON "ListingPresenceEvent";
+
+DROP FUNCTION IF EXISTS affisell_listing_presence_no_truncate();
+
 DROP TABLE IF EXISTS "ListingPresenceEvent";

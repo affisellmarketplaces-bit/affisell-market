@@ -125,12 +125,12 @@ calendrier est connu :
 - Une purge de rétention ramène le début de l'historique à sa limite.
 
 **Cas limites relevés.** Ils ne sont pas couverts par la migration et sont à décider avant de l'appliquer :
-1. `TRUNCATE "ListingPresenceEvent"` **contourne** le déclencheur d'ajout seul (déclencheur ligne, pas d'instruction).
-   Atténuation proposée : `REVOKE TRUNCATE` au rôle applicatif, ou un déclencheur `BEFORE TRUNCATE` FOR EACH STATEMENT.
+1. `TRUNCATE "ListingPresenceEvent"` **contournait** le déclencheur d'ajout seul (déclencheur ligne, pas d'instruction).
+   **Corrigé le 2026-11-24** : déclencheur `ListingPresenceEvent_no_truncate` (BEFORE TRUNCATE FOR EACH STATEMENT), voir `docs/PRESENCE-READINESS-KIT.md` §3.
    Ce serait une modification de schéma, donc une décision fondateur.
-2. `TRUNCATE "AffiliateProduct"` n'enregistre aucun événement « deleted ». Aucun chemin applicatif ne le fait (à garder ainsi).
+2. `TRUNCATE "AffiliateProduct"` n'enregistre aucun événement « deleted ». Aucun chemin applicatif ne le fait (à garder ainsi) ; `report:presence-readiness` le révèle après coup (annonces disparues sans « deleted »).
 3. `session_replication_role = replica` (certaines restaurations, certains outils de réplication) désactive les déclencheurs : les changements faits ainsi sont invisibles.
-   La procédure de restauration (`docs/BACKUP-RESTORE.md`) doit le mentionner.
+   La procédure de restauration (`docs/BACKUP-RESTORE.md`) doit le mentionner. Détection : `report:presence-readiness` (réglages par défaut, état des déclencheurs, rapprochement après coup) — `docs/PRESENCE-READINESS-KIT.md` §4.
 4. Ordre : pour une même annonce, l'ordre est sérialisé par le verrou de ligne. Entre annonces, l'`id` reflète l'insertion, pas la validation. C'est sans effet : les périodes sont reconstruites par annonce.
 5. Suppression d'un compte revendeur : ses événements sont purgés dans la même transaction (voulu). Ses périodes disparaissent donc des références des autres revendeurs.
 
@@ -141,7 +141,7 @@ calendrier est connu :
 
 **Préconditions avant application.** Il faut une décision fondateur, puis :
 1. staging d'abord : `DATABASE_URL='<staging>' npm run schema:migrate -- --expect-endpoint <ep>`, puis `schema:verify` ;
-2. décider le point TRUNCATE (cas limite 1) ;
+2. `npm run report:presence-readiness` sur le staging, sans BLOCKED (le point TRUNCATE est corrigé dans la migration) ;
 3. `listing-presence-db` vert en CI (PostgreSQL réel) ;
 4. les cinq drapeaux restent à off ;
 5. la production seulement après la liste de contrôle du §6 passée en staging ;

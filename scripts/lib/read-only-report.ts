@@ -35,7 +35,8 @@ function databaseUrlSource(): ReportDatabaseTarget["source"] {
 export async function runReadOnlyReport<T>(
   scope: { tables: string[]; purpose: string },
   work: (tx: Prisma.TransactionClient) => Promise<T>,
-  print: (result: T) => void
+  print: (result: T) => void,
+  options: { allowProduction?: boolean; onNotRun?: (reason: string) => void } = {}
 ): Promise<void> {
   const source = databaseUrlSource()
   config({ path: ".env.local" })
@@ -53,12 +54,14 @@ export async function runReadOnlyReport<T>(
     target,
     targetOnly: process.argv.includes("--target"),
     confirmEndpoint: confirmArg ? confirmArg.split("=")[1] ?? "" : null,
+    allowProduction: options.allowProduction,
   })
   for (const line of describeReportTarget(target, scope)) console.error(`[report] ${line}`)
   if (decision.action === "describe") return
   if (decision.action === "refuse") {
     console.error(`[report] REFUSÉ — ${decision.reason}`)
     process.exitCode = 2
+    options.onNotRun?.(decision.reason)
     return
   }
   const base = new PrismaClient()

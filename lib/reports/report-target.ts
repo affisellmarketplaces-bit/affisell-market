@@ -28,11 +28,22 @@ export function decideReportRun(args: {
   target: ReportDatabaseTarget
   targetOnly: boolean
   confirmEndpoint: string | null
+  /** false = this report may NEVER read production nor an unidentified database, even with a confirmation. */
+  allowProduction?: boolean
 }): ReportRunDecision {
   if (args.targetOnly) return { action: "describe" }
   const { target } = args
   if (target.source === "absent") return { action: "refuse", reason: "DATABASE_URL absente : aucune base à lire." }
   if (target.branch === "staging" || target.branch === "local") return { action: "run", confirmed: false }
+  if (args.allowProduction === false) {
+    return {
+      action: "refuse",
+      reason:
+        target.branch === "production"
+          ? `base de PRODUCTION (${target.endpoint}) : ce rapport ne lit jamais la production, même avec --confirm-endpoint.`
+          : `base non identifiée (${target.maskedHost}) : impossible de prouver que c'est le staging — aucune connexion.`,
+    }
+  }
   const confirm = (args.confirmEndpoint ?? "").trim().toLowerCase()
   if (!confirm) {
     return {
