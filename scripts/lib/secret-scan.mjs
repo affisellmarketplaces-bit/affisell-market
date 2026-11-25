@@ -24,7 +24,8 @@ export const PATTERNS = [
   { name: "Medusa CLI password literal", re: /\buser\s+-e\s+\S+\s+-p\s+[^\s$"'{}]+/ },
   {
     name: "Password assigned a literal",
-    // FOO_PASSWORD = "literal" / PASSWORD: 'literal' — an env lookup, an empty string or a ${…} template is fine.
+    // A *PASSWORD name assigned (= or :) a quoted literal of 6+ characters. An env lookup, an empty string or a
+    // ${…} template is fine.
     re: /\b[A-Z_]*PASSWORD\s*[:=]\s*["'][^"'\s$]{6,}["']/,
   },
 ]
