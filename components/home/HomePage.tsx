@@ -1,5 +1,3 @@
-import { Suspense } from "react"
-
 import { BuyerHeroBlock } from "@/components/BuyerHeroBlock"
 import { BuyerHomeMeshCanvas } from "@/components/home/buyer-home-mesh-canvas"
 import { BuyerPremiumMarketplaceSection } from "@/components/home/buyer-premium-marketplace-section"
@@ -7,10 +5,6 @@ import { HomeBelowFoldRadars } from "@/components/home/home-below-fold-radars"
 import { HomeValuePropsBar } from "@/components/home/HomeValuePropsBar"
 import { HomePageWarmup } from "@/components/home/home-page-warmup"
 import { BUYER_PREMIUM } from "@/lib/buyer-premium-home-tokens"
-
-function HeroFallback() {
-  return <div className="min-h-[12rem] sm:min-h-[16rem]" aria-hidden />
-}
 
 /**
  * Buyer home étape 2 — mesh hero + category bar + Discover 2×2 under unified PublicNav.
@@ -26,9 +20,9 @@ export async function HomePage() {
       <HomePageWarmup />
 
       <div className="relative z-[1] mx-auto w-full min-w-0 max-w-7xl px-3 pt-2 sm:px-6 sm:pt-3">
-        <Suspense fallback={<HeroFallback />}>
-          <BuyerHeroBlock />
-        </Suspense>
+        {/* No Suspense: the hero has no data dependency. Inside a boundary it was streamed after the shell and only
+            revealed once React's inline reveal script ran — behind the page's script work — which set the LCP. */}
+        <BuyerHeroBlock />
       </div>
 
       <div className="relative z-[1] mx-auto w-full min-w-0 max-w-7xl px-3 sm:px-6">

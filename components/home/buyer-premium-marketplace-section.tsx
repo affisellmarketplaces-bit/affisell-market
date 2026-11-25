@@ -15,7 +15,7 @@ import { loadHomeSelectionSafe } from "@/lib/home-selection.server"
 import { loadHomeBestSellers7dBucketedSafe } from "@/lib/public-home-cache"
 import { startHomeRace } from "@/lib/home-race-diagnostics"
 import { resolveBuyerCardImageHref } from "@/lib/listing-card-image-shared"
-import { loadBrowseDepartmentsCached } from "@/lib/taxonomy/resolve-browse-departments.server"
+import { loadBrowseDepartmentsSafe } from "@/lib/taxonomy/resolve-browse-departments.server"
 
 /**
  * Render deadline for the widget on a cache MISS (a HIT answers in milliseconds). It only stops THIS render from waiting:
@@ -58,7 +58,7 @@ async function PremiumMarketplaceSection() {
   const bestSellersProbe = startHomeRace("home_best_sellers_7d", BEST_SELLERS_TIMEOUT_MS)
   const [shell, browsePayload, trendingRaw] = await Promise.all([
     loadHomeMarketplaceShellSafe(locale),
-    loadBrowseDepartmentsCached(locale),
+    loadBrowseDepartmentsSafe(locale),
     // Best sellers of the week (confirmed sales). Never allowed to delay the home beyond the deadline above, empty on failure.
     Promise.race([
       bestSellersProbe.watch(loadHomeBestSellers7dBucketedSafe(3)),
