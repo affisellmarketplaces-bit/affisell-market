@@ -1,3 +1,4 @@
+import { isLightningLocked } from "@/lib/payouts/lightning-lock"
 import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
 
@@ -140,6 +141,11 @@ async function alertInDoubt(orderId: string, detail: string): Promise<void> {
  * standard job's idempotency key per leg, records each leg as soon as it is paid, and keeps an uncertain order PROCESSING.
  */
 export async function triggerLightningPayout(orderId: string): Promise<LightningPayoutResult> {
+  // Temporary lock (lib/payouts/lightning-lock.ts): nothing is read, claimed or paid while locked;
+  // the order stays PENDING and is paid by the normal process-transfers flow.
+  if (isLightningLocked()) {
+    return { success: false, reason: "lightning_locked" }
+  }
   let claimed = false
   let stripeCalled = false
   try {

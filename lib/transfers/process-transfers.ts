@@ -361,8 +361,10 @@ async function processOneAttempt(
 
     const terminal = nextAttempts >= MAX_ATTEMPTS
 
-    await prisma.transferAttempt.update({
-      where: { id: attempt.id },
+    // Conditional (A3 hotfix, 2026-11-25): a racing rail (Lightning) may have recorded this leg SUCCESS while our
+    // Stripe call failed (shared idempotency key, other parameters = idempotency error). Never put it back to PENDING.
+    await prisma.transferAttempt.updateMany({
+      where: { id: attempt.id, status: "PENDING" },
       data: {
         status: terminal ? "FAILED" : "PENDING",
         errorCode,

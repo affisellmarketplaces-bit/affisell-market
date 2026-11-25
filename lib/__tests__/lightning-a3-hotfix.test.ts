@@ -66,13 +66,17 @@ vi.mock("@/lib/prisma", () => {
   return { prisma }
 })
 
-import { isProvenNotCreated, triggerLightningPayout } from "@/lib/stripe-lightning"
+import { isProvenNotCreated, triggerLightningPayout, type LightningPayoutResult } from "@/lib/stripe-lightning"
+
+const reasonOf = (r: LightningPayoutResult) => ("reason" in r ? r.reason : undefined)
 
 function stripeError(type: string, statusCode?: number, extra: Record<string, unknown> = {}) {
   return Object.assign(new Error(type), { type, statusCode, ...extra })
 }
 
 beforeEach(() => {
+  // These tests prove what happens if Lightning is re-enabled: the temporary lock is lifted for them.
+  process.env.LIGHTNING_PAYOUTS_MODE = "enabled"
   db.order = {
     id: "o1", supplierId: "sup", affiliateId: "aff", productId: "p", payoutStatus: "PENDING",
     supplierPayoutCents: 1500, affiliatePayoutCents: 200, stripePaymentIntentId: "pi_1", stripeChargeId: "ch_1",
@@ -130,7 +134,7 @@ describe("Lightning A3 hotfix", () => {
     expect(db.ledger).toHaveLength(1)
     // The OLD code reset to PENDING with nothing recorded → process-transfers paid the supplier again. Now a later
     // Lightning run refuses, and process-transfers finds the supplier attempt SUCCESS (not PENDING): it pays only the reseller.
-    expect((await triggerLightningPayout("o1")).reason).toBe("leg_already_paid:transfer_attempt")
+    expect(reasonOf(await triggerLightningPayout("o1"))).toBe("leg_already_paid:transfer_attempt")
     expect(stripeCalls.create).toHaveLength(2)
   })
 
@@ -143,13 +147,13 @@ describe("Lightning A3 hotfix", () => {
 
   it("Stripe idempotency conflict (a racing rail used the shared key) is a doubt, not a refusal", async () => {
     stripeCalls.plan = [stripeError("StripeIdempotencyError", 400, { rawType: "idempotency_error" })]
-    expect((await triggerLightningPayout("o1")).reason).toBe("lightning_outcome_uncertain:supplier")
+    expect(reasonOf(await triggerLightningPayout("o1"))).toBe("lightning_outcome_uncertain:supplier")
     expect(db.order!.payoutStatus).toBe("PROCESSING")
   })
 
   it("transfer created but recording fails → PROCESSING kept, alert carries the transfer id", async () => {
     db.recordFails = true
-    expect((await triggerLightningPayout("o1")).reason).toBe("lightning_record_failed:supplier")
+    expect(reasonOf(await triggerLightningPayout("o1"))).toBe("lightning_record_failed:supplier")
     expect(db.order!.payoutStatus).toBe("PROCESSING")
     expect(alerts.list.join(" ")).toMatch(/tr_1/)
     expect(stripeCalls.create).toHaveLength(1)
@@ -159,6 +163,44 @@ describe("Lightning A3 hotfix", () => {
     db.order!.payoutStatus = "PROCESSING"
     expect((await triggerLightningPayout("o1")).success).toBe(false)
     expect(stripeCalls.create).toHaveLength(0)
+  })
+
+  it("concurrent runs on the same order: only one reaches Stripe, each leg is created once", async () => {
+    const results = await Promise.all([triggerLightningPayout("o1"), triggerLightningPayout("o1"), triggerLightningPayout("o1")])
+    expect(results.filter((r) => r.success)).toHaveLength(1)
+    expect(stripeCalls.create.map((c) => c.key)).toEqual(["transfer_o1_SUPPLIER", "transfer_o1_AFFILIATE"])
+  })
+
+  it("repeated calls after success, after a doubt and after a recording failure pay nothing more", async () => {
+    await triggerLightningPayout("o1")
+    for (let i = 0; i < 3; i++) await triggerLightningPayout("o1")
+    expect(stripeCalls.create).toHaveLength(2)
+  })
+
+  it("after a doubt, a later call and a reset to PENDING by hand still pay nothing (the leg left a trace)", async () => {
+    stripeCalls.plan = ["ok", stripeError("StripeAPIError", 500)]
+    await triggerLightningPayout("o1")
+    expect(db.order!.payoutStatus).toBe("PROCESSING")
+    await triggerLightningPayout("o1")
+    db.order!.payoutStatus = "PENDING" // someone "unsticks" the order without checking Stripe
+    expect(reasonOf(await triggerLightningPayout("o1"))).toBe("leg_already_paid:transfer_attempt")
+    expect(stripeCalls.create).toHaveLength(2)
+  })
+
+  it("supplier refused (proved) → claim released, a retry pays each leg exactly once", async () => {
+    stripeCalls.plan = [stripeError("StripeInvalidRequestError", 400, { code: "account_invalid" })]
+    expect((await triggerLightningPayout("o1")).success).toBe(false)
+    expect(db.order!.payoutStatus).toBe("PENDING")
+    expect(await triggerLightningPayout("o1")).toEqual({ success: true })
+    expect(stripeCalls.create.map((c) => c.key)).toEqual(["transfer_o1_SUPPLIER", "transfer_o1_SUPPLIER", "transfer_o1_AFFILIATE"])
+    expect(db.ledger).toHaveLength(2)
+  })
+
+  it("locked (default, no LIGHTNING_PAYOUTS_MODE): nothing is read, claimed or paid", async () => {
+    delete process.env.LIGHTNING_PAYOUTS_MODE
+    expect(await triggerLightningPayout("o1")).toEqual({ success: false, reason: "lightning_locked" })
+    expect(stripeCalls.create).toHaveLength(0)
+    expect(db.order!.payoutStatus).toBe("PENDING")
   })
 
   it("only proved refusals count as 'not created'", () => {
