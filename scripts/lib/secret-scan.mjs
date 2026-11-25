@@ -23,6 +23,17 @@ export const PATTERNS = [
   { name: "Private key PEM", re: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/ },
   { name: "Medusa CLI password literal", re: /\buser\s+-e\s+\S+\s+-p\s+[^\s$"'{}]+/ },
   {
+    // A literal handed to a password-hashing or password-checking call: bcrypt.hash("…"), hashSync, hashPassword,
+    // argon2.hash, scrypt, compare("…", hash). Variables and env lookups are fine. signIn("credentials", …) is not matched.
+    name: "Literal passed to a password hash",
+    re: /\b(?:bcrypt\.|bcryptjs\.|argon2\.)?(?:hash|hashSync|hashPassword|compare|compareSync|scrypt|scryptSync)\(\s*["'`][^"'`\s$]{6,}["'`]/,
+  },
+  {
+    // An object property named password holding a quoted literal (credentials written into a user or request).
+    name: "Password property literal",
+    re: /\bpassword\s*:\s*["'`][^"'`\s$]{6,}["'`]/i,
+  },
+  {
     name: "Password assigned a literal",
     // A *PASSWORD name assigned (= or :) a quoted literal of 6+ characters. An env lookup, an empty string or a
     // ${…} template is fine.

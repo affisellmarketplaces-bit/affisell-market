@@ -78,7 +78,8 @@ describe("admin credentials come from the environment, validated, never echoed",
 
   it("the Medusa list and the repository list are the same set, holding only SHA-256 digests", () => {
     expect(COMPROMISED_PASSWORD_SHA256).toBe(COMPROMISED_SHA256)
-    expect(COMPROMISED_CREDENTIALS.length).toBeGreaterThanOrEqual(4)
+    expect(COMPROMISED_CREDENTIALS.length).toBeGreaterThanOrEqual(7)
+    expect(new Set(COMPROMISED_CREDENTIALS.map((c) => c.sha256)).size).toBe(COMPROMISED_CREDENTIALS.length)
     for (const c of COMPROMISED_CREDENTIALS) expect(c.sha256).toMatch(/^[0-9a-f]{64}$/)
     expect(MIN_ADMIN_PASSWORD_LENGTH).toBeGreaterThanOrEqual(16)
   })
@@ -93,6 +94,9 @@ describe("no credential literal is left in the scripts", () => {
     "scripts/verify-affiliate-cga-onboarding.ts",
     "scripts/verify-privacy-gate.ts",
     "scripts/verify-supplier-cgs-onboarding.ts",
+    "scripts/verify-gate-all-roles.ts",
+    "scripts/verify-legacy-gate-redirect.ts",
+    "prisma/seed.ts",
   ]
   for (const f of files) {
     it(`${f} passes the secret scan`, () => {
@@ -119,6 +123,23 @@ describe("no credential literal is left in the scripts", () => {
     expect(tpl).toMatch(/^MEDUSA_ADMIN_PASSWORD=""$/m)
     expect(tpl).toMatch(/^JWT_SECRET=""$/m)
     expect(scanText(tpl)).toEqual([])
+  })
+})
+
+describe("test and seed accounts never get a written password", () => {
+  for (const f of [
+    "scripts/verify-gate-all-roles.ts",
+    "scripts/verify-legacy-gate-redirect.ts",
+    "scripts/verify-affiliate-cga-onboarding.ts",
+    "scripts/verify-privacy-gate.ts",
+    "scripts/verify-supplier-cgs-onboarding.ts",
+  ]) {
+    it(`${f} takes VERIFY_TEST_ACCOUNT_PASSWORD or a random value`, () => {
+      expect(read(f)).toMatch(/VERIFY_TEST_ACCOUNT_PASSWORD\?\.trim\(\) \|\| randomBytes\(18\)/)
+    })
+  }
+  it("prisma/seed.ts takes SEED_ACCOUNT_PASSWORD or a random value", () => {
+    expect(read("prisma/seed.ts")).toMatch(/SEED_ACCOUNT_PASSWORD\?\.trim\(\) \|\| randomBytes\(18\)/)
   })
 })
 
@@ -203,6 +224,12 @@ describe("secret scan patterns", () => {
       ["Medusa CLI password literal", "medusa user -e a@b.co -p Hunter2Hunter2"],
       ["Password assigned a literal", 'const ADMIN_PASSWORD = "Hunter2Hunter2"'],
       ["GitHub PAT", "github_pat_" + "A".repeat(50)],
+      ["Literal passed to a password hash", 'await bcrypt.hash("Hunter2Hunter2", 10)'],
+      ["Literal passed to a password hash", 'const h = hashSync("Hunter2Hunter2")'],
+      ["Literal passed to a password hash", 'await hashPassword("Hunter2x")'],
+      ["Literal passed to a password hash", "await argon2.hash('Hunter2Hunter2')"],
+      ["Literal passed to a password hash", 'await bcrypt.compare("Hunter2Hunter2", row.password)'],
+      ["Password property literal", '{ email: "a@b.co", password: "Hunter2Hunter2" }'],
     ]
     for (const [kind, text] of samples) {
       const hits = scanText(text)
@@ -218,6 +245,11 @@ describe("secret scan patterns", () => {
       'const PASSWORD = "${{secret}}"',
       "medusa user -e $EMAIL -p $PASSWORD",
       "pk_" + "a".repeat(64),
+      'await bcrypt.hash(password, 10)',
+      "await hashPassword(TEST_ACCOUNT_PASSWORD)",
+      'await signIn("credentials", { email, password })',
+      "{ email, password: process.env.SEED_ACCOUNT_PASSWORD }",
+      'password: ""',
     ]) {
       expect(scanText(text, { denylist: new Set() })).toEqual([])
     }

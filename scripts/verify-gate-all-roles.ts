@@ -4,9 +4,14 @@ config({ path: ".env.local" })
 config({ path: ".env" })
 
 import { PrismaClient } from "@prisma/client"
+import { randomBytes } from "node:crypto"
+
 import bcrypt from "bcryptjs"
 import { randomUUID } from "crypto"
 import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
+
+// Never a literal (the repository is public): VERIFY_TEST_ACCOUNT_PASSWORD, or a random one for this run.
+const TEST_ACCOUNT_PASSWORD = process.env.VERIFY_TEST_ACCOUNT_PASSWORD?.trim() || randomBytes(18).toString("base64url")
 
 async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10)
@@ -50,7 +55,7 @@ async function main() {
         data: {
           id: randomUUID(),
           email: testUser.email,
-          password: await hashPassword("Test!2026"),
+          password: await hashPassword(TEST_ACCOUNT_PASSWORD),
           role: testUser.role,
           name: `Gate Test ${testUser.role}`,
         },

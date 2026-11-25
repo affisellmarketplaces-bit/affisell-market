@@ -26,6 +26,21 @@ export const COMPROMISED_CREDENTIALS = [
     what: "test account password in scripts/verify-supplier-cgs-onboarding.ts (supplier-test@affisell.com)",
     since: "2026-10-05",
   },
+  {
+    sha256: "4a7201c621c0dbcef084f1a9ce1366237896e26e8ad6fb9cfdd4f90cc79b61e1",
+    what: "test account password in scripts/verify-gate-all-roles.ts (gate-affiliate@, gate-customer@, gate-supplier@affisell.com)",
+    since: "2026-10-05",
+  },
+  {
+    sha256: "7320284cbfce7bab7b0e9d77036268bde236b13981b63e47f319b9493c289076",
+    what: "test account password in scripts/verify-legacy-gate-redirect.ts (gate-legacy@affisell.com)",
+    since: "2026-10-05",
+  },
+  {
+    sha256: "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f",
+    what: "seed password in prisma/seed.ts (admin@affisell.io ADMIN, supplier@affisell.io)",
+    since: "2026-10-05",
+  },
 ]
 
 export const COMPROMISED_SHA256 = new Set(COMPROMISED_CREDENTIALS.map((c) => c.sha256))
