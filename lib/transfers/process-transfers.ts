@@ -152,6 +152,17 @@ async function processOneAttempt(
     return "skipped"
   }
 
+  // Lightning holds the order (in flight, or kept PROCESSING because a transfer's outcome is unknown): never pay
+  // alongside it — the attempt stays PENDING, no counter consumed (A3 hotfix, 2026-11-25).
+  if (attempt.order.payoutStatus === "PROCESSING") {
+    console.log("[transfer-gating]", {
+      orderId: attempt.orderId,
+      role: attempt.role,
+      reason: "lightning_processing",
+    })
+    return "skipped"
+  }
+
   const beneficiaryRole = attempt.role as "SUPPLIER" | "AFFILIATE"
   if (await marketplaceRoleAlreadySettled(attempt.orderId, beneficiaryRole)) {
     await prisma.$transaction(async (tx) => {

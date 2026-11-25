@@ -97,6 +97,14 @@ describe("runProcessTransfersJob — last-line money guard", () => {
     delete process.env.MONEY_GUARD_MODE
   })
 
+  // A3 hotfix (2026-11-25): an order Lightning holds (in flight, or kept PROCESSING after an uncertain transfer) is
+  // never paid alongside it, and the attempt is not consumed.
+  it("never calls Stripe while Lightning holds the order (payoutStatus PROCESSING)", async () => {
+    await runOnce(attempt({}, { payoutStatus: "PROCESSING" }))
+    expect(transfersCreate).not.toHaveBeenCalled()
+    expect(updates).toHaveLength(0)
+  })
+
   it("sends a normal transfer with a stable idempotency key", async () => {
     await runOnce(attempt())
     expect(transfersCreate).toHaveBeenCalledTimes(1)
