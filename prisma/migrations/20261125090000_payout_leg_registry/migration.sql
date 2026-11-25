@@ -65,7 +65,7 @@ ALTER TABLE "PayoutLeg"
   ADD CONSTRAINT "PayoutLeg_generation_check" CHECK ("generation" >= 1),
   ADD CONSTRAINT "PayoutLeg_amount_check" CHECK ("amountCents" IS NULL OR "amountCents" > 0),
   ADD CONSTRAINT "PayoutLeg_transfer_id_shape_check"
-    CHECK ("stripeTransferId" IS NULL OR "stripeTransferId" ~ '^tr_[A-Za-z0-9]+$'),
+    CHECK ("stripeTransferId" IS NULL OR "stripeTransferId" ~ '^tr_[A-Za-z0-9_]+$'),
   -- A transfer id exists exactly on PAID legs.
   ADD CONSTRAINT "PayoutLeg_paid_check"
     CHECK (("state" = 'PAID') = ("stripeTransferId" IS NOT NULL) AND ("state" <> 'PAID' OR "paidAt" IS NOT NULL)),

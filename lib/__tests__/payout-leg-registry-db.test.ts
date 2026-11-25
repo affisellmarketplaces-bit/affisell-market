@@ -35,6 +35,8 @@ const stamp = `lg${Date.now().toString(36)}${Math.random().toString(36).slice(2,
 const HOUR = 3600_000
 const DAY = 24 * HOUR
 
+const transferSeq = { n: 0 }
+
 type Mode = "ok" | "lost_response" | "connection_error" | "refuse" | "rate_limit" | "hang"
 
 function stripeError(type: string, statusCode: number | undefined, message: string, extra: Record<string, unknown> = {}) {
@@ -49,12 +51,12 @@ class FakeStripe {
   modes: Mode[] = []
   delayMs = 0
   listFails = false
-  private seq = 0
   private hang: { resolve: () => void } | null = null
 
+  /** Unique across every fake of the run, like real Stripe ids (PayoutLeg.stripeTransferId is UNIQUE). */
   newId() {
-    this.seq += 1
-    return `tr_${stamp}${this.seq}`
+    transferSeq.n += 1
+    return `tr_${stamp}${transferSeq.n}`
   }
 
   async createTransfer(req: LegTransferRequest, key: string): Promise<{ id: string }> {
