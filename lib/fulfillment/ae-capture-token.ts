@@ -1,13 +1,11 @@
+import { signingSecret } from "@/lib/security/app-secret"
 import crypto from "crypto"
 
 const TTL_SEC = 15 * 60
 
 function readSecret(): string {
-  return (
-    process.env.AUTH_SECRET?.trim() ||
-    process.env.NEXTAUTH_SECRET?.trim() ||
-    "affisell-dev-ae-capture"
-  )
+  // Fails closed outside development / test: the literal is public (lib/security/app-secret.ts).
+  return signingSecret("AliExpress capture tokens", ["AUTH_SECRET", "NEXTAUTH_SECRET"], "affisell-dev-ae-capture")
 }
 
 /** HMAC token so bookmarklet can POST from aliexpress.com without session cookies. */

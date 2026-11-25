@@ -5,6 +5,8 @@
  *       ADMIN_BOOTSTRAP_PASSWORD (>= 16 chars, not a published value) — creates a nominative ADMIN account.
  *   npx tsx scripts/account-access.ts lock   --emails a@x,b@y --expect 2      [--apply]
  *   npx tsx scripts/account-access.ts unlock --emails a@x      --expect 1      [--apply]
+ *   npx tsx scripts/account-access.ts status --emails a@x,b@y   (read only: role / locked / password set — the proof
+ *       to keep before and after an operation; also prints the number of unlocked ADMIN accounts)
  *
  * Dry run by default (prints the plan). `--apply` runs ONE transaction that re-reads the accounts under row locks and
  * re-checks the plan before writing; the row count must match `--expect` exactly or nothing is written.
@@ -43,7 +45,7 @@ function fail(msg: string, code = 1): never {
   process.exit(code)
 }
 
-if (!["create-admin", "lock", "unlock"].includes(command ?? "")) {
+if (!["create-admin", "lock", "unlock", "status"].includes(command ?? "")) {
   fail("usage: create-admin --email <e> | lock --emails <a,b> --expect <n> | unlock --emails <a> --expect <n> [--apply]")
 }
 
@@ -85,6 +87,18 @@ async function main() {
   }
 
   const emails = (arg("emails") ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean)
+  if (command === "status") {
+    if (emails.length === 0) fail("--emails is required")
+    const rows = await readRows(prisma, emails, false)
+    const found = new Map(rows.map((r) => [r.email, r]))
+    console.log(`[account-access] status at ${new Date().toISOString()}`)
+    for (const e of emails) {
+      const r = found.get(e)
+      console.log(r ? `  ${e}  role=${r.role}  password=${r.hasPassword ? "set" : "none"}  locked=${r.locked}` : `  ${e}  (no account)`)
+    }
+    console.log(`  unlocked ADMIN accounts: ${await unlockedAdmins(prisma)}`)
+    return
+  }
   const expect = Number(arg("expect"))
   if (!Number.isInteger(expect) || expect < 1) fail("--expect <n> is required (the exact number of accounts)")
 

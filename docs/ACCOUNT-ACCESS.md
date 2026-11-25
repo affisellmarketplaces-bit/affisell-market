@@ -32,6 +32,30 @@ Il fonctionne en simulation (*dry run*) par défaut. `--apply` exécute une seul
 3. Verrouiller les 7 comptes de test :
    `lock --expect 7 --emails affiliate-test@affisell.com,gate-affiliate@affisell.com,supplier-test@affisell.com,gate-supplier@affisell.com,privacy-test@affisell.com,gate-customer@affisell.com,gate-legacy@affisell.com`.
 4. Verrouiller `admin@affisell.io` (`--expect 1`). L'outil refuse tant que l'étape 1 n'a pas créé un autre admin actif.
-5. Retour arrière : `unlock` avec les mêmes e-mails.
+5. Preuves : `status --emails …` avant et après chaque étape (date, rôle, verrou, nombre d'admins actifs ; jamais de hash) — copier la sortie dans `docs/OPERATIONS-LOG-2026-11.md`.
+6. Retour arrière : `unlock` avec les mêmes e-mails.
 
 Ce mécanisme est une alternative au SQL du §7 de `MEDUSA-CREDENTIALS-REMEDIATION.md`, avec les mêmes effets et davantage de garde-fous.
+
+## Renouvellement coordonné d'`AUTH_SECRET`
+
+`AUTH_SECRET` (ou `NEXTAUTH_SECRET`, même valeur) ne signe pas seulement les sessions. Effet d'un changement de valeur :
+
+| Usage | Fichier | Effet du renouvellement |
+|---|---|---|
+| Sessions (cookie JWT) | `lib/auth.ts`, `proxy.ts` | Tout le monde est déconnecté une fois. C'est l'effet recherché : une session éventuellement forgée avec l'ancienne valeur meurt aussi. |
+| Lien magique checkout | `lib/buyer-checkout-magic.ts` | Durée de vie 10 min : seuls les liens en cours sont perdus. |
+| Pass anti-bot | `lib/security/human-pass.ts` | Durée de vie 24 h : le contrôle est simplement redemandé. |
+| Capture AliExpress | `lib/fulfillment/ae-capture-token.ts` | Durée de vie 15 min : une capture en cours est à relancer. |
+| Référence `APS-…` montrée aux fournisseurs | `lib/supplier-partner-listing-ref.ts` | **Permanente** : toutes les références changeraient. À figer avant le renouvellement (étape 1). |
+| État OAuth Shopify | `lib/supplier-sync/shopify/oauth.ts` | Non concerné tant que `SHOPIFY_API_SECRET` ou `CRON_SECRET` est défini. |
+
+Depuis cette PR, la capture AliExpress et la référence `APS-…` refusent de signer en production sans secret (`lib/security/app-secret.ts`). Avant, elles se rabattaient sur un texte publié dans le dépôt, donc falsifiable.
+
+Procédure, une fois le compte Vercel débloqué et dans l'environnement Production :
+
+1. Copier la valeur actuelle d'`AUTH_SECRET` dans `SUPPLIER_PARTNER_LISTING_REF_SECRET`, pour figer les références `APS-…`.
+2. Générer une nouvelle valeur (`openssl rand -base64 48`) et la mettre dans `AUTH_SECRET`. Mettre la même valeur dans `NEXTAUTH_SECRET`, ou supprimer cette variable : `proxy.ts` et `lib/auth.ts` doivent lire la même valeur.
+3. Redéployer, après les PR #13 et #14.
+4. Vérifier, et garder la trace : un ancien cookie de session est refusé ; une nouvelle connexion fonctionne ; une référence `APS-…` connue est inchangée.
+5. Prévenir les utilisateurs actifs qu'ils doivent se reconnecter une fois.
