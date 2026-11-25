@@ -3,12 +3,11 @@ import type Stripe from "stripe"
 
 import { hasOpenDisputeHold } from "@/lib/orders/dispute-hold.server"
 import { isOrderClosedForPayout, isOrderPayoutHeldForDispute } from "@/lib/orders/payment-state"
+import { orderLegKey } from "@/lib/payouts/leg-model"
+import { executeLegTransfer } from "@/lib/payouts/leg-transfer.server"
+import { recordMarketplaceLegPaid } from "@/lib/payouts/marketplace-leg-record"
 import { prisma } from "@/lib/prisma"
-import {
-  recordStripePayoutSettlement,
-  supersedePendingTransferAttempt,
-} from "@/lib/payout-settlement"
-import { computeSplitStatusFromAttempts } from "@/lib/transfers/compute-split-status"
+import { applyOrderSettlement } from "@/lib/transfers/process-transfers"
 import { assertTransfersActive } from "@/lib/stripe-marketplace-commission-split"
 import { getStripeClient } from "@/lib/stripe"
 
@@ -32,10 +31,6 @@ const orderSelect = {
   product: { select: { name: true } },
 } as const
 
-function lightningIdempotencyKey(orderId: string, role: "supplier" | "affiliate"): string {
-  return `lightning_${orderId}_${role}`
-}
-
 function resolveLatestChargeId(
   paymentIntent: Stripe.PaymentIntent,
   fallbackChargeId: string | null
@@ -45,45 +40,10 @@ function resolveLatestChargeId(
   return fromIntent ?? fallbackChargeId ?? undefined
 }
 
-async function upsertLightningTransferAttempt(
-  tx: Prisma.TransactionClient,
-  args: {
-    orderId: string
-    role: "SUPPLIER" | "AFFILIATE"
-    amountCents: number
-    destination: string
-    stripeTransferId: string
-    paidAt: Date
-  }
-): Promise<void> {
-  await tx.transferAttempt.upsert({
-    where: { orderId_role: { orderId: args.orderId, role: args.role } },
-    create: {
-      orderId: args.orderId,
-      role: args.role,
-      amountCents: args.amountCents,
-      destination: args.destination,
-      status: "SUCCESS",
-      stripeTransferId: args.stripeTransferId,
-      attempts: 1,
-      lastAttemptAt: args.paidAt,
-    },
-    update: {
-      amountCents: args.amountCents,
-      destination: args.destination,
-      status: "SUCCESS",
-      stripeTransferId: args.stripeTransferId,
-      errorCode: null,
-      errorMessage: null,
-      attempts: 1,
-      lastAttemptAt: args.paidAt,
-    },
-  })
-}
-
 /**
  * Instant Connect payout when supplier trust + Lightning flag qualify.
- * Writes the same settlement artifacts as the standard Connect job (TransferAttempt + ledger).
+ * Pays each leg through the payout leg registry and records it with the same writer as the standard Connect job
+ * (TransferAttempt + ledger): a leg is paid once, whichever rail claims it first.
  */
 export async function triggerLightningPayout(orderId: string): Promise<LightningPayoutResult> {
   try {
@@ -167,111 +127,73 @@ export async function triggerLightningPayout(orderId: string): Promise<Lightning
     await assertTransfersActive(affiliateDestination)
 
     const currency = (order.currency ?? "EUR").toLowerCase()
-    const sourceTransaction = resolveLatestChargeId(paymentIntent, order.stripeChargeId)
-    const transferBase = {
-      currency,
-      transfer_group: orderId,
-      ...(sourceTransaction ? { source_transaction: sourceTransaction } : {}),
-    }
-
-    const supplierTransfer = await stripe.transfers.create(
-      {
-        ...transferBase,
-        amount: supplierAmountCents,
-        destination: supplierDestination,
-        metadata: { orderId, role: "supplier", lightning: "true" },
-      },
-      { idempotencyKey: lightningIdempotencyKey(orderId, "supplier") }
-    )
-
-    const affiliateTransfer = await stripe.transfers.create(
-      {
-        ...transferBase,
-        amount: affiliateAmountCents,
-        destination: affiliateDestination,
-        metadata: { orderId, role: "affiliate", lightning: "true" },
-      },
-      { idempotencyKey: lightningIdempotencyKey(orderId, "affiliate") }
-    )
-
-    const paidAt = new Date()
+    // Same source charge as the standard job when the order knows it (the frozen request of a leg must not depend on
+    // which rail claims it first — A2).
+    const sourceTransaction = order.stripeChargeId ?? resolveLatestChargeId(paymentIntent, null) ?? null
     const productName = order.product?.name ?? null
 
-    const updated = await prisma.$transaction(async (tx) => {
-      const claim = await tx.order.updateMany({
-        where: { id: orderId, payoutStatus: "PENDING" },
-        data: { payoutStatus: "PROCESSING" },
-      })
-      if (claim.count === 0) return 0
-
-      await supersedePendingTransferAttempt(tx, orderId, "SUPPLIER", "SUPERSEDED_BY_LIGHTNING")
-      await supersedePendingTransferAttempt(tx, orderId, "AFFILIATE", "SUPERSEDED_BY_LIGHTNING")
-
-      await upsertLightningTransferAttempt(tx, {
+    // Each leg goes through the payout leg registry, like process-transfers and Légion: a leg the standard job already
+    // paid comes back `already_paid` and is never paid twice (risk A3, 2026-11-25). A leg that does not end paid stops
+    // Lightning here; the standard job picks the order up again later.
+    const legs = [
+      { role: "SUPPLIER" as const, amountCents: supplierAmountCents, destination: supplierDestination, userId: order.supplierId },
+      { role: "AFFILIATE" as const, amountCents: affiliateAmountCents, destination: affiliateDestination, userId: order.affiliateId },
+    ]
+    const transferIds: string[] = []
+    for (const legSpec of legs) {
+      const leg = await executeLegTransfer({
+        legKey: orderLegKey(orderId, legSpec.role),
+        kind: "order",
+        role: legSpec.role,
+        rail: "lightning",
         orderId,
-        role: "SUPPLIER",
-        amountCents: supplierAmountCents,
-        destination: supplierDestination,
-        stripeTransferId: supplierTransfer.id,
-        paidAt,
+        transferGroup: orderId,
+        params: { amountCents: legSpec.amountCents, currency, destination: legSpec.destination, sourceTransaction },
+        onPaid: (tx, paid) =>
+          recordMarketplaceLegPaid(tx, {
+            orderId,
+            role: legSpec.role,
+            amountCents: paid.amountCents,
+            destination: paid.destination,
+            stripeTransferId: paid.stripeTransferId,
+            paidAt: paid.paidAt,
+            rail: "lightning",
+            userId: legSpec.userId,
+            productName,
+          }),
       })
-      await upsertLightningTransferAttempt(tx, {
-        orderId,
-        role: "AFFILIATE",
-        amountCents: affiliateAmountCents,
-        destination: affiliateDestination,
-        stripeTransferId: affiliateTransfer.id,
-        paidAt,
-      })
-
-      await recordStripePayoutSettlement(tx, {
-        orderId,
-        beneficiaryRole: "SUPPLIER",
-        userId: order.supplierId,
-        amountCents: supplierAmountCents,
-        stripeTransferId: supplierTransfer.id,
-        payoutRail: "lightning",
-        productName,
-        paidAt,
-      })
-      await recordStripePayoutSettlement(tx, {
-        orderId,
-        beneficiaryRole: "AFFILIATE",
-        userId: order.affiliateId,
-        amountCents: affiliateAmountCents,
-        stripeTransferId: affiliateTransfer.id,
-        payoutRail: "lightning",
-        productName,
-        paidAt,
-      })
-
-      const attempts = await tx.transferAttempt.findMany({ where: { orderId } })
-      const splitStatus = computeSplitStatusFromAttempts(attempts)
-      const payoutTransferIds: Prisma.InputJsonValue = [supplierTransfer.id, affiliateTransfer.id]
-
-      await tx.order.update({
-        where: { id: orderId },
-        data: {
-          payoutStatus: "PAID",
-          payoutTransferIds,
-          supplierPayoutAt: paidAt,
-          affiliatePayoutAt: paidAt,
-          splitStatus,
-          paymentSettlementStatus: splitStatus === "SUCCESS" ? "SETTLED" : undefined,
-        },
-      })
-
-      return 1
-    })
-
-    if (updated === 0) {
-      return { success: false, reason: "payout_already_processed" }
+      if (leg.outcome === "already_paid" && leg.amountCents && leg.destination) {
+        const amountCents = leg.amountCents
+        const destination = leg.destination
+        await prisma.$transaction((tx) =>
+          recordMarketplaceLegPaid(tx, {
+            orderId,
+            role: legSpec.role,
+            amountCents,
+            destination,
+            stripeTransferId: leg.stripeTransferId,
+            paidAt: new Date(),
+            rail: "connect",
+            userId: legSpec.userId,
+            productName,
+          })
+        )
+      }
+      if (leg.outcome !== "paid" && leg.outcome !== "already_paid") {
+        await applyOrderSettlement(orderId)
+        return { success: false, reason: `leg_${legSpec.role.toLowerCase()}_${leg.outcome}` }
+      }
+      transferIds.push(leg.stripeTransferId)
     }
+
+    await applyOrderSettlement(orderId)
+    const payoutTransferIds: Prisma.InputJsonValue = transferIds
+    await prisma.order.update({ where: { id: orderId }, data: { payoutTransferIds } })
 
     console.log("[stripe-lightning]", {
       orderId,
-      supplierTransferId: supplierTransfer.id,
-      affiliateTransferId: affiliateTransfer.id,
+      supplierTransferId: transferIds[0],
+      affiliateTransferId: transferIds[1],
       supplierAmountCents,
       affiliateAmountCents,
       result: "paid",
@@ -290,10 +212,6 @@ export async function triggerLightningPayout(orderId: string): Promise<Lightning
 
     return { success: true }
   } catch (error) {
-    await prisma.order.updateMany({
-      where: { id: orderId, payoutStatus: "PROCESSING" },
-      data: { payoutStatus: "PENDING" },
-    })
     const reason =
       error instanceof Error ? error.message : "unknown_lightning_payout_error"
     console.log("[stripe-lightning]", { orderId, result: "error", reason })

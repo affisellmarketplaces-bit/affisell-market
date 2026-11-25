@@ -1,12 +1,11 @@
-import Stripe from "stripe"
-
 import { blindDropshipSupplierContactEmail } from "@/lib/blind-dropship-contact"
 import { openBlindSecret } from "@/lib/blind-dropship-crypto"
 import { blindDropshipSlackAlert } from "@/lib/blind-dropship-slack"
 import { buildSupplierAdapterFromConfig } from "@/lib/suppliers/build-rest-adapter"
 import type { BlindCreateOrderInput, BlindSupplierAddress } from "@/lib/suppliers/types"
 import { prisma } from "@/lib/prisma"
-import { getStripeClient } from "@/lib/stripe"
+import { blindDropshipLegKey, isLegPaid } from "@/lib/payouts/leg-model"
+import { executeLegTransfer } from "@/lib/payouts/leg-transfer.server"
 
 function asAddress(raw: unknown): BlindSupplierAddress {
   const o = (raw ?? {}) as Record<string, unknown>
@@ -22,21 +21,39 @@ function asAddress(raw: unknown): BlindSupplierAddress {
   }
 }
 
+/**
+ * Pays one supplier group of a blind-dropship order through the payout leg registry (one leg per order × supplier
+ * group): a retry of the Inngest function — which re-runs every group after a later failure — finds the leg already paid
+ * instead of paying it again. Throws (STOP) for every outcome that is not "paid".
+ */
 async function maybeStripeTransferToSupplier(args: {
   amountCents: number
   destinationAccountId: string
   orderId: string
+  blindSupplierId: string
 }): Promise<void> {
   if (args.amountCents < 1) return
-  const stripe = getStripeClient()
-  await stripe.transfers.create({
-    amount: args.amountCents,
-    currency: "eur",
-    destination: args.destinationAccountId,
-    metadata: {
-      blindDropshipOrderId: args.orderId,
+  const leg = await executeLegTransfer({
+    legKey: blindDropshipLegKey(args.orderId, args.blindSupplierId),
+    kind: "blind_dropship",
+    role: "BLIND_SUPPLIER",
+    rail: "blind_dropship",
+    orderId: null,
+    transferGroup: `blind_dropship_${args.orderId}`,
+    params: {
+      amountCents: args.amountCents,
+      currency: "eur",
+      destination: args.destinationAccountId,
+      sourceTransaction: null,
     },
-  } as Stripe.TransferCreateParams)
+    extraMetadata: { blindDropshipOrderId: args.orderId },
+  })
+  if (isLegPaid(leg)) return
+  throw new Error(
+    leg.outcome === "in_doubt"
+      ? `transfer_in_doubt:${leg.reason} — vérifier Stripe avant toute nouvelle tentative`
+      : `transfer_${leg.outcome}`
+  )
 }
 
 export async function runBlindDropshipFulfillment(orderId: string): Promise<void> {
@@ -117,6 +134,7 @@ export async function runBlindDropshipFulfillment(orderId: string): Promise<void
           amountCents: group.costCents,
           destinationAccountId: connect,
           orderId: order.id,
+          blindSupplierId: group.supplier.id,
         })
       } catch (te) {
         const tm = te instanceof Error ? te.message : String(te)

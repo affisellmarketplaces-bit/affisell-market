@@ -3,7 +3,8 @@ import Stripe from "stripe"
 import { AGENT_MIN_WITHDRAW_CENTS } from "@/lib/agents/agent-payout-shared"
 import { assertConnectTransfersActive } from "@/lib/stripe-connect-transfer"
 import { prisma } from "@/lib/prisma"
-import { getStripeClient } from "@/lib/stripe"
+import { agentWithdrawalLegKey, isLegPaid, legProvablyUnpaid } from "@/lib/payouts/leg-model"
+import { executeLegTransfer } from "@/lib/payouts/leg-transfer.server"
 
 export type WithdrawAgentBalanceResult =
   | {
@@ -41,6 +42,75 @@ async function reverseWithdrawDebit(args: {
 }
 
 /**
+ * Pays one withdrawal (= one agent ledger DEBIT) through the payout leg registry. The debit is given back ONLY when the
+ * registry proves nothing was created (refused by Stripe, not processed, invalid, registry unreachable before Stripe):
+ * a timeout or a network error leaves the leg IN_DOUBT and the debit in place — giving the balance back while the
+ * transfer may exist would let the agent withdraw the same money twice.
+ */
+async function payWithdrawalLeg(args: {
+  agentId: string
+  ledgerEntryId: string
+  amountCents: number
+  destination: string
+  balanceAfterDebit: number
+}): Promise<WithdrawAgentBalanceResult> {
+  const leg = await executeLegTransfer({
+    legKey: agentWithdrawalLegKey(args.ledgerEntryId),
+    kind: "agent_withdrawal",
+    role: "AGENT",
+    rail: "agent_withdrawal",
+    orderId: null,
+    transferGroup: `agent_withdrawal_${args.ledgerEntryId}`,
+    params: { amountCents: args.amountCents, currency: "eur", destination: args.destination, sourceTransaction: null },
+    extraMetadata: { agentId: args.agentId, ledgerEntryId: args.ledgerEntryId, role: "agent" },
+  })
+
+  if (isLegPaid(leg)) {
+    await prisma.agentLedgerEntry.updateMany({
+      where: { id: args.ledgerEntryId, stripeTransferId: null },
+      data: { stripeTransferId: leg.stripeTransferId },
+    })
+    console.log("[agent-withdraw]", {
+      agentId: args.agentId,
+      ledgerEntryId: args.ledgerEntryId,
+      stripeTransferId: leg.stripeTransferId,
+      result: "transferred",
+    })
+    return {
+      ok: true,
+      amountCents: args.amountCents,
+      ledgerEntryId: args.ledgerEntryId,
+      stripeTransferId: leg.stripeTransferId,
+    }
+  }
+
+  if (legProvablyUnpaid(leg)) {
+    await reverseWithdrawDebit({
+      agentId: args.agentId,
+      ledgerEntryId: args.ledgerEntryId,
+      amountCents: args.amountCents,
+      balanceAfterDebit: args.balanceAfterDebit,
+      reason: leg.outcome,
+    })
+    console.error("[agent-withdraw]", {
+      agentId: args.agentId,
+      ledgerEntryId: args.ledgerEntryId,
+      error: leg.outcome,
+      result: "reversed",
+    })
+    return { ok: false, error: "stripe_transfer_failed" }
+  }
+
+  console.error("[agent-withdraw]", {
+    agentId: args.agentId,
+    ledgerEntryId: args.ledgerEntryId,
+    outcome: leg.outcome,
+    result: "in_doubt_debit_kept",
+  })
+  return { ok: false, error: "transfer_in_doubt" }
+}
+
+/**
  * Transfer agent balance to Stripe Connect account — idempotent via idempotencyKey.
  */
 export async function withdrawAgentBalance(args: {
@@ -56,7 +126,7 @@ export async function withdrawAgentBalance(args: {
 
   const existing = await prisma.agentLedgerEntry.findUnique({
     where: { idempotencyKey },
-    select: { id: true, amountCents: true, stripeTransferId: true, type: true },
+    select: { id: true, amountCents: true, stripeTransferId: true, type: true, balanceAfterCents: true },
   })
   if (existing?.type === "DEBIT" && existing.stripeTransferId) {
     console.log("[agent-withdraw]", {
@@ -71,6 +141,20 @@ export async function withdrawAgentBalance(args: {
       stripeTransferId: existing.stripeTransferId,
       idempotent: true,
     }
+  }
+
+  if (existing?.type === "DEBIT" && !existing.stripeTransferId) {
+    // The same withdrawal was debited earlier but its transfer is not recorded (in doubt, or interrupted): ask the
+    // registry again for THAT leg — it answers paid once reconciled, in doubt otherwise. Never a second debit.
+    const owner = await prisma.user.findUnique({ where: { id: args.userId }, select: { stripeAccountId: true } })
+    if (!owner?.stripeAccountId) return { ok: false, error: "connect_required" }
+    return payWithdrawalLeg({
+      agentId: args.agentId,
+      ledgerEntryId: existing.id,
+      amountCents: existing.amountCents,
+      destination: owner.stripeAccountId,
+      balanceAfterDebit: existing.balanceAfterCents,
+    })
   }
 
   const [user, agent] = await Promise.all([
@@ -134,45 +218,12 @@ export async function withdrawAgentBalance(args: {
     return debitResult
   }
 
-  const stripe = getStripeClient()
   try {
     await assertConnectTransfersActive(user.stripeAccountId)
-    const transfer = await stripe.transfers.create(
-      {
-        amount: amountCents,
-        currency: "eur",
-        destination: user.stripeAccountId,
-        metadata: {
-          agentId: args.agentId,
-          ledgerEntryId: debitResult.ledgerEntryId,
-          role: "agent",
-        },
-      },
-      { idempotencyKey: `agent_withdraw_${debitResult.ledgerEntryId}` }
-    )
-
-    await prisma.agentLedgerEntry.update({
-      where: { id: debitResult.ledgerEntryId },
-      data: { stripeTransferId: transfer.id },
-    })
-
-    console.log("[agent-withdraw]", {
-      agentId: args.agentId,
-      amountCents,
-      ledgerEntryId: debitResult.ledgerEntryId,
-      stripeTransferId: transfer.id,
-      result: "transferred",
-    })
-
-    return {
-      ok: true,
-      amountCents,
-      ledgerEntryId: debitResult.ledgerEntryId,
-      stripeTransferId: transfer.id,
-    }
   } catch (error) {
+    // Checked before any transfer: nothing was created, the debit is given back.
     const reason =
-      error instanceof Stripe.errors.StripeError ? error.code ?? error.message : "stripe_error"
+      error instanceof Stripe.errors.StripeError ? error.code ?? error.message : "connect_not_active"
     await reverseWithdrawDebit({
       agentId: args.agentId,
       ledgerEntryId: debitResult.ledgerEntryId,
@@ -180,12 +231,14 @@ export async function withdrawAgentBalance(args: {
       balanceAfterDebit: debitResult.balanceAfterDebit,
       reason,
     })
-    console.error("[agent-withdraw]", {
-      agentId: args.agentId,
-      ledgerEntryId: debitResult.ledgerEntryId,
-      error: reason,
-      result: "reversed",
-    })
     return { ok: false, error: "stripe_transfer_failed" }
   }
+
+  return payWithdrawalLeg({
+    agentId: args.agentId,
+    ledgerEntryId: debitResult.ledgerEntryId,
+    amountCents,
+    destination: user.stripeAccountId,
+    balanceAfterDebit: debitResult.balanceAfterDebit,
+  })
 }

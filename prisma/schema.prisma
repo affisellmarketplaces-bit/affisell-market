@@ -3022,6 +3022,55 @@ model TransferReversal {
 /**
  * Supplier / affiliate payout & clawback audit (idempotent keys per order + role).
  */
+/**
+ * Payout leg registry (migration 20261125090000_payout_leg_registry, apply by hand): ONE row per payout that may be paid
+ * at most once (order × role, or one blind-dropship / auto-order / agent-withdrawal obligation). Every Stripe transfer is
+ * created through lib/payouts/leg-transfer.server.ts, which claims the row under a lock BEFORE calling Stripe. CHECK
+ * constraints and the trigger "PayoutLeg_guard" refuse illegal transitions (a PAID leg never changes, an IN_DOUBT leg is
+ * never re-sent), changed frozen parameters and deletions. No foreign key: a financial record outlives the order.
+ * States and procedures: docs/PAYOUT-LEG-REGISTRY.md.
+ */
+model PayoutLeg {
+  id               String    @id @default(cuid())
+  legKey           String    @unique
+  /// order | blind_dropship | auto_order | agent_withdrawal
+  kind             String
+  orderId          String?
+  /// SUPPLIER | AFFILIATE | LEGION_SPONSOR | BLIND_SUPPLIER | AUTO_ORDER_PROVIDER | AGENT
+  role             String
+  /// PENDING | PROCESSING | PAID | IN_DOUBT | FAILED_CONFIRMED
+  state            String
+  generation       Int       @default(1)
+  transferGroup    String
+  /// Rail of the last claim / of the payment (process_transfers | lightning | legion | …)
+  rail             String?
+  paidRail         String?
+  idempotencyKey   String?
+  amountCents      Int?
+  currency         String?
+  destination      String?
+  paramsHash       String?
+  /// The exact Stripe request of the current generation, replayed as is by every rail.
+  params           Json?
+  stripeTransferId String?   @unique
+  adopted          Boolean   @default(false)
+  claimToken       String?
+  claimedAt        DateTime?
+  attemptCount     Int       @default(0)
+  lastErrorCode    String?
+  lastErrorMessage String?   @db.Text
+  inDoubtReason    String?
+  inDoubtAt        DateTime?
+  resolvedBy       String?
+  resolutionNote   String?   @db.Text
+  paidAt           DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now())
+
+  @@index([state, updatedAt])
+  @@index([orderId])
+}
+
 model MerchantPayoutLedger {
   id                   String              @id @default(cuid())
   orderId              String?

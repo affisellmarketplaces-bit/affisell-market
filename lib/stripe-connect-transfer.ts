@@ -1,45 +1,11 @@
 import Stripe from "stripe"
 
 import { assertTransfersActive } from "@/lib/stripe-marketplace-commission-split"
-import { logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
-import { getStripeClient } from "@/lib/stripe"
 
 export { assertTransfersActive as assertConnectTransfersActive }
 
-export async function createConnectTransfer(args: {
-  orderId: string
-  role: "supplier" | "affiliate"
-  amount: number
-  destination: string
-  sourceTransaction?: string
-}) {
-  const stripe = getStripeClient()
-  await assertTransfersActive(args.destination)
-
-  const transfer = await stripe.transfers.create(
-    {
-      amount: args.amount,
-      currency: "eur",
-      destination: args.destination,
-      transfer_group: args.orderId,
-      ...(args.sourceTransaction ? { source_transaction: args.sourceTransaction } : {}),
-      metadata: { orderId: args.orderId, role: args.role },
-    },
-    { idempotencyKey: `tr_${args.orderId}_${args.role}` }
-  )
-
-  logStripeWebhookInfo({
-    level: "info",
-    metric: "transfer_created",
-    orderId: args.orderId,
-    role: args.role,
-    amount: args.amount,
-    destination: args.destination,
-    id: transfer.id,
-  })
-
-  return transfer
-}
+// `createConnectTransfer` (key `tr_<order>_<role>`, no caller since 2026) was removed on 2026-11-25: every Stripe
+// transfer is created by lib/payouts/leg-transfer.server.ts (payout leg registry). Only the helpers below remain.
 
 export function isAffiliateOnboardingRequiredError(error: unknown): string | null {
   if (!(error instanceof Error)) return null

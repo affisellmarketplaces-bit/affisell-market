@@ -29,7 +29,8 @@ vi.mock("@/lib/stripe", () => ({
   getStripeClient: () => ({
     paymentIntents: { retrieve: async (id: string) => ({ latest_charge: `ch_${id}` }) },
     accounts: { retrieve: async () => ({ capabilities: { transfers: "active" } }) },
-    transfers: { create: transfersCreate },
+    // The payout leg registry searches Stripe before every creation (lib/payouts/leg-transfer.server.ts): nothing found.
+    transfers: { create: transfersCreate, list: async () => ({ data: [], has_more: false }) },
   }),
 }))
 vi.mock("@/lib/stripe-charge-refunded", () => ({ handleStripeChargeRefunded: (c: unknown) => handleRefunded(c) }))

@@ -28,6 +28,29 @@ vi.mock("@/lib/stripe", () => ({
     transfers: { create: transfersCreate },
   }),
 }))
+// The transfer itself goes through the payout leg registry (its guarantees are proved in payout-leg-registry-db.test.ts);
+// here the registry is a pass-through to the mocked Stripe call, built with the registry's real request builder.
+vi.mock("@/lib/payouts/leg-transfer.server", async () => {
+  const model = await vi.importActual<typeof import("@/lib/payouts/leg-model")>("@/lib/payouts/leg-model")
+  return {
+    executeLegTransfer: async (input: {
+      legKey: string
+      kind: "order"
+      role: "SUPPLIER" | "AFFILIATE"
+      rail: "process_transfers"
+      orderId: string
+      transferGroup: string
+      params: { amountCents: number; currency: string; destination: string; sourceTransaction: string | null }
+    }) => {
+      const request = model.buildLegTransferRequest({ ...input, generation: 1 })
+      const t = (await (transfersCreate as unknown as (r: unknown, o: unknown) => Promise<{ id: string }>)(request, {
+        idempotencyKey: model.legIdempotencyKey(input.legKey, 1),
+      }))
+      return { outcome: "paid", stripeTransferId: t.id, amountCents: request.amount, destination: request.destination, generation: 1 }
+    },
+  }
+})
+vi.mock("@/lib/payouts/marketplace-leg-record", () => ({ recordMarketplaceLegPaid: vi.fn(async () => {}) }))
 vi.mock("@/lib/prisma", () => {
   const prisma = {
     transferAttempt: {
@@ -106,7 +129,7 @@ describe("runProcessTransfersJob — last-line money guard", () => {
     expect(transfersCreate).toHaveBeenCalledTimes(1)
     const [params, opts] = transfersCreate.mock.calls[0] as unknown as [Record<string, unknown>, { idempotencyKey: string }]
     expect(params).toMatchObject({ amount: 3200, destination: "acct_aff", currency: "eur" })
-    expect(opts.idempotencyKey).toBe("transfer_ord_1_AFFILIATE")
+    expect(opts.idempotencyKey).toBe("affisell_leg:order:ord_1:AFFILIATE:g1")
   })
 
   it("never calls Stripe when payouts would exceed the undiscounted price", async () => {
