@@ -8,12 +8,15 @@ import { config } from "dotenv"
 config({ path: ".env.local" })
 config({ path: ".env" })
 
+import { randomBytes } from "node:crypto"
+
 import bcrypt from "bcryptjs"
 import { PrismaClient } from "@prisma/client"
 import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 const EMAIL = "affiliate-test@affisell.com"
-const PASSWORD = "AffiliateTest!2026"
+// Never a literal (the repository is public): VERIFY_TEST_ACCOUNT_PASSWORD, or a random one shown once at creation.
+const PASSWORD = process.env.VERIFY_TEST_ACCOUNT_PASSWORD?.trim() || randomBytes(18).toString("base64url")
 const EXPECTED_HASH =
   "bf914462fecc08479b9b677ba7b96c73f3b547113b730afee2d648a15fc399fd"
 const EXPECTED_VERSION_ID = "cmrdpn2ho001hthnpcbpxfqay"

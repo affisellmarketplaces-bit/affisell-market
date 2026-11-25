@@ -19,6 +19,11 @@ jobs:
       - name: Install
         run: npm ci
 
+      # Every tracked file: provider keys, credential literals and the published (compromised) credentials by hash
+      # (scripts/lib/secret-scan.mjs, scripts/lib/compromised-credentials.mjs). The repository is public.
+      - name: Secret scan
+        run: node scripts/verify-no-secrets.mjs --all
+
       - name: Lint
         run: npm run lint
 

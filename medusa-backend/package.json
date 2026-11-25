@@ -11,7 +11,7 @@
     "railway:build": "npm run build && prisma generate --schema ../prisma/schema.prisma",
     "db:generate": "node scripts/with-env.mjs db:generate",
     "db:migrate": "node scripts/with-env.mjs db:migrate",
-    "user:create": "node scripts/with-env.mjs user -e admin@affisell.com -p Affisell2026!",
+    "user:create": "node scripts/create-admin-user.mjs",
     "setup:auto": "node scripts/setup-auto.mjs",
     "seed:region": "node scripts/with-env.mjs exec ./src/scripts/seed-region.ts",
     "seed:stripe": "node scripts/with-env.mjs exec ./src/scripts/seed-stripe.ts",

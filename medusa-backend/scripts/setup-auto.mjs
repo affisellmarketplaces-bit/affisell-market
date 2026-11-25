@@ -7,16 +7,21 @@ import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync } fr
 import { resolve, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawn, spawnSync } from "node:child_process"
-import { config as loadEnv } from "dotenv"
+import { config as loadEnv, parse as parseEnv } from "dotenv"
 import pg from "pg"
+
+import { requireAdminCredentials } from "./lib/admin-credentials.mjs"
+import { assessMedusaDatabaseTarget } from "./lib/database-target-guard.mjs"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const envPath = resolve(root, ".env")
 const envGeneratedPath = resolve(root, ".env.generated")
 const logPath = resolve(root, ".setup-auto.log")
 
-const ADMIN_EMAIL = "admin@affisell.com"
-const ADMIN_PASSWORD = "Affisell2026!"
+// Admin credentials come from MEDUSA_ADMIN_EMAIL / MEDUSA_ADMIN_PASSWORD (medusa-backend/.env), read once the env
+// files are loaded — never written here (lib/admin-credentials.mjs).
+let adminCredentials = null
+const admin = () => (adminCredentials ??= requireAdminCredentials("setup-auto"))
 const API_KEY_TITLE = "affisell-storefront"
 const PRODUCT_HANDLE = "leggings-demo"
 const DEFAULT_GARMENT_URL =
@@ -47,11 +52,26 @@ function loadDotenv() {
   if (!existsSync(envPath)) {
     fail("env", "medusa-backend/.env missing — copy 6 vars from ../.env.local")
   }
+  const shellEnv = { ...process.env }
+  const medusaEnvFile = parseEnv(readFileSync(envPath))
   loadEnv({ path: envPath, override: true })
   const parentEnv = resolve(root, "..", ".env.local")
+  const parentEnvFile = existsSync(parentEnv) ? parseEnv(readFileSync(parentEnv)) : {}
   if (existsSync(parentEnv)) {
     loadEnv({ path: parentEnv, override: false })
   }
+  const target = assessMedusaDatabaseTarget({
+    env: process.env,
+    medusaEnvFile,
+    parentEnvFile,
+    shellEnv,
+    tool: "medusa-backend/setup-auto",
+  })
+  if (!target.ok) {
+    console.error(`\n✗ REFUSED (${target.code}): ${target.reason}\n`)
+    process.exit(2)
+  }
+  admin() // fail early, before anything is installed or created, if the admin credentials are missing or unsafe
 }
 
 function validateEnv() {
@@ -129,13 +149,13 @@ function seedRegionId() {
 }
 
 function createAdminUser() {
-  log("admin", `creating user ${ADMIN_EMAIL} …`)
+  log("admin", `creating user ${admin().email} …`)
   const r = runMedusa([
     "user",
     "-e",
-    ADMIN_EMAIL,
+    admin().email,
     "-p",
-    ADMIN_PASSWORD,
+    admin().password,
     "--admin",
   ])
   const out = `${r.stdout ?? ""}${r.stderr ?? ""}`
@@ -227,7 +247,7 @@ async function adminLogin() {
   const res = await fetchOk(`${BASE_URL}/auth/user/emailpass`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD }),
+    body: JSON.stringify({ email: admin().email, password: admin().password }),
   })
   const token = res.json?.token
   if (!res.ok || !token) {
@@ -434,7 +454,7 @@ function printSummary({ pk, product, serverChild, regionId }) {
   console.log("  Medusa setup complete (zero-click)")
   console.log("══════════════════════════════════════════════════")
   console.log(`  Admin UI     ${BASE_URL}/app`)
-  console.log(`  Admin login  ${ADMIN_EMAIL}`)
+  console.log(`  Admin login  ${admin().email}  (password: MEDUSA_ADMIN_PASSWORD in medusa-backend/.env)`)
   console.log(`  Store API    ${BASE_URL}/store`)
   console.log(`  Publishable  ${pk}`)
   if (regionId) console.log(`  Region ID    ${regionId}`)
