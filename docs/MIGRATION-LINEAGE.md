@@ -113,3 +113,14 @@ Le retour arrière n'est pas testé pour ces migrations : il n'est pas pris en c
 1. le fondateur valide la stratégie B ;
 2. la CI exécute le contrôle (pousser la branche `local/migration-lineage-fix`) et confirme le scénario 4 ;
 3. le staging ne reçoit rien avant la lecture en lecture seule prévue par la préparation de la migration.
+
+## 9. Résultat CI et baseline (2026-11-24)
+
+- Preuve CI sur PostgreSQL réel, job « Migration chain replay », PR #10 en brouillon. Résultats :
+  - rejeu des 208 migrations ;
+  - insertion rétro-datée appliquée par Prisma après des migrations plus récentes, et enregistrée une seule fois ;
+  - historique complet inchangé ;
+  - historique partiel : seuls `AdminAeCaptureSession`, sa clé primaire et son index sont créés ;
+  - tables réparées structurellement identiques au modèle ;
+  - seconde exécution sans effet.
+- La comparaison complète au schéma Prisma a révélé une dérive **antérieure** à la réparation. Décision du fondateur : la geler dans une baseline stricte, sans migration de rattrapage. Voir `docs/SCHEMA-DRIFT-BASELINE.md`, `prisma/schema-drift-baseline.json` et, pour l'index Stripe, `docs/STRIPE-TRANSFER-UNIQUE-INDEX.md`.

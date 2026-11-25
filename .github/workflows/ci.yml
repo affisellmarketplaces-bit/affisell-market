@@ -111,3 +111,43 @@ jobs:
           lib/__tests__/historical-exposure-db.test.ts
           lib/__tests__/capture-sentinel-db.test.ts
           lib/__tests__/mutation-reconciliation-db.test.ts
+
+  migration-chain:
+    name: Migration chain replay on a real PostgreSQL (empty, existing history, retroactive insertion)
+    # docs/MIGRATION-LINEAGE.md — a chain that only works on databases built outside it fails here, before it can
+    # reach a shared environment. Throwaway service database only.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: "5432"
+      PGUSER: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: PostgreSQL client matching the server
+        run: |
+          sudo apt-get install -y -q postgresql-client-16 >/dev/null 2>&1 || true
+          echo "/usr/lib/postgresql/16/bin" >> "$GITHUB_PATH"
+      - name: Replay and prove (S1 fresh, S2 Prisma diff, S3 retroactive insertion, S4 second run)
+        run: bash scripts/ci/migration-chain-check.sh
