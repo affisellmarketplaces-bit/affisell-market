@@ -143,3 +143,62 @@ Affisell), secrets de session neufs, nouveau mot de passe, nouvelle clé secrèt
    décision d'architecture (base dédiée) à prendre avant tout déploiement.
 5. Le scan de secrets repose sur des motifs : un secret de forme inconnue passerait. Un outil dédié (gitleaks) sur
    l'historique complet reste recommandé.
+
+## 7. Comptes de l'application exposés (vérifiés en production le 2026-11-25, lecture seule)
+
+| Compte | Rôle | Créé le | Données | Origine du mot de passe publié |
+|---|---|---|---|---|
+| `admin@affisell.io` | **ADMIN (seul compte admin de la production)** | 2026-05-16 | aucune commande, aucun OAuth | `prisma/seed.ts` |
+| `supplier@affisell.io` | SUPPLIER | 2026-05-16 | 1 produit, 0 commande | `prisma/seed.ts` |
+| `affiliate-test@`, `gate-affiliate@affisell.com` | AFFILIATE | 2026-07-09 | acceptations légales seulement | scripts `verify-*` |
+| `supplier-test@`, `gate-supplier@affisell.com` | SUPPLIER | 2026-07-09 | profil fournisseur + acceptations | scripts `verify-*` |
+| `privacy-test@`, `gate-customer@`, `gate-legacy@affisell.com` | CUSTOMER | 2026-07-09 | acceptations (0 pour gate-legacy) | scripts `verify-*` |
+
+Tous ont un mot de passe, aucun n'a de compte OAuth ni de compte Stripe Connect. La correspondance avec les mots de passe
+publiés est probable (création par ces scripts), non prouvée (empreintes non lues). Sessions : stratégie JWT (30 jours),
+non révocable compte par compte — seule une rotation de `AUTH_SECRET` les invalide toutes.
+
+### 7.1 Neutralisation réversible des 7 comptes de test — préparée, NON exécutée
+
+Verrou par préfixe : l'empreinte bcrypt devient invalide (toute connexion par mot de passe échoue), rien n'est supprimé
+(profils, acceptations légales conservés), le compte n'apparaît pas « vierge » à l'identification acheteur.
+
+```sql
+BEGIN;
+DO $$
+DECLARE v_ids text[]; v_n int;
+BEGIN
+  SELECT array_agg(id) INTO v_ids FROM "User"
+   WHERE email IN ('affiliate-test@affisell.com','supplier-test@affisell.com','privacy-test@affisell.com',
+                   'gate-affiliate@affisell.com','gate-supplier@affisell.com','gate-customer@affisell.com','gate-legacy@affisell.com')
+     AND password IS NOT NULL AND password NOT LIKE 'locked-%' AND "stripeAccountId" IS NULL;
+  IF coalesce(array_length(v_ids,1),0) <> 7 THEN RAISE EXCEPTION 'abandon: 7 comptes attendus, % trouves', coalesce(array_length(v_ids,1),0); END IF;
+  IF EXISTS (SELECT 1 FROM "Order" WHERE "supplierId" = ANY(v_ids) OR "affiliateId" = ANY(v_ids) OR "buyerUserId" = ANY(v_ids))
+  OR EXISTS (SELECT 1 FROM "Product" WHERE "supplierId" = ANY(v_ids))
+  OR EXISTS (SELECT 1 FROM "AffiliateProduct" WHERE "affiliateId" = ANY(v_ids))
+  OR EXISTS (SELECT 1 FROM "Account" WHERE "userId" = ANY(v_ids))
+  THEN RAISE EXCEPTION 'abandon: donnees metier ou OAuth presentes'; END IF;
+  UPDATE "User" SET password = 'locked-2026-11-25:' || password
+   WHERE id = ANY(v_ids) AND password IS NOT NULL AND password NOT LIKE 'locked-%';
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n <> 7 THEN RAISE EXCEPTION 'abandon: % ligne(s)', v_n; END IF;
+  IF (SELECT count(*) FROM "User" WHERE password LIKE 'locked-%') <> 7 THEN RAISE EXCEPTION 'abandon: verrous inattendus ailleurs'; END IF;
+END $$;
+SELECT count(*) FILTER (WHERE password LIKE 'locked-2026-11-25:%') AS verrouilles, count(*) AS total
+  FROM "User" WHERE email IN ('affiliate-test@affisell.com','supplier-test@affisell.com','privacy-test@affisell.com',
+   'gate-affiliate@affisell.com','gate-supplier@affisell.com','gate-customer@affisell.com','gate-legacy@affisell.com');
+COMMIT;
+```
+Attendu : `verrouilles = 7`, `total = 7`. Retour arrière (par compte ou global) :
+`UPDATE "User" SET password = substring(password from 19) WHERE email IN (…) AND password LIKE 'locked-2026-11-25:%';`
+Effet de bord connu : une tentative de connexion sur un compte verrouillé lève une erreur serveur (`bcrypt.compare` sur
+une empreinte invalide) au lieu d'un refus simple — connexion refusée dans les deux cas.
+Point de restauration : PITR Neon 7 jours (rétention lue : 168 h).
+
+### 7.2 `admin@affisell.io` — décision du propriétaire requise
+
+C'est le **seul compte ADMIN** de la production. Le verrouiller pourrait couper l'accès administrateur du propriétaire
+s'il l'utilise ; le laisser expose l'administration entière dès la remise en ligne. À trancher avant la remise en ligne :
+(a) le propriétaire change ce mot de passe (réinitialisation) et confirme qu'il contrôle la boîte `@affisell.io`
+(domaine distinct de `affisell.com`, propriété non vérifiée ici) ; ou (b) création d'un nouvel admin nominatif, puis
+verrou du compte `admin@affisell.io` par la même requête que 7.1 (1 ligne). `supplier@affisell.io` : même verrou (1 ligne).
