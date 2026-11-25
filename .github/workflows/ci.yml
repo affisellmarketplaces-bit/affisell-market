@@ -111,3 +111,4 @@ jobs:
           lib/__tests__/historical-exposure-db.test.ts
           lib/__tests__/capture-sentinel-db.test.ts
           lib/__tests__/mutation-reconciliation-db.test.ts
+          lib/__tests__/payout-ledger-idempotence-db.test.ts
