@@ -9,7 +9,7 @@ attend l'accord écrit du fondateur.
 |---|---|
 | Production (`main`) | `c593b698c`, 4 novembre. **313 commits de retard** sur `release/finalisation-2026-11-13` (PR #9, brouillon) |
 | Déploiement | Compte Vercel bloqué (« Account is blocked ») : aucun déploiement possible actuellement |
-| Risque A3 en production | Ouvert. `lightningEnabled = true` pour 1 fournisseur, 58 commandes payées exposées (mesure du 2026-11-25) |
+| Risque A3 en production | **Neutralisé le 2026-11-25 à 12 h 55** : `lightningEnabled` passé à `false` pour l'unique fournisseur concerné (1 ligne, transaction gardée, 0 fournisseur restant à `true`, empreinte des 14 autres profils inchangée). **Réversible par le fournisseur lui-même** (voir §2) |
 | Second défaut de production | Lightning paie le fournisseur, échoue sur le revendeur, remet la commande en `PENDING` **sans enregistrer** le virement fournisseur → `process-transfers` le repaie |
 | PR #11 | Base de #12 ; CI verte |
 | PR #12 | Registre `PayoutLeg` ; CI verte (`d2f48bc88`) ; migration non appliquée |
@@ -18,9 +18,14 @@ attend l'accord écrit du fondateur.
 
 ## 2. Deux voies, complémentaires
 
-**Voie A — immédiate, sans déploiement** : passer `lightningEnabled` à `false` pour l'unique fournisseur concerné
-(requête gardée fournie le 2026-11-25). Neutralise A3 et le second défaut, Lightning ne payant plus rien.
-**[décision]** : écriture d'une ligne en production, que le fondateur exécute lui-même ou autorise.
+**Voie A — immédiate, sans déploiement — FAITE le 2026-11-25** : `lightningEnabled` passé à `false` pour l'unique
+fournisseur concerné. Lightning ne paie plus rien tant que le drapeau reste à `false`.
+**Limite** : le code de production laisse le **fournisseur** le réactiver seul (`PATCH /api/supplier/lightning-payout`,
+autorisé dès un score de confiance ≥ 50), ainsi qu'un admin (`/api/admin/suppliers/<id>/lightning`). Aucun cron ne
+le réactive (`refresh-supplier-trust-scores` ne crée que `false`). Contrôle en lecture seule à refaire jusqu'au
+déploiement de la voie B :
+`SELECT count(*) FROM "SupplierProfile" WHERE "lightningEnabled";` (attendu : 0).
+Avec la voie B déployée, une réactivation n'est plus dangereuse.
 
 **Voie B — correctif de code, dès que Vercel est débloqué** : PR #13 vers `main`. Deux fichiers, aucune migration,
 aucune nouvelle table, testé (preuve par mutation). Protège même si le drapeau est réactivé. **[décision]** : fusion
