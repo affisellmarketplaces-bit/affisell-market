@@ -27,3 +27,59 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+  # A3 hotfix (2026-11-25): Lightning + process-transfers racing on a REAL PostgreSQL through the real Prisma engine.
+  # Throwaway service database, schema from the datamodel, Stripe faked — never staging or production. Same pattern as
+  # the release branch's `money-db-tests` job: at integration, add the test file to that job's list instead.
+  lightning-db-tests:
+    name: Lightning A3 tests on a real PostgreSQL
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: affisell_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d affisell_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGDATABASE: affisell_test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Create the schema from the Prisma datamodel
+        env:
+          # Never connects; must differ from the test database (the DB-test guard refuses a test URL equal to DATABASE_URL).
+          DATABASE_URL: postgresql://ci@placeholder.invalid:5432/placeholder
+        run: |
+          npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script 2>/dev/null \
+            | grep -v '^\[ensure-direct-url\]' > "$RUNNER_TEMP/schema.sql"
+          test "$(grep -c '^CREATE TABLE' "$RUNNER_TEMP/schema.sql")" -gt 100
+          psql -v ON_ERROR_STOP=1 -q -f "$RUNNER_TEMP/schema.sql"
+
+      - name: Point the DB tests at the throwaway database
+        run: printf 'DATABASE_URL_TEST=postgresql://postgres@127.0.0.1:5432/affisell_test\n' > .env.test.local
+
+      - name: Lightning A3 tests (real database, Stripe faked)
+        env:
+          RUN_DB_TESTS: "1"
+        run: npx vitest run --no-file-parallelism lib/__tests__/lightning-a3-db.test.ts lib/__tests__/money-e2e-db.test.ts

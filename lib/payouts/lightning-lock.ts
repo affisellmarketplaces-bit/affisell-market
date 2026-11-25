@@ -6,7 +6,9 @@
  * supplier that had it, but the code still let the supplier (`PATCH /api/supplier/lightning-payout`,
  * trust score >= 50) or an admin (`PATCH /api/admin/suppliers/<id>/lightning`) switch it back on.
  *
- * Rule: `LIGHTNING_PAYOUTS_MODE` = `locked` (DEFAULT, also any unknown value) | `enabled`, read per
+ * Rule: `LIGHTNING_PAYOUTS_MODE` = `locked` (DEFAULT, also any other value) | `enabled` — EXACTLY that word: no
+ * trimming, no case folding, so `Enabled`, ` enabled` or a trailing newline (`echo enabled | vercel env add`) stay
+ * locked (fail closed). Read per
  * call (flip it on Vercel, no code change). While locked:
  *   - nobody can switch Lightning ON (supplier or admin, server side): 409 `lightning_locked`;
  *     switching it OFF is always allowed;
@@ -26,7 +28,7 @@ export const LIGHTNING_LOCKED_MESSAGE =
   "paiements. Vos reversements continuent normalement, selon le calendrier standard."
 
 export function isLightningLocked(env: Record<string, string | undefined> = process.env): boolean {
-  return (env[LIGHTNING_PAYOUTS_MODE_ENV] ?? "").trim().toLowerCase() !== "enabled"
+  return env[LIGHTNING_PAYOUTS_MODE_ENV] !== "enabled"
 }
 
 /** Decision for a request that wants to set `lightningEnabled` to `requested`. */

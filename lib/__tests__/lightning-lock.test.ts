@@ -51,9 +51,8 @@ beforeEach(() => {
 
 describe("lock rule", () => {
   it("locked by default and for any value but 'enabled'", () => {
-    for (const v of [undefined, "", "locked", "on", "true", "1", "ENABLED "]) {
-      const locked = isLightningLocked({ LIGHTNING_PAYOUTS_MODE: v })
-      expect(locked).toBe(v?.trim().toLowerCase() !== "enabled")
+    for (const v of [undefined, "", "locked", "on", "true", "1", "yes", "ENABLED", "Enabled", " enabled", "enabled ", "enabled\n", "\"enabled\"", "enabled;"]) {
+      expect(isLightningLocked({ LIGHTNING_PAYOUTS_MODE: v })).toBe(true)
     }
     expect(isLightningLocked({})).toBe(true)
     expect(isLightningLocked({ LIGHTNING_PAYOUTS_MODE: "enabled" })).toBe(false)
@@ -112,6 +111,35 @@ describe("admin API (direct calls)", () => {
   it("unlocked: admin can switch it ON again", async () => {
     process.env.LIGHTNING_PAYOUTS_MODE = "enabled"
     expect((await adminPatch(body(true), params)).status).toBe(200)
+  })
+})
+
+// Everything a deployment reads: Vercel / Next config, env templates, workflows, build scripts and the shipped code.
+const DEPLOY_PATHS = [
+  "vercel.json", "next.config.ts", "package.json", ".github", "scripts", "instrumentation.ts", "proxy.ts",
+  "lib", "app", "components", "workers", "inngest", ":(glob).env*", ":!lib/__tests__",
+]
+
+describe("a deployment can not unlock Lightning by accident", { timeout: 60_000 }, () => {
+  it("no tracked file sets LIGHTNING_PAYOUTS_MODE (config, env templates, workflows, scripts, code)", async () => {
+    const { execFileSync } = await import("node:child_process")
+    let out = ""
+    try {
+      out = execFileSync("git", ["grep", "-nE", "LIGHTNING_PAYOUTS_MODE\\s*[:=]", "--", ...DEPLOY_PATHS], { encoding: "utf8" })
+    } catch {
+      out = "" // git grep exits 1 when nothing matches
+    }
+    expect(out.trim()).toBe("")
+  })
+  it("the code never assigns the variable at runtime", async () => {
+    const { execFileSync } = await import("node:child_process")
+    let out = ""
+    try {
+      out = execFileSync("git", ["grep", "-n", "env.LIGHTNING_PAYOUTS_MODE\\s*=", "--", ...DEPLOY_PATHS], { encoding: "utf8" })
+    } catch {
+      out = ""
+    }
+    expect(out.trim()).toBe("")
   })
 })
 
