@@ -30,7 +30,7 @@ jobs:
 
   # A3 hotfix (2026-11-25): Lightning + process-transfers racing on a REAL PostgreSQL through the real Prisma engine.
   # Throwaway service database, schema from the datamodel, Stripe faked — never staging or production. Same pattern as
-  # the release branch's `money-db-tests` job: at integration, add the test file to that job's list instead.
+  # the release branch's `money-db-tests` job; superseded there by payout-leg-registry-db (docs/PR13-DEPLOY-AND-INTEGRATION.md §6).
   lightning-db-tests:
     name: Lightning A3 tests on a real PostgreSQL
     runs-on: ubuntu-latest
