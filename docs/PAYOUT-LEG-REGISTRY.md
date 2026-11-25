@@ -133,6 +133,7 @@ l'intention de paiement ne sert que si la commande n'en a pas.
 
 ## 5. Opérations manuelles (reprise contrôlée)
 
+- **Alerte** : chaque entrée en `IN_DOUBT`, quel que soit le rail, envoie **une** alerte ops (`opsWebhookAlert`, 2026-11-25) ; redemander un volet déjà en doute ne réalerte pas.
 - **Lister** : `GET /api/admin/payout-legs` (ADMIN) renvoie les volets `IN_DOUBT` et `PROCESSING`.
 - **Adopter** : `POST /api/admin/payout-legs {legKey, action: "reconcile"}`. Cherche dans Stripe et adopte s'il existe
   exactement un virement cohérent (`AuditLog` `payout_leg.adopted`). Ne crée jamais rien. Les écritures du rail
@@ -216,7 +217,11 @@ par ce chantier.
 `scripts/migration-rollbacks/20261125090000_payout_leg_registry.down.sql` est testé ; avant de l'utiliser, solder à la
 main chaque volet `IN_DOUBT` ou `PROCESSING`.
 
-## 10. Limites restantes
+## 10. Adoption
+
+Voir `docs/PAYOUT-ADOPTION-PLAN.md` : la production (`main`) a 313 commits de retard ; voie immédiate (drapeau), correctif minimal PR #13, puis cette PR après la PR #9 et 8 migrations.
+
+## 11. Limites restantes
 
 - Le faux Stripe des tests reproduit le comportement documenté (idempotence, liste par groupe). **Aucun appel Stripe réel
   n'a été fait.** La forme exacte des erreurs de délai du SDK est classée `IN_DOUBT` par défaut, donc sans risque de

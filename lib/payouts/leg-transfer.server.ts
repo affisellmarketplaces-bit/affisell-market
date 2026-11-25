@@ -222,7 +222,7 @@ export async function orderLegacyEvidence(
 }
 
 type ClaimResult =
-  | { done: LegOutcome }
+  | { done: LegOutcome; enteredDoubt?: boolean }
   | { claimed: true; request: LegTransferRequest; idempotencyKey: string; generation: number; claimToken: string }
 
 async function searchLeg(
@@ -247,6 +247,23 @@ async function searchLeg(
 
 function logLeg(event: string, fields: Record<string, unknown>) {
   console.log("[payout-leg]", { event, ...fields })
+}
+
+/**
+ * One ops alert when a leg ENTERS IN_DOUBT (the transition happens once per doubt, so the alert does too), whatever the
+ * rail: until now only process-transfers alerted, and a Lightning / Légion / dropship / agent doubt was a log line.
+ * Never throws — the leg is already safe (nothing can pay it again); the alert only makes it visible.
+ */
+async function alertLegInDoubt(legKey: string, reason: string, rail: string): Promise<void> {
+  try {
+    const { opsWebhookAlert } = await import("@/lib/ops-webhook")
+    await opsWebhookAlert(
+      `⚠️ Payout leg IN DOUBT — ${legKey} (rail ${rail}): ${reason}. Nothing will pay it automatically. ` +
+        "Settle it: POST /api/admin/payout-legs {action: reconcile} (docs/PAYOUT-LEG-REGISTRY.md §5)."
+    )
+  } catch (err) {
+    logLeg("in_doubt_alert_failed", { legKey, error: errorMessageOf(err) })
+  }
 }
 
 /** Moves a PROCESSING leg we still hold to another state. Never throws: returns whether the claim was still ours. */
@@ -364,7 +381,7 @@ export async function executeLegTransfer(input: ExecuteLegInput): Promise<LegOut
             data: { state: "IN_DOUBT", inDoubtReason: decision.reason, inDoubtAt: now() },
           })
           logLeg("in_doubt", { legKey: input.legKey, reason: decision.reason })
-          return { done: { outcome: "in_doubt", reason: decision.reason } } satisfies ClaimResult
+          return { done: { outcome: "in_doubt", reason: decision.reason }, enteredDoubt: true } satisfies ClaimResult
         case "in_doubt":
           return { done: { outcome: "in_doubt", reason: leg.inDoubtReason ?? "in_doubt" } } satisfies ClaimResult
         case "busy":
@@ -425,7 +442,12 @@ export async function executeLegTransfer(input: ExecuteLegInput): Promise<LegOut
     logLeg("registry_unavailable", { legKey: input.legKey, error: errorMessageOf(err) })
     return { outcome: "registry_unavailable", reason: errorMessageOf(err).slice(0, 200) }
   }
-  if ("done" in claim) return claim.done
+  if ("done" in claim) {
+    if (claim.enteredDoubt && claim.done.outcome === "in_doubt") {
+      await alertLegInDoubt(input.legKey, claim.done.reason, input.rail)
+    }
+    return claim.done
+  }
 
   const { request, idempotencyKey, generation } = claim
   const stripe = input.deps?.stripe ?? defaultLegStripe()
@@ -463,6 +485,7 @@ export async function executeLegTransfer(input: ExecuteLegInput): Promise<LegOut
       })
       if (!ok) {
         logLeg("claim_lost_after_transfer", { legKey: input.legKey, stripeTransferId })
+        await alertLegInDoubt(input.legKey, `claim_lost_after_transfer (${stripeTransferId})`, input.rail)
         return { outcome: "in_doubt", reason: "claim_lost_after_transfer" }
       }
       logLeg(adopted ? "adopted_from_stripe" : "paid", { legKey: input.legKey, stripeTransferId, generation })
@@ -483,6 +506,7 @@ export async function executeLegTransfer(input: ExecuteLegInput): Promise<LegOut
         lastErrorMessage: `transfer ${stripeTransferId} exists; record failed: ${errorMessageOf(err)}`.slice(0, 1000),
       })
       logLeg("record_failed", { legKey: input.legKey, stripeTransferId, error: errorMessageOf(err) })
+      await alertLegInDoubt(input.legKey, `record_failed_after_transfer (${stripeTransferId})`, input.rail)
       return { outcome: "in_doubt", reason: "record_failed_after_transfer" }
     }
   }
@@ -521,6 +545,7 @@ export async function executeLegTransfer(input: ExecuteLegInput): Promise<LegOut
       inDoubtAt: now(),
     })
     logLeg("in_doubt", { legKey: input.legKey, reason: verdict.reason })
+    await alertLegInDoubt(input.legKey, verdict.reason, input.rail)
     return { outcome: "in_doubt", reason: verdict.reason }
   }
   if (verdict.verdict === "adopt") {
@@ -561,6 +586,7 @@ export async function executeLegTransfer(input: ExecuteLegInput): Promise<LegOut
       lastErrorMessage: message,
     })
     logLeg("in_doubt", { legKey: input.legKey, reason: "create_outcome_unknown", code })
+    await alertLegInDoubt(input.legKey, `create_outcome_unknown:${code}`, input.rail)
     return { outcome: "in_doubt", reason: `create_outcome_unknown:${code}` }
   }
 

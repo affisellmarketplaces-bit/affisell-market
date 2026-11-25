@@ -19,7 +19,8 @@ import { dbTestsRequested, pointAtTestDatabase } from "@/lib/testing/db-test-gua
 
 vi.mock("server-only", () => ({}))
 vi.mock("@sentry/nextjs", () => ({ captureMessage: vi.fn(), captureException: vi.fn() }))
-vi.mock("@/lib/ops-webhook", () => ({ opsWebhookAlert: vi.fn(async () => {}) }))
+const ops = vi.hoisted(() => ({ alerts: [] as string[] }))
+vi.mock("@/lib/ops-webhook", () => ({ opsWebhookAlert: vi.fn(async (t: string) => { ops.alerts.push(t) }) }))
 vi.mock("@/lib/transfers/split-slack-alert", () => ({ alertSplitTransferFailed: vi.fn(async () => {}) }))
 
 const gate = vi.hoisted(() => ({ eligibleRoles: new Set<string>(["SUPPLIER", "AFFILIATE"]) }))
@@ -241,6 +242,8 @@ describe.skipIf(!RUN_DB)("payout leg registry — real PostgreSQL, real Prisma",
     const second = await svc.executeLegTransfer(svcInput(key, { rail: "lightning" }, fake))
     expect(second.outcome).toBe("in_doubt")
     expect(fake.createCalls).toBe(1)
+    // One ops alert on ENTERING the doubt, whatever the rail; asking again does not re-alert.
+    expect(ops.alerts.filter((a) => a.includes(key))).toHaveLength(1)
 
     const rec = await svc.reconcileLeg(key, { actor: "test-admin", deps: { db: prisma as never, stripe: fake } })
     expect(rec).toEqual({ result: "adopted", stripeTransferId: fake.transfers[0].id })
