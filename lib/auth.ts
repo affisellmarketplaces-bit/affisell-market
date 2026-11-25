@@ -31,6 +31,13 @@ import { ensureMerchantStore } from "@/lib/ensure-store"
 import { computeUserLegalGateHash } from "@/lib/legal/acceptance"
 import { resolveRadarFeatures } from "@/lib/radar/features"
 import { OAUTH_SIGNUP_INTENT_COOKIE, OAUTH_WELCOME_COOKIE } from "@/lib/oauth-cookies"
+import {
+  ACCOUNT_LOCK_PREFIX,
+  isPasswordLocked,
+  sessionAfterCheck,
+  sessionRevalidationDue,
+  type AccountStatus,
+} from "@/lib/auth-account-lock"
 import { prisma } from "@/lib/prisma"
 
 const COOKIE_SAFE = process.env.NODE_ENV === "production"
@@ -50,6 +57,24 @@ type AuthUserRow = {
  * Load JWT profile fields. Never throws on schema drift (e.g. pending migrate):
  * falls back without radarPlan so supplier/affiliate/admin login stays online.
  */
+/** Lock / existence / role of an account, without reading the hash into the app (the prefix test runs in SQL). */
+async function loadAccountStatus(userId: string): Promise<AccountStatus | "unavailable"> {
+  try {
+    const row = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } })
+    if (!row) return { exists: false }
+    const locked = await prisma.user.count({
+      where: { id: userId, password: { startsWith: ACCOUNT_LOCK_PREFIX } },
+    })
+    return { exists: true, locked: locked > 0, role: row.role }
+  } catch (err) {
+    console.error("[auth jwt]", {
+      result: "revalidation_lookup_failed",
+      message: err instanceof Error ? err.message : String(err),
+    })
+    return "unavailable"
+  }
+}
+
 async function loadAuthUserRow(userId: string): Promise<AuthUserRow | null> {
   try {
     return await prisma.user.findUnique({
@@ -250,6 +275,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         })
         if (!userRow) throw new AccountNotFound()
         if (!userRow.password) throw new PasswordLoginNotAvailable()
+        // A neutralised account (lib/auth-account-lock.ts) answers like a wrong password — no lock is revealed, and
+        // bcrypt never sees the prefixed (invalid) hash.
+        if (isPasswordLocked(userRow.password)) throw new InvalidPassword()
         const ok = await bcrypt.compare(passwordRaw, userRow.password)
         if (!ok) throw new InvalidPassword()
 
@@ -368,7 +396,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (!userId) return token as JWT
 
       const shouldRefresh = Boolean(user?.id) || trigger === "update"
-      if (!shouldRefresh && token.role) return token as JWT
+      if (!shouldRefresh && token.role) {
+        // Revalidation (every SESSION_REVALIDATE_MS): a deleted or locked account loses its session; a role change
+        // is applied. JWT sessions can not be revoked one by one otherwise. A database error keeps the session (the
+        // app is unavailable anyway) and is logged.
+        const now = Date.now()
+        if (sessionRevalidationDue(token.authCheckedAt, now).action === "keep") return token as JWT
+        const status = await loadAccountStatus(userId)
+        if (status === "unavailable") return token as JWT
+        const decision = sessionAfterCheck(status)
+        if (decision.end) {
+          console.warn("[auth jwt]", { result: "session_ended", reason: status.exists ? "account_locked" : "account_missing" })
+          return null
+        }
+        token.role = decision.role
+        token.authCheckedAt = now
+        return token as JWT
+      }
 
       const row = await loadAuthUserRow(userId)
 
@@ -399,6 +443,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         role,
         row?.growthPlan ?? "none"
       )
+      token.authCheckedAt = Date.now()
       return token as JWT
     },
 

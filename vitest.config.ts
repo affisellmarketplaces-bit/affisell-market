@@ -13,6 +13,9 @@ export default defineConfig({
      * production DATABASE_URL and the encryption key in front of tests (see vitest-env/no-real-datastores.ts).
      */
     setupFiles: [path.resolve(__dirname, "vitest-env/no-real-datastores.ts")],
+    // next-auth / @auth/core are ESM that import `next/server` without an extension: inline them so the real library
+    // runs under Vitest (same setting as the release branch; used by auth-session-revalidation.test.ts).
+    server: { deps: { inline: [/next-auth/, /@auth\/core/] } },
   },
   resolve: {
     alias: {
