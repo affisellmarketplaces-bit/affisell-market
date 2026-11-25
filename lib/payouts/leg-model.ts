@@ -118,8 +118,8 @@ export function normalizeEconomicParams(p: LegEconomicParams): LegEconomicParams
 export function validateEconomicParams(p: LegEconomicParams): string | null {
   if (!Number.isInteger(p.amountCents) || p.amountCents < 1) return "amount_invalid"
   if (!/^[a-z]{3}$/.test(p.currency)) return "currency_invalid"
-  if (!/^acct_[A-Za-z0-9_]+$/.test(p.destination)) return "destination_invalid"
-  if (p.sourceTransaction && !/^(ch|py)_[A-Za-z0-9_]+$/.test(p.sourceTransaction)) return "source_transaction_invalid"
+  if (!/^acct_\S+$/.test(p.destination)) return "destination_invalid"
+  if (p.sourceTransaction && !/^(ch|py)_\S+$/.test(p.sourceTransaction)) return "source_transaction_invalid"
   return null
 }
 
