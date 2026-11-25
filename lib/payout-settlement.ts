@@ -201,21 +201,19 @@ export async function recordClawbackIfPaidOut(
     args.note?.trim() ||
     `Mandatory refund clawback · ${args.productName}`
 
-  try {
-    await recordMerchantPayoutEntry(tx, {
-      orderId: args.orderId,
-      userId: args.userId,
-      beneficiaryRole: args.beneficiaryRole,
-      amountCents,
-      payoutRail: "ledger_only",
-      idempotencyKey: key,
-      note,
-      entryType: "CLAWBACK",
-    })
-  } catch (e) {
-    if ((e as { code?: string })?.code === "P2002") return false
-    throw e
-  }
+  // Never a caught P2002 here: a unique violation aborts the whole PostgreSQL transaction (see lib/payout-ledger.ts).
+  // `false` = this exact clawback is already recorded (a replay): nothing more to notify.
+  const recorded = await recordMerchantPayoutEntry(tx, {
+    orderId: args.orderId,
+    userId: args.userId,
+    beneficiaryRole: args.beneficiaryRole,
+    amountCents,
+    payoutRail: "ledger_only",
+    idempotencyKey: key,
+    note,
+    entryType: "CLAWBACK",
+  })
+  if (!recorded) return false
 
   const message =
     args.beneficiaryRole === "SUPPLIER"

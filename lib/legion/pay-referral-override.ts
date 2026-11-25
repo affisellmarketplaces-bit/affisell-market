@@ -2,6 +2,7 @@ import "server-only"
 
 import { hasOpenDisputeHold } from "@/lib/orders/dispute-hold.server"
 import { isOrderClosedForPayout, isOrderPayoutHeldForDispute } from "@/lib/orders/payment-state"
+import { insertPayoutLedgerRow } from "@/lib/payout-ledger"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
 import { assertTransfersActive } from "@/lib/stripe-marketplace-commission-split"
@@ -119,25 +120,20 @@ export async function payLegionOverrideForOrder(
         data: { totalOverrideEarned: { increment: overrideEur } },
       })
 
-      await tx.merchantPayoutLedger.create({
-        data: {
-          orderId,
-          userId: referral.sponsor.user.id,
-          beneficiaryRole: "LEGION_SPONSOR",
-          entryType: "LEGION_OVERRIDE",
-          amountCents: overrideCents,
-          idempotencyKey: `legion_override_${orderId}`,
-          stripeTransferId: transfer.id,
-          payoutRail: "connect",
-          note: `Légion 2% override from @${filleulLabel}`,
-        },
-      }).catch(async (ledgerErr) => {
-        // Idempotent replay — ledger row may already exist from a prior success.
-        console.log("[legion]", {
-          result: "override_ledger_exists",
-          orderId,
-          error: ledgerErr instanceof Error ? ledgerErr.message : String(ledgerErr),
-        })
+      // ON CONFLICT DO NOTHING: a replay of the same override never aborts the transaction (a caught unique violation
+      // did, and silently rolled back the claim above). Any OTHER error is no longer swallowed: the transaction rolls
+      // back and the outer catch records the failure instead of leaving a paid transfer unrecorded.
+      await insertPayoutLedgerRow(tx, {
+        orderId,
+        blindDropshipOrderId: null,
+        userId: referral.sponsor.user.id,
+        beneficiaryRole: "LEGION_SPONSOR",
+        entryType: "LEGION_OVERRIDE",
+        amountCents: overrideCents,
+        idempotencyKey: `legion_override_${orderId}`,
+        stripeTransferId: transfer.id,
+        payoutRail: "connect",
+        note: `Légion 2% override from @${filleulLabel}`,
       })
     })
 
