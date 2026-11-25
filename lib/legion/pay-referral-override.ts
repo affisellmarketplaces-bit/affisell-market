@@ -1,15 +1,19 @@
 import "server-only"
 
+import type { Prisma } from "@prisma/client"
+
 import { hasOpenDisputeHold } from "@/lib/orders/dispute-hold.server"
 import { isOrderClosedForPayout, isOrderPayoutHeldForDispute } from "@/lib/orders/payment-state"
 import { insertPayoutLedgerRow } from "@/lib/payout-ledger"
+import { orderLegKey } from "@/lib/payouts/leg-model"
+import { executeLegTransfer } from "@/lib/payouts/leg-transfer.server"
 import { prisma } from "@/lib/prisma"
-import { getStripeClient } from "@/lib/stripe"
 import { assertTransfersActive } from "@/lib/stripe-marketplace-commission-split"
 
 /**
  * Pay Légion sponsor override after filleul affiliate leg is released.
- * Idempotent via legionPayoutStatus=paid_24h + Stripe idempotency key.
+ * One leg of the payout leg registry (order × LEGION_SPONSOR). `legionPayoutStatus`: reserved → paid_24h, or in_doubt
+ * (a transfer MAY exist — settled by reconciliation, never re-sent blindly) / failed (proved unpaid).
  * Does not replace Lightning / TransferAttempt — additive Connect transfer only for the 2% slice.
  */
 export async function payLegionOverrideForOrder(
@@ -46,7 +50,7 @@ export async function payLegionOverrideForOrder(
 
   const overrideEur = Number(order.legionOverrideAmount ?? 0)
   const overrideCents = Math.round(overrideEur * 100)
-  if (overrideCents <= 0 || order.legionPayoutStatus !== "reserved") {
+  if (overrideCents <= 0 || (order.legionPayoutStatus !== "reserved" && order.legionPayoutStatus !== "in_doubt")) {
     return { paid: false, transferId: null, reason: "nothing_to_pay" }
   }
 
@@ -85,85 +89,101 @@ export async function payLegionOverrideForOrder(
     return { paid: false, transferId: null, reason: "sponsor_transfers_inactive" }
   }
 
-  const stripe = getStripeClient()
   const filleulLabel = referral.referred.username ?? "filleul"
+  const sponsorUserId = referral.sponsor.user.id
 
-  try {
-    const transfer = await stripe.transfers.create(
-      {
-        amount: overrideCents,
-        currency: "eur",
-        destination,
-        transfer_group: orderId,
-        ...(order.stripeChargeId ? { source_transaction: order.stripeChargeId } : {}),
-        description: `Légion override 2% — filleul @${filleulLabel}`,
-        metadata: {
-          order_id: orderId,
-          rail: "legion_phase1",
-          role: "sponsor",
-          override_eur: String(overrideEur),
-          sponsor_id: referral.sponsorId,
-        },
-      },
-      { idempotencyKey: `legion_sponsor_phase1_${orderId}` }
-    )
-
-    await prisma.$transaction(async (tx) => {
-      const claimed = await tx.order.updateMany({
-        where: { id: orderId, legionPayoutStatus: "reserved" },
-        data: { legionPayoutStatus: "paid_24h" },
-      })
-      if (claimed.count === 0) return
-
+  // Recording the paid override: the order's Légion status, the referral's running total (once) and the ledger row.
+  // Runs in the SAME transaction as the leg turning PAID (or, for a leg paid earlier, on its own, idempotently).
+  const recordOverridePaid = async (tx: Prisma.TransactionClient, transferId: string) => {
+    const claimed = await tx.order.updateMany({
+      where: { id: orderId, legionPayoutStatus: { in: ["reserved", "in_doubt"] } },
+      data: { legionPayoutStatus: "paid_24h" },
+    })
+    if (claimed.count === 1) {
       await tx.legionReferral.updateMany({
         where: { referredId: order.storeProfileId!, status: "active" },
         data: { totalOverrideEarned: { increment: overrideEur } },
       })
-
-      // ON CONFLICT DO NOTHING: a replay of the same override never aborts the transaction (a caught unique violation
-      // did, and silently rolled back the claim above). Any OTHER error is no longer swallowed: the transaction rolls
-      // back and the outer catch records the failure instead of leaving a paid transfer unrecorded.
-      await insertPayoutLedgerRow(tx, {
-        orderId,
-        blindDropshipOrderId: null,
-        userId: referral.sponsor.user.id,
-        beneficiaryRole: "LEGION_SPONSOR",
-        entryType: "LEGION_OVERRIDE",
-        amountCents: overrideCents,
-        idempotencyKey: `legion_override_${orderId}`,
-        stripeTransferId: transfer.id,
-        payoutRail: "connect",
-        note: `Légion 2% override from @${filleulLabel}`,
-      })
+    }
+    await insertPayoutLedgerRow(tx, {
+      orderId,
+      blindDropshipOrderId: null,
+      userId: sponsorUserId,
+      beneficiaryRole: "LEGION_SPONSOR",
+      entryType: "LEGION_OVERRIDE",
+      amountCents: overrideCents,
+      idempotencyKey: `legion_override_${orderId}`,
+      stripeTransferId: transferId,
+      payoutRail: "connect",
+      note: `Légion 2% override from @${filleulLabel}`,
     })
+  }
 
+  // The override is one leg of the order (order × LEGION_SPONSOR) in the payout leg registry: claimed before Stripe,
+  // searched in Stripe before any creation, one idempotency key per generation (docs/PAYOUT-LEG-REGISTRY.md).
+  const leg = await executeLegTransfer({
+    legKey: orderLegKey(orderId, "LEGION_SPONSOR"),
+    kind: "order",
+    role: "LEGION_SPONSOR",
+    rail: "legion",
+    orderId,
+    transferGroup: orderId,
+    params: {
+      amountCents: overrideCents,
+      currency: "eur",
+      destination,
+      sourceTransaction: order.stripeChargeId ?? null,
+    },
+    description: `Légion override 2% — filleul @${filleulLabel}`,
+    extraMetadata: {
+      order_id: orderId,
+      role: "sponsor",
+      rail: "legion_phase1",
+      override_eur: String(overrideEur),
+      sponsor_id: referral.sponsorId,
+    },
+    onPaid: (tx, paid) => recordOverridePaid(tx, paid.stripeTransferId),
+  })
+
+  if (leg.outcome === "paid") {
     console.log("[legion]", {
       result: "override_paid",
       orderId,
-      transferId: transfer.id,
+      transferId: leg.stripeTransferId,
       overrideCents,
       sponsorId: referral.sponsorId,
     })
-
-    return { paid: true, transferId: transfer.id }
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
-    if (message.includes("Unique constraint") || message.includes("idempotency")) {
+    return { paid: true, transferId: leg.stripeTransferId }
+  }
+  if (leg.outcome === "already_paid") {
+    if (leg.amountCents) {
+      await prisma.$transaction((tx) => recordOverridePaid(tx, leg.stripeTransferId))
+    } else {
+      // Adopted from records written before the registry: mark the order paid, write nothing new about money.
       await prisma.order.updateMany({
-        where: { id: orderId, legionPayoutStatus: "reserved" },
+        where: { id: orderId, legionPayoutStatus: { in: ["reserved", "in_doubt"] } },
         data: { legionPayoutStatus: "paid_24h" },
       })
-      return { paid: true, transferId: null, reason: "idempotent_replay" }
     }
-    console.error("[legion]", {
-      result: "override_pay_failed",
-      orderId,
-      error: message,
-    })
-    await prisma.order.updateMany({
-      where: { id: orderId, legionPayoutStatus: "reserved" },
-      data: { legionPayoutStatus: "failed" },
-    })
-    return { paid: false, transferId: null, reason: "stripe_error" }
+    return { paid: true, transferId: leg.stripeTransferId, reason: "already_paid" }
   }
+
+  // Not paid. `in_doubt` = a transfer MAY exist: never retried automatically (the catch-up re-asks the registry, which
+  // only answers paid once a reconciliation adopted it). `failed` = Stripe refused or a person confirmed nothing was
+  // paid — no automatic retry either (founder decision on the 2% slice). Anything that created nothing for sure and may
+  // succeed later (busy, Stripe search incomplete, rate limit, registry unavailable) keeps the order `reserved`.
+  const nextStatus =
+    leg.outcome === "in_doubt"
+      ? "in_doubt"
+      : leg.outcome === "failed_confirmed" || leg.outcome === "params_changed" || leg.outcome === "invalid_params"
+        ? "failed"
+        : null
+  console.error("[legion]", { result: "override_not_paid", orderId, outcome: leg.outcome, nextStatus })
+  if (nextStatus) {
+    await prisma.order.updateMany({
+      where: { id: orderId, legionPayoutStatus: { in: ["reserved", "in_doubt"] } },
+      data: { legionPayoutStatus: nextStatus },
+    })
+  }
+  return { paid: false, transferId: null, reason: leg.outcome }
 }

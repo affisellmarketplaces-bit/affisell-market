@@ -27,7 +27,8 @@ vi.mock("@/lib/stripe", () => ({
     // One charge per payment intent (Order.stripeChargeId is unique in the schema).
     paymentIntents: { retrieve: async (id: string) => ({ latest_charge: `ch_${id}` }) },
     accounts: { retrieve: async () => ({ capabilities: { transfers: "active" } }) },
-    transfers: { create: transfersCreate },
+    // The payout leg registry searches Stripe before every creation (lib/payouts/leg-transfer.server.ts): nothing found.
+    transfers: { create: transfersCreate, list: async () => ({ data: [], has_more: false }) },
   }),
 }))
 

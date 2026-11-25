@@ -27,11 +27,17 @@ import {
   jobAttributionOf,
   jobSupplierOrderCoversOrder,
 } from "@/lib/fulfillment/engine-job-attribution"
+import { orderLegKey, type LegOutcome } from "@/lib/payouts/leg-model"
+import { executeLegTransfer } from "@/lib/payouts/leg-transfer.server"
+import { recordMarketplaceLegPaid } from "@/lib/payouts/marketplace-leg-record"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
 import * as Sentry from "@sentry/nextjs"
 
 const MAX_ATTEMPTS = 3
+
+/** Attempt error code of a leg whose Stripe outcome is unknown: never retried automatically (docs/PAYOUT-LEG-REGISTRY.md). */
+export const TRANSFER_IN_DOUBT = "TRANSFER_IN_DOUBT"
 
 export type ProcessTransfersResult = {
   processed: number
@@ -39,10 +45,6 @@ export type ProcessTransfersResult = {
   failed: number
   held: number
   duration_ms: number
-}
-
-function idempotencyKey(orderId: string, role: string) {
-  return `transfer_${orderId}_${role}`
 }
 
 async function syncOnboardingFailure(accountId: string) {
@@ -57,7 +59,7 @@ async function syncOnboardingFailure(accountId: string) {
   })
 }
 
-async function applyOrderSettlement(orderId: string) {
+export async function applyOrderSettlement(orderId: string) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: {
@@ -306,51 +308,68 @@ async function processOneAttempt(
       }
     }
 
-    const sourceTransaction = attempt.order.stripeChargeId ?? undefined
-    const transfer = await stripe.transfers.create(
-      {
-        amount: attempt.amountCents,
+    // Every Stripe transfer goes through the payout leg registry (claim → Stripe search → create → record), shared with
+    // Lightning and Légion: one leg can be paid once, whichever rail gets there first (docs/PAYOUT-LEG-REGISTRY.md).
+    const legRole = attempt.role as "SUPPLIER" | "AFFILIATE"
+    const userId = legRole === "SUPPLIER" ? attempt.order.supplierId : attempt.order.affiliateId
+    const productName = attempt.order.product?.name ?? null
+    const leg = await executeLegTransfer({
+      legKey: orderLegKey(attempt.orderId, legRole),
+      kind: "order",
+      role: legRole,
+      rail: "process_transfers",
+      orderId: attempt.orderId,
+      transferGroup: attempt.orderId,
+      params: {
+        amountCents: attempt.amountCents,
         currency: "eur",
         destination: attempt.destination,
-        transfer_group: attempt.orderId,
-        ...(sourceTransaction ? { source_transaction: sourceTransaction } : {}),
-        metadata: {
-          orderId: attempt.orderId,
-          role: attempt.role,
-        },
+        sourceTransaction: attempt.order.stripeChargeId ?? null,
       },
-      { idempotencyKey: idempotencyKey(attempt.orderId, attempt.role) }
-    )
-
-    const paidAt = new Date()
-    const beneficiaryRole = attempt.role as "SUPPLIER" | "AFFILIATE"
-    const userId =
-      beneficiaryRole === "SUPPLIER" ? attempt.order.supplierId : attempt.order.affiliateId
-
-    await prisma.$transaction(async (tx) => {
-      await tx.transferAttempt.update({
-        where: { id: attempt.id },
-        data: {
-          status: "SUCCESS",
-          stripeTransferId: transfer.id,
-          errorCode: null,
-          errorMessage: null,
+      onPaid: (tx, paid) =>
+        recordMarketplaceLegPaid(tx, {
+          orderId: attempt.orderId,
+          role: legRole,
+          amountCents: paid.amountCents,
+          destination: paid.destination,
+          stripeTransferId: paid.stripeTransferId,
+          paidAt: paid.paidAt,
+          rail: "connect",
+          userId,
+          productName,
           attempts: nextAttempts,
-          lastAttemptAt: paidAt,
-        },
-      })
-
-      await recordStripePayoutSettlement(tx, {
-        orderId: attempt.orderId,
-        beneficiaryRole,
-        userId,
-        amountCents: attempt.amountCents,
-        stripeTransferId: transfer.id,
-        payoutRail: "connect",
-        productName: attempt.order.product?.name ?? null,
-        paidAt,
-      })
+        }),
     })
+
+    if (leg.outcome === "already_paid" && leg.amountCents && leg.destination) {
+      // Paid earlier (by this rail or by Lightning) and not yet mirrored on this attempt: record it, never pay again.
+      const recordedAmount = leg.amountCents
+      const recordedDestination = leg.destination
+      await prisma.$transaction((tx) =>
+        recordMarketplaceLegPaid(tx, {
+          orderId: attempt.orderId,
+          role: legRole,
+          amountCents: recordedAmount,
+          destination: recordedDestination,
+          stripeTransferId: leg.stripeTransferId,
+          paidAt: now,
+          rail: "connect",
+          userId,
+          productName,
+        })
+      )
+    } else if (leg.outcome === "already_paid") {
+      // Adopted from records written before the registry: the attempt is settled, nothing new is written about money.
+      await prisma.$transaction(async (tx) => {
+        await supersedePendingTransferAttempt(tx, attempt.orderId, attempt.role, "ALREADY_SETTLED")
+      })
+      await applyOrderSettlement(attempt.orderId)
+      return "skipped"
+    } else if (leg.outcome !== "paid") {
+      return handleLegNotPaid(attempt, leg, nextAttempts, now)
+    }
+
+    const transferId = leg.stripeTransferId
 
     logStripeWebhookInfo({
       level: "info",
@@ -359,7 +378,7 @@ async function processOneAttempt(
       role: attempt.role,
       amount: attempt.amountCents,
       destination: attempt.destination,
-      id: transfer.id,
+      id: transferId,
     })
 
     await applyOrderSettlement(attempt.orderId)
@@ -430,6 +449,118 @@ async function processOneAttempt(
   }
 }
 
+type AttemptForLeg = { id: string; orderId: string; role: TransferRole; destination: string; errorCode: string | null }
+
+/**
+ * A leg that did not end paid. Only outcomes that PROVE nothing was created consume an attempt; a doubt keeps the attempt
+ * PENDING (no counter consumed, no automatic retry can pay — the registry refuses) and alerts once.
+ */
+async function handleLegNotPaid(
+  attempt: AttemptForLeg,
+  leg: Exclude<LegOutcome, { outcome: "paid" | "already_paid" }>,
+  nextAttempts: number,
+  now: Date
+): Promise<"failed" | "skipped" | "held"> {
+  switch (leg.outcome) {
+    case "busy":
+      return "skipped"
+    case "registry_unavailable":
+      logStripeWebhookError({
+        level: "error",
+        metric: "transfer_registry_unavailable",
+        orderId: attempt.orderId,
+        role: attempt.role,
+        reason: leg.reason,
+      })
+      return "held"
+    case "in_doubt": {
+      const firstTime = attempt.errorCode !== TRANSFER_IN_DOUBT
+      await prisma.transferAttempt.update({
+        where: { id: attempt.id },
+        data: { errorCode: TRANSFER_IN_DOUBT, errorMessage: leg.reason, lastAttemptAt: now },
+      })
+      logStripeWebhookError({
+        level: "error",
+        metric: "transfer_in_doubt",
+        orderId: attempt.orderId,
+        role: attempt.role,
+        reason: leg.reason,
+      })
+      if (firstTime) {
+        await alertSplitTransferFailed({
+          orderId: attempt.orderId,
+          role: attempt.role,
+          errorCode: TRANSFER_IN_DOUBT,
+          attempts: nextAttempts,
+        })
+      }
+      await applyOrderSettlement(attempt.orderId)
+      return "held"
+    }
+    case "params_changed":
+    case "invalid_params": {
+      const errorCode = leg.outcome === "params_changed" ? "PAYOUT_PARAMS_CHANGED" : "PAYOUT_PARAMS_INVALID"
+      await prisma.transferAttempt.update({
+        where: { id: attempt.id },
+        data: {
+          status: "FAILED",
+          errorCode,
+          errorMessage: leg.outcome === "invalid_params" ? leg.reason : "frozen leg parameters differ",
+          attempts: MAX_ATTEMPTS,
+          lastAttemptAt: now,
+        },
+      })
+      await notifyTerminalFailure({
+        orderId: attempt.orderId,
+        role: attempt.role,
+        errorCode,
+        attempts: MAX_ATTEMPTS,
+        status: "FAILED",
+      })
+      await applyOrderSettlement(attempt.orderId)
+      return "failed"
+    }
+    case "failed_confirmed":
+    case "retry_later": {
+      let errorCode: string | null = leg.outcome === "failed_confirmed" ? leg.errorCode : leg.reason
+      const errorMessage = leg.outcome === "failed_confirmed" ? leg.errorMessage : leg.reason
+      if (errorCode === "insufficient_capabilities_for_transfer") {
+        errorCode = "AFFILIATE_ONBOARDING_REQUIRED"
+        await syncOnboardingFailure(attempt.destination)
+      }
+      const terminal = nextAttempts >= MAX_ATTEMPTS
+      await prisma.transferAttempt.update({
+        where: { id: attempt.id },
+        data: {
+          status: terminal ? "FAILED" : "PENDING",
+          errorCode,
+          errorMessage,
+          attempts: nextAttempts,
+          lastAttemptAt: now,
+        },
+      })
+      logStripeWebhookError({
+        level: "error",
+        metric: "transfer_attempt_failed",
+        orderId: attempt.orderId,
+        role: attempt.role,
+        errorCode,
+        accountId: attempt.destination,
+        attempts: nextAttempts,
+      })
+      await notifyTerminalFailure({
+        orderId: attempt.orderId,
+        role: attempt.role,
+        errorCode,
+        attempts: nextAttempts,
+        status: terminal ? "FAILED" : "PENDING",
+      })
+      await applyOrderSettlement(attempt.orderId)
+      return "failed"
+    }
+  }
+}
+
 export async function runProcessTransfersJob(options?: {
   metric?: string
   orderId?: string
@@ -463,7 +594,9 @@ export async function runProcessTransfersJob(options?: {
   try {
     const reserved = await prisma.order.findMany({
       where: {
-        legionPayoutStatus: "reserved",
+        // `in_doubt` orders are re-asked too: the registry answers `in_doubt` without calling Stripe until a
+        // reconciliation adopted the transfer, then the override is recorded (never paid a second time).
+        legionPayoutStatus: { in: ["reserved", "in_doubt"] },
         legionOverrideAmount: { gt: 0 },
         ...(options?.orderId ? { id: options.orderId } : {}),
         OR: [

@@ -1,7 +1,6 @@
 import type { FulfillmentPaymentMethod } from "@prisma/client"
-import Stripe from "stripe"
-
-import { getStripeClient } from "@/lib/stripe"
+import { autoOrderLegKey, isLegPaid } from "@/lib/payouts/leg-model"
+import { executeLegTransfer } from "@/lib/payouts/leg-transfer.server"
 import { prisma } from "@/lib/prisma"
 import type { SupplierGroup } from "@/lib/auto-order/types"
 
@@ -71,16 +70,20 @@ async function payStripeConnect(args: {
   const amount = args.group.totalCostCents
   if (amount < 1) return { ok: true, reference: "zero_transfer" }
 
-  try {
-    const stripe = getStripeClient()
-    const transfer = await stripe.transfers.create({
-      amount,
-      currency: "eur",
-      destination: dest,
-      metadata: { autoFulfillmentBatchId: args.batchId, providerId: args.providerId },
-    } as Stripe.TransferCreateParams)
-    return { ok: true, reference: transfer.id }
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "transfer_failed" }
+  // One leg of the payout leg registry per (batch × provider): a retried batch never pays the provider twice.
+  const leg = await executeLegTransfer({
+    legKey: autoOrderLegKey(args.batchId, args.providerId),
+    kind: "auto_order",
+    role: "AUTO_ORDER_PROVIDER",
+    rail: "auto_order",
+    orderId: null,
+    transferGroup: `auto_order_${args.batchId}`,
+    params: { amountCents: amount, currency: "eur", destination: dest, sourceTransaction: null },
+    extraMetadata: { autoFulfillmentBatchId: args.batchId, providerId: args.providerId },
+  })
+  if (isLegPaid(leg)) return { ok: true, reference: leg.stripeTransferId }
+  return {
+    ok: false,
+    error: leg.outcome === "in_doubt" ? `transfer_in_doubt:${leg.reason}` : `transfer_${leg.outcome}`,
   }
 }

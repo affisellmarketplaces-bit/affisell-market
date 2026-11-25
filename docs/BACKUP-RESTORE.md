@@ -174,11 +174,12 @@ Entre T et la restauration, Stripe a pu encaisser, rembourser, virer, ouvrir ou 
 2. **Commandes d'abord.** Les **sessions payées sans commande** se recréent en **rejouant** l'événement `checkout.session.completed` correspondant :
    `stripe events resend <evt_…> --webhook-endpoint=<we_…> --live` (ou Tableau de bord → Développeurs → Webhooks → l'événement → *Resend*). Les lignes
    `ProcessedWebhook` postérieures à T ont disparu : l'événement sera traité comme neuf.
-3. **Danger — doublons de virements** [HYPOTHÈSE à vérifier en base de test] : `createConnectTransfer` (`lib/stripe-connect-transfer.ts`) protège avec la clé
-   d'idempotence `tr_<orderId>_<role>`. Une commande recréée par rejeu reçoit un **nouvel** `orderId`, donc une **nouvelle** clé : si le virement avait déjà
-   été émis avant la restauration, le rejeu pourrait le **dupliquer**. Avant de rejouer, comparer avec `stripe transfers list --live` pour la même
-   `transfer_group`, et ne rejouer que ce qui n'a pas de virement. Ceci est la raison pour laquelle la restauration ciblée (§3.6) est préférable chaque fois qu'elle suffit,
-   et pourquoi le RPO de la §2 compte.
+3. **Danger — doublons de virements** [HYPOTHÈSE à vérifier en base de test] : depuis le 2026-11-25, tout virement passe par le registre
+   `PayoutLeg` (`lib/payouts/leg-transfer.server.ts`, `docs/PAYOUT-LEG-REGISTRY.md`), qui cherche dans Stripe, par `transfer_group` = l'identifiant
+   de la commande, avant toute création. Une commande **recréée par rejeu** reçoit un **nouvel** `orderId` : son groupe est neuf, la recherche ne
+   voit donc pas un virement émis avant la restauration pour l'ancienne commande, et le rejeu pourrait le **dupliquer**. Avant de rejouer, comparer
+   avec `stripe transfers list --live` (métadonnées `affisell_leg_key` / `orderId`) et ne rejouer que ce qui n'a pas de virement. Ceci est la raison
+   pour laquelle la restauration ciblée (§3.6) est préférable chaque fois qu'elle suffit, et pourquoi le RPO de la §2 compte.
 4. **Litiges ensuite — avant tout paiement.** Depuis D7, le gel des virements d'une commande en litige **n'existe que dans la base** : `Order.status = "disputed"` **et** une ligne `ProcessedWebhook` d'identifiant `dispute:<dp_id>:<orderId>`
    (statut `dispute_open`, `won`, `lost` ou `closed` ; `lib/orders/dispute-hold.server.ts`). Le déblocage des virements (`process-transfers`, la paie « Lightning », le bonus Légion) ne demande **que** à cette base ; rien ne questionne Stripe. Une restauration à T :
    - **efface** le gel de tout litige ouvert après T (la commande retrouve son statut d'avant, la ligne disparaît), et Stripe **ne renverra pas** l'événement (il a déjà reçu 200) : les virements d'une charge que la banque a déjà reprise seraient **débloqués** ;

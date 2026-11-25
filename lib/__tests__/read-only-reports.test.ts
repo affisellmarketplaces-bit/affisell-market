@@ -39,6 +39,7 @@ describe("every report reads through the read-only runner", () => {
     "scripts/report-listing-readiness.ts",
     "scripts/report-checkout-stock.ts",
     "scripts/report-legacy-reseller-imports.ts",
+    "scripts/report-payout-reconciliation.ts",
   ]) {
     it(file, () => {
       const src = readFileSync(file, "utf8")

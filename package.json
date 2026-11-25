@@ -115,6 +115,7 @@
     "report:listing-readiness": "tsx scripts/report-listing-readiness.ts",
     "report:checkout-stock": "tsx scripts/report-checkout-stock.ts",
     "report:fee-reconciliation": "tsx scripts/report-fee-reconciliation.ts",
+    "report:payout-reconciliation": "tsx scripts/report-payout-reconciliation.ts",
     "report:legacy-reseller-imports": "tsx scripts/report-legacy-reseller-imports.ts",
     "probe:capture-sentinel": "tsx scripts/capture-sentinel.ts",
     "report:collection-snapshot": "tsx scripts/collection-snapshot.ts",
