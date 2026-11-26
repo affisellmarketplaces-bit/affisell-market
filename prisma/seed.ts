@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto"
 import fs from "fs"
 import path from "path"
 
@@ -38,7 +39,10 @@ async function seedGoogleTaxonomy() {
   await prisma.user.deleteMany()
 
   console.log("👤 Create users...")
-  const password = await hash("password123", 10)
+  // Never a literal (the repository is public): SEED_ACCOUNT_PASSWORD, or a random one shown once.
+  const seedPassword = process.env.SEED_ACCOUNT_PASSWORD?.trim() || randomBytes(18).toString("base64url")
+  if (!process.env.SEED_ACCOUNT_PASSWORD) console.log("[seed] generated password for the seed accounts:", seedPassword)
+  const password = await hash(seedPassword, 10)
   await prisma.user.create({
     data: { email: "admin@affisell.io", name: "Admin", password, role: "ADMIN" },
   })

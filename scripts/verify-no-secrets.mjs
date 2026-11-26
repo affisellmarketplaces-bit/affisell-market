@@ -1,40 +1,37 @@
 #!/usr/bin/env node
 /**
- * Blocks commits/pushes that contain likely API keys in tracked files.
- * Run: npm run verify:no-secrets
+ * Blocks commits/pushes that contain likely API keys, hardcoded credentials or known-compromised values in tracked files.
+ * Run: npm run verify:no-secrets           (files changed since upstream, else every tracked file)
+ *      node scripts/verify-no-secrets.mjs --all   (every tracked file — what CI runs)
+ * Patterns: scripts/lib/secret-scan.mjs. Findings show a masked sample, never the value.
  */
 import { execSync, spawnSync } from "node:child_process"
 import { readFileSync } from "node:fs"
 
-const PATTERNS = [
-  { name: "Groq API key", re: /\bgsk_[A-Za-z0-9]{20,}\b/ },
-  { name: "OpenAI API key", re: /\bsk-[A-Za-z0-9]{20,}\b/ },
-  { name: "Stripe live secret key", re: /\bsk_live_[A-Za-z0-9]{10,}\b/ },
-  { name: "Stripe test secret key", re: /\bsk_test_[A-Za-z0-9]{10,}\b/ },
-  { name: "Stripe webhook secret", re: /\bwhsec_[A-Za-z0-9]{20,}\b/ },
-  { name: "GitHub PAT", re: /\bghp_[A-Za-z0-9]{36,}\b/ },
-  { name: "AWS access key", re: /\bAKIA[0-9A-Z]{16}\b/ },
-  { name: "Private key PEM", re: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/ },
-]
+import { scanText } from "./lib/secret-scan.mjs"
 
 const MAX_BUFFER = 128 * 1024 * 1024
 
+const SCAN_ALL = process.argv.includes("--all")
+
 function trackedFiles() {
-  try {
-    const upstream = execSync("git rev-parse --abbrev-ref @{upstream}", {
-      encoding: "utf8",
-      maxBuffer: MAX_BUFFER,
-    }).trim()
-    if (upstream) {
-      const out = execSync(`git diff --name-only -z ${upstream}..HEAD`, {
+  if (!SCAN_ALL) {
+    try {
+      const upstream = execSync("git rev-parse --abbrev-ref @{upstream}", {
         encoding: "utf8",
         maxBuffer: MAX_BUFFER,
-      })
-      const changed = out.split("\0").filter(Boolean)
-      if (changed.length > 0) return changed
+      }).trim()
+      if (upstream) {
+        const out = execSync(`git diff --name-only -z ${upstream}..HEAD`, {
+          encoding: "utf8",
+          maxBuffer: MAX_BUFFER,
+        })
+        const changed = out.split("\0").filter(Boolean)
+        if (changed.length > 0) return changed
+      }
+    } catch {
+      // no upstream or diff failed — fall back to full scan
     }
-  } catch {
-    // no upstream or diff failed — fall back to full scan
   }
 
   const r = spawnSync("git", ["ls-files", "-z"], {
@@ -54,12 +51,7 @@ function scanFile(path) {
   } catch {
     return []
   }
-  const hits = []
-  for (const { name, re } of PATTERNS) {
-    const m = text.match(re)
-    if (m) hits.push({ path, kind: name, sample: `${m[0].slice(0, 12)}…` })
-  }
-  return hits
+  return scanText(text).map((hit) => ({ path, ...hit }))
 }
 
 const files = trackedFiles().filter(

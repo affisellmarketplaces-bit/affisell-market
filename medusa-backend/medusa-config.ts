@@ -1,5 +1,7 @@
 import { loadEnv, defineConfig } from "@medusajs/framework/utils"
 
+import { requiredSessionSecret } from "./src/lib/session-secrets"
+
 loadEnv(process.env.NODE_ENV ?? "development", process.cwd())
 
 const stripeApiKey = process.env.STRIPE_API_KEY?.trim()
@@ -42,8 +44,8 @@ export default defineConfig({
       storeCors: process.env.STORE_CORS ?? "http://localhost:3001,http://localhost:3002",
       adminCors: process.env.ADMIN_CORS ?? "http://localhost:9000,http://localhost:7001",
       authCors: process.env.AUTH_CORS ?? "http://localhost:9000,http://localhost:7001",
-      jwtSecret: process.env.JWT_SECRET ?? "supersecret",
-      cookieSecret: process.env.COOKIE_SECRET ?? "supersecret",
+      jwtSecret: requiredSessionSecret("JWT_SECRET"),
+      cookieSecret: requiredSessionSecret("COOKIE_SECRET"),
     },
   },
   admin: {

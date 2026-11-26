@@ -7,9 +7,14 @@ import { config } from "dotenv"
 config({ path: ".env.local" })
 config({ path: ".env" })
 
+import { randomBytes } from "node:crypto"
+
 import bcrypt from "bcryptjs"
 import { PrismaClient } from "@prisma/client"
 import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
+
+// Never a literal (the repository is public): VERIFY_TEST_ACCOUNT_PASSWORD, or a random one shown once at creation.
+const TEST_ACCOUNT_PASSWORD = process.env.VERIFY_TEST_ACCOUNT_PASSWORD?.trim() || randomBytes(18).toString("base64url")
 
 assertNotProductionByAccident("scripts/verify-legacy-gate-redirect.ts")
 const prisma = new PrismaClient()
@@ -45,7 +50,7 @@ async function findFirstMissingDocumentSlug(
 }
 
 async function main() {
-  const password = await bcrypt.hash("LegacyGate!2026", 10)
+  const password = await bcrypt.hash(TEST_ACCOUNT_PASSWORD, 10)
   const user = await prisma.user.upsert({
     where: { email: EMAIL },
     create: {
@@ -80,7 +85,7 @@ async function main() {
 
   console.log("[verify-legacy-gate-redirect]", {
     email: EMAIL,
-    password: "LegacyGate!2026",
+    password: TEST_ACCOUNT_PASSWORD,
     lmsRows: 0,
     missingDocument: missing,
     redirect,

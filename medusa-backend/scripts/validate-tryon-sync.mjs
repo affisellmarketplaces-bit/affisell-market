@@ -8,14 +8,18 @@ import { fileURLToPath } from "node:url"
 import { spawn } from "node:child_process"
 import { config as loadEnv } from "dotenv"
 
+import { requireAdminCredentials } from "./lib/admin-credentials.mjs"
+import { assertMedusaNotOnProduction } from "./lib/database-target-guard.mjs"
+
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const repoRoot = resolve(root, "..")
 const medusaEnvPath = resolve(root, ".env")
 const localEnvPath = resolve(repoRoot, ".env.local")
 const MEDUSA = process.env.MEDUSA_BACKEND_URL ?? "http://localhost:9000"
 const HANDLE = "leggings-demo"
-const ADMIN_EMAIL = "admin@affisell.com"
-const ADMIN_PASSWORD = "Affisell2026!"
+// From MEDUSA_ADMIN_EMAIL / MEDUSA_ADMIN_PASSWORD (medusa-backend/.env), read after the env files are loaded.
+let adminCredentials = null
+const admin = () => (adminCredentials ??= requireAdminCredentials("validate-tryon-sync"))
 
 function parseEnvFile(path) {
   if (!existsSync(path)) return {}
@@ -91,6 +95,11 @@ async function main() {
     log("env", "❌ DATABASE_URL missing in ../.env.local")
     process.exit(1)
   }
+  // Copying the main app's DATABASE_URL into Medusa is how Medusa reached production: refuse it unless confirmed.
+  assertMedusaNotOnProduction("validate-tryon-sync", {
+    DATABASE_URL_PRISMA: prismaUrl || localDb,
+    AFFISELL_ALLOW_PRODUCTION_WRITES: process.env.AFFISELL_ALLOW_PRODUCTION_WRITES,
+  })
 
   if (!prismaUrl) {
     log("env", "DATABASE_URL_PRISMA absent — adding from .env.local")
@@ -147,7 +156,7 @@ async function main() {
     const auth = await fetchJson(`${MEDUSA}/auth/user/emailpass`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD }),
+      body: JSON.stringify({ email: admin().email, password: admin().password }),
     })
     const token = auth.json?.token
     if (!token) {
