@@ -70,8 +70,18 @@ vi.mock("@/lib/prisma", () => ({
     },
   },
 }))
+/** Stripe's LIVE view of each dispute (authoritative); by default the last event's snapshot. */
+const liveDisputes = new Map<string, Stripe.Dispute>()
+const disputesRetrieve = vi.fn(async (id: string) => {
+  const live = liveDisputes.get(id)
+  if (!live) throw new Error(`no such dispute ${id}`)
+  return live
+})
 vi.mock("@/lib/stripe", () => ({
-  getStripeClient: () => ({ checkout: { sessions: { list: (...a: unknown[]) => sessionsList(...a) } } }),
+  getStripeClient: () => ({
+    checkout: { sessions: { list: (...a: unknown[]) => sessionsList(...a) } },
+    disputes: { retrieve: (id: string) => disputesRetrieve(id) },
+  }),
 }))
 vi.mock("@/lib/stripe-transfer-reversal", () => ({
   reverseConnectTransfersForRefund: (...a: unknown[]) => reverseConnectTransfersForRefund(...a),
@@ -132,8 +142,9 @@ function dispute(over: Partial<Stripe.Dispute> = {}): Stripe.Dispute {
 }
 
 let eventSeq = 0
-function event(type: string, d: Stripe.Dispute): Stripe.Event {
+function event(type: string, d: Stripe.Dispute, options: { live?: Stripe.Dispute } = {}): Stripe.Event {
   eventSeq += 1
+  liveDisputes.set(d.id, options.live ?? d)
   return { id: `evt_${eventSeq}`, type, data: { object: d } } as unknown as Stripe.Event
 }
 
@@ -464,5 +475,47 @@ describe("a lost dispute — the refund mechanisms, never more than was paid", (
     expect(amounts.sort((a, b) => a - b)).toEqual([8_000, 12_000])
     expect(state.orders.get("ord_1")?.status).toBe("refunded")
     expect(state.orders.get("ord_2")?.status).toBe("refunded")
+  })
+})
+
+describe("the decision follows Stripe's LIVE dispute, never a stale event (#28 validation)", () => {
+  it("a delayed `closed` saying LOST while Stripe still has the dispute open: held, no money moved", async () => {
+    state.orders.set("ord_1", order("ord_1", { status: "delivered" }))
+    await processStripeDisputeEvent(
+      event("charge.dispute.closed", dispute({ status: "lost" }), { live: dispute({ status: "under_review" }) }),
+      tx,
+    )
+    expect(reverseConnectTransfersForRefund).not.toHaveBeenCalled()
+    expect(clawbackOrderPayoutsOnRefund).not.toHaveBeenCalled()
+    expect(holdOf("dp_1", "ord_1")?.status).toBe("dispute_open")
+    expect(state.orders.get("ord_1")?.status).toBe("disputed")
+  })
+
+  it("a delayed `updated` still saying under_review once Stripe says WON: the hold is released, not re-asserted", async () => {
+    state.orders.set("ord_1", order("ord_1", { status: "delivered" }))
+    await processStripeDisputeEvent(event("charge.dispute.created", dispute()), tx)
+    await processStripeDisputeEvent(
+      event("charge.dispute.updated", dispute({ status: "under_review" }), { live: dispute({ status: "won" }) }),
+      tx,
+    )
+    expect(holdOf("dp_1", "ord_1")?.status).toBe("dispute_won")
+    expect(state.orders.get("ord_1")?.status).toBe("delivered")
+  })
+
+  it("Stripe can not be read: the event fails (replayed by D2) and nothing changes", async () => {
+    state.orders.set("ord_1", order("ord_1", { status: "delivered" }))
+    const e = event("charge.dispute.closed", dispute({ status: "won" }))
+    liveDisputes.delete("dp_1")
+    await expect(processStripeDisputeEvent(e, tx)).rejects.toThrow()
+    expect(holdOf("dp_1", "ord_1")).toBeUndefined()
+    expect(state.orders.get("ord_1")?.status).toBe("delivered")
+  })
+
+  it("won after lost (impossible at Stripe, e.g. a forged / replayed event): the terminal LOST row is never rewritten", async () => {
+    state.orders.set("ord_1", order("ord_1", { status: "delivered" }))
+    await processStripeDisputeEvent(event("charge.dispute.closed", dispute({ status: "lost" })), tx)
+    const after = holdOf("dp_1", "ord_1")?.status
+    await processStripeDisputeEvent(event("charge.dispute.closed", dispute({ status: "won" })), tx)
+    expect(holdOf("dp_1", "ord_1")?.status).toBe(after)
   })
 })

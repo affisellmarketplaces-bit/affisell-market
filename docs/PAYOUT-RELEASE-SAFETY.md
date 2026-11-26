@@ -29,6 +29,14 @@ statut du litige**, pas selon le nom de l'événement : Stripe ne garantit pas l
 | `lost` | **PERDU** | Appliqué automatiquement **uniquement** si le montant du litige est égal au total facturé des commandes du paiement, dans la même devise. Il passe alors par les mécanismes de remboursement existants : reprise des virements (jamais plus que ce qui a été viré), ligne `OrderStripeRefund` `dp_…:order`, reprise dans le registre, état `REFUNDED` ou `REFUND_PENDING_CLAWBACK`. Sinon (litige partiel, commande **partiellement remboursée**, autre devise, commande introuvable) : la retenue reste et une personne est alertée. |
 
 Garanties :
+- **La décision repose sur l'état Stripe faisant autorité** : le litige est relu avec `disputes.retrieve` à chaque
+  événement, et l'instantané de l'événement n'est jamais utilisé pour décider. Un `closed` « perdu » retardé, alors que
+  le litige est encore ouvert chez Stripe, ne déplace aucun argent. Si Stripe est illisible, l'événement échoue et il est
+  rejoué (D2) ; rien n'est modifié entre-temps.
+- **Une seule décision par (litige, commande)** : `lockDisputeHold` crée la ligne si elle manque, puis effectue une
+  écriture sans effet qui pose le verrou de ligne jusqu'à la fin de la transaction du webhook. Un événement concurrent du
+  même litige attend, puis relit l'état validé. Sur PostgreSQL 16, la lecture simple d'avant laissait `won` et `lost`
+  agir tous les deux, avec des effets contradictoires ; avec le verrou, un seul agit et le statut final est le sien.
 - Une ligne finale n'est jamais rouverte ni réécrite.
 - Un `created` arrivé après un `closed` ne change rien.
 - Les effets sont écrits d'abord et la ligne finale en dernier : un rejeu après un échec à mi-chemin converge.
@@ -52,8 +60,11 @@ Lien sans ambiguïté :
    on ne s'y fie jamais.
 3. **Décision**, tout écart entraînant une **retenue** (`errorCode` `STRIPE_CHECK_*` sur la tentative, journal
    `transfer_held_stripe_check`) :
-   - paiement non `succeeded` ou non capturé ; paiement `disputed` chez Stripe, même si notre webhook de litige n'est
-     jamais arrivé ; devise différente de celle de la commande ;
+   - paiement non `succeeded` ou non capturé ; devise différente de celle de la commande ;
+   - **litige** : `Charge.disputed` signifie seulement que le paiement *a été* contesté, et un litige gagné le laisse
+     positionné. Les litiges eux-mêmes (`disputes.list({ charge })`, toutes pages) décident par leur statut réel :
+     ouvert ou inconnu → retenue ; perdu → retenue (`dispute_lost_not_applied`, car D7 aurait clos la commande) ; gagné
+     ou clos sans perte → le virement peut partir. Un paiement signalé contesté sans aucun litige listé → retenue ;
    - remboursement `succeeded`, `pending`, `requires_action` ou de statut inconnu absent de nos lignes, ou d'un montant
      différent ; les statuts `failed` et `canceled` ne comptent pas comme remboursements ;
    - ligne locale qui ne correspond à aucun remboursement en cours chez Stripe ;
@@ -73,11 +84,20 @@ prix et n'est jamais facturée séparément (voir `AGENTS.md`). La devise est co
 | Course | Protection | Preuve |
 | --- | --- | --- |
 | Deux exécutions de la même tentative (cron + webhook) | **Bail** : `UPDATE … SET lastAttemptAt = NOW() WHERE status = 'PENDING' AND (lastAttemptAt IS NULL OR < NOW() - 5 min)` ; seule l'exécution dont la mise à jour aboutit continue | PostgreSQL 16 : 20 réservations simultanées → 1 gagnante ; bail expiré → de nouveau réservable ; `SUCCESS` jamais réservée |
+| Une exécution plus longue que le bail | Chaque appel Stripe peut durer environ 240 s (SDK : 80 s de délai, 2 nouvelles tentatives), soit plusieurs fois 5 minutes au total. **Clôture** juste avant `transfers.create` : le bail n'est renouvelé que s'il est encore celui de cette exécution (`lastAttemptAt = leaseNow`) ; sinon elle s'arrête sans rien créer. Le bail renouvelé couvre l'appel de création lui-même | PostgreSQL 16 : le worker 2 reprend le bail expiré ; le renouvellement du worker 1 est refusé |
+| Un échec qui écraserait un `SUCCESS` | L'écriture d'échec ne touche qu'une tentative encore `PENDING` | test unitaire |
 | Deux livraisons d'un litige | Identifiant unique de la ligne `dispute:<dp>:<order>` | 20 ouvertures simultanées → 1 ligne |
 | `won` et `lost` en concurrence | Fermeture conditionnelle `WHERE status = 'dispute_open'` | une seule fermeture appliquée ; un `created` tardif ne rouvre rien |
 | Double enregistrement d'un même virement | `MerchantPayoutLedger.stripeTransferId` unique, clé d'idempotence `transfer_{order}_{role}` | contrainte du schéma |
 
 Script : `scripts/sql/test-release-concurrency.sh` (refuse toute base non locale).
+
+**Hypothèses non démontrées ici.** Elles sont documentées par Stripe et le SDK, mais aucun test ne les exerce contre
+Stripe :
+- deux `transfers.create` portant la même clé d'idempotence ne créent qu'un seul virement pendant environ 24 h ;
+- une requête concurrente avec la même clé est refusée ;
+- `transfers.list` montre un virement créé avant un plantage. La reprise d'un virement existant en dépend après
+  l'expiration de la clé.
 
 **Fenêtre non fermée par l'architecture actuelle.** Entre la vérification Stripe et `transfers.create`, il s'écoule
 quelques millisecondes. Un remboursement créé chez Stripe dans cet intervalle n'est pas vu. Le contrôle qui suit le

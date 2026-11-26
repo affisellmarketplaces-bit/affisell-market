@@ -480,6 +480,28 @@ async function processOneAttempt(
       })
     }
 
+    // ── Still ours? (fencing) ────────────────────────────────────────────────────────────────────────────────────
+    // Each Stripe call above may take up to ~240 s (SDK defaults: 80 s timeout, 2 network retries), so a run can outlive
+    // its 5-minute lease and another worker can claim the attempt meanwhile. Right before money leaves, renew the lease
+    // ONLY if it is still the one this run took; otherwise stop without creating anything. The renewed lease covers the
+    // create call itself (≤ ~240 s < 5 min). Two concurrent creates would still share the idempotency key, but this run
+    // no longer relies on that alone.
+    if (!existing) {
+      const renewed = await prisma.transferAttempt.updateMany({
+        where: { id: attempt.id, status: "PENDING", lastAttemptAt: leaseNow },
+        data: { lastAttemptAt: new Date() },
+      })
+      if (renewed.count !== 1) {
+        logStripeWebhookError({
+          level: "error",
+          metric: "transfer_lease_lost_before_create",
+          orderId: attempt.orderId,
+          role: attempt.role,
+        })
+        return "skipped"
+      }
+    }
+
     const sourceTransaction = attempt.order.stripeChargeId ?? undefined
     const transfer = existing
       ? { id: existing.id, amount: existing.amount }
@@ -582,8 +604,10 @@ async function processOneAttempt(
 
     const terminal = nextAttempts >= MAX_ATTEMPTS
 
-    await prisma.transferAttempt.update({
-      where: { id: attempt.id },
+    // Only a still-PENDING attempt is marked: another run may have recorded a SUCCESS meanwhile (same idempotency key),
+    // and a failure must never overwrite it.
+    await prisma.transferAttempt.updateMany({
+      where: { id: attempt.id, status: "PENDING" },
       data: {
         status: terminal ? "FAILED" : "PENDING",
         errorCode,

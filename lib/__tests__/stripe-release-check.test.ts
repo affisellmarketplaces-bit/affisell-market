@@ -58,4 +58,24 @@ describe("release check with Stripe (pure)", () => {
       }),
     ).toMatchObject({ reason: "refund_not_recorded" })
   })
+
+  it("disputes: won / closed let it go, open / unknown / lost hold, flagged-but-unlisted holds", () => {
+    const flagged = { ...base, charge: { ...charge, disputed: true } }
+    expect(decideReleaseWithStripe({ ...flagged, stripeDisputes: [{ id: "dp", status: "won" }] })).toMatchObject({
+      ok: true,
+    })
+    expect(
+      decideReleaseWithStripe({ ...flagged, stripeDisputes: [{ id: "dp", status: "warning_closed" }] }),
+    ).toMatchObject({ ok: true })
+    expect(
+      decideReleaseWithStripe({ ...flagged, stripeDisputes: [{ id: "dp", status: "under_review" }] }),
+    ).toMatchObject({ reason: "charge_disputed" })
+    expect(
+      decideReleaseWithStripe({ ...flagged, stripeDisputes: [{ id: "dp", status: "something_new" }] }),
+    ).toMatchObject({ reason: "charge_disputed" })
+    expect(decideReleaseWithStripe({ ...flagged, stripeDisputes: [{ id: "dp", status: "lost" }] })).toMatchObject({
+      reason: "dispute_lost_not_applied",
+    })
+    expect(decideReleaseWithStripe({ ...flagged, stripeDisputes: [] })).toMatchObject({ reason: "charge_disputed" })
+  })
 })

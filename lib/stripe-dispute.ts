@@ -14,8 +14,7 @@ import {
   closeDisputeHold,
   DISPUTE_HOLD_STATUS,
   hasOpenDisputeHold,
-  openDisputeHold,
-  readDisputeHold,
+  lockDisputeHold,
 } from "@/lib/orders/dispute-hold.server"
 import {
   isOrderClosedForPayout,
@@ -198,8 +197,10 @@ async function handleDisputeOpen(
       continue
     }
     const previousStatus = order.status.trim() || null
-    const hold = await openDisputeHold(tx, { disputeId: dispute.id, orderId: order.id, previousStatus })
-    if (hold === "already_closed") continue
+    // Locked: a concurrent `closed` for the same dispute either already committed (terminal → nothing to hold) or waits.
+    const locked = await lockDisputeHold(tx, { disputeId: dispute.id, orderId: order.id, previousStatusIfCreated: previousStatus })
+    if (locked.status !== DISPUTE_HOLD_STATUS.open) continue
+    const hold = locked.existed ? "already_open" : "created"
 
     // Also re-asserted on an "already_open" hold: another writer may have overwritten "disputed" in the meantime.
     const nextStatus = statusWhenDisputeOpens(order)
@@ -240,8 +241,9 @@ async function handleDisputeReleased(
   const released: string[] = []
 
   for (const order of orders) {
-    const hold = await readDisputeHold(tx, dispute.id, order.id)
-    if (hold && hold.status !== DISPUTE_HOLD_STATUS.open) continue // terminal already: replay / duplicate
+    const locked = await lockDisputeHold(tx, { disputeId: dispute.id, orderId: order.id, previousStatusIfCreated: null })
+    if (locked.existed && locked.status !== DISPUTE_HOLD_STATUS.open) continue // terminal already: replay / duplicate
+    const hold = locked.existed ? locked : null
 
     // Restore the status FIRST and close the ledger row LAST: if something fails in between, the hold stays open (the
     // money stays held) and the replay finishes the job. The other order of events could leave "disputed" with no hold.
@@ -378,12 +380,12 @@ async function handleDisputeLost(
     // Keep (or put) every open order on hold and call a human: no money moves on a guess.
     for (const order of orders) {
       if (isOrderClosedForPayout(order)) continue
-      const hold = await openDisputeHold(tx, {
+      const locked = await lockDisputeHold(tx, {
         disputeId: dispute.id,
         orderId: order.id,
-        previousStatus: order.status.trim() || null,
+        previousStatusIfCreated: order.status.trim() || null,
       })
-      if (hold === "already_closed") continue
+      if (locked.status !== DISPUTE_HOLD_STATUS.open) continue
       const nextStatus = statusWhenDisputeOpens(order)
       if (nextStatus) await tx.order.update({ where: { id: order.id }, data: { status: nextStatus } })
     }
@@ -402,8 +404,8 @@ async function handleDisputeLost(
   const doubleLoss: string[] = []
 
   for (const order of orders) {
-    const hold = await readDisputeHold(tx, dispute.id, order.id)
-    if (hold && hold.status !== DISPUTE_HOLD_STATUS.open) continue // terminal already: replay / duplicate
+    const locked = await lockDisputeHold(tx, { disputeId: dispute.id, orderId: order.id, previousStatusIfCreated: null })
+    if (locked.existed && locked.status !== DISPUTE_HOLD_STATUS.open) continue // terminal already: replay / duplicate
 
     if (isOrderClosedForPayout(order)) {
       // Refunded before the bank decided: the charge is lost AND the buyer was refunded. Nothing to claw back twice.
@@ -441,11 +443,25 @@ async function handleDisputeLost(
 
 /** Entry point for `charge.dispute.*` (called by the webhook processor inside its transaction). */
 export async function processStripeDisputeEvent(event: Stripe.Event, tx: Tx): Promise<DisputeEventOutcome> {
-  const dispute = event.data.object as Stripe.Dispute
-  const disputeId = typeof dispute?.id === "string" ? dispute.id.trim() : ""
+  const snapshot = event.data.object as Stripe.Dispute
+  const disputeId = typeof snapshot?.id === "string" ? snapshot.id.trim() : ""
   if (!disputeId) {
     logStripeWebhookError({ metric: "stripe_dispute_missing_id", eventId: event.id, type: event.type })
     return { orderId: null, status: "skipped", error: "dispute_missing_id" }
+  }
+  // The decision is taken on the dispute AS STRIPE HOLDS IT NOW, never on the event's snapshot: an event can be delayed,
+  // replayed or delivered out of order, and only the live object is authoritative (status, amount, currency). If Stripe
+  // can not be read, the event fails (it is replayed, D2) and nothing changes here — an open dispute stays held, and the
+  // release-time check (`stripe-release-check`) still sees the charge as disputed.
+  const dispute = await getStripeClient().disputes.retrieve(disputeId)
+  if (dispute.status !== snapshot.status) {
+    logStripeWebhookInfo({
+      metric: "stripe_dispute_snapshot_stale",
+      eventId: event.id,
+      disputeId,
+      snapshotStatus: snapshot.status,
+      liveStatus: dispute.status,
+    })
   }
 
   const outcome: DisputeOutcome = disputeOutcomeFromStripeStatus(dispute.status)

@@ -73,7 +73,13 @@ vi.mock("@/lib/prisma", () => ({
     processedWebhook: { findUnique: (...a: unknown[]) => (ledger.delegate.findUnique as (...x: unknown[]) => unknown)(...a) },
   },
 }))
-vi.mock("@/lib/stripe", () => ({ getStripeClient: () => ({ checkout: { sessions: { list: async () => ({ data: [] }) } } }) }))
+vi.mock("@/lib/stripe", () => ({
+  getStripeClient: () => ({
+    checkout: { sessions: { list: async () => ({ data: [] }) } },
+    // Stripe's live view = the lost dispute these tests deliver.
+    disputes: { retrieve: async () => lostDispute },
+  }),
+}))
 vi.mock("@/lib/stripe-transfer-reversal", () => ({ reverseConnectTransfersForRefund: vi.fn(async () => ({ outcomes: [], attemptedReversalCount: 0 })) }))
 vi.mock("@/lib/payout-reversal-safety", () => ({
   evaluateClawbackSafety: vi.fn(async () => ({ allowed: true, reason: "no_stripe_transfers", pendingClawback: false })),

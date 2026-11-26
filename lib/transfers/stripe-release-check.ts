@@ -1,4 +1,5 @@
 import { attributeRefundToOrder } from "@/lib/money/split-guard"
+import { disputeOutcomeFromStripeStatus } from "@/lib/orders/dispute-state"
 
 /**
  * Last check with STRIPE ITSELF before a transfer leaves — pure decision. Server side: `stripe-release-check.server.ts`.
@@ -15,7 +16,8 @@ import { attributeRefundToOrder } from "@/lib/money/split-guard"
  *
  * Everything that does not add up HOLDS the transfer (it stays PENDING, attempts are not consumed) and says why:
  * - the charge is not a captured, succeeded charge in the order's currency;
- * - the charge is DISPUTED according to Stripe (even if our dispute webhook never arrived);
+ * - a dispute on the charge is open (or of unknown status) or lost according to Stripe's LIVE disputes (even if our
+ *   dispute webhook never arrived); a won / closed-without-loss dispute does not block;
  * - a refund on a multi-order charge names no order (the refund webhook refuses to guess as well);
  * - a refund Stripe knows about is missing from our rows, or has another amount;
  * - a row we recorded is not an outstanding refund at Stripe (failed / canceled / unknown id).
@@ -42,6 +44,7 @@ export type ReleaseCheckReason =
   | "stripe_unavailable"
   | "charge_not_succeeded"
   | "charge_disputed"
+  | "dispute_lost_not_applied"
   | "currency_mismatch"
   | "ambiguous_refund"
   | "refund_not_recorded"
@@ -68,6 +71,8 @@ export function decideReleaseWithStripe(args: {
   /** How many orders this charge pays for (1 = a single-order checkout). */
   chargeOrderCount: number
   charge: StripeChargeLite
+  /** Every dispute Stripe lists for the charge (read when `charge.disputed`; empty otherwise). */
+  stripeDisputes?: ReadonlyArray<{ id: string; status: string | null }>
   stripeRefunds: readonly StripeRefundLite[]
   localRefunds: readonly LocalRefundRow[]
 }): ReleaseCheck {
@@ -75,8 +80,25 @@ export function decideReleaseWithStripe(args: {
   if ((charge.status ?? "").toLowerCase() !== "succeeded" || charge.captured === false) {
     return { ok: false, reason: "charge_not_succeeded", detail: `charge ${charge.id} status=${charge.status}` }
   }
-  if (charge.disputed === true) {
-    return { ok: false, reason: "charge_disputed", detail: `charge ${charge.id} is disputed at Stripe` }
+  // `Charge.disputed` says the charge HAS BEEN disputed — it does not say the dispute is still open (a won dispute leaves
+  // it set). The disputes themselves decide, by their live status: open / unknown → held; lost → held (D7 closes a lost
+  // order, so a lost dispute reaching this point was not applied); only won / closed-without-loss let the money go.
+  const disputes = args.stripeDisputes ?? []
+  if (charge.disputed === true && disputes.length === 0) {
+    return {
+      ok: false,
+      reason: "charge_disputed",
+      detail: `charge ${charge.id} is disputed but Stripe listed no dispute`,
+    }
+  }
+  for (const d of disputes) {
+    const outcome = disputeOutcomeFromStripeStatus(d.status)
+    if (outcome === "open") {
+      return { ok: false, reason: "charge_disputed", detail: `dispute ${d.id} is ${d.status ?? "unknown"} at Stripe` }
+    }
+    if (outcome === "lost") {
+      return { ok: false, reason: "dispute_lost_not_applied", detail: `dispute ${d.id} is lost at Stripe` }
+    }
   }
   const orderCurrency = (args.orderCurrency ?? "EUR").trim().toLowerCase()
   if ((charge.currency ?? "").trim().toLowerCase() !== orderCurrency) {

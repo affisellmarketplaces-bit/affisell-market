@@ -114,6 +114,44 @@ export async function openDisputeHold(
  * Close the hold with a terminal outcome. Creates the row when the closing event arrived before any opening one (Stripe
  * does not guarantee the order of events). A terminal hold is never rewritten.
  */
+/**
+ * Serialise every decision about ONE (dispute, order) for the rest of the webhook's transaction.
+ *
+ * Stripe can deliver two events of the same dispute at the same time (`closed` + `funds_withdrawn`, or a retry next to
+ * a fresh delivery), each processed in its own transaction. Reading the ledger row without a lock let both see `open` and
+ * both apply their effects. Here the row is created if missing (as `open`, `previousStatus` only when given), then a
+ * no-op write takes its ROW LOCK until the transaction ends: a concurrent event for the same (dispute, order) waits, and
+ * its next read sees what the first one committed (PostgreSQL READ COMMITTED re-reads after the lock), i.e. a terminal
+ * status it must not touch. `existed` tells whether the row was there before this event (the callers' old semantics).
+ */
+export async function lockDisputeHold(
+  db: HoldDb,
+  args: { disputeId: string; orderId: string; previousStatusIfCreated: string | null }
+): Promise<DisputeHold & { existed: boolean }> {
+  const id = disputeHoldId(args.disputeId, args.orderId)
+  const before = await db.processedWebhook.findUnique({ where: { id } })
+  if (!before) {
+    await db.processedWebhook.upsert({
+      where: { id },
+      create: {
+        id,
+        orderId: args.orderId,
+        status: DISPUTE_HOLD_STATUS.open,
+        error: encodeNote(args.previousStatusIfCreated),
+      },
+      update: {},
+    })
+  }
+  // No-op write = row lock held until the transaction commits or rolls back.
+  await db.processedWebhook.updateMany({ where: { id }, data: { orderId: args.orderId } })
+  const row = await db.processedWebhook.findUnique({ where: { id } })
+  return {
+    status: row?.status ?? DISPUTE_HOLD_STATUS.open,
+    previousStatus: decodeNote(row?.error),
+    existed: Boolean(before),
+  }
+}
+
 export async function closeDisputeHold(
   db: HoldDb,
   args: { disputeId: string; orderId: string; outcome: DisputeHoldTerminalOutcome }

@@ -21,7 +21,7 @@ const idOf = (v: string | { id: string } | null | undefined) => (typeof v === "s
  * Never throws: any Stripe error is `stripe_unavailable` and the caller HOLDS the transfer.
  */
 export async function verifyReleaseWithStripe(
-  stripe: Pick<Stripe, "charges" | "paymentIntents" | "refunds">,
+  stripe: Pick<Stripe, "charges" | "paymentIntents" | "refunds" | "disputes">,
   order: {
     id: string
     currency: string | null
@@ -66,6 +66,25 @@ export async function verifyReleaseWithStripe(
     return { ok: false, reason: "stripe_unavailable", detail: err instanceof Error ? err.message : String(err) }
   }
 
+  // Disputes: read only when Stripe flags the charge, then decided by each dispute's live status (all pages).
+  const stripeDisputes: Array<{ id: string; status: string | null }> = []
+  if (charge.disputed) {
+    try {
+      for await (const d of stripe.disputes.list({ charge: charge.id, limit: 100 })) {
+        stripeDisputes.push({ id: d.id, status: d.status })
+        if (stripeDisputes.length > MAX_REFUNDS_READ) {
+          return {
+            ok: false,
+            reason: "stripe_unavailable",
+            detail: `more than ${MAX_REFUNDS_READ} disputes on ${charge.id}`,
+          }
+        }
+      }
+    } catch (err) {
+      return { ok: false, reason: "stripe_unavailable", detail: err instanceof Error ? err.message : String(err) }
+    }
+  }
+
   // How many orders this charge pays for (a multi-line checkout shares one charge across `${session}:line:N` orders).
   let chargeOrderCount = 1
   const sessionBase = order.stripeSessionId?.split(":line:")[0]?.trim()
@@ -89,6 +108,7 @@ export async function verifyReleaseWithStripe(
       disputed: charge.disputed,
       currency: charge.currency,
     },
+    stripeDisputes,
     stripeRefunds,
     localRefunds,
   })

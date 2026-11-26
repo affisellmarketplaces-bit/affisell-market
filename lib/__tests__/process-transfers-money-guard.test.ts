@@ -24,6 +24,9 @@ const state: {
   charge: Record<string, unknown>
   stripeDown: boolean
   claimCount: number
+  /** Scripted results of successive updateMany calls (claim, renewal, …); then `claimCount`. */
+  updateManyResults: number[]
+  stripeDisputes: Array<{ id: string; status: string }>
 } = {
   attempt: {},
   others: [],
@@ -38,8 +41,11 @@ const state: {
   charge: {},
   stripeDown: false,
   claimCount: 1,
+  updateManyResults: [],
+  stripeDisputes: [],
 }
 const updates: Array<Record<string, unknown>> = []
+const updateManyCalls: Array<{ where: Record<string, unknown>; data: Record<string, unknown> }> = []
 
 vi.mock("@sentry/nextjs", () => ({ captureMessage: vi.fn() }))
 vi.mock("@/lib/ops-webhook", () => ({ opsWebhookAlert: vi.fn(async () => {}) }))
@@ -68,6 +74,13 @@ vi.mock("@/lib/stripe", () => ({
     transfers: { create: transfersCreate, list: transfersList },
     charges: { retrieve: chargesRetrieve },
     paymentIntents: { retrieve: async () => ({ latest_charge: "ch_1" }) },
+    disputes: {
+      list: () => ({
+        async *[Symbol.asyncIterator]() {
+          for (const d of state.stripeDisputes) yield d
+        },
+      }),
+    },
     refunds: {
       // Async-iterable like the SDK's auto-paging list.
       list: () => ({
@@ -95,8 +108,12 @@ vi.mock("@/lib/prisma", () => {
         updates.push(data)
         return {}
       },
-      // The lease claim (one run at a time).
-      updateMany: async () => ({ count: state.claimCount }),
+      // The lease claim (one run at a time), its renewal before create, and the conditional failure write.
+      updateMany: async (args: { where: Record<string, unknown>; data: Record<string, unknown> }) => {
+        updateManyCalls.push(args)
+        const scripted = state.updateManyResults.shift()
+        return { count: scripted ?? state.claimCount }
+      },
     },
     order: {
       findUnique: async (args: { select?: { stripeRefunds?: unknown } }) => {
@@ -179,6 +196,9 @@ describe("runProcessTransfersJob — last-line money guard", () => {
     state.charge = {}
     state.stripeDown = false
     state.claimCount = 1
+    state.updateManyResults = []
+    state.stripeDisputes = []
+    updateManyCalls.length = 0
     chargesRetrieve.mockClear()
     delete process.env.MONEY_GUARD_MODE
   })
@@ -429,6 +449,52 @@ describe("runProcessTransfersJob — last-line money guard", () => {
       expect(transfersCreate).not.toHaveBeenCalled()
       expect(chargesRetrieve).not.toHaveBeenCalled()
       expect(updates).toEqual([])
+    })
+  })
+
+  describe("lease outlived (a run slower than 5 min)", () => {
+    it("another worker took the attempt over meanwhile: this run creates NOTHING", async () => {
+      state.updateManyResults = [1, 0] // claim won, renewal before create refused
+      await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      // The renewal is conditioned on THIS run's lease timestamp.
+      expect(updateManyCalls[1]!.where).toMatchObject({ id: "att_1", status: "PENDING" })
+      expect(updateManyCalls[1]!.where.lastAttemptAt).toBeInstanceOf(Date)
+    })
+
+    it("a Stripe failure never overwrites a SUCCESS recorded by another run (conditional write)", async () => {
+      transfersCreate.mockImplementationOnce(async () => {
+        throw new Error("idempotency key in use")
+      })
+      await runOnce(attempt())
+      const failureWrite = updateManyCalls.find((c) => c.data.status === "PENDING" || c.data.status === "FAILED")
+      expect(failureWrite?.where).toMatchObject({ id: "att_1", status: "PENDING" })
+      expect(updates.some((u) => u.status === "PENDING" || u.status === "FAILED")).toBe(false)
+    })
+  })
+
+  describe("disputes decided by their LIVE status at Stripe", () => {
+    it("a dispute WON (charge still flagged disputed): the money goes", async () => {
+      state.charge = { disputed: true }
+      state.stripeDisputes = [{ id: "dp_1", status: "won" }]
+      await runOnce(attempt())
+      expect(transfersCreate).toHaveBeenCalledTimes(1)
+    })
+
+    it("a dispute still OPEN at Stripe: held", async () => {
+      state.charge = { disputed: true }
+      state.stripeDisputes = [{ id: "dp_1", status: "won" }, { id: "dp_2", status: "needs_response" }]
+      await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(updates.some((u) => u.errorCode === "STRIPE_CHECK_CHARGE_DISPUTED")).toBe(true)
+    })
+
+    it("a dispute LOST at Stripe that our D7 never applied: held", async () => {
+      state.charge = { disputed: true }
+      state.stripeDisputes = [{ id: "dp_1", status: "lost" }]
+      await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(updates.some((u) => u.errorCode === "STRIPE_CHECK_DISPUTE_LOST_NOT_APPLIED")).toBe(true)
     })
   })
 })

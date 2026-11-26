@@ -45,6 +45,52 @@ check "dispute: terminal status unchanged by the late open" \
 check "dispute: open holds left after close" \
   "$($P -c "SELECT count(*) FROM \"ProcessedWebhook\" WHERE \"orderId\" = 'ord_conc' AND id LIKE 'dispute:%' AND status = 'dispute_open'")" 0
 
+# 4. BUSINESS STATE, not just one row: a `won` handler and a `lost` handler of the same (dispute, order) run in two
+#    concurrent transactions. Each one decides from the ledger, applies its EFFECT (recorded in conc_effects — money
+#    moved for `lost`, status restored for `won`), then writes its terminal status. With lockDisputeHold's sequence
+#    (create-if-missing, no-op write = row lock, re-read) exactly ONE handler acts and the final status is ITS outcome.
+#    The plain read the code used before lets BOTH act: contradictory effects, shown here as the defect.
+$P -c 'CREATE TABLE IF NOT EXISTS conc_effects (outcome text)'
+handler() { # $1 = outcome (won|lost), $2 = lock|nolock
+  local lock_sql=""
+  [ "$2" = lock ] && lock_sql="UPDATE \"ProcessedWebhook\" SET \"orderId\" = \"orderId\" WHERE id = 'dispute:dp_conc:ord_conc';"
+  $P -c "DO \$\$ DECLARE st text; BEGIN
+    INSERT INTO \"ProcessedWebhook\" (id, \"orderId\", status, error, \"createdAt\")
+      VALUES ('dispute:dp_conc:ord_conc', 'ord_conc', 'dispute_open', NULL, NOW()) ON CONFLICT (id) DO NOTHING;
+    $lock_sql
+    SELECT status INTO st FROM \"ProcessedWebhook\" WHERE id = 'dispute:dp_conc:ord_conc';
+    IF st = 'dispute_open' THEN
+      INSERT INTO conc_effects VALUES ('$1');
+      PERFORM pg_sleep(0.5);
+      UPDATE \"ProcessedWebhook\" SET status = 'dispute_$1' WHERE id = 'dispute:dp_conc:ord_conc';
+    END IF;
+  END \$\$;"
+}
+for mode in nolock lock; do
+  # The realistic race: the hold was opened earlier by `created`, then `won` and `lost` deliveries meet.
+  $P -c "DELETE FROM \"ProcessedWebhook\" WHERE id LIKE 'dispute:dp_conc:%'; TRUNCATE conc_effects;
+         INSERT INTO \"ProcessedWebhook\" (id, \"orderId\", status, error, \"createdAt\")
+         VALUES ('dispute:dp_conc:ord_conc', 'ord_conc', 'dispute_open', NULL, NOW())"
+  (handler won $mode) & (handler lost $mode) & wait
+  effects=$($P -c "SELECT count(*) FROM conc_effects")
+  final=$($P -c "SELECT status FROM \"ProcessedWebhook\" WHERE id = 'dispute:dp_conc:ord_conc'")
+  acted=$($P -c "SELECT string_agg(outcome, ',') FROM conc_effects")
+  if [ $mode = nolock ]; then
+    check "dispute (OLD plain read): both handlers acted — the defect this PR fixes" "$effects" 2
+  else
+    check "dispute (lockDisputeHold): exactly one handler acted" "$effects" 1
+    check "dispute (lockDisputeHold): the final status is the outcome that acted" "$final" "dispute_$acted"
+  fi
+done
+$P -c 'DROP TABLE conc_effects'
+
+# 5. Fencing: a run that outlived its lease must not create a transfer once another worker took the attempt over.
+$P -c "UPDATE \"TransferAttempt\" SET status = 'PENDING', \"lastAttemptAt\" = NOW() - INTERVAL '6 minutes' WHERE id = 'att_conc'"
+lease1=$($P -c "SELECT \"lastAttemptAt\" FROM \"TransferAttempt\" WHERE id = 'att_conc'")   # run 1's (now expired) lease
+check "fencing: worker 2 claims the expired lease" "$($P -c "$CLAIM" | grep -c att_conc || true)" 1
+RENEW1="UPDATE \"TransferAttempt\" SET \"lastAttemptAt\" = NOW() WHERE id = 'att_conc' AND status = 'PENDING' AND \"lastAttemptAt\" = '$lease1' RETURNING id;"
+check "fencing: worker 1's renewal before create is refused (it stops)" "$($P -c "$RENEW1" | grep -c att_conc || true)" 0
+
 $P <<'SQL'
 DELETE FROM "TransferAttempt" WHERE id = 'att_conc';
 DELETE FROM "ProcessedWebhook" WHERE id LIKE 'dispute:dp_conc:%';
