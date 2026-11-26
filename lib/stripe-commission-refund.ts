@@ -16,6 +16,7 @@ import {
   evaluateClawbackSafety,
   markRefundPendingClawback,
 } from "@/lib/payout-reversal-safety"
+import { supersedePendingTransferAttempt } from "@/lib/payout-settlement"
 import { reverseConnectTransfersForRefund } from "@/lib/stripe-transfer-reversal"
 import { isOrderClosedForPayout } from "@/lib/orders/payment-state"
 import { classifyRefundForCharge } from "@/lib/unallocated-line"
@@ -260,6 +261,12 @@ export async function handleStripeChargeRefundedWithCommission(
       isFullRefund ? "REFUNDED" : "PARTIALLY_REFUNDED"
 
     if (isFullRefund) {
+      // Nothing is owed on a fully refunded order: cancel the transfers that have not left yet, now, instead of
+      // relying on the release-time check alone (those that already left are clawed back just below).
+      await prisma.$transaction(async (tx) => {
+        await supersedePendingTransferAttempt(tx, order.id, "SUPPLIER", "ORDER_REFUNDED")
+        await supersedePendingTransferAttempt(tx, order.id, "AFFILIATE", "ORDER_REFUNDED")
+      })
       const safety = lastStripeRefundId
         ? await evaluateClawbackSafety(order.id, {
             stripeRefundId: lastStripeRefundId,

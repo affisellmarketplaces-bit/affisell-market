@@ -13,10 +13,13 @@ import { dbTestsRequested, pointAtTestDatabase } from "@/lib/testing/db-test-gua
 const RUN_DB = dbTestsRequested()
 if (RUN_DB) pointAtTestDatabase() // throws unless DATABASE_URL_TEST is a dedicated, non-protected database
 
-const transfersCreate = vi.fn(async (args: { amount: number; destination: string }) => ({
-  id: `tr_${Math.random().toString(36).slice(2, 10)}`,
-  amount: args.amount,
-}))
+type FakeTransfer = { id: string; amount: number; destination: string; transfer_group?: string; metadata?: Record<string, string> }
+const created: FakeTransfer[] = []
+const transfersCreate = vi.fn(async (args: Omit<FakeTransfer, "id">) => {
+  const t = { id: `tr_${Math.random().toString(36).slice(2, 10)}`, ...args }
+  created.push(t)
+  return { id: t.id, amount: args.amount }
+})
 
 vi.mock("@sentry/nextjs", () => ({ captureMessage: vi.fn() }))
 vi.mock("@/lib/ops-webhook", () => ({ opsWebhookAlert: vi.fn(async () => {}) }))
@@ -27,7 +30,12 @@ vi.mock("@/lib/stripe", () => ({
     // One charge per payment intent (Order.stripeChargeId is unique in the schema).
     paymentIntents: { retrieve: async (id: string) => ({ latest_charge: `ch_${id}` }) },
     accounts: { retrieve: async () => ({ capabilities: { transfers: "active" } }) },
-    transfers: { create: transfersCreate },
+    // Lost-call adoption (#26): before creating, the job asks Stripe what already exists for the transfer group.
+    // The fake answers with what it really created — never an invented transfer.
+    transfers: {
+      create: transfersCreate,
+      list: async (q: { transfer_group?: string }) => ({ data: created.filter((t) => t.transfer_group === q.transfer_group) }),
+    },
   }),
 }))
 

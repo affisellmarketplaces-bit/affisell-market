@@ -1,10 +1,42 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-const transfersCreate = vi.fn(async () => ({ id: "tr_new" }))
-const state: { attempt: Record<string, unknown>; others: Array<{ amountCents: number }>; openDisputeHolds: number } = {
+const transfersCreate = vi.fn(async (params: { amount: number }) => ({ id: "tr_new", amount: params.amount }))
+const transfersList = vi.fn(async () => ({ data: state.existing }))
+const clawbackPartial = vi.fn(async () => ({ executed: true }))
+const clawbackFull = vi.fn(async () => ({ executed: true }))
+const ledger: Array<Record<string, unknown>> = []
+type Refund = { stripeRefundId: string; amountCents: number }
+const state: {
+  attempt: Record<string, unknown>
+  others: Array<{ amountCents: number }>
+  /** What the LATE read (just before the Stripe call) sees; `null` = same as the attempt's order. */
+  freshOrder: Record<string, unknown> | null
+  refunds: Refund[]
+  /** Refunds recorded while the transfer was in flight (seen only by the read AFTER the call). */
+  refundsAfter: Refund[] | null
+  /** Order as seen by the read AFTER the call (e.g. closed by a refund webhook meanwhile). */
+  orderAfter: Record<string, unknown> | null
+  existing: Array<Record<string, unknown>>
+  freshReads: number
+  openDisputeHolds: number
+  /** Seen from the 2nd ledger read on (the read just before the Stripe call); `null` = same. */
+  lateDisputeHolds: number | null
+  /** The ledger can not be read from the 2nd read on. */
+  lateLedgerFails: boolean
+  disputeReads: number
+} = {
   attempt: {},
   others: [],
   openDisputeHolds: 0,
+  lateDisputeHolds: null,
+  lateLedgerFails: false,
+  disputeReads: 0,
+  freshOrder: null,
+  refunds: [],
+  refundsAfter: null,
+  orderAfter: null,
+  existing: [],
+  freshReads: 0,
 }
 const updates: Array<Record<string, unknown>> = []
 
@@ -19,14 +51,21 @@ vi.mock("@/lib/order-transfer-gating", () => ({
 }))
 vi.mock("@/lib/payout-settlement", () => ({
   marketplaceRoleAlreadySettled: async () => false,
-  recordStripePayoutSettlement: vi.fn(async () => true),
+  recordStripePayoutSettlement: vi.fn(async (_tx: unknown, args: Record<string, unknown>) => {
+    ledger.push(args)
+    return true
+  }),
   supersedePendingTransferAttempt: vi.fn(async () => {}),
 }))
 vi.mock("@/lib/stripe", () => ({
   getStripeClient: () => ({
     accounts: { retrieve: async () => ({ capabilities: { transfers: "active" } }) },
-    transfers: { create: transfersCreate },
+    transfers: { create: transfersCreate, list: transfersList },
   }),
+}))
+vi.mock("@/lib/order-payout", () => ({
+  clawbackOrderPayoutsOnPartialRefund: clawbackPartial,
+  clawbackOrderPayoutsOnRefund: clawbackFull,
 }))
 vi.mock("@/lib/prisma", () => {
   const prisma = {
@@ -45,12 +84,26 @@ vi.mock("@/lib/prisma", () => {
       },
     },
     order: {
-      findUnique: async () => ({ transferAttempts: [], product: { name: "x" } }),
+      findUnique: async (args: { select?: { stripeRefunds?: unknown } }) => {
+        if (!args.select?.stripeRefunds) return { transferAttempts: [], product: { name: "x" } }
+        // Late reads: the first one is « just before the call », the next one « just after ».
+        state.freshReads += 1
+        const base = state.freshOrder ?? (state.attempt.order as Record<string, unknown>)
+        const order = state.freshReads > 1 && state.orderAfter ? state.orderAfter : base
+        const refunds = state.freshReads > 1 && state.refundsAfter ? state.refundsAfter : state.refunds
+        return { ...order, stripeRefunds: refunds }
+      },
       update: async () => ({}),
       findMany: async () => [],
     },
     // Dispute ledger (ProcessedWebhook rows `dispute:…`): `count` is what `hasOpenDisputeHold` reads.
-    processedWebhook: { count: async () => state.openDisputeHolds },
+    processedWebhook: {
+      count: async () => {
+        state.disputeReads += 1
+        if (state.disputeReads > 1 && state.lateLedgerFails) throw new Error("ledger down")
+        return state.disputeReads > 1 && state.lateDisputeHolds !== null ? state.lateDisputeHolds : state.openDisputeHolds
+      },
+    },
     user: { updateMany: async () => ({}) },
     $transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn(prisma),
   }
@@ -100,9 +153,22 @@ async function runOnce(att: ReturnType<typeof attempt>) {
 describe("runProcessTransfersJob — last-line money guard", () => {
   beforeEach(() => {
     transfersCreate.mockClear()
+    transfersList.mockClear()
+    clawbackPartial.mockClear()
+    clawbackFull.mockClear()
     updates.length = 0
+    ledger.length = 0
     state.others = []
     state.openDisputeHolds = 0
+    state.lateDisputeHolds = null
+    state.lateLedgerFails = false
+    state.disputeReads = 0
+    state.freshOrder = null
+    state.refunds = []
+    state.refundsAfter = null
+    state.orderAfter = null
+    state.existing = []
+    state.freshReads = 0
     delete process.env.MONEY_GUARD_MODE
   })
 
@@ -211,6 +277,134 @@ describe("runProcessTransfersJob — last-line money guard", () => {
       state.openDisputeHolds = 0
       await runOnce(attempt({}, { status: "shipped", paymentSettlementStatus: "PAID" }))
       expect(transfersCreate).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  // ── Scenarios added by the financial audit (2026-11-26) ──────────────────────────────────────────────────────────
+  // Charged total of the fixture order: 13 000 (subtotal, no tax). A 6 500 refund = half of the sale.
+
+  it("partial refund BEFORE release: pays only what is still owed, same rule and rounding as the paid-role clawback", async () => {
+    state.refunds = [{ stripeRefundId: "re_1", amountCents: 6_500 }]
+    await runOnce(attempt({}, { paymentSettlementStatus: "PARTIALLY_REFUNDED" }))
+    expect(transfersCreate).toHaveBeenCalledTimes(1)
+    const [params] = transfersCreate.mock.calls[0] as unknown as [Record<string, unknown>]
+    expect(params).toMatchObject({ amount: 1_600, metadata: { scheduledCents: "3200", refundShareCents: "1600" } })
+    expect(ledger[0]).toMatchObject({ amountCents: 1_600, stripeTransferId: "tr_new" })
+  })
+
+  it("several partial refunds: each refund's share is rounded on its own, like the clawback", async () => {
+    // 3 200 × 1 001/13 000 = 246.4 → 246, three times = 738 (one rounding on the sum would give 739).
+    state.refunds = [1, 2, 3].map((i) => ({ stripeRefundId: `re_${i}`, amountCents: 1_001 }))
+    await runOnce(attempt({}, { paymentSettlementStatus: "PARTIALLY_REFUNDED" }))
+    expect((transfersCreate.mock.calls[0] as unknown as [{ amount: number }])[0].amount).toBe(3_200 - 738)
+  })
+
+  it("the whole share refunded: no transfer, the attempt is closed", async () => {
+    const { supersedePendingTransferAttempt } = await import("@/lib/payout-settlement")
+    const supersede = supersedePendingTransferAttempt as unknown as ReturnType<typeof vi.fn>
+    supersede.mockClear()
+    state.refunds = [{ stripeRefundId: "re_1", amountCents: 13_000 }]
+    await runOnce(attempt({}, { paymentSettlementStatus: "PARTIALLY_REFUNDED" }))
+    expect(transfersCreate).not.toHaveBeenCalled()
+    expect(supersede).toHaveBeenCalledWith(expect.anything(), "ord_1", "AFFILIATE", "REFUNDED_SHARE")
+  })
+
+  it("refunded AFTER the attempt was loaded, BEFORE the Stripe call: the late read stops it", async () => {
+    const { supersedePendingTransferAttempt } = await import("@/lib/payout-settlement")
+    const supersede = supersedePendingTransferAttempt as unknown as ReturnType<typeof vi.fn>
+    supersede.mockClear()
+    state.freshOrder = { ...(attempt().order as Record<string, unknown>), status: "refunded", paymentSettlementStatus: "REFUNDED" }
+    await runOnce(attempt())
+    expect(transfersCreate).not.toHaveBeenCalled()
+    expect(supersede).toHaveBeenCalledWith(expect.anything(), "ord_1", "AFFILIATE", "ORDER_CLOSED")
+  })
+
+  it("Lightning started paying in the meantime: no Connect transfer", async () => {
+    state.freshOrder = { ...(attempt().order as Record<string, unknown>), payoutStatus: "PROCESSING" }
+    await runOnce(attempt())
+    expect(transfersCreate).not.toHaveBeenCalled()
+  })
+
+  it("a transfer already created by a lost call (crash, > 24 h): adopted, never paid twice", async () => {
+    state.existing = [
+      { id: "tr_other", amount: 9_000, destination: "acct_sup", metadata: { role: "SUPPLIER" } },
+      { id: "tr_lost", amount: 3_200, destination: "acct_aff", metadata: { role: "AFFILIATE" } },
+    ]
+    await runOnce(attempt())
+    expect(transfersCreate).not.toHaveBeenCalled()
+    expect(updates.some((u) => u.status === "SUCCESS" && u.stripeTransferId === "tr_lost")).toBe(true)
+    expect(ledger[0]).toMatchObject({ amountCents: 3_200, stripeTransferId: "tr_lost" })
+  })
+
+  it("Stripe search unavailable: nothing is created (held, retried next run)", async () => {
+    transfersList.mockImplementationOnce(async () => {
+      throw new Error("stripe down")
+    })
+    await runOnce(attempt())
+    expect(transfersCreate).not.toHaveBeenCalled()
+    expect(updates.some((u) => u.status === "SUCCESS")).toBe(false)
+  })
+
+  it("a refund landing WHILE the transfer is in flight is clawed back right after it is recorded", async () => {
+    state.refunds = []
+    state.refundsAfter = [{ stripeRefundId: "re_late", amountCents: 6_500 }]
+    await runOnce(attempt())
+    expect(transfersCreate).toHaveBeenCalledTimes(1)
+    expect(clawbackPartial).toHaveBeenCalledWith("ord_1", {
+      stripeRefundId: "re_late",
+      refundAmountCents: 6_500,
+      orderTotalCents: 13_000,
+    })
+  })
+
+  it("a FULL refund landing while in flight triggers the full clawback", async () => {
+    state.refundsAfter = [{ stripeRefundId: "re_full", amountCents: 13_000 }]
+    state.orderAfter = { ...(attempt().order as Record<string, unknown>), status: "refunded", paymentSettlementStatus: "REFUNDED" }
+    await runOnce(attempt())
+    expect(transfersCreate).toHaveBeenCalledTimes(1)
+    expect(clawbackFull).toHaveBeenCalledWith("ord_1")
+    expect(clawbackPartial).not.toHaveBeenCalled()
+  })
+
+  it("no refund in flight: no clawback", async () => {
+    await runOnce(attempt())
+    expect(clawbackPartial).not.toHaveBeenCalled()
+    expect(clawbackFull).not.toHaveBeenCalled()
+  })
+
+  // Both sides together: the audit's last read before money leaves must also ask the dispute ledger.
+  describe("dispute opening while the run is under way", () => {
+    const superseding = async () => {
+      const { supersedePendingTransferAttempt } = await import("@/lib/payout-settlement")
+      const supersede = supersedePendingTransferAttempt as unknown as ReturnType<typeof vi.fn>
+      supersede.mockClear()
+      return supersede
+    }
+
+    it("a ledger row appearing after the first check holds the transfer at release; nothing consumed or superseded", async () => {
+      const supersede = await superseding()
+      state.lateDisputeHolds = 1
+      const outcome = await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(outcome.held).toBe(1)
+      expect(updates).toEqual([])
+      expect(supersede).not.toHaveBeenCalled()
+    })
+
+    it("a status turned disputed between the two reads holds the transfer", async () => {
+      state.freshOrder = { ...(attempt().order as Record<string, unknown>), status: "disputed" }
+      const outcome = await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(outcome.held).toBe(1)
+      expect(updates).toEqual([])
+    })
+
+    it("an unreadable ledger at release pays nothing and consumes no attempt", async () => {
+      state.lateLedgerFails = true
+      const outcome = await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(outcome.held).toBe(1)
+      expect(updates).toEqual([])
     })
   })
 })

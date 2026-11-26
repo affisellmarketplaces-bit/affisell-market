@@ -15,7 +15,8 @@ type Row = {
   platformCommissionCents: number
   paymentSettlementStatus: string
 }
-const { orders, audit, opsAlert, recordedRefunds, orderUpdates, reverse, clawbackFull, clawbackPartial, notifyCancelled } = vi.hoisted(() => ({
+const { orders, audit, opsAlert, recordedRefunds, orderUpdates, reverse, clawbackFull, clawbackPartial, notifyCancelled, superseded } = vi.hoisted(() => ({
+  superseded: [] as string[],
   orders: {} as Record<string, Row>,
   audit: new Map<string, { id: string; action: string; entityId: string | null; payload: Record<string, unknown> }>(),
   opsAlert: vi.fn(async (_text: string) => ({ slack: false, discord: false })),
@@ -45,8 +46,16 @@ vi.mock("@/lib/stripe", () => ({
 }))
 vi.mock("@/lib/ops-webhook", () => ({ opsWebhookAlert: opsAlert }))
 vi.mock("@sentry/nextjs", () => ({ captureMessage: vi.fn(), captureException: vi.fn() }))
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
+vi.mock("@/lib/prisma", () => {
+  const prisma = {
+    // A full refund also cancels the order's transfers that have not left yet.
+    $transaction: async (fn: (tx: unknown) => Promise<unknown>): Promise<unknown> => fn(prisma),
+    transferAttempt: {
+      updateMany: async ({ where }: { where: { orderId: string; role: string } }) => {
+        superseded.push(`${where.orderId}:${where.role}`)
+        return { count: 1 }
+      },
+    },
     order: {
       findMany: async () => Object.values(orders).map((o) => ({ id: o.id })),
       findUnique: async ({ where }: { where: { id: string } }) => orders[where.id] ?? null,
@@ -77,8 +86,9 @@ vi.mock("@/lib/prisma", () => ({
         return data
       },
     },
-  },
-}))
+  }
+  return { prisma }
+})
 
 import { handleStripeChargeRefundedWithCommission } from "@/lib/stripe-commission-refund"
 
@@ -116,6 +126,7 @@ function charge(refunds: R[], amountRefunded: number, amount = 3000) {
 
 describe("refund of an unallocated line on a charge that also carries a valid order (A 10 €; lost line 20 €)", () => {
   beforeEach(() => {
+    superseded.length = 0
     for (const k of Object.keys(orders)) delete orders[k]
     orders.A = row("A", 1000)
     recordedRefunds.length = 0
@@ -137,6 +148,7 @@ describe("refund of an unallocated line on a charge that also carries a valid or
     expect(clawbackPartial).not.toHaveBeenCalled()
     expect(orderUpdates).toEqual([])
     expect(notifyCancelled).not.toHaveBeenCalled()
+    expect(superseded).toEqual([])
   })
 
   it("a genuine partial refund of the order is judged on ITS OWN refunds, not on the charge total", async () => {
@@ -166,6 +178,7 @@ describe("refund of an unallocated line on a charge that also carries a valid or
     )
     expect(clawbackFull).toHaveBeenCalledTimes(1)
     expect(orderUpdates.find((u) => u.id === "A")?.data).toMatchObject({ status: "refunded", paymentSettlementStatus: "REFUNDED" })
+    expect(superseded).toEqual(["A:SUPPLIER", "A:AFFILIATE"])
   })
 
   it("on a multi-order charge the unallocated refund is ignored and a refund naming an order still applies", async () => {
@@ -201,6 +214,7 @@ describe("MANUAL refund (Stripe dashboard — no marker, no order id) of an unal
     })
 
   beforeEach(() => {
+    superseded.length = 0
     for (const k of Object.keys(orders)) delete orders[k]
     audit.clear()
     recordedRefunds.length = 0
@@ -228,6 +242,7 @@ describe("MANUAL refund (Stripe dashboard — no marker, no order id) of an unal
       payload: { stripeRefundId: "re_manual", amountCents: 2000, source: "manual_dashboard" },
     })
     expect(opsAlert.mock.calls.some((c) => String(c[0]).includes("recognised by its amount"))).toBe(true)
+    expect(superseded).toEqual([])
   })
 
   it("a webhook replay does not record it twice nor touch the order", async () => {
@@ -320,6 +335,7 @@ describe("#1 — a bare (dashboard) refund of the REMAINING order on a charge th
   }
 
   beforeEach(() => {
+    superseded.length = 0
     for (const k of Object.keys(orders)) delete orders[k]
     audit.clear()
     recordedRefunds.length = 0
@@ -380,6 +396,7 @@ describe("#1 — a bare (dashboard) refund of the REMAINING order on a charge th
     expect(orderUpdates).toEqual([])
     expect(clawbackFull).not.toHaveBeenCalled()
     expect(opsAlert.mock.calls.some((c) => String(c[0]).includes("NOT applied to any order"))).toBe(true)
+    expect(superseded).toEqual([])
   })
 
   it("the line still owed + a partial bare refund: still ambiguous (it could be the line's), never the sibling order's", async () => {

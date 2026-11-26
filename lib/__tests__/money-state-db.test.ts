@@ -14,10 +14,14 @@ import { dbTestsRequested, pointAtTestDatabase } from "@/lib/testing/db-test-gua
 const RUN_DB = dbTestsRequested()
 if (RUN_DB) pointAtTestDatabase() // throws unless DATABASE_URL_TEST is a dedicated, non-protected database
 
-const transfersCreate = vi.fn(async (args: { amount: number; destination: string }) => ({
-  id: `tr_${Math.random().toString(36).slice(2, 10)}`,
-  amount: args.amount,
-}))
+// What this fake created, so the search made before every create (lost-call adoption) answers like Stripe.
+type FakeTransfer = { id: string; amount: number; destination: string; transfer_group?: string; metadata?: Record<string, string> }
+const createdTransfers: FakeTransfer[] = []
+const transfersCreate = vi.fn(async (args: Omit<FakeTransfer, "id">) => {
+  const transfer = { ...args, id: `tr_${Math.random().toString(36).slice(2, 10)}` }
+  createdTransfers.push(transfer)
+  return { id: transfer.id, amount: args.amount }
+})
 const handleRefunded = vi.fn(async (_charge: unknown) => {})
 
 vi.mock("@sentry/nextjs", () => ({ captureMessage: vi.fn(), captureException: vi.fn() }))
@@ -29,7 +33,10 @@ vi.mock("@/lib/stripe", () => ({
   getStripeClient: () => ({
     paymentIntents: { retrieve: async (id: string) => ({ latest_charge: `ch_${id}` }) },
     accounts: { retrieve: async () => ({ capabilities: { transfers: "active" } }) },
-    transfers: { create: transfersCreate },
+    transfers: {
+      create: transfersCreate,
+      list: async (q: { transfer_group?: string }) => ({ data: createdTransfers.filter((t) => t.transfer_group === q.transfer_group) }),
+    },
   }),
 }))
 vi.mock("@/lib/stripe-charge-refunded", () => ({ handleStripeChargeRefunded: (c: unknown) => handleRefunded(c) }))
