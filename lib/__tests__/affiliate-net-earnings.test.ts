@@ -6,7 +6,9 @@ import {
   computePhase1OrderFees,
   netAffiliateTransferCents,
 } from "@/lib/marketplace-phase1-fees"
+import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
 import { RESELLER_PLATFORM_FEE_BPS } from "@/lib/money/sale-split"
+import { supplierCommissionPercentToBps } from "@/lib/supplier-commission-rate"
 
 /**
  * The reseller catalog used to show "commission + markup" as the reseller's revenue; the transfer then deducts
@@ -49,6 +51,23 @@ describe("reseller net earnings shown = reseller transfer", () => {
       }
     }
     expect(cases).toBe(840)
+  })
+
+  it("commission = the settlement's own commission, including fractional and out-of-range rates", () => {
+    let cases = 0
+    for (const base of [1, 99, 1_250, 12_345, 99_999]) {
+      for (const pct of [0, 7.5, 12.345, 33.333, 0.005, 99.995, 100, 120]) {
+        const e = buildAffiliateCatalogCardEconomics(base, pct)
+        const settled = computeMarketplaceOrderSettlement({
+          sellingPriceCents: e.clientPriceCents,
+          supplierPriceCents: base,
+          supplierCommissionRateBps: supplierCommissionPercentToBps(pct),
+        })
+        expect(e.commissionCents, JSON.stringify({ base, pct })).toBe(settled.affiliateCommissionCents)
+        cases++
+      }
+    }
+    expect(cases).toBe(40)
   })
 
   it("standard case: 30 € wholesale, 10 % commission, 30 % markup -> 12 € gross, 9.60 € net", () => {
