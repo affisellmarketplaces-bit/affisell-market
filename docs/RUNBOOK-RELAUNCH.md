@@ -14,9 +14,10 @@ Détails techniques : `docs/PR13-DEPLOY-AND-INTEGRATION.md` (Lightning), `docs/A
 | #13 | Verrou Lightning (`LIGHTNING_PAYOUTS_MODE`) | verte | aucune |
 | #14 | Identifiants publiés retirés, scan CI, verrou réversible + fin des sessions, liste blanche admin, secrets à échec fermé | verte (Lighthouse : cause corrigée par #15) | aucune |
 | #15 | Performance accueil (catalogues hors navigateur, titre au premier envoi, accueil résistant à une panne de base) | verte, Lighthouse 0,67 | aucune |
-| #16 | Traductions limitées par zone (empilée sur #15) | à vérifier après rebase sur `main` | aucune |
+| #16 | Traductions limitées par zone (empilée sur #15) | lint-and-unit verte ; Lighthouse après rebase sur `main` | aucune |
+| #17 | Gain revendeur affiché = net réellement versé (après frais Affisell), prouvé sur 840 cas | lint-and-unit verte | aucune |
 
-Fusion d'essai #13 → #14 → #15 sur `main` : sans conflit, 75 tests combinés verts. **Aucune des quatre PR ne demande
+Fusion d'essai #13 → #14 → #15 sur `main` : sans conflit, 75 tests combinés verts. **Aucune de ces PR ne demande
 de migration** ; aucune variable n'est obligatoire pour démarrer (toutes les nouvelles sont facultatives et sans effet
 tant qu'elles ne sont pas définies).
 
@@ -27,7 +28,7 @@ tant qu'elles ne sont pas définies).
 
 ## 2. Fusionner et déployer, une PR à la fois [fondateur]
 
-Pour chaque PR, dans l'ordre **#13 → #14 → #15 → #16** :
+Pour chaque PR, dans l'ordre **#13 → #14 → #15 → #16 → #17** (#17 est indépendante ; elle peut aussi passer juste après #15) :
 
 1. Fusionner sur `main` (squash ou merge, au choix — garder le même mode pour les quatre).
 2. Attendre le déploiement Production **Ready** sur Vercel.
