@@ -92,8 +92,9 @@ Ces tests se font sur un aperçu Vercel lié à staging. Tant que le compte Verc
    - `revokedAt` est renseigné et une ligne `AuditLog` `copilot.autonomy.revoke` est écrite ;
    - en relançant l'étape 5.3, plus rien n'est appliqué, car la réservation exige une autorisation active au moment
      de chaque action.
-3. **Réaccorder.** Accorder de nouveau avec un quota plus bas. Attendu : le compteur déjà consommé reste
-   (`LEAST(...)`). Le quota n'est jamais remis à zéro.
+3. **Réaccorder.** Accorder de nouveau avec un quota plus bas, puis remonter le quota. Attendu : le compteur déjà
+   consommé ne change jamais. Un quota abaissé bloque tout de suite ; le remonter ne redonne pas d'exécutions dans la
+   même fenêtre.
 
 ## 7. Production — uniquement après la décision du propriétaire
 

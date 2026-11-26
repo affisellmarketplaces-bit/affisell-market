@@ -2866,7 +2866,15 @@
       "grant": "Allow",
       "revoke": "Withdraw permission",
       "error": "Failed. Please try again.",
-      "never": "Never automatic: pausing a product, payments, transfers and anything irreversible."
+      "never": "Never automatic: pausing a product, payments, transfers and anything irreversible.",
+      "recentTitle": "Actions the copilot took on its own (last 7 days)",
+      "recentReprice": "Price of “{name}” adjusted on {date}",
+      "recentFixMargins": "Margins of “{name}” restored on {date}",
+      "undo": "Undo",
+      "undone": "Undone: the listing is back to its previous state.",
+      "undoChangedSince": "The listing was changed since: it can no longer be undone.",
+      "undoExpired": "The undo window (7 days) has passed.",
+      "undoKyc": "Identity verification is required to put this product back online."
     }
   },
   "marketplace": {

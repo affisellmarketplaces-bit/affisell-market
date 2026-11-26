@@ -21,6 +21,38 @@ const render = (locale: (typeof LOCALES)[number], props: Parameters<typeof Affil
   )
 
 describe("autonomy settings", () => {
+  it.each(LOCALES)("lists the copilot's own actions of the week with an Undo button in %s", (locale) => {
+    const html = render(locale, {
+      available: true,
+      rules: [],
+      recentAuto: [
+        {
+          auditId: "aud_000001",
+          type: "reprice",
+          listingId: "lst_000001",
+          name: "Lampe",
+          appliedAt: "2026-11-25T10:00:00.000Z",
+        },
+        {
+          auditId: "aud_000002",
+          type: "fix_margins",
+          listingId: "lst_000002",
+          name: "Tapis",
+          appliedAt: "2026-11-24T10:00:00.000Z",
+        },
+      ],
+    })
+    expect(html).toContain('data-testid="autonomy-recent"')
+    expect(html).toContain("Lampe")
+    expect(html).toContain("Tapis")
+    expect(html).not.toMatch(/autonomy\.|\{name|\{date/)
+    expect(html.match(/<button/g)!.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it("no automatic action: no list", () => {
+    expect(render("fr", { available: true, rules: [] })).not.toContain('data-testid="autonomy-recent"')
+  })
+
   it.each(LOCALES)("renders granted and not-granted states in %s", (locale) => {
     const granted = render(locale, {
       available: true,

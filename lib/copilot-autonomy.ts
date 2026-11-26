@@ -86,3 +86,12 @@ export function decideAutoApply(args: {
   }
   return { allowed: true }
 }
+
+/** An action the copilot applied ON ITS OWN in the last 7 days and that can still be undone from the hub. */
+export type RecentAutoAction = {
+  auditId: string
+  type: AutoEligibleType
+  listingId: string
+  name: string
+  appliedAt: string
+}

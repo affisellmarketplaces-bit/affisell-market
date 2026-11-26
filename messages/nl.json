@@ -2866,7 +2866,15 @@
       "grant": "Toestaan",
       "revoke": "Toestemming intrekken",
       "error": "Mislukt. Probeer het opnieuw.",
-      "never": "Nooit automatisch: een product pauzeren, betalingen, overboekingen en alles wat onomkeerbaar is."
+      "never": "Nooit automatisch: een product pauzeren, betalingen, overboekingen en alles wat onomkeerbaar is.",
+      "recentTitle": "Acties die de copiloot zelf uitvoerde (laatste 7 dagen)",
+      "recentReprice": "Prijs van ‘{name}’ aangepast op {date}",
+      "recentFixMargins": "Marges van ‘{name}’ hersteld op {date}",
+      "undo": "Ongedaan maken",
+      "undone": "Ongedaan gemaakt: het aanbod is terug in de vorige staat.",
+      "undoChangedSince": "Het aanbod is sindsdien gewijzigd: ongedaan maken is niet meer mogelijk.",
+      "undoExpired": "De termijn om ongedaan te maken (7 dagen) is verstreken.",
+      "undoKyc": "Identiteitsverificatie is vereist om dit product weer online te zetten."
     }
   },
   "marketplace": {

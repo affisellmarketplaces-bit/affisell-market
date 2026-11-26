@@ -12,6 +12,8 @@ const state = vi.hoisted(() => ({
   applyArgs: [] as Array<Record<string, unknown>>,
   notifications: 0,
   txFails: false,
+  audit: [] as Array<Record<string, unknown>>,
+  listings: [] as Array<{ id: string; affiliateId: string; product: { name: string } }>,
 }))
 vi.mock("server-only", () => ({}))
 vi.mock("@/lib/prisma", () => ({
@@ -42,7 +44,18 @@ vi.mock("@/lib/prisma", () => ({
       if (state.txFails) throw new Error("audit write failed")
       return Promise.all(ops)
     }),
-    auditLog: { count: vi.fn(async () => state.autoRuns), create: vi.fn(async () => ({})) },
+    auditLog: {
+      count: vi.fn(async () => state.autoRuns),
+      create: vi.fn(async () => ({})),
+      findMany: vi.fn(async ({ where }: { where: { action: string; actorId: string } }) =>
+        state.audit.filter((a) => a.action === where.action && a.actorId === where.actorId),
+      ),
+    },
+    affiliateProduct: {
+      findMany: vi.fn(async ({ where }: { where: { id: { in: string[] }; affiliateId: string } }) =>
+        state.listings.filter((l) => where.id.in.includes(l.id) && l.affiliateId === where.affiliateId),
+      ),
+    },
     notification: {
       create: vi.fn(async () => {
         state.notifications += 1
@@ -61,7 +74,12 @@ vi.mock("@/lib/reseller-action-plan.server", () => ({
 }))
 
 import { decideAutoApply, parseGrant, type AutonomyRule } from "@/lib/copilot-autonomy"
-import { grantAutonomy, runAutopilot, runAutopilotForReseller } from "@/lib/copilot-autonomy.server"
+import {
+  grantAutonomy,
+  listRecentAutoActions,
+  runAutopilot,
+  runAutopilotForReseller,
+} from "@/lib/copilot-autonomy.server"
 import type { PlannedAction } from "@/lib/reseller-action-plan"
 
 const action = (over: Partial<PlannedAction>): PlannedAction => ({
@@ -250,5 +268,52 @@ describe("autopilot runner", () => {
       rule: { actionType: "reprice", maxPriceIncreaseBps: 1000, maxRunsPerWeek: 5 },
     })
     expect(r).toEqual({ ok: false, reason: "failed" })
+  })
+
+  it("the hub lists the copilot's own actions still undoable: not the undone ones, not another reseller's", async () => {
+    const at = new Date()
+    state.audit = [
+      {
+        id: "aud_1",
+        action: "copilot.apply",
+        actorId: "aff_000001",
+        entityId: "lst_1",
+        payload: { type: "reprice", source: "auto" },
+        createdAt: at,
+      },
+      {
+        id: "aud_2",
+        action: "copilot.apply",
+        actorId: "aff_000001",
+        entityId: "lst_2",
+        payload: { type: "fix_margins", source: "auto" },
+        createdAt: at,
+      },
+      {
+        id: "aud_u",
+        action: "copilot.undo",
+        actorId: "aff_000001",
+        entityId: "lst_2",
+        payload: { undoOf: "aud_2" },
+        createdAt: at,
+      },
+      {
+        id: "aud_3",
+        action: "copilot.apply",
+        actorId: "aff_other1",
+        entityId: "lst_3",
+        payload: { type: "reprice", source: "auto" },
+        createdAt: at,
+      },
+    ]
+    state.listings = [
+      { id: "lst_1", affiliateId: "aff_000001", product: { name: "Lampe" } },
+      { id: "lst_2", affiliateId: "aff_000001", product: { name: "Tapis" } },
+      { id: "lst_3", affiliateId: "aff_other1", product: { name: "Autre" } },
+    ]
+    const rows = await listRecentAutoActions("aff_000001", at)
+    expect(rows).toEqual([
+      { auditId: "aud_1", type: "reprice", listingId: "lst_1", name: "Lampe", appliedAt: at.toISOString() },
+    ])
   })
 })

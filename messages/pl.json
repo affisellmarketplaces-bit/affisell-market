@@ -2866,7 +2866,15 @@
       "grant": "Zezwól",
       "revoke": "Wycofaj zgodę",
       "error": "Niepowodzenie. Spróbuj ponownie.",
-      "never": "Nigdy automatycznie: wstrzymanie produktu, płatności, przelewy i wszelkie nieodwracalne działania."
+      "never": "Nigdy automatycznie: wstrzymanie produktu, płatności, przelewy i wszelkie nieodwracalne działania.",
+      "recentTitle": "Działania wykonane samodzielnie przez copilota (ostatnie 7 dni)",
+      "recentReprice": "Cena „{name}” dostosowana {date}",
+      "recentFixMargins": "Marże „{name}” przywrócone {date}",
+      "undo": "Cofnij",
+      "undone": "Cofnięto: oferta wróciła do poprzedniego stanu.",
+      "undoChangedSince": "Oferta została od tego czasu zmieniona: nie można cofnąć.",
+      "undoExpired": "Minął termin na cofnięcie (7 dni).",
+      "undoKyc": "Aby ponownie opublikować ten produkt, wymagana jest weryfikacja tożsamości."
     }
   },
   "marketplace": {

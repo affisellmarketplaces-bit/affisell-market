@@ -170,7 +170,8 @@ Hard rules:
   reservations against a quota of 3 grant exactly 3). A grant revoked mid-batch, or a tightened limit, applies to the
   very next action. An unused slot (limit exceeded, apply refused) is given back.
 - **Quota window**: `maxRunsPerWeek` counts per 7-day window starting at the window's first run
-  (`autoRunsWindowStart`, `autoRunsInWindow`). Re-granting never refills a quota already used.
+  (`autoRunsWindowStart`, `autoRunsInWindow`). Re-granting or changing the cap never touches the runs already used:
+  a lowered cap blocks at once, raising it again does not give runs back within the same window.
 - **The price checked is the price written.** The apply recomputes the plan and refuses (stale) if it suggests any
   price other than the one checked against the limit.
 - **Never automatic**, whatever is granted: pausing a product, payments, transfers, anything irreversible.
