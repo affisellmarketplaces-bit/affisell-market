@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { rateLimitClientKey, rateLimitResponseAsync } from "@/lib/api-rate-limit"
 import { isAutoEligibleType, parseGrant, type GrantInput } from "@/lib/copilot-autonomy"
 import { grantAutonomy, listAutonomyRules, revokeAutonomy } from "@/lib/copilot-autonomy.server"
+import { assertSameSiteRequestOrigin } from "@/lib/request-origin-guard"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -25,8 +27,17 @@ export async function GET() {
 
 /** Grant ONE action type, with explicit consent and limits: { actionType, maxPriceIncreaseBps, maxRunsPerWeek, consent: true }. */
 export async function POST(req: Request) {
+  // Granting automation is the most sensitive write here: same-site only, and rate-limited.
+  const originBlock = assertSameSiteRequestOrigin(req)
+  if (originBlock) return originBlock
   const id = await affiliateId()
   if (typeof id !== "string") return id
+  const limited = await rateLimitResponseAsync(rateLimitClientKey(req, id), {
+    limit: 10,
+    windowMs: 60_000,
+    prefix: "copilot-autonomy-grant",
+  })
+  if (limited) return limited
   const parsed = parseGrant((await req.json().catch(() => ({}))) as GrantInput)
   if (!parsed.ok) return NextResponse.json({ ok: false, error: parsed.error }, { status: 400 })
   const r = await grantAutonomy({ affiliateId: id, rule: parsed.rule })
@@ -36,6 +47,9 @@ export async function POST(req: Request) {
 
 /** Revoke ONE action type: ?actionType=reprice */
 export async function DELETE(req: Request) {
+  // Same-site only, but deliberately NOT rate-limited: revoking must always be possible.
+  const originBlock = assertSameSiteRequestOrigin(req)
+  if (originBlock) return originBlock
   const id = await affiliateId()
   if (typeof id !== "string") return id
   const actionType = new URL(req.url).searchParams.get("actionType")
