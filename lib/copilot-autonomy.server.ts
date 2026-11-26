@@ -25,6 +25,8 @@ import { applyCopilotAction, loadResellerActionPlan } from "@/lib/reseller-actio
 export const AUTONOMY_GRANT_ACTION = "copilot.autonomy.grant"
 export const AUTONOMY_REVOKE_ACTION = "copilot.autonomy.revoke"
 export const AUTO_RUN_WINDOW_MS = 7 * 86_400_000
+/** Upper bound of automatic actions in 7 days (2 types × 50 × 2 overlapping windows = 200), with margin. */
+export const RECENT_AUTO_READ_CAP = 500
 
 function isMissingTable(e: unknown): boolean {
   if (e instanceof Prisma.PrismaClientKnownRequestError) {
@@ -149,7 +151,9 @@ export async function listRecentAutoActions(affiliateId: string, now: Date = new
         payload: { path: ["source"], equals: "auto" },
       },
       orderBy: { createdAt: "desc" },
-      take: 20,
+      // Undone rows are filtered AFTER this read, so the cap must hold EVERY automatic action of the window: at most
+      // 2 types × 50 runs × 2 overlapping 7-day windows = 200. A cap of 20 hid older, still undoable actions.
+      take: RECENT_AUTO_READ_CAP,
       select: { id: true, entityId: true, payload: true, createdAt: true },
     })
     if (logs.length === 0) return []
