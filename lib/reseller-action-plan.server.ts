@@ -208,18 +208,26 @@ async function afterListingChange(affiliateId: string, listingId: string) {
  * exists (prices moved, already fixed) is refused as `stale`, never applied from an old screen.
  */
 export async function applyCopilotAction(args: { affiliateId: string; actionId: string }): Promise<ApplyResult> {
+  // 1. Read the listing FIRST: its updatedAt is the version the write will require. The plan is computed AFTER this
+  //    read, so any edit landing in between makes the plan see the new state AND the conditional write fail (stale) —
+  //    an action is never applied on a version older than the one it was computed from.
+  const listingId = args.actionId.slice(args.actionId.indexOf(":") + 1)
+  const listing = await prisma.affiliateProduct.findFirst({
+    where: { id: listingId, affiliateId: args.affiliateId },
+    select: { ...stateSelect, product: { select: { basePriceCents: true } } },
+  })
+  if (!listing) return { ok: false, reason: "stale" }
   const plan = await loadResellerActionPlan(args.affiliateId)
   const action = plan.actions.find((a) => a.id === args.actionId)
   if (!action) return { ok: false, reason: "stale" }
-  if (action.autonomy !== "one_click" || !action.listingId) return { ok: false, reason: "not_one_click" }
-  const listing = await prisma.affiliateProduct.findFirst({
-    where: { id: action.listingId, affiliateId: args.affiliateId },
-    select: { ...stateSelect, product: { select: { basePriceCents: true } } },
-  })
-  if (!listing) return { ok: false, reason: "not_found" }
+  if (action.autonomy !== "one_click" || action.listingId !== listingId) return { ok: false, reason: "not_one_click" }
+  // 2. The plan must describe the row that was read (same price): otherwise it is stale.
+  if (action.currentPriceCents != null && action.currentPriceCents !== listing.sellingPriceCents) {
+    return { ok: false, reason: "stale" }
+  }
   const before = toState(listing as StateRow)
   // Written only if the row is still exactly what was read (a concurrent edit makes the action stale).
-  const unchanged = { id: action.listingId, affiliateId: args.affiliateId, updatedAt: (listing as StateRow).updatedAt }
+  const unchanged = { id: listingId, affiliateId: args.affiliateId, updatedAt: (listing as StateRow).updatedAt }
   try {
     if (action.type === "reprice" && action.suggestedPriceCents != null) {
       const w = await prisma.affiliateProduct.updateMany({

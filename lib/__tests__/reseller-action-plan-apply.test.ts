@@ -297,4 +297,25 @@ describe("copilot apply / undo", () => {
     })
     expect(l.marginReviewAt?.toISOString()).toBe("2026-11-20T00:00:00.000Z")
   })
+
+  it("an edit landing between the plan and the write is never overwritten by the old suggestion", async () => {
+    const { prisma } = await import("@/lib/prisma")
+    // The in-memory mock, not Prisma's typed delegate.
+    const findMany = prisma.affiliateProduct.findMany as unknown as ReturnType<
+      typeof vi.fn<(a: unknown) => Promise<unknown>>
+    >
+    const original = findMany.getMockImplementation()!
+    // The reseller saves a new price right after the listing was read for the plan.
+    findMany.mockImplementationOnce(async (args) => {
+      const rows = await original(args)
+      const l = db.listings.get("lst_000001")!
+      l.sellingPriceCents = 5350
+      l.updatedAt = new Date(l.updatedAt.getTime() + 9)
+      return rows
+    })
+    const r = await applyCopilotAction({ affiliateId: AFF, actionId: "reprice:lst_000001" })
+    expect(r).toEqual({ ok: false, reason: "stale" })
+    expect(db.listings.get("lst_000001")!.sellingPriceCents).toBe(5350)
+    expect(db.audit).toHaveLength(0)
+  })
 })
