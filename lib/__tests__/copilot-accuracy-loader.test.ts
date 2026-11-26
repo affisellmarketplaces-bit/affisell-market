@@ -177,6 +177,24 @@ describe("loadCopilotAccuracy (order snapshot + payout ledger)", () => {
     expect(rows[0]).toMatchObject({ dueCents: 1_600 })
   })
 
+  it("refund before payout (#26 pays less): paid = what the ledger says moved, never the scheduled share", async () => {
+    db.orders = [{ ...order, affiliatePayoutCents: 3_200 }]
+    db.attempts = [
+      {
+        orderId: "ord_000001",
+        amountCents: 3_200,
+        reversedAmountCents: 0,
+        status: "SUCCESS",
+        stripeTransferId: "tr_1",
+      },
+    ]
+    db.ledger = [{ orderId: "ord_000001", entryType: "PAYOUT", amountCents: 1_600, stripeTransferId: "tr_1" }]
+    db.reversals = []
+    db.refunds = [{ orderId: "ord_000001", _sum: { amountCents: 6_500 } }] // half of the 13 000 sale
+    const { rows } = await loadCopilotAccuracy({ affiliateId: "aff_1", now })
+    expect(rows[0]).toMatchObject({ settledCents: 3_200, dueCents: 1_600, paidCents: 1_600, outstandingCents: 0 })
+  })
+
   it("never throws", async () => {
     db.orders = null as never
     vi.spyOn(console, "warn").mockImplementation(() => undefined)
