@@ -174,4 +174,15 @@ describe("S2 validation — projection then reconciliation", () => {
     expect(r.consistent).toBe(false)
     expect(db.events.size).toBe(size)
   })
+
+  it("exit code: 1 when a source could not be read (nothing proven), 6 when readable but inconsistent, 0 when clean", async () => {
+    const { projectBusinessJournal } = await import("@/lib/events/journal-projector.server")
+    const { reconcileBusinessJournal, reconcileExitCode } = await import("@/lib/events/journal-reconcile.server")
+    expect(reconcileExitCode(await reconcileBusinessJournal({ since, until, sources: SOURCES }))).toBe(6) // empty journal
+    await projectBusinessJournal({ since, until, env, sources: SOURCES })
+    expect(reconcileExitCode(await reconcileBusinessJournal({ since, until, sources: SOURCES }))).toBe(0)
+    db.refundCalls = 0
+    db.failOnRefundCall = 1
+    expect(reconcileExitCode(await reconcileBusinessJournal({ since, until, sources: SOURCES }))).toBe(1)
+  })
 })

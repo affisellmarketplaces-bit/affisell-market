@@ -179,3 +179,12 @@ export async function reconcileBusinessJournal(args: {
   if (out.refundRates.maxAbsDiff > tolerance) out.consistent = false
   return out
 }
+
+/**
+ * 0 consistent · 1 a source or the journal could not be READ (the check itself failed: nothing is proven) ·
+ * 6 read fine but inconsistent (missing / orphan / truncated / refund-rate drift → re-run the backfill).
+ */
+export function reconcileExitCode(result: JournalReconciliation): 0 | 1 | 6 {
+  if (Object.values(result.bySource).some((s) => s?.error)) return 1
+  return result.consistent ? 0 : 6
+}
