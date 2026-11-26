@@ -2,7 +2,7 @@ import type { AbstractIntlMessages } from "next-intl"
 
 import { isMerchantPublicPlatformPath } from "@/lib/custom-domain-path"
 
-const DEDICATED_SHOP_BASE_KEYS = [
+export const DEDICATED_SHOP_BASE_KEYS = [
   "storefront",
   "boutique",
   "shops",
@@ -18,7 +18,7 @@ const DEDICATED_SHOP_BASE_KEYS = [
   "CommandK",
 ] as const
 
-const DEDICATED_SHOP_PDP_KEYS = [
+export const DEDICATED_SHOP_PDP_KEYS = [
   "Product",
   "product",
   "wishlist",
@@ -30,12 +30,12 @@ const DEDICATED_SHOP_PDP_KEYS = [
 ] as const
 
 /** Cart + `/success` client components read `marketplace.*` (checkout region notes) and `success.*` (confirmation + hub). */
-const DEDICATED_SHOP_BUYER_FLOW_KEYS = ["success", "marketplace"] as const
+export const DEDICATED_SHOP_BUYER_FLOW_KEYS = ["success", "marketplace"] as const
 
 /** Public support/legal pages served on a store host: the contact form is a client component (`contact.form`). */
-const DEDICATED_SHOP_PUBLIC_PLATFORM_KEYS = ["contact", "legal"] as const
+export const DEDICATED_SHOP_PUBLIC_PLATFORM_KEYS = ["contact", "legal"] as const
 
-const DEDICATED_SUPPLIER_KEYS = ["errors", "cookieBanner", "CommandK"] as const
+export const DEDICATED_SUPPLIER_KEYS = ["errors", "cookieBanner", "CommandK"] as const
 
 function omitStorefrontBrandStudio(value: unknown): unknown {
   if (!value || typeof value !== "object" || Array.isArray(value)) return value
