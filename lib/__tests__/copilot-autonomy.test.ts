@@ -47,8 +47,11 @@ vi.mock("@/lib/prisma", () => ({
     auditLog: {
       count: vi.fn(async () => state.autoRuns),
       create: vi.fn(async () => ({})),
-      findMany: vi.fn(async ({ where }: { where: { action: string; actorId: string } }) =>
-        state.audit.filter((a) => a.action === where.action && a.actorId === where.actorId),
+      findMany: vi.fn(async ({ where, take }: { where: { action: string; actorId: string }; take?: number }) =>
+        state.audit
+          .filter((a) => a.action === where.action && a.actorId === where.actorId)
+          .sort((x, y) => (y.createdAt as Date).getTime() - (x.createdAt as Date).getTime())
+          .slice(0, take ?? Infinity),
       ),
     },
     affiliateProduct: {
@@ -315,5 +318,34 @@ describe("autopilot runner", () => {
     expect(rows).toEqual([
       { auditId: "aud_1", type: "reprice", listingId: "lst_1", name: "Lampe", appliedAt: at.toISOString() },
     ])
+  })
+
+  it("older automatic actions stay undoable from the hub after the 20 most recent are undone", async () => {
+    const t0 = Date.now()
+    state.audit = []
+    state.listings = []
+    for (let i = 0; i < 25; i++) {
+      const at = new Date(t0 - i * 60_000)
+      state.audit.push({
+        id: `aud_${i}`,
+        action: "copilot.apply",
+        actorId: "aff_000001",
+        entityId: `lst_${i}`,
+        payload: { type: "reprice", source: "auto" },
+        createdAt: at,
+      })
+      state.listings.push({ id: `lst_${i}`, affiliateId: "aff_000001", product: { name: `P${i}` } })
+      if (i < 20)
+        state.audit.push({
+          id: `undo_${i}`,
+          action: "copilot.undo",
+          actorId: "aff_000001",
+          entityId: `lst_${i}`,
+          payload: { undoOf: `aud_${i}` },
+          createdAt: at,
+        })
+    }
+    const rows = await listRecentAutoActions("aff_000001", new Date(t0))
+    expect(rows.map((r) => r.auditId)).toEqual(["aud_20", "aud_21", "aud_22", "aud_23", "aud_24"])
   })
 })
