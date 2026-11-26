@@ -31,7 +31,15 @@ vi.mock("@/lib/order-transfer-gating", () => ({
 
 type Mode = "ok" | "lost_response"
 const fake = vi.hoisted(() => ({
-  transfers: [] as Array<{ id: string; orderId: string; role: string; amount: number }>,
+  transfers: [] as Array<{
+    id: string
+    orderId: string
+    role: string
+    amount: number
+    destination: string
+    transferGroup: string | null
+    metadata: Record<string, string>
+  }>,
   keys: new Map<string, { body: string; id: string }>(),
   modes: [] as Mode[],
   seq: 0,
@@ -43,7 +51,21 @@ vi.mock("@/lib/stripe", () => ({
   getStripeClient: () => ({
     paymentIntents: { retrieve: async (id: string) => ({ id, status: "succeeded", latest_charge: `ch_${id}` }) },
     accounts: { retrieve: async () => ({ capabilities: { transfers: "active" } }) },
+    // Ready for #28's release check (unused before it lands): every scenario here pays a captured charge with no
+    // refund and no dispute at Stripe. Real SDK shapes, auto-paging lists.
+    charges: {
+      retrieve: async (id: string) => ({ id, status: "succeeded", captured: true, disputed: false, currency: "eur" }),
+    },
+    refunds: { list: () => ({ async *[Symbol.asyncIterator]() {} }) },
+    disputes: { list: () => ({ async *[Symbol.asyncIterator]() {} }) },
     transfers: {
+      // Ready for #26's lost-call adoption: lists what this fake really created, filtered like Stripe's
+      // `transfer_group` parameter — never an invented transfer.
+      list: async (q: { transfer_group?: string }) => ({
+        data: fake.transfers
+          .filter((t) => t.transferGroup === q.transfer_group)
+          .map((t) => ({ id: t.id, amount: t.amount, destination: t.destination, metadata: t.metadata })),
+      }),
       create: async (params: Record<string, unknown>, opts: { idempotencyKey: string }) => {
         await new Promise((r) => setTimeout(r, 15)) // let concurrent runs interleave
         const body = JSON.stringify(params)
@@ -55,7 +77,15 @@ vi.mock("@/lib/stripe", () => ({
         fake.seq += 1
         const id = `tr_a3db_${fake.seq}`
         const meta = (params.metadata ?? {}) as Record<string, string>
-        fake.transfers.push({ id, orderId: String(meta.orderId), role: String(meta.role).toUpperCase(), amount: Number(params.amount) })
+        fake.transfers.push({
+          id,
+          orderId: String(meta.orderId),
+          role: String(meta.role).toUpperCase(),
+          amount: Number(params.amount),
+          destination: String(params.destination),
+          transferGroup: (params.transfer_group as string | undefined) ?? null,
+          metadata: meta,
+        })
         fake.keys.set(opts.idempotencyKey, { body, id })
         if ((fake.modes.shift() ?? "ok") === "lost_response") throw stripeError("StripeConnectionError", undefined)
         return { id }
