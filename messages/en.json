@@ -2818,7 +2818,31 @@
       "errorKyc": "Identity verification is required to put this product back online.",
       "errorExpired": "The undo window (7 days) has passed.",
       "errorGeneric": "Failed. Please try again.",
-      "estimateNote": "Estimates, never guaranteed earnings. Every action happens on your click and can be undone for 7 days."
+      "estimateNote": "Estimates, never guaranteed earnings. Every action happens on your click and can be undone for 7 days.",
+      "trackRecord": "So far: {beneficial}/{evaluated} actions of this kind were beneficial for you"
+    },
+    "copilotResults": {
+      "eyebrow": "Copilot reliability",
+      "accuracyReliable": "Our estimates are reliable on your {orders} sales",
+      "accuracyBiased": "Our estimates are off on your {orders} sales",
+      "accuracyImprecise": "Our estimates are imprecise on your {orders} sales",
+      "accuracyInsufficient": "Not enough sales to judge yet ({orders}/{min})",
+      "accuracyDetail": "Average gap {mae} per sale, bias {bias}, {exact}% of sales exact within 2%.",
+      "amountEstimated": "Estimated",
+      "amountDue": "Due (computed)",
+      "amountPaid": "Paid out",
+      "amountOutstanding": "Still owed",
+      "outcomesTitle": "What your actions did",
+      "typeReprice": "Price adjusted",
+      "typePause": "Paused",
+      "typeFixMargins": "Margins restored",
+      "typeOther": "Action",
+      "outcomeBeneficial": "Beneficial",
+      "outcomeNeutral": "Neutral",
+      "outcomeUnfavourable": "Unfavourable",
+      "outcomeInsufficient": "Not enough sales",
+      "outcomeTooEarly": "Too early to tell",
+      "note": "28 days before vs after each action: an observation, not proof of cause. \"Paid out\" only counts money actually transferred."
     }
   },
   "marketplace": {

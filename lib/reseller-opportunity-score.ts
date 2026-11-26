@@ -27,6 +27,11 @@ export type OpportunityInput = {
   recentPurchases?: number | null
   /** Supplier's smoothed refund rate (journal), when measured. */
   supplierRefundRate?: number | null
+  /**
+   * Supplier reliability multiplier from the reliability index (`reliabilityMultiplier`, 0.5–1.2, 1 when not usable).
+   * When given, it replaces the refund-rate fallback.
+   */
+  supplierMultiplier?: number | null
 }
 
 export type OpportunityScore = {
@@ -65,7 +70,10 @@ export function scoreOpportunity(input: OpportunityInput): OpportunityScore {
     expectedRefundRate: input.refundRisk.upperRate,
   })
   const d = demandIndex(input.recentPurchases)
-  const rel = supplierReliability(input.supplierRefundRate)
+  const rel =
+    typeof input.supplierMultiplier === "number" && Number.isFinite(input.supplierMultiplier)
+      ? input.supplierMultiplier
+      : supplierReliability(input.supplierRefundRate)
   const recommendable = isRecommendable(guard)
   return {
     productId: input.productId,

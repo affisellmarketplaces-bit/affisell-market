@@ -84,6 +84,69 @@ Signals (`lib/reseller-signals.ts`, pure, silent without enough data):
 - **The AI agent never acts.** Its new `getActionPlan` tool is read-only, so it can answer "what should I sell,
   fix or stop today?". Changes stay a click in the hub.
 
+## 5. Is the copilot right? — accuracy (`lib/copilot-accuracy.ts`, `copilot-insights.server.ts`)
+
+Each paid order is accounted for with five amounts that are **never mixed**:
+
+| Amount | Meaning |
+| --- | --- |
+| estimated | The copilot's own model applied to the checkout snapshot (prices, commission, the reseller's fee rate), before refunds. |
+| settled | What the settlement function (`netAffiliateTransferCents`) computes for that sale. |
+| due | Settled minus the refund obligations recorded against the reseller (ledger `CLAWBACK`). Zero for an order voided before payout. |
+| paid | Money that actually **moved**: `PAYOUT` ledger entries carrying a Stripe transfer id, minus succeeded reversals. `ledger_only` entries are reported apart as "recorded, not transferred". |
+| outstanding | Due minus paid. Positive means still owed, negative means over-paid and to recover. It is `null` while the order is not yet payable. |
+
+The model error is `estimated − settled`, on the same scope (one sale, before refunds). Refund calibration (expected
+vs realised share) is measured on its own and never folded into that error.
+
+- **Statistics**: bias with its 95 % interval, mean absolute error, relative error, and the share of orders exact
+  within ±max(10 cents, 2 %).
+- **Verdict**: none under 30 orders (`insufficient_data`). Otherwise:
+  - `biased` when the whole interval sits beyond ±2 % of a typical sale;
+  - `reliable` when the relative error is ≤ 5 %;
+  - `imprecise` in all other cases.
+- **Granularity**: computed per category, each category with its own volume.
+- **Where to read it**: `GET /api/affiliate/copilot/insights` for the reseller, the hub card for the reseller, and
+  `scripts/report-copilot-accuracy.ts` for the owner (platform-wide, read-only).
+
+## 6. Supplier reliability index (`lib/supplier-reliability.ts`)
+
+The index (0–100) is built from paid orders only. It looks at:
+
+- late delivery against the supplier's **own** promise (`handlingDays + deliveryMax`, plus 2 days of tolerance);
+- cancellations after payment;
+- refunds;
+- price rises of ≥ 5 % from one order to the next on the same SKU.
+
+Stock-outs are not included: `Product.stock` defaults to 0 and is not used to hide products, so a 0 does not mean
+"out of stock".
+
+How the index stays fair:
+
+- **Recency**: each order weighs `0.5^(age / 60 days)`.
+- **Shrinkage**: each rate is pulled towards the platform's measured average, with a prior worth 20 orders.
+- **Confidence and minimum volume**: confidence is reported, and below 10 effective orders the index is shown but
+  never used to penalise.
+- **Explainability**: weak points are named.
+
+**Use in the ranking.** The opportunity ranking multiplies by `index / platform index`, clamped to [0.5, 1.2]. The
+multiplier is 1 when the index is unknown or not usable.
+
+## 7. Did the advice work? (`lib/copilot-outcomes.ts`)
+
+Each applied action (not undone) is evaluated by comparing what the listing actually earned per day in the 28 days
+before and after it. Possible verdicts:
+
+- `too_early`;
+- `insufficient_data` (fewer than 5 orders in a window);
+- `beneficial`, `unfavourable` or `neutral` (threshold ±10 %).
+
+A pause is judged on what it stopped: the earnings per sale before it.
+
+These verdicts are **observations, not causal proof**. The copilot "learns" through plain counts per action type
+(and per type × category), shown next to a new suggestion ("So far: 9/12 beneficial for you") once at least 10
+actions have been judged. There is no opaque model.
+
 ## Data access and rollback
 
 - `loadProductRiskContext` is read-only. It runs three grouped queries (product, category, supplier) whatever

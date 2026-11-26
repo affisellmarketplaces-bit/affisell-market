@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client"
 
 import { applyMarginAutoFixToListing } from "@/lib/affiliate-margin-auto-fix-apply.server"
 import { loadAffiliateOpportunityPulsePicks } from "@/lib/affiliate-catalog-opportunity-pulse"
+import { loadActionOutcomes } from "@/lib/copilot-insights.server"
 import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
 import { cancelAuctionsForListings } from "@/lib/auction-listing-lifecycle"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
@@ -21,8 +22,9 @@ const COST_HISTORY_MAX_ROWS = 5_000
 /** An applied action can be undone for this long, if nobody changed the listing since. */
 export const UNDO_WINDOW_MS = 7 * 86_400_000
 
-export const COPILOT_APPLY_ACTION = "copilot.apply"
-export const COPILOT_UNDO_ACTION = "copilot.undo"
+import { COPILOT_APPLY_ACTION, COPILOT_UNDO_ACTION } from "@/lib/copilot-audit-actions"
+
+export { COPILOT_APPLY_ACTION, COPILOT_UNDO_ACTION }
 
 type OrderSignals = {
   momentum: Map<string, { recent: number; previous: number }>
@@ -86,9 +88,10 @@ export async function loadResellerActionPlan(affiliateId: string, now: Date = ne
       .findUnique({ where: { id: affiliateId }, select: { affiliatePlatformFeeBps: true } })
       .catch(() => null)
     const resellerFeeBps = user?.affiliatePlatformFeeBps ?? null
-    const [listings, opportunities] = await Promise.all([
+    const [listings, opportunities, history] = await Promise.all([
       loadResellerListingHealth(affiliateId, { resellerFeeBps }),
       loadAffiliateOpportunityPulsePicks(affiliateId, 3).catch(() => []),
+      loadActionOutcomes(affiliateId, now),
     ])
     const signals = await loadOrderSignals([...new Set(listings.map((l) => l.productId))], now)
     const inputs: PlanListingInput[] = listings.map((l) => {
@@ -129,6 +132,12 @@ export async function loadResellerActionPlan(affiliateId: string, now: Date = ne
         .filter((o) => !o.isInStore)
         .map((o) => ({ productId: o.productId, name: o.name, riskAdjustedNetCents: o.riskAdjustedNetCents, score: 0 })),
     })
+    // Explain each suggestion with what the same kind of action did for this reseller before (counts, no model).
+    const records = new Map(history.trackRecords.map((r) => [r.key, r]))
+    for (const a of actions) {
+      const r = records.get(a.type)
+      if (r) a.trackRecord = { evaluated: r.evaluated, beneficial: r.beneficial, successRate: r.successRate }
+    }
     return { actions, listingsChecked: listings.length, estimated: true }
   } catch (e) {
     console.warn("[reseller-action-plan] unavailable", e instanceof Error ? e.message : e)

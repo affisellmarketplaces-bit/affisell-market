@@ -45,6 +45,7 @@ const actions: PlannedAction[] = TYPES.map((type, i) => ({
   expectedNetNowCents: 396,
   expectedNetAfterCents: 583,
   impactCents: 100,
+  trackRecord: i === 0 ? { evaluated: 12, beneficial: 9, successRate: 0.75 } : undefined,
   estimated: true,
 }))
 
@@ -77,6 +78,7 @@ describe("action plan card", () => {
     expect(html).toContain('href="/dashboard/affiliate/products/lst_000000/edit"')
     expect(html).toContain('href="/dashboard/affiliate/catalog?q=Produit%205"')
     expect(html).toContain("jamais un gain garanti")
+    expect(html).toContain("Par le passé : 9/12")
   })
 
   it("renders nothing for an empty plan", () => {

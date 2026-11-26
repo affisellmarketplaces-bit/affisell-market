@@ -2818,7 +2818,31 @@
       "errorKyc": "Identiteitsverificatie is nodig om dit product weer online te zetten.",
       "errorExpired": "De termijn om ongedaan te maken (7 dagen) is verstreken.",
       "errorGeneric": "Mislukt. Probeer het opnieuw.",
-      "estimateNote": "Schattingen, nooit een gegarandeerde opbrengst. Elke actie gebeurt op jouw klik en kan 7 dagen ongedaan worden gemaakt."
+      "estimateNote": "Schattingen, nooit een gegarandeerde opbrengst. Elke actie gebeurt op jouw klik en kan 7 dagen ongedaan worden gemaakt.",
+      "trackRecord": "Tot nu toe: {beneficial}/{evaluated} acties van dit type waren gunstig voor jou"
+    },
+    "copilotResults": {
+      "eyebrow": "Betrouwbaarheid van de copiloot",
+      "accuracyReliable": "Onze schattingen zijn betrouwbaar op je {orders} verkopen",
+      "accuracyBiased": "Onze schattingen wijken af op je {orders} verkopen",
+      "accuracyImprecise": "Onze schattingen zijn onnauwkeurig op je {orders} verkopen",
+      "accuracyInsufficient": "Nog niet genoeg verkopen om te oordelen ({orders}/{min})",
+      "accuracyDetail": "Gemiddelde afwijking {mae} per verkoop, vertekening {bias}, {exact}% van de verkopen exact binnen 2%.",
+      "amountEstimated": "Geschat",
+      "amountDue": "Verschuldigd (berekend)",
+      "amountPaid": "Uitbetaald",
+      "amountOutstanding": "Nog te betalen",
+      "outcomesTitle": "Wat je acties opleverden",
+      "typeReprice": "Prijs aangepast",
+      "typePause": "Gepauzeerd",
+      "typeFixMargins": "Marges hersteld",
+      "typeOther": "Actie",
+      "outcomeBeneficial": "Gunstig",
+      "outcomeNeutral": "Neutraal",
+      "outcomeUnfavourable": "Ongunstig",
+      "outcomeInsufficient": "Te weinig verkopen",
+      "outcomeTooEarly": "Te vroeg",
+      "note": "28 dagen voor en na elke actie: een observatie, geen bewijs van oorzaak. 'Uitbetaald' telt alleen geld dat echt is overgemaakt."
     }
   },
   "marketplace": {
