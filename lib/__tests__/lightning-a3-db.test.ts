@@ -19,7 +19,11 @@ if (RUN_DB) pointAtTestDatabase()
 vi.mock("server-only", () => ({}))
 vi.mock("@sentry/nextjs", () => ({ captureMessage: vi.fn(), captureException: vi.fn() }))
 const ops = vi.hoisted(() => ({ alerts: [] as string[] }))
-vi.mock("@/lib/ops-webhook", () => ({ opsWebhookAlert: vi.fn(async (t: string) => { ops.alerts.push(t) }) }))
+vi.mock("@/lib/ops-webhook", () => ({
+  opsWebhookAlert: vi.fn(async (t: string) => {
+    ops.alerts.push(t)
+  }),
+}))
 vi.mock("@/lib/transfers/split-slack-alert", () => ({ alertSplitTransferFailed: vi.fn(async () => {}) }))
 vi.mock("@/lib/legion/pay-referral-override", () => ({ payLegionOverrideForOrder: async () => ({ paid: false }) }))
 vi.mock("@/lib/stripe-marketplace-commission-split", () => ({ assertTransfersActive: async () => {} }))
@@ -31,7 +35,15 @@ vi.mock("@/lib/order-transfer-gating", () => ({
 
 type Mode = "ok" | "lost_response"
 const fake = vi.hoisted(() => ({
-  transfers: [] as Array<{ id: string; orderId: string; role: string; amount: number }>,
+  transfers: [] as Array<{
+    id: string
+    orderId: string
+    role: string
+    amount: number
+    destination: string
+    transferGroup: string | null
+    metadata: Record<string, string>
+  }>,
   keys: new Map<string, { body: string; id: string }>(),
   modes: [] as Mode[],
   seq: 0,
@@ -43,7 +55,19 @@ vi.mock("@/lib/stripe", () => ({
   getStripeClient: () => ({
     paymentIntents: { retrieve: async (id: string) => ({ id, status: "succeeded", latest_charge: `ch_${id}` }) },
     accounts: { retrieve: async () => ({ capabilities: { transfers: "active" } }) },
+    // #28's release check: a captured charge, no refund, no dispute (the real SDK shapes, auto-paging lists).
+    charges: {
+      retrieve: async (id: string) => ({ id, status: "succeeded", captured: true, disputed: false, currency: "eur" }),
+    },
+    refunds: { list: () => ({ async *[Symbol.asyncIterator]() {} }) },
+    disputes: { list: () => ({ async *[Symbol.asyncIterator]() {} }) },
     transfers: {
+      // What this fake really created, filtered like Stripe's `transfer_group` parameter (#26's lost-call adoption).
+      list: async (q: { transfer_group?: string }) => ({
+        data: fake.transfers
+          .filter((t) => t.transferGroup === q.transfer_group)
+          .map((t) => ({ id: t.id, amount: t.amount, destination: t.destination, metadata: t.metadata })),
+      }),
       create: async (params: Record<string, unknown>, opts: { idempotencyKey: string }) => {
         await new Promise((r) => setTimeout(r, 15)) // let concurrent runs interleave
         const body = JSON.stringify(params)
@@ -55,7 +79,15 @@ vi.mock("@/lib/stripe", () => ({
         fake.seq += 1
         const id = `tr_a3db_${fake.seq}`
         const meta = (params.metadata ?? {}) as Record<string, string>
-        fake.transfers.push({ id, orderId: String(meta.orderId), role: String(meta.role).toUpperCase(), amount: Number(params.amount) })
+        fake.transfers.push({
+          id,
+          orderId: String(meta.orderId),
+          role: String(meta.role).toUpperCase(),
+          amount: Number(params.amount),
+          destination: String(params.destination),
+          transferGroup: (params.transfer_group as string | undefined) ?? null,
+          metadata: meta,
+        })
         fake.keys.set(opts.idempotencyKey, { body, id })
         if ((fake.modes.shift() ?? "ok") === "lost_response") throw stripeError("StripeConnectionError", undefined)
         return { id }
@@ -65,7 +97,8 @@ vi.mock("@/lib/stripe", () => ({
 }))
 
 const stamp = `a3db${Date.now().toString(36)}`
-const transfersOf = (orderId: string, role: string) => fake.transfers.filter((t) => t.orderId === orderId && t.role === role)
+const transfersOf = (orderId: string, role: string) =>
+  fake.transfers.filter((t) => t.orderId === orderId && t.role === role)
 
 describe.skipIf(!RUN_DB)("Lightning A3 + lock — real PostgreSQL", { timeout: 180_000 }, () => {
   let prisma: (typeof import("@/lib/prisma"))["prisma"]
@@ -78,14 +111,30 @@ describe.skipIf(!RUN_DB)("Lightning A3 + lock — real PostgreSQL", { timeout: 1
     ;({ triggerLightningPayout: trigger } = await import("@/lib/stripe-lightning"))
     ;({ runProcessTransfersJob: processJob } = await import("@/lib/transfers/process-transfers"))
     const supplier = await prisma.user.create({
-      data: { email: `${stamp}-sup@affisell.test`, role: "SUPPLIER", name: "A3 supplier", stripeAccountId: "acct_a3db_sup" },
+      data: {
+        email: `${stamp}-sup@affisell.test`,
+        role: "SUPPLIER",
+        name: "A3 supplier",
+        stripeAccountId: "acct_a3db_sup",
+      },
     })
     const affiliate = await prisma.user.create({
-      data: { email: `${stamp}-aff@affisell.test`, role: "AFFILIATE", name: "A3 reseller", stripeAccountId: "acct_a3db_aff" },
+      data: {
+        email: `${stamp}-aff@affisell.test`,
+        role: "AFFILIATE",
+        name: "A3 reseller",
+        stripeAccountId: "acct_a3db_aff",
+      },
     })
     await prisma.supplierProfile.create({ data: { userId: supplier.id, trustScore: 90, lightningEnabled: true } })
     const product = await prisma.product.create({
-      data: { supplierId: supplier.id, name: "A3 product", description: "a3 db", basePriceCents: 10_000, commissionRate: 10 },
+      data: {
+        supplierId: supplier.id,
+        name: "A3 product",
+        description: "a3 db",
+        basePriceCents: 10_000,
+        commissionRate: 10,
+      },
     })
     const listing = await prisma.affiliateProduct.create({
       data: { affiliateId: affiliate.id, productId: product.id, sellingPriceCents: 13_000 },
@@ -96,7 +145,9 @@ describe.skipIf(!RUN_DB)("Lightning A3 + lock — real PostgreSQL", { timeout: 1
   afterAll(async () => {
     if (!prisma) return
     const users = [ids.supplier, ids.affiliate].filter(Boolean)
-    const orders = (await prisma.order.findMany({ where: { supplierId: { in: users } }, select: { id: true } })).map((o) => o.id)
+    const orders = (await prisma.order.findMany({ where: { supplierId: { in: users } }, select: { id: true } })).map(
+      (o) => o.id,
+    )
     await prisma.merchantPayoutLedger.deleteMany({ where: { orderId: { in: orders } } })
     await prisma.transferAttempt.deleteMany({ where: { orderId: { in: orders } } })
     await prisma.order.deleteMany({ where: { id: { in: orders } } })

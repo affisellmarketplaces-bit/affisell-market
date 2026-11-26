@@ -13,10 +13,20 @@ import { dbTestsRequested, pointAtTestDatabase } from "@/lib/testing/db-test-gua
 const RUN_DB = dbTestsRequested()
 if (RUN_DB) pointAtTestDatabase() // throws unless DATABASE_URL_TEST is a dedicated, non-protected database
 
-const transfersCreate = vi.fn(async (args: { amount: number; destination: string }) => ({
-  id: `tr_${Math.random().toString(36).slice(2, 10)}`,
-  amount: args.amount,
-}))
+const created: Array<{
+  id: string
+  amount: number
+  destination: string
+  transfer_group?: string
+  metadata?: Record<string, string>
+}> = []
+const transfersCreate = vi.fn(
+  async (args: { amount: number; destination: string; transfer_group?: string; metadata?: Record<string, string> }) => {
+    const t = { id: `tr_${Math.random().toString(36).slice(2, 10)}`, ...args }
+    created.push(t)
+    return { id: t.id, amount: args.amount }
+  },
+)
 
 vi.mock("@sentry/nextjs", () => ({ captureMessage: vi.fn() }))
 vi.mock("@/lib/ops-webhook", () => ({ opsWebhookAlert: vi.fn(async () => {}) }))
@@ -27,7 +37,19 @@ vi.mock("@/lib/stripe", () => ({
     // One charge per payment intent (Order.stripeChargeId is unique in the schema).
     paymentIntents: { retrieve: async (id: string) => ({ latest_charge: `ch_${id}` }) },
     accounts: { retrieve: async () => ({ capabilities: { transfers: "active" } }) },
-    transfers: { create: transfersCreate },
+    // The release check (#28): a captured charge, no refund, no dispute — real SDK shapes, auto-paging lists.
+    charges: {
+      retrieve: async (id: string) => ({ id, status: "succeeded", captured: true, disputed: false, currency: "eur" }),
+    },
+    refunds: { list: () => ({ async *[Symbol.asyncIterator]() {} }) },
+    disputes: { list: () => ({ async *[Symbol.asyncIterator]() {} }) },
+    // Lost-call adoption (#26): Stripe lists what was really created for the transfer group.
+    transfers: {
+      create: transfersCreate,
+      list: async (q: { transfer_group?: string }) => ({
+        data: created.filter((t) => t.transfer_group === q.transfer_group),
+      }),
+    },
   }),
 }))
 
@@ -50,13 +72,29 @@ describe.skipIf(!RUN_DB)("money e2e — real DB, mocked Stripe", { timeout: 180_
     ;({ runProcessTransfersJob: processJob } = await import("@/lib/transfers/process-transfers"))
 
     const supplier = await prisma.user.create({
-      data: { email: `money-e2e-sup-${stamp}@affisell.test`, role: "SUPPLIER", name: "E2E Supplier", stripeAccountId: "acct_e2e_supplier" },
+      data: {
+        email: `money-e2e-sup-${stamp}@affisell.test`,
+        role: "SUPPLIER",
+        name: "E2E Supplier",
+        stripeAccountId: "acct_e2e_supplier",
+      },
     })
     const affiliate = await prisma.user.create({
-      data: { email: `money-e2e-aff-${stamp}@affisell.test`, role: "AFFILIATE", name: "E2E Reseller", stripeAccountId: "acct_e2e_reseller" },
+      data: {
+        email: `money-e2e-aff-${stamp}@affisell.test`,
+        role: "AFFILIATE",
+        name: "E2E Reseller",
+        stripeAccountId: "acct_e2e_reseller",
+      },
     })
     const product = await prisma.product.create({
-      data: { supplierId: supplier.id, name: "E2E product", description: "money e2e", basePriceCents: 10_000, commissionRate: 10 },
+      data: {
+        supplierId: supplier.id,
+        name: "E2E product",
+        description: "money e2e",
+        basePriceCents: 10_000,
+        commissionRate: 10,
+      },
     })
     const listing = await prisma.affiliateProduct.create({
       data: { affiliateId: affiliate.id, productId: product.id, sellingPriceCents: 13_000 },
@@ -196,7 +234,7 @@ describe.skipIf(!RUN_DB)("money e2e — real DB, mocked Stripe", { timeout: 180_
 
   it("keeps conservation to the cent on 40 random healthy lines", async () => {
     let seed = 1234567
-    const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff)
+    const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff
     for (let i = 0; i < 40; i++) {
       const s: Scenario = {
         name: `fuzz-${i}`,
