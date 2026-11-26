@@ -55,7 +55,8 @@ before and after.
 | Action | When | Autonomy |
 | --- | --- | --- |
 | `fix_margins` | the supplier raised a SKU price (`marginReviewNeeded`, set by the existing wholesale notifier) | one click → the existing variant-aware `applyMarginAutoFixToListing` |
-| `pause` | loses money and no price within **+25 %** of today's makes it healthy | one click |
+| `pause` | LOSES money (sold at or below cost, or a negative expected net) and no price within **+25 %** makes it healthy | one click |
+| `review_pricing` | still earns a little, too little to recommend, and +25 % does not fix it | recommendation (never a pause) |
 | `reprice` | thin / insufficient / supplier cost above its history → the **lowest** price (rounded to 10 cents) that makes it healthy, within +25 %; never on listings with per-variant prices | one click |
 | `review_refunds` | still earns, but refunds rise beyond chance | recommendation (a pause would be wrong) |
 | `push_momentum` | healthy and demand accelerating (Poisson test, 14 days vs previous 56) | recommendation |
@@ -78,7 +79,8 @@ Signals (`lib/reseller-signals.ts`, pure, silent without enough data):
   `stale`, so a click on an old screen never applies an outdated price.
 - Every application is recorded in `AuditLog` (`copilot.apply`) with the listing's state before and after.
 - **Undo** (`POST …/actions/undo`) works for 7 days, only by the same reseller, and only if nobody has changed
-  the listing since (`changed_since`). Putting a paused product back online still goes through the identity check.
+  the listing since (`changed_since`). Every write is conditional on the row's `updatedAt`, so a concurrent edit is
+  never overwritten, and undo restores the supplier price-rise flags (`marginReview*`) a margin fix had cleared. Putting a paused product back online still goes through the identity check.
 - **The AI agent never acts.** Its new `getActionPlan` tool is read-only, so it can answer "what should I sell,
   fix or stop today?". Changes stay a click in the hub.
 

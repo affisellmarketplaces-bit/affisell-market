@@ -25,6 +25,7 @@ export type ActionType =
   | "pause"
   | "fix_margins"
   | "review_refunds"
+  | "review_pricing"
   | "list_opportunity"
   | "push_momentum"
   | "review_traffic"
@@ -169,8 +170,24 @@ export function buildActionPlan(args: {
         })
         continue
       }
-      // Out of reach by price within +25 % and it does not earn → stop selling it (undoable).
-      if (l.issues.includes("net_insufficient") || l.issues.includes("supplier_price_at_or_above_selling")) {
+      // Out of reach by price within +25 % and it LOSES money (sold at or below cost, or a negative expected net)
+      // → stop selling it (undoable). Still earning a little → a human pricing decision, never a pause.
+      const losesMoney = l.issues.includes("supplier_price_at_or_above_selling") || l.expectedNetCents <= 0
+      if (!losesMoney && l.issues.includes("net_insufficient")) {
+        actions.push({
+          ...base,
+          id: `review_pricing:${l.listingId}`,
+          type: "review_pricing",
+          autonomy: "recommend",
+          reversible: true,
+          reasons,
+          currentPriceCents: l.sellingPriceCents,
+          expectedNetNowCents: l.expectedNetCents,
+          impactCents: 1,
+        })
+        continue
+      }
+      if (losesMoney) {
         actions.push({
           ...base,
           id: `pause:${l.listingId}`,
@@ -250,6 +267,7 @@ export function buildActionPlan(args: {
     pause: 1,
     reprice: 2,
     review_refunds: 3,
+    review_pricing: 3,
     push_momentum: 4,
     list_opportunity: 5,
     review_traffic: 6,

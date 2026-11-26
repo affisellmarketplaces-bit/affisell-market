@@ -138,7 +138,19 @@ export async function loadResellerActionPlan(affiliateId: string, now: Date = ne
 
 // ─── Apply / undo (one explicit click each, recorded, reversible) ──────────────────────────────────────────────────
 
-type ListingState = { sellingPriceCents: number; marginCents: number; isListed: boolean; variantPricing: unknown }
+/** Everything an action can change — restored as a whole by undo (supplier price-rise flags included). */
+type ListingState = {
+  sellingPriceCents: number
+  marginCents: number
+  isListed: boolean
+  variantPricing: unknown
+  marginReviewNeeded: boolean
+  marginReviewVariantKeys: string[]
+  marginReviewAt: string | null
+  marginReviewAlertHash: string | null
+  /** Optimistic-concurrency token: a write only happens if the row still has THIS updatedAt. */
+  updatedAt: string
+}
 
 export type ApplyResult =
   | { ok: true; auditId: string; action: PlannedAction }
@@ -148,7 +160,43 @@ export type UndoResult =
   | { ok: true }
   | { ok: false; reason: "not_found" | "already_undone" | "expired" | "changed_since" | "kyc_required" | "failed" }
 
-const stateSelect = { sellingPriceCents: true, marginCents: true, isListed: true, variantPricing: true } as const
+const stateSelect = {
+  sellingPriceCents: true,
+  marginCents: true,
+  isListed: true,
+  variantPricing: true,
+  marginReviewNeeded: true,
+  marginReviewVariantKeys: true,
+  marginReviewAt: true,
+  marginReviewAlertHash: true,
+  updatedAt: true,
+} as const
+
+type StateRow = {
+  sellingPriceCents: number
+  marginCents: number
+  isListed: boolean
+  variantPricing: unknown
+  marginReviewNeeded: boolean
+  marginReviewVariantKeys: string[]
+  marginReviewAt: Date | null
+  marginReviewAlertHash: string | null
+  updatedAt: Date
+}
+
+function toState(r: StateRow): ListingState {
+  return {
+    sellingPriceCents: r.sellingPriceCents,
+    marginCents: r.marginCents,
+    isListed: r.isListed,
+    variantPricing: r.variantPricing ?? null,
+    marginReviewNeeded: r.marginReviewNeeded,
+    marginReviewVariantKeys: [...(r.marginReviewVariantKeys ?? [])],
+    marginReviewAt: r.marginReviewAt ? r.marginReviewAt.toISOString() : null,
+    marginReviewAlertHash: r.marginReviewAlertHash ?? null,
+    updatedAt: r.updatedAt.toISOString(),
+  }
+}
 
 async function afterListingChange(affiliateId: string, listingId: string) {
   await revalidateAffiliateShopfront(affiliateId)
@@ -169,23 +217,22 @@ export async function applyCopilotAction(args: { affiliateId: string; actionId: 
     select: { ...stateSelect, product: { select: { basePriceCents: true } } },
   })
   if (!listing) return { ok: false, reason: "not_found" }
-  const before: ListingState = {
-    sellingPriceCents: listing.sellingPriceCents,
-    marginCents: listing.marginCents,
-    isListed: listing.isListed,
-    variantPricing: listing.variantPricing ?? null,
-  }
+  const before = toState(listing as StateRow)
+  // Written only if the row is still exactly what was read (a concurrent edit makes the action stale).
+  const unchanged = { id: action.listingId, affiliateId: args.affiliateId, updatedAt: (listing as StateRow).updatedAt }
   try {
     if (action.type === "reprice" && action.suggestedPriceCents != null) {
-      await prisma.affiliateProduct.update({
-        where: { id: action.listingId },
+      const w = await prisma.affiliateProduct.updateMany({
+        where: unchanged,
         data: {
           sellingPriceCents: action.suggestedPriceCents,
           marginCents: computeAffiliateListingMarginCents(action.suggestedPriceCents, listing.product.basePriceCents),
         },
       })
+      if (w.count !== 1) return { ok: false, reason: "stale" }
     } else if (action.type === "pause") {
-      await prisma.affiliateProduct.update({ where: { id: action.listingId }, data: { isListed: false } })
+      const w = await prisma.affiliateProduct.updateMany({ where: unchanged, data: { isListed: false } })
+      if (w.count !== 1) return { ok: false, reason: "stale" }
       await cancelAuctionsForListings([action.listingId])
     } else if (action.type === "fix_margins") {
       const r = await applyMarginAutoFixToListing({ listingId: action.listingId, affiliateId: args.affiliateId })
@@ -193,7 +240,8 @@ export async function applyCopilotAction(args: { affiliateId: string; actionId: 
     } else {
       return { ok: false, reason: "not_one_click" }
     }
-    const after = await prisma.affiliateProduct.findUnique({ where: { id: action.listingId }, select: stateSelect })
+    const afterRow = await prisma.affiliateProduct.findUnique({ where: { id: action.listingId }, select: stateSelect })
+    const after = afterRow ? toState(afterRow as StateRow) : null
     const audit = await prisma.auditLog.create({
       data: {
         action: COPILOT_APPLY_ACTION,
@@ -216,14 +264,6 @@ export async function applyCopilotAction(args: { affiliateId: string; actionId: 
     })
     return { ok: false, reason: "failed" }
   }
-}
-
-function sameState(a: ListingState, b: ListingState): boolean {
-  return (
-    a.sellingPriceCents === b.sellingPriceCents &&
-    a.isListed === b.isListed &&
-    JSON.stringify(a.variantPricing ?? null) === JSON.stringify(b.variantPricing ?? null)
-  )
 }
 
 /** Put a listing back exactly as it was before an applied action — only if nobody changed it since. */
@@ -255,28 +295,30 @@ export async function undoCopilotAction(args: {
     select: stateSelect,
   })
   if (!current) return { ok: false, reason: "not_found" }
-  if (!sameState(current as ListingState, payload.after)) return { ok: false, reason: "changed_since" }
+  // Any write since the action (by the reseller, a cron, the supplier notifier) changes updatedAt.
+  if (current.updatedAt.toISOString() !== payload.after.updatedAt) return { ok: false, reason: "changed_since" }
   if (payload.before.isListed && !current.isListed) {
     const blocked = await requireMerchantVerifiedForPublish(args.affiliateId)
     if (blocked) return { ok: false, reason: "kyc_required" }
   }
   try {
-    await prisma.affiliateProduct.update({
-      where: { id: log.entityId },
+    const b = payload.before
+    // Conditional on the row being exactly as the action left it: a concurrent edit between the check above and this
+    // write is never overwritten.
+    const w = await prisma.affiliateProduct.updateMany({
+      where: { id: log.entityId, affiliateId: args.affiliateId, updatedAt: current.updatedAt },
       data: {
-        sellingPriceCents: payload.before.sellingPriceCents,
-        marginCents: payload.before.marginCents,
-        isListed: payload.before.isListed,
-        ...(JSON.stringify(payload.before.variantPricing ?? null) !== JSON.stringify(current.variantPricing ?? null)
-          ? {
-              variantPricing:
-                payload.before.variantPricing == null
-                  ? Prisma.DbNull
-                  : (payload.before.variantPricing as Prisma.InputJsonValue),
-            }
-          : {}),
+        sellingPriceCents: b.sellingPriceCents,
+        marginCents: b.marginCents,
+        isListed: b.isListed,
+        variantPricing: b.variantPricing == null ? Prisma.DbNull : (b.variantPricing as Prisma.InputJsonValue),
+        marginReviewNeeded: b.marginReviewNeeded,
+        marginReviewVariantKeys: b.marginReviewVariantKeys,
+        marginReviewAt: b.marginReviewAt ? new Date(b.marginReviewAt) : null,
+        marginReviewAlertHash: b.marginReviewAlertHash,
       },
     })
+    if (w.count !== 1) return { ok: false, reason: "changed_since" }
     await prisma.auditLog.create({
       data: {
         action: COPILOT_UNDO_ACTION,

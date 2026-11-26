@@ -149,6 +149,15 @@ describe("action plan", () => {
     expect(actions[0]).toMatchObject({ id: "fix_margins:lst_000002", reasons: ["supplier_price_changed"] })
   })
 
+  it("a listing that still earns a little and cannot be made healthy within +25 % → a pricing review, NOT a pause", () => {
+    // Positive but insufficient expected net, out of reach by price: never paused automatically.
+    const l = listing({ sellingPriceCents: 1500, supplierPriceCents: 1400, commissionRatePct: 5 })
+    expect(l.issues).toEqual(["net_insufficient"])
+    expect(l.expectedNetCents).toBeGreaterThan(0)
+    const [a] = buildActionPlan({ listings: [l] })
+    expect(a).toMatchObject({ type: "review_pricing", autonomy: "recommend" })
+  })
+
   it("rising refunds on a listing that still earns → a human review, NOT a pause", () => {
     const l = listing({ sellingPriceCents: 9000, supplierPriceCents: 5000, commissionRatePct: 20 })
     const [a] = buildActionPlan({ listings: [{ ...l, issues: ["refund_rate_rising"], status: "action" }] })

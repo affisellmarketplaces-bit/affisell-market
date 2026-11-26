@@ -29,6 +29,7 @@ const ACTION_KEYS: Record<ActionType, string> = {
   pause: "actionPause",
   fix_margins: "actionFixMargins",
   review_refunds: "actionReviewRefunds",
+  review_pricing: "actionReviewPricing",
   push_momentum: "actionPushMomentum",
   list_opportunity: "actionListOpportunity",
   review_traffic: "actionReviewTraffic",

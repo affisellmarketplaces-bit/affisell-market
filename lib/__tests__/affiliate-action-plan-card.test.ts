@@ -29,6 +29,7 @@ const TYPES = [
   "push_momentum",
   "list_opportunity",
   "review_traffic",
+  "review_pricing",
 ] as const
 
 const actions: PlannedAction[] = TYPES.map((type, i) => ({

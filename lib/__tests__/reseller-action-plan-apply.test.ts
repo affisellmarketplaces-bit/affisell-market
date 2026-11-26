@@ -14,6 +14,10 @@ type Listing = {
   clicks: number
   conversions: number
   marginReviewNeeded: boolean
+  marginReviewVariantKeys: string[]
+  marginReviewAt: Date | null
+  marginReviewAlertHash: string | null
+  updatedAt: Date
   position: number
   product: {
     id: string
@@ -37,6 +41,7 @@ const db = vi.hoisted(() => ({
     createdAt: Date
   }>,
   kycBlocked: false,
+  beforeWrite: null as null | ((l: Listing) => void),
 }))
 
 vi.mock("server-only", () => ({}))
@@ -56,6 +61,11 @@ vi.mock("@/lib/prisma", () => {
     marginCents: l.marginCents,
     isListed: l.isListed,
     variantPricing: l.variantPricing,
+    marginReviewNeeded: l.marginReviewNeeded,
+    marginReviewVariantKeys: l.marginReviewVariantKeys,
+    marginReviewAt: l.marginReviewAt,
+    marginReviewAlertHash: l.marginReviewAlertHash,
+    updatedAt: l.updatedAt,
   })
   return {
     prisma: {
@@ -76,11 +86,30 @@ vi.mock("@/lib/prisma", () => {
           const l = db.listings.get(where.id)
           return l ? pick(l) : null
         }),
-        update: vi.fn(async ({ where, data }: { where: { id: string }; data: Partial<Listing> }) => {
-          const l = db.listings.get(where.id)!
-          Object.assign(l, data)
-          return l
-        }),
+        updateMany: vi.fn(
+          async ({
+            where,
+            data,
+          }: {
+            where: { id: string; affiliateId: string; updatedAt: Date }
+            data: Partial<Listing>
+          }) => {
+            const l = db.listings.get(where.id)
+            if (!l || l.affiliateId !== where.affiliateId || l.updatedAt.getTime() !== where.updatedAt.getTime()) {
+              return { count: 0 }
+            }
+            db.beforeWrite?.(l)
+            if (l.updatedAt.getTime() !== where.updatedAt.getTime()) return { count: 0 }
+            const clean = Object.fromEntries(
+              Object.entries(data).map(([k, v]) => [
+                k,
+                v && typeof v === "object" && "toJSON" in (v as object) && String(v) === "DbNull" ? null : v,
+              ]),
+            )
+            Object.assign(l, clean, { updatedAt: new Date(l.updatedAt.getTime() + 1000) })
+            return { count: 1 }
+          },
+        ),
       },
       auditLog: {
         create: vi.fn(async ({ data }: { data: Omit<(typeof db.audit)[number], "id" | "createdAt"> }) => {
@@ -114,6 +143,7 @@ function seedThin() {
   db.listings.clear()
   db.audit.length = 0
   db.kycBlocked = false
+  db.beforeWrite = null
   db.listings.set("lst_000001", {
     id: "lst_000001",
     affiliateId: AFF,
@@ -124,6 +154,10 @@ function seedThin() {
     clicks: 0,
     conversions: 0,
     marginReviewNeeded: false,
+    marginReviewVariantKeys: [],
+    marginReviewAt: null,
+    marginReviewAlertHash: null,
+    updatedAt: new Date("2026-11-01T00:00:00Z"),
     position: 0,
     product: {
       id: "prod_000001",
@@ -178,7 +212,9 @@ describe("copilot apply / undo", () => {
 
   it("never overwrites a change made after the action: undo refused", async () => {
     const r = await applyCopilotAction({ affiliateId: AFF, actionId: "reprice:lst_000001" })
-    db.listings.get("lst_000001")!.sellingPriceCents = 7777 // the reseller edited the price by hand
+    const edited = db.listings.get("lst_000001")!
+    edited.sellingPriceCents = 7777 // the reseller edited the price by hand
+    edited.updatedAt = new Date(edited.updatedAt.getTime() + 5000)
     expect(await undoCopilotAction({ affiliateId: AFF, auditId: r.ok ? r.auditId : "" })).toEqual({
       ok: false,
       reason: "changed_since",
@@ -213,5 +249,52 @@ describe("copilot apply / undo", () => {
     db.kycBlocked = false
     expect(await undoCopilotAction({ affiliateId: AFF, auditId: r.ok ? r.auditId : "" })).toEqual({ ok: true })
     expect(l.isListed).toBe(true)
+  })
+
+  it("a concurrent edit landing between the check and the undo write is never overwritten", async () => {
+    const r = await applyCopilotAction({ affiliateId: AFF, actionId: "reprice:lst_000001" })
+    db.beforeWrite = (l) => {
+      l.sellingPriceCents = 8888 // someone saves the listing at that exact moment
+      l.updatedAt = new Date(l.updatedAt.getTime() + 7)
+    }
+    expect(await undoCopilotAction({ affiliateId: AFF, auditId: r.ok ? r.auditId : "" })).toEqual({
+      ok: false,
+      reason: "changed_since",
+    })
+    expect(db.listings.get("lst_000001")!.sellingPriceCents).toBe(8888)
+  })
+
+  it("undoing a margin fix restores the supplier price-rise flags it had cleared", async () => {
+    const l = db.listings.get("lst_000001")!
+    Object.assign(l, {
+      sellingPriceCents: 9000,
+      marginCents: 4000,
+      marginReviewNeeded: true,
+      marginReviewVariantKeys: ["Noir"],
+      marginReviewAt: new Date("2026-11-20T00:00:00Z"),
+      marginReviewAlertHash: "h_abc",
+    })
+    const { applyMarginAutoFixToListing } = await import("@/lib/affiliate-margin-auto-fix-apply.server")
+    vi.mocked(applyMarginAutoFixToListing).mockImplementationOnce(async () => {
+      Object.assign(l, {
+        sellingPriceCents: 9500,
+        marginReviewNeeded: false,
+        marginReviewVariantKeys: [],
+        marginReviewAt: null,
+        marginReviewAlertHash: null,
+        updatedAt: new Date(l.updatedAt.getTime() + 1000),
+      })
+      return { ok: true, listingId: "lst_000001", keysFixed: 1, cleared: true }
+    })
+    const r = await applyCopilotAction({ affiliateId: AFF, actionId: "fix_margins:lst_000001" })
+    expect(r.ok).toBe(true)
+    expect(await undoCopilotAction({ affiliateId: AFF, auditId: r.ok ? r.auditId : "" })).toEqual({ ok: true })
+    expect(l).toMatchObject({
+      sellingPriceCents: 9000,
+      marginReviewNeeded: true,
+      marginReviewVariantKeys: ["Noir"],
+      marginReviewAlertHash: "h_abc",
+    })
+    expect(l.marginReviewAt?.toISOString()).toBe("2026-11-20T00:00:00.000Z")
   })
 })
