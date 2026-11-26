@@ -67,6 +67,11 @@ vi.mock("@/lib/prisma", () => {
         updates.push(data)
         return {}
       },
+      updateMany: async ({ where, data }: { where: { status?: string }; data: Record<string, unknown> }) => {
+        if (where.status && state.attempt.status !== where.status) return { count: 0 }
+        updates.push(data)
+        return { count: 1 }
+      },
     },
     order: {
       findUnique: async (args: { select?: { stripeRefunds?: unknown } }) => {
@@ -143,6 +148,36 @@ describe("runProcessTransfersJob — last-line money guard", () => {
     state.existing = []
     state.freshReads = 0
     delete process.env.MONEY_GUARD_MODE
+  })
+
+  // A3 hotfix (2026-11-25): an order Lightning holds (in flight, or kept PROCESSING after an uncertain transfer) is
+  // never paid alongside it, and the attempt is not consumed.
+  it("never calls Stripe while Lightning holds the order (payoutStatus PROCESSING)", async () => {
+    await runOnce(attempt({}, { payoutStatus: "PROCESSING" }))
+    expect(transfersCreate).not.toHaveBeenCalled()
+    expect(updates).toHaveLength(0)
+  })
+
+  // A3 hotfix: Lightning records the leg SUCCESS while our call fails on the shared idempotency key → the failure
+  // handler must not put that attempt back to PENDING (it would be paid again once the key expires).
+  it("a Stripe failure never reverts an attempt a racing rail already marked SUCCESS", async () => {
+    transfersCreate.mockImplementationOnce(async () => {
+      state.attempt.status = "SUCCESS"
+      throw Object.assign(new Error("Keys for idempotent requests can only be used with the same parameters"), {
+        type: "StripeIdempotencyError",
+      })
+    })
+    await runOnce(attempt())
+    expect(transfersCreate).toHaveBeenCalledTimes(1)
+    expect(updates.some((u) => u.status === "PENDING" || u.status === "FAILED")).toBe(false)
+  })
+
+  it("a Stripe failure on a still-PENDING attempt is recorded as before", async () => {
+    transfersCreate.mockImplementationOnce(async () => {
+      throw new Error("network")
+    })
+    await runOnce(attempt())
+    expect(updates.some((u) => u.status === "PENDING" && u.attempts === 1)).toBe(true)
   })
 
   it("sends a normal transfer with a stable idempotency key", async () => {

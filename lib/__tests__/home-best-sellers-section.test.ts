@@ -23,7 +23,7 @@ vi.mock("@/lib/home-discovery.server", () => ({ loadHomeDiscoverySafe: async () 
 vi.mock("@/lib/home-flash-shops.server", () => ({ loadHomeFlashDealsSafe: async () => [], loadHomeShopsSafe: async () => [] }))
 vi.mock("@/lib/home-selection.server", () => ({ loadHomeSelectionSafe: async () => [] }))
 vi.mock("@/lib/taxonomy/resolve-browse-departments.server", () => ({
-  loadBrowseDepartmentsCached: async () => ({ departments: [{ resolved: true, id: "d1" }, { resolved: false, id: "d2" }] }),
+  loadBrowseDepartmentsSafe: async () => ({ departments: [{ resolved: true, id: "d1" }, { resolved: false, id: "d2" }] }),
 }))
 
 const bestSellers = vi.hoisted(() => ({ load: vi.fn() }))
