@@ -1,6 +1,10 @@
-import { HeroSection } from "@/components/HeroSection"
+import { BuyerPremiumHero } from "@/components/home/buyer-premium-hero"
 
-/** Buyer home hero — premium audit mockup (no reseller/supplier CTAs). */
+/** Buyer home hero — premium audit mockup (no reseller/supplier CTAs). Server-rendered. */
 export function BuyerHeroBlock() {
-  return <HeroSection variant="buyer" />
+  return (
+    <div>
+      <BuyerPremiumHero />
+    </div>
+  )
 }

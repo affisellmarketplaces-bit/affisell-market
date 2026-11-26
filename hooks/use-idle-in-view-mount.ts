@@ -1,7 +1,6 @@
 "use client"
 
-import { startTransition, useEffect, useRef, useState } from "react"
-import { useInView, type UseInViewOptions } from "framer-motion"
+import { startTransition, useEffect, useRef, useState, type RefObject } from "react"
 
 import { scheduleIdleTask } from "@/lib/schedule-idle-task"
 
@@ -10,8 +9,39 @@ type Options = {
   idleTimeoutMs?: number
   /** setTimeout fallback when requestIdleCallback is unavailable. */
   fallbackDelayMs?: number
-  /** IntersectionObserver root margin (framer-motion `margin`). */
-  rootMargin?: UseInViewOptions["margin"]
+  /** IntersectionObserver root margin, CSS syntax ("160px 0px"). */
+  rootMargin?: string
+}
+
+/**
+ * True once the element has entered the viewport (grown by `rootMargin`), then never false again.
+ * Native IntersectionObserver: this hook runs on the home page's first JavaScript, where the
+ * framer-motion `useInView` it replaces cost ~44 KB gzip for one observer. Without
+ * IntersectionObserver (very old browsers) the element counts as visible, so content still mounts.
+ */
+export function useInViewOnce(ref: RefObject<Element | null>, rootMargin = "0px"): boolean {
+  const [inView, setInView] = useState(false)
+  useEffect(() => {
+    if (inView) return
+    const el = ref.current
+    if (!el) return
+    if (typeof IntersectionObserver === "undefined") {
+      setInView(true)
+      return
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setInView(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [ref, rootMargin, inView])
+  return inView
 }
 
 /**
@@ -26,7 +56,7 @@ export function useIdleInViewMount(options: Options = {}) {
   } = options
 
   const ref = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: rootMargin })
+  const inView = useInViewOnce(ref, rootMargin)
   const [idleReady, setIdleReady] = useState(false)
   const [ready, setReady] = useState(false)
 

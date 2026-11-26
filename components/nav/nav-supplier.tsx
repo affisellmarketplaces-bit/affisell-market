@@ -7,7 +7,7 @@ import { CalendarCheck, Flame, Handshake, Layers, LayoutDashboard, Package, Rock
 import { LocaleSwitcher } from "@/components/locale-switcher"
 import { FastLink } from "@/components/navigation/fast-link"
 import { NavPill } from "@/components/navigation/nav-pill"
-import { QuickNav } from "@/components/navigation/quick-nav"
+import dynamic from "next/dynamic"
 import { MerchantAccountNavActions } from "@/components/merchant-account-nav-actions"
 import { MerchantAvatarMenu } from "@/components/nav/merchant-avatar-menu"
 import { RadarNavPill } from "@/components/radar/radar-nav-pill"
@@ -17,6 +17,11 @@ import { isPartnerDockRoute } from "@/lib/partner-mobile-nav"
 import { DROPFORGE_HREF } from "@/lib/affiliate-onboarding-shared"
 import { MAGIC_SYSTEMS_HREF } from "@/lib/magic-systems-catalog"
 import { cn } from "@/lib/utils"
+
+/** ⌘K palette split out: only signed-in suppliers render this nav (see nav-affiliate). */
+const QuickNav = dynamic(() =>
+  import("@/components/navigation/quick-nav").then((m) => m.QuickNav)
+)
 
 const navScrollClass =
   "flex min-w-0 items-center gap-0.5 overflow-x-auto overscroll-x-contain pr-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
