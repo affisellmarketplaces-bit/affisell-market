@@ -10,6 +10,7 @@ import {
 } from "@/lib/money/split-guard"
 import { evaluateTransferReleaseForRole } from "@/lib/order-transfer-gating"
 import { hasOpenDisputeHold } from "@/lib/orders/dispute-hold.server"
+import { verifyReleaseWithStripe } from "@/lib/transfers/stripe-release-check.server"
 import {
   isOrderClosedForPayout,
   isOrderPayoutHeldForDispute,
@@ -33,6 +34,8 @@ import { getStripeClient } from "@/lib/stripe"
 import * as Sentry from "@sentry/nextjs"
 
 const MAX_ATTEMPTS = 3
+/** A run owns an attempt for this long (far above the Stripe client's own timeouts); a crashed run's lease expires. */
+export const TRANSFER_LEASE_MS = 5 * 60 * 1000
 
 export type ProcessTransfersResult = {
   processed: number
@@ -279,6 +282,25 @@ async function processOneAttempt(
     return "held"
   }
 
+  // ── Claim the attempt (one run at a time) ────────────────────────────────────────────────────────────────────
+  // The cron and the webhook-triggered release can run the same attempt at once. Both would call Stripe (the shared
+  // idempotency key prevents a second transfer only if both requests are IDENTICAL), and the loser's error path could
+  // overwrite a SUCCESS. A conditional update takes a short lease on the row: only the run whose update matches goes on.
+  // Attempts are not consumed (a held attempt must stay retryable); the lease expires by itself.
+  const leaseNow = new Date()
+  const claimed = await prisma.transferAttempt.updateMany({
+    where: {
+      id: attempt.id,
+      status: "PENDING",
+      OR: [{ lastAttemptAt: null }, { lastAttemptAt: { lt: new Date(leaseNow.getTime() - TRANSFER_LEASE_MS) } }],
+    },
+    data: { lastAttemptAt: leaseNow },
+  })
+  if (claimed.count !== 1) {
+    console.log("[transfer-gating]", { orderId: attempt.orderId, role: attempt.role, reason: "claimed_by_another_run" })
+    return "skipped"
+  }
+
   const stripe = getStripeClient()
   const now = new Date()
   const nextAttempts = attempt.attempts + 1
@@ -365,6 +387,10 @@ async function processOneAttempt(
         subtotalCents: true,
         sellingPriceCents: true,
         taxCents: true,
+        currency: true,
+        stripeChargeId: true,
+        stripePaymentIntentId: true,
+        stripeSessionId: true,
         stripeRefunds: { select: { stripeRefundId: true, amountCents: true } },
       },
     })
@@ -380,6 +406,38 @@ async function processOneAttempt(
       })
       return "skipped"
     }
+    // A dispute opened since the attempt was loaded (D7): held, attempt kept PENDING.
+    if (isOrderPayoutHeldForDispute(fresh, await hasOpenDisputeHold(attempt.orderId))) {
+      console.log("[transfer-gating]", { orderId: attempt.orderId, role: attempt.role, reason: "dispute_open_at_release" })
+      return "held"
+    }
+
+    // ── Stripe itself must agree with our rows (a refund whose webhook never arrived, a dispute we did not record) ──
+    const stripeCheck = await verifyReleaseWithStripe(
+      stripe,
+      { id: attempt.orderId, ...fresh },
+      fresh.stripeRefunds,
+    )
+    if (!stripeCheck.ok) {
+      logStripeWebhookError({
+        level: "error",
+        metric: "transfer_held_stripe_check",
+        orderId: attempt.orderId,
+        role: attempt.role,
+        reason: stripeCheck.reason,
+        detail: stripeCheck.detail,
+      })
+      // Explainable trace on the attempt itself; it stays PENDING and its attempts are not consumed.
+      await prisma.transferAttempt.update({
+        where: { id: attempt.id },
+        data: {
+          errorCode: `STRIPE_CHECK_${stripeCheck.reason.toUpperCase()}`,
+          errorMessage: stripeCheck.detail.slice(0, 500),
+        },
+      })
+      return "held"
+    }
+
     const refundsAtRelease = fresh.stripeRefunds
     const { payableCents, refundShareCents } = payableAfterRefunds({
       scheduledCents: attempt.amountCents,
@@ -437,6 +495,7 @@ async function processOneAttempt(
               role: attempt.role,
               scheduledCents: String(attempt.amountCents),
               refundShareCents: String(refundShareCents),
+              stripeCheckedRefundCents: String(stripeCheck.stripeRefundCents),
             },
           },
           { idempotencyKey: idempotencyKey(attempt.orderId, attempt.role) },

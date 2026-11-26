@@ -19,6 +19,11 @@ const state: {
   existing: Array<Record<string, unknown>>
   freshReads: number
   openDisputeHolds: number
+  /** Stripe's own view of the charge's refunds; `null` = mirrors our rows (consistent, all succeeded). */
+  stripeRefunds: Array<{ id: string; amount: number; status: string; metadata?: Record<string, string> }> | null
+  charge: Record<string, unknown>
+  stripeDown: boolean
+  claimCount: number
 } = {
   attempt: {},
   others: [],
@@ -29,6 +34,10 @@ const state: {
   existing: [],
   freshReads: 0,
   openDisputeHolds: 0,
+  stripeRefunds: null,
+  charge: {},
+  stripeDown: false,
+  claimCount: 1,
 }
 const updates: Array<Record<string, unknown>> = []
 
@@ -49,10 +58,27 @@ vi.mock("@/lib/payout-settlement", () => ({
   }),
   supersedePendingTransferAttempt: vi.fn(async () => {}),
 }))
+const chargesRetrieve = vi.fn(async (id: string) => {
+  if (state.stripeDown) throw new Error("stripe unavailable")
+  return { id, status: "succeeded", captured: true, disputed: false, currency: "eur", ...state.charge }
+})
 vi.mock("@/lib/stripe", () => ({
   getStripeClient: () => ({
     accounts: { retrieve: async () => ({ capabilities: { transfers: "active" } }) },
     transfers: { create: transfersCreate, list: transfersList },
+    charges: { retrieve: chargesRetrieve },
+    paymentIntents: { retrieve: async () => ({ latest_charge: "ch_1" }) },
+    refunds: {
+      // Async-iterable like the SDK's auto-paging list.
+      list: () => ({
+        async *[Symbol.asyncIterator]() {
+          const rows =
+            state.stripeRefunds ??
+            state.refunds.map((r) => ({ id: r.stripeRefundId, amount: r.amountCents, status: "succeeded" }))
+          for (const r of rows) yield r
+        },
+      }),
+    },
   }),
 }))
 vi.mock("@/lib/order-payout", () => ({
@@ -69,6 +95,8 @@ vi.mock("@/lib/prisma", () => {
         updates.push(data)
         return {}
       },
+      // The lease claim (one run at a time).
+      updateMany: async () => ({ count: state.claimCount }),
     },
     order: {
       findUnique: async (args: { select?: { stripeRefunds?: unknown } }) => {
@@ -147,6 +175,11 @@ describe("runProcessTransfersJob — last-line money guard", () => {
     state.existing = []
     state.freshReads = 0
     state.openDisputeHolds = 0
+    state.stripeRefunds = null
+    state.charge = {}
+    state.stripeDown = false
+    state.claimCount = 1
+    chargesRetrieve.mockClear()
     delete process.env.MONEY_GUARD_MODE
   })
 
@@ -316,6 +349,86 @@ describe("runProcessTransfersJob — last-line money guard", () => {
       state.openDisputeHolds = 0
       await runOnce(attempt({}, { status: "shipped", paymentSettlementStatus: "PAID" }))
       expect(transfersCreate).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  // ── D7 + reconciliation with Stripe at release (2026-11-26) ────────────────────────────────────────────────────────
+  describe("Stripe is asked before the money leaves", () => {
+    const heldWith = (code: string) => {
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(updates.some((u) => u.errorCode === code && u.status === undefined)).toBe(true)
+      expect(updates.some((u) => u.status === "FAILED" || u.status === "SUCCESS")).toBe(false)
+    }
+
+    it("a refund at Stripe whose webhook never reached us: HELD, never paid in full", async () => {
+      state.stripeRefunds = [{ id: "re_lost", amount: 6_500, status: "succeeded" }]
+      await runOnce(attempt())
+      heldWith("STRIPE_CHECK_REFUND_NOT_RECORDED")
+    })
+
+    it("a PENDING refund at Stripe counts as money going back (held until recorded)", async () => {
+      state.stripeRefunds = [{ id: "re_p", amount: 1_000, status: "pending" }]
+      await runOnce(attempt())
+      heldWith("STRIPE_CHECK_REFUND_NOT_RECORDED")
+    })
+
+    it("failed and canceled refunds are not refunds: the full share is paid", async () => {
+      state.stripeRefunds = [
+        { id: "re_f", amount: 6_500, status: "failed" },
+        { id: "re_c", amount: 6_500, status: "canceled" },
+      ]
+      await runOnce(attempt())
+      expect((transfersCreate.mock.calls[0] as unknown as [{ amount: number }])[0].amount).toBe(3_200)
+    })
+
+    it("Stripe and our rows agree on two partial refunds: paid exactly payableAfterRefunds", async () => {
+      state.refunds = [
+        { stripeRefundId: "re_1", amountCents: 1_001 },
+        { stripeRefundId: "re_2", amountCents: 1_001 },
+      ]
+      await runOnce(attempt({}, { paymentSettlementStatus: "PARTIALLY_REFUNDED" }))
+      expect((transfersCreate.mock.calls[0] as unknown as [{ amount: number }])[0].amount).toBe(3_200 - 2 * 246)
+    })
+
+    it("amounts disagree: HELD", async () => {
+      state.refunds = [{ stripeRefundId: "re_1", amountCents: 1_000 }]
+      state.stripeRefunds = [{ id: "re_1", amount: 1_500, status: "succeeded" }]
+      await runOnce(attempt({}, { paymentSettlementStatus: "PARTIALLY_REFUNDED" }))
+      heldWith("STRIPE_CHECK_REFUND_AMOUNT_MISMATCH")
+    })
+
+    it("a refund we recorded that FAILED at Stripe: HELD (our rows are wrong)", async () => {
+      state.refunds = [{ stripeRefundId: "re_1", amountCents: 1_000 }]
+      state.stripeRefunds = [{ id: "re_1", amount: 1_000, status: "failed" }]
+      await runOnce(attempt({}, { paymentSettlementStatus: "PARTIALLY_REFUNDED" }))
+      heldWith("STRIPE_CHECK_RECORDED_REFUND_NOT_AT_STRIPE")
+    })
+
+    it("the charge is DISPUTED at Stripe though no dispute webhook reached us: HELD", async () => {
+      state.charge = { disputed: true }
+      await runOnce(attempt())
+      heldWith("STRIPE_CHECK_CHARGE_DISPUTED")
+    })
+
+    it("Stripe unavailable: HELD, attempts not consumed", async () => {
+      state.stripeDown = true
+      await runOnce(attempt())
+      heldWith("STRIPE_CHECK_STRIPE_UNAVAILABLE")
+    })
+
+    it("a dispute opened after the attempt was loaded is seen by the late read", async () => {
+      state.freshOrder = { ...(attempt().order as Record<string, unknown>), status: "disputed" }
+      await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(chargesRetrieve).not.toHaveBeenCalled()
+    })
+
+    it("another run holds the attempt (lease): this one does nothing at all", async () => {
+      state.claimCount = 0
+      await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(chargesRetrieve).not.toHaveBeenCalled()
+      expect(updates).toEqual([])
     })
   })
 })
