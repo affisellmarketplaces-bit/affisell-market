@@ -19,7 +19,9 @@ CREATE TABLE "ResellerAutonomyRule" (
     CONSTRAINT "ResellerAutonomyRule_actionType_check" CHECK ("actionType" IN ('fix_margins', 'reprice')),
     CONSTRAINT "ResellerAutonomyRule_maxPriceIncreaseBps_check" CHECK ("maxPriceIncreaseBps" BETWEEN 0 AND 2500),
     CONSTRAINT "ResellerAutonomyRule_maxRunsPerWeek_check" CHECK ("maxRunsPerWeek" BETWEEN 1 AND 50),
-    CONSTRAINT "ResellerAutonomyRule_autoRunsInWindow_check" CHECK ("autoRunsInWindow" BETWEEN 0 AND "maxRunsPerWeek")
+    -- Bounded by the largest cap, NOT by the current one: lowering the cap must never erase runs already used in the
+    -- window (a later raise would then allow more than the cap). A lower cap simply stops the next reservation.
+    CONSTRAINT "ResellerAutonomyRule_autoRunsInWindow_check" CHECK ("autoRunsInWindow" BETWEEN 0 AND 50)
 );
 
 CREATE UNIQUE INDEX "ResellerAutonomyRule_affiliateId_actionType_key" ON "ResellerAutonomyRule"("affiliateId", "actionType");

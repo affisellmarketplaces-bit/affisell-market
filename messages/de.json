@@ -2862,7 +2862,15 @@
       "grant": "Erlauben",
       "revoke": "Erlaubnis entziehen",
       "error": "Fehlgeschlagen. Bitte erneut versuchen.",
-      "never": "Nie automatisch: Pausieren eines Produkts, Zahlungen, Überweisungen und alles Unumkehrbare."
+      "never": "Nie automatisch: Pausieren eines Produkts, Zahlungen, Überweisungen und alles Unumkehrbare.",
+      "recentTitle": "Aktionen, die der Copilot selbst ausgeführt hat (letzte 7 Tage)",
+      "recentReprice": "Preis von „{name}“ am {date} angepasst",
+      "recentFixMargins": "Margen von „{name}“ am {date} wiederhergestellt",
+      "undo": "Rückgängig",
+      "undone": "Rückgängig gemacht: Das Angebot ist wieder im vorherigen Zustand.",
+      "undoChangedSince": "Das Angebot wurde seitdem geändert: Rückgängigmachen nicht möglich.",
+      "undoExpired": "Die Frist zum Rückgängigmachen (7 Tage) ist abgelaufen.",
+      "undoKyc": "Eine Identitätsprüfung ist erforderlich, um dieses Produkt wieder online zu stellen."
     }
   },
   "marketplace": {

@@ -2862,7 +2862,15 @@
       "grant": "Autorizar",
       "revoke": "Retirar la autorización",
       "error": "Error. Inténtalo de nuevo.",
-      "never": "Nunca automático: pausar un producto, pagos, transferencias y cualquier acción irreversible."
+      "never": "Nunca automático: pausar un producto, pagos, transferencias y cualquier acción irreversible.",
+      "recentTitle": "Acciones que el copiloto hizo solo (últimos 7 días)",
+      "recentReprice": "Precio de «{name}» ajustado el {date}",
+      "recentFixMargins": "Márgenes de «{name}» restablecidos el {date}",
+      "undo": "Deshacer",
+      "undone": "Deshecho: la ficha ha vuelto a su estado anterior.",
+      "undoChangedSince": "La ficha se ha modificado desde entonces: no se puede deshacer.",
+      "undoExpired": "Se ha superado el plazo para deshacer (7 días).",
+      "undoKyc": "Se requiere verificación de identidad para volver a publicar este producto."
     }
   },
   "marketplace": {

@@ -2862,7 +2862,15 @@
       "grant": "Autoriser",
       "revoke": "Retirer l'autorisation",
       "error": "Échec. Réessayez.",
-      "never": "Jamais automatique : mise en pause d'un produit, paiements, virements et toute action irréversible."
+      "never": "Jamais automatique : mise en pause d'un produit, paiements, virements et toute action irréversible.",
+      "recentTitle": "Actions faites seul par le copilote (7 derniers jours)",
+      "recentReprice": "Prix de « {name} » ajusté le {date}",
+      "recentFixMargins": "Marges de « {name} » rétablies le {date}",
+      "undo": "Annuler",
+      "undone": "Annulé : la fiche est revenue à son état précédent.",
+      "undoChangedSince": "La fiche a été modifiée depuis : annulation impossible.",
+      "undoExpired": "Le délai d'annulation (7 jours) est dépassé.",
+      "undoKyc": "Vérification d'identité requise pour remettre ce produit en ligne."
     }
   },
   "marketplace": {

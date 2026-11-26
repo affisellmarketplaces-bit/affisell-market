@@ -2862,7 +2862,15 @@
       "grant": "授权",
       "revoke": "撤回授权",
       "error": "操作失败，请重试。",
-      "never": "永远不会自动执行：暂停商品、付款、转账以及任何不可撤销的操作。"
+      "never": "永远不会自动执行：暂停商品、付款、转账以及任何不可撤销的操作。",
+      "recentTitle": "副驾驶自动执行的操作（最近 7 天）",
+      "recentReprice": "「{name}」的价格已于 {date} 调整",
+      "recentFixMargins": "「{name}」的利润已于 {date} 恢复",
+      "undo": "撤销",
+      "undone": "已撤销：商品已恢复到之前的状态。",
+      "undoChangedSince": "商品此后已被修改：无法撤销。",
+      "undoExpired": "撤销期限（7 天）已过。",
+      "undoKyc": "需要完成身份验证才能重新上架此商品。"
     }
   },
   "marketplace": {

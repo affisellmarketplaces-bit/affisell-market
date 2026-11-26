@@ -2862,7 +2862,15 @@
       "grant": "Autorizza",
       "revoke": "Revoca l'autorizzazione",
       "error": "Operazione non riuscita. Riprova.",
-      "never": "Mai automatico: sospendere un prodotto, pagamenti, bonifici e qualsiasi azione irreversibile."
+      "never": "Mai automatico: sospendere un prodotto, pagamenti, bonifici e qualsiasi azione irreversibile.",
+      "recentTitle": "Azioni svolte dal copilota in autonomia (ultimi 7 giorni)",
+      "recentReprice": "Prezzo di «{name}» adeguato il {date}",
+      "recentFixMargins": "Margini di «{name}» ripristinati il {date}",
+      "undo": "Annulla",
+      "undone": "Annullato: la scheda è tornata allo stato precedente.",
+      "undoChangedSince": "La scheda è stata modificata nel frattempo: annullamento impossibile.",
+      "undoExpired": "Il termine per annullare (7 giorni) è scaduto.",
+      "undoKyc": "È richiesta la verifica dell'identità per rimettere online questo prodotto."
     }
   },
   "marketplace": {

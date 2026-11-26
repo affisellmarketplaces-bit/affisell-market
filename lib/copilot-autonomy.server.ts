@@ -4,12 +4,15 @@ import { randomUUID } from "node:crypto"
 
 import { Prisma } from "@prisma/client"
 
+import { COPILOT_APPLY_ACTION, COPILOT_UNDO_ACTION } from "@/lib/copilot-audit-actions"
+
 import {
   decideAutoApply,
   isAutoEligibleType,
   type AutoDecision,
   type AutoEligibleType,
   type AutonomyRule,
+  type RecentAutoAction,
 } from "@/lib/copilot-autonomy"
 import { prisma } from "@/lib/prisma"
 import { applyCopilotAction, loadResellerActionPlan } from "@/lib/reseller-action-plan.server"
@@ -83,8 +86,8 @@ export async function grantAutonomy(args: {
         "maxRunsPerWeek" = EXCLUDED."maxRunsPerWeek",
         "grantedAt" = NOW(),
         "revokedAt" = NULL,
-        -- Re-granting never refills the quota already used in the current window.
-        "autoRunsInWindow" = LEAST("ResellerAutonomyRule"."autoRunsInWindow", EXCLUDED."maxRunsPerWeek"),
+        -- Re-granting (or changing the cap) never touches the runs already used in the current window: lowering then
+        -- raising the cap must not refill the quota. "autoRunsInWindow" / "autoRunsWindowStart" are deliberately left out.
         "updatedAt" = NOW()`,
       prisma.auditLog.create({
         data: {
@@ -128,6 +131,59 @@ export async function revokeAutonomy(args: {
     if (isMissingTable(e)) return { ok: false, reason: "unavailable" }
     console.error("[copilot-autonomy] revoke failed", e instanceof Error ? e.message : e)
     return { ok: false, reason: "failed" }
+  }
+}
+
+/**
+ * The copilot's OWN actions of the last 7 days that are not undone yet — what the reseller is told it can undo
+ * « from the hub ». Each row is undone through the same guarded path as a click (`undoCopilotAction`: 7 days, listing
+ * unchanged since, identity check to relist). Read-only, never throws.
+ */
+export async function listRecentAutoActions(affiliateId: string, now: Date = new Date()): Promise<RecentAutoAction[]> {
+  try {
+    const logs = await prisma.auditLog.findMany({
+      where: {
+        action: COPILOT_APPLY_ACTION,
+        actorId: affiliateId,
+        createdAt: { gte: new Date(now.getTime() - AUTO_RUN_WINDOW_MS) },
+        payload: { path: ["source"], equals: "auto" },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: { id: true, entityId: true, payload: true, createdAt: true },
+    })
+    if (logs.length === 0) return []
+    const undone = await prisma.auditLog.findMany({
+      where: {
+        action: COPILOT_UNDO_ACTION,
+        actorId: affiliateId,
+        createdAt: { gte: logs[logs.length - 1]!.createdAt },
+      },
+      select: { payload: true },
+    })
+    const undoneIds = new Set(undone.map((u) => (u.payload as { undoOf?: string } | null)?.undoOf).filter(Boolean))
+    const open = logs.filter((l) => l.entityId && !undoneIds.has(l.id))
+    const listings = await prisma.affiliateProduct.findMany({
+      where: { id: { in: open.map((l) => l.entityId!) }, affiliateId },
+      select: { id: true, product: { select: { name: true } } },
+    })
+    const names = new Map(listings.map((l) => [l.id, l.product?.name ?? ""]))
+    return open.flatMap((l) => {
+      const type = (l.payload as { type?: string } | null)?.type
+      if (!isAutoEligibleType(type ?? null) || !names.has(l.entityId!)) return []
+      return [
+        {
+          auditId: l.id,
+          type: type as AutoEligibleType,
+          listingId: l.entityId!,
+          name: names.get(l.entityId!)!,
+          appliedAt: l.createdAt.toISOString(),
+        },
+      ]
+    })
+  } catch (e) {
+    console.warn("[copilot-autonomy] recent auto actions unavailable", e instanceof Error ? e.message : e)
+    return []
   }
 }
 
