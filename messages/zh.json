@@ -2843,6 +2843,26 @@
       "outcomeInsufficient": "销量不足",
       "outcomeTooEarly": "为时尚早",
       "note": "对比每项行动前后各 28 天：这是观察结果，不是因果证明。“已支付”仅计算实际转出的款项。"
+    },
+    "autonomy": {
+      "eyebrow": "副驾驶自主权限",
+      "title": "副驾驶可以自行执行的操作",
+      "hint": "默认不会自动执行任何操作。您每次授权一种操作类型，并设定限制。每项自动操作都会通知您，7 天内可撤销。",
+      "unavailable": "即将推出。",
+      "fix_marginsTitle": "供应商涨价后恢复我的利润",
+      "fix_marginsExplain": "供应商涨价时，您的售价随之调整，以保持您设定的利润。",
+      "repriceTitle": "调整过低的价格",
+      "repriceExplain": "当商品收益不足时，副驾驶会在您的限制内将价格调整为可盈利的最低价格。",
+      "maxIncrease": "最大涨幅",
+      "maxRuns": "每周最多操作次数",
+      "consentReprice": "我授权副驾驶自行提高我低收益商品的价格，每次最多 {pct}%，每周最多 {runs} 次，并会通知我，7 天内可撤销。",
+      "consentFixMargins": "我授权副驾驶在供应商涨价时自行恢复我的利润（我的售价随涨价调整），每周最多 {runs} 次，并会通知我，7 天内可撤销。",
+      "activeReprice": "已启用：最多 +{pct}%，每周最多 {runs} 次",
+      "activeFixMargins": "已启用：每周最多 {runs} 次",
+      "grant": "授权",
+      "revoke": "撤回授权",
+      "error": "操作失败，请重试。",
+      "never": "永远不会自动执行：暂停商品、付款、转账以及任何不可撤销的操作。"
     }
   },
   "marketplace": {

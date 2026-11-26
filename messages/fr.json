@@ -2843,6 +2843,26 @@
       "outcomeInsufficient": "Pas assez de ventes",
       "outcomeTooEarly": "Trop tôt pour juger",
       "note": "Comparaison sur 28 jours avant/après chaque action : une observation, pas une preuve de cause. « Versé » ne compte que l'argent réellement viré."
+    },
+    "autonomy": {
+      "eyebrow": "Autonomie du copilote",
+      "title": "Ce que le copilote peut faire seul",
+      "hint": "Rien n'est automatique par défaut. Vous autorisez un type d'action à la fois, avec vos limites. Chaque action automatique vous est notifiée et s'annule pendant 7 jours.",
+      "unavailable": "Bientôt disponible.",
+      "fix_marginsTitle": "Rétablir mes marges après une hausse fournisseur",
+      "fix_marginsExplain": "Quand un fournisseur augmente son prix, votre prix suit pour conserver la marge que vous aviez fixée.",
+      "repriceTitle": "Ajuster un prix trop faible",
+      "repriceExplain": "Quand un produit ne vous rapporte plus assez, le copilote passe au prix le plus bas qui le rend rentable, dans votre limite.",
+      "maxIncrease": "Hausse maximale",
+      "maxRuns": "Actions par semaine, au plus",
+      "consentReprice": "J'autorise le copilote à augmenter seul le prix de mes produits peu rentables, de {pct} % au plus par changement, {runs} fois par semaine au plus, avec notification et annulation possible pendant 7 jours.",
+      "consentFixMargins": "J'autorise le copilote à rétablir seul mes marges quand un fournisseur augmente son prix (mon prix suit la hausse), {runs} fois par semaine au plus, avec notification et annulation possible pendant 7 jours.",
+      "activeReprice": "Activé : +{pct} % au plus, {runs} par semaine au plus",
+      "activeFixMargins": "Activé : {runs} par semaine au plus",
+      "grant": "Autoriser",
+      "revoke": "Retirer l'autorisation",
+      "error": "Échec. Réessayez.",
+      "never": "Jamais automatique : mise en pause d'un produit, paiements, virements et toute action irréversible."
     }
   },
   "marketplace": {

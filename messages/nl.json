@@ -2843,6 +2843,26 @@
       "outcomeInsufficient": "Te weinig verkopen",
       "outcomeTooEarly": "Te vroeg",
       "note": "28 dagen voor en na elke actie: een observatie, geen bewijs van oorzaak. 'Uitbetaald' telt alleen geld dat echt is overgemaakt."
+    },
+    "autonomy": {
+      "eyebrow": "Autonomie van de copiloot",
+      "title": "Wat de copiloot zelf mag doen",
+      "hint": "Standaard is niets automatisch. Je staat één soort actie tegelijk toe, met jouw limieten. Elke automatische actie wordt je gemeld en kan 7 dagen ongedaan worden gemaakt.",
+      "unavailable": "Binnenkort beschikbaar.",
+      "fix_marginsTitle": "Mijn marges herstellen na een prijsverhoging van de leverancier",
+      "fix_marginsExplain": "Als een leverancier zijn prijs verhoogt, volgt jouw prijs om de marge te behouden die je had ingesteld.",
+      "repriceTitle": "Een te lage prijs aanpassen",
+      "repriceExplain": "Als een product niet meer genoeg oplevert, kiest de copiloot de laagste prijs die het rendabel maakt, binnen jouw limiet.",
+      "maxIncrease": "Maximale verhoging",
+      "maxRuns": "Acties per week, maximaal",
+      "consentReprice": "Ik sta de copiloot toe om zelf de prijs van mijn weinig rendabele producten te verhogen, met maximaal {pct}% per wijziging en maximaal {runs} keer per week, met melding en 7 dagen om ongedaan te maken.",
+      "consentFixMargins": "Ik sta de copiloot toe om zelf mijn marges te herstellen als een leverancier zijn prijs verhoogt (mijn prijs volgt de verhoging), maximaal {runs} keer per week, met melding en 7 dagen om ongedaan te maken.",
+      "activeReprice": "Aan: maximaal +{pct}%, maximaal {runs} per week",
+      "activeFixMargins": "Aan: maximaal {runs} per week",
+      "grant": "Toestaan",
+      "revoke": "Toestemming intrekken",
+      "error": "Mislukt. Probeer het opnieuw.",
+      "never": "Nooit automatisch: een product pauzeren, betalingen, overboekingen en alles wat onomkeerbaar is."
     }
   },
   "marketplace": {

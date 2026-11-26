@@ -296,6 +296,8 @@ model User {
    * GPSR defaults (manufacturer / EU responsible person) a supplier can apply to a product in one click.
    */
   complianceProfile SupplierComplianceProfile?
+  /// Copilot autonomy grants, one per action type (see lib/copilot-autonomy.ts). Never a global grant.
+  resellerAutonomyRules ResellerAutonomyRule[]
 
   /**
    * Reseller Margin Lock 7j — protected supplier cost windows.
@@ -372,6 +374,26 @@ model MerchantLegalProfile {
  * carries — and the supplier still confirms — its own values (see ProductAttribute keys `gpsr_*`).
  * Isolated table on purpose: if its migration lags behind a deploy, only the profile screens are affected.
  */
+/**
+ * A reseller's explicit, revocable permission for the copilot to apply ONE kind of reversible action automatically,
+ * within limits (lib/copilot-autonomy.ts). One row per action type — there is no "allow everything" switch: the CHECK
+ * constraints only accept `fix_margins` and `reprice`, a price increase cap ≤ 25 % and a weekly run cap. Revoked =
+ * `revokedAt` set (kept for the audit trail). Isolated table, accessed defensively (missing table = no automation).
+ */
+model ResellerAutonomyRule {
+  id                  String    @id @default(cuid())
+  affiliateId         String
+  affiliate           User      @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  actionType          String
+  maxPriceIncreaseBps Int       @default(1000)
+  maxRunsPerWeek      Int       @default(5)
+  grantedAt           DateTime  @default(now())
+  revokedAt           DateTime?
+  updatedAt           DateTime  @updatedAt
+
+  @@unique([affiliateId, actionType])
+}
+
 model SupplierComplianceProfile {
   id                  String   @id @default(cuid())
   userId              String   @unique

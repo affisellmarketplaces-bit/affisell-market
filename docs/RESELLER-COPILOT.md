@@ -147,6 +147,36 @@ These verdicts are **observations, not causal proof**. The copilot "learns" thro
 (and per type × category), shown next to a new suggestion ("So far: 9/12 beneficial for you") once at least 10
 actions have been judged. There is no opaque model.
 
+## 8. Progressive autonomy (`lib/copilot-autonomy*.ts`, table `ResellerAutonomyRule`)
+
+| Level | What happens | For which actions |
+| --- | --- | --- |
+| 1. Recommend | information and a link | every action |
+| 2. Confirm (default) | prepared; applied on the reseller's click; undoable for 7 days | `reprice`, `pause`, `fix_margins` |
+| 3. Automatic | applied by the copilot within the reseller's limits; notified; undoable for 7 days | **only** `fix_margins` and `reprice`, **only** after an explicit grant |
+
+Hard rules:
+
+- **No global grant.** There is one row per action type. The database's CHECK constraints accept only
+  `fix_margins` and `reprice`, a price-rise cap ≤ 25 % (`maxPriceIncreaseBps` ≤ 2 500) and 1 to 50 runs per week.
+- **A grant needs `consent: true`.** The UI shows the exact sentence with the limits, and the grant is written to
+  AuditLog (`copilot.autonomy.grant`) with those limits.
+- **Revocation is one click** (`copilot.autonomy.revoke`). The row is kept with `revokedAt` for the trail.
+- **Never automatic**, whatever is granted: pausing a product, payments, transfers, anything irreversible.
+- **Same guarded path as a click.** The autopilot uses the plan recomputed at that moment and the conditional
+  write, and records each action in AuditLog with `source: "auto"`. Each action is notified (`COPILOT_AUTO_ACTION`)
+  and undoable.
+- **Off by default.** It runs only with **`COPILOT_AUTOPILOT=on`**. The cron `/api/cron/copilot-autopilot` exists
+  but is **not scheduled**: scheduling it is the owner's decision.
+- **Missing table.** A database without the table means no automation at all. The settings card is then hidden,
+  and nothing crashes.
+
+**Deployment order** (same procedure as every schema change, `docs/DEPLOY-SCHEMA-CHANGES.md`):
+
+1. Run `schema:migrate` on staging, then on production (migration `20261126100000_reseller_autonomy_rule`).
+2. Run `schema:verify`.
+3. Merge.
+
 ## Data access and rollback
 
 - `loadProductRiskContext` is read-only. It runs three grouped queries (product, category, supplier) whatever

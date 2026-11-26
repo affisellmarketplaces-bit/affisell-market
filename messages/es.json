@@ -2843,6 +2843,26 @@
       "outcomeInsufficient": "Pocas ventas",
       "outcomeTooEarly": "Demasiado pronto",
       "note": "28 días antes y después de cada acción: una observación, no una prueba de causa. «Pagado» solo cuenta el dinero realmente transferido."
+    },
+    "autonomy": {
+      "eyebrow": "Autonomía del copiloto",
+      "title": "Lo que el copiloto puede hacer solo",
+      "hint": "Nada es automático por defecto. Autorizas un tipo de acción a la vez, con tus límites. Cada acción automática se te notifica y se puede deshacer durante 7 días.",
+      "unavailable": "Próximamente.",
+      "fix_marginsTitle": "Restablecer mis márgenes tras una subida del proveedor",
+      "fix_marginsExplain": "Cuando un proveedor sube su precio, tu precio lo sigue para conservar el margen que habías fijado.",
+      "repriceTitle": "Ajustar un precio demasiado bajo",
+      "repriceExplain": "Cuando un producto ya no te rinde lo suficiente, el copiloto pasa al precio más bajo que lo hace rentable, dentro de tu límite.",
+      "maxIncrease": "Subida máxima",
+      "maxRuns": "Acciones por semana, como máximo",
+      "consentReprice": "Autorizo al copiloto a subir por sí solo el precio de mis productos poco rentables, como máximo un {pct} % por cambio y {runs} veces por semana, con notificación y posibilidad de deshacer durante 7 días.",
+      "consentFixMargins": "Autorizo al copiloto a restablecer por sí solo mis márgenes cuando un proveedor sube su precio (mi precio sigue la subida), como máximo {runs} veces por semana, con notificación y posibilidad de deshacer durante 7 días.",
+      "activeReprice": "Activado: +{pct} % como máximo, {runs} por semana como máximo",
+      "activeFixMargins": "Activado: {runs} por semana como máximo",
+      "grant": "Autorizar",
+      "revoke": "Retirar la autorización",
+      "error": "Error. Inténtalo de nuevo.",
+      "never": "Nunca automático: pausar un producto, pagos, transferencias y cualquier acción irreversible."
     }
   },
   "marketplace": {

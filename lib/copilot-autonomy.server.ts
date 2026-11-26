@@ -1,0 +1,218 @@
+import "server-only"
+
+import { randomUUID } from "node:crypto"
+
+import { Prisma } from "@prisma/client"
+
+import { COPILOT_APPLY_ACTION } from "@/lib/copilot-audit-actions"
+import {
+  decideAutoApply,
+  isAutoEligibleType,
+  type AutoDecision,
+  type AutoEligibleType,
+  type AutonomyRule,
+} from "@/lib/copilot-autonomy"
+import { prisma } from "@/lib/prisma"
+import { applyCopilotAction, loadResellerActionPlan } from "@/lib/reseller-action-plan.server"
+
+/**
+ * Storage of autonomy grants (table `ResellerAutonomyRule`, migration 20261126100000) through plain SQL: the table is
+ * isolated and new, so a database that is not migrated yet simply means "no automation" (never a crash, never an
+ * implicit permission). Every grant and revocation is also written to AuditLog with the exact limits.
+ */
+export const AUTONOMY_GRANT_ACTION = "copilot.autonomy.grant"
+export const AUTONOMY_REVOKE_ACTION = "copilot.autonomy.revoke"
+export const AUTO_RUN_WINDOW_MS = 7 * 86_400_000
+
+function isMissingTable(e: unknown): boolean {
+  if (e instanceof Prisma.PrismaClientKnownRequestError) {
+    if (e.code === "P2021") return true
+    const meta = e.meta as { code?: string } | undefined
+    if (e.code === "P2010" && meta?.code === "42P01") return true
+  }
+  return /relation "ResellerAutonomyRule" does not exist/i.test(e instanceof Error ? e.message : String(e))
+}
+
+type RuleRow = {
+  actionType: string
+  maxPriceIncreaseBps: number
+  maxRunsPerWeek: number
+  grantedAt: Date
+  revokedAt: Date | null
+}
+
+const toRule = (r: RuleRow): AutonomyRule | null =>
+  isAutoEligibleType(r.actionType)
+    ? {
+        actionType: r.actionType,
+        maxPriceIncreaseBps: r.maxPriceIncreaseBps,
+        maxRunsPerWeek: r.maxRunsPerWeek,
+        grantedAt: r.grantedAt.toISOString(),
+        revokedAt: r.revokedAt ? r.revokedAt.toISOString() : null,
+      }
+    : null
+
+/** Active and revoked grants of a reseller. `available: false` = table not migrated → no automation anywhere. */
+export async function listAutonomyRules(affiliateId: string): Promise<{ rules: AutonomyRule[]; available: boolean }> {
+  try {
+    const rows = await prisma.$queryRaw<RuleRow[]>`
+      SELECT "actionType", "maxPriceIncreaseBps", "maxRunsPerWeek", "grantedAt", "revokedAt"
+      FROM "ResellerAutonomyRule" WHERE "affiliateId" = ${affiliateId}
+      ORDER BY "actionType"`
+    return { rules: rows.flatMap((r) => toRule(r) ?? []), available: true }
+  } catch (e) {
+    if (!isMissingTable(e)) console.error("[copilot-autonomy] read failed", e instanceof Error ? e.message : e)
+    return { rules: [], available: false }
+  }
+}
+
+/** Grant (or re-grant with new limits) ONE action type. Recorded in AuditLog with the limits the reseller saw. */
+export async function grantAutonomy(args: {
+  affiliateId: string
+  rule: Pick<AutonomyRule, "actionType" | "maxPriceIncreaseBps" | "maxRunsPerWeek">
+}): Promise<{ ok: true } | { ok: false; reason: "unavailable" | "failed" }> {
+  const { actionType, maxPriceIncreaseBps, maxRunsPerWeek } = args.rule
+  try {
+    await prisma.$executeRaw`
+      INSERT INTO "ResellerAutonomyRule"
+        ("id", "affiliateId", "actionType", "maxPriceIncreaseBps", "maxRunsPerWeek", "grantedAt", "revokedAt", "updatedAt")
+      VALUES (${randomUUID()}, ${args.affiliateId}, ${actionType}, ${maxPriceIncreaseBps}, ${maxRunsPerWeek}, NOW(), NULL, NOW())
+      ON CONFLICT ("affiliateId", "actionType") DO UPDATE SET
+        "maxPriceIncreaseBps" = EXCLUDED."maxPriceIncreaseBps",
+        "maxRunsPerWeek" = EXCLUDED."maxRunsPerWeek",
+        "grantedAt" = NOW(),
+        "revokedAt" = NULL,
+        "updatedAt" = NOW()`
+    await prisma.auditLog.create({
+      data: {
+        action: AUTONOMY_GRANT_ACTION,
+        entityType: "ResellerAutonomyRule",
+        entityId: `${args.affiliateId}:${actionType}`,
+        actorId: args.affiliateId,
+        payload: { actionType, maxPriceIncreaseBps, maxRunsPerWeek },
+      },
+    })
+    return { ok: true }
+  } catch (e) {
+    if (isMissingTable(e)) return { ok: false, reason: "unavailable" }
+    console.error("[copilot-autonomy] grant failed", e instanceof Error ? e.message : e)
+    return { ok: false, reason: "failed" }
+  }
+}
+
+export async function revokeAutonomy(args: {
+  affiliateId: string
+  actionType: AutoEligibleType
+}): Promise<{ ok: true } | { ok: false; reason: "unavailable" | "failed" }> {
+  try {
+    await prisma.$executeRaw`
+      UPDATE "ResellerAutonomyRule" SET "revokedAt" = NOW(), "updatedAt" = NOW()
+      WHERE "affiliateId" = ${args.affiliateId} AND "actionType" = ${args.actionType} AND "revokedAt" IS NULL`
+    await prisma.auditLog.create({
+      data: {
+        action: AUTONOMY_REVOKE_ACTION,
+        entityType: "ResellerAutonomyRule",
+        entityId: `${args.affiliateId}:${args.actionType}`,
+        actorId: args.affiliateId,
+        payload: { actionType: args.actionType },
+      },
+    })
+    return { ok: true }
+  } catch (e) {
+    if (isMissingTable(e)) return { ok: false, reason: "unavailable" }
+    console.error("[copilot-autonomy] revoke failed", e instanceof Error ? e.message : e)
+    return { ok: false, reason: "failed" }
+  }
+}
+
+/** Kill switch: automation never runs unless COPILOT_AUTOPILOT=on (default off — merging and deploying changes nothing). */
+export function isAutopilotEnabled(env: Record<string, string | undefined> = process.env): boolean {
+  return env.COPILOT_AUTOPILOT === "on"
+}
+
+async function autoRunsLast7Days(affiliateId: string, type: string, now: Date): Promise<number> {
+  return prisma.auditLog.count({
+    where: {
+      action: COPILOT_APPLY_ACTION,
+      actorId: affiliateId,
+      createdAt: { gte: new Date(now.getTime() - AUTO_RUN_WINDOW_MS) },
+      AND: [{ payload: { path: ["source"], equals: "auto" } }, { payload: { path: ["type"], equals: type } }],
+    },
+  })
+}
+
+export type AutopilotReport = {
+  affiliateId: string
+  applied: Array<{ actionId: string; auditId: string }>
+  skipped: Array<{ actionId: string; reason: Exclude<AutoDecision, { allowed: true }>["reason"] | "apply_failed" }>
+}
+
+/**
+ * Apply, for ONE reseller, the planned actions their grants allow — each within its limits, each through the same
+ * guarded path as a click (recomputed, conditional write, AuditLog `source: "auto"`, undoable 7 days), and each
+ * notified to the reseller. Never throws.
+ */
+export async function runAutopilotForReseller(affiliateId: string, now: Date = new Date()): Promise<AutopilotReport> {
+  const report: AutopilotReport = { affiliateId, applied: [], skipped: [] }
+  try {
+    const { rules } = await listAutonomyRules(affiliateId)
+    const active = new Map(rules.filter((r) => !r.revokedAt).map((r) => [r.actionType, r]))
+    if (active.size === 0) return report
+    const plan = await loadResellerActionPlan(affiliateId, now)
+    const runs = new Map<string, number>()
+    for (const action of plan.actions) {
+      if (!isAutoEligibleType(action.type) || !active.has(action.type)) continue
+      if (!runs.has(action.type)) runs.set(action.type, await autoRunsLast7Days(affiliateId, action.type, now))
+      const decision = decideAutoApply({ action, rule: active.get(action.type), runsLast7Days: runs.get(action.type)! })
+      if (!decision.allowed) {
+        report.skipped.push({ actionId: action.id, reason: decision.reason })
+        continue
+      }
+      const r = await applyCopilotAction({ affiliateId, actionId: action.id, source: "auto" })
+      if (!r.ok) {
+        report.skipped.push({ actionId: action.id, reason: "apply_failed" })
+        continue
+      }
+      runs.set(action.type, runs.get(action.type)! + 1)
+      report.applied.push({ actionId: action.id, auditId: r.auditId })
+      await prisma.notification
+        .create({
+          data: {
+            userId: affiliateId,
+            type: "COPILOT_AUTO_ACTION",
+            message:
+              action.type === "reprice"
+                ? `Copilote : prix de « ${action.name} » ajusté automatiquement (règle que vous avez autorisée). Annulable 7 jours depuis votre hub.`
+                : `Copilote : marges de « ${action.name} » rétablies automatiquement (règle que vous avez autorisée). Annulable 7 jours depuis votre hub.`,
+          },
+        })
+        .catch(() => undefined)
+    }
+  } catch (e) {
+    console.error("[copilot-autonomy] autopilot failed", { affiliateId, error: e instanceof Error ? e.message : e })
+  }
+  console.log("[copilot-autonomy]", { affiliateId, applied: report.applied.length, skipped: report.skipped.length })
+  return report
+}
+
+/** Cron entry: every reseller with at least one active grant, bounded batch. Off unless COPILOT_AUTOPILOT=on. */
+export async function runAutopilot(args: { env?: Record<string, string | undefined>; limit?: number } = {}): Promise<{
+  enabled: boolean
+  resellers: number
+  applied: number
+}> {
+  if (!isAutopilotEnabled(args.env)) return { enabled: false, resellers: 0, applied: 0 }
+  let ids: string[] = []
+  try {
+    const rows = await prisma.$queryRaw<Array<{ affiliateId: string }>>`
+      SELECT DISTINCT "affiliateId" FROM "ResellerAutonomyRule" WHERE "revokedAt" IS NULL
+      ORDER BY "affiliateId" LIMIT ${Math.min(500, Math.max(1, args.limit ?? 200))}`
+    ids = rows.map((r) => r.affiliateId)
+  } catch (e) {
+    if (!isMissingTable(e)) console.error("[copilot-autonomy] list failed", e instanceof Error ? e.message : e)
+    return { enabled: true, resellers: 0, applied: 0 }
+  }
+  let applied = 0
+  for (const id of ids) applied += (await runAutopilotForReseller(id)).applied.length
+  return { enabled: true, resellers: ids.length, applied }
+}
