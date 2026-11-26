@@ -13,6 +13,18 @@
   - `lib/__tests__/auth-session-revalidation.test.ts` exécute le vrai Auth.js : refus de connexion, fin de session après verrou, suppression, changement de rôle, panne de la base ;
   - contrôle par mutation : la revalidation désactivée fait échouer 2 tests.
 
+## Liste blanche des administrateurs (`ADMIN_EMAIL_ALLOWLIST`)
+
+`lib/admin-allowlist.ts` ajoute une deuxième clé, côté configuration, au rôle ADMIN stocké en base. Si la variable est définie (adresses séparées par des virgules), un compte ADMIN dont l'adresse n'y figure pas est traité comme CUSTOMER partout où l'application lit le rôle de session :
+- il ne peut pas utiliser le portail de connexion admin ;
+- une session déjà ouverte perd ses droits à la revalidation suivante, en 5 minutes au plus.
+
+Conséquences :
+- neutraliser l'ancien admin devient un changement de configuration réversible, sans écriture en base ;
+- une élévation de rôle écrite en base ne suffit plus à elle seule.
+
+Variable non définie : rien ne change. La liste n'accorde jamais de rôle. Les tests sur le vrai Auth.js sont dans `lib/__tests__/auth-session-revalidation.test.ts`.
+
 ## Outil : `scripts/account-access.ts`
 
 Il fonctionne en simulation (*dry run*) par défaut. `--apply` exécute une seule transaction qui relit les comptes sous verrou de ligne, revérifie le plan, et annule tout si le nombre de lignes diffère de `--expect`. Il n'affiche ni hash ni mot de passe. En production, il exige `AFFISELL_ALLOW_PRODUCTION_WRITES=<endpoint>`.
@@ -24,6 +36,8 @@ Il fonctionne en simulation (*dry run*) par défaut. `--apply` exécute une seul
 | `unlock --emails a --expect 1` | Retire le préfixe (retour arrière). |
 
 ## Ordre d'exécution (à lancer par le propriétaire, depuis sa machine)
+
+La séquence complète, avec la liste blanche et les fusions, est dans `docs/RUNBOOK-RELAUNCH.md`.
 
 0. Pré-requis : déployer PR #14. Sans le code déployé, le verrou bloque déjà la connexion (le hash préfixé ne correspond plus), mais les sessions déjà ouvertes durent jusqu'à 30 jours.
 1. Créer l'admin nominatif :

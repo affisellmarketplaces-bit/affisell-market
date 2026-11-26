@@ -73,7 +73,7 @@ async function loadAuth() {
   return import("@/lib/auth")
 }
 
-async function signIn(auth: Awaited<ReturnType<typeof loadAuth>>) {
+async function signIn(auth: Awaited<ReturnType<typeof loadAuth>>, callbackUrl = `${ORIGIN}/`) {
   const csrfRes = await auth.handlers.GET(new NextRequest(`${ORIGIN}/api/auth/csrf`))
   const { csrfToken } = (await csrfRes.json()) as { csrfToken: string }
   const jar = cookieHeader(csrfRes)
@@ -81,7 +81,7 @@ async function signIn(auth: Awaited<ReturnType<typeof loadAuth>>) {
     new NextRequest(`${ORIGIN}/api/auth/callback/credentials`, {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded", cookie: jar },
-      body: new URLSearchParams({ csrfToken, email: "seller@example.com", password: PASSWORD, callbackUrl: `${ORIGIN}/`, json: "true" }),
+      body: new URLSearchParams({ csrfToken, email: "seller@example.com", password: PASSWORD, callbackUrl, json: "true" }),
     })
   )
   return { res, jar: cookieHeader(res, jar) }
@@ -186,6 +186,54 @@ describe("real Auth.js: open sessions follow the account", { timeout: 30_000 }, 
     const { jar } = await signIn(auth)
     db.failLookups = true
     vi.setSystemTime(new Date(Date.now() + SESSION_REVALIDATE_MS + 1000))
+    expect((await session(auth, jar)).body?.user?.role).toBe("SUPPLIER")
+  })
+})
+
+describe("ADMIN_EMAIL_ALLOWLIST (lib/admin-allowlist.ts) on real Auth.js", { timeout: 30_000 }, () => {
+  it("unset: the database role decides (no change)", async () => {
+    db.row!.role = "ADMIN"
+    const auth = await loadAuth()
+    const { jar } = await signIn(auth)
+    expect((await session(auth, jar)).body?.user?.role).toBe("ADMIN")
+  })
+
+  it("set without this e-mail: the session is CUSTOMER and the admin portal refuses the sign-in", async () => {
+    db.row!.role = "ADMIN"
+    const auth = await loadAuth()
+    vi.stubEnv("ADMIN_EMAIL_ALLOWLIST", "ops@affisell.com")
+    const { jar } = await signIn(auth)
+    expect((await session(auth, jar)).body?.user?.role).toBe("CUSTOMER")
+    const portal = await signIn(auth, `${ORIGIN}/admin/auto-fulfill`)
+    expect(portal.jar).not.toMatch(/session-token=/)
+  })
+
+  it("set with this e-mail (any case): ADMIN", async () => {
+    db.row!.role = "ADMIN"
+    const auth = await loadAuth()
+    vi.stubEnv("ADMIN_EMAIL_ALLOWLIST", " ops@affisell.com , Seller@Example.com ")
+    const { jar } = await signIn(auth)
+    expect((await session(auth, jar)).body?.user?.role).toBe("ADMIN")
+    expect((await signIn(auth, `${ORIGIN}/admin/auto-fulfill`)).jar).toMatch(/session-token=/)
+  })
+
+  it("an open admin session loses admin rights at the next revalidation once the e-mail leaves the list", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] })
+    vi.setSystemTime(new Date("2026-11-26T12:00:00Z"))
+    db.row!.role = "ADMIN"
+    const auth = await loadAuth()
+    const { jar } = await signIn(auth)
+    expect((await session(auth, jar)).body?.user?.role).toBe("ADMIN")
+    vi.stubEnv("ADMIN_EMAIL_ALLOWLIST", "ops@affisell.com")
+    vi.setSystemTime(new Date(Date.now() + SESSION_REVALIDATE_MS + 1000))
+    expect((await session(auth, jar)).body?.user?.role).toBe("CUSTOMER")
+  })
+
+  it("the list never grants a role", async () => {
+    db.row!.role = "SUPPLIER"
+    const auth = await loadAuth()
+    vi.stubEnv("ADMIN_EMAIL_ALLOWLIST", "seller@example.com")
+    const { jar } = await signIn(auth)
     expect((await session(auth, jar)).body?.user?.role).toBe("SUPPLIER")
   })
 })

@@ -31,6 +31,7 @@ import { ensureMerchantStore } from "@/lib/ensure-store"
 import { computeUserLegalGateHash } from "@/lib/legal/acceptance"
 import { resolveRadarFeatures } from "@/lib/radar/features"
 import { OAUTH_SIGNUP_INTENT_COOKIE, OAUTH_WELCOME_COOKIE } from "@/lib/oauth-cookies"
+import { effectiveRole } from "@/lib/admin-allowlist"
 import {
   ACCOUNT_LOCK_PREFIX,
   isPasswordLocked,
@@ -293,7 +294,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         } else if (portal === "AGENT") {
           if (userRow.role !== "AGENT") throw new NonAgentOnAgentPortal()
         } else if (portal === "ADMIN") {
-          if (userRow.role !== "ADMIN") throw new NonAdminOnAdminPortal()
+          // ADMIN_EMAIL_ALLOWLIST (lib/admin-allowlist.ts): an ADMIN not on the configured list is refused here too.
+          if (effectiveRole(userRow.role, userRow.email) !== "ADMIN") throw new NonAdminOnAdminPortal()
         }
 
         return {
@@ -409,7 +411,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           console.warn("[auth jwt]", { result: "session_ended", reason: status.exists ? "account_locked" : "account_missing" })
           return null
         }
-        token.role = decision.role
+        token.role = effectiveRole(decision.role, token.email as string | undefined)
         token.authCheckedAt = now
         return token as JWT
       }
@@ -417,7 +419,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const row = await loadAuthUserRow(userId)
 
       token.id = userId
-      token.role = row?.role ?? (user as { role?: string }).role ?? (token.role as string) ?? "CUSTOMER"
+      token.role = effectiveRole(
+        row?.role ?? (user as { role?: string }).role ?? (token.role as string) ?? "CUSTOMER",
+        row?.email ?? user?.email ?? (token.email as string | undefined)
+      )
       token.cguVersion = row?.cguVersion ?? null
       const role = token.role as string
       token.legalGateHash =
