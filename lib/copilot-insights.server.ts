@@ -1,5 +1,7 @@
 import "server-only"
 
+import type { Prisma } from "@prisma/client"
+
 import { buildAffiliateCatalogCardEconomics } from "@/lib/affiliate-catalog-margin-display"
 import {
   accountOrder,
@@ -25,6 +27,158 @@ export const ACCURACY_WINDOW_DAYS = 180
 const MAX_ORDERS = 5_000
 const VOID_STATUSES = new Set(["refunded", "cancelled", "canceled", "REFUNDED", "CANCELLED"])
 
+// ─── Order accounting (shared by accuracy and outcomes) ───────────────────────────────────────────────────────────
+
+type AccountingRow = OrderAccuracyRow & { paidAt: Date; affiliateProductId: string }
+
+/**
+ * The reseller's amounts for each paid order matching `where`, from the records the payout code itself writes:
+ *
+ * - settled: the AFFILIATE `TransferAttempt.amountCents` when the split was scheduled — scheduling REWRITES
+ *   `Order.affiliatePayoutCents` with that net (lib/transfers/schedule-from-checkout.ts), so the settlement function
+ *   must NOT be re-applied to it; otherwise `netAffiliateTransferCents` on the untouched checkout snapshot;
+ * - paid: transfers that moved, deduplicated by Stripe transfer id across the ledger (`MerchantPayoutLedger` PAYOUT)
+ *   and the Connect attempts (`TransferAttempt` SUCCESS), minus reversals (max of `TransferReversal` and the attempt's
+ *   cumulative `reversedAmountCents`, per transfer — the two record the same reversal);
+ * - due: settled minus the larger of the recorded clawback and the refunded share of the sale (partial refunds).
+ */
+async function loadOrderAccounting(where: Prisma.OrderWhereInput, now: Date): Promise<AccountingRow[]> {
+  const orders = await prisma.order.findMany({
+    where,
+    select: {
+      id: true,
+      affiliateProductId: true,
+      productId: true,
+      supplierId: true,
+      quantity: true,
+      basePriceCents: true,
+      sellingPriceCents: true,
+      commissionCents: true,
+      affiliatePayoutCents: true,
+      affiliateMarginRetainedCents: true,
+      affiliateFeeCents: true,
+      affiliateMarginCents: true,
+      status: true,
+      paidAt: true,
+      payoutStatus: true,
+      payoutEligibleAt: true,
+      product: { select: { categoryId: true } },
+      affiliate: { select: { affiliatePlatformFeeBps: true } },
+    },
+    // Most recent first, so the cap drops the OLDEST orders, never the latest behaviour.
+    orderBy: { paidAt: "desc" },
+    take: MAX_ORDERS,
+  })
+  if (orders.length === 0) return []
+  const ids = orders.map((o) => o.id)
+  const [ledger, attempts, reversals, refunds, risk] = await Promise.all([
+    prisma.merchantPayoutLedger.findMany({
+      where: { orderId: { in: ids }, beneficiaryRole: "AFFILIATE" },
+      select: { orderId: true, entryType: true, amountCents: true, stripeTransferId: true },
+    }),
+    prisma.transferAttempt.findMany({
+      where: { orderId: { in: ids }, role: "AFFILIATE" },
+      select: { orderId: true, amountCents: true, reversedAmountCents: true, status: true, stripeTransferId: true },
+    }),
+    prisma.transferReversal.findMany({
+      where: { orderId: { in: ids }, role: "AFFILIATE", status: { in: ["SUCCESS", "PARTIAL"] } },
+      select: { orderId: true, amountCents: true, stripeTransferId: true },
+    }),
+    prisma.orderStripeRefund.groupBy({ by: ["orderId"], where: { orderId: { in: ids } }, _sum: { amountCents: true } }),
+    loadProductRiskContext(
+      [
+        ...new Map(
+          orders.map((o) => [
+            o.productId,
+            { id: o.productId, categoryId: o.product?.categoryId ?? null, supplierId: o.supplierId },
+          ]),
+        ).values(),
+      ],
+      now,
+    ),
+  ])
+
+  type PerOrder = {
+    moved: Map<string, number>
+    reversedByTransfer: Map<string, number>
+    ledgerOnly: number
+    clawback: number
+    attempt: (typeof attempts)[number] | null
+  }
+  const per = new Map<string, PerOrder>()
+  const get = (id: string) => {
+    let v = per.get(id)
+    if (!v)
+      per.set(id, (v = { moved: new Map(), reversedByTransfer: new Map(), ledgerOnly: 0, clawback: 0, attempt: null }))
+    return v
+  }
+  for (const e of ledger) {
+    if (!e.orderId) continue
+    const p = get(e.orderId)
+    if (e.entryType === "CLAWBACK") p.clawback += e.amountCents
+    else if (e.entryType === "PAYOUT" && e.stripeTransferId) p.moved.set(e.stripeTransferId, e.amountCents)
+    else if (e.entryType === "PAYOUT") p.ledgerOnly += e.amountCents
+  }
+  for (const t of attempts) {
+    const p = get(t.orderId)
+    p.attempt = t
+    if (t.status === "SUCCESS" && t.stripeTransferId) {
+      p.moved.set(t.stripeTransferId, Math.max(p.moved.get(t.stripeTransferId) ?? 0, t.amountCents))
+      if (t.reversedAmountCents > 0) p.reversedByTransfer.set(t.stripeTransferId, t.reversedAmountCents)
+    }
+  }
+  const reversalSums = new Map<string, Map<string, number>>()
+  for (const r of reversals) {
+    const m = reversalSums.get(r.orderId) ?? new Map<string, number>()
+    m.set(r.stripeTransferId, (m.get(r.stripeTransferId) ?? 0) + r.amountCents)
+    reversalSums.set(r.orderId, m)
+  }
+  for (const [orderId, m] of reversalSums) {
+    const p = get(orderId)
+    for (const [tr, amount] of m) p.reversedByTransfer.set(tr, Math.max(p.reversedByTransfer.get(tr) ?? 0, amount))
+  }
+  const refundedAmount = new Map(refunds.map((r) => [r.orderId, r._sum.amountCents ?? 0]))
+
+  return orders.flatMap((o) => {
+    if (!o.paidAt) return []
+    const p = per.get(o.id)
+    const qty = Math.max(1, o.quantity)
+    const commissionPct = o.basePriceCents > 0 ? (o.commissionCents / o.basePriceCents) * 100 : 0
+    const estimatedUnit = buildAffiliateCatalogCardEconomics(Math.round(o.basePriceCents / qty), commissionPct, {
+      listedSellingPriceCents: Math.round(o.sellingPriceCents / qty),
+      resellerFeeBps: o.affiliate?.affiliatePlatformFeeBps ?? null,
+    }).netPartnerGainCents
+    const settled = p?.attempt
+      ? p.attempt.amountCents
+      : netAffiliateTransferCents({
+          affiliatePayoutCents: o.affiliatePayoutCents,
+          affiliateMarginRetainedCents: o.affiliateMarginRetainedCents,
+          affiliateFeeCents: o.affiliateFeeCents,
+          affiliateMarginCents: o.affiliateMarginCents,
+        })
+    const moved = p ? [...p.moved.values()].reduce((a, b) => a + b, 0) : 0
+    const reversed = p ? [...p.reversedByTransfer.values()].reduce((a, b) => a + b, 0) : 0
+    const refunded = refundedAmount.get(o.id) ?? 0
+    const refundedShare = o.sellingPriceCents > 0 ? Math.min(1, refunded / o.sellingPriceCents) : 0
+    const row = accountOrder({
+      orderId: o.id,
+      categoryId: o.product?.categoryId ?? null,
+      supplierId: o.supplierId,
+      estimatedCents: estimatedUnit * qty,
+      settledCents: settled,
+      clawbackCents: Math.max(p?.clawback ?? 0, Math.round(settled * refundedShare)),
+      voided: VOID_STATUSES.has(o.status) && moved === 0,
+      transferredCents: moved,
+      reversedCents: reversed,
+      recordedNotTransferredCents: p?.ledgerOnly ?? 0,
+      payable: o.payoutStatus === "PAID" || (o.payoutEligibleAt != null && o.payoutEligibleAt <= now),
+      refunded: refunded > 0 || VOID_STATUSES.has(o.status),
+      expectedRefundRate: risk.get(o.productId)?.refundRisk.rate ?? 0.1,
+    })
+    return [{ ...row, paidAt: o.paidAt, affiliateProductId: o.affiliateProductId }]
+  })
+}
+
 // ─── Accuracy: estimated vs settled vs due vs paid ───────────────────────────────────────────────────────────────
 
 /**
@@ -37,125 +191,18 @@ export async function loadCopilotAccuracy(args: { affiliateId: string | null; no
   byCategory: Array<{ key: string; stats: AccuracyStats }>
 }> {
   const now = args.now ?? new Date()
-  const empty = { rows: [], overall: summariseAccuracy([]), byCategory: [] }
   try {
-    const orders = await prisma.order.findMany({
-      where: {
+    const rows = await loadOrderAccounting(
+      {
         ...(args.affiliateId ? { affiliateId: args.affiliateId } : {}),
         paidAt: { gte: new Date(now.getTime() - ACCURACY_WINDOW_DAYS * DAY), lte: now },
       },
-      select: {
-        id: true,
-        affiliateId: true,
-        productId: true,
-        supplierId: true,
-        quantity: true,
-        basePriceCents: true,
-        sellingPriceCents: true,
-        commissionCents: true,
-        affiliatePayoutCents: true,
-        affiliateMarginRetainedCents: true,
-        affiliateFeeCents: true,
-        affiliateMarginCents: true,
-        status: true,
-        payoutStatus: true,
-        payoutEligibleAt: true,
-        product: { select: { categoryId: true } },
-        affiliate: { select: { affiliatePlatformFeeBps: true } },
-      },
-      orderBy: { paidAt: "desc" },
-      take: MAX_ORDERS,
-    })
-    if (orders.length === 0) return empty
-    const ids = orders.map((o) => o.id)
-    const [ledger, reversals, refunds, risk] = await Promise.all([
-      prisma.merchantPayoutLedger.findMany({
-        where: { orderId: { in: ids }, beneficiaryRole: "AFFILIATE" },
-        select: { orderId: true, entryType: true, amountCents: true, stripeTransferId: true },
-      }),
-      prisma.transferReversal.findMany({
-        where: { orderId: { in: ids }, role: "AFFILIATE", status: { in: ["SUCCESS", "PARTIAL"] } },
-        select: { orderId: true, amountCents: true },
-      }),
-      prisma.orderStripeRefund.groupBy({
-        by: ["orderId"],
-        where: { orderId: { in: ids } },
-        _sum: { amountCents: true },
-      }),
-      loadProductRiskContext(
-        [
-          ...new Map(
-            orders.map((o) => [
-              o.productId,
-              { id: o.productId, categoryId: o.product?.categoryId ?? null, supplierId: o.supplierId },
-            ]),
-          ).values(),
-        ],
-        now,
-      ),
-    ])
-    const sumBy = <T extends { orderId: string | null }>(
-      list: T[],
-      f: (x: T) => number,
-      pred: (x: T) => boolean = () => true,
-    ) => {
-      const m = new Map<string, number>()
-      for (const x of list) if (x.orderId && pred(x)) m.set(x.orderId, (m.get(x.orderId) ?? 0) + f(x))
-      return m
-    }
-    const transferred = sumBy(
-      ledger,
-      (e) => e.amountCents,
-      (e) => e.entryType === "PAYOUT" && Boolean(e.stripeTransferId),
+      now,
     )
-    const ledgerOnly = sumBy(
-      ledger,
-      (e) => e.amountCents,
-      (e) => e.entryType === "PAYOUT" && !e.stripeTransferId,
-    )
-    const clawbacks = sumBy(
-      ledger,
-      (e) => e.amountCents,
-      (e) => e.entryType === "CLAWBACK",
-    )
-    const reversed = sumBy(reversals, (r) => r.amountCents)
-    const refunded = new Set(refunds.filter((r) => (r._sum.amountCents ?? 0) > 0).map((r) => r.orderId))
-
-    const rows = orders.map((o) => {
-      const qty = Math.max(1, o.quantity)
-      const unitBase = Math.round(o.basePriceCents / qty)
-      const unitSelling = Math.round(o.sellingPriceCents / qty)
-      const commissionPct = o.basePriceCents > 0 ? (o.commissionCents / o.basePriceCents) * 100 : 0
-      const estimatedUnit = buildAffiliateCatalogCardEconomics(unitBase, commissionPct, {
-        listedSellingPriceCents: unitSelling,
-        resellerFeeBps: o.affiliate?.affiliatePlatformFeeBps ?? null,
-      }).netPartnerGainCents
-      const moved = transferred.get(o.id) ?? 0
-      return accountOrder({
-        orderId: o.id,
-        categoryId: o.product?.categoryId ?? null,
-        supplierId: o.supplierId,
-        estimatedCents: estimatedUnit * qty,
-        settledCents: netAffiliateTransferCents({
-          affiliatePayoutCents: o.affiliatePayoutCents,
-          affiliateMarginRetainedCents: o.affiliateMarginRetainedCents,
-          affiliateFeeCents: o.affiliateFeeCents,
-          affiliateMarginCents: o.affiliateMarginCents,
-        }),
-        clawbackCents: clawbacks.get(o.id) ?? 0,
-        voided: VOID_STATUSES.has(o.status) && moved === 0,
-        transferredCents: moved,
-        reversedCents: reversed.get(o.id) ?? 0,
-        recordedNotTransferredCents: ledgerOnly.get(o.id) ?? 0,
-        payable: o.payoutStatus === "PAID" || (o.payoutEligibleAt != null && o.payoutEligibleAt <= now),
-        refunded: refunded.has(o.id) || VOID_STATUSES.has(o.status),
-        expectedRefundRate: risk.get(o.productId)?.refundRisk.rate ?? 0.1,
-      })
-    })
     return { rows, overall: summariseAccuracy(rows), byCategory: accuracyBy(rows, (r) => r.categoryId) }
   } catch (e) {
     console.warn("[copilot-insights] accuracy unavailable", e instanceof Error ? e.message : e)
-    return empty
+    return { rows: [], overall: summariseAccuracy([]), byCategory: [] }
   }
 }
 
@@ -169,7 +216,10 @@ export type AppliedActionOutcome = {
   outcome: ActionOutcome
 }
 
-/** Before/after verdict of every action this reseller applied (undone ones excluded). Read-only; never throws. */
+/**
+ * Before/after verdict of every action this reseller applied (undone ones excluded), on what each order is really
+ * DUE (partial refunds and clawbacks deducted — same accounting as the accuracy report). Read-only; never throws.
+ */
 export async function loadActionOutcomes(
   affiliateId: string,
   now: Date = new Date(),
@@ -196,37 +246,20 @@ export async function loadActionOutcomes(
     })
     const undoneIds = new Set(undone.map((u) => (u.payload as { undoOf?: string } | null)?.undoOf).filter(Boolean))
     const live = applied.filter((a) => a.entityId && !undoneIds.has(a.id))
+    if (live.length === 0) return { outcomes: [], trackRecords: [] }
     const listingIds = [...new Set(live.map((a) => a.entityId!))]
     const from = new Date(Math.min(...live.map((a) => a.createdAt.getTime())) - 28 * DAY)
-    const orders = await prisma.order.findMany({
-      where: { affiliateProductId: { in: listingIds }, paidAt: { gte: from, lte: now } },
-      select: {
-        affiliateProductId: true,
-        paidAt: true,
-        status: true,
-        affiliatePayoutCents: true,
-        affiliateMarginRetainedCents: true,
-        affiliateFeeCents: true,
-        affiliateMarginCents: true,
-        product: { select: { categoryId: true } },
-      },
-    })
+    const rows = await loadOrderAccounting(
+      { affiliateProductId: { in: listingIds }, paidAt: { gte: from, lte: now } },
+      now,
+    )
     const byListing = new Map<string, Array<{ paidAt: Date; dueCents: number }>>()
     const categoryOf = new Map<string, string | null>()
-    for (const o of orders) {
-      if (!o.paidAt) continue
-      categoryOf.set(o.affiliateProductId, o.product?.categoryId ?? null)
-      const due = VOID_STATUSES.has(o.status)
-        ? 0
-        : netAffiliateTransferCents({
-            affiliatePayoutCents: o.affiliatePayoutCents,
-            affiliateMarginRetainedCents: o.affiliateMarginRetainedCents,
-            affiliateFeeCents: o.affiliateFeeCents,
-            affiliateMarginCents: o.affiliateMarginCents,
-          })
-      byListing.set(o.affiliateProductId, [
-        ...(byListing.get(o.affiliateProductId) ?? []),
-        { paidAt: o.paidAt, dueCents: due },
+    for (const r of rows) {
+      categoryOf.set(r.affiliateProductId, r.categoryId)
+      byListing.set(r.affiliateProductId, [
+        ...(byListing.get(r.affiliateProductId) ?? []),
+        { paidAt: r.paidAt, dueCents: r.dueCents },
       ])
     }
     const outcomes = live.map((a) => {
@@ -337,10 +370,11 @@ export async function loadSupplierReliability(
       product: { select: { handlingDays: true, deliveryMax: true } },
     } as const
     const [mine, platform] = await Promise.all([
+      // Most recent first, so the cap drops the OLDEST orders; re-sorted ascending below for the price sequence.
       prisma.order.findMany({
         where: { supplierId: { in: ids }, paidAt: { gte: since, lte: now } },
         select,
-        orderBy: { paidAt: "asc" },
+        orderBy: { paidAt: "desc" },
         take: MAX_ORDERS,
       }),
       prisma.order.findMany({
@@ -357,7 +391,8 @@ export async function loadSupplierReliability(
     const refunded = new Set(refundRows.map((r) => r.orderId))
     const platformSorted = [...platform].sort((a, b) => (a.paidAt?.getTime() ?? 0) - (b.paidAt?.getTime() ?? 0))
     const baseline = baselineFrom([...toSupplierObservations(platformSorted, refunded).values()].flat())
-    const obs = toSupplierObservations(mine, refunded)
+    const mineSorted = [...mine].sort((a, b) => (a.paidAt?.getTime() ?? 0) - (b.paidAt?.getTime() ?? 0))
+    const obs = toSupplierObservations(mineSorted, refunded)
     const bySupplier = new Map<string, SupplierReliability>()
     for (const id of ids) bySupplier.set(id, computeSupplierReliability({ orders: obs.get(id) ?? [], baseline, now }))
     return { bySupplier, baseline }
