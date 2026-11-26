@@ -19,6 +19,7 @@ import {
 import { rankByFuzzy } from "@/lib/fuzzy-match"
 import { shopListingPath } from "@/lib/affiliate-routes"
 import { cn } from "@/lib/utils"
+import { COMMAND_K_OPEN_EVENT } from "@/components/command-k-events"
 
 type ResolvedItem = CommandKItem & { label: string }
 
@@ -50,7 +51,7 @@ function Highlight({ text, query }: { text: string; query: string }) {
   )
 }
 
-export const COMMAND_K_OPEN_EVENT = "affisell:command-k-open"
+export { COMMAND_K_OPEN_EVENT }
 
 type CommandKProps = {
   /** When false, only ⌘K shortcut + modal (for global shell). */

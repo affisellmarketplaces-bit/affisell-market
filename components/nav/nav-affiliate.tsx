@@ -2,6 +2,7 @@
 
 import { usePathname, useSearchParams } from "next/navigation"
 import { Suspense } from "react"
+import dynamic from "next/dynamic"
 import { useTranslations } from "next-intl"
 import {
   Handshake,
@@ -20,7 +21,6 @@ import {
 import { LocaleSwitcher } from "@/components/locale-switcher"
 import { FastLink } from "@/components/navigation/fast-link"
 import { NavPill } from "@/components/navigation/nav-pill"
-import { QuickNav } from "@/components/navigation/quick-nav"
 import { NavHeaderSearch } from "@/components/nav/nav-header-search"
 import { MerchantAvatarMenu } from "@/components/nav/merchant-avatar-menu"
 import { MerchantNotificationsMenu } from "@/components/merchant-notifications-menu"
@@ -39,6 +39,14 @@ import {
 import { isPartnerDockRoute, isPartnerDockSuppressed } from "@/lib/partner-mobile-nav"
 import { MAGIC_SYSTEMS_HREF } from "@/lib/magic-systems-catalog"
 import { cn } from "@/lib/utils"
+
+/**
+ * The ⌘K palette (cmdk, framer-motion) is split out: this nav is only rendered for
+ * signed-in resellers, so a buyer never downloads it. Still server-rendered.
+ */
+const QuickNav = dynamic(() =>
+  import("@/components/navigation/quick-nav").then((m) => m.QuickNav)
+)
 
 const navScrollClass =
   "flex min-w-0 items-center gap-0.5 overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"

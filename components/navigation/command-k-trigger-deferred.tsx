@@ -3,7 +3,7 @@
 import { Zap } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import { COMMAND_K_OPEN_EVENT } from "@/components/CommandK"
+import { COMMAND_K_OPEN_EVENT } from "@/components/command-k-events"
 import { useIdleMount } from "@/hooks/use-idle-mount"
 import { cn } from "@/lib/utils"
 
