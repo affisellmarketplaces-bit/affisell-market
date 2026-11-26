@@ -4,9 +4,9 @@ import { useMessages } from "next-intl"
 import { useCallback } from "react"
 
 /**
- * Client replacement for `tMessage(locale, path)` inside React: reads the messages the root `IntlAppProvider`
- * already holds (the visitor's locale, merged over English — the same fallback `tMessage` applies), instead of
- * `lib/i18n-pick-message.ts`, which imports all eight catalogues (~3.6 MB) into whatever bundle uses it.
+ * `tMessage(locale, path)` for React components: reads the messages the root `IntlAppProvider` already holds (the
+ * visitor's locale, merged over English — the same fallback `tMessage` applies). `tMessage` is also bundle-safe in
+ * the browser (`#i18n-catalog`); inside a component prefer this hook, which reads the provider's messages directly.
  * Returns `fallback ?? path` when the key is missing or not a string, exactly like `tMessage`.
  */
 export function useMessagePicker(): (path: string, fallback?: string) => string {

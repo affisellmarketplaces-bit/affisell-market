@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import { NextIntlClientProvider, type AbstractIntlMessages } from "next-intl"
 
 import { APP_TIME_ZONE, type AppLocale } from "@/lib/i18n-locale"
+import { registerBrowserCatalog } from "#i18n-catalog"
 
 type Props = {
   locale: AppLocale
@@ -18,6 +19,8 @@ type Props = {
  * Locale switches use a single full navigation (cookie + optional `/fr` prefix) — no client override.
  */
 export function IntlAppProvider({ locale, messages, now, children }: Props) {
+  // Before children render: `tMessage()` reads these in the browser instead of bundling every catalog.
+  registerBrowserCatalog(locale, messages)
   useEffect(() => {
     document.documentElement.lang = locale
   }, [locale])

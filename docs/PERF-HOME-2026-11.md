@@ -90,3 +90,10 @@ Vrai Chrome mobile ralenti, après correction : le titre du hero (LCP) s'affiche
 - Les espaces de noms qu'aucun module client ne nomme représentent 16 espaces et 35 Ko, soit 9,5 %. Gain faible, avec un risque de textes manquants (`useTranslations()` sans espace de noms dans `partner-mobile-dock`, clés construites dynamiquement).
 - Les espaces de noms qu'aucun module client d'une route **publique** ne nomme représentent 28 espaces et 81 Ko, soit 22 %, ou environ 25 Kio compressés. Il faudrait des fournisseurs imbriqués dans les mises en page du tableau de bord et de l'administration. Le fournisseur racine persiste lors des navigations côté client, d'où cette exigence. Les traductions seraient alors doublées sur les pages du tableau de bord, et le grand espace `supplier` (56 Ko) reste utilisé par des pages publiques.
 - **Décision : non engagé.** Le gain réel est d'environ 18 % du document, pour une refonte des fournisseurs et un risque de régression des traductions. La voie qui supprimerait vraiment ce poids est de rendre côté serveur les textes des composants qui n'ont pas besoin d'être interactifs. C'est un chantier progressif, composant par composant, pas une bascule.
+
+## Fusion avec la PR #15 de `main` (2026-11-26)
+
+`main` avait corrigé le même problème autrement ; les deux corrections sont conservées. `tMessage()` lit désormais
+`#i18n-catalog` (tous les catalogues côté serveur, les messages de la page côté navigateur), le héros de l'accueil n'est
+plus dans une limite `Suspense` et la barre des rayons ne fait plus tomber l'accueil quand la base est injoignable.
+Les mesures ci-dessus ont été prises avant cette fusion et n'ont pas été refaites.

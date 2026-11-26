@@ -1,6 +1,12 @@
 {
   "name": "affisell-market",
   "version": "0.1.0",
+  "imports": {
+    "#i18n-catalog": {
+      "browser": "./lib/i18n-catalog-source.browser.ts",
+      "default": "./lib/i18n-catalog-source.ts"
+    }
+  },
   "private": true,
   "engines": {
     "node": ">=24.0.0"

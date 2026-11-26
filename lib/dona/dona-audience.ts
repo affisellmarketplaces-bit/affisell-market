@@ -40,7 +40,7 @@ const LOCALE_ROOT_PATTERN = new RegExp(`^/(${SUPPORTED_LOCALES.join("|")})(/|$)`
 
 /**
  * Resolves a message path: `useMessagePicker()` in the widget (messages already in the provider), or
- * `(p) => tMessage(locale, p)` on the server. Never imported here: `tMessage` brings all eight catalogues with it.
+ * `(p) => tMessage(locale, p)` on the server. Injected rather than imported, so this module stays a pure helper.
  */
 export type DonaMessagePicker = (path: string, fallback?: string) => string
 

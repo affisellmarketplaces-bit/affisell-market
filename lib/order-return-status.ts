@@ -2,7 +2,7 @@
  * Return-request statuses — pure, dependency-free.
  *
  * Split from `lib/order-return-types.ts` (which re-exports everything here) because that file also builds translated
- * labels with `tMessage`, which imports all eight message catalogues: `lib/order-return-policy.ts` only needed
+ * labels with `tMessage`, which at the time imported all eight message catalogues: `lib/order-return-policy.ts` only needed
  * `isTerminalReturnStatus`, and through `order-payout-policy` → `legal/fee-labels` → `legal/entity` → `legal/consent`
  * the cookie banner of every page ended up downloading every catalogue.
  */

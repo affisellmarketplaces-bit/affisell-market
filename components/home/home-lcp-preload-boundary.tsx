@@ -10,7 +10,7 @@ type Props = {
 }
 
 /**
- * Hoisted LCP preloads — runs in parallel with hero Suspense, before catalog boundary.
+ * Hoisted LCP preloads — in its own boundary, before the catalog boundary (the hero is in the first flush).
  */
 export async function HomeLcpPreloadBoundary({ locale }: Props) {
   const shell = await loadHomeMarketplaceShellSafe(locale)

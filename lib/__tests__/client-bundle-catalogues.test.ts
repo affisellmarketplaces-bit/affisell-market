@@ -20,7 +20,14 @@ const root = path.resolve(__dirname, "../..")
 const CATALOGUE_LOADERS = new Set(["lib/i18n-load-messages.ts"])
 const ENTRIES = ["app/layout.tsx", "app/page.tsx", "app/[locale]/page.tsx", "app/error.tsx"]
 
+/** package.json "imports" with the "browser" condition — what the client bundler resolves (`#i18n-catalog`). */
+const PACKAGE_IMPORTS = (JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")).imports ?? {}) as Record<
+  string,
+  { browser?: string; default?: string }
+>
+
 function resolveSpec(spec: string): string | null {
+  if (spec.startsWith("#")) return (PACKAGE_IMPORTS[spec]?.browser ?? PACKAGE_IMPORTS[spec]?.default)?.replace(/^\.\//, "") ?? null
   if (!spec.startsWith("@/")) return null
   const base = spec.slice(2)
   for (const ext of ["", ".ts", ".tsx", "/index.ts", "/index.tsx"]) {

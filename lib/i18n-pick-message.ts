@@ -1,6 +1,7 @@
 import type { AbstractIntlMessages } from "next-intl"
 
-import { CLIENT_MESSAGES } from "@/lib/i18n-load-messages"
+// `#i18n-catalog`: every catalog on the server, the page's provider messages in the browser (package.json "imports").
+import { catalogMessages } from "#i18n-catalog"
 import type { AppLocale } from "@/lib/i18n-locale"
 
 function getNestedValue(messages: AbstractIntlMessages, path: string): unknown {
@@ -15,12 +16,13 @@ function getNestedValue(messages: AbstractIntlMessages, path: string): unknown {
 
 /** Resolve a dotted message path from pre-merged locale bundles (falls back to EN). */
 export function tMessage(locale: AppLocale, path: string, fallback?: string): string {
-  const bundle = CLIENT_MESSAGES[locale] ?? CLIENT_MESSAGES.en
-  const primary = getNestedValue(bundle, path)
+  const bundle = catalogMessages(locale) ?? catalogMessages("en")
+  const primary = bundle ? getNestedValue(bundle, path) : undefined
   if (typeof primary === "string" && primary.trim()) return primary
 
   if (locale !== "en") {
-    const en = getNestedValue(CLIENT_MESSAGES.en, path)
+    const enBundle = catalogMessages("en")
+    const en = enBundle ? getNestedValue(enBundle, path) : undefined
     if (typeof en === "string" && en.trim()) return en
   }
 
