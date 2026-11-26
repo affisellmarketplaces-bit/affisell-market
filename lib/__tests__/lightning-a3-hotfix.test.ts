@@ -49,6 +49,8 @@ vi.mock("@/lib/prisma", () => {
       },
       update: async ({ data }: { data: Record<string, unknown> }) => Object.assign(db.order!, data),
     },
+    // D7 (#28): no dispute open on these orders (the dispute ledger lives in ProcessedWebhook).
+    processedWebhook: { count: async () => 0 },
     supplierProfile: { findUnique: async () => ({ trustScore: 90, lightningAdminOverride: false, lightningEnabled: true }) },
     user: { findUnique: async ({ where }: { where: { id: string } }) => ({ stripeAccountId: where.id === "sup" ? "acct_S" : "acct_A" }) },
     transferAttempt: {
