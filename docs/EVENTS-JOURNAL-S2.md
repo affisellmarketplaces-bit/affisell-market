@@ -6,7 +6,7 @@ S2 dérive les faits métier des tables qui les contiennent déjà, et les écri
 
 | Source | Événement | Clé (idempotence) |
 |---|---|---|
-| `Order` payée (tout statut sauf jamais payé) | `purchase` | `purchase:{orderId}` |
+| `Order` dont `paidAt` est renseigné (paiement réussi) | `purchase` | `purchase:{orderId}` |
 | `OrderStripeRefund` | `refund` | `refund:{stripeRefundId}` |
 | `OrderReturn` | `return_requested` | `return_requested:{returnId}` |
 | `OrderReturn` à l'état final | `return_resolved` | `return_resolved:{returnId}` |
@@ -14,7 +14,7 @@ S2 dérive les faits métier des tables qui les contiennent déjà, et les écri
 | `Review` publiée | `review_created` | `review_created:{reviewId}` |
 | `AffiliateProduct` | `creator_product_added` | `creator_product_added:{listingId}` |
 
-Fichiers : `lib/events/journal-mapping.ts` (correspondances pures), `lib/events/journal-projector.server.ts`, `lib/cron/events-journal.ts`, route `/api/cron/events-journal` (toutes les heures, avec une fenêtre de 3 jours qui se recouvre d'une exécution à l'autre), `scripts/events-journal-backfill.ts`.
+Fichiers : `lib/events/journal-mapping.ts` (correspondances pures), `lib/events/journal-projector.server.ts`, `lib/cron/events-journal.ts`, route `/api/cron/events-journal` (toutes les heures, avec une fenêtre de 3 jours qui se recouvre d'une exécution à l'autre, lecture paginée par 1 000 lignes avec un indicateur `truncated` au-delà de 500 000 lignes par source), `scripts/events-journal-backfill.ts`.
 
 ## Pourquoi une projection plutôt que des émetteurs dans le code des paiements
 
@@ -36,7 +36,7 @@ Fichiers : `lib/events/journal-mapping.ts` (correspondances pures), `lib/events/
 3. Reconstruire l'historique :
    `EVENTS_JOURNAL=on AFFISELL_ALLOW_PRODUCTION_WRITES=<endpoint> npx tsx --conditions=react-server scripts/events-journal-backfill.ts --since 2026-01-01 --apply`
 4. Ajouter `EVENTS_JOURNAL=on` dans Vercel (Production), puis programmer `/api/cron/events-journal` toutes les heures (GitHub Actions, comme les autres crons, avec `CRON_SECRET`).
-5. **Retour arrière** : retirer `EVENTS_JOURNAL`. Les événements écrits restent et peuvent être ignorés (`source = journal_projection`).
+5. **Retour arrière** : retirer `EVENTS_JOURNAL`. Les écritures s'arrêtent et la garde de marge revient au taux par défaut ; les événements déjà écrits restent, identifiables par `source = journal_projection`.
 
 ## Étapes suivantes
 

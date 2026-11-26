@@ -1,6 +1,6 @@
 import "server-only"
 
-import { smoothedRefundRate } from "@/lib/events/journal-mapping"
+import { isJournalEnabled, smoothedRefundRate } from "@/lib/events/journal-mapping"
 import { DEFAULT_EXPECTED_REFUND_RATE } from "@/lib/reseller-margin-guard"
 import { prisma } from "@/lib/prisma"
 
@@ -9,7 +9,7 @@ import { prisma } from "@/lib/prisma"
  * its 10 % assumption once there is data. Counts `purchase` and `refund` events per product over a window, then
  * shrinks towards the default so a handful of sales never produce an extreme rate.
  *
- * Never throws: when the journal is unavailable (not migrated, not projected yet) every product keeps the default.
+ * Off (default rate for every product) unless EVENTS_JOURNAL=on. Never throws: when the journal is unavailable (not migrated, not projected yet) every product keeps the default.
  */
 export async function loadProductRefundRates(
   productIds: readonly string[],
@@ -18,7 +18,8 @@ export async function loadProductRefundRates(
   const prior = options?.prior ?? DEFAULT_EXPECTED_REFUND_RATE
   const ids = [...new Set(productIds.filter(Boolean))]
   const rates = new Map<string, number>(ids.map((id) => [id, prior]))
-  if (ids.length === 0) return rates
+  // Journal off = full rollback: the guard goes back to its default rate, whatever events were written before.
+  if (ids.length === 0 || !isJournalEnabled()) return rates
   try {
     const since = new Date(Date.now() - (options?.sinceDays ?? 180) * 86_400_000)
     const grouped = await prisma.affisellTrackEvent.groupBy({

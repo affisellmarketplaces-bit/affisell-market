@@ -5,7 +5,7 @@
  * the same rows twice (a cron re-run, an overlapping window, a backfill) never creates a second event
  * (`recordEvents` → `eventId` unique + skipDuplicates).
  *
- *   Order (paid)            → purchase            purchase:{orderId}
+ *   Order (paidAt set)      → purchase            purchase:{orderId}
  *   OrderStripeRefund       → refund              refund:{stripeRefundId}
  *   OrderReturn             → return_requested    return_requested:{returnId}
  *   OrderReturn (terminal)  → return_resolved     return_resolved:{returnId}
@@ -20,8 +20,13 @@
  */
 import type { ServerEventInput } from "@/lib/events/row"
 
-/** Order statuses that never were a payment (checkout opened, abandoned or failed). Everything else was paid. */
-export const NEVER_PAID_ORDER_STATUSES = ["PENDING", "pending", "failed", "FAILED", "expired", "EXPIRED"] as const
+/**
+ * Is the business journal on? Off unless `EVENTS_JOURNAL=on` — gates the writes (projector) AND the reads that act on
+ * them (measured refund rates), so removing the variable is a full rollback.
+ */
+export function isJournalEnabled(env: Record<string, string | undefined> = process.env): boolean {
+  return env.EVENTS_JOURNAL?.trim().toLowerCase() === "on"
+}
 
 /** Final states of a return (lib/order-return-types.ts TERMINAL_RETURN_STATUSES). */
 export const TERMINAL_RETURN_STATUSES = ["REFUNDED", "REJECTED", "CANCELLED"] as const
@@ -38,16 +43,17 @@ export type PurchaseSource = {
   totalCents: number | null
   currency: string | null
   stripeSessionId: string
-  status: string
-  createdAt: Date
+  /** Set when the payment succeeded (lib/stripe-marketplace-fulfill.ts) — the same truth the sales stats use. */
+  paidAt: Date | null
 }
 
+/** A purchase is an order whose payment succeeded: `paidAt` — never a status (an expired checkout becomes CANCELLED). */
 export function purchaseEvent(o: PurchaseSource): ServerEventInput | null {
-  if ((NEVER_PAID_ORDER_STATUSES as readonly string[]).includes(o.status)) return null
+  if (!o.paidAt) return null
   return {
     eventId: `purchase:${o.id}`,
     name: "purchase",
-    occurredAt: o.createdAt,
+    occurredAt: o.paidAt,
     orderId: o.id,
     productId: o.productId,
     listingId: o.affiliateProductId,
@@ -161,14 +167,23 @@ export function deliveryEvent(o: DeliverySource): ServerEventInput | null {
   }
 }
 
-export type ReviewSource = { id: string; productId: string; orderId: string | null; rating: number; status: string; createdAt: Date }
+export type ReviewSource = {
+  id: string
+  productId: string
+  orderId: string | null
+  rating: number
+  status: string
+  createdAt: Date
+  publishedAt: Date | null
+}
 
 export function reviewEvent(r: ReviewSource): ServerEventInput | null {
   if (r.status !== "PUBLISHED") return null
   return {
     eventId: `review_created:${r.id}`,
     name: "review_created",
-    occurredAt: r.createdAt,
+    // A review approved after moderation is published later than it was written.
+    occurredAt: r.publishedAt ?? r.createdAt,
     productId: r.productId,
     orderId: r.orderId,
     source: JOURNAL_SOURCE,

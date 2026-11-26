@@ -22,8 +22,7 @@ const order = {
   totalCents: 5_990,
   currency: "EUR",
   stripeSessionId: "cs_test_1234567890",
-  status: "paid",
-  createdAt: t,
+  paidAt: t,
 }
 
 describe("S2 mapping: business rows → transactional events", () => {
@@ -49,9 +48,10 @@ describe("S2 mapping: business rows → transactional events", () => {
     expect(built.row.properties).toEqual({ amount_cents: 5_990, currency: "EUR", quantity: 2, stripe_session_id: "cs_test_1234567890" })
   })
 
-  it("an order that never was paid is not a purchase", () => {
-    for (const status of ["PENDING", "pending", "failed", "FAILED", "expired"]) expect(purchaseEvent({ ...order, status })).toBeNull()
-    for (const status of ["paid", "preparing", "shipped", "delivered", "refunded"]) expect(purchaseEvent({ ...order, status })).not.toBeNull()
+  it("a purchase is a payment (paidAt), never a status: an expired checkout (CANCELLED, no paidAt) is not one", () => {
+    expect(purchaseEvent({ ...order, paidAt: null })).toBeNull()
+    const paidLater = new Date("2026-11-21T09:00:00Z")
+    expect(purchaseEvent({ ...order, paidAt: paidLater })!.occurredAt).toBe(paidLater)
   })
 
   it("refund: keyed by the Stripe refund id, carries the product so refund rates can be measured", () => {
@@ -88,8 +88,11 @@ describe("S2 mapping: business rows → transactional events", () => {
   it("delivery, published review, listing", () => {
     expect(deliveryEvent({ id: "ord_000001", productId: "p", supplierId: "s", affiliateId: "a", deliveredAt: null })).toBeNull()
     expect(deliveryEvent({ id: "ord_000001", productId: "p", supplierId: "s", affiliateId: "a", deliveredAt: t })!.eventId).toBe("delivery:ord_000001")
-    expect(reviewEvent({ id: "rev_1", productId: "p", orderId: null, rating: 5, status: "HIDDEN", createdAt: t })).toBeNull()
-    expect(reviewEvent({ id: "rev_1", productId: "p", orderId: null, rating: 5, status: "PUBLISHED", createdAt: t })!.eventId).toBe("review_created:rev_1")
+    expect(reviewEvent({ id: "rev_1", productId: "p", orderId: null, rating: 5, status: "HIDDEN", createdAt: t, publishedAt: null })).toBeNull()
+    const approved = new Date("2026-11-25T08:00:00Z")
+    const ev = reviewEvent({ id: "rev_1", productId: "p", orderId: null, rating: 5, status: "PUBLISHED", createdAt: t, publishedAt: approved })!
+    expect(ev.eventId).toBe("review_created:rev_1")
+    expect(ev.occurredAt).toBe(approved) // approved after moderation: dated by its publication
     expect(listingAddedEvent({ id: "ap_0000001", productId: "p", affiliateId: "a", createdAt: t }).eventId).toBe("creator_product_added:ap_0000001")
   })
 
@@ -126,7 +129,9 @@ const db = vi.hoisted(() => ({
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     order: {
-      findMany: vi.fn(async ({ where }: { where: Record<string, unknown> }) => ("deliveredAt" in where ? [] : db.orders)),
+      findMany: vi.fn(async ({ where, skip = 0, take = 1_000 }: { where: Record<string, unknown>; skip?: number; take?: number }) =>
+        "deliveredAt" in where ? [] : db.orders.slice(skip, skip + take)
+      ),
     },
     orderStripeRefund: {
       findMany: vi.fn(async () => {
@@ -153,7 +158,7 @@ vi.mock("@/lib/prisma", () => ({
 
 describe("journal projector", () => {
   beforeEach(() => {
-    db.orders = [order, { ...order, id: "ord_000002", status: "PENDING" }]
+    db.orders = [order, { ...order, id: "ord_000002", paidAt: null }]
     db.failRefunds = false
     db.written.clear()
   })
@@ -180,6 +185,13 @@ describe("journal projector", () => {
     const again = await projectBusinessJournal({ since: new Date(0), env, sources: ["purchase"] })
     expect(again.bySource.purchase).toMatchObject({ events: 1, written: 0, duplicates: 1 })
     expect([...db.written.keys()]).toEqual(["purchase:ord_000001"])
+  })
+
+  it("reads every page of a large window (no silent cut at one page)", async () => {
+    db.orders = Array.from({ length: 2_350 }, (_, i) => ({ ...order, id: `ord_${String(i).padStart(6, "0")}` }))
+    const { projectBusinessJournal } = await import("@/lib/events/journal-projector.server")
+    const r = await projectBusinessJournal({ since: new Date(0), env: { EVENTS_JOURNAL: "on" }, sources: ["purchase"] })
+    expect(r.bySource.purchase).toMatchObject({ rows: 2_350, events: 2_350, written: 2_350, truncated: false })
   })
 
   it("a failing source is reported and the others still run; it never throws", async () => {

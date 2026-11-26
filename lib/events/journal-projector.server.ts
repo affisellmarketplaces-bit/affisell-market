@@ -2,6 +2,7 @@ import "server-only"
 
 import {
   deliveryEvent,
+  isJournalEnabled,
   listingAddedEvent,
   purchaseEvent,
   refundEvent,
@@ -19,9 +20,7 @@ import { prisma } from "@/lib/prisma"
  * (`npm run schema:verify`, docs/DEPLOY-SCHEMA-CHANGES.md). Idempotent (deterministic eventIds), read-only on the
  * sources, NEVER throws: a source that fails is reported and the others still run.
  */
-export function isJournalEnabled(env: Record<string, string | undefined> = process.env): boolean {
-  return env.EVENTS_JOURNAL?.trim().toLowerCase() === "on"
-}
+export { isJournalEnabled }
 
 export const JOURNAL_SOURCES = ["purchase", "refund", "return", "delivery", "review", "listing"] as const
 export type JournalSource = (typeof JOURNAL_SOURCES)[number]
@@ -29,18 +28,35 @@ export type JournalSource = (typeof JOURNAL_SOURCES)[number]
 export type JournalProjectionResult = {
   enabled: boolean
   window: { since: string; until: string }
-  bySource: Partial<Record<JournalSource, { rows: number; events: number; written: number; duplicates: number; error: string | null }>>
+  bySource: Partial<
+    Record<
+      JournalSource,
+      { rows: number; events: number; written: number; duplicates: number; truncated: boolean; error: string | null }
+    >
+  >
 }
 
-/** Rows read per source per run — a window larger than this is resumed by the next run (overlapping windows are free). */
-const MAX_ROWS_PER_SOURCE = 5_000
+/** Rows per page; a source is read page after page until its window is exhausted. */
+export const JOURNAL_PAGE_SIZE = 1_000
+/**
+ * Safety bound per source and run (500 000 rows). Reached = `truncated: true` in the result and a log line: run the
+ * backfill again with a narrower `--since/--until` window. Never a silent cut.
+ */
+export const JOURNAL_MAX_PAGES = 500
 
-async function loadSource(source: JournalSource, since: Date, until: Date): Promise<{ rows: number; events: ServerEventInput[] }> {
+async function loadSource(
+  source: JournalSource,
+  since: Date,
+  until: Date,
+  page: { skip: number; take: number }
+): Promise<{ rows: number; events: ServerEventInput[] }> {
   const window = { gte: since, lt: until }
+  const MAX_ROWS_PER_SOURCE = page.take
+  const skip = page.skip
   switch (source) {
     case "purchase": {
       const rows = await prisma.order.findMany({
-        where: { createdAt: window },
+        where: { paidAt: window },
         select: {
           id: true,
           productId: true,
@@ -51,10 +67,10 @@ async function loadSource(source: JournalSource, since: Date, until: Date): Prom
           totalCents: true,
           currency: true,
           stripeSessionId: true,
-          status: true,
-          createdAt: true,
+          paidAt: true,
         },
-        orderBy: { createdAt: "asc" },
+        orderBy: [{ paidAt: "asc" }, { id: "asc" }],
+        skip,
         take: MAX_ROWS_PER_SOURCE,
       })
       return { rows: rows.length, events: rows.flatMap((r) => purchaseEvent(r) ?? []) }
@@ -70,7 +86,8 @@ async function loadSource(source: JournalSource, since: Date, until: Date): Prom
           createdAt: true,
           order: { select: { productId: true, affiliateProductId: true, supplierId: true, affiliateId: true, currency: true } },
         },
-        orderBy: { createdAt: "asc" },
+        orderBy: [{ createdAt: "asc" }, { stripeRefundId: "asc" }],
+        skip,
         take: MAX_ROWS_PER_SOURCE,
       })
       return { rows: rows.length, events: rows.map(refundEvent) }
@@ -89,7 +106,8 @@ async function loadSource(source: JournalSource, since: Date, until: Date): Prom
           refundedAt: true,
           order: { select: { productId: true, supplierId: true, affiliateId: true } },
         },
-        orderBy: { updatedAt: "asc" },
+        orderBy: [{ updatedAt: "asc" }, { id: "asc" }],
+        skip,
         take: MAX_ROWS_PER_SOURCE,
       })
       return { rows: rows.length, events: rows.flatMap(returnEvents) }
@@ -98,16 +116,19 @@ async function loadSource(source: JournalSource, since: Date, until: Date): Prom
       const rows = await prisma.order.findMany({
         where: { deliveredAt: window },
         select: { id: true, productId: true, supplierId: true, affiliateId: true, deliveredAt: true },
-        orderBy: { deliveredAt: "asc" },
+        orderBy: [{ deliveredAt: "asc" }, { id: "asc" }],
+        skip,
         take: MAX_ROWS_PER_SOURCE,
       })
       return { rows: rows.length, events: rows.flatMap((r) => deliveryEvent(r) ?? []) }
     }
     case "review": {
+      // Written OR published OR moderated in the window: a review approved days later is still journaled.
       const rows = await prisma.review.findMany({
-        where: { createdAt: window },
-        select: { id: true, productId: true, orderId: true, rating: true, status: true, createdAt: true },
-        orderBy: { createdAt: "asc" },
+        where: { OR: [{ createdAt: window }, { publishedAt: window }, { updatedAt: window }] },
+        select: { id: true, productId: true, orderId: true, rating: true, status: true, createdAt: true, publishedAt: true },
+        orderBy: [{ updatedAt: "asc" }, { id: "asc" }],
+        skip,
         take: MAX_ROWS_PER_SOURCE,
       })
       return { rows: rows.length, events: rows.flatMap((r) => reviewEvent({ ...r, status: String(r.status) }) ?? []) }
@@ -116,7 +137,8 @@ async function loadSource(source: JournalSource, since: Date, until: Date): Prom
       const rows = await prisma.affiliateProduct.findMany({
         where: { createdAt: window },
         select: { id: true, productId: true, affiliateId: true, createdAt: true },
-        orderBy: { createdAt: "asc" },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+        skip,
         take: MAX_ROWS_PER_SOURCE,
       })
       return { rows: rows.length, events: rows.map(listingAddedEvent) }
@@ -141,24 +163,37 @@ export async function projectBusinessJournal(args: {
   if (!result.enabled && !args.dryRun) return result
 
   for (const source of args.sources ?? JOURNAL_SOURCES) {
+    const totals = { rows: 0, events: 0, written: 0, duplicates: 0, truncated: false, error: null as string | null }
     try {
-      const { rows, events } = await loadSource(source, args.since, until)
-      let rec: RecordResult | null = null
-      if (!args.dryRun && events.length > 0) {
-        // Transactional events: consent does not apply (and behavioral ones are never produced here).
-        rec = await recordEvents(events, { analyticsConsent: false })
-      }
-      result.bySource[source] = {
-        rows,
-        events: events.length,
-        written: rec?.written ?? 0,
-        duplicates: rec?.duplicates ?? 0,
-        error: rec?.error ?? null,
+      for (let page = 0; ; page++) {
+        if (page >= JOURNAL_MAX_PAGES) {
+          totals.truncated = true
+          console.warn("[events-journal]", { source, result: "truncated", rows: totals.rows, hint: "narrow the window" })
+          break
+        }
+        const { rows, events } = await loadSource(source, args.since, until, {
+          skip: page * JOURNAL_PAGE_SIZE,
+          take: JOURNAL_PAGE_SIZE,
+        })
+        totals.rows += rows
+        totals.events += events.length
+        if (!args.dryRun && events.length > 0) {
+          // Transactional events: consent does not apply (and behavioral ones are never produced here).
+          const rec: RecordResult = await recordEvents(events, { analyticsConsent: false })
+          totals.written += rec.written
+          totals.duplicates += rec.duplicates
+          if (rec.error) {
+            totals.error = rec.error
+            break
+          }
+        }
+        if (rows < JOURNAL_PAGE_SIZE) break
       }
     } catch (e) {
-      result.bySource[source] = { rows: 0, events: 0, written: 0, duplicates: 0, error: e instanceof Error ? e.message : String(e) }
-      console.error("[events-journal]", { source, error: e instanceof Error ? e.message : String(e) })
+      totals.error = e instanceof Error ? e.message : String(e)
+      console.error("[events-journal]", { source, error: totals.error })
     }
+    result.bySource[source] = totals
   }
   console.log("[events-journal]", result)
   return result

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 const groupBy = vi.hoisted(() => vi.fn())
 vi.mock("@/lib/prisma", () => ({ prisma: { affisellTrackEvent: { groupBy } } }))
@@ -6,6 +6,19 @@ vi.mock("@/lib/prisma", () => ({ prisma: { affisellTrackEvent: { groupBy } } }))
 import { loadProductRefundRates } from "@/lib/events/journal-metrics.server"
 
 describe("measured refund rates for the net-margin guard", () => {
+  beforeEach(() => {
+    vi.stubEnv("EVENTS_JOURNAL", "on")
+  })
+  afterEach(() => vi.unstubAllEnvs())
+
+  it("journal off = full rollback: default rate, the events are not even read", async () => {
+    vi.stubEnv("EVENTS_JOURNAL", "")
+    groupBy.mockClear()
+    const rates = await loadProductRefundRates(["prod_aaaaaa"])
+    expect(rates.get("prod_aaaaaa")).toBe(0.1)
+    expect(groupBy).not.toHaveBeenCalled()
+  })
+
   it("smooths journal counts per product and keeps the default without data", async () => {
     groupBy.mockResolvedValueOnce([
       { productId: "prod_aaaaaa", eventType: "purchase", _count: { _all: 200 } },
