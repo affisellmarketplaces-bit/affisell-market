@@ -2781,6 +2781,22 @@
       "pendingVerification": "Pending",
       "setDefault": "Set as default",
       "delete": "Delete"
+    },
+    "listingHealth": {
+      "eyebrow": "Listing health",
+      "titleAction": "{count, plural, one {# product no longer earns enough} other {# products no longer earn enough}}",
+      "titleWatch": "{count, plural, one {# product to watch} other {# products to watch}}",
+      "hint": "Computed at your selling price, with today's supplier price and commission, after Affisell's fee and expected refunds.",
+      "statusAction": "Needs action",
+      "statusWatch": "Watch",
+      "issueSupplierPrice": "Supplier price ≥ your price",
+      "issueNetInsufficient": "Net earnings too low",
+      "issueNetThin": "Thin margin",
+      "issueRefundRising": "Refunds rising",
+      "expectedNet": "Est. net / sale:",
+      "prices": "Your price {selling} · supplier {supplier}",
+      "estimateNote": "Estimates, not guaranteed earnings.",
+      "review": "Review my products"
     }
   },
   "marketplace": {

@@ -2,8 +2,9 @@ import {
   buildAffiliateCatalogCardEconomics,
   estimateNetPartnerGainCents,
 } from "@/lib/affiliate-catalog-margin-display"
-import { loadProductRefundRates } from "@/lib/events/journal-metrics.server"
-import { isRecommendable, marginGuardForEconomics } from "@/lib/reseller-margin-guard"
+import { loadProductRiskContext } from "@/lib/reseller-copilot.server"
+import { scoreOpportunity, type OpportunityScore } from "@/lib/reseller-opportunity-score"
+import { estimateRefundRisk } from "@/lib/reseller-refund-risk"
 import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
 import {
@@ -27,7 +28,13 @@ export type AffiliateOpportunityPulseCard = {
   listingId: string | null
   isInStore: boolean
   supplierLabel: string
+  /** Ranking inputs (estimates, never guaranteed): expected net at the prudent refund rate, demand, supplier. */
+  riskAdjustedNetCents: number
+  refundRiskSource: "product" | "category" | "default"
 }
+
+/** Candidates examined per pick: the guard drops some, the score reorders the rest. */
+const PULSE_CANDIDATES_PER_PICK = 3
 
 export type AffiliateViewerAggregate = {
   productId: string
@@ -125,7 +132,7 @@ export async function loadAffiliateOpportunityPulsePicks(
     [...watchMap.entries()]
       .filter(([productId]) => !listedIds.has(productId))
       .map(([productId, affiliateViewerCount]) => ({ productId, affiliateViewerCount }))
-  ).slice(0, safeLimit)
+  ).slice(0, safeLimit * PULSE_CANDIDATES_PER_PICK)
 
   if (ranked.length === 0) {
     console.log("[affiliate-opportunity-pulse]", { affiliateId, picks: 0 })
@@ -140,15 +147,21 @@ export async function loadAffiliateOpportunityPulsePicks(
       isDraft: false,
       ...buyerMarketplaceProductWhere,
     },
-    select: affiliateDiscoverCardSelect(affiliateId),
+    select: { ...affiliateDiscoverCardSelect(affiliateId), categoryId: true, supplierId: true },
   })
 
   const byId = new Map(products.map((row) => [row.id, row]))
   const countById = new Map(ranked.map((row) => [row.productId, row.affiliateViewerCount]))
-  // Measured refund rates from the business journal (S2); the guard's default when there is no data yet.
-  const refundRates = await loadProductRefundRates(productIds)
+  // Journal (S2): refund risk product → category → default, recent demand, supplier refunds. Defaults when off.
+  const risk = await loadProductRiskContext(
+    products.map((p) => ({
+      id: p.id,
+      categoryId: (p as { categoryId?: string | null }).categoryId,
+      supplierId: (p as { supplierId?: string | null }).supplierId,
+    }))
+  )
 
-  const picks: AffiliateOpportunityPulseCard[] = []
+  const candidates: Array<{ card: AffiliateOpportunityPulseCard; score: OpportunityScore }> = []
   for (const { productId } of ranked) {
     const row = byId.get(productId)
     if (!row) continue
@@ -165,15 +178,24 @@ export async function loadAffiliateOpportunityPulsePicks(
     })
     const supplierLabel =
       supplier.store?.name?.trim() || supplier.email.trim() || "Fournisseur"
-    // Net-margin guard: an opportunity Affisell pushes must leave the reseller a real expected net.
-    const verdict = marginGuardForEconomics(buildAffiliateCatalogCardEconomics(row.basePriceCents, commissionRate), {
-      expectedRefundRate: refundRates.get(row.id),
+    const economics = buildAffiliateCatalogCardEconomics(row.basePriceCents, commissionRate)
+    const ctx = risk.get(row.id) ?? { refundRisk: estimateRefundRisk({}), recentPurchases: 0, supplierRefundRate: null }
+    // Net-margin guard + ranking: an opportunity Affisell pushes must leave the reseller a real expected net.
+    const score = scoreOpportunity({
+      productId: row.id,
+      netGainCents: economics.netPartnerGainCents,
+      clientPriceCents: economics.clientPriceCents,
+      refundRisk: ctx.refundRisk,
+      recentPurchases: ctx.recentPurchases,
+      supplierRefundRate: ctx.supplierRefundRate,
     })
-    if (!isRecommendable(verdict)) {
+    if (!score.recommendable) {
       continue
     }
 
-    picks.push({
+    candidates.push({
+      score,
+      card: {
       productId: row.id,
       name: row.name,
       imageUrl: primaryProductImage(row.images ?? []) || null,
@@ -184,8 +206,22 @@ export async function loadAffiliateOpportunityPulsePicks(
       listingId: listing?.id ?? null,
       isInStore: Boolean(listing),
       supplierLabel,
+      riskAdjustedNetCents: score.riskAdjustedNetCents,
+      refundRiskSource: ctx.refundRisk.source,
+      },
     })
   }
+
+  // Score first (expected net × demand × supplier reliability), then the creators-watching signal.
+  const picks = candidates
+    .sort(
+      (a, b) =>
+        b.score.score - a.score.score ||
+        b.card.affiliateCreatorsWatching - a.card.affiliateCreatorsWatching ||
+        a.card.productId.localeCompare(b.card.productId)
+    )
+    .map((c) => c.card)
+    .slice(0, safeLimit)
 
   console.log("[affiliate-opportunity-pulse]", {
     affiliateId,

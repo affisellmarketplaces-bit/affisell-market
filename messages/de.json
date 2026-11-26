@@ -2781,6 +2781,22 @@
       "pendingVerification": "Ausstehend",
       "setDefault": "Als Standard festlegen",
       "delete": "Löschen"
+    },
+    "listingHealth": {
+      "eyebrow": "Zustand Ihrer Produkte",
+      "titleAction": "{count, plural, one {# Produkt bringt nicht mehr genug ein} other {# Produkte bringen nicht mehr genug ein}}",
+      "titleWatch": "{count, plural, one {# Produkt beobachten} other {# Produkte beobachten}}",
+      "hint": "Berechnet zu Ihrem Verkaufspreis, mit dem heutigen Lieferantenpreis und der heutigen Provision, nach Affisell-Gebühr und erwarteten Erstattungen.",
+      "statusAction": "Handlungsbedarf",
+      "statusWatch": "Beobachten",
+      "issueSupplierPrice": "Lieferantenpreis ≥ Ihr Preis",
+      "issueNetInsufficient": "Nettogewinn zu niedrig",
+      "issueNetThin": "Geringe Marge",
+      "issueRefundRising": "Erstattungen steigen",
+      "expectedNet": "Geschätzter Netto / Verkauf:",
+      "prices": "Ihr Preis {selling} · Lieferant {supplier}",
+      "estimateNote": "Schätzungen, kein garantierter Gewinn.",
+      "review": "Meine Produkte prüfen"
     }
   },
   "marketplace": {

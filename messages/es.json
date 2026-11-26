@@ -2781,6 +2781,22 @@
       "pendingVerification": "Pendiente",
       "setDefault": "Establecer como predeterminado",
       "delete": "Eliminar"
+    },
+    "listingHealth": {
+      "eyebrow": "Salud de tus productos",
+      "titleAction": "{count, plural, one {# producto ya no rinde lo suficiente} other {# productos ya no rinden lo suficiente}}",
+      "titleWatch": "{count, plural, one {# producto a vigilar} other {# productos a vigilar}}",
+      "hint": "Calculado a tu precio de venta, con el precio del proveedor y la comisión de hoy, tras la tarifa de Affisell y los reembolsos previstos.",
+      "statusAction": "Corregir",
+      "statusWatch": "Vigilar",
+      "issueSupplierPrice": "Precio proveedor ≥ tu precio",
+      "issueNetInsufficient": "Ganancia neta demasiado baja",
+      "issueNetThin": "Margen escaso",
+      "issueRefundRising": "Reembolsos en aumento",
+      "expectedNet": "Neto estimado / venta:",
+      "prices": "Tu precio {selling} · proveedor {supplier}",
+      "estimateNote": "Estimaciones, no una ganancia garantizada.",
+      "review": "Revisar mis productos"
     }
   },
   "marketplace": {

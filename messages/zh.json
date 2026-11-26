@@ -2781,6 +2781,22 @@
       "pendingVerification": "待处理",
       "setDefault": "设为默认",
       "delete": "删除"
+    },
+    "listingHealth": {
+      "eyebrow": "商品健康度",
+      "titleAction": "{count, plural, other {# 件商品收益已不足}}",
+      "titleWatch": "{count, plural, other {# 件商品需关注}}",
+      "hint": "按您的售价、今日的供应商价格和佣金计算，已扣除 Affisell 费用和预期退款。",
+      "statusAction": "需处理",
+      "statusWatch": "需关注",
+      "issueSupplierPrice": "供应商价格 ≥ 您的售价",
+      "issueNetInsufficient": "净收益过低",
+      "issueNetThin": "利润微薄",
+      "issueRefundRising": "退款上升",
+      "expectedNet": "预估净收益 / 单：",
+      "prices": "您的售价 {selling} · 供应商 {supplier}",
+      "estimateNote": "仅为估算，并非保证收益。",
+      "review": "查看我的商品"
     }
   },
   "marketplace": {
