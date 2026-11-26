@@ -117,9 +117,10 @@ export type RoutePolicy = {
   preference?: Partial<Record<RailCountry, readonly string[]>>
 }
 
-function capabilityFor(rail: PaymentRail, req: RouteRequest): RailCapability | null {
+/** The capability that covers this request (country, currency, method, amount limits, operator), or null. */
+export function matchCapability(capabilities: readonly RailCapability[], req: RouteRequest): RailCapability | null {
   return (
-    rail.capabilities.find(
+    capabilities.find(
       (c) =>
         c.country === req.country.toUpperCase() &&
         c.currency === req.currency &&
@@ -149,7 +150,7 @@ export function routeCollection(
   return rails
     .filter((r) => !policy.disabled?.has(r.id))
     .flatMap((rail) => {
-      const capability = capabilityFor(rail, req)
+      const capability = matchCapability(rail.capabilities, req)
       if (!capability) return []
       const schedule = rail.fees[req.method]
       return [{ rail, capability, fee: schedule ? estimateRailFee(req.amount, schedule).fee : null }]

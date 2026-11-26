@@ -160,6 +160,40 @@ describe("simulated rail — the contract every real adapter must satisfy", () =
     ).toBe("failed")
   })
 
+  it("refuses what its declared capabilities do not cover (limits, country, operator) — like a real provider", async () => {
+    const rail = createSimulatedRail({ webhookSecret: SECRET })
+    expect((await rail.createCollection({ ...base, idempotencyKey: "ord_cap001", amount: 50 })).status).toBe("failed")
+    expect((await rail.createCollection({ ...base, idempotencyKey: "ord_cap002", amount: 3_000_000 })).status).toBe(
+      "failed",
+    )
+    expect((await rail.createCollection({ ...base, idempotencyKey: "ord_cap003", operator: "ORANGE" })).status).toBe(
+      "failed",
+    )
+    expect(
+      (await rail.createCollection({ ...base, idempotencyKey: "ord_cap004", country: "CI", msisdn: "0701020304" }))
+        .status,
+    ).toBe("failed")
+    expect((await rail.createCollection({ ...base, idempotencyKey: "ord_cap005" })).status).toBe("pending")
+  })
+
+  it("a refund in another currency or a fractional amount is refused and does not consume the refundable balance", async () => {
+    const rail = createSimulatedRail({ webhookSecret: SECRET })
+    const intent = await rail.createCollection({ ...base, idempotencyKey: "ord_rf0001" })
+    rail.settle(intent.providerRef, "succeeded")
+    expect(
+      (await rail.refund({ providerRef: intent.providerRef, refundKey: "rf_cur001", amount: 1_000, currency: "EUR" }))
+        .status,
+    ).toBe("failed")
+    expect(
+      (await rail.refund({ providerRef: intent.providerRef, refundKey: "rf_frac01", amount: 10.5, currency: "XOF" }))
+        .status,
+    ).toBe("failed")
+    expect(
+      (await rail.refund({ providerRef: intent.providerRef, refundKey: "rf_full01", amount: 25_000, currency: "XOF" }))
+        .status,
+    ).toBe("pending")
+  })
+
   it("an invalid request becomes a failed collection, not an exception", async () => {
     const rail = createSimulatedRail({ webhookSecret: SECRET })
     expect((await rail.createCollection({ ...base, idempotencyKey: "ord_000009", msisdn: "12" })).status).toBe("failed")

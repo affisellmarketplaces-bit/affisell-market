@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
 
-import { applyStatus, validateCollection } from "@/lib/payment-rails/core"
+import { applyStatus, isValidMinorAmount, matchCapability, validateCollection } from "@/lib/payment-rails/core"
 import type {
   CollectionIntent,
   CollectionRequest,
@@ -89,7 +89,8 @@ export function createSimulatedRail(options: {
     fees: options.fees ?? { mobile_money: { bps: 100, fixed: 0, settlementDays: 2 } },
 
     async createCollection(request: CollectionRequest): Promise<CollectionIntent> {
-      const invalid = validateCollection(request)
+      // A real provider refuses what its contract does not cover; the double must too, or checkout tests lie.
+      const invalid = validateCollection(request) ?? (matchCapability(capabilities, request) ? null : "not_supported")
       const existing = byKey.get(request.idempotencyKey)
       if (existing) {
         // Idempotent: same key → same collection, no second charge.
@@ -119,11 +120,16 @@ export function createSimulatedRail(options: {
       return out
     },
 
-    async refund({ providerRef, refundKey, amount }) {
+    async refund({ providerRef, refundKey, amount, currency }) {
       const previous = refunds.get(refundKey)
       if (previous) return previous
       const s = byRef.get(providerRef)
-      const ok = !!s && s.status === "succeeded" && amount > 0 && s.refunded + amount <= s.amount
+      const ok =
+        !!s &&
+        s.status === "succeeded" &&
+        currency === s.currency &&
+        isValidMinorAmount(amount) &&
+        s.refunded + amount <= s.amount
       const result = {
         refundRef: `simre_${String(++seq).padStart(8, "0")}`,
         status: (ok ? "pending" : "failed") as RefundStatus,
