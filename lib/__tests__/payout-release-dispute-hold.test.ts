@@ -38,6 +38,8 @@ import { triggerLightningPayout } from "@/lib/stripe-lightning"
 
 describe("Lightning instant payout", () => {
   beforeEach(() => {
+    // #13 locks Lightning by default; these tests exercise the dispute / closed-order guards behind the lock.
+    process.env.LIGHTNING_PAYOUTS_MODE = "enabled"
     transfersCreate.mockClear()
     state.openHolds = 0
     state.order = {
