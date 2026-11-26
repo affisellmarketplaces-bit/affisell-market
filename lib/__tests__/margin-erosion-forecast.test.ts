@@ -90,6 +90,15 @@ describe("margin erosion forecast", () => {
     if (f.daysToThin! > 1) expect(at(f.daysToThin! - 1)).toBe("healthy")
   })
 
+  it("a dip that recovers before the horizon is still announced (the net is not monotonic past the selling price)", () => {
+    // 12 % commission, supplier 3 800 → +30 c/day: thin around day 19, « healthy » again by day 60 (commission only).
+    const obs = series(40, (d) => 3_800 - 30 * (39 - d))
+    const f = forecastMarginErosion({ ...listing(obs), commissionRatePct: 12 })
+    expect(f).not.toBeNull()
+    expect(f!.daysToThin).toBeGreaterThan(0)
+    expect(f!.daysToThin!).toBeLessThan(30)
+  })
+
   it("no alarm: flat prices, falling prices, too few days, too short a span, a slow rise beyond the horizon", () => {
     expect(forecastMarginErosion(listing(series(40, () => 3_800)))).toBeNull()
     expect(forecastMarginErosion(listing(series(40, (d) => 4_400 - 15 * d)))).toBeNull()

@@ -19,8 +19,8 @@ import { evaluateMarginGuard, type MarginGuardLevel } from "@/lib/reseller-margi
  *     beside it). Each projected price goes through the SAME net calculation as the settlement
  *     (`buildAffiliateCatalogCardEconomics`, PR #17) and the SAME margin guard as every reseller surface, with the
  *     listing's own selling price, fee and expected refund rate — no second financial model.
- *  4. Days until the guard level changes = binary search over the horizon (the net falls monotonically as the cost
- *     rises at a fixed selling price).
+ *  4. Days until the guard level changes = the FIRST day of the horizon at that level, scanned day by day (the net
+ *     is not monotonic in the cost past the selling price, see `daysUntil`).
  *
  * Gates: ≥ {@link EROSION_MIN_DAYS} distinct days of observations spanning ≥ {@link EROSION_MIN_SPAN_DAYS} days, the
  * listing healthy today, and the thin level reached within {@link EROSION_HORIZON_DAYS} days by the point trend.
@@ -127,7 +127,12 @@ function levelAt(input: MarginErosionInput, supplierPriceCents: number) {
 
 const WORSE: Record<MarginGuardLevel, number> = { healthy: 0, thin: 1, insufficient: 2 }
 
-/** Smallest whole day d in [1, horizon] at which the level is at least `target`, or null. */
+/**
+ * FIRST whole day d in [1, horizon] at which the level is at least `target`, or null. A day-by-day scan, on purpose:
+ * the shared net is NOT monotonic in the supplier price — past the selling price the markup is zero while the
+ * commission keeps growing, so a listing can turn thin and then look healthy again. A search that only looks at the
+ * horizon would miss that dip (60 evaluations of a pure function: negligible).
+ */
 function daysUntil(
   input: MarginErosionInput,
   slope: number,
@@ -135,16 +140,10 @@ function daysUntil(
   horizon = EROSION_HORIZON_DAYS,
 ): number | null {
   if (!(slope > 0)) return null
-  const reached = (d: number) => WORSE[levelAt(input, input.supplierPriceCents + slope * d).level] >= WORSE[target]
-  if (!reached(horizon)) return null
-  let lo = 1
-  let hi = horizon
-  while (lo < hi) {
-    const mid = (lo + hi) >> 1
-    if (reached(mid)) hi = mid
-    else lo = mid + 1
+  for (let d = 1; d <= horizon; d++) {
+    if (WORSE[levelAt(input, input.supplierPriceCents + slope * d).level] >= WORSE[target]) return d
   }
-  return lo
+  return null
 }
 
 /** Null unless a rising supplier cost is ESTABLISHED and turns a healthy listing thin within the horizon. */
