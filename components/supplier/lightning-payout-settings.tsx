@@ -4,11 +4,14 @@ import { Loader2, Zap } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 
+import { LIGHTNING_LOCKED_MESSAGE } from "@/lib/payouts/lightning-lock"
 import { cn } from "@/lib/utils"
 
 type Props = {
   initialTrustScore: number
   initialLightningEnabled: boolean
+  /** Temporary Affisell lock (lib/payouts/lightning-lock.ts): switching ON is refused server side. */
+  lightningLocked?: boolean
 }
 
 function LightningToggle({
@@ -50,17 +53,22 @@ function LightningToggle({
   )
 }
 
-export function LightningPayoutSettings({ initialTrustScore, initialLightningEnabled }: Props) {
+export function LightningPayoutSettings({
+  initialTrustScore,
+  initialLightningEnabled,
+  lightningLocked = false,
+}: Props) {
   const [trustScore, setTrustScore] = useState(initialTrustScore)
   const [lightningEnabled, setLightningEnabled] = useState(initialLightningEnabled)
   const [busy, setBusy] = useState(false)
 
   const locked = trustScore < 50
   const lockTooltip = "Expédiez 10 commandes sans litige pour débloquer"
-  const switchDisabled = locked && !lightningEnabled
+  const switchDisabled = (locked || lightningLocked) && !lightningEnabled
+  const switchTitle = lightningLocked ? LIGHTNING_LOCKED_MESSAGE : locked ? lockTooltip : undefined
 
   async function onToggle(next: boolean) {
-    if (next && locked) return
+    if (next && (locked || lightningLocked)) return
     setBusy(true)
     try {
       const res = await fetch("/api/supplier/lightning-payout", {
@@ -71,14 +79,17 @@ export function LightningPayoutSettings({ initialTrustScore, initialLightningEna
       })
       const data = (await res.json().catch(() => ({}))) as {
         error?: string
+        message?: string
         trustScore?: number
         lightningEnabled?: boolean
       }
       if (!res.ok) {
         toast.error(
-          data.error === "trust_score_too_low"
-            ? lockTooltip
-            : "Impossible de mettre à jour Lightning Payout"
+          data.error === "lightning_locked"
+            ? (data.message ?? LIGHTNING_LOCKED_MESSAGE)
+            : data.error === "trust_score_too_low"
+              ? lockTooltip
+              : "Impossible de mettre à jour Lightning Payout"
         )
         if (typeof data.trustScore === "number") setTrustScore(data.trustScore)
         return
@@ -116,7 +127,11 @@ export function LightningPayoutSettings({ initialTrustScore, initialLightningEna
             <span className="font-semibold tabular-nums text-zinc-800 dark:text-zinc-200">
               {trustScore}/100
             </span>
-            {locked ? (
+            {lightningLocked ? (
+              <span className="mt-1 block text-amber-700 dark:text-amber-300">
+                {LIGHTNING_LOCKED_MESSAGE}
+              </span>
+            ) : locked ? (
               <span className="mt-1 block text-amber-700 dark:text-amber-300">{lockTooltip}</span>
             ) : null}
           </p>
@@ -128,7 +143,7 @@ export function LightningPayoutSettings({ initialTrustScore, initialLightningEna
             on={lightningEnabled}
             busy={busy}
             disabled={switchDisabled}
-            title={switchDisabled ? lockTooltip : undefined}
+            title={switchDisabled ? switchTitle : undefined}
             onChange={(next) => void onToggle(next)}
           />
         </div>

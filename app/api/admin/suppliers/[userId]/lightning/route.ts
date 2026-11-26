@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
+import { lightningToggleDecision } from "@/lib/payouts/lightning-lock"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -32,6 +33,16 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   const parsed = patchSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid body", details: parsed.error.flatten() }, { status: 400 })
+  }
+
+  // Temporary lock (lib/payouts/lightning-lock.ts): an admin can switch Lightning OFF, not ON.
+  const lock = lightningToggleDecision(parsed.data.lightningEnabled)
+  if (!lock.allowed) {
+    console.warn("[admin-lightning] refused_locked", { supplierId: userId, adminId: gate.session.user.id })
+    return NextResponse.json(
+      { error: lock.error, message: lock.message, lightningLocked: true },
+      { status: 409 }
+    )
   }
 
   const supplier = await prisma.user.findFirst({
