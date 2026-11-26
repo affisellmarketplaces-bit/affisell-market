@@ -15,6 +15,7 @@ import { searchSupplierCatalogForAffiliateAgent } from "@/lib/agent-affiliate-ca
 import type { AffiliateAgentProductCard } from "@/lib/agent-affiliate-product-card-types"
 import { recordAgentSearch, type AgentHistoryContext } from "@/lib/agent-history"
 import { loadAffiliateCatalogHighlights } from "@/lib/affiliate-catalog-query"
+import { loadResellerActionPlan } from "@/lib/reseller-action-plan.server"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -48,12 +49,18 @@ Tools:
 - **searchSupplierCatalog** — { "query": "<text>" }. Returns JSON strings: parse each. g=0 main picks (up to 3), g=1 similar SKUs, or { "t":"cat", "c":"..." } when empty.
 - **getCatalogHighlights** — no input. Returns best sellers (7d), new arrivals, and high-margin SKUs as JSON strings (h=0|1|2).
 - **getUserHistory** — recent sourcing searches (strings only).
+- **getActionPlan** — no input. The reseller's own action plan: listings that lose money or earn too little at THEIR price (with a suggested price), supplier price rises, refunds rising, products whose demand is accelerating, listings with traffic but no sales, and the best opportunities to list. Use it for "what should I sell / fix / stop / prioritise today", "which products make me lose money", "where is my best opportunity".
 
 When presenting results:
 - Prioritize estimated reseller earnings (marginCents = commission + markup at clientPriceCents; usesListedPrice=true means their live listing price).
 - Compare commission %, client price, supplier, and whether already in their vitrine (isInStore).
 - Recommend 1–2 clear picks with short rationale (niche fit, earnings, trend).
 - Suggest next step: add to vitrine via the card CTA or refine search.
+
+Action plan rules:
+- Every euro figure is an ESTIMATE (expected net per sale after Affisell's fee and expected refunds) — never present it as guaranteed.
+- You cannot change anything yourself. Prepared changes (reprice, pause, fix margins) are applied only by the reseller, with one click on the action card in their hub (Affisell → Hub), and can be undone there.
+- Explain each recommendation with its reason codes in plain words; if the plan is empty, say the catalogue looks healthy and suggest sourcing.
 
 Stay concise, professional, in French unless the user writes in English.`
 
@@ -189,12 +196,37 @@ export async function POST(req: Request) {
     },
   })
 
+  const getActionPlan = tool({
+    description:
+      "The reseller's action plan: what to fix, stop, reprice, push or list today, with reasons and estimated net per sale. No input. Read-only.",
+    inputSchema: z.object({}),
+    execute: async (): Promise<string[]> => {
+      const plan = await loadResellerActionPlan(affiliateId)
+      if (plan.actions.length === 0) return [JSON.stringify({ t: "empty", listingsChecked: plan.listingsChecked })]
+      return plan.actions.map((a) =>
+        JSON.stringify({
+          type: a.type,
+          name: a.name,
+          productId: a.productId,
+          listingId: a.listingId,
+          reasons: a.reasons,
+          oneClick: a.autonomy === "one_click",
+          currentPriceCents: a.currentPriceCents,
+          suggestedPriceCents: a.suggestedPriceCents,
+          expectedNetNowCents: a.expectedNetNowCents,
+          expectedNetAfterCents: a.expectedNetAfterCents,
+          estimated: true,
+        })
+      )
+    },
+  })
+
   try {
     const result = streamText({
       model: groq("openai/gpt-oss-120b"),
       system: SYSTEM_PROMPT,
       messages: modelMessages,
-      tools: { searchSupplierCatalog, getCatalogHighlights, getUserHistory },
+      tools: { searchSupplierCatalog, getCatalogHighlights, getUserHistory, getActionPlan },
       stopWhen: stepCountIs(12),
       onError: ({ error }) => {
         console.error("[agent/affiliate]", error)

@@ -6,7 +6,7 @@ import { AffiliateBattleDiscountCard } from "@/components/affiliate/affiliate-ba
 import { AffiliateFirstListingCoachBanner } from "@/components/affiliate/affiliate-first-listing-coach-banner"
 import { AffiliateHubHashRedirect } from "@/components/affiliate/affiliate-hub-hash-redirect"
 import { AffiliateHubLauncher } from "@/components/affiliate/affiliate-hub-launcher"
-import { AffiliateListingHealthCard } from "@/components/affiliate/affiliate-listing-health-card"
+import { AffiliateActionPlanCard } from "@/components/affiliate/affiliate-action-plan-card"
 import { AffiliateKycPublishBanner } from "@/components/affiliate/affiliate-kyc-publish-banner"
 import { AffiliateOnboardingChecklist } from "@/components/affiliate/affiliate-onboarding-checklist"
 import { AffiliateOpportunityPulseRail } from "@/components/affiliate/affiliate-opportunity-pulse-rail"
@@ -17,8 +17,7 @@ import { isAffiliateOnboardingQuery } from "@/lib/affiliate-onboarding-shared"
 import { parseAffiliateHubMode } from "@/lib/affiliate-routes"
 import { loadAffiliateFirstSaleProgress } from "@/lib/merchant-first-sale-progress"
 import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
-import { prisma } from "@/lib/prisma"
-import { loadResellerListingHealth } from "@/lib/reseller-copilot.server"
+import { loadResellerActionPlan } from "@/lib/reseller-action-plan.server"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -44,20 +43,15 @@ export default async function AffiliateHubPage({ searchParams }: PageProps) {
   const hubMode = parseAffiliateHubMode(modeRaw)
   const showFirstListingCoach = isAffiliateOnboardingQuery(sp.onboarding)
 
-  const [gate, progress, opportunityPicks, listingHealth] = await Promise.all([
+  const [gate, progress, opportunityPicks, actionPlan] = await Promise.all([
     merchantVerificationGate(session.user.id),
     loadAffiliateFirstSaleProgress(session.user.id),
     loadAffiliateOpportunityPulsePicks(session.user.id, 3).catch((err) => {
       console.error("[affiliate/hub] opportunity pulse failed:", err)
       return []
     }),
-    // Listings that no longer earn enough at the reseller's own price (hub home only; never throws).
-    hubMode === "hub"
-      ? prisma.user
-          .findUnique({ where: { id: session.user.id }, select: { affiliatePlatformFeeBps: true } })
-          .catch(() => null)
-          .then((u) => loadResellerListingHealth(session.user.id, { resellerFeeBps: u?.affiliatePlatformFeeBps ?? null }))
-      : Promise.resolve([]),
+    // What to fix, stop, reprice, push or list today (hub home only; never throws, estimates only).
+    hubMode === "hub" ? loadResellerActionPlan(session.user.id) : Promise.resolve(null),
   ])
 
   const showSwipeCoachBanner = hubMode === "swipe" || showFirstListingCoach
@@ -100,9 +94,9 @@ export default async function AffiliateHubPage({ searchParams }: PageProps) {
         <AffiliateBattleDiscountCard />
       ) : null}
 
-      {hubMode === "hub" && listingHealth.some((l) => l.status !== "ok") ? (
+      {hubMode === "hub" && actionPlan && actionPlan.actions.length > 0 ? (
         <div className="mx-auto max-w-3xl px-4 pt-2 sm:px-6">
-          <AffiliateListingHealthCard listings={listingHealth} />
+          <AffiliateActionPlanCard actions={actionPlan.actions} />
         </div>
       ) : null}
 

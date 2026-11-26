@@ -31,7 +31,7 @@ nothing: any "trend" there would be noise.
 **Wired into the Opportunity Pulse.** The pulse now examines 3 candidates per pick and orders them by score,
 then by the number of resellers watching. Before, it ordered by the number of resellers watching alone.
 
-## 3. Listing health (`loadResellerListingHealth`, `GET /api/affiliate/listing-health`, hub card)
+## 3. Listing health (`loadResellerListingHealth`, `GET /api/affiliate/listing-health`)
 
 For each product the reseller already sells, the health check is computed:
 
@@ -45,8 +45,44 @@ Issues reported:
 - `net_insufficient` / `net_thin`: the guard's verdict at the reseller's own price.
 - `refund_rate_rising`: see the trend test above.
 
-Status is `action`, `watch` or `ok`. The hub card (`AffiliateListingHealthCard`) is server-rendered, so it adds
-no hydration. It shows nothing when every listing is healthy, and is translated in 8 locales.
+Status is `action`, `watch` or `ok`. Shown on the hub through the action plan (section 4).
+
+## 4. Action plan — from signals to actions (`lib/reseller-action-plan*.ts`, `lib/reseller-signals.ts`)
+
+The copilot no longer only describes: it proposes **what to do**, with the reason and the estimated net per sale
+before and after.
+
+| Action | When | Autonomy |
+| --- | --- | --- |
+| `fix_margins` | the supplier raised a SKU price (`marginReviewNeeded`, set by the existing wholesale notifier) | one click → the existing variant-aware `applyMarginAutoFixToListing` |
+| `pause` | LOSES money (sold at or below cost, or a negative expected net) and no price within **+25 %** makes it healthy | one click |
+| `review_pricing` | still earns a little, too little to recommend, and +25 % does not fix it | recommendation (never a pause) |
+| `reprice` | thin / insufficient / supplier cost above its history → the **lowest** price (rounded to 10 cents) that makes it healthy, within +25 %; never on listings with per-variant prices | one click |
+| `review_refunds` | still earns, but refunds rise beyond chance | recommendation (a pause would be wrong) |
+| `push_momentum` | healthy and demand accelerating (Poisson test, 14 days vs previous 56) | recommendation |
+| `list_opportunity` | top scored opportunities not yet listed | recommendation (link to the catalogue) |
+| `review_traffic` | ≥ 100 visits, < 0.5 % conversion | recommendation |
+
+Signals (`lib/reseller-signals.ts`, pure, silent without enough data):
+
+- **Demand momentum**: Poisson test on units sold, from paid orders.
+- **Supplier cost drift**: today's unit price compared with the unit prices actually charged on paid orders over
+  90 days, using median and MAD. It ignores one odd order and noisy histories, and needs at least 3 observations
+  and a 10 % move.
+- **Traffic without sales.**
+
+**Safety by construction.**
+
+- An action is applied only on the reseller's explicit click: `POST /api/affiliate/copilot/actions`,
+  rate-limited.
+- Before applying, the server **recomputes the plan**. An action that no longer exists is refused with 409
+  `stale`, so a click on an old screen never applies an outdated price.
+- Every application is recorded in `AuditLog` (`copilot.apply`) with the listing's state before and after.
+- **Undo** (`POST …/actions/undo`) works for 7 days, only by the same reseller, and only if nobody has changed
+  the listing since (`changed_since`). Every write is conditional on the row's `updatedAt`, so a concurrent edit is
+  never overwritten, and undo restores the supplier price-rise flags (`marginReview*`) a margin fix had cleared. Putting a paused product back online still goes through the identity check.
+- **The AI agent never acts.** Its new `getActionPlan` tool is read-only, so it can answer "what should I sell,
+  fix or stop today?". Changes stay a click in the hub.
 
 ## Data access and rollback
 
@@ -57,7 +93,7 @@ no hydration. It shows nothing when every listing is healthy, and is translated 
 
 ## Not built yet (needs a decision or a snapshot table)
 
-- **Alerts on change over time** ("the supplier raised the price by 12 % since you listed it"). This needs the
-  economics at listing time, which is not stored today. The proposal is an isolated, append-only snapshot,
-  written when a listing is created or updated. It would be a new table, so it waits for owner validation.
+- **Change over time**: covered without a new table. The supplier price-rise notifier sets `marginReviewNeeded`,
+  which becomes a `fix_margins` action. Cost drift compares today's price with the prices actually charged on paid
+  orders.
 - **Push or e-mail alerts.** The detection exists. Sending needs consent and a notification preference.
