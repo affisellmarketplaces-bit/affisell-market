@@ -4,6 +4,7 @@ import NextLink from "next/link"
 import { useCallback, type ComponentProps, type FocusEvent, type MouseEvent, type TouchEvent } from "react"
 
 import { Link as LocaleLink, useRouter as useLocaleRouter } from "@/i18n/navigation"
+import { VIEWPORT_LINK_PREFETCH } from "@/lib/link-prefetch-policy"
 import { normalizePrefetchHref } from "@/lib/prefetch-href.client"
 import { cn } from "@/lib/utils"
 
@@ -14,7 +15,8 @@ type SharedProps = {
   prefetchOnHover?: boolean
   className?: string
   children?: React.ReactNode
-  prefetch?: boolean
+  /** Default: Next's "auto" (see lib/link-prefetch-policy.ts); hover / focus / touch still warm the full route. */
+  prefetch?: boolean | null
 }
 
 type Props =
@@ -56,7 +58,7 @@ export function FastLink(props: Props) {
   }, [localeRouter, target, prefetchOnHover])
 
   const shared = {
-    prefetch: prefetch ?? true,
+    prefetch: prefetch ?? VIEWPORT_LINK_PREFETCH,
     className: cn("affisell-fast-link", className),
   }
 

@@ -9,7 +9,7 @@ import { resolveAppLocale } from "@/lib/i18n-locale"
 
 /**
  * Buyer home (`/`) — ISR shell. Role redirects run in middleware.
- * Perf P0: LCP via eager×2 product imgs + HomeLcpPreload; TBT via idle MarketplaceView
+ * Perf P0: LCP via eager×2 product imgs + HomeLcpPreload (inside Suspense — never on the first byte); TBT via idle MarketplaceView
  * + dynamic below-fold Radars; CLS via 44px sticky slot + affisell-product-media 4/3.
  */
 export const revalidate = 60
@@ -34,7 +34,16 @@ export default async function Page() {
 
   return (
     <>
-      <HomeLcpPreloadBoundary locale={appLocale} />
+      {/*
+        Suspense is what lets the page stream: without it this boundary — which awaits the catalogue (category tree,
+        listings, offer counts, title cache) — held back the FIRST BYTE of the whole page. Measured in CI against a real
+        PostgreSQL (lighthouse-mobile.yml › home-server-timing): first byte 120 ms with a local database, 700 ms with
+        +150 ms per packet, 10.1 s with an unreachable one — hero included. The image preloads now stream in the same
+        chunk as the catalogue they serve; the hero and the rest of the shell no longer wait for them.
+      */}
+      <Suspense fallback={null}>
+        <HomeLcpPreloadBoundary locale={appLocale} />
+      </Suspense>
       <HomePage />
     </>
   )

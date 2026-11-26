@@ -10,6 +10,7 @@ import {
   type ResolveResendRecipientResult,
 } from "@/lib/emails/resolve-resend-recipient"
 import { readResendEnv } from "@/lib/env/resend"
+import { maskEmailForLog } from "@/lib/emails/mask-email"
 
 export type ResendDeliveryConfig = {
   apiKey: string
@@ -40,7 +41,13 @@ export function resolveResendDeliveryRecipient(
 
 type ResendSendResult = {
   data: { id: string } | null
-  error: { message: string } | null
+  /** `name` is Resend's error code (e.g. `invalid_idempotent_request`, `concurrent_idempotent_requests`). */
+  error: { message: string; name?: string } | null
+}
+
+/** Replaces every e-mail address in a provider message before it reaches a log. */
+export function redactEmails(text: string): string {
+  return text.replace(/[^\s@<>"'(),;:]+@[^\s@<>"'(),;:]+/g, "[email]")
 }
 
 /**
@@ -54,8 +61,13 @@ export async function sendResendEmail(args: {
   subject: string
   html: string
   replyTo?: string
-}): Promise<{ ok: true; resendId?: string } | { ok: false; error: string }> {
-  const { context, config, intendedTo, subject, html, replyTo } = args
+  /**
+   * Sent as Resend's `Idempotency-Key` on the first attempt: a replay with the same key within 24 h does not send the
+   * e-mail again. Not used for the sandbox fallback (a different recipient is a different e-mail).
+   */
+  idempotencyKey?: string
+}): Promise<{ ok: true; resendId?: string } | { ok: false; error: string; errorName?: string }> {
+  const { context, config, intendedTo, subject, html, replyTo, idempotencyKey } = args
   const resend = new Resend(config.apiKey)
 
   let recipient: ResolveResendRecipientResult
@@ -65,18 +77,19 @@ export async function sendResendEmail(args: {
     return { ok: false, error: "invalid_recipient" }
   }
 
-  const attempt = async (to: string): Promise<ResendSendResult> => {
-    const { data, error } = await resend.emails.send({
+  const attempt = async (to: string, key?: string): Promise<ResendSendResult> => {
+    const payload = {
       from: config.from,
       to,
       subject,
       html,
       ...(replyTo?.trim() ? { reply_to: replyTo.trim() } : {}),
-    })
+    }
+    const { data, error } = key ? await resend.emails.send(payload, { idempotencyKey: key }) : await resend.emails.send(payload)
     return { data: data ?? null, error: error ?? null }
   }
 
-  let result = await attempt(recipient.to)
+  let result = await attempt(recipient.to, idempotencyKey?.trim() || undefined)
   if (!result.error) {
     console.log(`[${context}]`, { result: "email_sent", resendId: result.data?.id })
     return { ok: true, resendId: result.data?.id }
@@ -93,8 +106,10 @@ export async function sendResendEmail(args: {
   if (canFallback) {
     console.warn(`[${context}]`, {
       result: "resend_retry_test_inbox",
-      firstError: errMsg,
-      intendedTo: intendedTo.trim().toLowerCase(),
+      // Never the raw address nor the provider's text (Resend echoes recipients in its messages, lower-cased — which
+      // GitHub's secret masking, an exact-match filter, would not catch).
+      firstError: redactEmails(errMsg),
+      intendedTo: maskEmailForLog(intendedTo),
     })
     result = await attempt(testTo)
     if (!result.error) {
@@ -105,11 +120,12 @@ export async function sendResendEmail(args: {
 
   console.error(`[${context}]`, {
     result: "resend_error",
-    message: result.error?.message ?? errMsg,
+    message: redactEmails(result.error?.message ?? errMsg),
     sandbox: isResendSandboxFrom(config.from),
     production: isProductionEmailDelivery(),
   })
-  return { ok: false, error: result.error?.message ?? errMsg }
+  const errorName = typeof result.error?.name === "string" ? result.error.name : undefined
+  return { ok: false, error: result.error?.message ?? errMsg, ...(errorName ? { errorName } : {}) }
 }
 
 /** Renders a React Email component and sends it. */

@@ -24,8 +24,28 @@ const CLOSED_ORDER_STATUSES = new Set(["refunded", "cancelled", "canceled"])
 /** Settlement states meaning the charge was refunded (fully, or with a clawback pending) or cancelled. */
 const CLOSED_SETTLEMENT_STATUSES = new Set(["REFUNDED", "REFUND_PENDING_CLAWBACK", "CANCELLED"])
 
-/** Order states that come AFTER payment: a payment confirmation must never move an order back to "paid". */
-const POST_PAYMENT_ORDER_STATUSES = new Set(["preparing", "shipped", "delivered", "completed", "returned", "disputed"])
+/** The same two sets, for SQL filters (`lower(status) = ANY(…)`, `upper(paymentSettlementStatus) = ANY(…)`). */
+export const CLOSED_ORDER_STATUS_VALUES: readonly string[] = [...CLOSED_ORDER_STATUSES]
+export const CLOSED_SETTLEMENT_STATUS_VALUES: readonly string[] = [...CLOSED_SETTLEMENT_STATUSES]
+
+/**
+ * Order states that come AFTER payment: a payment confirmation must never move an order back to "paid".
+ * Every status the code base writes after "paid" (survey of the `Order.status` writers, finalisation review #31):
+ * "preparing" (supplier route, orchestrator), "fulfilling" (AliExpress paths: `aliexpress-fulfill-order.ts`, `auto-buy.ts`),
+ * "shipped" (mark-shipped, supplier route, tracking webhooks, AutoDS, instant digital fulfilment, orchestrator), "disputed"
+ * (chargeback, D7); "delivered" / "completed" / "returned" are read by dashboards and kept for data written by other tools.
+ * "fulfilling" used to be missing: every re-run of the transfer scheduler (Stripe retry, second payment event, replay) moved
+ * an order the AliExpress paths had just placed back to "paid", i.e. back into the ship-SLA auto-cancel (which refunds).
+ */
+const POST_PAYMENT_ORDER_STATUSES = new Set([
+  "preparing",
+  "fulfilling",
+  "shipped",
+  "delivered",
+  "completed",
+  "returned",
+  "disputed",
+])
 
 /** Settlement states that come after PAID and must be kept when transfers are (re)scheduled. */
 const POST_PAID_SETTLEMENT_STATUSES = new Set(["SETTLED", "PARTIALLY_REFUNDED", ...CLOSED_SETTLEMENT_STATUSES])
@@ -47,7 +67,39 @@ export function isOrderClosedForPayout(order: OrderPaymentSnapshot): boolean {
  */
 export function statusAfterPaymentConfirmed(current: string | null | undefined): string {
   const value = norm(current)
-  return POST_PAYMENT_ORDER_STATUSES.has(value.toLowerCase()) ? value : "paid"
+  const lower = value.toLowerCase()
+  // A closed status is kept too, never "reopened as paid": the callers reject closed orders first, this is the last line.
+  return POST_PAYMENT_ORDER_STATUSES.has(lower) || CLOSED_ORDER_STATUSES.has(lower) ? value : "paid"
+}
+
+export type CheckoutFulfilmentSnapshot = OrderPaymentSnapshot & {
+  bookingSlotId?: string | null
+  bookingConfirmedAt?: Date | null
+}
+
+/**
+ * Does this order still need the CHECKOUT FULFILMENT (Ghost stock re-check + possible refund, order row creation, buyer
+ * e-mails, `fulfillMarketplaceStripeSession`)? Only an order that is not paid yet ("PENDING", empty, unknown pre-payment
+ * values) does. An order that is "paid" or past it (preparing, fulfilling, shipped, delivered, …) or closed (refunded,
+ * cancelled) must never re-enter it: the stock probe would run against TODAY's supplier stock and could refund a shipped
+ * order, and creating the row again hits the `stripeSessionId` unique constraint (finalisation review #9). The one
+ * exception is a cancelled booking that was never confirmed: a payment that arrives after its hold expired is recovered by
+ * the fulfilment itself.
+ */
+export function orderAwaitsCheckoutFulfilment(order: CheckoutFulfilmentSnapshot): boolean {
+  const status = norm(order.status).toLowerCase()
+  if (status === "cancelled" || status === "canceled") {
+    return Boolean(order.bookingSlotId) && !order.bookingConfirmedAt
+  }
+  if (status === "paid" || POST_PAYMENT_ORDER_STATUSES.has(status) || CLOSED_ORDER_STATUSES.has(status)) return false
+  // An unknown / pre-payment status already closed by its settlement (lines cancelled by the unallocated-line rule).
+  return !CLOSED_SETTLEMENT_STATUSES.has(norm(order.paymentSettlementStatus).toUpperCase())
+}
+
+/** True when the order is "paid" or past it (not closed): the checkout fulfilment is done. */
+export function orderIsFulfilledForCheckout(order: OrderPaymentSnapshot): boolean {
+  const status = norm(order.status).toLowerCase()
+  return status === "paid" || POST_PAYMENT_ORDER_STATUSES.has(status)
 }
 
 /**
@@ -98,18 +150,33 @@ export function statusBeforeDispute(order: OrderStatusFacts): string {
   return "paid"
 }
 
+/** How far an order got, for the statuses written between paid and delivery (higher = later). */
+const PROGRESS_RANK: Record<string, number> = {
+  paid: 0,
+  preparing: 1,
+  fulfilling: 2,
+  shipped: 3,
+  delivered: 4,
+  completed: 5,
+  returned: 6,
+}
+
 /**
- * Status to write when a dispute is won / closed without a loss. Only an order still "disputed" is restored: if another
- * writer already moved it (e.g. shipped), or it was refunded meanwhile, the status is left alone (`null`).
- * `previousStatus` = the exact status the ledger recorded when the hold was opened (ignored when empty, closed or disputed).
+ * Status to write when a dispute is won / closed without a loss. Only an order still "disputed" (any casing) is restored: if
+ * another writer already moved it (e.g. shipped), or it was refunded meanwhile, the status is left alone (`null`).
+ * `previousStatus` = the status the ledger recorded (refreshed when an open event found the order moved on). It is never
+ * allowed to be BEHIND the order's own facts: a stale "paid" on an order that has a tracking number / shipping date comes
+ * back as "shipped" (the stale value would put it back in the supplier's to-ship list and out of the payout flow).
  */
 export function statusWhenDisputeReleased(order: OrderStatusFacts, previousStatus?: string | null): string | null {
   if (!isOrderDisputed(order)) return null
   const previous = norm(previousStatus)
+  const facts = statusBeforeDispute(order)
   if (previous !== "" && !isOrderClosedForPayout({ status: previous }) && previous.toLowerCase() !== DISPUTED_ORDER_STATUS) {
-    return previous
+    const previousRank = PROGRESS_RANK[previous.toLowerCase()] ?? -1
+    return (PROGRESS_RANK[facts] ?? -1) > previousRank ? facts : previous
   }
-  return statusBeforeDispute(order)
+  return facts
 }
 
 /**
@@ -130,4 +197,52 @@ export function settlementAfterTransfersSucceeded(current: string | null | undef
   return value === "REFUNDED" || value === "REFUND_PENDING_CLAWBACK" || value === "PARTIALLY_REFUNDED" || value === "CANCELLED"
     ? (value as OrderPaymentSettlementStatus)
     : "SETTLED"
+}
+
+/** Order states that prove the buyer's payment was captured. */
+const PAID_ORDER_STATUSES = new Set(["paid", ...POST_PAYMENT_ORDER_STATUSES])
+
+/** Settlement states that prove the payment was captured and the order is not (fully) refunded yet. */
+const REFUNDABLE_SETTLEMENT_STATUSES = new Set(["PAID", "SETTLED", "PARTIALLY_REFUNDED"])
+
+/** Settlement states meaning the buyer already got the whole charge back (or the clawback of it is pending). */
+const FULLY_REFUNDED_SETTLEMENT_STATUSES = new Set(["REFUNDED", "REFUND_PENDING_CLAWBACK"])
+
+export type RefundEligibilitySnapshot = OrderPaymentSnapshot & {
+  paidAt?: Date | string | null
+  stripeChargeId?: string | null
+}
+
+export type RefundEligibility =
+  | { ok: true }
+  | { ok: false; reason: "already_refunded" | "order_not_paid" }
+
+/**
+ * May a Stripe refund be created for this order? (finalisation master doc, D4)
+ *
+ *  - `already_refunded`: the status says `refunded`, or the settlement says REFUNDED / REFUND_PENDING_CLAWBACK. Asking
+ *    Stripe again would at best be refused, at worst return money twice.
+ *  - `order_not_paid`: nothing proves a payment was captured. The proof is POSITIVE (a paid-family status, `paidAt`, a
+ *    stored charge id or a PAID / SETTLED / PARTIALLY_REFUNDED settlement), so an unknown or unpaid row fails closed.
+ *    A status of `cancelled` does NOT by itself rule a refund out: the booking cancellation writes it BEFORE it refunds
+ *    the (paid) order.
+ *
+ * A refund that is only PARTIAL so far (PARTIALLY_REFUNDED) stays eligible: the cumulative cap lives in
+ * `lib/money/refund-guard.ts`.
+ */
+export function evaluateRefundEligibility(order: RefundEligibilitySnapshot): RefundEligibility {
+  const status = norm(order.status).toLowerCase()
+  const settlement = norm(order.paymentSettlementStatus).toUpperCase()
+
+  if (status === "refunded" || FULLY_REFUNDED_SETTLEMENT_STATUSES.has(settlement)) {
+    return { ok: false, reason: "already_refunded" }
+  }
+  if (settlement === "CANCELLED") return { ok: false, reason: "order_not_paid" }
+
+  const captured =
+    PAID_ORDER_STATUSES.has(status) ||
+    REFUNDABLE_SETTLEMENT_STATUSES.has(settlement) ||
+    Boolean(order.paidAt) ||
+    norm(order.stripeChargeId).length > 0
+  return captured ? { ok: true } : { ok: false, reason: "order_not_paid" }
 }

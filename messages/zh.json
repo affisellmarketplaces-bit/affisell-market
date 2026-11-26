@@ -47,7 +47,9 @@
       "brandStudio": "品牌工作室",
       "brandStudioShort": "品牌",
       "magicLab": "魔法系统",
-      "magicLabShort": "Lab"
+      "magicLabShort": "Lab",
+      "opportunities": "机会（真实销量）",
+      "opportunitiesShort": "机会"
     },
     "supplier": {
       "badge": "供应商",
@@ -506,6 +508,8 @@
     "invalid_password": "密码错误。",
     "account_not_found": "未找到与此邮箱相关的Affisell账户。",
     "password_login_unavailable": "此账户使用社交登录。使用 Google 或通过“忘记密码”设置密码。",
+    "invalid_credentials": "邮箱或密码不正确。如果您的账户使用社交登录，请使用社交登录，或通过“忘记密码”设置密码。",
+    "too_many_attempts": "此账户的登录尝试次数过多。请在 15 分钟后重试或重置密码。",
     "passwordReset": {
       "secureBadge": "Affisell 安全访问",
       "forgotLink": "忘记密码？",
@@ -522,10 +526,18 @@
       "confirmPassword": "确认密码",
       "savePassword": "保存密码",
       "passwordTooShort": "密码至少需要 8 个字符。",
+      "passwordTooLong": "密码过长（最多 72 字节）。",
+      "passwordTooCommon": "此密码过于常见，请换一个。",
+      "passwordMatchesEmail": "密码不能是您的邮箱地址。",
       "passwordMismatch": "密码不匹配。",
       "invalidToken": "该链接无效或已过期。请重新申请。",
       "resetFailed": "无法更新您的密码。",
       "resetSuccessLogin": "密码更新成功。您可以现在登录。"
+    },
+    "emailVerification": {
+      "done": "邮箱地址已确认，您可以登录了。",
+      "invalid": "此确认链接无效或已被使用。",
+      "expired": "此确认链接已过期。请登录以获取新链接。"
     },
     "signupFail": "注册失败。",
     "signupLoginFail": "账户创建成功但登录失败。请尝试登录。",
@@ -857,6 +869,15 @@
     }
   },
   "cart": {
+    "stock": {
+      "outOfStock": "该商品已售罄。",
+      "insufficient": "库存仅剩 {count} 件。",
+      "priceUpdating": "该商品价格正在更新，请几分钟后重试。",
+      "variantUnavailable": "您选择的选项（尺码或颜色）该商品已不再提供：请在商品页面选择其他选项。",
+      "variantUnavailableWith": "您选择的选项该商品已不再提供。仍可选择：{options}。",
+      "chooseOptions": "请先选择所有选项（颜色、尺码、容量等）再继续。",
+      "chooseOnPage": "该商品有多种尺码或颜色：请在商品页面选择您需要的规格。"
+    },
     "title": "购物车",
     "loading": "正在加载购物车…",
     "empty": "您的购物车是空的",
@@ -918,10 +939,12 @@
       "handoffPowered": "Affisell 加密跳转",
       "legalNote": "继续后，您同意为现金返利创建Affisell买家账户。",
       "identifyFailed": "无法继续。请再试一次。",
+      "accountExists": "该标识已存在账户。请登录后继续。",
       "signInFailed": "身份识别后登录失败。",
       "networkError": "网络不可用。请再试一次。"
     },
-    "tryPulse": "试试 Affisell Pulse"
+    "tryPulse": "试试 Affisell Pulse",
+    "storageLabel": "容量"
   },
   "buyerBestsellers": {
     "metaTitle": "畅销榜 · 7天",
@@ -1205,7 +1228,11 @@
       "merchantVerificationPending": "需要商家验证——请在发布前于 /dashboard/verification 完成您的 KYC 资料。",
       "affiliateCommissionRequired": "请设置每笔销售提供给联盟会员的佣金(> 0%)。类目参考表仅供参考。",
       "productImagesRequiredHosted": "发布前请至少添加一张已托管的产品照片(上传完成)。",
-      "variantsInvalidGeneric": "请修正变体/SKU 行(字段无效)。"
+      "variantsInvalidGeneric": "请修正变体/SKU 行(字段无效)。",
+      "productRecalled": "该商品正处于 Affisell 发起的安全召回中，暂时无法重新上架销售。请联系 Affisell 支持团队，了解解除召回的步骤。",
+      "productSuspended": "Affisell 已暂停该商品的销售，暂时无法重新上架。请联系 Affisell 支持团队了解原因及解除暂停的步骤。",
+      "productHoldUnverifiable": "我们暂时无法确认该商品能否重新上架，请稍后再试。",
+      "stockUnconfirmed": "此导入商品的数量从未确认：来源没有提供数量。请填写实际可用数量，保存后再发布。"
     },
     "descriptionField": {
       "label": "描述",
@@ -1807,7 +1834,16 @@
       "publishSuccessToast": "🎉 商品已发布 — +10 经验值",
       "aliexpressImportedToast": "已从 AliExpress 导入 — {imgCount} 张照片,{specCount} 项规格",
       "productImportedToast": "商品已导入 — 请检查预览",
-      "titleNotFoundError": "未找到标题 — 请重试或切换到专业模式"
+      "titleNotFoundError": "未找到标题 — 请重试或切换到专业模式",
+      "stockLabel": "可用数量",
+      "stockHint": "您实际能发货的件数。系统绝不会替您填写。",
+      "stockFromVariantsHint": "数量在每个规格中填写（规格表）。",
+      "declaration": {
+        "price_required": "发布前请填写目录价格。",
+        "stock_required": "发布前请填写可用数量（整数）。",
+        "stock_zero": "数量为 0：商品将显示为售罄。请填写实际可用的数量。",
+        "variant_stock_required": "发布前每个规格都需要填写可用数量。"
+      }
     },
     "categoryPicker": {
       "loading": "正在加载分类…",
@@ -1968,7 +2004,9 @@
       "draftUntitled": "未命名产品",
       "draftResume": "继续",
       "draftDiscard": "重新开始",
-      "draftAutosaved": "草稿已保存在此设备上"
+      "draftAutosaved": "草稿已保存在此设备上",
+      "errLeafCategory": "请选择商品的确切类目后再发布（保存草稿时选择大类即可）。",
+      "errCategoryFields": "该类目需要向导未收集的规格：请先保存草稿，再在完整表单中补充。"
     },
     "guidedDefaults": {
       "title": "已应用您的店铺设置",
@@ -2182,6 +2220,265 @@
       "optionDays": "{days} 天",
       "hint": "买家在收货后多少天内可以退回此商品。14 天是对所有买家的法定最低期限；提供更长期限有助于促成销售。",
       "cost": "在此期限内接受的退货由您承担费用，与法定 14 天内的退货相同：买家获得退款，您在该笔销售中的份额将被收回。期限在买家下单时即被固定：之后缩短不会影响已下的订单。"
+    },
+    "supplyCost": {
+      "title": "供货成本（保密）",
+      "confidential": "仅您和 Affisell 可见。这些金额不会改变您的价格、佣金或商品页面，仅用于核实未来的销售方式对您是否仍然有利可图。",
+      "unitCost": "单件采购或生产成本，不含税（€）",
+      "deliveryCost": "单件送达买家的配送成本，不含税（€）",
+      "source": "商品来源",
+      "sources": {
+        "own_stock": "自有库存",
+        "manufacturer": "自产或直接向制造商采购",
+        "wholesaler": "批发商",
+        "dropship_source": "代发货供应商",
+        "other": "其他"
+      },
+      "leadTime": "发货前所需时间（天，可选）",
+      "minimumOrder": "货源处的最低采购量（可选）",
+      "note": "给 Affisell 的备注（可选）",
+      "save": "保存我的成本",
+      "saved": "成本已保存。",
+      "invalid": "金额无效：请输入欧元数字，例如 12.50。",
+      "error": "保存失败，请重试。",
+      "warnAbovePrice": "您申报的成本高于您的供货价：请核对金额。",
+      "lastDeclared": "最近一次申报：{date}",
+      "qualification": {
+        "label": "申报状态",
+        "unverified": "未核实",
+        "document_provided": "已告知提供凭证",
+        "verified": "已由 Affisell 核实",
+        "disputed": "Affisell 有异议",
+        "expired": "已过期"
+      },
+      "documentTitle": "您有证明文件（发票、供应商价目表）吗？",
+      "documentHint": "请描述已发送给 Affisell 的文件（类型、日期、编号）。Affisell 会进行核实；此状态不代表已核实。",
+      "documentPlaceholder": "例如：批发商发票 2026-114 号，11 月 3 日",
+      "documentSubmit": "告知已提供凭证",
+      "documentSent": "已告知凭证。",
+      "newDeclarationResets": "每次新的申报都会重新回到“未核实”状态。",
+      "effectiveFrom": "生效日期",
+      "effectiveFromHint": "留空表示今天。过去的日期会被拒绝：已付款的订单保留当时有效的成本。",
+      "effectiveLater": "此申报将从 {date} 起生效。",
+      "variants": {
+        "scope": "申报成本适用于",
+        "wholeProduct": "整个商品（默认）",
+        "wholeProductHint": "适用于所有没有单独申报的规格。",
+        "variantHint": "仅适用于此规格，绝不适用于其他规格。",
+        "ambiguous": "部分规格名称相同：在区分之前无法单独申报成本。",
+        "tableTitle": "各规格的申报成本",
+        "gone": "规格已移除",
+        "notInForce": "尚未生效",
+        "fallbackHint": "没有单独成本的规格使用商品的申报（如有）。"
+      }
+    },
+    "productJourney": {
+      "title": "销售进程",
+      "next": "下一步：{step}",
+      "allDone": "一切就绪：您的商品可以销售了。",
+      "steps": {
+        "sheet": "商品资料",
+        "safety": "商品安全",
+        "stock": "库存",
+        "commission": "分销商佣金",
+        "publication": "发布",
+        "resellers": "分销商选品",
+        "sales": "销量（30 天）",
+        "costs": "供货成本"
+      },
+      "status": {
+        "done": "已完成",
+        "todo": "待完成",
+        "blocked": "已被 Affisell 冻结",
+        "waiting": "等待中",
+        "optional": "可选"
+      },
+      "missing": {
+        "name": "名称",
+        "photo": "图片",
+        "category": "类目"
+      },
+      "safetyMissing": "{count, plural, other {缺少 # 项信息}}",
+      "units": "{count, plural, =0 {无可用库存} other {# 件}}",
+      "publication": {
+        "draft": "草稿",
+        "paused": "已暂停",
+        "product_recalled": "安全召回进行中",
+        "product_suspended": "Affisell 已暂停销售",
+        "product_hold_unverifiable": "暂时无法核实"
+      },
+      "resellers": "{count, plural, =0 {暂无分销商} other {# 位分销商}}",
+      "sales": "{count, plural, =0 {暂无订单} other {# 笔订单}}",
+      "costs": {
+        "unverified": "已申报，未核实",
+        "document_provided": "已告知提供凭证",
+        "verified": "已由 Affisell 核实",
+        "disputed": "Affisell 有异议",
+        "expired": "已过期"
+      },
+      "costsNote": "供货成本为可选且保密信息：不影响发布、价格或佣金。"
+    },
+    "sheetChecklist": {
+      "title": "商品页检查",
+      "intro": "Affisell 质量测量在在售商品页上读取的 12 个要素，在您填写时即时检查。",
+      "summary": "已具备 {present}/{applicable} 个要素",
+      "missingTitle": "待补充",
+      "presentTitle": "已具备",
+      "evidence": "在 Affisell 上观察到：具备该要素的可比商品页每天店铺销量是其他商品页的 {ratio} 倍（至少 {lo} 倍）。",
+      "caveat": "这是统计关联，并非已证实的因果关系。补充某个要素并不保证带来任何额外销量。",
+      "noEvidence": "Affisell 尚未就这些要素确立任何关联：它们仅作为事实列出，不承诺销量。",
+      "allDone": "全部 12 个适用要素均已具备。",
+      "label": {
+        "photos_3plus": "3 张及以上照片",
+        "photos_5plus": "5 张及以上照片",
+        "title_precise": "标题精确",
+        "description_200plus": "描述不少于 200 个字符",
+        "specs_3plus": "3 项及以上规格",
+        "variants_distinct": "变体可区分",
+        "gtin_valid": "有效条码（GTIN）",
+        "brand_declared": "已填写品牌",
+        "delivery_declared": "已填写交货时间",
+        "return_extended": "退货期超过 14 天",
+        "safety_complete": "产品安全信息完整",
+        "stock_confirmed": "真实库存数量"
+      },
+      "defaultTag": "默认值",
+      "deliveryDefault": "未填写交货时间：Affisell 将默认显示 {min} 至 {max} 天。请填写您的实际交货时间。"
+    },
+    "readiness": {
+      "verdict": {
+        "bloquant": "尚不能销售",
+        "a_corriger": "可以发布——请先处理优先项",
+        "pret": "可以销售"
+      },
+      "counts": "{blocking, plural, =0 {无阻碍项} other {# 个阻碍项}} · {priority, plural, =0 {无优先项} other {# 个优先项}} · {recommended, plural, =0 {无改进建议} other {# 个可改进项}}",
+      "nextFix": "下一步修改",
+      "evidence": "在 Affisell 上观察到：具备该要素的可比商品页每天店铺销量是其他商品页的 {ratio} 倍（至少 {lo} 倍）。这只是统计关联，并不保证销量。",
+      "qualityWhy": "商品页的可选改进：既不影响发布，也不影响销售。",
+      "qualityDetail": "商品页 12 个要素的详情",
+      "footer": "根据表单即将提交的内容，按 Affisell 实际执行的规则计算。本面板不会保存或修改任何内容。",
+      "level": {
+        "bloquant": "阻碍",
+        "prioritaire": "优先处理",
+        "recommande": "建议"
+      },
+      "basis": {
+        "server_refusal": "必须：缺少此项时 Affisell 会拒绝发布。",
+        "not_buyable": "销售必需：商品页可以发布，但会显示为售罄，无人能购买。",
+        "platform_rule": "Affisell 会检查但发布时暂不强制的规则：随时可能变为强制。",
+        "observed_risk": "真实风险，但不会被拒绝：可以发布，但可能影响销售或配送。",
+        "measured_association": "基于 Affisell 质量测量的建议。",
+        "save_refusal": "必须项：商品仍按原样在售，但缺少此项时，Affisell 会拒绝保存对商品页的修改。",
+        "publication_rule_live": "已在售：商品继续在售，不会被下架。新发布时此项为必填。",
+        "affisell_decision": "Affisell 的决定：这不是您在商品页中可以修正的。"
+      },
+      "finding": {
+        "name_missing": {
+          "title": "商品名称为空",
+          "why": "没有名称的商品页无法发布。",
+          "fix": "请填写准确的商品名称。",
+          "whyLive": "商品在售，但在没有名称之前，对商品页的修改会被拒绝。"
+        },
+        "category_missing": {
+          "title": "未选择确切类目",
+          "why": "发布需要目录中的末级类目：它决定商品在搜索中的位置以及 Affisell 的费用。",
+          "fix": "请选择最准确的商品类目。",
+          "whyLive": "在售但没有末级类目：在搜索中位置不佳，新发布时为必填。"
+        },
+        "category_fields_missing": {
+          "title": "缺少类目必填规格",
+          "why": "所选类目要求这些信息；缺少时发布会被拒绝。",
+          "fix": "请填写类目区域中标出的规格。"
+        },
+        "price_missing": {
+          "title": "未填写价格",
+          "why": "没有价格，商品无法发布。",
+          "fix": "请填写不含税的供应商价格。",
+          "whyLive": "商品在售，但在没有价格之前，对商品页的修改会被拒绝。"
+        },
+        "photo_missing": {
+          "title": "没有已保存的照片",
+          "why": "发布至少需要一张已上传的照片；这也是买家看到的第一样东西。",
+          "fix": "请至少添加一张商品照片，并等待上传完成。",
+          "whyLive": "在售但没有托管图片：这是买家看到的第一样东西，新发布时为必填。"
+        },
+        "warehouse_missing": {
+          "title": "未填写发货区域",
+          "why": "发布必须填写仓库区域：用于显示可信的配送时间。",
+          "fix": "请选择包裹的发货地（本地、区域或国际）。",
+          "whyLive": "在售但没有仓库区域：公布的时效可信度较低，新发布时为必填。"
+        },
+        "delivery_countries_missing": {
+          "title": "未选择配送国家",
+          "why": "没有配送国家时发布会被拒绝，买家也无法下单。",
+          "fix": "请选择您配送的国家。",
+          "whyLive": "在售但未声明配送国家：新发布时为必填。"
+        },
+        "commission_not_explicit": {
+          "title": "未设置分销商佣金",
+          "why": "发布前必须明确设置给分销商的佣金；否则订单无法分账。",
+          "fix": "请填写您给分销商的佣金。",
+          "whyLive": "在售但没有明确佣金：已付款的销售无法分账，也不会生成订单。"
+        },
+        "merchant_unverified": {
+          "title": "供应商账户尚未验证",
+          "why": "账户验证完成前，Affisell 会拒绝任何发布。",
+          "fix": "请在设置中完成账户验证；在此期间可以保存草稿。"
+        },
+        "catalog_cap_reached": {
+          "title": "已达到在线商品上限",
+          "why": "您的套餐限制了在线商品数量：新商品会被拒绝。",
+          "fix": "请下架其他商品或更换套餐；可以保存草稿。"
+        },
+        "safety_incomplete": {
+          "title": "产品安全信息不完整",
+          "why": "制造商信息，以及欧盟以外制造时的欧盟负责人：Affisell 会对实物商品检查这些数据。",
+          "fix": "请补全“产品安全”部分。",
+          "whyLive": "已在售：产品安全检查仅适用于新发布，但实物商品仍需提供这些信息。"
+        },
+        "stock_missing": {
+          "title": "库存数量为零",
+          "why": "商品可以发布，但会显示为售罄：没有买家能下单。",
+          "fix": "请填写实际可用的数量。",
+          "whyLive": "商品在售但显示为售罄：没有买家能够下单。"
+        },
+        "delivery_time_default": {
+          "title": "未填写配送时间",
+          "why": "系统会以您的名义显示默认配送时间；如果与实际不符，延误会变成纠纷。",
+          "fix": "请填写实际配送时间（若此流程不提供，请在完整表单中填写）。"
+        },
+        "variants_indistinct": {
+          "title": "变体无法区分",
+          "why": "两行的颜色、尺码或容量相同：买家无法准确选择，这些行的库存也不会被跟踪。",
+          "fix": "请让每个变体唯一，或合并重复项。"
+        },
+        "stock_low": {
+          "title": "数量很少",
+          "why": "仅有 3 件或更少时，分销商的头几笔订单就可能售罄。",
+          "fix": "请核对可用数量，并尽可能补货。"
+        },
+        "net_not_positive": {
+          "title": "这笔销售您没有收益",
+          "why": "按此价格、此佣金和您的 Affisell 费用计算，每单净收益为零或负数。",
+          "fix": "请调整价格或给分销商的佣金。"
+        },
+        "stock_unconfirmed": {
+          "title": "导入数量未确认",
+          "why": "导入未提供任何数量：在您填写数量之前，发布会被拒绝。",
+          "whyLive": "导入的数量从未确认：商品显示为售罄，无人能够购买。",
+          "fix": "在商品页中填写实际可售数量。"
+        },
+        "held_by_affisell": {
+          "title": "被 Affisell 暂扣",
+          "why": "安全召回或 Affisell 的暂停使该商品无法销售。",
+          "fix": "在商品页查看原因；只有 Affisell 能解除暂扣。"
+        },
+        "hold_unverifiable": {
+          "title": "无法核实销售状态",
+          "why": "Affisell 无法读取该商品的召回和暂停记录：核实之前不会显示为就绪。",
+          "fix": "商品页中无需操作：请稍后刷新页面。"
+        }
+      }
     }
   },
   "affiliate": {
@@ -2377,7 +2674,11 @@
       "estimatedRevenue": "预估分销商收益",
       "estimatedRevenueHint": "佣金 + 利润（按建议加价 {markupPct}% 计算）",
       "sortRevenueDesc": "分销收益 · 从高到低",
-      "supplierSheetAria": "供应商商品页"
+      "supplierSheetAria": "供应商商品页",
+      "netShort": "净",
+      "netRevenue": "每笔销售的净收益",
+      "netBreakdown": "{gross} 佣金 + 利润 − {fee} Affisell 费用（{feePct}%）",
+      "priceIsHt": "价格不含增值税：买家另付增值税。"
     },
     "catalogFilters": {
       "groupAria": "店面与添加日期筛选条件",
@@ -2780,6 +3081,490 @@
       "pendingVerification": "待处理",
       "setDefault": "设为默认",
       "delete": "删除"
+    },
+    "opportunities": {
+      "title": "基于真实销售的机会",
+      "intro": "基于已付款订单的决策面板：先显示您自己的产品，再按最近 {days} 天的销售在扣除 Affisell 费用及 {qualityDays} 天内退款金额后为分销商带来的收益对目录排序。这些是历史数据，不是预测。",
+      "platformRate": "平台退款率：已收金额的 {rate}（90 天内 {orders} 笔已付款订单）。",
+      "emptyRanked": "过去 {days} 天没有已付款订单：暂时无法根据真实销售进行排序。",
+      "col": {
+        "product": "商品",
+        "units": "售出件数（{days} 天）",
+        "perUnit": "每笔销售收益",
+        "refundRate": "已退款（按金额）",
+        "observedNet": "实际净收益（{days} 天）",
+        "checks": "需核查",
+        "disputeRate": "争议"
+      },
+      "inStore": "已在您的店铺中",
+      "rateOwn": "商品自身比率",
+      "ratePlatform": "样本太少：采用平台比率",
+      "flags": {
+        "high_refund_rate": "退款率高",
+        "disputes_seen": "出现争议",
+        "slow_delivery": "配送慢（10 笔订单中有 9 笔超过 12 天）",
+        "supplier_price_rising": "供应商价格上涨或不稳定",
+        "thin_sample": "订单较少：数据不稳定",
+        "sales_falling": "销量下降（−30% 或以上）",
+        "payout_per_unit_down": "30 天内每笔销售收益下降",
+        "out_of_stock": "已申报缺货",
+        "stock_not_maintained": "库存可能未维护（导入默认值）"
+      },
+      "howToRead": "“实际净收益” = 售出件数 × 扣除退款率后的每笔收益。您可以在售价上加上自己的利润：此处不计入。",
+      "noSalesTitle": "无销售数据",
+      "noSalesIntro": "这些商品在此期间没有已付款订单：因缺乏真实数据而不参与排序。",
+      "perUnitShort": "每笔 {amount}",
+      "toCatalog": "打开商品目录 →",
+      "vsPrevious": "前 30 天 {prev}",
+      "perUnitWas": "30 天前 {amount}",
+      "truncated": "数据量极大：显示的数字为最低值。",
+      "documentedTitle": "数据充分的机会",
+      "documentedIntro": "{qualityDays} 天内至少 {min} 笔已付款订单：使用该产品自身的比率。",
+      "documentedEmpty": "目前还没有产品拥有足够订单可按自身数据评估。",
+      "limitedTitle": "数据不足",
+      "limitedIntro": "这些产品有销售，但数量太少不够可靠：采用其自身与平台退款率中较高者。",
+      "mine": {
+        "title": "您的产品",
+        "intro": "仅根据您的已付款订单计算：净收益 = 您订单上记录的佣金，减去退款按比例收回的部分。周期：{days} 天，与之前的 {days} 天比较。",
+        "totals": "{days} 天净收益 {net}（{orders} 笔订单）— 上一周期 {prevNet}（{prevOrders} 笔订单）。",
+        "empty": "最近 {days} 天没有已付款订单。",
+        "attentionTitle": "今日待处理",
+        "attentionEmpty": "您的产品暂无需要处理的事项。",
+        "topTitle": "收益最高的产品（{days} 天）",
+        "decliningTitle": "利润正在下降的产品",
+        "decliningEmpty": "没有下降的产品（上一周期至少 3 笔订单才进行比较）。",
+        "netChange": "{from} → {to}",
+        "notComparable": "订单太少，无法比较",
+        "col": {
+          "product": "产品",
+          "orders": "订单",
+          "net": "净收益",
+          "perUnit": "每件净收益",
+          "refundShare": "已退款",
+          "previous": "上一周期"
+        },
+        "reasons": {
+          "volume_down": "销量减少",
+          "your_price_down": "您降低了售价",
+          "collected_price_down": "实收价格降低，但没有记录到您的降价（折扣、所售规格）",
+          "supplier_price_up": "供应商价格上涨（您的加价空间缩小）",
+          "commission_down": "供应商佣金下降",
+          "fees_up": "Affisell 费用上升",
+          "refunds_up": "退款增多",
+          "disputes_up": "争议增多",
+          "unknown": "数据中无法确定显著原因"
+        },
+        "attention": {
+          "open_dispute": "{orders} 笔订单存在未结争议",
+          "no_longer_for_sale": "已不在市场上销售",
+          "sold_out": "缺货",
+          "margin_review": "需检查利润：供应商价格已变化",
+          "supplier_price_changed": "本周供应商价格从 {from} 变为 {to}",
+          "return_requested": "{returns} 个退货申请等待供应商处理"
+        },
+        "drivers": {
+          "volume": "销量",
+          "selling_price": "您的价格",
+          "supplier_price": "供应商价格",
+          "commission": "佣金",
+          "fees": "费用",
+          "refunds": "退款",
+          "residual": "无法解释"
+        },
+        "priceCut": "{date} 价格从 {from} 降至 {to}",
+        "partlyUnexplained": "差额中有较大部分无法由数据解释（固定加价、折扣、四舍五入）。",
+        "impactTitle": "您调价的效果",
+        "impactIntro": "每次调整售价前 30 天的订单，与调价后的天数对比。这是两个时段的观察，不能证明价格是唯一原因。",
+        "impactEmpty": "最近 90 天没有记录到调价。",
+        "impactChange": "{date}：{from} → {to}",
+        "impactFigures": "之前（{beforeDays} 天，{beforeOrders} 笔订单）：每天 {beforePerDay}，每笔 {beforePerUnit} — 之后（{afterDays} 天，{afterOrders} 笔订单）：每天 {afterPerDay}，每笔 {afterPerUnit}。",
+        "impactStatus": {
+          "too_recent": "太近，无法衡量（不足 7 天）。",
+          "insufficient_orders": "之前或之后订单不足（每侧至少 3 笔）。"
+        },
+        "simTitle": "价格模拟",
+        "simIntro": "这是计算，不是预测：按当前供应商价格、佣金和费用，扣除您的退款率后，各价格下每笔销售的净收益；以及达到最近 30 天收益所需的销售笔数。没有您的操作，什么都不会改变。",
+        "simEmpty": "30 天内销售不足，无法模拟（至少 5 笔订单）。",
+        "simAssumptions": "假设：供应商价格 {supplier}，佣金 {commission}，费用 {fee}，退款 {refunds} — 实际：{orders} 笔订单，30 天净收益 {net}。",
+        "simCol": {
+          "price": "不含税售价",
+          "netPerSale": "每笔净收益",
+          "salesToMatch": "达到 30 天收益所需笔数"
+        },
+        "simCurrent": "（当前）",
+        "simRestore": "（恢复您的加价）",
+        "simEdit": "修改我的价格 →"
+      }
+    },
+    "profitAlerts": {
+      "title": "盈利下降：{product}",
+      "change": "您的净收益从 {from} 降至 {to}（−{drop}）：最近 30 天（{currentOrders} 笔订单）与之前 30 天（{previousOrders} 笔订单）相比。",
+      "sincePeriod": "基于最近 30 天与之前 30 天的对比。",
+      "since": {
+        "price_cut": "自您 {date} 调价以来。",
+        "supplier_price_change": "自 {date} 供应商涨价以来。"
+      },
+      "causeWithAmount": "{cause}（−{amount}）",
+      "causes": {
+        "supplier_price_up": "供应商价格上涨，压缩了您的加价",
+        "your_price_down": "您降低了售价",
+        "collected_price_down": "实收价格降低，但没有记录到您的降价（折扣、所售规格）",
+        "commission_down": "供应商佣金下降",
+        "fees_up": "适用的 Affisell 费用更高",
+        "refunds_up": "更多销售被退款",
+        "volume_down": "您的销量明显下降",
+        "disputes_up": "争议增多"
+      },
+      "suggestion": {
+        "restore_markup": "模拟：售价 {price} 可恢复您的加价——每笔约净赚 {net}；{sales} 笔销售可达到最近 30 天的收益。",
+        "previous_price": "模拟：按您之前的价格 {price}，每笔约净赚 {net}；{sales} 笔销售可达到最近 30 天的收益。",
+        "none": {
+          "supplier_price_up": "对照新的供应商价格检查您的售价。",
+          "your_price_down": "在面板中比较调价前后的销售。",
+          "collected_price_down": "检查折扣和所售规格：您的展示价格没有变化。",
+          "commission_down": "供应商降低了佣金：检查您的加价是否仍然足够。",
+          "fees_up": "您的费用上升了：在面板中检查加价。",
+          "refunds_up": "查看这些订单的退款原因。",
+          "volume_down": "检查产品的曝光和库存；任何价格模拟都无法预测销量。",
+          "disputes_up": "查看这些订单的争议。"
+        }
+      },
+      "short": "{product}：净收益下降 {drop} — {cause}",
+      "disclaimer": "数据基于您自己的已付款订单；模拟是计算，不是预测。没有您的操作，价格不会改变。",
+      "causesTitle": "已确定的原因",
+      "suggestionTitle": "可采取的行动",
+      "ctaEdit": "修改我的价格 →",
+      "ctaBoard": "打开我的盈利面板 →",
+      "emailFooter": "您收到此邮件是因为您开启了盈利提醒邮件。如需关闭：",
+      "panelTitle": "盈利提醒",
+      "panelIntro": "只有当产品确实带来收益（至少 5 笔订单且净收益 20 €）、下降幅度显著（至少 10 € 且 25%）并且原因已由数据确认时才会发送提醒。每个产品每 14 天最多一次。",
+      "panelEmpty": "暂无提醒：您的盈利产品没有明显下降。",
+      "dismiss": "隐藏",
+      "prefTitle": "接收提醒",
+      "prefInApp": "应用内",
+      "prefEmail": "邮件",
+      "prefStatus": {
+        "idle": "",
+        "saving": "正在保存…",
+        "saved": "已保存",
+        "error": "保存失败"
+      }
+    },
+    "copilot": {
+      "title": "分销商助手 — 可直接销售的选品",
+      "subtitle": "目录中您真正可以销售的商品，按扣除 Affisell 费用后每笔销售的实际收益排序。勾选要保留的商品，一次性添加。",
+      "addCta": "添加所选（{count}）",
+      "adding": "添加中…",
+      "added": "已向您的店铺添加 {added} 个商品。",
+      "addedPartial": "已添加 {added} 个，拒绝 {refused} 个：页面加载后其状态已变化。",
+      "addError": "添加失败，请重试。",
+      "loading": "正在分析目录…",
+      "empty": "目前没有新的可售商品。",
+      "pick": "保留 {name}",
+      "netPerSale": "每笔销售净收益（扣除 Affisell 费用后）",
+      "priceLine": "建议售价 {price}（不含税）· 买家约支付 {ttc}（含税）",
+      "demandSeen": "近 30 天平台已付款订单 {orders} 笔",
+      "demandNone": "尚未观察到销售",
+      "resellers": "{count, plural, =0 {尚无分销商销售} other {# 个分销商在销售}}",
+      "feeDefault": "按 Affisell 标准费用计算（佣金和利润的 20%）。",
+      "feeNegotiated": "按您的 Affisell 费率计算（{pct}%）。",
+      "honesty": "净收益是根据供应商公布条件的计算，并非销售承诺。显示的销量为 Affisell 实际观察，并非预测。",
+      "blockedToggle": "已排除 {count} 个商品：查看原因",
+      "reasons": {
+        "awaiting_affisell_review": "等待 Affisell 审核",
+        "no_explicit_commission": "未设置佣金：销售将无法记录",
+        "no_supplier_price": "缺少供应商价格",
+        "out_of_stock": "缺货",
+        "stock_unknown": "库存无法核实",
+        "low_stock": "库存极少",
+        "low_net_per_sale": "每笔收益较低",
+        "rising_on_affisell": "该商品的订单增速明显快于 Affisell 整体，且至少有两家分销商在售（基于实际销售的统计检验，并非预测）。"
+      },
+      "rising": "在 Affisell 上快速增长 · 过去 14 天 {recent} 笔已付款订单，而之前 42 天为 {prior} 笔——明显高于整个市场",
+      "risingNature": "这是观察到的信号（基于已付款订单、多家分销商和多个日期的统计检验），并非预测。只有当该商品每单净收益不低于所选商品的中位数时，才会被提前排列。",
+      "fit": {
+        "your_categories": "您的品类",
+        "discovery": "发现"
+      },
+      "personalisedNote": "根据您已在销售或上架的品类定制，同时始终保留一部分其他品类供探索。您品类中的商品绝不会排在明显更赚钱的商品之前（每单净收益高出 15% 以上）。",
+      "opportunity": {
+        "toggle": "为什么推荐这个商品？",
+        "earningsTitle": "每笔销售您的收益",
+        "earningsLine": "佣金 {commission} + 您的加价 {markup} − Affisell 费用 {fee} = 每笔销售 {net}，按建议价格 {price}（不含税）计算。",
+        "feeDefault": "Affisell 费用按标准费率（{pct}%）：您没有协商费率。",
+        "feeYours": "Affisell 费用按您的费率（{pct}%）。",
+        "strengthsTitle": "这个机会的亮点",
+        "risksTitle": "可能降低您收益的因素",
+        "missingTitle": "尚不清楚的信息",
+        "actionTitle": "建议操作",
+        "honesty": "基于 Affisell 数据的解读：既非预测，也不保证销售。售价仍由您决定。",
+        "qualification": {
+          "fait": "事实",
+          "calcul": "计算",
+          "estimation": "估算",
+          "insuffisant": "数据缺失"
+        },
+        "profile": {
+          "forte_demande_gain_faible": {
+            "title": "需求强，单笔收益低",
+            "meaning": "该商品在 Affisell 上有销量，但按建议价格每笔销售收益较低。"
+          },
+          "gain_faible": {
+            "title": "单笔收益低",
+            "meaning": "按建议价格，每笔销售收益较低，也没有明显需求来弥补。"
+          },
+          "rentable_valide": {
+            "title": "有利可图，且已有销售验证",
+            "meaning": "单笔收益良好，且在 Affisell 上有近期已付款订单。"
+          },
+          "prometteur_peu_de_donnees": {
+            "title": "有潜力，但上线时间太短无法判断",
+            "meaning": "单笔收益良好；商品在 Affisell 上的时间太短，无法判断需求。这并非不好的信号。"
+          },
+          "rentable_demande_a_construire": {
+            "title": "有利可图，需求有待培养",
+            "meaning": "单笔收益良好，但在 Affisell 上近期订单很少或没有：需求仍需培养。"
+          }
+        },
+        "fact": {
+          "sellable_now": "今天即可销售：库存、佣金和发布均正常。",
+          "sellable_to_check": "可以销售，但推广前有一点需要核实。",
+          "net_below_threshold": "每笔销售 {net}，低于副驾驶视为偏低的 {threshold} 门槛。",
+          "net_above_threshold": "每笔销售 {net}，高于 {threshold} 门槛。",
+          "orders_observed": "过去 30 天在 Affisell 上有 {orders} 笔已付款订单。",
+          "rising_tested": "其订单增速明显快于 Affisell 整体（统计检验）。",
+          "in_your_categories": "属于您已在销售的类目。",
+          "discovery": "属于您店铺的新类目。",
+          "net_per_sale": "每笔销售 {net}。",
+          "validated_by_sales": "30 天内有 {orders} 笔已付款订单验证。",
+          "little_competition": "竞争较少：{resellers, plural, =0 {尚无分销商上架} one {仅一个分销商上架} other {# 个分销商上架}}。",
+          "many_resellers": "已有 {resellers} 个分销商上架：竞争激烈。",
+          "strong_in_category": "在其类目「{category}」中，在您可上架的 {peers} 个商品里，它位于 30 天已付款订单的前四分之一。仅在该类目成立，其他地方未必如此。",
+          "in_your_price_range": "建议价格在您常用的价格区间内（不含税 {low} 至 {high}）。",
+          "outside_your_price_range": "建议价格在您常用的价格区间之外（不含税 {low} 至 {high}）。",
+          "low_net": "每笔销售 {net}，低于 {threshold} 门槛。",
+          "below_supplier_price": "售价低于供应商价格：只剩佣金。",
+          "low_stock": "库存仅剩 {units} 件：最初几笔销售后就可能断货。",
+          "short_cover": "按 Affisell 上观察到的销售速度，库存约可维持 {days} 天（{units} 件）。",
+          "offer_incomplete": "缺少 {count} 项商品页元素，这些元素在 Affisell 上与更多销量相关（相关性，不是保证）。",
+          "too_recent": "在 Affisell 上线 {days} 天：判断需求为时过早。",
+          "age_unknown": "上线日期未知。",
+          "stock_unknown": "库存无法读取（规格不在跟踪表中）。",
+          "cover_not_projectable": "销量太少，无法估算库存可维持多久。",
+          "no_sales_yet": "过去 30 天没有已付款订单：需求尚未得到衡量。",
+          "offer_not_measured": "商品页质量未比较：Affisell 上尚未建立任何相关性。",
+          "fee_default": "按 {pct}% 的标准费率计算：您没有协商费率。",
+          "category_not_comparable": "其类目中可比商品太少，无法定位其销量。"
+        },
+        "action": {
+          "ajouter": "将其加入您的店铺。",
+          "ajouter_surveiller_stock": "加入店铺，在重点推广前关注库存。",
+          "decider_sur_le_gain": "知情决策：按建议价格，单笔收益较低。",
+          "tester_avant_de_promouvoir": "加入店铺并观察，然后再投入推广。"
+        },
+        "rank": {
+          "readiness": "排在「{other}」之前：它可直接销售，无需核实。",
+          "rising": "排在「{other}」之前：其需求明显增长，且收益不低于中位数。",
+          "net": "排在「{other}」之前：每笔销售收益更高。",
+          "category_affinity": "排在「{other}」之前：它属于您的类目，收益相近（差距不超过 15%）。",
+          "demand": "排在「{other}」之前：收益相同的情况下，它的已付款订单更多。",
+          "tie": "在所有标准上与「{other}」并列。"
+        },
+        "track": "Affisell 对此情形的经验：在 {resellers} 个分销商的 {adds} 次上架中，{pct}% 在 30 天内于店铺中至少有一笔销售（{lo}% 至 {hi}% 之间）。这是过去的观察，不是承诺。"
+      }
+    },
+    "supplierAffisell": "Affisell 供应商",
+    "replacement": {
+      "title": "如何处理「{product}」？",
+      "loading": "正在寻找可靠的替代商品…",
+      "error": "无法加载替代商品。",
+      "errorChanged": "该替代商品已不可用：列表已刷新。",
+      "retry": "重试",
+      "problem": {
+        "out_of_stock": "供应商已无库存：您的买家看到它已售罄，无法购买。",
+        "product_unavailable": "供应商已撤下或暂停它：无法再购买。",
+        "awaiting_review": "该商品正在等待 Affisell 审核：暂时无法销售。",
+        "no_commission": "供应商未设置佣金：销售无法归属于您。",
+        "none": "该商品今天可以销售。您仍然可以比较替代商品。"
+      },
+      "currentLine": "当前：售价 {price}（不含税）· 每笔销售净得 {net}。",
+      "none": {
+        "no_sellable_candidate": "您的目录中今天没有可销售的替代商品。",
+        "no_reliable_match": "没有足够接近的替代商品：我们宁可不推荐，也不推荐一个不同的商品。"
+      },
+      "noneHint": "您可以将该商品从店铺下架；如果供应商解决了问题并且您重新上架，它可以回来。",
+      "match": {
+        "identique": "同一商品（相同条形码）",
+        "similaire": "相似商品"
+      },
+      "identity": {
+        "same_gtin": "相同条形码",
+        "similar": "相似"
+      },
+      "availableLine": "库存 {n} 件 · {supplier}",
+      "netLine": "每笔销售净得 {net}（售价 {price}，不含税）",
+      "col": {
+        "what": "项目",
+        "before": "当前",
+        "after": "替代商品"
+      },
+      "field": {
+        "selling_price": "售价（不含税）",
+        "net_per_sale": "您每笔销售的净收益",
+        "supplier_price": "供应商价格",
+        "commission": "佣金",
+        "delivery": "最长配送时间",
+        "return_window": "接受退货",
+        "variants_missing": "未提供的选项",
+        "brand": "品牌",
+        "supplier": "供应商"
+      },
+      "days": "{n, plural, other {# 天}}",
+      "replaceCta": "替换为此商品",
+      "confirmQuestion": "确认替换？旧商品将离开您的店铺，其历史和订单都会保留。",
+      "confirmYes": "是，替换",
+      "working": "正在替换…",
+      "cancel": "取消",
+      "withdrawOnly": "仅将此商品从我的店铺下架",
+      "withdrawConfirm": "将此商品从您的店铺下架？",
+      "withdrawYes": "是，下架",
+      "doneReplaced": "完成：替代商品已在您的店铺上架销售。",
+      "doneReplacedPending": "替代商品已加入您的店铺；账户审核完成后即开始销售。",
+      "doneWithdrawn": "该商品已从您的店铺下架。",
+      "historyKept": "不会删除任何内容：历史、统计和过往订单都保持不变。",
+      "backToShop": "返回我的空间",
+      "honesty": "净收益 = 佣金 + 加价 − Affisell 费用，计算方式与您的结算相同。价格不含税；只有条形码能证明是同一商品。",
+      "bellMessage": "「{product}」已无法在您的店铺购买。请将其下架或替换为同等商品。",
+      "partialTitle": "替换已部分完成",
+      "partialBody": "“{alternative}”已加入您的店铺，但“{product}”未能下架：两者目前都在销售。",
+      "partialHint": "完成操作只会将旧商品从店铺下架。不会重复添加，也不会删除任何内容。",
+      "finishCta": "完成替换",
+      "partialUnnamed": "所选替代商品",
+      "partialNow": "替代商品已添加，但旧商品未能下架。请在下方完成替换。",
+      "digestMessage": "您店铺中有 {count} 件商品已无法销售：查看列表以下架或替换。",
+      "listTitle": "店铺中无法销售的商品",
+      "listSubtitle": "{count, plural, =0 {没有受影响的商品。} other {今天有 # 件商品无法购买。}}",
+      "listEmpty": "您店铺中的所有商品均可购买。",
+      "listCta": "下架或替换"
+    },
+    "shopDemand": {
+      "title": "您店铺正在等待的买家",
+      "signal": "您店铺有 {count} 位买家在等待「{product}」的 {variant}。",
+      "noSignal": "等待该款式的本店买家少于三位：暂无信号。",
+      "why": "统计：本店不同买家、有效未过期的请求、该确切款式，且仅在缺货期间。请求不代表确定的销售。",
+      "matchSame": "相同编号（条形码）",
+      "matchSimilar": "相似商品",
+      "altFacts": "该款式 {units} 件 · 价格 {price} · 每单您赚 {net}（当前：{originalNet}）",
+      "lowStock": "该款式库存较少。",
+      "missingOptions": "原商品的部分选项未提供。",
+      "supplier": "供应商：{supplier}",
+      "inShop": "已在您的店铺中",
+      "offer": "在我的店铺中提供",
+      "confirm": "确认添加",
+      "cancel": "取消",
+      "chosenAdded": "替代品已加入您的店铺。买家请求的商品仍在售。",
+      "chosenAlready": "该替代品已在您的店铺中。",
+      "chooseFailed": "添加失败，请重试。",
+      "noneReliable": "没有可靠的替代品提供该款式。",
+      "noneSellable": "今天没有可售的替代品提供该款式。",
+      "buyerChoice": "Affisell 从不自动替换买家请求的商品：买家的请求保持不变，由买家自由选择。",
+      "backToCatalog": "返回商品目录",
+      "recovery": {
+        "title": "您的回应追踪（90 天）",
+        "counts": "{shown} 次查看建议 · {chosen} 个替代品已添加 · {open} 个请求暂无解决方案",
+        "orders": "所选替代品 30 天内 {orders} 笔已付订单（{refunded} 笔取消或退款）· 其中 {waiting} 笔来自等待中的买家",
+        "caveat": "这是观察到的关联，不能证明建议促成了销售。"
+      }
+    },
+    "retentionAdvice": {
+      "eyebrow": "下架之前",
+      "title": "这个商品可能还没有足够时间卖出",
+      "current": "已在您的店铺上架 {days} 天，暂无销售。",
+      "typicalProduct": "在其他 {resellers} 位分销商处，它的首单通常在 {p25} 至 {p75} 天之间（中位数 {p50} 天）。",
+      "typicalCategory": "在同一类目中，其他 {resellers} 位分销商的首单通常在 {p25} 至 {p75} 天之间（中位数 {p50} 天）。",
+      "late": "这些首单中有 {pct}% 出现在 {days} 天之后。",
+      "conditional": "在 {days} 天时仍未售出的商品中，{pct}% 在 {recommended} 天前售出。",
+      "suggestion": "再保留 {extra} 天，可以按通常的观察时长（{recommended} 天）来判断。",
+      "noGuarantee": "这并不保证一定会卖出。",
+      "confidenceLow": "可靠性低",
+      "confidenceMedium": "可靠性中等",
+      "reason_echantillon_limite": "样本仍有限",
+      "reason_categorie_seulement": "按类目测量，而非本商品",
+      "reason_chance_non_mesurable": "售出概率无法测量",
+      "reason_echantillon_suffisant": "样本充足",
+      "yourCall": "您仍可以现在下架。"
+    },
+    "observationPlan": {
+      "title": "参考观察计划",
+      "horizon": "建议给它约 {days} 天再做首次评估（约 {date}）。",
+      "distribution": "在其他 {resellers} 位分销商处，一半的首单出现在 {p50} 天内，四分之三在 {p75} 天内。",
+      "saleShare": "观察到这一阶段的商品中，有 {pct}% 在 {days} 天内售出。",
+      "tier": {
+        "product": "基于本商品测量",
+        "category": "基于其类目测量（本商品历史不足）",
+        "general": "Affisell 整体参考（针对性较弱）"
+      },
+      "confidenceLow": "可靠性低",
+      "confidenceMedium": "可靠性中等",
+      "reason": {
+        "echantillon_limite": "样本有限",
+        "categorie_seulement": "仅类目",
+        "reference_generale": "整体参考",
+        "echantillon_suffisant": "样本充足"
+      },
+      "noGuarantee": "这并不保证一定会卖出。",
+      "limits": "未测量流量和过去的可售状态。",
+      "silence": {
+        "reference_insuffisante": "数据不足，无法建议观察时长：不提供期限。",
+        "gain_faible": "按此价格每单收益较低：不建议观察时长。",
+        "non_vendable": "商品今天不可售：无观察计划。",
+        "contrainte": "商品今天被限制：无观察计划。"
+      },
+      "statusTitle": "观察计划",
+      "phase": {
+        "observation": "已上架第 {elapsed} 天，共 {horizon} 天 — 现在下结论为时尚早。",
+        "evaluation": "已到观察期：已上架 {elapsed} 天（计划 {horizon} 天），您的店铺暂无销售。",
+        "vendu": "添加以来您店铺的销售：{sales}。",
+        "indisponible": "商品今天不可售：这段时间不能用来判断销售。",
+        "sans_plan": "该商品暂无可靠的观察时长。",
+        "donnees_insuffisantes": "历史不完整：不下结论。",
+        "retire": "商品已下架。"
+      },
+      "horizonUpdated": "根据新数据，时长已更新为 {horizon} 天（最初为 {initial} 天）。",
+      "recommendation": {
+        "conserver": "建议：保留。",
+        "ameliorer": "建议：完善商品页 — 缺少在 Affisell 上与更多销售相关的要素。",
+        "surveiller": "建议：继续观察 — 没有流量数据时，未售出不能说明问题。",
+        "reconsiderer": "建议：重新考虑 — 每单收益低，或同类商品通常卖得更快。",
+        "retirer_ou_remplacer": "建议：下架或替换 — 它不会自行恢复可售。"
+      },
+      "notMeasured": "未测量：流量、过去的可售状态",
+      "free": "您仍可随时修改或下架。",
+      "context": {
+        "later": "对于此类商品（{profile}），首单通常比平均更晚：约 {days} 天，而不是 {general} 天。",
+        "earlier": "对于此类商品（{profile}），首单通常比平均更早：约 {days} 天，而不是 {general} 天。",
+        "basis": "参考估算，基于 {resellers} 位分销商处同类商品的历史销售，并在独立时间段上验证。",
+        "profile": {
+          "categorie": "在其类目中",
+          "anciennete_lt30": "新上架商品（不足 30 天）",
+          "anciennete_m1_6": "上架 1 至 6 个月的商品",
+          "anciennete_gt180": "上架超过 6 个月的商品",
+          "anciennete_inconnue": "上架时长未知",
+          "concurrence_seul": "没有其他店铺销售",
+          "concurrence_un_deux": "另有 1 至 2 家店铺销售",
+          "concurrence_trois_plus": "另有 3 家或更多店铺销售",
+          "remise_en_vente_oui": "重新上架",
+          "remise_en_vente_non": "首次上架",
+          "prix_lt25": "供货价低于 25 €",
+          "prix_p25_60": "供货价 25 至 60 €",
+          "prix_gt60": "供货价高于 60 €",
+          "offre_complete": "商品页完整",
+          "offre_incomplete": "商品页不完整",
+          "offre_non_mesuree": "商品页未测量",
+          "retour_etendu": "延长退货",
+          "retour_legal": "法定退货期"
+        }
+      }
     }
   },
   "marketplace": {
@@ -3334,7 +4119,7 @@
         "beta": "测试版",
         "multiHint": "应用 AI 定价将为已选的 {count} 个款式设置利润，并按批发价进行缩放。",
         "yourPrice": "你的价格",
-        "aiSuggests": "AI 建议",
+        "aiSuggests": "计算建议",
         "marketAvg": "市场均价",
         "competitors": "竞品",
         "salesPerMonth": "{count} 笔/月",
@@ -3353,7 +4138,8 @@
         "noDataBody": "该类目下暂无可比商品——显示为通用初始估算值,将随着真实销售数据增多而改善。",
         "salesUnknown": "暂无近期销售数据",
         "comparableListings": "{count} 个可比商品",
-        "loadFailed": "无法加载市场数据——请重试。"
+        "loadFailed": "无法加载市场数据——请重试。",
+        "ruleNote": "基于 Affisell 可比商品的统计计算——是计算规则，而不是 AI 模型。数据不足时：供应商价格 × 1.4。"
       },
       "variantMargins": {
         "title": "款式与利润",
@@ -4937,6 +5723,12 @@
         "ASSOCIATION": "协会合作伙伴",
         "FOREIGN": "国际合作伙伴"
       }
+    },
+    "variantAlternatives": {
+      "title": "该款式（{variant}）已售罄——本店有货：",
+      "same": "相同编号",
+      "similar": "相似商品",
+      "note": "仅为建议：您选择的商品仍在售，由您决定。"
     }
   },
   "success": {
@@ -4976,6 +5768,16 @@
       "pushBody": "在此设备上接收配送提醒 —— 绝无垃圾信息。",
       "pushEnable": "启用提醒",
       "pushLoading": "通知中…"
+    },
+    "unallocatedBadge": "已收到付款",
+    "unallocatedTitle": "商品未能确认",
+    "unallocatedBody": "我们已收到你的付款，但该商品未能确认。它不会发货。",
+    "unallocatedSome": "{count, plural, other {# 件商品未能确认，不会发货。}}",
+    "unallocatedRefund": {
+      "notTriggered": "该金额尚未发起退款。我们的团队已收到通知。",
+      "requested": "已申请退还该金额。",
+      "inProgress": "该金额的退款正在处理中。",
+      "confirmed": "该金额已退还给你。根据你的银行，可能需要几天才会显示在账单上。"
     }
   },
   "cancel": {
@@ -6952,6 +7754,15 @@
       "footerNote": "您没有请求此操作？请忽略此邮件——您的密码保持不变。",
       "legal": "© Affisell — 联盟市场 · affisell.com"
     },
+    "emailVerification": {
+      "preview": "确认您的 Affisell 邮箱地址 — {accountEmail}",
+      "subject": "确认您的邮箱地址 · {accountEmail}",
+      "badge": "Affisell 安全 · 验证",
+      "title": "确认您的邮箱地址",
+      "body": "刚刚有人使用此地址创建了 Affisell 账户。请确认该地址属于您；链接 48 小时内有效。",
+      "cta": "确认我的地址",
+      "footerNote": "不是您创建的账户？请忽略此邮件：该地址不会被确认。"
+    },
     "contactAcknowledgment": {
       "preview": "消息已收到 — Affisell #{ticketRef}",
       "subject": "[Affisell] 消息已收到 — #{ticketRef}",
@@ -6971,6 +7782,26 @@
       "body": "您在 Affisell 上开始了一笔购买。您的选择仍然可用 — 安全的 Stripe 结账和跟踪的配送。",
       "cta": "恢复我的购买",
       "footer": "有问题？请查看常见问题或 Affisell 上的支持助手。"
+    },
+    "unallocatedLine": {
+      "subject": "你的付款：有商品未能确认",
+      "subjectConfirmed": "你的退款已完成",
+      "preview": "你购买的部分商品将不会发货。",
+      "previewConfirmed": "退款已完成。",
+      "heading": "有商品未能确认",
+      "headingConfirmed": "退款已完成",
+      "greeting": "你好，",
+      "intro": "我们已收到你的付款，但你购买的部分商品未能确认。相关商品将不会发货。订单中的其他商品（如有）不受影响。",
+      "introConfirmed": "关于你最近的付款，未能确认的商品已完成退款。",
+      "amountLine": "涉及金额：{amount}",
+      "refund": {
+        "notTriggered": "该金额尚未发起退款。我们的团队已收到通知，会与你联系。",
+        "requested": "已申请退还该金额。退款完成后我们会通知你。",
+        "inProgress": "该金额的退款正在处理中。",
+        "confirmed": "该金额已退还给你。根据你的银行，可能需要几天才会显示在账单上。"
+      },
+      "ctaSupport": "联系客服",
+      "footerNote": "你收到这封邮件，是因为有人使用此地址完成了付款。"
     }
   },
   "errors": {
@@ -7149,6 +7980,7 @@
     "jobToastCsv": "CSV 已导出",
     "jobToastNoDraft": "没有可上架的目录草稿",
     "jobToastListed": "已在店铺上架 {ok}/{total} 个产品",
+    "jobToastPendingReview": "{count} 件商品正在等待 Affisell 审核：审核通过后将上架。",
     "jobToastListFailed": "批量上架失败",
     "arbTip": "采购 {cost}€ → 售出 {sale}€ = +{margin}€",
     "arbTipScore": "采购 {cost}€ → 售出 {sale}€ = +{margin}€ | 评分 {score}/100",
@@ -7205,7 +8037,8 @@
       "slaWarning": "超出常规 SLA 时限",
       "provenanceLabel": "产地",
       "complianceLabel": "合规要求",
-      "complianceCount": "{count, plural, other {# 项要求}}"
+      "complianceCount": "{count, plural, other {# 项要求}}",
+      "supplierAffisell": "Affisell 供应商"
     },
     "sla": {
       "singleMarket": "对于 {code}，合理配送时长为 {idealDays}–{maxDays} 天。超过 {maxDays} 天，退货率将上升约40%。",
@@ -7766,6 +8599,14 @@
     "lastAnalysis": "上次分析 {when}",
     "refreshing": "刷新中…",
     "tagline": "电商信号 · Arbitrage Score™ · 饱和度 · Affisell 供应商匹配",
+    "demoBadge": "演示",
+    "demoBannerMock": "演示数据：这些爆款由计算规则生成，并非来自真实的市场扫描。请勿将其作为销售信号。",
+    "demoBannerMixed": "混合数据：部分行为模拟数据（标记为“演示”）。",
+    "demoBannerDemo": "手写示例数据：没有真实扫描。",
+    "scoresAreRules": "套利评分™和饱和度是公式（规则），不是 AI 模型。",
+    "trendingDemo": "演示关键词：手写列表加随机波动，没有市场测量。",
+    "trendingNone": "该市场没有真实的趋势关键词：没有趋势数据源返回数据（不会编造任何内容）。",
+    "countriesMockNotice": "Radar 数据库无法访问：市场列表在没有扫描数据的情况下显示。每个市场都以演示模式打开。",
     "searchLabel": "搜索",
     "searchPlaceholder": "搜索商品、国家…",
     "comingSoon": "即将开放",
@@ -8307,7 +9148,15 @@
     "curve24": "24 小时曲线",
     "copyWinner": "复制此爆款 → 10 秒导入",
     "fullPage": "查看完整页面",
-    "tickerAgo": "{n} 分钟前"
+    "tickerAgo": "{n} 分钟前",
+    "badgeLive": "实时",
+    "badgeMixed": "混合",
+    "badgeDemo": "演示",
+    "demoNotice": "演示数据：这些事件是为填充地球仪而生成的，并不对应任何真实销售。",
+    "mixedNotice": "混合数据：部分事件是为填充地球仪而生成的（标记为“演示”）。",
+    "demoEvent": "演示",
+    "demoEventNotice": "演示事件：为填充地球仪而生成，背后没有真实的销售或导入。",
+    "estimatedLocation": "估算位置：城市为自动选取，并非事件实际发生的地点。"
   },
   "radarPricing": {
     "starterEyebrow": "信号体验",
@@ -8706,7 +9555,11 @@
     "browseCatalog": "浏览目录",
     "reviewMargins": "查看我的利润",
     "viewInvitation": "查看邀请",
-    "viewAffiliateInvites": "查看分销商邀请"
+    "viewAffiliateInvites": "查看分销商邀请",
+    "viewProfitAlert": "查看提醒",
+    "viewReplacement": "下架或替换",
+    "viewUnsellableList": "查看列表",
+    "viewBlockedDemand": "查看受阻产品"
   },
   "aiConnect": {
     "title": "连接 AI",
@@ -8830,5 +9683,568 @@
       "dimensions": "尺寸"
     },
     "returnWindowBadge": "支持 {days} 天内退货"
+  },
+  "supplierReturns": {
+    "disposition": {
+      "title": "退回商品 — 检验与决定",
+      "outcomeLabel": "检验结果",
+      "noteLabel": "备注（您看到的情况）",
+      "record": "保存检验",
+      "decideRestock": "确认重新入库",
+      "decideKeepOut": "不重新入库",
+      "decisionNoteLabel": "决定理由",
+      "timeline": "记录",
+      "stage": {
+        "awaiting_reception": "等待收货",
+        "awaiting_inspection": "待检验",
+        "inspected_not_resellable": "已检验 — 不可再售",
+        "awaiting_decision": "可再售 — 待决定",
+        "kept_out": "不入库",
+        "restock_validated_not_applied": "已确认入库 — 未执行",
+        "restocked": "已重新入库"
+      },
+      "outcome": {
+        "resellable": "可再售（全新、完整）",
+        "damaged": "已损坏",
+        "defective": "有缺陷",
+        "missing_parts": "缺少部件",
+        "wrong_item_returned": "退回了错误的商品",
+        "not_received": "未收到任何物品"
+      },
+      "event": {
+        "received": "已收货",
+        "inspected": "已检验",
+        "decided": "决定",
+        "restocked": "已重新入库（{qty}）"
+      },
+      "decision": {
+        "restock": "已确认重新入库",
+        "keep_out": "不入库"
+      },
+      "modeOff": "Affisell 已关闭自动重新入库：您的决定已记录，库存未变。",
+      "modeObserve": "观察模式：您的决定已记录，仅计算重新入库数量。",
+      "inspectionSaved": "检验已保存。",
+      "decisionSaved": "决定已保存。",
+      "restocked": "商品已重新入库。",
+      "error": "操作失败。",
+      "errNotResellable": "最近一次检验不允许重新入库。",
+      "errNotInspected": "请先检验商品。",
+      "errAlreadyRestocked": "已重新入库。"
+    }
+  },
+  "catalogHealth": {
+    "title": "您的商品目录健康度",
+    "subtitle": "哪些问题阻碍了您的商品销售，按观察到的商业影响排序。每一项都注明所依据的数据。",
+    "summary": "已检查 {checked} 件商品 · {blocked, plural, =0 {无受阻商品} other {# 件受阻}} · {healthy, plural, =0 {无无问题在售商品} other {# 件在售且无问题}}",
+    "truncated": "仅分析您最新的 1000 件商品。",
+    "loading": "正在分析您的商品目录…",
+    "error": "无法加载分析结果。",
+    "retry": "重试",
+    "filterLabel": "按类型筛选",
+    "filterAll": "全部（{count}）",
+    "emptyCatalogue": "您还没有商品。",
+    "nothingHere": "此类别下没有需要提示的问题。",
+    "showMore": "再显示 {count} 项",
+    "openLink": "查看完整的目录健康度",
+    "demandLine": "30 天内 {orders, plural, =0 {无已付款订单} other {# 笔已付款订单}} · {resellers, plural, =0 {无分销商} other {# 位分销商在售}}",
+    "method": "排序：在售或有分销商上架的商品的问题优先（30 天已付款订单和观察到的分销商）。这不是预测。建议均为可选。",
+    "class": {
+      "blocage": {
+        "label": "阻断",
+        "definition": "今天确实阻止了某项操作（购买、发布或订单归属）。"
+      },
+      "anomalie": {
+        "label": "异常",
+        "definition": "数据不一致或可能有误——也可能是对的：请您确认。"
+      },
+      "avertissement": {
+        "label": "提醒",
+        "definition": "值得关注的风险或信息。没有任何操作被阻止。"
+      },
+      "recommandation": {
+        "label": "建议",
+        "definition": "可选的改进。没有强制要求。"
+      }
+    },
+    "source": {
+      "fiche": "来源：您的商品信息",
+      "observe": "来源：观察到的订单和分销商",
+      "affisell": "来源：Affisell 的规则或决定",
+      "calcul": "来源：根据您的数据计算"
+    },
+    "fix": {
+      "edit": "打开商品",
+      "hold": "Affisell 已将此商品下架：您无法自行重新上架。详情见商品页面；沟通通过 Affisell 客服进行。",
+      "stockLabel": "实际可用数量",
+      "stockSave": "保存",
+      "saving": "正在保存…",
+      "stockSaved": "数量已保存。",
+      "stockError": "无法保存数量。",
+      "stockInvalid": "请输入整数。"
+    },
+    "issues": {
+      "held_by_affisell": {
+        "title": "已被 Affisell 下架",
+        "why": "{hold, select, product_recalled {此商品正在进行安全召回。} other {Affisell 已暂停此商品。}}在解除之前，任何人都无法购买。"
+      },
+      "price_missing": {
+        "title": "缺少价格",
+        "why": "目录价格为空或为零：商品无法销售。"
+      },
+      "commission_not_explicit": {
+        "title": "未设置分销佣金",
+        "why": "没有明确的佣金，已付款的销售无法生成订单：它会被搁置并需要退款。"
+      },
+      "out_of_stock": {
+        "title": "已售罄",
+        "why": "可用数量：0。商品页面显示「售罄」，无人能购买。"
+      },
+      "safety_blocks_publication": {
+        "title": "发布被拒：产品安全",
+        "why": "缺少 {missingCount} 项产品安全信息（制造商、地址、欧盟负责人…）。检查已启用：发布被拒绝。"
+      },
+      "stock_nominal": {
+        "title": "数量待确认",
+        "why": "数量 {stock}：这是导入或助手常写入的数值，不一定是您的真实库存。"
+      },
+      "variant_stock_mismatch": {
+        "title": "库存不一致",
+        "why": "商品库存（{productStock}）与各规格之和（{rowsTotal}）不符。"
+      },
+      "variant_stock_untracked": {
+        "title": "规格库存未知",
+        "why": "各规格的数量不在购买时读取的表格中：实际可售情况未知。"
+      },
+      "delivery_window_inverted": {
+        "title": "配送时间不一致",
+        "why": "最短时间（{min} 天）长于最长时间（{max} 天）。"
+      },
+      "duplicate_name": {
+        "title": "可能重复",
+        "why": "您还有 {others} 件商品使用相同名称：可能重复，或需要为分销商区分名称。"
+      },
+      "hold_unverifiable": {
+        "title": "状态无法核实",
+        "why": "无法读取召回或暂停状态。请稍后重试。"
+      },
+      "safety_data_missing": {
+        "title": "缺少产品安全信息",
+        "why": "缺少 {missingCount} 项信息。目前不会被拒绝（检查处于观察模式{live, select, 1 {，商品已发布} other {}}），但检查启用后，新的发布可能会被拒绝。"
+      },
+      "paused_but_listed": {
+        "title": "已暂停，但分销商仍在上架",
+        "why": "您已暂停此商品；{resellers} 位分销商上架了它却无法销售。"
+      },
+      "low_stock": {
+        "title": "库存偏低",
+        "why": "仅剩 {available} 件（30 天内 {paidOrders30d} 笔已付款订单）。"
+      },
+      "no_photo": {
+        "title": "没有图片",
+        "why": "没有图片，商品很难被看到，分销商也难以展示。"
+      },
+      "no_category": {
+        "title": "没有类目",
+        "why": "分销商无法通过目录的类目筛选找到它。"
+      },
+      "no_reseller": {
+        "title": "没有分销商上架",
+        "why": "已在售 {ageDays} 天，没有任何店铺上架：它在任何地方都没有销售。"
+      },
+      "listed_no_sales": {
+        "title": "已上架但未售出",
+        "why": "{resellers} 位分销商上架了它，{days} 天内没有已付款订单。价格、图片或描述可能是原因——这是线索，不是结论。"
+      },
+      "draft_ready": {
+        "title": "草稿可发布",
+        "why": "价格、数量、佣金和图片均已填写。如您愿意可以发布。"
+      },
+      "few_photos": {
+        "title": "图片较少",
+        "why": "{photos} 张图片。可选：多角度图片有助于分销商展示。"
+      },
+      "short_description": {
+        "title": "描述较短",
+        "why": "{characters} 个字符。可选：更完整的描述有助于买家做决定。"
+      },
+      "no_gtin": {
+        "title": "没有条形码",
+        "why": "可选：GTIN / EAN 可用于核对欧盟安全警报并发现重复商品。"
+      },
+      "stock_unconfirmed": {
+        "title": "数量待确认",
+        "why": "导入时来源未提供数量：库存为 0，在您填写实际可用数量之前无法发布。"
+      },
+      "stock_cover_short": {
+        "title": "按当前速度即将断货",
+        "why": "申报库存：{available} 件。按过去 30 天的速度（已售 {units30d} 件），约可维持 {days, plural, =0 {不到一天} other {# 天}}，低于 {threshold} 天的参考阈值{leadKnown, select, 1 {（您申报的补货周期：{leadTimeDays} 天）} other {}}。{reservedNotDeducted, select, 1 {如果已付款未发货订单的 {reserved} 件仍计入该库存，则只能维持 {daysIfReserved} 天。} other {}}{stale, select, 1 {商品页已 {sheetAgeDays} 天未修改：请确认申报数量是否最新。} other {}}这是参考计算，并非预测。"
+      },
+      "variant_rows_indistinct": {
+        "title": "无法区分的规格",
+        "why": "{rows} 个规格（{labels}）颜色、尺码和容量完全相同：买家无法在它们之间选择，其库存也从不扣减。请为它们设置不同的名称。"
+      }
+    },
+    "availability": {
+      "title": "分销商店铺中的可售情况",
+      "none": "分销商在售的您的商品均无可售问题。",
+      "summaryBlocked": "{products} 件商品在 {shops} 家分销商店铺中无法购买。过去 30 天，这些商品共有 {orders} 笔已付款订单（您可得 {amount}）。",
+      "summaryAtRisk": "{products} 件仍在销售的商品可能很快无法销售（{shops} 家店铺）。",
+      "shopsBlocked": "在 {shops} 家分销商店铺中无法销售。",
+      "shopsAtRisk": "在 {shops} 家分销商店铺中销售，但存在风险。",
+      "observed": "过去 30 天：{orders} 笔已付款订单，{units} 件，您可得 {amount}（退款前）。",
+      "lastSale": "上次销售：{days, plural, =0 {不到一天前} other {# 天前}}。",
+      "neverSold": "从未售出。",
+      "cause": "原因：",
+      "also": "另外：",
+      "severity": {
+        "blocked": "无法销售",
+        "at_risk": "有风险"
+      },
+      "reactivate": "重新上架",
+      "reactivating": "正在重新上架…",
+      "reactivated": "商品已重新上架。",
+      "reactivateError": "重新上架未成功。",
+      "refused": {
+        "product_recalled": "已拒绝：存在进行中的安全召回。",
+        "product_suspended": "已拒绝：Affisell 已暂停该商品。",
+        "stock_unconfirmed": "已拒绝：请先在商品页填写实际可售数量。"
+      },
+      "showAll": "查看全部 {count} 件商品",
+      "showLess": "收起",
+      "method": "基于您的已付款订单和分销商店铺的实际数据；金额为退款前。这是这些商品过去的表现，而非损失预测。",
+      "stockLine": "申报库存：{declared} {confirmed, select, 1 {（已由您确认）} other {（未确认）}} · 预留（已付款未发货订单）：{reserved} {deducted, select, 1 {（已从库存扣除）} other {（Affisell 未扣除）}}",
+      "declaredUnknown": "申报库存：未知（无法读取各规格数量）",
+      "restockTitle": "补货计算 —— 仅供参考，不会自动填写或执行",
+      "restockMain": "按观察到的速度，若要在 {lead} 天补货周期后再维持 {target} 天：约需 {units} 件（视销售波动在 {low} 至 {high} 件之间）。",
+      "restockZero": "按观察到的速度，您的可用库存已能在补货周期后维持 {target} 天。",
+      "restockExplain": "明细：需 {needed} 件（30 天售出 {sold} 件，按 {lead} + {target} 天折算）− 可用 {available} 件。",
+      "restockLeadNotDeclared": "未申报补货周期：计算按 0 天计。可在商品页「采购成本」中申报，以获得更准确的计算。",
+      "restockReservedNote": "出于谨慎，本计算已从申报库存中减去 {reserved} 件预留（已付款、未发货、Affisell 未扣除）。"
+    },
+    "blockedDemand": {
+      "title": "因缺货而受阻的需求",
+      "subtitle": "分销商正在展示、此前有销量或买家已付款，但今天无法购买的您的产品。只统计已确认的事实，绝不把浏览或兴趣算在内。",
+      "empty": "目前您的产品没有受阻需求。",
+      "bellSingle": "买家已无法订购「{product}」：它在您的分销商店铺中不可购买。",
+      "bellDigest": "您有 {count} 个由分销商销售的产品已无法订购。",
+      "cause": {
+        "out_of_stock": "缺货：可售数量为 0。",
+        "stock_unconfirmed": "数量从未确认：确认之前无法销售。",
+        "paused_by_supplier": "已在您的商品页暂停或取消发布。",
+        "no_commission": "没有明确的分销佣金：销售无法被记录。"
+      },
+      "fix": {
+        "update_stock": "更新数量",
+        "confirm_stock": "确认数量",
+        "reactivate": "重新上架",
+        "set_commission": "设置佣金"
+      },
+      "ordersBefore": "缺货前 30 天内有 {count} 笔已付款订单（已确认）",
+      "ordersSince": "此后有 {count} 笔已付款订单（已确认）",
+      "failedLines": "{count} 笔已收款项因缺货未能成为订单（已确认；买家已退款或待退款）",
+      "shops": "出现在 {count} 家分销商店铺中",
+      "lastSale": "最近一笔已付款订单：{date}",
+      "since": "最迟自 {date} 起不可购买（{days, plural, =0 {今天} other {# 天}}）",
+      "sinceUnknown": "每日监控尚未记录开始日期。",
+      "estimate": "估算：按前 30 天的节奏，此期间约 {orders} 笔订单（{low} 至 {high}）。这不是已确认的损失。",
+      "note": "不会显示任何分销商名称或其个人数据。不会自动修改任何内容：由您更新商品页。",
+      "pref": "通过铃铛通知我（每天最多一次）",
+      "prefSaved": "偏好已保存",
+      "truncated": "读取受限：列表可能不完整。",
+      "riskSingle": "「{product}」的库存可能在约 {days} 天内售罄，早于您的补货。",
+      "attentionDigest": "您的转售商销售的 {count} 件商品需要您关注（不可购买、部分尺码或颜色已售罄，或即将缺货）。",
+      "variantSoldOutSingle": "“{product}”：{count, plural, other {# 个规格已售罄（{labels}）}}，而买家此前一直在订购；{available, plural, =0 {没有其他规格在售} other {仍有 # 个规格在售}}。",
+      "variantRiskSingle": "“{product}”：{count, plural, other {# 个规格（{labels}）}}可能在您补货前售罄。"
+    },
+    "stockout": {
+      "title": "需预判的缺货",
+      "subtitle": "您在分销商店铺中的产品，库存可能在补货到达前售罄。事实、计算、假设与局限分开显示；不会下单，也不会修改任何内容。",
+      "empty": "目前没有需要关注的产品。",
+      "truncated": "读取受限：列表可能不完整。",
+      "risk": {
+        "sous_le_delai": "补货前售罄，即使按低速度",
+        "probable": "补货前很可能售罄",
+        "a_surveiller": "需关注",
+        "suffisant": "覆盖充足",
+        "non_evaluable": "无法评估"
+      },
+      "confidence": {
+        "high": "可信度高",
+        "medium": "可信度中",
+        "low": "可信度低"
+      },
+      "factsTitle": "事实",
+      "calcTitle": "计算",
+      "declared": "申报库存：{units}",
+      "declaredUnknown": "申报库存未知（未跟踪变体）",
+      "reservedDeducted": "已付款未发货订单预留 {units} 件，平台已扣除",
+      "reservedNotDeducted": "已付款未发货订单预留 {units} 件，仍含在申报库存中",
+      "sold": "30 天内售出 {units} 件，分布在 {days} 个不同日期",
+      "confirmedOn": "数量确认于 {date}",
+      "neverConfirmed": "数量从未确认",
+      "sheetAge": "商品页 {days} 天前修改（这不是库存确认）",
+      "leadKnown": "申报补货周期：{days} 天",
+      "leadUnknown": "未申报补货周期",
+      "available": "扣除预留后可售：{units}",
+      "pace": "速度：每天 {pace}（{low} 至 {high}）",
+      "cover": "预计覆盖：{days} 天（{low} 至 {high}）",
+      "coverOpen": "预计覆盖：{days} 天（至少 {low}）",
+      "comparedLead": "与您申报的 {days} 天补货周期比较",
+      "comparedIndicative": "与 {days} 天的参考周期比较（您未申报周期）",
+      "notCalculated": "无计算：数据不足以计算（见局限）。",
+      "hypothesesTitle": "假设：",
+      "hypothesis": {
+        "pace_constant": "过去 30 天的速度保持不变",
+        "no_incoming_restock": "Affisell 不知道任何进行中的补货",
+        "lead_time_indicative": "14 天周期仅为参考"
+      },
+      "limitsTitle": "局限：",
+      "limit": {
+        "too_few_sales": "30 天内少于 5 次销售",
+        "sales_on_few_days": "销售分布少于 3 天",
+        "declared_unknown": "申报库存未知",
+        "never_confirmed": "数量从未确认",
+        "confirmation_old": "确认超过 30 天",
+        "confirmation_too_old": "确认超过 120 天：数量不可用",
+        "unconfirmed_marker": "导入的数量从未确认",
+        "lead_time_unknown": "未申报补货周期"
+      },
+      "action": {
+        "restock_now": "立即补货",
+        "plan_restock": "计划补货",
+        "confirm_quantity": "确认或更正数量",
+        "declare_lead_time": "申报您的补货周期"
+      },
+      "openSheet": "打开商品页",
+      "confirmButton": "数量 {units} 正确",
+      "confirmResult": {
+        "ok": "数量已确认。",
+        "quantity_changed": "数量已变化：请刷新页面。",
+        "unconfirmed_import": "导入的数量：请在商品页填写。",
+        "quantity_unknown": "数量未知：请使用商品页。",
+        "error": "暂时无法确认。"
+      },
+      "note": "这是计算，不是确定结果。不会创建或发送任何补货订单。您的分销商看不到这些信息。"
+    },
+    "variantStock": {
+      "title": "按规格的库存",
+      "subtitle": "总量充足也可能掩盖某个尺码或颜色已售罄。每个规格按其自身的库存、销售和预留单独判断；总库存绝不会被拆分到各规格。",
+      "empty": "您在店铺中的产品没有已售罄或有风险的规格。",
+      "truncated": "读取受限：列表可能不完整。",
+      "shops": "{count} 家分销商店铺",
+      "notTracked": "此产品的规格未逐一跟踪（没有按行的库存）：无法判断哪一个会售罄。无法评估。",
+      "partial": "{count} 个规格已售罄，而其他规格仍在销售",
+      "col": {
+        "variant": "规格",
+        "declared": "申报库存",
+        "sold": "已确认销售（90 天）",
+        "cover": "预计覆盖",
+        "state": "状态"
+      },
+      "unknown": "未知",
+      "soldValue": "{units}（占销售 {pct}%）",
+      "noSale": "无已确认销售",
+      "resellers": "由 {count} 位分销商售出",
+      "resellersFew": "由少于 2 位分销商售出",
+      "coverValue": "{days} 天（至少 {low}）",
+      "ambiguous": "有歧义：两行同名",
+      "notEvaluable": "无法评估",
+      "soldOut": "已售罄",
+      "unattributed": "{units} 件售出时未识别规格：单独统计，绝不分摊。",
+      "confirmationScope": "数量确认针对整个商品页。",
+      "fixTrack": "在商品页按规格跟踪库存",
+      "fixRows": "更新该规格的数量",
+      "note": "已确认的销售与计算分开显示。已售罄的规格不会被表述为损失的销售：Affisell 的数据中没有任何错失的交易关联到某个规格。不显示任何分销商名称。",
+      "waitingBuyers": "{count} 位买家等待到货"
+    },
+    "restockDemand": {
+      "title": "等待补货的买家",
+      "subtitle": "至少有 {min} 位不同买家要求到货通知的售罄款式。",
+      "buyers": "{count} 位买家正在等待到货",
+      "fix": "更新数量",
+      "truncated": "目录过大：仅检查了部分商品。",
+      "disclaimer": "买家的明确请求，每位买家每个款式只计一次。这是真实需求的参考，而非销售预测：收到通知的买家不一定购买。",
+      "noneNow": "目前没有款式达到阈值。",
+      "followUp": {
+        "title": "需求跟进（最近 90 天）",
+        "counts": "{episodes} 组需求：{waiting} 组等待中，{returned} 个款式已补货，{lapsed} 组未补货即关闭。",
+        "delay": "从需求到补货的中位时间：{days} 天。",
+        "orders": "补货后：这些款式共 {orders} 笔订单，其中 {refunded} 笔已退款或取消，{waitingBuyers} 笔来自等待中的买家。",
+        "notEvaluable": "{count} 次补货的订单无法关联到款式（未计入）。",
+        "partial": "{count} 次补货的件数少于等待的买家数。",
+        "resoldOut": "{count} 个款式补货后再次售罄。",
+        "caveat": "需求之后实际发生的情况。补货后的订单并不证明是需求或推荐促成的。"
+      }
+    },
+    "listingQuality": {
+      "title": "在 Affisell 上与更多销量相关的要素",
+      "intro": "在 Affisell 上，{days} 天内，具备这些要素的商品页在店铺中每天的销量，高于同类目、同价格段、同上架时长但不具备这些要素的商品页。以下商品页尚未具备：",
+      "evidence": "在 Affisell 上观察到：具备该要素的可比商品页在店铺中每天的销量是其他商品页的 {ratio} 倍（计入误差后至少 {lo} 倍）。",
+      "cta": "完善商品页",
+      "caveat": "这是统计上的关联，并非已证实的因果关系：店铺流量、分销商定价及其他因素均未被测量。添加该要素并不保证带来任何额外销量。未经您同意，不会做任何更改。",
+      "feature": {
+        "photos_3plus": "至少添加 3 张照片。",
+        "photos_5plus": "至少添加 5 张照片。",
+        "title_precise": "让标题更准确（至少 3 个词，不要全部大写）。",
+        "description_200plus": "撰写至少 200 个字符的描述。",
+        "specs_3plus": "填写至少 3 项规格。",
+        "variants_distinct": "让每个款式可区分（颜色、尺码、容量）。",
+        "gtin_valid": "填写有效的条形码（GTIN）。",
+        "brand_declared": "填写品牌。",
+        "delivery_declared": "填写配送时间。",
+        "return_extended": "提供超过 14 天的退货期。",
+        "safety_complete": "完善产品安全信息。",
+        "stock_confirmed": "填写真实库存数量。"
+      }
+    },
+    "readiness": {
+      "title": "可以销售了吗？— 您已保存的商品页",
+      "subtitle": "与撰写时相同的检查，按各商品页所处阶段（草稿或在售）的规则，应用于每个已保存的商品页。",
+      "countsLive": "在售：{ready} 个就绪 · {toFix} 个待修正 · {blocked} 个受阻",
+      "countsDraft": "草稿：{ready} 个就绪 · {toFix} 个待修正 · {blocked} 个受阻",
+      "toFixTitle": "优先修正 — 每个商品页一项修正",
+      "nothingToFix": "没有已保存的商品页存在阻碍或优先事项。",
+      "readyNotSellingTitle": "技术上已就绪，但不易销售",
+      "readyNotSellingIntro": "这些商品页符合规则，可以购买。以下每一点单独读取并注明来源；没有总评分。",
+      "qualification": {
+        "affisell": "Affisell 规则",
+        "fiche": "商品页",
+        "calcul": "计算",
+        "observe": "观察"
+      },
+      "weak": {
+        "disponibilite": "供货不稳：本页已为该商品标示断货或不可售风险。",
+        "rentabilite_revendeur": "分销商收益低：按副驾驶向分销商建议的价格（不含税 {price}，标准分销费），每笔销售收益 {net}。低于 {threshold} 时，副驾驶会向他们将该商品标为「待核实」。佣金和价格在商品页中设置，由您决定。",
+        "offre": "商品信息不完整：缺少 {count} 项商品页元素，这些元素在 Affisell 上与更多销量相关（最明显的一项至少 {lo} 倍）。这是统计关联，不保证销售。",
+        "demande": "在售 {ageDays} 天后仍没有分销商上架。",
+        "performance": "已有 {resellers} 个分销商上架，{windowDays} 天内没有已付款的销售。"
+      },
+      "openSheet": "打开商品页",
+      "stage": {
+        "draft": "草稿",
+        "live": "已发布"
+      },
+      "moreInSheet": "商品页中还有 {count} 项",
+      "method": "根据您已保存的商品页和您自己的销售计算，采用 Affisell 在各阶段应用的规则。本页不会发布、下架或修改任何内容。"
+    }
+  },
+  "nextActions": {
+    "title": "您的下一步行动",
+    "subtitle": "根据您自己的数据给出一到三项行动。",
+    "honesty": "潜在影响：这是该商品过去 30 天观察到的情况，并非承诺的结果。",
+    "priority": {
+      "haute": "高优先级",
+      "moyenne": "中优先级",
+      "basse": "低优先级"
+    },
+    "kind": {
+      "fix_blocage": "解除「{product}」的阻断",
+      "resolve_availability": "处理「{product}」的可售情况",
+      "promote_to_resellers": "让分销商了解「{product}」",
+      "publish_draft": "发布「{product}」",
+      "complete_sheet": "完善「{product}」的商品信息",
+      "fix_shop_listing": "处理您店铺中的「{product}」",
+      "review_profit_drop": "查看「{product}」的下降原因",
+      "add_ready_product": "将「{product}」加入您的店铺",
+      "answer_restock_demand": "回应 {product} 的需求",
+      "answer_shop_demand": "您店铺的买家在等待 {product}",
+      "prepare_listing": "让「{product}」准备好销售",
+      "review_observation_plan": "评估“{product}”"
+    },
+    "cta": {
+      "fix_blocage": "打开商品",
+      "resolve_availability": "打开商品",
+      "promote_to_resellers": "邀请分销商",
+      "publish_draft": "打开草稿",
+      "complete_sheet": "打开商品",
+      "fix_shop_listing": "下架或替换",
+      "review_profit_drop": "查看分析",
+      "add_ready_product": "在目录中查看",
+      "answer_restock_demand": "更新库存",
+      "answer_shop_demand": "查看需求和替代品",
+      "prepare_listing": "打开商品页",
+      "review_observation_plan": "查看我的店铺"
+    },
+    "impact": {
+      "label": "潜在影响：",
+      "orders": "{count, plural, =0 {30 天内无已付款订单} other {30 天内 # 笔已付款订单}}",
+      "resellers": "{count, plural, =0 {无分销商} other {# 位分销商}}",
+      "netPerSale": "每笔销售净得 {amount}（计算）",
+      "netChange": "净收益减少 {amount}（观察）",
+      "waitingBuyers": "{count} 位买家在等待"
+    },
+    "reason": {
+      "price_missing": "缺少价格：商品无法销售。",
+      "commission_not_explicit": "未设置分销佣金：销售无法归属。",
+      "safety_blocks_publication": "缺少产品安全信息，发布被拒绝。",
+      "out_of_stock": "数量为 0：商品页面显示「售罄」。",
+      "low_stock": "一件畅销商品的库存所剩无几。",
+      "stock_nominal": "数量看起来像导入值，而不是您的库存。",
+      "variant_stock_mismatch": "商品库存与规格库存不一致。",
+      "variant_stock_untracked": "购买时无法得知规格库存。",
+      "no_reseller": "它在售，但没有店铺上架。",
+      "draft_ready": "草稿已完整。",
+      "no_photo": "它没有图片。",
+      "no_category": "它没有类目：分销商找不到它。",
+      "duplicate_name": "您的另一件商品使用了相同名称。",
+      "delivery_window_inverted": "最短配送时间超过了最长时间。",
+      "safety_data_missing": "缺少产品安全信息。",
+      "paused_but_listed": "它已暂停，但分销商仍在上架。",
+      "listed_no_sales": "分销商已上架，但没有卖出。",
+      "few_photos": "有需求，但图片较少。",
+      "short_description": "有需求，但描述较短。",
+      "no_gtin": "有需求，但没有条形码。",
+      "shop_out_of_stock": "供应商已无库存：您的买家看到它已售罄。",
+      "shop_product_unavailable": "供应商已撤下或暂停它：无法再购买。",
+      "shop_awaiting_review": "该商品正在等待 Affisell 审核。",
+      "shop_no_commission": "供应商未设置佣金：销售将无法归属。",
+      "drop_volume_down": "您该商品的销量下降了。",
+      "drop_your_price_down": "您降低了价格。",
+      "drop_collected_price_down": "实收价格下降了。",
+      "drop_supplier_price_up": "供应商价格上涨了。",
+      "drop_commission_down": "佣金下降了。",
+      "drop_fees_up": "费用上涨了。",
+      "drop_refunds_up": "退款增加了。",
+      "drop_disputes_up": "争议增加了。",
+      "drop_other": "您在该商品上的净收益下降了。",
+      "ready_to_sell": "它今天可以销售，且尚未加入您的店铺。",
+      "stock_unconfirmed": "导入来源未提供数量：发布需等待您填写数量。",
+      "stock_cover_short": "按当前销售速度，库存将在两周内售罄（计算）。",
+      "variant_rows_indistinct": "部分规格的颜色、尺码和容量完全相同：买家无法在它们之间选择。",
+      "restock_demand": "{count} 位买家正在等待 {variant}。请更新该款式的库存以回应这一需求。",
+      "shop_restock_demand": "您店铺有 {count} 位买家在等待 {variant}。您可以为他们提供有货的替代品；这不是确定的销售。",
+      "quality_title_precise": "标题不够准确（少于 3 个词、过短或全部大写）。",
+      "quality_specs_3plus": "填写的规格少于 3 项。",
+      "quality_photos_5plus": "照片少于 5 张。",
+      "quality_brand_declared": "未填写品牌。",
+      "quality_delivery_declared": "未填写配送时间。",
+      "quality_return_extended": "退货期仅为 14 天。",
+      "readiness_next_fix": "由「可以销售了吗？」检查选出的商品页下一项修正。",
+      "plan_conserver": "建议：保留。",
+      "plan_ameliorer": "建议：完善商品页 — 缺少在 Affisell 上与更多销售相关的要素。",
+      "plan_surveiller": "建议：继续观察 — 没有流量数据时，未售出不能说明问题。",
+      "plan_reconsiderer": "建议：重新考虑 — 每单收益低，或同类商品通常卖得更快。",
+      "plan_retirer_ou_remplacer": "建议：下架或替换 — 它不会自行恢复可售。"
+    },
+    "qualityEvidence": "在 Affisell 上观察到：具备该要素的可比商品页每天店铺销量是其他商品页的 {ratio} 倍（至少 {lo} 倍）。这只是统计关联，不能证明添加后会卖得更多。",
+    "planLine": "已上架 {elapsed} 天，计划 {horizon} 天 · 您店铺的销售：{sales}"
+  },
+  "restockWatch": {
+    "cta": "此款式到货时通知我",
+    "watching": "到货将通知您 — 取消",
+    "hint": "此款式重新有货时仅通知一次。补货日期未知。",
+    "hintNotActive": "您的请求已保存，但提醒尚未开启。补货日期未知。",
+    "saved": "已完成：到货时通知您一次。",
+    "savedNotActive": "请求已保存。提醒暂未发送。",
+    "cancelled": "请求已取消。",
+    "pushDenied": "您的浏览器已屏蔽通知：请允许通知以便接收提醒。",
+    "pushUnsupported": "您的浏览器不支持通知。",
+    "availableNow": "好消息：此款式现在有货。",
+    "tooMany": "您待处理的请求已过多。",
+    "error": "暂时无法保存。",
+    "signInPrompt": "登录后，此款式到货时将通知您。",
+    "signIn": "登录",
+    "pushTitle": "已到货：{product}",
+    "pushBody": "{variant} 已重新有货，数量可能有限。"
   }
 }

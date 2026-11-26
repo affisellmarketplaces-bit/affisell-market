@@ -10,14 +10,10 @@ import {
 } from "@/lib/product-variants"
 import { splitVariantLineName } from "@/lib/supplier-sku-builder"
 
-const STORAGE_KEY_RE =
-  /(?:^|_)(storage|stockage|capacite|capacity|memoire|memory|rom|ssd|carte_sd)(?:_|$)/i
-const STORAGE_LABEL_RE =
-  /stockage|storage|capacit|mémoire|memoire|memory|\bgo\b|\bgb\b|\btb\b|carte\s*sd/i
+import { isStorageCustomColumn } from "@/lib/variant-selection"
 
-export function isStorageCustomColumn(col: { key: string; label: string }): boolean {
-  return STORAGE_KEY_RE.test(col.key) || STORAGE_LABEL_RE.test(col.label)
-}
+// ONE definition of the storage dimension, shared with the purchase rule (lib/variant-selection.ts).
+export { isStorageCustomColumn }
 
 export function resolveStorageColumn(
   customColumns: CustomColumn[],

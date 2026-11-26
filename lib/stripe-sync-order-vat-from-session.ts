@@ -11,6 +11,7 @@ import {
   netSupplierPayoutCents,
   resolveOrderUsesAffisellAutoBuy,
 } from "@/lib/marketplace-supplier-fee"
+import { isOrderClosedForPayout } from "@/lib/orders/payment-state"
 import { getStripeClient } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
 
@@ -24,6 +25,18 @@ function sessionCustomerId(session: Stripe.Checkout.Session): string | null {
 function inferTaxRate(subtotalCents: number, taxCents: number): number | null {
   if (subtotalCents <= 0 || taxCents <= 0) return null
   return Math.round((taxCents / subtotalCents) * 10_000) / 10_000
+}
+
+/** Number of lines of a cart checkout (`cartLines` metadata), `null` for a session that is not a cart. */
+function cartLineCount(session: Stripe.Checkout.Session): number | null {
+  const raw = session.metadata?.cartLines?.trim()
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    return Array.isArray(parsed) ? parsed.length : null
+  } catch {
+    return null
+  }
 }
 
 async function orderIdsForStripeSession(sessionId: string): Promise<string[]> {
@@ -66,10 +79,12 @@ export async function syncOrderVatFromCheckoutSession(
   const stripeCustomerId = sessionCustomerId(session)
   const sessionTaxRate = inferTaxRate(sessionSubtotal, sessionTax)
 
-  const orders = await prisma.order.findMany({
+  const foundOrders = await prisma.order.findMany({
     where: { id: { in: orderIds } },
     select: {
       id: true,
+      status: true,
+      paymentSettlementStatus: true,
       sellingPriceCents: true,
       subtotalCents: true,
       affisellCommissionRateBps: true,
@@ -102,17 +117,26 @@ export async function syncOrderVatFromCheckoutSession(
       affiliate: { select: { affiliatePlatformFeeBps: true } },
     },
   })
+  // A closed order (cancelled / refunded — e.g. the skeleton of a line that could not be served) is not a sale: it takes no share.
+  const orders = foundOrders.filter((o) => !isOrderClosedForPayout(o))
   const weightSum = orders.reduce(
     (s, o) => s + Math.max(0, o.subtotalCents ?? o.sellingPriceCents),
     0
   )
+  // Normally the orders of a cart add up to the whole session, so each takes `its subtotal / their sum` of the session
+  // amounts. When a paid line produced NO order (D6 / G1: unallocated) they add up to LESS: dividing by their own sum
+  // would hand the missing line's HT, VAT and total to the survivors (the order would then show 50 HT for a 30 HT line
+  // and every refund figure derived from it would be wrong). Each order keeps ITS share of the whole session instead.
+  const expectedLines = cartLineCount(session)
+  const linesMissing = expectedLines != null && orders.length < expectedLines
+  const weightBase = linesMissing ? Math.max(sessionSubtotal, weightSum) : weightSum
 
   const updatedOrderIds: string[] = []
 
   for (const order of orders) {
     const weight =
-      weightSum > 0
-        ? Math.max(0, order.subtotalCents ?? order.sellingPriceCents) / weightSum
+      weightBase > 0
+        ? Math.max(0, order.subtotalCents ?? order.sellingPriceCents) / weightBase
         : 1 / Math.max(1, orders.length)
 
     const subtotalCents = Math.round(sessionSubtotal * weight)

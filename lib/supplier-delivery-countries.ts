@@ -7,23 +7,26 @@ import { DEFAULT_LOCALE } from "@/lib/i18n-locale"
 import { intlLocaleTag } from "@/lib/i18n-ui-locale"
 import { tMessage } from "@/lib/i18n-pick-message"
 import { visitorCountryDisplayName } from "@/lib/visitor-country"
+import {
+  DELIVERY_COUNTRIES_REQUIRED_ERROR,
+  DELIVERY_WORLDWIDE,
+  normalizeDeliveryCountryCode,
+  parseDeliveryCountryCodes,
+  validateDeliveryCountriesForPublish,
+} from "@/lib/supplier-delivery-countries-rules"
 
-/** Sentinel stored in `deliveryCountryCodes` — delivers to all platform checkout countries. */
-export const DELIVERY_WORLDWIDE = "WORLDWIDE"
+// The pure rules live in supplier-delivery-countries-rules.ts (client-safe); re-exported for existing importers.
+export {
+  DELIVERY_COUNTRIES_REQUIRED_ERROR,
+  DELIVERY_WORLDWIDE,
+  normalizeDeliveryCountryCode,
+  parseDeliveryCountryCodes,
+  validateDeliveryCountriesForPublish,
+}
 
-export const DELIVERY_COUNTRIES_REQUIRED_ERROR = "delivery_countries_required"
 
 export type DeliveryCountryPresetId = "fr" | "eu" | "eu_plus" | "worldwide"
 
-const ISO2_RE = /^[A-Z]{2}$/
-
-export function normalizeDeliveryCountryCode(raw: string): string | null {
-  const trimmed = raw.trim().toUpperCase()
-  if (trimmed === DELIVERY_WORLDWIDE) return DELIVERY_WORLDWIDE
-  const code = trimmed.slice(0, 2)
-  if (!ISO2_RE.test(code)) return null
-  return code
-}
 
 /** Curated list for supplier picker (current market checkout universe). */
 export function supplierDeliveryCountryOptions(): readonly string[] {
@@ -51,22 +54,7 @@ export function deliveryCountryPresetCodes(
   }
 }
 
-export function parseDeliveryCountryCodes(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return []
-  const out = new Set<string>()
-  for (const item of raw) {
-    if (typeof item !== "string") continue
-    const code = normalizeDeliveryCountryCode(item)
-    if (code) out.add(code)
-  }
-  if (out.has(DELIVERY_WORLDWIDE)) return [DELIVERY_WORLDWIDE]
-  return [...out].sort()
-}
 
-export function validateDeliveryCountriesForPublish(codes: string[]): typeof DELIVERY_COUNTRIES_REQUIRED_ERROR | null {
-  if (codes.length === 0) return DELIVERY_COUNTRIES_REQUIRED_ERROR
-  return null
-}
 
 export function productDeliversToCountry(codes: string[], countryIso2: string): boolean {
   const destination = normalizeDeliveryCountryCode(countryIso2)

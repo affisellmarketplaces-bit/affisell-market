@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
 import { identifyAndEstablishBuyerSession } from "@/lib/buyer-identify-session"
 
 export const runtime = "nodejs"
@@ -7,6 +8,13 @@ export const dynamic = "force-dynamic"
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimitResponse(rateLimitClientKey(req), {
+      prefix: "buyer-identify",
+      limit: 30,
+      windowMs: 60_000,
+    })
+    if (limited) return limited
+
     const body = (await req.json().catch(() => ({}))) as {
       channel?: string
       email?: string
@@ -31,6 +39,16 @@ export async function POST(req: Request) {
 
     if (!result.ok) {
       return NextResponse.json({ error: result.error }, { status: result.status })
+    }
+
+    if (!result.sessionEstablished) {
+      // Existing account with an owner or history: a typed identifier is not proof, so no session and no name.
+      return NextResponse.json({
+        ok: true,
+        isNew: false,
+        sessionEstablished: false,
+        requiresSignIn: true,
+      })
     }
 
     return NextResponse.json({

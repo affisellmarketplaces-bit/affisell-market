@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server"
 
 import { groqChatText } from "@/lib/ai/groq-client"
+import { requireAdminSession } from "@/lib/admin/require-admin-session"
+import { rateLimitClientKey, rateLimitResponseAsync } from "@/lib/api-rate-limit"
 import { prisma } from "@/lib/prisma"
+import { assertSameSiteRequestOrigin } from "@/lib/request-origin-guard"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -29,7 +32,27 @@ async function translateCommercialText(input: string, kind: "title" | "descripti
   }
 }
 
-export async function POST() {
+/**
+ * ADMIN ONLY. This REWRITES the name and description of up to 200 products, whoever owns them, with a language model
+ * (two LLM calls per product). It used to answer anyone: an anonymous POST was a mass overwrite of the catalogue.
+ * There is still no dry-run, so an administrator calling it is rewriting production data; limited to 2 runs an hour.
+ */
+export async function POST(req: Request) {
+  const originBlock = assertSameSiteRequestOrigin(req)
+  if (originBlock) return originBlock
+
+  const gate = await requireAdminSession()
+  if (!gate.ok) {
+    return NextResponse.json({ error: gate.error }, { status: gate.status })
+  }
+
+  const limited = await rateLimitResponseAsync(rateLimitClientKey(req, gate.session.user.id), {
+    limit: 2,
+    windowMs: 60 * 60_000,
+    prefix: "products-translate",
+  })
+  if (limited) return limited
+
   const products = await prisma.product.findMany({
     select: { id: true, name: true, description: true },
     take: 200,

@@ -1,2 +1,0 @@
-import { i as usePopoverAnchor, n as PopoverAnchorOptions, r as PopoverAnchorProps, t as PopoverAnchor } from "../popover-anchor-W18KUmuM.js";
-export { PopoverAnchor, PopoverAnchorOptions, PopoverAnchorProps, usePopoverAnchor };

@@ -58,3 +58,16 @@ export class InvalidPassword extends CredentialsSignin {
 export class PasswordLoginNotAvailable extends CredentialsSignin {
   code = "password_login_unavailable"
 }
+
+/**
+ * Unknown e-mail, account without a password, or wrong password — ONE answer for the three, so the sign-in form can no
+ * longer be used to find out which e-mails have an Affisell account (the three codes above are kept for old links only).
+ */
+export class InvalidCredentials extends CredentialsSignin {
+  code = "invalid_credentials"
+}
+
+/** Too many password attempts for this e-mail address in the window (counted whether the account exists or not). */
+export class TooManySignInAttempts extends CredentialsSignin {
+  code = "too_many_attempts"
+}

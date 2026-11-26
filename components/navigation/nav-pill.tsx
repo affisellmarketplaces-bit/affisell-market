@@ -7,6 +7,7 @@ import { useCallback } from "react"
 import { Link as LocaleLink, useRouter as useLocaleRouter } from "@/i18n/navigation"
 import { normalizePrefetchHref } from "@/lib/prefetch-href.client"
 import { cn } from "@/lib/utils"
+import { VIEWPORT_LINK_PREFETCH } from "@/lib/link-prefetch-policy"
 
 type Props = {
   href: string
@@ -106,7 +107,7 @@ export function NavPill({
   )
 
   const prefetchHandlers = {
-    prefetch: true as const,
+    prefetch: VIEWPORT_LINK_PREFETCH,
     onMouseEnter: warm,
     onFocus: warm,
     onTouchStart: warm,

@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs"
+import { resolveImportedStock, stockUnconfirmedAttribute } from "@/lib/import-stock"
 
 import { getAliExpressConfigStatus } from "@/lib/aliexpress-config"
 import { AliExpressApiError, createAliExpressClient } from "@/lib/aliexpress-open-api"
@@ -53,6 +54,7 @@ export async function POST(req: Request) {
       )
     }
 
+    const importStock = resolveImportedStock({ stock: mapped.stock, stockProvenance: mapped.stockProvenance })
     const product = await prisma.product.create({
       data: {
         supplierId: session.user.id,
@@ -60,7 +62,9 @@ export async function POST(req: Request) {
         description: mapped.description,
         images: mapped.images,
         basePriceCents: mapped.basePriceCents,
-        stock: mapped.stock,
+        // AliExpress's quantity only when the answer carries one; otherwise 0 + « to confirm » (lib/import-stock.ts).
+        stock: importStock.stock,
+        ...(importStock.confirmed ? {} : { attributes: { create: [stockUnconfirmedAttribute()] } }),
         commissionRate: defaultAffiliateCommissionPct(),
         active: false,
         isDraft: true,

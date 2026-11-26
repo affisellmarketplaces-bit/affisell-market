@@ -2,10 +2,8 @@
  * Route-aware Dona persona — buyer home ≠ revendeur landing.
  */
 
-import type { AppLocale } from "@/lib/i18n-locale"
 import { SUPPORTED_LOCALES } from "@/lib/i18n-locale"
 import { DONA_LOGIN_PATH, DONA_SIGNUP_PATH } from "@/lib/dona/dona-links"
-import { tMessage } from "@/lib/i18n-pick-message"
 
 export type DonaPublicAudience = "buyer" | "reseller" | "supplier"
 
@@ -40,6 +38,12 @@ const BUYER_PREFIXES = [
 
 const LOCALE_ROOT_PATTERN = new RegExp(`^/(${SUPPORTED_LOCALES.join("|")})(/|$)`)
 
+/**
+ * Resolves a message path: `useMessagePicker()` in the widget (messages already in the provider), or
+ * `(p) => tMessage(locale, p)` on the server. Injected rather than imported, so this module stays a pure helper.
+ */
+export type DonaMessagePicker = (path: string, fallback?: string) => string
+
 export function resolveDonaPublicAudience(pathname: string): DonaPublicAudience {
   const path = pathname.split("?")[0]?.trim() || "/"
 
@@ -62,16 +66,16 @@ export function resolveDonaPublicAudience(pathname: string): DonaPublicAudience 
   return "buyer"
 }
 
-export function donaPublicWelcome(audience: DonaPublicAudience, locale: AppLocale): string {
-  return tMessage(locale, `donaWidget.audience.${audience}.welcome`)
+export function donaPublicWelcome(audience: DonaPublicAudience, pick: DonaMessagePicker): string {
+  return pick(`donaWidget.audience.${audience}.welcome`)
 }
 
-export function donaPublicPlaceholder(audience: DonaPublicAudience, locale: AppLocale): string {
-  return tMessage(locale, `donaWidget.audience.${audience}.placeholder`)
+export function donaPublicPlaceholder(audience: DonaPublicAudience, pick: DonaMessagePicker): string {
+  return pick(`donaWidget.audience.${audience}.placeholder`)
 }
 
-export function donaPublicBadge(audience: DonaPublicAudience, locale: AppLocale): string {
-  return tMessage(locale, `donaWidget.audience.${audience}.badge`)
+export function donaPublicBadge(audience: DonaPublicAudience, pick: DonaMessagePicker): string {
+  return pick(`donaWidget.audience.${audience}.badge`)
 }
 
 /** Prioritize audience in LLM system prompt without dropping full product knowledge. */

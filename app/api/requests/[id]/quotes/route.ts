@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { PRODUCT_REQUEST_NOTIF } from "@/lib/product-request-notif-constants"
+import { loadSupplierStoreNames } from "@/lib/product-request-store-names.server"
 import { serializeProductQuote } from "@/lib/product-request-types"
 import { prisma } from "@/lib/prisma"
 import { resolveRequestLocale } from "@/lib/resolve-request-locale"
@@ -143,7 +144,8 @@ export async function POST(req: Request, ctx: RouteCtx) {
     result: "quote_created",
   })
 
-  return NextResponse.json({ quote: serializeProductQuote(quote) })
+  const storeNames = await loadSupplierStoreNames([quote.supplierId])
+  return NextResponse.json({ quote: serializeProductQuote(quote, storeNames) })
 }
 
 export async function GET(_req: Request, ctx: RouteCtx) {
@@ -170,8 +172,9 @@ export async function GET(_req: Request, ctx: RouteCtx) {
       where: { requestId },
       orderBy: { price: "asc" },
     })
+    const storeNames = await loadSupplierStoreNames(quotes.map((q) => q.supplierId))
     return NextResponse.json({
-      quotes: quotes.map(serializeProductQuote),
+      quotes: quotes.map((q) => serializeProductQuote(q, storeNames)),
       count: quotes.length,
     })
   }
@@ -181,8 +184,9 @@ export async function GET(_req: Request, ctx: RouteCtx) {
       where: { requestId, supplierId: session.user.id },
       orderBy: { createdAt: "desc" },
     })
+    const storeNames = await loadSupplierStoreNames([session.user.id])
     return NextResponse.json({
-      quotes: quotes.map(serializeProductQuote),
+      quotes: quotes.map((q) => serializeProductQuote(q, storeNames)),
       count: quotes.length,
     })
   }

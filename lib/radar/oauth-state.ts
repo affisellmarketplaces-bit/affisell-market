@@ -4,6 +4,7 @@ import { randomBytes } from "node:crypto"
 
 import { getRedisConnection, getRedisUrl } from "@/lib/auto-order/redis"
 import { isRadarEnabled, requireRedis } from "@/lib/radar/gate"
+import { redisKey } from "@/lib/redis-namespace"
 
 type OAuthStatePayload = { userId: string; nonce: string }
 
@@ -19,7 +20,7 @@ function pruneMemoryStates(): void {
 }
 
 function keyFor(state: string): string {
-  return `radar:oauth:state:${state}`
+  return redisKey(`radar:oauth:state:${state}`)
 }
 
 function parseStateUserId(state: string): string {

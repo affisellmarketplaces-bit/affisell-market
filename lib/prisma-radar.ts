@@ -3,6 +3,7 @@ import "server-only"
 import type { PrismaClient } from ".prisma/client-mi"
 
 import { withBuildWriteGuard } from "@/lib/build-write-guard"
+import { assertPreviewNotOnProductionDatabase } from "@/lib/db-env"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 
 const globalForRadar = globalThis as unknown as { radarDb?: PrismaClient }
@@ -26,6 +27,11 @@ function createRadarDb(): PrismaClient {
       "[prisma-radar] No database URL — set RADAR_DATABASE_URL or DATABASE_URL (Neon)"
     )
   }
+
+  // The Radar client used to be outside every environment guard: RADAR_DATABASE_URL / MARKET_INTELLI_DATABASE_URL can name a database
+  // of their own, which no check ever compared with the environment. On a Vercel Preview a URL naming PRODUCTION is refused here,
+  // before the client exists (finalisation master K1; `lib/db-env.ts`). Also covers the DATABASE_URL fallback.
+  assertPreviewNotOnProductionDatabase(url, "radar")
 
   const usedFallback =
     !explicit ||

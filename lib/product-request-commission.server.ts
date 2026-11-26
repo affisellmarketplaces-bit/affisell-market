@@ -1,5 +1,6 @@
 import { psychologicalPrice } from "@/lib/import/smart-import-enricher"
 import { prisma } from "@/lib/prisma"
+import { withListingPresenceSource } from "@/lib/listing-presence/record.server"
 
 /**
  * After quote accept: create supplier Product draft + reseller AffiliateProduct draft (isListed=false).
@@ -65,7 +66,7 @@ export async function createProductRequestCommissionDraft(args: {
     select: { id: true },
   })
 
-  const listing = await prisma.affiliateProduct.create({
+  const listing = await withListingPresenceSource(prisma, { source: "listing_create" }, (tx) => tx.affiliateProduct.create({
     data: {
       affiliateId: args.resellerId,
       productId: product.id,
@@ -77,7 +78,7 @@ export async function createProductRequestCommissionDraft(args: {
       isListed: false,
     },
     select: { id: true },
-  })
+  }))
 
   console.log("[COMMISSION]", {
     requestId: args.requestId,

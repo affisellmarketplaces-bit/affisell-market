@@ -6,7 +6,7 @@ import { SUPPLIER_PRODUCT_WRITE_TX } from "@/lib/prisma-transaction-options"
 import { findSupplierProductsForOwnerApi } from "@/lib/supplier-product-is-draft-fallback"
 import { decimalToNumber } from "@/lib/serialize-for-client"
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
-import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
+import { normalizeProductAttributesFromBody, parseProductAttributesBody } from "@/lib/supplier-product-attributes"
 import { parseProductMarketplaceMeta } from "@/lib/supplier-product-marketplace-meta"
 import {
   parseProductOfferBody,
@@ -206,17 +206,9 @@ export async function POST(req: Request) {
   const descriptionIllustrationVideos = parseDescriptionIllustrationVideos(body as Record<string, unknown>)
   const stockN = Math.max(0, Math.round(Number.isFinite(Number(stock)) ? Number(stock) : 0))
 
-  const productAttributes = Array.isArray(productAttributesRaw)
-    ? productAttributesRaw
-        .map((row) => (row && typeof row === "object" ? (row as Record<string, unknown>) : null))
-        .filter((row): row is Record<string, unknown> => row != null)
-        .map((row) => ({
-          key: String(row.key ?? "").trim(),
-          label: String(row.label ?? row.key ?? "").trim(),
-          value: String(row.value ?? "").trim(),
-        }))
-        .filter((r) => r.key.length > 0 && r.value.length > 0)
-    : []
+  // Same normaliser as every other route that accepts attribute rows (it also keeps the return window an extension
+  // of the legal 14 days only — this route used to store the raw value).
+  const productAttributes = normalizeProductAttributesFromBody(productAttributesRaw)
 
   const supplierId = requireMerchantUserId(session.user.id, "supplier")
   const displayName = (nameStr || UNTITLED_DRAFT_SENTINEL).slice(0, 500)

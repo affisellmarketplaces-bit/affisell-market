@@ -1,6 +1,8 @@
 name: Process Stripe transfers
 
 # Hobby Vercel crons are once/day only — run transfers every 15 min via GitHub Actions.
+# Money cron (supplier / affiliate payouts): a failure makes the run red (curl -f exits non-zero) and the `if: failure()` step
+# alerts (annotation + POST /api/cron/notify-failure → Slack / Discord, see scheduled-crons.yml, finalisation master doc J1).
 on:
   schedule:
     - cron: "*/15 * * * *"
@@ -10,6 +12,9 @@ jobs:
   process-transfers:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/ci
       - name: Trigger Vercel job
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
@@ -23,3 +28,10 @@ jobs:
             -H "Authorization: Bearer ${CRON_SECRET}" \
             -H "x-cron-secret: ${CRON_SECRET}" \
             "${VERCEL_APP_URL%/}/api/jobs/process-transfers"
+      - name: Alert on failure
+        if: failure()
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
+          FAILED_ROUTES: /api/jobs/process-transfers
+        run: bash scripts/ci/notify-cron-failure.sh

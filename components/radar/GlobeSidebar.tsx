@@ -66,13 +66,31 @@ export function GlobeSidebar({ event, onClose }: Props) {
         {money(product.price, numLocale)} · {product.category}
       </p>
 
+      {event.synthetic ? (
+        <p
+          role="status"
+          data-testid="radar-globe-event-demo"
+          className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200"
+        >
+          {t("demoEventNotice")}
+        </p>
+      ) : event.locationSource === "estimated" ? (
+        <p data-testid="radar-globe-event-estimated" className="mt-3 text-xs text-amber-200/80">
+          {t("estimatedLocation")}
+        </p>
+      ) : null}
+
       <div className="mt-3 flex flex-wrap gap-2">
-        <span className="rounded-full bg-green-500/20 px-2 py-1 text-xs text-green-400">
-          {t("salesPerHour", { n: salesPerHour })}
-        </span>
-        <span className="rounded-full bg-violet-500/20 px-2 py-1 text-xs text-violet-400">
-          +{Math.round(growth)}%
-        </span>
+        {salesPerHour != null ? (
+          <span className="rounded-full bg-green-500/20 px-2 py-1 text-xs text-green-400">
+            {t("salesPerHour", { n: salesPerHour })}
+          </span>
+        ) : null}
+        {growth != null ? (
+          <span className="rounded-full bg-violet-500/20 px-2 py-1 text-xs text-violet-400">
+            +{Math.round(growth)}%
+          </span>
+        ) : null}
         <span className="rounded-full bg-white/10 px-2 py-1 text-xs text-white/70">
           {location.city}
         </span>
@@ -92,20 +110,22 @@ export function GlobeSidebar({ event, onClose }: Props) {
         />
       ) : null}
 
-      <div className="mt-4">
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-white/50">
-          {t("curve24")}
+      {sparkline != null ? (
+        <div className="mt-4">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-white/50">
+            {t("curve24")}
+          </div>
+          <div className="mt-2 flex h-16 items-end gap-1">
+            {sparkline.map((v, i) => (
+              <div
+                key={i}
+                className="flex-1 rounded-t bg-violet-500/80"
+                style={{ height: `${Math.round(v * 100)}%` }}
+              />
+            ))}
+          </div>
         </div>
-        <div className="mt-2 flex h-16 items-end gap-1">
-          {sparkline.map((v, i) => (
-            <div
-              key={i}
-              className="flex-1 rounded-t bg-violet-500/80"
-              style={{ height: `${Math.round(v * 100)}%` }}
-            />
-          ))}
-        </div>
-      </div>
+      ) : null}
 
       <div className="mt-auto space-y-2 pt-6">
         <Link

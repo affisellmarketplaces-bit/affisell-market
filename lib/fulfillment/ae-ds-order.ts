@@ -19,4 +19,4 @@ export type AeDsPlaceOrderInput = {
 
 export type AeDsPlaceOrderResult =
   | { ok: true; aeOrderId: string }
-  | { ok: false; error: string }
+  | { ok: false; error: string; outcomeUncertain?: boolean }

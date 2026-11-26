@@ -1,1 +1,0 @@
-{"version":3,"file":"rbac-filter-fields.js","sourceRoot":"","sources":["../../src/feature-flags/rbac-filter-fields.ts"],"names":[],"mappings":";;AAEA,MAAM,2BAA2B,GAAiB;IAChD,GAAG,EAAE,oBAAoB;IACzB,WAAW,EAAE,KAAK;IAClB,OAAO,EAAE,8BAA8B;IACvC,WAAW,EAAE,sDAAsD;CACpE,CAAA;AAED,kBAAe,2BAA2B,CAAA"}

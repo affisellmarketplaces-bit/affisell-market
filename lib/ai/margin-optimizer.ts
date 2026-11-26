@@ -1,6 +1,14 @@
 import type { MarketCategorySlug, MarketDataSnapshot, OptimalMarginResult } from "@/lib/ai/smart-margin-types"
 
-/** Price elasticity of conversion vs affiliate commission (margin) delta. */
+/**
+ * DETERMINISTIC RULES — NOT an AI model (owner mandate: say so wherever it is presented as "AI").
+ * `calculateOptimal` adds/subtracts fixed percentage points to a base of 15 % from thresholds on competition, 90-day trend,
+ * category and price ratio; the conversion / revenue "impacts" are linear formulas of the margin delta. The category
+ * elasticities below are hand-typed constants, not estimated from data. Inputs are a MarketDataSnapshot, which is itself a
+ * demo fixture or a heuristic (lib/ai/smart-margin-types.ts) — nothing here is measured, and nothing here learns.
+ */
+
+/** Price elasticity of conversion vs affiliate commission (margin) delta. Hand-typed constants, not fitted on data. */
 export const CATEGORY_ELASTICITY: Record<MarketCategorySlug, number> = {
   hightech: -1.8,
   beaute: -0.9,
@@ -98,6 +106,8 @@ export function getOptimalMarginFromMarket(
     suggested_margin: optimal.margin,
     conversion_impact: optimal.delta_conversion,
     revenue_impact: optimal.delta_revenue,
+    // Not a probability and not a model confidence: the `dataQuality` of the snapshot (an editorial number for fixtures, a
+    // constant 0.3 for heuristics). Logged only; never show it to a user as a confidence.
     confidence: market.dataQuality,
   }
 }

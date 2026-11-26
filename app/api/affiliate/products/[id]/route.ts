@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { mayListOnProduct } from "@/lib/reseller-import/review"
 
 import { Prisma } from "@prisma/client"
 
@@ -24,6 +25,7 @@ import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-
 import { prisma } from "@/lib/prisma"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 import { revalidateListingCardImage } from "@/lib/revalidate-listing-card-image"
+import { updateListingWithPriceSource } from "@/lib/listing-price-history/record.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -328,6 +330,10 @@ export async function PATCH(
   }
 
   if (nextListed && !listing.isListed) {
+    // A reseller import not yet approved / publishable is never listed by hand (same rule as /api/affiliate/listings/[id]).
+    if (!mayListOnProduct(listing.product)) {
+      return NextResponse.json({ error: "product_not_reviewed" }, { status: 409 })
+    }
     const kycBlocked = await requireMerchantVerifiedForPublish(session.user.id)
     if (kycBlocked) return kycBlocked
   }
@@ -359,10 +365,10 @@ export async function PATCH(
   }
 
   try {
-    const updated = await prisma.affiliateProduct.update({
-      where: { id },
-      data,
-    })
+    const updated = await updateListingWithPriceSource(
+      { where: { id }, data },
+      { source: "reseller_ui", actorId: session.user.id }
+    )
     if (!nextListed || !nextAuctionEligible) {
       await cancelAuctionsForListings([id])
     }

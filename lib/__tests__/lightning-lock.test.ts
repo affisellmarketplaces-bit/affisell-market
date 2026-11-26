@@ -125,7 +125,7 @@ describe("a deployment can not unlock Lightning by accident", { timeout: 60_000 
     const { execFileSync } = await import("node:child_process")
     let out = ""
     try {
-      out = execFileSync("git", ["grep", "-nE", "LIGHTNING_PAYOUTS_MODE\\s*[:=]", "--", ...DEPLOY_PATHS], { encoding: "utf8" })
+      out = execFileSync("git", ["grep", "-nE", "LIGHTNING_PAYOUTS_MODE[[:space:]]*[:=]", "--", ...DEPLOY_PATHS], { encoding: "utf8" })
     } catch {
       out = "" // git grep exits 1 when nothing matches
     }
@@ -135,7 +135,7 @@ describe("a deployment can not unlock Lightning by accident", { timeout: 60_000 
     const { execFileSync } = await import("node:child_process")
     let out = ""
     try {
-      out = execFileSync("git", ["grep", "-n", "env.LIGHTNING_PAYOUTS_MODE\\s*=", "--", ...DEPLOY_PATHS], { encoding: "utf8" })
+      out = execFileSync("git", ["grep", "-n", "env.LIGHTNING_PAYOUTS_MODE[[:space:]]*=", "--", ...DEPLOY_PATHS], { encoding: "utf8" })
     } catch {
       out = ""
     }
@@ -146,7 +146,7 @@ describe("a deployment can not unlock Lightning by accident", { timeout: 60_000 
 describe("no other writer can set lightningEnabled to true", () => {
   it("only the two locked routes (and a guarded dev script) write a non-false value", async () => {
     const { execFileSync } = await import("node:child_process")
-    const out = execFileSync("git", ["grep", "-nE", "lightningEnabled:\\s*(true|enabling|parsed)", "--", "lib", "app", "components", "workers", "inngest"], {
+    const out = execFileSync("git", ["grep", "-nE", "lightningEnabled:[[:space:]]*(true|enabling|parsed)", "--", "lib", "app", "components", "workers", "inngest"], {
       encoding: "utf8",
     })
       .split("\n")

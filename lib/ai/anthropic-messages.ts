@@ -1,4 +1,5 @@
 import { AnthropicError } from "@/lib/ai/anthropic-client"
+import { meterModelCall } from "@/lib/ai/usage-log"
 
 /**
  * Anthropic Messages API with vision + prompt caching (fetch, no SDK).
@@ -28,25 +29,38 @@ export async function anthropicMessagesText(args: {
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim()
   if (!apiKey) throw new AnthropicError("ANTHROPIC_API_KEY is not set")
 
+  const model = args.model ?? ANTHROPIC_CLASSIFIER_MODEL
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), args.timeoutMs ?? 25_000)
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      signal: controller.signal,
-      headers: { "content-type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({
-        model: args.model ?? ANTHROPIC_CLASSIFIER_MODEL,
-        max_tokens: args.maxTokens ?? 1200,
-        system: args.system,
-        messages: [{ role: "user", content: args.content }],
-      }),
-    })
-    if (!res.ok) {
-      const body = await res.text().catch(() => "")
-      throw new AnthropicError(`Anthropic ${res.status}: ${body.slice(0, 300)}`, res.status)
+    type AnthropicResponse = {
+      content?: Array<{ type: string; text?: string }>
+      model?: string
+      usage?: unknown
     }
-    const data = (await res.json()) as { content?: Array<{ type: string; text?: string }> }
+    const data = await meterModelCall<AnthropicResponse>({
+      provider: "anthropic",
+      modelRequested: model,
+      call: async () => {
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          signal: controller.signal,
+          headers: { "content-type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
+          body: JSON.stringify({
+            model,
+            max_tokens: args.maxTokens ?? 1200,
+            system: args.system,
+            messages: [{ role: "user", content: args.content }],
+          }),
+        })
+        if (!res.ok) {
+          const body = await res.text().catch(() => "")
+          throw new AnthropicError(`Anthropic ${res.status}: ${body.slice(0, 300)}`, res.status)
+        }
+        return (await res.json()) as AnthropicResponse
+      },
+      extract: (d) => ({ modelUsed: d.model, usage: d.usage }),
+    })
     const text = (data.content ?? []).filter((b) => b.type === "text").map((b) => b.text ?? "").join("")
     if (!text.trim()) throw new AnthropicError("Anthropic returned an empty response")
     return text

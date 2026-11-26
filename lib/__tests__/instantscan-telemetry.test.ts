@@ -10,7 +10,9 @@ import { isInstantScanServerEnabled } from "@/lib/instantscan/flags"
 
 describe("instantscan telemetry", () => {
   it("maps vision version to InstantScan stage", () => {
-    expect(instantScanStageFromVisionVersion("v2.2")).toBe("embed")
+    expect(instantScanStageFromVisionVersion("v2.2")).toBe("catalog_match")
+    // the stage that used to be called "embed" (the so-called CLIP step) is read back under its honest name
+    expect(instantScanStageFromVisionVersion("v2.2", "embed")).toBe("catalog_match")
     expect(instantScanStageFromVisionVersion("v2")).toBe("gpt4o")
     expect(instantScanStageFromVisionVersion("v1")).toBe("groq")
     expect(instantScanStageFromVisionVersion("v2", "mini")).toBe("mini")

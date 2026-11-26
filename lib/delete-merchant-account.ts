@@ -1,3 +1,4 @@
+import { declareListingPresenceSource, purgeAffiliatePresenceInTransaction } from "@/lib/listing-presence/record.server"
 import { prisma } from "@/lib/prisma"
 
 export type DeleteMerchantAccountResult =
@@ -24,7 +25,9 @@ export async function deleteMerchantUser(
     if (orderCount > 0) return { ok: false, code: "HAS_ORDERS" }
 
     await prisma.$transaction(async (tx) => {
+      await declareListingPresenceSource(tx, { source: "account_deletion", actorId: userId })
       await tx.affiliateProduct.deleteMany({ where: { affiliateId: userId } })
+      await purgeAffiliatePresenceInTransaction(tx, userId)
       await tx.notification.deleteMany({ where: { userId } })
       await tx.user.delete({ where: { id: userId } })
     })
@@ -42,6 +45,8 @@ export async function deleteMerchantUser(
   const productIds = products.map((p) => p.id)
 
   await prisma.$transaction(async (tx) => {
+    // The listings of OTHER resellers on this supplier's products disappear with it: recorded as account_deletion.
+    await declareListingPresenceSource(tx, { source: "account_deletion", actorId: userId })
     if (productIds.length > 0) {
       await tx.affiliateProduct.deleteMany({ where: { productId: { in: productIds } } })
     }

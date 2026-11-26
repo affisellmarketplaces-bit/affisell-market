@@ -30,6 +30,9 @@ import {
   type GuidedProductAiSuggestion,
 } from "@/lib/guided-product-ai-shared"
 import { ListingComplianceSection } from "@/components/supplier/listing-compliance/listing-compliance-section"
+import { ReturnWindowField } from "@/components/supplier/return-window-field"
+import { CommercialReadinessPanel } from "@/components/supplier/commercial-readiness-panel"
+import { CANONICAL_RETURN_WINDOW_LABEL, parseReturnWindowDays, RETURN_WINDOW_KEY } from "@/lib/return-terms"
 import { evaluateListingReadiness } from "@/lib/listing-compliance/evaluate"
 import { CANONICAL_LABELS, LISTING_COMPLIANCE_KEYS } from "@/lib/listing-compliance/keys"
 import { blockIfHoneypotValue } from "@/lib/security/honeypot-client"
@@ -82,6 +85,8 @@ type FormState = {
    * classic form keeps, so both flows store exactly the same rows.
    */
   compliance: Record<string, string>
+  /** Return window offered beyond the legal 14 days ("" = legal only) — same field as the classic form. */
+  returnWindowDays: string
 }
 
 const DEFAULT_FORM: FormState = {
@@ -102,6 +107,7 @@ const DEFAULT_FORM: FormState = {
   stock: "",
   price: "",
   compliance: {},
+  returnWindowDays: "",
 }
 
 const DESCRIPTION_MIN_LENGTH = 40
@@ -188,6 +194,61 @@ function toDraftForm(form: FormState): GuidedDraftForm {
     imageUrl: form.imageUrl ?? "",
     extraImages: form.extraImages,
     compliance: form.compliance,
+    returnWindowDays: form.returnWindowDays,
+  }
+}
+
+/**
+ * The body the guided wizard SENDS to `POST /api/supplier/products` — one builder for the publication, the draft save
+ * and the live sheet check (which reads it through the server's own parsers, `sheetSignalsFromProductBody`).
+ */
+function buildGuidedProductBody(a: {
+  form: FormState
+  allImages: string[]
+  shipDefaults: ShippingDefaults
+  asDraft: boolean
+  priceValid: boolean
+  stockN: number
+  withLeaf: boolean
+}): Record<string, unknown> {
+  const { form, asDraft, shipDefaults, withLeaf } = a
+  const categoryValue = GUIDED_WIZARD_CATEGORIES.find((c) => c.label === form.category)?.value
+  // Canonical (English) labels: buyers see the label translated from the KEY, never the stored text.
+  const productAttributes = [
+    { key: "material", label: "Material", value: form.material.trim() },
+    { key: "color", label: "Color", value: form.color.trim() },
+    { key: "dimensions", label: "Dimensions", value: form.dimensions.trim() },
+    ...LISTING_COMPLIANCE_KEYS.map((key) => ({
+      key,
+      label: CANONICAL_LABELS[key] ?? key,
+      value: (form.compliance[key] ?? "").trim(),
+    })),
+  ].filter((r) => r.value.length > 0)
+  // Return window beyond the legal 14 days (empty = legal window, no row) — same row as the classic form.
+  const returnDays = parseReturnWindowDays(form.returnWindowDays)
+  if (returnDays) {
+    productAttributes.push({ key: RETURN_WINDOW_KEY, label: CANONICAL_RETURN_WINDOW_LABEL, value: String(returnDays) })
+  }
+  return {
+    name: form.title.trim(),
+    description: form.description.trim(),
+    descriptionBullets: form.descriptionBullets,
+    // A draft may be incomplete: only send what the supplier actually filled in.
+    ...(a.priceValid || !asDraft ? { price: Number.parseFloat(form.price.replace(",", ".")) } : {}),
+    ...(form.stock.trim() || !asDraft ? { stock: a.stockN } : {}),
+    images: a.allImages,
+    // With an exact taxonomy category the coarse shelf is redundant (the full form sends only categoryId).
+    categories: categoryValue && !(withLeaf && form.leafId) ? [categoryValue] : [],
+    // Exact category of the real taxonomy when chosen (better discovery, right commission grid).
+    ...(withLeaf && form.leafId ? { categoryId: form.leafId } : {}),
+    colors: form.color.trim() ? [form.color.trim()] : [],
+    commissionRate: shipDefaults.commissionPct,
+    listingKind: "PHYSICAL",
+    warehouseType: shipDefaults.warehouseType,
+    shippingCountry: shipDefaults.countryCode,
+    deliveryCountryCodes: shipDefaults.deliveryCountryCodes,
+    productAttributes,
+    saveAsDraft: asDraft,
   }
 }
 
@@ -438,6 +499,11 @@ export function GuidedAddProductButton({
     () => [form.imageUrl, ...form.extraImages].filter((u): u is string => Boolean(u)),
     [form.imageUrl, form.extraImages]
   )
+  // Commercial readiness on the exact body the wizard will publish (same builder), judged with the server's rules.
+  const readinessBody = useMemo(
+    () => buildGuidedProductBody({ form, allImages, shipDefaults, asDraft: false, priceValid, stockN, withLeaf: true }),
+    [form, allImages, shipDefaults, priceValid, stockN],
+  )
 
   async function handleExtraImagesPick(files: File[]) {
     if (files.length === 0) return
@@ -670,6 +736,13 @@ export function GuidedAddProductButton({
 
     const categoryValue = GUIDED_WIZARD_CATEGORIES.find((c) => c.label === form.category)?.value
     if (!asDraft && ((!categoryValue && !form.leafId) || !form.imageUrl)) return
+    // Publishing needs an exact category of the taxonomy: the create route refuses a live listing without one
+    // (`category_required`). A shelf alone is enough for a draft only.
+    if (!asDraft && !form.leafId) {
+      setStepError(tWiz("errLeafCategory"))
+      setStep(0)
+      return
+    }
 
     if (blockIfHoneypotValue(honeypotRef.current?.value)) {
       toast.error(tWiz("botDetected"))
@@ -680,44 +753,12 @@ export function GuidedAddProductButton({
     else setPublishing(true)
     setStepError(null)
     try {
-      // Canonical (English) labels: buyers see the label translated from the KEY, never the stored text.
-      const productAttributes = [
-        { key: "material", label: "Material", value: form.material.trim() },
-        { key: "color", label: "Color", value: form.color.trim() },
-        { key: "dimensions", label: "Dimensions", value: form.dimensions.trim() },
-        ...LISTING_COMPLIANCE_KEYS.map((key) => ({
-          key,
-          label: CANONICAL_LABELS[key] ?? key,
-          value: (form.compliance[key] ?? "").trim(),
-        })),
-      ].filter((a) => a.value.length > 0)
-
       const send = (withLeaf: boolean) =>
         fetch("/api/supplier/products", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({
-            name: form.title.trim(),
-            description: form.description.trim(),
-            descriptionBullets: form.descriptionBullets,
-            // A draft may be incomplete: only send what the supplier actually filled in.
-            ...(priceValid || !asDraft ? { price: Number.parseFloat(form.price.replace(",", ".")) } : {}),
-            ...(form.stock.trim() || !asDraft ? { stock: stockN } : {}),
-            images: allImages,
-            // With an exact taxonomy category the coarse shelf is redundant (the full form sends only categoryId).
-            categories: categoryValue && !(withLeaf && form.leafId) ? [categoryValue] : [],
-            // Exact category of the real taxonomy when chosen (better discovery, right commission grid).
-            ...(withLeaf && form.leafId ? { categoryId: form.leafId } : {}),
-            colors: form.color.trim() ? [form.color.trim()] : [],
-            commissionRate: shipDefaults.commissionPct,
-            listingKind: "PHYSICAL",
-            warehouseType: shipDefaults.warehouseType,
-            shippingCountry: shipDefaults.countryCode,
-            deliveryCountryCodes: shipDefaults.deliveryCountryCodes,
-            productAttributes,
-            saveAsDraft: asDraft,
-          }),
+          body: JSON.stringify(buildGuidedProductBody({ form, allImages, shipDefaults, asDraft, priceValid, stockN, withLeaf })),
         })
 
       let res = await send(true)
@@ -725,7 +766,10 @@ export function GuidedAddProductButton({
       // list). Never block the supplier: retry with the coarse shelf — background auto-categorisation still applies.
       if (res.status === 400 && form.leafId) {
         const probe = (await res.clone().json().catch(() => ({}))) as { errors?: unknown }
-        if (probe.errors) res = await send(false)
+        // A draft may fall back to the shelf; a publication can not (the route needs the exact category), so it
+        // says which step to complete instead of retrying a request that would be refused.
+        if (probe.errors && asDraft) res = await send(false)
+        else if (probe.errors) throw new Error(tWiz("errCategoryFields"))
       }
 
       const data = (await res.json()) as { id?: string; error?: string; verificationStatus?: string }
@@ -1125,6 +1169,12 @@ export function GuidedAddProductButton({
                     ? tWiz("aiPriceHint", { price: formatGuidedPrice(aiSuggestion.attributes.suggestedPrice) ?? "" })
                     : tWiz("aiHint")}
                 </p>
+                <ReturnWindowField
+                  id="guided-return-window"
+                  className="sm:col-span-2"
+                  value={form.returnWindowDays}
+                  onChange={(next) => patchForm({ returnWindowDays: next }, { user: true })}
+                />
               </div>
             )}
 
@@ -1175,6 +1225,7 @@ export function GuidedAddProductButton({
                   </div>
                 </BentoCard>
                 <SupplierEarningPreview priceEur={priceValid ? priceCents / 100 : 0} commissionPct={shipDefaults.commissionPct} categoryId={form.leafId} />
+                <CommercialReadinessPanel body={readinessBody} creating />
                 <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 text-sm dark:border-zinc-700 dark:bg-zinc-900/60">
                   <p className="font-semibold text-zinc-900 dark:text-zinc-50">{tDef("title")}</p>
                   <ul className="mt-1.5 space-y-0.5 text-zinc-600 dark:text-zinc-300">

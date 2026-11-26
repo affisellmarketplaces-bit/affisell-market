@@ -1,0 +1,71 @@
+import type { IntelligenceDomain } from "@/lib/strategic-intelligence/types"
+
+/**
+ * Which sources the cockpit can REALLY read today (pure; reads only whether an environment variable is set — never its
+ * value). "connected" = Affisell's own database, always read. "configured" = credentials are present but nothing proves
+ * the source answers (the cockpit does not call it in step 1). "not_connected" = no credentials / no code: the domain
+ * shows that gap instead of pretending to watch it.
+ */
+export type SourceStatus = "connected" | "configured" | "not_connected"
+
+export type IntelligenceSource = {
+  id: string
+  domain: IntelligenceDomain
+  label: string
+  kind: "internal" | "official_api" | "search_api" | "fixture"
+  status: SourceStatus
+  note: string
+}
+
+type SourceSpec = Omit<IntelligenceSource, "status"> & { env?: string[]; always?: boolean; runtimeVerified?: boolean }
+
+const SPECS: SourceSpec[] = [
+  { id: "affisell.orders", domain: "commercial", label: "Commandes payées, remboursements, litiges (base Affisell)", kind: "internal", always: true, note: "Lecture seule de la base de données." },
+  { id: "affisell.orders.categories", domain: "market_observatory", label: "Demande interne par catégorie (base Affisell)", kind: "internal", always: true, note: "Demande observée sur Affisell uniquement — pas le marché mondial." },
+  { id: "affisell.listings", domain: "product_discovery", label: "Annonces revendeurs et ventes par produit (base Affisell)", kind: "internal", always: true, note: "Lecture seule." },
+  { id: "affisell.price_history", domain: "supplier", label: "Historique des prix fournisseurs (déclencheur ProductPriceHistory)", kind: "internal", always: true, note: "Vide tant que la migration 20261116200000 n'est pas appliquée." },
+  { id: "affisell.listing_price_history", domain: "commercial", label: "Historique des prix de vente des revendeurs (déclencheur ListingPriceHistory) × commandes par annonce", kind: "internal", always: true, note: "Vide tant que la migration 20261117090000 n'est pas appliquée. Sert à mesurer la réaction de la demande aux prix (expériences naturelles, pas une preuve causale)." },
+  { id: "affisell.delivery_stats", domain: "supplier", label: "Délais de livraison attestés par fournisseur", kind: "internal", always: true, note: "Calculés par le cron refresh-supplier-delivery-stats." },
+  { id: "affisell.profit_alerts", domain: "commercial", label: "Alertes de rentabilité des revendeurs", kind: "internal", always: true, note: "Vide tant que la migration 20261117120000 n'est pas appliquée." },
+  { id: "affisell.sentinel", domain: "regulatory_risk", label: "Signaux opérationnels Sentinel (OpsSignal)", kind: "internal", always: true, note: "Repris tels quels, pas dupliqués." },
+  { id: "affisell.returns", domain: "regulatory_risk", label: "Retours (motifs qualité) et litiges par produit et par fournisseur", kind: "internal", always: true, note: "Lecture seule ; retours déclarés par l'acheteur, non vérifiés." },
+  { id: "affisell.search", domain: "product_discovery", label: "Recherches sans résultat de l'assistant (comptes connectés)", kind: "internal", always: true, note: "Lecture seule ; requêtes filtrées (données personnelles écartées), affichées seulement à partir de 3 personnes distinctes." },
+  { id: "affisell.catalog_opportunities", domain: "supplier", label: "Offre vendable × demande par catégorie (opportunités)", kind: "internal", always: true, note: "Lecture seule ; agrégats par catégorie, aucun fournisseur ni revendeur nommé." },
+  { id: "affisell.product_requests", domain: "supplier", label: "Demandes de produits des revendeurs et devis fournisseurs", kind: "internal", always: true, note: "Lecture seule ; les e-mails ne sont jamais lus." },
+  { id: "affisell.audit.unallocated", domain: "regulatory_risk", label: "Lignes payées sans commande (AuditLog)", kind: "internal", always: true, note: "Lecture seule." },
+  { id: "ecb.eurofxref", domain: "supplier", label: "Taux de change de référence de la BCE (90 jours)", kind: "official_api", runtimeVerified: true, note: "Officiel, gratuit, sans clé ; publié chaque jour ouvré vers 16 h ; mis en cache 6 h. « Connectée » seulement si la lecture a réussi à cette génération." },
+  { id: "wikimedia.pageviews", domain: "market_observatory", label: "Fréquentation des articles Wikipédia (candidat indicateur de demande)", kind: "official_api", note: "EN ÉVALUATION, non branchée : aucune lecture ni signal dans le poste de pilotage tant que `npm run evaluate:external-demand` n'a pas montré, sur nos commandes réelles, qu'elle les annonce." },
+  { id: "serper.google_search", domain: "market_observatory", label: "Recherche Google via Serper (Radar trends-watcher)", kind: "search_api", env: ["SERPER_API_KEY"], note: "Service payant à l'appel ; non interrogé par le poste de pilotage à l'étape 1." },
+  { id: "tiktok_shop.oauth", domain: "competitive", label: "TikTok Shop (connecteur Radar, OAuth par compte)", kind: "official_api", env: ["TIKTOK_SHOP_APP_KEY"], note: "Donne les données du compte connecté, pas celles des concurrents." },
+  { id: "amazon.sp_api", domain: "competitive", label: "Amazon SP-API (connecteur Radar)", kind: "official_api", env: ["AMAZON_LWA_CLIENT_ID", "AMAZON_SP_API_CLIENT_ID"], note: "Données du vendeur connecté uniquement." },
+  { id: "market_intelligence.fixtures", domain: "market_observatory", label: "« Market intelligence » (cron sync-market-intelligence)", kind: "fixture", note: "Trois fiches écrites à la main — ce ne sont PAS des données de marché ; jamais utilisées comme signal." },
+  { id: "innovation.none", domain: "innovation", label: "Veille technologique", kind: "official_api", note: "Aucune source connectée (flux de publications, changelogs, dépôts publics à choisir)." },
+  { id: "eu.safety_gate", domain: "regulatory_risk", label: "EU Safety Gate — produits dangereux notifiés (rapports hebdomadaires)", kind: "official_api", runtimeVerified: true, note: "Commission européenne, public, gratuit, sans clé ; un rapport chaque vendredi ; deux derniers rapports lus, mis en cache 12 h. Rapprochement par GTIN exact ou marque + référence, jamais par le nom. « Connectée » seulement si la lecture a réussi à cette génération." },
+  { id: "osv.dev", domain: "regulatory_risk", label: "OSV.dev — failles connues des versions installées en production", kind: "official_api", runtimeVerified: true, note: "Base ouverte (OpenSSF, avis GitHub inclus), gratuite, sans clé ; versions exactes de package-lock.json (inventaire régénéré à chaque changement de dépendance) ; cache 6 h. « Connectée » seulement si la lecture a réussi à cette génération." },
+  { id: "regulatory.none", domain: "regulatory_risk", label: "Veille réglementaire (UE, France)", kind: "official_api", note: "Textes de loi : aucune source connectée (EUR-Lex, Journal officiel : flux publics à brancher)." },
+]
+
+/** `verified` = ids of external sources the current run actually read successfully. */
+export function listIntelligenceSources(
+  env: Record<string, string | undefined> = process.env,
+  verified: ReadonlySet<string> = new Set()
+): IntelligenceSource[] {
+  return SPECS.map(({ env: names, always, runtimeVerified, ...s }) => {
+    let status: SourceStatus = "not_connected"
+    if (always) status = "connected"
+    else if (runtimeVerified) status = verified.has(s.id) ? "connected" : "not_connected"
+    else if (s.kind !== "fixture" && names?.some((n) => Boolean(env[n]?.trim()))) status = "configured"
+    return { ...s, status }
+  })
+}
+
+/** Best status per domain ("strategic_evolution" has no source of its own: it is derived from the others). */
+export function domainCoverage(sources: IntelligenceSource[]): Partial<Record<IntelligenceDomain, SourceStatus>> {
+  const order: Record<SourceStatus, number> = { connected: 2, configured: 1, not_connected: 0 }
+  const out: Partial<Record<IntelligenceDomain, SourceStatus>> = {}
+  for (const s of sources) {
+    const cur = out[s.domain]
+    if (!cur || order[s.status] > order[cur]) out[s.domain] = s.status
+  }
+  return out
+}

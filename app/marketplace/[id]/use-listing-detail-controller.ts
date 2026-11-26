@@ -41,6 +41,8 @@ import {
   findVariantRowForShopperSelection,
   type ShopperVariantSelection,
 } from "@/lib/marketplace-variant-dimensions"
+import { optionStockForChoice, resolveVariantChoice } from "@/lib/variant-selection"
+import { VARIANT_CHOICE_QUERY } from "@/lib/variant-choice-client"
 import {
   marketplaceRetailPriceEurForOption,
 } from "@/lib/product-variants"
@@ -282,6 +284,40 @@ export function useListingDetailController(props: ListingDetailProps) {
   )
 
   const cartSelectedSize = selectedSize ?? selectedStorage ?? undefined
+  // Sent here by a card that could not buy without a choice (`?choose=1`): say why, once — the shopper chooses.
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    if (new URLSearchParams(window.location.search).get(VARIANT_CHOICE_QUERY) !== "1") return
+    void import("sonner").then(({ toast }) => toast.message(messages.cart.stock.chooseOnPage))
+  }, [messages.cart.stock.chooseOnPage])
+  /** The capacity travels on its own only beside a real size; otherwise it is the size slot (unchanged behaviour). */
+  const cartSelectedStorage = selectedSize && selectedStorage ? selectedStorage : undefined
+  /**
+   * Does the current choice name ONE variant (shared rule, `lib/variant-selection.ts` — the one checkout applies)?
+   * `false` blocks « buy » / « add to cart » with a message: nothing is picked for the shopper.
+   */
+  const variantChoiceComplete = useMemo(() => {
+    const r = resolveVariantChoice(
+      variants,
+      { color: selectedColor, size: cartSelectedSize ?? null, storage: cartSelectedStorage ?? null },
+      safeCustomColumns
+    )
+    return r.kind !== "incomplete" && r.kind !== "unknown"
+  }, [variants, selectedColor, cartSelectedSize, cartSelectedStorage, safeCustomColumns])
+  /**
+   * Stock of the ONE variant the choice names (shared rule), or null when it names none / several. The restock request
+   * is offered only for a sold-out variant found this way — never an unknown or available one shown as sold out.
+   */
+  const exactVariantStock = useMemo(() => {
+    const r = resolveVariantChoice(
+      variants,
+      { color: selectedColor, size: cartSelectedSize ?? null, storage: cartSelectedStorage ?? null },
+      safeCustomColumns
+    )
+    if (r.kind !== "resolved") return null
+    const n = Number(variants?.variantRows?.[r.index]?.stock)
+    return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0
+  }, [variants, selectedColor, cartSelectedSize, cartSelectedStorage, safeCustomColumns])
 
   const safeImageIndex = Math.min(Math.max(0, selectedImage), Math.max(0, images.length - 1))
 
@@ -376,6 +412,22 @@ export function useListingDetailController(props: ListingDetailProps) {
     const cut = slice.lastIndexOf(" ")
     return `${(cut > 200 ? slice.slice(0, cut) : slice).trimEnd()}…`
   }, [description])
+
+  /**
+   * Stock of each size for the CURRENT colour / capacity — the same row lookup as the purchase (`activeVariantRow`), so
+   * a sold-out size is shown and disabled instead of being discovered at payment. Only for products whose variants are
+   * held as rows (`variantRows`); otherwise sizes are not marked (no figure is invented by splitting the total).
+   */
+  const hasVariantRows = (variants?.variantRows?.length ?? 0) > 0
+  const sizeOptionStock = useCallback(
+    (size: string): number => {
+      // Same rule as the purchase (lib/variant-selection.ts): a combination that does not exist is sold out, never
+      // « one of the rows has stock » read as this size being available.
+      const units = optionStockForChoice(variants, { color: selectedColor, size, storage: selectedStorage }, safeCustomColumns)
+      return units ?? resolveListingAvailableStock({ productStock: stock, variants, selectedColor, selectedSize: size })
+    },
+    [variants, safeCustomColumns, selectedColor, selectedStorage, stock]
+  )
 
   const availableStock = useMemo(() => {
     if (activeVariantRow) return Math.max(0, Math.round(activeVariantRow.stock) || 0)
@@ -489,6 +541,11 @@ export function useListingDetailController(props: ListingDetailProps) {
       e?.stopPropagation()
       if (bookingCheckoutBlocked) return
       if (bookingCheckoutLive) return
+      if (!variantChoiceComplete) {
+        const { toast } = await import("sonner")
+        toast.error(messages.cart.stock.chooseOptions)
+        return
+      }
       setCartBusy(true)
       try {
         const result = await addToBuyerCart({
@@ -500,6 +557,8 @@ export function useListingDetailController(props: ListingDetailProps) {
           price: listingPriceEur,
           selectedColor: selectedColor ?? undefined,
           selectedSize: cartSelectedSize ?? undefined,
+          selectedStorage: cartSelectedStorage,
+          variantChoiceChecked: true,
         })
         if (!result.ok) return
         if (result.mode === "server") {
@@ -516,6 +575,9 @@ export function useListingDetailController(props: ListingDetailProps) {
       bookingCheckoutBlocked,
       bookingCheckoutLive,
       cartSelectedSize,
+      cartSelectedStorage,
+      variantChoiceComplete,
+      messages.cart.stock.chooseOptions,
       checkoutSellerName,
       hero,
       listingId,
@@ -538,6 +600,11 @@ export function useListingDetailController(props: ListingDetailProps) {
           ? productT.booking.selectSeatsRequired
           : productT.booking.selectSlotRequired
       )
+      return
+    }
+    if (!variantChoiceComplete) {
+      const { toast } = await import("sonner")
+      toast.error(messages.cart.stock.chooseOptions)
       return
     }
     if (sizeOptions.length > 0 && !selectedSize) {
@@ -565,6 +632,7 @@ export function useListingDetailController(props: ListingDetailProps) {
           useRewardCents: applied,
           selectedColor: selectedColor ?? undefined,
           selectedSize: cartSelectedSize ?? undefined,
+          selectedStorage: cartSelectedStorage,
           cancelPath,
           ...(battleId ? { battleId } : {}),
         },
@@ -576,6 +644,7 @@ export function useListingDetailController(props: ListingDetailProps) {
           price: displayFlashPriceEur ?? listingPriceEur,
           selectedColor: selectedColor ?? undefined,
           selectedSize: cartSelectedSize ?? undefined,
+          selectedStorage: cartSelectedStorage,
         }
       )
       if (typeof outcome === "object" && outcome.kind === "out_of_stock") {
@@ -601,6 +670,9 @@ export function useListingDetailController(props: ListingDetailProps) {
     bookingSlotRequired,
     buyNowWithIdentity,
     cartSelectedSize,
+    cartSelectedStorage,
+    variantChoiceComplete,
+    messages.cart.stock.chooseOptions,
     checkoutSellerName,
     displayFlashPriceEur,
     hero,
@@ -662,6 +734,7 @@ export function useListingDetailController(props: ListingDetailProps) {
   return {
     audience,
     brand,
+    sizeOptionStock: hasVariantRows ? sizeOptionStock : undefined,
     tryOnVariant,
     tryOnReady,
     messages,
@@ -746,6 +819,11 @@ export function useListingDetailController(props: ListingDetailProps) {
     savePriceAlert,
     isStorageOptionDisabled,
     safeCustomColumns,
+    // « Prévenez-moi au retour » — offered only for ONE exact variant (held as rows) that is sold out right now.
+    restockWatch:
+      hasVariantRows && exactVariantStock === 0
+        ? { listingId, color: selectedColor ?? null, size: cartSelectedSize ?? null, storage: cartSelectedStorage ?? null }
+        : null,
   }
 }
 

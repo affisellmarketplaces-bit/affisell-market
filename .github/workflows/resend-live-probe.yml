@@ -1,0 +1,86 @@
+name: Resend — live buyer-notice probe (manual)
+
+# Sends REAL e-mails through Resend with the production code path (rendering, sendResendEmail, idempotency key) to ONE
+# team test address only. Manual only — never on a push, a pull request or a schedule. Review: docs/UNALLOCATED-BUYER-
+# NOTICE-ACTIVATION.md §7. NOT AUTHORISED TO RUN YET: the founder decides when (and creates the environment below).
+#
+# Where the secrets live: in the GitHub ENVIRONMENT `resend-probe`, not in repository secrets. Create it BEFORE adding
+# any secret (GitHub auto-creates a referenced environment WITHOUT protection): Settings > Environments > resend-probe,
+# "Required reviewers" = the founder, "Deployment branches" = release/finalisation-2026-11-13 (and main). Secrets there:
+# RESEND_TEST_API_KEY (a Resend key with « Sending access » only, ideally on a dedicated test account; revoke it after
+# the test) and RESEND_TEST_EMAIL_TO (the team test inbox — Resend's sandbox sender only delivers to the address of the
+# Resend account owner).
+#
+# What one run sends: 1 + 16 = 17 e-mails, all to RESEND_TEST_EMAIL_TO (the replay is deduplicated by Resend and the
+# conflicting payload is refused, so they send nothing). A re-run sends 17 more (each run uses a new random key).
+on:
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: "The full commit SHA you reviewed — the run refuses to start on any other code"
+        required: true
+      replay_key:
+        description: "Optional: idempotency key printed by an earlier run (checks how long Resend keeps it)"
+        required: false
+      replay_id:
+        description: "Optional: the first_id printed by that same run"
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: resend-live-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: resend-probe
+    steps:
+      - name: Refuse unreviewed code or an unexpected branch
+        env:
+          EXPECTED: ${{ inputs.expected_sha }}
+          ACTUAL: ${{ github.sha }}
+          REF: ${{ github.ref }}
+        run: |
+          if [ "$EXPECTED" != "$ACTUAL" ]; then
+            echo "::error::expected_sha does not match the commit being run ($ACTUAL) — nothing sent."; exit 1
+          fi
+          case "$REF" in
+            refs/heads/release/finalisation-2026-11-13|refs/heads/main) ;;
+            *) echo "::error::only release/finalisation-2026-11-13 or main may run this probe (got $REF) — nothing sent."; exit 1 ;;
+          esac
+      - name: Require the test secrets
+        env:
+          KEY: ${{ secrets.RESEND_TEST_API_KEY }}
+          TO: ${{ secrets.RESEND_TEST_EMAIL_TO }}
+        run: |
+          if [ -z "$KEY" ] || [ -z "$TO" ]; then
+            echo "::error::RESEND_TEST_API_KEY and RESEND_TEST_EMAIL_TO (environment resend-probe) are required — nothing sent."
+            exit 1
+          fi
+      # Pinned to the commit GitHub resolves for the v4 tag (read from a CI log and from `git ls-remote`, 2026-11-18).
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+          # No dependency cache: a cache is shared with other runs of the repository; `npm ci` checks the lockfile's
+          # integrity hashes anyway, but the probe holds a secret, so it starts from the registry every time.
+      - name: Install (no install scripts)
+        run: npm ci --ignore-scripts
+      - name: Live probe (sandbox sender, test inbox only)
+        env:
+          AFFISELL_LIVE_RESEND: "1"
+          # Never production: the app's recipient resolver redirects every e-mail to TEST_EMAIL_TO only outside production
+          # with the sandbox sender, and the test checks that redirect before each send.
+          VERCEL_ENV: ""
+          RESEND_API_KEY: ${{ secrets.RESEND_TEST_API_KEY }}
+          RESEND_FROM_EMAIL: "Affisell test <onboarding@resend.dev>"
+          TEST_EMAIL_TO: ${{ secrets.RESEND_TEST_EMAIL_TO }}
+          REPLAY_KEY: ${{ inputs.replay_key }}
+          REPLAY_ID: ${{ inputs.replay_id }}
+        run: npx vitest run lib/__tests__/live-resend-buyer-notice.test.ts --reporter=verbose

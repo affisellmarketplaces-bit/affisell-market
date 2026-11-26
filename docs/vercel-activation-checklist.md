@@ -2,6 +2,13 @@
 
 Active les intégrations ops une par une. Après chaque étape, lance la commande de vérif indiquée.
 
+> Ce fichier est un **pas-à-pas d'activation en Production**. La liste complète des réglages côté services (variables par environnement, Stripe, Neon, Replicate, Redis, Sentry, alertes), avec
+> vérification et retour arrière, est dans `docs/EXTERNAL-OPS-RUNBOOK.md` ; l'isolation Preview / Production dans `docs/ENVIRONMENTS.md`.
+> **Schéma de base de données** : jamais `npx prisma migrate deploy` ni `npm run migrate:deploy` (ils visent la base **par défaut**, c'est-à-dire la production, quelle que soit l'URL passée — `AGENTS.md`).
+> On applique une migration **à la main, avant le push**, avec `DATABASE_URL='<url>' npm run schema:migrate -- --expect-endpoint <ep-id> [--confirm-production]`, puis `npm run schema:verify`
+> (`docs/DEPLOY-SCHEMA-CHANGES.md` §5). Le build Vercel ne migre jamais : il vérifie.
+> **Clés live** : uniquement dans l'environnement **Production**. Un Preview reçoit des clés **test** ; le code refuse une clé Stripe live hors production.
+
 ## Prérequis
 
 - Projet déployé sur Vercel (Production)
@@ -15,11 +22,16 @@ Active les intégrations ops une par une. Après chaque étape, lance la command
 **Pourquoi :** les commandes marketplace sont créées via `checkout.session.completed` ; le webhook doit pointer vers prod avec le bon secret.
 
 1. [Stripe Dashboard](https://dashboard.stripe.com/webhooks) → **Add endpoint**
-2. URL : `https://affisell.com/api/webhooks/stripe`
-3. Événements minimum : `checkout.session.completed`, `charge.refunded`, `invoice.payment_failed`, `customer.subscription.deleted`
+2. URL : `https://affisell.com/api/webhooks/stripe` (une seule des deux routes ; `/api/stripe/webhook` est l'ancienne URL, qui délègue au même code)
+3. Événements traités par le code (`lib/stripe-webhook-processor.ts`) : `checkout.session.completed`, `checkout.session.expired`, `payment_intent.succeeded`, `charge.refunded`,
+   `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`, `account.updated` — **plus** `charge.dispute.created`, `charge.dispute.updated`, `charge.dispute.closed`,
+   `charge.dispute.funds_withdrawn`, `charge.dispute.funds_reinstated`. **Les cinq événements de litige sont traités par le code (D7, `lib/stripe-dispute.ts`) et déplacent de l'argent** : un litige ouvert **gèle les virements**
+   de la commande, un litige perdu **inverse automatiquement** les virements Connect. **Ne les activer qu'après le déploiement en Production du code D7 et une validation en mode test** (ordre sûr, vérification et retour arrière :
+   `docs/EXTERNAL-OPS-RUNBOOK.md` §5 S1). Ne jamais en retirer un tant qu'une commande est gelée.
+   `account.updated` des comptes connectés demande un point d'accès « comptes connectés » avec son propre secret : voir `docs/EXTERNAL-OPS-RUNBOOK.md` §5 S2.
 4. Copier le **Signing secret** → Vercel Production :
    - `STRIPE_WEBHOOK_SECRET=whsec_…`
-5. Vérifier aussi : `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (mode live)
+5. Vérifier aussi : `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (mode live, **Production seulement** ; Preview = clés test et point d'accès de test)
 
 **Test :** paiement test → une seule commande en DB pour le `stripeSessionId` (pas de `Unique constraint failed`).
 
@@ -27,7 +39,8 @@ Active les intégrations ops une par une. Après chaque étape, lance la command
 
 ## Étape 2 — CRON_SECRET (crons GitHub + Vercel)
 
-**Pourquoi :** toutes les routes `/api/cron/*` exigent `Authorization: Bearer ${CRON_SECRET}`.
+**Pourquoi :** les routes `/api/cron/*` exigent `Authorization: Bearer ${CRON_SECRET}`.
+(Exceptions connues, finalisation master C3 : `ing-manual-nudge` et `legal-guardian` acceptent aussi l'en-tête `x-vercel-cron`, falsifiable ; certaines routes acceptent `?secret=` — à corriger dans le code, pas ici.)
 
 1. Générer un secret fort (32+ chars) :
    ```bash
@@ -57,9 +70,10 @@ npm run verify:ops
    - `NEXT_PUBLIC_VAPID_PUBLIC_KEY=…`
    - `VAPID_PRIVATE_KEY=…`
    - `VAPID_SUBJECT=mailto:support@affisell.com` (optionnel si `RESEND_FROM_EMAIL` défini)
-3. Base de données :
+3. Base de données — la table `PushSubscription` vient d'une migration : l'appliquer **à la main, avant le push** (staging d'abord, puis production), jamais par `npx prisma migrate deploy` :
    ```bash
-   npx prisma migrate deploy
+   DATABASE_URL='<url staging ou production>' npm run schema:migrate -- --expect-endpoint <ep-id> [--confirm-production]
+   DATABASE_URL='<url>' npm run schema:verify
    ```
 4. Redéployer
 
@@ -174,7 +188,9 @@ Puis redéployer Production et contrôler :
 | Variable | Étape | Obligatoire prod |
 |----------|-------|------------------|
 | `STRIPE_WEBHOOK_SECRET` | 1 | Oui |
-| `CRON_SECRET` | 2 | Oui |
+| `CRON_SECRET` | 2 | Oui (unique, ≠ tout autre secret) |
+| `REPLICATE_WEBHOOK_SECRET` | `docs/EXTERNAL-OPS-RUNBOOK.md` §6 | Si l'essayage virtuel est activé |
+| `AUTO_BUY_ENABLED` | — | **Ne pas poser** (auto-buy désactivé par décision du fondateur) |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | 3 | Oui (push) |
 | `VAPID_PRIVATE_KEY` | 3 | Oui (push) |
 | `VERCEL_API_TOKEN` | 4 | Oui (domaines custom) |

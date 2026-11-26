@@ -1,36 +1,26 @@
 import { type NextRequest, NextResponse } from "next/server"
 
+import { authorizeCronRequest } from "@/lib/cron/authorize-cron-request"
 import { runIngManualNudgeCron } from "@/lib/cron/ing-manual-nudge"
 import { checkEscalation } from "@/lib/ing/escalation"
 import { loadManualSupplierNudgeCandidates } from "@/lib/ing/manual-supplier-nudge"
 import { fulfillmentPrisma } from "@/lib/prisma"
 import { sendIngSlackAlert } from "@/lib/slack/send-ing-alert"
-import { secureBearerMatch } from "@/lib/secure-bearer"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
-
-function isAuthorized(req: NextRequest): boolean {
-  if (req.headers.get("x-vercel-cron")) return true
-
-  const secret = process.env.CRON_SECRET?.trim()
-  if (secret && secureBearerMatch(req.headers.get("authorization"), secret)) {
-    return true
-  }
-
-  if (process.env.NODE_ENV !== "production") return true
-  return false
-}
 
 /**
  * Daily 09:00 UTC — nudge suppliers with manual_required fulfillment groups (7d, max 1 / 48h).
  * Dry-run: `GET /api/cron/ing-manual-nudge?dry=1`
  */
 export async function GET(req: NextRequest) {
-  if (!isAuthorized(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  // Same gate as every other cron: Bearer / x-cron-secret, CRON_SECRET mandatory in production. The `x-vercel-cron` header
+  // used to be trusted on its own, but any caller can set it (finalisation master doc, C3). Vercel Cron itself sends
+  // `Authorization: Bearer $CRON_SECRET` when the variable is set on the project.
+  const denied = authorizeCronRequest(req)
+  if (denied) return denied
 
   const dryRun = req.nextUrl.searchParams.get("dry") === "1"
   console.log("[cron:ing-manual-nudge]", { result: "request", dryRun })

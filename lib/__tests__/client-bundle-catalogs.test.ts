@@ -9,12 +9,13 @@ import { describe, expect, it } from "vitest"
  * `lib/i18n-load-messages.ts` imports all eight catalogs; once a "use client" module reached it statically, the
  * bundler put a 2.2 MB chunk (770 KB gzip) on EVERY page — measured on the home page: Lighthouse mobile LCP 10.8 s,
  * TBT 3.3 s locally. Client components get their strings from `NextIntlClientProvider` (`useTranslations`) or from a
- * small dedicated copy module (`lib/page-error-copy.ts`, `lib/global-error-copy.ts`).
+ * small dedicated copy module (`lib/app-error-copy.ts`, `lib/global-error-copy.ts`).
  *
  * Static imports only: `import()` / `next/dynamic` produce a separate chunk loaded on demand.
  */
 const ROOT = path.resolve(__dirname, "../..")
-const SKIP_DIRS = new Set(["node_modules", ".next", ".git", "medusa-backend", "e2e", "__tests__", "public"])
+// `Affisell_Audit_Package`: an untracked copy of the repository that may sit in a developer checkout.
+const SKIP_DIRS = new Set(["node_modules", ".next", ".git", "medusa-backend", "e2e", "__tests__", "public", "Affisell_Audit_Package"])
 const EXTS = ["", ".ts", ".tsx", ".js", ".mjs", "/index.ts", "/index.tsx"]
 
 /** Known debt — remove an entry when it is fixed; never add one (use useTranslations / a small copy module). */

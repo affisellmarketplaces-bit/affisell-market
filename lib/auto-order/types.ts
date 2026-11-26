@@ -53,6 +53,8 @@ export type PlaceSupplierOrderResult = {
   rawRequest?: unknown
   rawResponse?: unknown
   errorMessage?: string
+  /** See `SupplierOrderResult.outcomeUncertain`. */
+  outcomeUncertain?: boolean
 }
 
 export type BatchRunResult = {

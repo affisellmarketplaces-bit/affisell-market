@@ -3,6 +3,7 @@ import "server-only"
 import type { Prisma } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
+import { withListingPresenceSource } from "@/lib/listing-presence/record.server"
 import { exclusivityBlocksAffiliate } from "@/lib/product-exclusivity-shared"
 import { getRadarDb } from "@/lib/prisma-radar"
 import type {
@@ -348,16 +349,16 @@ async function createAffiliateDraftsBulk(args: {
     .map((p) => p.createData!)
 
   if (toCreate.length > 0) {
-    await prisma.affiliateProduct.createMany({
+    await withListingPresenceSource(prisma, { source: "import" }, (tx) => tx.affiliateProduct.createMany({
       data: toCreate,
       skipDuplicates: true,
-    })
+    }))
   }
 
   const toUpdate = withData.filter((p) => existingByProduct.has(p.createData!.productId))
   for (const row of toUpdate) {
     const data = row.createData!
-    await prisma.affiliateProduct.update({
+    await withListingPresenceSource(prisma, { source: "import" }, (tx) => tx.affiliateProduct.update({
       where: {
         affiliateId_productId: {
           affiliateId: args.affiliateId,
@@ -372,7 +373,7 @@ async function createAffiliateDraftsBulk(args: {
         customDescription: data.customDescription,
         isListed: false,
       },
-    })
+    }))
   }
 
   // Re-fetch created IDs for job payload

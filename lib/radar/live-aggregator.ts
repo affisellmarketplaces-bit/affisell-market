@@ -3,10 +3,12 @@ import { isPrismaMissingColumnError } from "@/lib/prisma-missing-column"
 import { prisma } from "@/lib/prisma"
 import { cityForCountryCode, pickDemoCity } from "@/lib/radar/live-cities"
 import {
+  classifyLiveEventsSource,
   GLOBE_LIVE_MAX_EVENTS,
   GLOBE_SUPPLIER_DEFAULT,
   type LiveEvent,
   type LiveEventType,
+  type LiveEventsSource,
 } from "@/lib/radar/live-types"
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -91,10 +93,16 @@ function buildEvent(args: {
   product: LiveEvent["product"]
   countryCode: string | null
   cityOverride?: string | null
-  salesPerHour: number
-  growth: number
+  /** MEASURED sales per hour (spikes) — `null` when unknown. */
+  salesPerHour: number | null
+  /** Generated events only; `null` for every real event (never derive a growth from an id). */
+  growth: number | null
   timestamp: Date
   videoUrl?: string | null
+  /** True for an event generated to fill the globe (no real order / import / spike behind it). */
+  synthetic?: boolean
+  /** `order` only when the country was read from a real shipping address. */
+  locationSource: "order" | "estimated"
 }): LiveEvent {
   const cityMeta = cityForCountryCode(args.countryCode)
   const seed = hashSeed(args.id)
@@ -113,7 +121,10 @@ function buildEvent(args: {
     growth: args.growth,
     timestamp: args.timestamp.toISOString(),
     videoUrl: args.videoUrl ?? null,
-    sparkline: sparklineFromSeed(seed),
+    // a 24 h curve exists only for a generated demo event; a real event has no hourly history here
+    sparkline: args.synthetic === true ? sparklineFromSeed(seed) : null,
+    synthetic: args.synthetic === true,
+    locationSource: args.locationSource,
   }
 }
 
@@ -200,6 +211,8 @@ function synthesizeDemoEvents(
         growth,
         timestamp: new Date(Date.now() - minsAgo * 60_000),
         videoUrl: listing.product.videoAdUrl,
+        synthetic: true,
+        locationSource: "estimated",
       })
     )
   }
@@ -233,17 +246,22 @@ async function loadRecentImports(since: Date): Promise<ProductLiveRow[]> {
 
 /**
  * Aggregate live Globe events from Affisell Orders + Product imports + velocity spikes.
- * Pads with realistic demo events when volume is low — same shape for UI.
+ * Pads with generated demo events when volume is low — same shape, but each one is flagged `synthetic: true` and the payload
+ * `source` says `mixed` / `demo`. Imports and spikes have no real location: their pin is flagged `locationSource: "estimated"`.
+ * Real events carry only measured fields: `growth` and `sparkline` are `null` (they used to be hash(id) — fabricated numbers
+ * next to real sales) and `salesPerHour` is set for spikes only. Generated events keep a made-up growth / curve, flagged `synthetic`.
  */
 export async function aggregateRadarLiveEvents(): Promise<{
   events: LiveEvent[]
-  source: "live" | "mixed" | "demo"
+  /** Provenance of the returned events: `live` (all real), `mixed` (real + generated), `demo` (all generated). */
+  source: LiveEventsSource
   countries: number
+  /** Number of generated events in `events` (flagged `synthetic: true` one by one). */
+  syntheticCount: number
 }> {
   const since = new Date(Date.now() - DAY_MS)
   const hourAgo = new Date(Date.now() - HOUR_MS)
   const events: LiveEvent[] = []
-  let liveCount = 0
 
   try {
     const [orders, imports, hourly, topListings] = await Promise.all([
@@ -304,13 +322,14 @@ export async function aggregateRadarLiveEvents(): Promise<{
           },
           countryCode: cc,
           cityOverride: city,
-          salesPerHour: 1,
-          growth: 80 + (hashSeed(order.id) % 120),
+          // one order is not "1 sale per hour", and a growth % cannot be derived from one order: unknown
+          salesPerHour: null,
+          growth: null,
           timestamp: order.createdAt,
           videoUrl: order.product.videoAdUrl,
+          locationSource: cc ? "order" : "estimated",
         })
       )
-      liveCount += 1
     }
 
     for (const product of imports) {
@@ -329,13 +348,14 @@ export async function aggregateRadarLiveEvents(): Promise<{
             affiliateProductId: listing?.id ?? null,
           },
           countryCode: pickDemoCity(hashSeed(product.id)).countryCode,
-          salesPerHour: 0,
-          growth: 100 + (hashSeed(product.id) % 200),
+          salesPerHour: null,
+          growth: null,
           timestamp: product.createdAt ?? new Date(),
           videoUrl: product.videoAdUrl,
+          // imports carry no location: the pin is a hash-picked city, not where anything happened
+          locationSource: "estimated",
         })
       )
-      liveCount += 1
     }
 
     const spikeProductIds = hourly
@@ -379,13 +399,14 @@ export async function aggregateRadarLiveEvents(): Promise<{
               affiliateProductId: listing?.id ?? null,
             },
             countryCode: pickDemoCity(hashSeed(`spike:${product.id}`)).countryCode,
+            // `sph` is the real count of orders of this product in the last hour; no growth % is invented from it
             salesPerHour: sph,
-            growth: 200 + Math.min(250, sph * 40),
+            growth: null,
             timestamp: new Date(),
             videoUrl: product.videoAdUrl,
+            locationSource: "estimated",
           })
         )
-        liveCount += 1
       }
     }
 
@@ -405,18 +426,21 @@ export async function aggregateRadarLiveEvents(): Promise<{
     }
 
     const countries = new Set(final.map((e) => e.location.country)).size
-    const source: "live" | "mixed" | "demo" =
-      liveCount === 0 ? "demo" : liveCount >= final.length * 0.6 ? "live" : "mixed"
+    // Provenance of what is ACTUALLY returned: "live" only when no generated event was added to fill the globe. It used to be
+    // "live" as soon as 60 % of the events were real (the other 40 % being demo) and counted events dropped by the slice.
+    const source: LiveEventsSource = classifyLiveEventsSource(final)
+    const syntheticCount = final.filter((e) => e.synthetic === true).length
 
     console.log("[radar-live]", {
       result: "ok",
-      liveCount,
+      realCount: final.length - syntheticCount,
+      syntheticCount,
       total: final.length,
       source,
       countries,
     })
 
-    return { events: final, source, countries }
+    return { events: final, source, countries, syntheticCount }
   } catch (e) {
     console.log("[radar-live]", {
       result: "fallback_demo",
@@ -427,6 +451,7 @@ export async function aggregateRadarLiveEvents(): Promise<{
       events: demo,
       source: "demo",
       countries: new Set(demo.map((e) => e.location.country)).size,
+      syntheticCount: demo.length,
     }
   }
 }

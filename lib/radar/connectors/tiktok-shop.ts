@@ -5,6 +5,7 @@ import { randomBytes } from "node:crypto"
 import { getRedisConnection, getRedisUrl } from "@/lib/auto-order/redis"
 import type { MarketplaceConnector } from "@/lib/radar/connectors/types"
 import { isRadarEnabled, requireRedis } from "@/lib/radar/gate"
+import { redisKey } from "@/lib/redis-namespace"
 import { tiktokRedirectUri } from "@/lib/tiktok/env"
 
 export type TikTokTokenResponse = {
@@ -29,7 +30,7 @@ export const TIKTOK_SHOP_SCOPES =
 const memoryStates = new Map<string, { payload: OAuthStatePayload; expiresAt: number }>()
 
 function oauthStateKey(state: string): string {
-  return `radar:oauth:state:${state}`
+  return redisKey(`radar:oauth:state:${state}`)
 }
 
 function pruneMemoryStates(): void {

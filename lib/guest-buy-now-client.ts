@@ -2,6 +2,7 @@
 
 import { addToBuyerCart, type AddToBuyerCartInput } from "@/lib/cart-add-client"
 import { clientNavigateOrAssign } from "@/lib/client-navigate.client"
+import type { CheckoutStockRefusal } from "@/lib/checkout-stock-client"
 import {
   fastCheckoutRedirected,
   startFastCheckout,
@@ -10,7 +11,7 @@ import {
 
 export type BuyNowWithoutLoginMeta = Pick<
   AddToBuyerCartInput,
-  "title" | "price" | "imageUrl" | "sellerName" | "selectedColor" | "selectedSize"
+  "title" | "price" | "imageUrl" | "sellerName" | "selectedColor" | "selectedSize" | "selectedStorage"
 > & { productId: string }
 
 export type BuyNowOutOfStockPayload = {
@@ -30,6 +31,8 @@ export type BuyNowOutcome =
   | "cart"
   | "error"
   | { kind: "out_of_stock"; payload: BuyNowOutOfStockPayload }
+  /** Refused by Affisell's own stock counter: show `cart.stock.*`, do NOT fall back to the cart (it would be refused again). */
+  | { kind: "no_stock"; refusal: CheckoutStockRefusal }
 
 /**
  * Stripe checkout once the buyer is identified (CUSTOMER session).
@@ -44,6 +47,9 @@ export async function buyNowWithoutLogin(
   async function fallbackToCart(): Promise<"cart" | "error"> {
     const add = await addToBuyerCart({
       ...productMeta,
+      // The fallback keeps the exact choice of the buy-now (colour, size, capacity), never a rebuilt one.
+      selectedStorage: productMeta.selectedStorage ?? body.selectedStorage ?? undefined,
+      variantChoiceChecked: true,
       productId: listingId,
       qty: body.qty ?? 1,
     })
@@ -64,6 +70,17 @@ export async function buyNowWithoutLogin(
         productName: result.productName,
         alternatives: result.alternatives,
         coupon: result.coupon,
+      },
+    }
+  }
+
+  if (!result.ok && result.status === "no_stock") {
+    return {
+      kind: "no_stock",
+      refusal: {
+        code: result.code,
+        availableQty: result.availableQty,
+        ...(result.availableVariants ? { availableVariants: result.availableVariants } : {}),
       },
     }
   }

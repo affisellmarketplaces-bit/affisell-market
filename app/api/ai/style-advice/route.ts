@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server"
 
+/**
+ * NOT AI, despite living under /api/ai: three fixed sentence templates with the product name pasted in. No model is called.
+ * The response says so (`method: "static_templates"`); a UI must not present these as generated advice.
+ */
+
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as {
     productId?: string
@@ -16,6 +21,7 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({
+    method: "static_templates" as const,
     ideas: [
       `Business chic: Pair ${productName} ${
         selectedColor ? `in ${selectedColor}` : ""

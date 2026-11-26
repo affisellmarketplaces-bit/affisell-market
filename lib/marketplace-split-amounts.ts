@@ -26,7 +26,8 @@ export type MarketplaceTransferAmounts = {
   stripeFeeCents: number
 }
 
-function estimateStripeFeeCents(lineTotalCents: number): number {
+/** Stripe card fee estimate (2.9 % + 25 c) — shared with the auto-buy margin gate (`lib/fulfillment/auto-buy-margin.ts`). */
+export function estimateStripeFeeCents(lineTotalCents: number): number {
   return Math.round(lineTotalCents * 0.029 + 25)
 }
 

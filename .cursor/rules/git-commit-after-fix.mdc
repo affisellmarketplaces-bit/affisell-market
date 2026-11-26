@@ -1,5 +1,5 @@
 ---
-description: Commit et push sur main après chaque correction de code terminée
+description: Commit puis push de la BRANCHE de travail (jamais main sans accord du fondateur) après chaque correction de code terminée
 alwaysApply: true
 ---
 
@@ -17,20 +17,24 @@ Les interruptions viennent d’enchaîner `git commit && npm run push:safe` en *
    - `git add …` puis `git commit` (HEREDOC)
 
 2. **Commande B** — push seul (appel shell **séparé**, `block_until_ms` ≥ 90000) :
-   - `npm run push:safe` (script `scripts/git-push-safe.mjs` : timeouts fetch/push, pas de prompt interactif)
+   - `npm run push:safe -- <branche-de-travail>` (script `scripts/git-push-safe.mjs` : timeouts fetch/push, pas de prompt interactif)
+   - **⚠ Nomme TOUJOURS la branche.** Sans argument le script vise **`main`** (`process.argv[2]` ou `GIT_BRANCH`, sinon `main`), même depuis une autre branche : il affiche seulement « on branch X, pushing main », puis rebase et pousse `main` — c'est-à-dire un **déploiement en production**.
+   - Ne jamais `git push origin main`. Travail sur une branche → Preview → pull request ; fusion dans `main` = décision du fondateur.
+   - Branche toute neuve (absente de GitHub) : première publication par `git push -u origin <branche>` (le `git fetch origin <branche>` du script échoue tant qu'elle n'existe pas).
+   - Pendant un mandat « commits locaux uniquement » / « ne push pas » (`docs/FINALISATION-MASTER.md` §0) : **ne pas pousser**, s'arrêter au commit A.
 
-Si la commande B time out : indiquer quand même le hash du commit A et écrire « push à relancer : `npm run push:safe` ».
+Si la commande B time out : indiquer quand même le hash du commit A et écrire « push à relancer : `npm run push:safe -- <branche>` ».
 
 ## Réponse finale
 
-**Git** — Commit `abc1234` — *message* — push OK (`main`)
+**Git** — Commit `abc1234` — *message* — push OK (`<branche>`)
 
 `npm run push:safe` termine par `npm run git:sync` : preuve `✓ working tree clean`.
 La liste **« N Files »** dans l’Agent Cursor = historique de session, pas Git → **nouvelle conversation** avant la prochaine tâche.
 
 ou
 
-**Git** — Commit `abc1234` — *message* — push non terminé (relancer `npm run push:safe`)
+**Git** — Commit `abc1234` — *message* — push non terminé (relancer `npm run push:safe -- <branche>`)
 
 ## Ne pas committer
 

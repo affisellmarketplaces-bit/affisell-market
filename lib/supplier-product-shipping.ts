@@ -5,13 +5,14 @@ import {
 } from "@/lib/shipping/supplier-carrier-offers-shared"
 
 import { EU_MEMBER_SET as EU_COUNTRIES } from "@/lib/eu-market-countries"
+import { parseWarehouseType, validateWarehouseTypePublish } from "@/lib/supplier-delivery-countries-rules"
+import { parseDeliveryWindow, parseIntInRange } from "@/lib/supplier-delivery-window"
 import {
   DELIVERY_COUNTRIES_REQUIRED_ERROR,
   parseDeliveryCountryCodes,
   validateDeliveryCountriesForPublish,
 } from "@/lib/supplier-delivery-countries"
 
-const WAREHOUSE_TYPES = new Set(["local", "regional", "international"])
 const METHOD_KEYS = new Set(["standard", "express", "pickup"])
 
 export type ParsedProductShipping = {
@@ -28,27 +29,18 @@ export type ParsedProductShipping = {
   shippingCost: Prisma.Decimal
 }
 
-function parseIntInRange(raw: unknown, fallback: number, min: number, max: number) {
-  const n = Math.round(Number(raw))
-  if (!Number.isFinite(n)) return fallback
-  return Math.min(max, Math.max(min, n))
-}
-
 export function parseSupplierProductShippingBody(body: Record<string, unknown>): ParsedProductShipping {
   const countryRaw = typeof body.shippingCountry === "string" ? body.shippingCountry.trim().toUpperCase() : ""
   const shippingCountry = countryRaw.length === 2 ? countryRaw : null
 
-  const wtRaw = typeof body.warehouseType === "string" ? body.warehouseType.trim().toLowerCase() : ""
-  const warehouseType = WAREHOUSE_TYPES.has(wtRaw) ? wtRaw : null
+  const warehouseType = parseWarehouseType(body.warehouseType)
 
   const warehouseCity =
     typeof body.warehouseCity === "string" ? body.warehouseCity.trim().slice(0, 120) || null : null
 
   const processingTime = parseIntInRange(body.processingTime, 1, 1, 30)
-  const deliveryMin = parseIntInRange(body.deliveryMin, 2, 1, 60)
-  const deliveryMax = parseIntInRange(body.deliveryMax, 5, 1, 90)
-  const dMin = Math.min(deliveryMin, deliveryMax)
-  const dMax = Math.max(deliveryMin, deliveryMax)
+  // Shared with the supplier's forms: what they announce is what is stored (lib/supplier-delivery-window.ts).
+  const { deliveryMin: dMin, deliveryMax: dMax } = parseDeliveryWindow(body)
 
   let shippingMethods: string[] = []
   if (Array.isArray(body.shippingMethods)) {
@@ -95,11 +87,8 @@ export function parseSupplierProductShippingBody(body: Record<string, unknown>):
   }
 }
 
-/** Publish gate — warehouse zone required on live listings. */
-export function validateWarehouseTypePublish(warehouseType: string | null): "warehouse_type_required" | null {
-  if (!warehouseType || !WAREHOUSE_TYPES.has(warehouseType)) return "warehouse_type_required"
-  return null
-}
+/** Publish gate — warehouse zone required on live listings (rule shared with the forms). */
+export { validateWarehouseTypePublish }
 
 /** Publish gate — at least one deliver-to country (or worldwide). */
 export function validateDeliveryCountriesPublish(

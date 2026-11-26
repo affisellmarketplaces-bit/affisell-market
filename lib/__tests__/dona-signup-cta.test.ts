@@ -1,4 +1,5 @@
-import { createElement } from "react"
+import { NextIntlClientProvider } from "next-intl"
+import { createElement, type ComponentProps } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 
@@ -6,9 +7,18 @@ import { shouldMinimizeOnLinkClick } from "@/components/dona/dona-navigation"
 import { DonaSignupCta } from "@/components/dona/dona-signup-cta"
 import type { DonaSignupIntent } from "@/lib/dona/dona-signup-intent"
 import type { AppLocale } from "@/lib/i18n-locale"
+import { loadAppMessages } from "@/lib/i18n-load-messages"
 
+/** Rendered inside the same provider the root layout gives it: the visitor's locale merged over English. */
 function render(intent: DonaSignupIntent, locale: AppLocale = "fr"): string {
-  return renderToStaticMarkup(createElement(DonaSignupCta, { intent, locale }))
+  return renderToStaticMarkup(
+    createElement(
+      NextIntlClientProvider,
+      // `children` is passed as the 3rd argument; the cast keeps the type check (which `next build` runs on tests) happy.
+      { locale, messages: loadAppMessages(locale), timeZone: "Europe/Paris" } as ComponentProps<typeof NextIntlClientProvider>,
+      createElement(DonaSignupCta, { intent, locale })
+    )
+  )
 }
 const hrefs = (html: string) => [...html.matchAll(/href="([^"]*)"/g)].map((m) => m[1])
 

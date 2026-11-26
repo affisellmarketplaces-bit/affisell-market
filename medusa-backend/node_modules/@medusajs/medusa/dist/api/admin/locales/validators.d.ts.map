@@ -1,1 +1,0 @@
-{"version":3,"file":"validators.d.ts","sourceRoot":"","sources":["../../../../src/api/admin/locales/validators.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,CAAC,EAAE,MAAM,yBAAyB,CAAA;AAI3C,eAAO,MAAM,oBAAoB;;iBAAuB,CAAA;AAExD,eAAO,MAAM,2BAA2B;;;iBAGtC,CAAA;AAEF,MAAM,MAAM,yBAAyB,GAAG,CAAC,CAAC,KAAK,CAAC,OAAO,qBAAqB,CAAC,CAAA;AAC7E,eAAO,MAAM,qBAAqB;;;;;;;;;;iBAK2B,CAAA"}

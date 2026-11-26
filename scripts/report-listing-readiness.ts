@@ -6,86 +6,19 @@
  *   npm run report:listing-readiness -- --json
  *   npm run report:listing-readiness -- --limit=5000     # cap the number of products read (default 20000)
  *
- * Uses the DATABASE_URL of .env.local / .env — read that carefully: the default one may be PRODUCTION (reads only).
+ * Uses the DATABASE_URL of the shell, else .env.local, else .env. `--target` prints the database, the tables and the
+ * read-only guarantees WITHOUT connecting; a production (or unidentified) database is read only with
+ * `--confirm-endpoint=<endpoint id>` (the founder's authorisation). Reads run in a READ ONLY transaction.
  * Decide when to flip `warn` -> `enforce` from this report plus the "[listing-readiness]" log lines.
  */
-import { PrismaClient } from "@prisma/client"
-import { config } from "dotenv"
 
-import { evaluateListingReadiness } from "../lib/listing-compliance/evaluate"
-import { LISTING_COMPLIANCE_KEYS } from "../lib/listing-compliance/keys"
-
-config({ path: ".env.local" })
-config({ path: ".env" })
+import { runReadOnlyReport } from "./lib/read-only-report"
+import { collectListingReadinessReport } from "../lib/reports/listing-readiness-report"
 
 const asJson = process.argv.includes("--json")
-const BATCH = 500
 const LIMIT = Number((process.argv.find((a) => a.startsWith("--limit=")) ?? "--limit=20000").split("=")[1]) || 20000
-const prisma = new PrismaClient()
 
-type Bucket = { products: number; ready: number; missing: Record<string, number> }
-
-async function main() {
-  const overall: Bucket = { products: 0, ready: 0, missing: {} }
-  const perSupplier = new Map<string, Bucket>()
-  let advisoryNoGtin = 0
-  let cursor: string | undefined
-  let scanned = 0
-
-  for (;;) {
-    const rows = await prisma.product.findMany({
-      where: { isDraft: false, active: true, listingKind: "PHYSICAL" },
-      orderBy: { id: "asc" },
-      take: BATCH,
-      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
-      select: {
-        id: true,
-        supplierId: true,
-        listingKind: true,
-        attributes: { where: { key: { in: [...LISTING_COMPLIANCE_KEYS] } }, select: { key: true, value: true } },
-      },
-    })
-    if (rows.length === 0) break
-    cursor = rows[rows.length - 1]!.id
-    scanned += rows.length
-
-    for (const p of rows) {
-      const r = evaluateListingReadiness({ listingKind: p.listingKind, attributes: p.attributes })
-      const bucket = perSupplier.get(p.supplierId) ?? { products: 0, ready: 0, missing: {} }
-      for (const b of [overall, bucket]) {
-        b.products += 1
-        if (r.ready) b.ready += 1
-        for (const i of r.blocking) b.missing[i.code] = (b.missing[i.code] ?? 0) + 1
-      }
-      if (r.advisory.some((i) => i.code === "gtin_missing")) advisoryNoGtin += 1
-      perSupplier.set(p.supplierId, bucket)
-    }
-    if (scanned >= LIMIT) break
-  }
-
-  const pct = (n: number, d: number) => (d === 0 ? 0 : Math.round((n / d) * 1000) / 10)
-  const topSuppliers = [...perSupplier.entries()]
-    .map(([supplierId, b]) => ({ supplierId, products: b.products, notReady: b.products - b.ready }))
-    .filter((s) => s.notReady > 0)
-    .sort((a, b) => b.notReady - a.notReady)
-    .slice(0, 10)
-
-  const report = {
-    generatedAt: new Date().toISOString(),
-    livePhysicalProducts: overall.products,
-    truncatedAtLimit: scanned >= LIMIT,
-    readyToPublish: overall.ready,
-    readyPct: pct(overall.ready, overall.products),
-    wouldBeRefusedIfPublishedToday: overall.products - overall.ready,
-    suppliersWithLiveProducts: perSupplier.size,
-    suppliersFullyReady: [...perSupplier.values()].filter((b) => b.ready === b.products).length,
-    missingByCode: Object.fromEntries(Object.entries(overall.missing).sort((a, b) => b[1] - a[1])),
-    withoutGtin: advisoryNoGtin,
-    topSuppliersToHelp: topSuppliers,
-    note:
-      "These are EXISTING listings: they are never blocked (only new publications can be refused in enforce mode). The figure shows how much of the catalogue already meets the rule.",
-  }
-
+function print(report: Awaited<ReturnType<typeof collectListingReadinessReport>>) {
   if (asJson) {
     console.log(JSON.stringify(report, null, 2))
     return
@@ -102,9 +35,11 @@ async function main() {
   console.log(`\n  ${report.note}\n`)
 }
 
-main()
-  .catch((e) => {
-    console.error("report failed:", e instanceof Error ? e.message : e)
-    process.exitCode = 1
-  })
-  .finally(() => prisma.$disconnect())
+runReadOnlyReport(
+  { tables: ["Product", "ProductAttribute (clés de conformité)"], purpose: "couverture des données de sécurité produit (LISTING_READINESS_MODE)" },
+  (tx) => collectListingReadinessReport(tx, { limit: LIMIT }),
+  print
+).catch((e) => {
+  console.error("report failed:", e instanceof Error ? e.message : e)
+  process.exitCode = 1
+})

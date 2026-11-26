@@ -6,8 +6,7 @@ import Link from "next/link"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import type { FormEvent } from "react"
 
-import { normalizeCartVariantSignature } from "@/lib/cart-variant"
-import { readGuestCart, type GuestCartItem } from "@/lib/guest-cart"
+import { guestItemVariantSignature, readGuestCart, type GuestCartItem } from "@/lib/guest-cart"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -43,7 +42,7 @@ function guestToLine(item: GuestCartItem): CartLine {
   return {
     affiliateProductId: item.productId,
     qty: item.qty,
-    variantSignature: normalizeCartVariantSignature(item.selectedColor, item.selectedSize),
+    variantSignature: guestItemVariantSignature(item),
     title: item.title || "Product",
   }
 }

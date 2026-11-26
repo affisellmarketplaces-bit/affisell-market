@@ -2,6 +2,8 @@
  * Minimal Anthropic Messages API client (fetch, no SDK dependency).
  * Opt-in: only used when ANTHROPIC_API_KEY is set. Callers must fall back to another provider on error.
  */
+import { meterModelCall } from "@/lib/ai/usage-log"
+
 export const ANTHROPIC_TEXT_MODEL = process.env.ANTHROPIC_TEXT_MODEL?.trim() || "claude-haiku-4-5-20251001"
 
 export function hasAnthropicApiKey(): boolean {
@@ -29,28 +31,41 @@ export async function anthropicChatText(args: {
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim()
   if (!apiKey) throw new AnthropicError("ANTHROPIC_API_KEY is not set")
 
+  const model = args.model ?? ANTHROPIC_TEXT_MODEL
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), args.timeoutMs ?? 20_000)
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      signal: controller.signal,
-      headers: { "content-type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({
-        model: args.model ?? ANTHROPIC_TEXT_MODEL,
-        max_tokens: args.maxTokens ?? 900,
-        temperature: args.temperature ?? 0.25,
-        ...(args.system ? { system: args.system } : {}),
-        messages: [{ role: "user", content: args.user }],
-      }),
-    })
-    const data = (await res.json().catch(() => ({}))) as {
+    type AnthropicTextResponse = {
       content?: Array<{ type?: string; text?: string }>
       error?: { type?: string; message?: string }
+      model?: string
+      usage?: unknown
     }
-    if (!res.ok) {
-      throw new AnthropicError(`${data.error?.type ?? "error"}: ${String(data.error?.message ?? res.statusText).slice(0, 200)}`, res.status)
-    }
+    // Measured like every other model call; an AnthropicError still propagates unchanged (meterModelCall rethrows it).
+    const data = await meterModelCall<AnthropicTextResponse>({
+      provider: "anthropic",
+      modelRequested: model,
+      call: async () => {
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          signal: controller.signal,
+          headers: { "content-type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
+          body: JSON.stringify({
+            model,
+            max_tokens: args.maxTokens ?? 900,
+            temperature: args.temperature ?? 0.25,
+            ...(args.system ? { system: args.system } : {}),
+            messages: [{ role: "user", content: args.user }],
+          }),
+        })
+        const body = (await res.json().catch(() => ({}))) as AnthropicTextResponse
+        if (!res.ok) {
+          throw new AnthropicError(`${body.error?.type ?? "error"}: ${String(body.error?.message ?? res.statusText).slice(0, 200)}`, res.status)
+        }
+        return body
+      },
+      extract: (d) => ({ modelUsed: d.model, usage: d.usage }),
+    })
     return (data.content ?? []).map((c) => (c.type === "text" ? c.text ?? "" : "")).join("").trim()
   } catch (e) {
     if (e instanceof AnthropicError) throw e

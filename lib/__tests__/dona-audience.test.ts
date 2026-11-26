@@ -4,6 +4,7 @@ import {
   donaPublicWelcome,
   resolveDonaPublicAudience,
 } from "@/lib/dona/dona-audience"
+import { tMessage } from "@/lib/i18n-pick-message"
 
 describe("dona audience routing", () => {
   it("home and marketplace = buyer", () => {
@@ -26,13 +27,13 @@ describe("dona audience routing", () => {
   })
 
   it("buyer welcome avoids revendeur pitch", () => {
-    const msg = donaPublicWelcome("buyer", "fr")
+    const msg = donaPublicWelcome("buyer", (p) => tMessage("fr", p))
     expect(msg.toLowerCase()).toContain("achat")
     expect(msg.toLowerCase()).not.toContain("marge")
   })
 
   it("reseller welcome mentions margin", () => {
-    const msg = donaPublicWelcome("reseller", "fr")
+    const msg = donaPublicWelcome("reseller", (p) => tMessage("fr", p))
     expect(msg.toLowerCase()).toContain("marge")
   })
 })

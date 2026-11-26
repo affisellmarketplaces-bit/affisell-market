@@ -3,10 +3,7 @@ import "server-only"
 import { loadAffisellFrRadarWinners } from "@/lib/radar/affisell-fr-catalog.server"
 import { isSerperConfigured } from "@/lib/radar/crawler/serper-client"
 import { getTrendingKeywords } from "@/lib/radar/google/trends-watcher"
-import {
-  buildMockTrendingForCountry,
-  buildMockWinnersForCountry,
-} from "@/lib/radar/world-mock-catalog"
+import { buildMockWinnersForCountry } from "@/lib/radar/world-mock-catalog"
 import { getWorldCountry } from "@/lib/radar/world-countries"
 import { WORLD_RADAR_CACHE_TTL_MS } from "@/lib/radar/world-radar-types"
 
@@ -45,6 +42,12 @@ export interface RadarProvider {
 
 /** Affisell Stock FR catalog — real marketplace listings for France. */
 export class AffisellProvider implements RadarProvider {
+  /**
+   * Only what Affisell really knows goes into a row: title, image, price, rank (by real conversions) and the sort score.
+   * `growthRate`, `searches` and `competition` are NULL — they used to be `min(150, 40 + conversions * 2)` / `55`,
+   * `conversions * 120` / `8000` and the constant `3`: invented figures that the terminal showed as measurements and that the
+   * arbitrage and saturation formulas then scored. Unknown stays unknown.
+   */
   async scan(country: string): Promise<ScannedWinner[]> {
     if (country.toUpperCase() !== "FR") return []
     const rows = await loadAffisellFrRadarWinners({ limit: 20 })
@@ -56,9 +59,10 @@ export class AffisellProvider implements RadarProvider {
       source: "Affisell",
       price: row.price > 0 ? row.price : null,
       currency: row.currency || "EUR",
-      growthRate: row.salesEst ? Math.min(150, 40 + row.salesEst * 2) : 55,
-      searches: row.salesEst ? row.salesEst * 120 : 8000,
-      competition: 3,
+      growthRate: null,
+      searches: null,
+      competition: null,
+      // A SORT KEY (70 + real conversions, capped at 100), not a measured metric.
       trendingScore: Math.min(100, 70 + (row.salesEst ?? 0)),
       category: null,
     }))
@@ -96,7 +100,8 @@ export class SerperProvider implements RadarProvider {
         currency,
         growthRate: t.growth,
         searches: t.volume,
-        competition: 8,
+        // the API gives no competition figure: unknown (it used to be the constant 8)
+        competition: null,
         trendingScore: Math.min(100, t.growth),
         category: null,
       }))
@@ -129,24 +134,25 @@ export async function scanCountryWinners(countryCode: string): Promise<ScannedWi
   return winners
 }
 
+/**
+ * REAL trending keywords only (the trends source). With no source configured, or nothing above the growth threshold, the answer
+ * is an empty list: it used to fall back to `buildMockTrendingForCountry` — a hand-typed list re-jittered with Math.random on
+ * every scan — which was then stored and served as live market signals. A demo payload generates its own (flagged) keywords.
+ */
 export async function scanCountryTrending(countryCode: string): Promise<ScannedTrending[]> {
   const code = countryCode.toUpperCase()
-  if (isSerperConfigured()) {
-    try {
-      const live = await getTrendingKeywords(["trending product", "best seller"])
-      if (live.length > 0) {
-        return live.slice(0, 5).map((t) => ({
-          countryCode: code,
-          keyword: t.keyword,
-          growthRate: t.growth,
-          volume: t.volume,
-        }))
-      }
-    } catch {
-      // fall through to mock
-    }
+  if (!isSerperConfigured()) return []
+  try {
+    const live = await getTrendingKeywords(["trending product", "best seller"])
+    return live.slice(0, 5).map((t) => ({
+      countryCode: code,
+      keyword: t.keyword,
+      growthRate: t.growth,
+      volume: t.volume,
+    }))
+  } catch {
+    return []
   }
-  return buildMockTrendingForCountry(code)
 }
 
 export function computeExpiresAt(from = new Date()): Date {

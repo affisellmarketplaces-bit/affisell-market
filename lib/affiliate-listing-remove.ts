@@ -1,6 +1,7 @@
 import { affiliateListingsWhere, requireMerchantUserId } from "@/lib/merchant-tenant-scope"
 import { cancelAuctionsForListings } from "@/lib/auction-listing-lifecycle"
 import { prisma } from "@/lib/prisma"
+import { withListingPresenceSource } from "@/lib/listing-presence/record.server"
 
 export type RemoveAffiliateListingsResult = {
   /** Hard-deleted listing ids (no order history). */
@@ -42,17 +43,21 @@ export async function removeAffiliateListingsFromStorefront(
 
   if (deletable.length > 0) {
     await cancelAuctionsForListings(deletable)
-    await prisma.affiliateProduct.deleteMany({
-      where: { id: { in: deletable }, ...affiliateListingsWhere(tenantId) },
-    })
+    await withListingPresenceSource(prisma, { source: "reseller_remove", actorId: tenantId }, (tx) =>
+      tx.affiliateProduct.deleteMany({
+        where: { id: { in: deletable }, ...affiliateListingsWhere(tenantId) },
+      }),
+    )
   }
 
   if (hiddenOnly.length > 0) {
     await cancelAuctionsForListings(hiddenOnly)
-    await prisma.affiliateProduct.updateMany({
-      where: { id: { in: hiddenOnly }, ...affiliateListingsWhere(tenantId) },
-      data: { isListed: false, isFeatured: false, auctionEligible: false },
-    })
+    await withListingPresenceSource(prisma, { source: "reseller_remove", actorId: tenantId }, (tx) =>
+      tx.affiliateProduct.updateMany({
+        where: { id: { in: hiddenOnly }, ...affiliateListingsWhere(tenantId) },
+        data: { isListed: false, isFeatured: false, auctionEligible: false },
+      }),
+    )
   }
 
   if (ownedIds.length > 0) {

@@ -90,7 +90,6 @@ async function cancelOrderAfterRepeatedPaymentFailures(orderId: string): Promise
 
   const email = await notifyOrderCancelled(orderId, {
     cancelReason: "Paiement refusé après 3 tentatives — commande annulée",
-    markRefunded: false,
   })
 
   console.log("[payment-failed] order_cancelled", {

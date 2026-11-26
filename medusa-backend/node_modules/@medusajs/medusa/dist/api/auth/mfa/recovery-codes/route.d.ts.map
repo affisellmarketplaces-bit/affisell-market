@@ -1,1 +1,0 @@
-{"version":3,"file":"route.d.ts","sourceRoot":"","sources":["../../../../../src/api/auth/mfa/recovery-codes/route.ts"],"names":[],"mappings":"AAAA,OAAO,EACL,0BAA0B,EAC1B,cAAc,EACf,MAAM,0BAA0B,CAAA;AAGjC,OAAO,EAAE,uCAAuC,EAAE,MAAM,kBAAkB,CAAA;AAE1E,eAAO,MAAM,IAAI,GACf,KAAK,0BAA0B,CAAC,uCAAuC,CAAC,EACxE,KAAK,cAAc,4BA6BpB,CAAA"}

@@ -2,8 +2,9 @@ import { normalizeCartVariantSignature } from "@/lib/cart-variant"
 
 import type { GuestCartItem } from "@/lib/guest-cart"
 
-export function guestCartLineId(item: Pick<GuestCartItem, "productId" | "selectedColor" | "selectedSize">): string {
-  const sig = normalizeCartVariantSignature(item.selectedColor, item.selectedSize)
+export function guestCartLineId(item: Pick<GuestCartItem, "productId" | "selectedColor" | "selectedSize" | "selectedStorage">): string {
+  // Same signature as `guestItemVariantSignature` (kept inline: this module must not import the client cart store).
+  const sig = normalizeCartVariantSignature(item.selectedColor, item.selectedSize, item.selectedSize ? item.selectedStorage : null)
   const pid = item.productId
   if (!sig) return `guest-${pid}`
   return `guest-${pid}@@${encodeURIComponent(sig)}`

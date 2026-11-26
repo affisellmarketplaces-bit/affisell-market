@@ -11,22 +11,30 @@ import Facebook from "next-auth/providers/facebook"
 import Google from "next-auth/providers/google"
 import Twitter from "next-auth/providers/twitter"
 
+import { createHash } from "node:crypto"
+
 import {
-  AccountNotFound,
   AuthServiceUnavailable,
   AffiliateBlockedOnSupplierPortal,
   EmailIdentifierRequired,
-  InvalidPassword,
+  InvalidCredentials,
   NonAdminOnAdminPortal,
   NonAffiliateOnAffiliatePortal,
   NonAgentOnAgentPortal,
   NonCustomerOnCustomerPortal,
   NonSupplierOnSupplierPortal,
-  PasswordLoginNotAvailable,
   SupplierBlockedOnAffiliatePortal,
+  TooManySignInAttempts,
 } from "@/lib/auth-credentials-errors"
+import { rateLimitResponseAsync } from "@/lib/api-rate-limit"
+import {
+  credentialFingerprint,
+  decideJwtRefresh,
+  evaluateSessionValidity,
+} from "@/lib/auth-session-revocation"
 import { inferLoginPortal, isValidEmailIdentifier } from "@/lib/auth-login-portal"
 import { verifyBuyerCheckoutMagicToken } from "@/lib/buyer-checkout-magic"
+import { consumeCheckoutMagicTokenOnce } from "@/lib/buyer-checkout-magic-consume.server"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { computeUserLegalGateHash } from "@/lib/legal/acceptance"
 import { resolveRadarFeatures } from "@/lib/radar/features"
@@ -44,6 +52,8 @@ type AuthUserRow = {
   isPro: boolean
   radarPlan: string | null
   growthPlan: string | null
+  /** bcrypt hash — only ever turned into a keyed fingerprint (`lib/auth-session-revocation.ts`), never put in the token. */
+  password: string | null
 }
 
 /**
@@ -63,6 +73,7 @@ async function loadAuthUserRow(userId: string): Promise<AuthUserRow | null> {
         isPro: true,
         radarPlan: true,
         growthPlan: true,
+        password: true,
       },
     })
   } catch (err) {
@@ -87,6 +98,7 @@ async function loadAuthUserRow(userId: string): Promise<AuthUserRow | null> {
         email: true,
         cguVersion: true,
         isPro: true,
+        password: true,
       },
     })
     if (!fallback) return null
@@ -201,6 +213,20 @@ function oauthProviders(): NonNullable<NextAuthConfig["providers"]> {
   return list
 }
 
+/**
+ * A bcrypt hash of a random value: comparing against it when the account does not exist (or has no password) costs
+ * the same time as a real comparison, so the response time does not tell whether an e-mail has an account.
+ */
+const TIMING_DUMMY_HASH = "$2b$10$EBYjLkjLBWt/sg2nzV4yguqjXbuPxBuJg7saNbXRcxAl/3yO/VnNm"
+
+/** Password attempts allowed per e-mail address in the window, whether the account exists or not. */
+const SIGN_IN_ATTEMPTS_PER_EMAIL = 10
+const SIGN_IN_ATTEMPT_WINDOW_MS = 15 * 60 * 1000
+
+function emailThrottleKey(email: string): string {
+  return `email:${createHash("sha256").update(email, "utf8").digest("hex").slice(0, 32)}`
+}
+
 /** Auth secret: set `AUTH_SECRET` or `NEXTAUTH_SECRET` in `.env.local` (both supported). */
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: env("AUTH_SECRET", "NEXTAUTH_SECRET"),
@@ -218,20 +244,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (magicRaw) {
           const payload = verifyBuyerCheckoutMagicToken(magicRaw)
           if (!payload) return null
-          if (payload.email) {
-            return {
-              id: payload.userId,
-              email: payload.email,
-              name: payload.name ?? undefined,
-              role: "CUSTOMER",
-            }
-          }
-          const userRow = await prisma.user.findUnique({ where: { id: payload.userId } })
+          // The token only ever opens a BUYER session: re-check the account's role in the database (the jwt callback
+          // copies the database role into the session, so a token naming another kind of account must stop here).
+          const userRow = await prisma.user.findUnique({ where: { id: payload.userId } }).catch((error: unknown) => {
+            console.error("[auth] checkout magic lookup failed", error instanceof Error ? error.message : String(error))
+            throw new AuthServiceUnavailable()
+          })
           if (!userRow || userRow.role !== "CUSTOMER") return null
+          // Single use (see lib/buyer-checkout-magic-consume.server.ts) — checked last, so a refused token is not burnt.
+          const consumed = await consumeCheckoutMagicTokenOnce({
+            token: magicRaw,
+            userId: payload.userId,
+            expiresAtMs: payload.expiresAtMs,
+          })
+          if (!consumed.ok) return null
           return {
-            id: userRow.id,
-            email: userRow.email,
-            name: userRow.name ?? undefined,
+            id: payload.userId,
+            email: userRow.email || payload.email,
+            name: userRow.name ?? payload.name ?? undefined,
             image: userRow.image ?? undefined,
             role: userRow.role,
           }
@@ -248,10 +278,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           console.error("[auth] authorize lookup failed", error instanceof Error ? error.message : String(error))
           throw new AuthServiceUnavailable()
         })
-        if (!userRow) throw new AccountNotFound()
-        if (!userRow.password) throw new PasswordLoginNotAvailable()
-        const ok = await bcrypt.compare(passwordRaw, userRow.password)
-        if (!ok) throw new InvalidPassword()
+        // Counted for every attempt on this address — known or not — so the limit itself reveals nothing.
+        const throttled = await rateLimitResponseAsync(emailThrottleKey(emailRaw), {
+          prefix: "signin-email",
+          limit: SIGN_IN_ATTEMPTS_PER_EMAIL,
+          windowMs: SIGN_IN_ATTEMPT_WINDOW_MS,
+        })
+        if (throttled) {
+          console.warn("[auth]", { result: "signin_throttled_per_email" })
+          throw new TooManySignInAttempts()
+        }
+        // Unknown e-mail, OAuth-only account, wrong password: one answer, same cost (see TIMING_DUMMY_HASH).
+        const ok = await bcrypt.compare(passwordRaw, userRow?.password || TIMING_DUMMY_HASH)
+        if (!userRow?.password || !ok) throw new InvalidCredentials()
 
         const portal = inferLoginPortal(c?.callbackUrl?.toString())
         if (portal === "AFFILIATE") {
@@ -367,10 +406,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         user?.id ?? (typeof token.sub === "string" ? token.sub : undefined)
       if (!userId) return token as JWT
 
-      const shouldRefresh = Boolean(user?.id) || trigger === "update"
-      if (!shouldRefresh && token.role) return token as JWT
+      const decision = decideJwtRefresh({
+        signingIn: Boolean(user?.id),
+        trigger,
+        tokenHasRole: Boolean(token.role),
+        checkedAt: token.chkAt,
+        now: Date.now(),
+      })
+      if (decision === "keep") return token as JWT
 
       const row = await loadAuthUserRow(userId)
+      const currentFingerprint = credentialFingerprint(row?.password, env("AUTH_SECRET", "NEXTAUTH_SECRET"))
+      if (decision === "sign_in") {
+        token.cfp = currentFingerprint
+      } else {
+        // Revocation (lib/auth-session-revocation.ts): deleted account, or password changed / reset since sign-in.
+        const validity = evaluateSessionValidity({
+          userExists: Boolean(row),
+          tokenFingerprint: token.cfp,
+          currentFingerprint,
+        })
+        if (!validity.valid) {
+          console.warn("[auth jwt]", { result: "session_revoked", reason: validity.reason, userId })
+          return null
+        }
+        token.cfp = validity.fingerprint
+      }
+      token.chkAt = Date.now()
 
       token.id = userId
       token.role = row?.role ?? (user as { role?: string }).role ?? (token.role as string) ?? "CUSTOMER"

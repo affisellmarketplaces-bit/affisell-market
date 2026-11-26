@@ -394,6 +394,190 @@ model SupplierComplianceProfile {
  * Isolated table on purpose (no column on Order): if its migration lags behind a deploy, orders are unaffected and
  * buyers simply fall back to the legal window.
  */
+/// Supplier price history (finalisation F1): written ONLY by the database triggers "Product_price_history" and
+/// "ProductVariant_price_history"
+/// (migration 20261116200000_product_price_history) on every change of Product.basePriceCents. Isolated: no relation,
+/// read defensively (a missing table = "no history yet", see lib/price-history.server.ts).
+/// Proactive profitability alert for one reseller and product (migration 20261117120000_reseller_profit_alerts).
+/// UNIQUE (affiliateId, dedupeKey) = idempotency: one alert per product per 14-day bucket. No foreign key; read defensively.
+model ResellerProfitAlert {
+  id               String    @id @default(cuid())
+  affiliateId      String
+  productId        String
+  listingId        String?
+  dedupeKey        String
+  primaryCause     String
+  causes           String[]  @default([])
+  previousNetCents Int
+  currentNetCents  Int
+  netChangeCents   Int
+  since            DateTime
+  /// Explanation snapshot (effects per driver, orders, period, suggestion) — rendered in the reader's language.
+  payload          Json
+  dismissedAt      DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@unique([affiliateId, dedupeKey])
+  @@index([affiliateId, createdAt])
+  @@index([affiliateId, productId, createdAt])
+}
+
+/// One delivery of an alert on one channel. UNIQUE (alertId, channel) is the claim: only one run ever delivers.
+model ResellerAlertDelivery {
+  id          String   @id @default(cuid())
+  alertId     String
+  affiliateId String
+  /// "in_app" | "email" (CHECK in the migration).
+  channel     String
+  /// "sending" | "sent" | "failed" | "skipped".
+  status      String
+  detail      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@unique([alertId, channel])
+}
+
+/// A reseller's alert preferences. In-app on, e-mail OFF by default (opt-in).
+/// AFFISELL INTELLIGENCE — decision journal (migration 20261117150000_intelligence_decision_journal, applied by hand).
+/// One OPEN decision per signal is enforced by a partial unique index in the migration (not expressible here).
+model IntelligenceDecision {
+  id               String    @id @default(cuid())
+  signalId         String
+  domain           String
+  signalKind       String
+  title            String
+  /// act | experiment | watch | dismiss
+  decision         String
+  rationale        String
+  metric           String?
+  metricScope      String?
+  /// up | down
+  desiredDirection String?
+  /// Measured by the server at decision time, never typed by a person.
+  baselineValue    Float?
+  baselineCount    Int?
+  baselineBase     Int?
+  baselineFrom     DateTime?
+  baselineTo       DateTime?
+  measureAfterDays Int?
+  dueAt            DateTime?
+  /// open | measured | closed
+  status           String    @default("open")
+  decidedById      String
+  signalSnapshot   Json
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now()) @updatedAt
+
+  @@index([signalId, createdAt])
+  @@index([status, dueAt])
+}
+
+/// The measurement of a decision, written once by the server (UNIQUE decisionId).
+model IntelligenceOutcome {
+  id            String   @id @default(cuid())
+  decisionId    String   @unique
+  metric        String
+  observedValue Float
+  observedCount Int?
+  observedBase  Int?
+  windowFrom    DateTime
+  windowTo      DateTime
+  zScore        Float?
+  /// improved | worsened | inconclusive
+  verdict       String
+  method        String
+  measuredById  String?
+  measuredAt    DateTime @default(now())
+}
+
+/// AFFISELL INTELLIGENCE — one row per signal raised by a scheduled run (migration 20261117180000_intelligence_signal_log).
+model IntelligenceSignalLog {
+  signalId     String    @id
+  domain       String
+  /// critical | important | study
+  priority     String
+  kind         String
+  title        String
+  firstSeenAt  DateTime
+  lastSeenAt   DateTime
+  timesSeen    Int       @default(1)
+  lastSnapshot Json
+  /// Claim of the founder notification (set once by UPDATE … WHERE notifiedAt IS NULL).
+  notifiedAt   DateTime?
+  /// sent | no_channel | failed
+  notifyResult String?
+
+  @@index([lastSeenAt])
+}
+
+model ResellerAlertPreference {
+  affiliateId String   @id
+  inApp       Boolean  @default(true)
+  email       Boolean  @default(false)
+  locale      String   @default("fr")
+  updatedAt   DateTime @default(now()) @updatedAt
+}
+
+/// Reseller selling-price history, written ONLY by the database trigger of migration 20261117090000_listing_price_history
+/// (every writer of AffiliateProduct.sellingPriceCents / variantPricing is covered). Read defensively: a database where the
+/// migration is not applied yet has no such table. No foreign key on purpose (the trigger must never fail the observed write).
+model ListingPriceHistory {
+  id                 BigInt   @id @default(autoincrement())
+  affiliateProductId String
+  affiliateId        String
+  productId          String
+  /// NULL = AffiliateProduct.sellingPriceCents; "opt:<key>" = a variantPricing override.
+  variantKey         String?
+  /// NULL only for a variant override that was removed (the listing price applies again).
+  priceCents         Int?
+  previousCents      Int?
+  currency           String   @default("EUR")
+  /// Declared by the writer for its transaction (lib/listing-price-history), else "unattributed".
+  source             String   @default("unattributed")
+  actorId            String?
+  effectiveAt        DateTime @default(now())
+
+  @@index([affiliateId, effectiveAt])
+  @@index([affiliateProductId, variantKey, id])
+}
+
+/// Presence of a product in a reseller's shop, one row per REAL change, written by the database trigger of migration
+/// 20261124090000_listing_presence_history (append-only; lib/listing-presence). No foreign key on purpose: a listing,
+/// product or account removed later keeps its recorded past (retention: lib/listing-presence/retention).
+model ListingPresenceEvent {
+  id                 BigInt   @id @default(autoincrement())
+  affiliateProductId String
+  affiliateId        String
+  productId          String
+  /// created | listed | unlisted | deleted
+  kind               String
+  previousListed     Boolean?
+  newListed          Boolean?
+  /// Declared by the writer for its transaction, else the price-history declaration, else "unattributed".
+  source             String   @default("unattributed")
+  actorId            String?
+  effectiveAt        DateTime @default(now())
+
+  @@index([affiliateProductId, id])
+  @@index([productId, effectiveAt])
+  @@index([affiliateId, effectiveAt])
+}
+
+model ProductPriceHistory {
+  id            BigInt   @id @default(autoincrement())
+  productId     String
+  supplierId    String?
+  /// NULL = Product.basePriceCents; "row:<name>" = a variants.variantRows line; "pv:<color>/<size>" = a ProductVariant row.
+  variantKey    String?
+  priceCents    Int
+  previousCents Int?
+  recordedAt    DateTime @default(now())
+
+  @@index([productId, recordedAt])
+  @@index([productId, variantKey, id])
+}
+
 model OrderReturnTerms {
   orderId          String   @id
   returnWindowDays Int
@@ -1377,7 +1561,7 @@ model Product {
   lastStockStatus  String?
   lastPriceSupplier Decimal?
   /**
-   * Consecutive Ghost check failures — at 3, product is auto-drafted.
+   * Consecutive Ghost check failures — at 3, availability is marked unknown (the product stays published).
    */
   stockCheckFails Int @default(0)
 
@@ -4721,4 +4905,76 @@ model InvoiceSequence {
   updatedAt  DateTime @updatedAt
 
   @@id([issuerKey, year])
+}
+
+/// Procurement debit register (migration 20261119090000_procurement_debit_register) — money REALLY taken from Affisell
+/// to buy from a source (debit), given back (refund) or charged on top (fee), recorded from its source. CHECK
+/// constraints, the partial unique index and the over-allocation trigger live in the migration only.
+model ProcurementDebit {
+  id                 String                       @id @default(cuid())
+  /// debit | refund | refund_reversal | fee
+  kind               String
+  /// stripe_issuing | card_statement | bank_statement | supplier_invoice_paid
+  source             String
+  /// read_from_source | typed_from_document
+  amountOrigin       String
+  sourceReference    String
+  amountCents        Int
+  currency           String
+  settledAmountCents Int?
+  settledCurrency    String?
+  occurredAt         DateTime
+  parentDebitId      String?
+  parent             ProcurementDebit?            @relation("ProcurementDebitChildren", fields: [parentDebitId], references: [id], onDelete: Restrict)
+  children           ProcurementDebit[]           @relation("ProcurementDebitChildren")
+  /// Stripe object ids only (ic_, iauth_, txn_) — never card data.
+  issuingCardId          String?
+  issuingAuthorizationId String?
+  balanceTransactionId   String?
+  includesDelivery   Boolean?
+  /// included | excluded | unknown
+  vatTreatment       String                       @default("unknown")
+  evidence           Json                         @default("[]")
+  note               String                       @default("")
+  /// recorded | voided
+  status             String                       @default("recorded")
+  /// none | needs_review | resolved
+  reviewState        String                       @default("none")
+  reviewReason       String?
+  reviewedAt         DateTime?
+  reviewedById       String?
+  voidReason         String?
+  voidedAt           DateTime?
+  voidedById         String?
+  recordedById       String
+  createdAt          DateTime                     @default(now())
+  allocations        ProcurementDebitAllocation[]
+
+  @@unique([source, sourceReference])
+  @@index([parentDebitId])
+  @@index([occurredAt])
+  @@index([issuingCardId])
+  @@index([reviewState])
+}
+
+/// One movement (or part of it) reconciled to ONE order, in settled euros. Revoked, never deleted.
+model ProcurementDebitAllocation {
+  id            String           @id @default(cuid())
+  debitId       String
+  debit         ProcurementDebit @relation(fields: [debitId], references: [id], onDelete: Restrict)
+  orderId       String
+  amountCents   Int
+  /// single_order | grouped_split | partial_payment | manual
+  basis         String
+  note          String           @default("")
+  /// active | revoked
+  status        String           @default("active")
+  allocatedById String
+  createdAt     DateTime         @default(now())
+  revokedAt     DateTime?
+  revokedById   String?
+  revokeReason  String?
+
+  @@index([orderId])
+  @@index([debitId])
 }

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import { buildWizardV2PublishBody } from "@/lib/product-wizard-v2/build-publish-payload"
 
 const defaults = { countryCode: "FR", warehouseType: "regional", offerMode: "NEW", defaultCommissionPct: 15 }
-const draft = { name: "Lampe", description: "Une lampe en lin lavé.", price: 19.9, categoryId: "cat", images: ["https://cdn.example.com/a.jpg"], commission: 15 }
+const draft = { name: "Lampe", description: "Une lampe en lin lavé.", price: 19.9, categoryId: "cat", images: ["https://cdn.example.com/a.jpg"], commission: 15, stock: "12" }
 
 describe("buildWizardV2PublishBody — product-safety attributes", () => {
   it("sends the declared safety / identity rows as productAttributes", () => {
@@ -27,7 +27,7 @@ describe("buildWizardV2PublishBody — product-safety attributes", () => {
     const body = buildWizardV2PublishBody(draft, defaults)
     expect("productAttributes" in body).toBe(false)
     expect(buildWizardV2PublishBody({ ...draft, attributes: [] }, defaults)).not.toHaveProperty("productAttributes")
-    expect(body).toMatchObject({ listingKind: "PHYSICAL", publish: true, name: "Lampe", stock: 99 })
+    expect(body).toMatchObject({ listingKind: "PHYSICAL", publish: true, name: "Lampe", stock: 12 })
   })
 
   it("drops blank rows", () => {

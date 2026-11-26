@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import * as THREE from "three"
 import gsap from "gsap"
 
+import { pinColor } from "@/lib/radar/live-pin"
 import type { LiveEvent } from "@/lib/radar/live-types"
 
 const EARTH_RADIUS = 100
@@ -22,13 +23,6 @@ export function latLngToVec3(lat: number, lng: number, radius: number): THREE.Ve
     radius * Math.cos(phi),
     radius * Math.sin(phi) * Math.sin(theta)
   )
-}
-
-function pinColor(event: LiveEvent): string {
-  if (event.type === "sale") return "#22c55e"
-  if (event.type === "import") return "#a78bfa"
-  if (event.growth >= 300) return "#ef4444"
-  return "#f97316"
 }
 
 function GlobeMesh() {
@@ -155,7 +149,8 @@ function SpikePin({
           <div className="whitespace-nowrap rounded-lg border border-white/15 bg-zinc-950/90 px-2 py-1 text-[10px] text-white shadow-xl backdrop-blur">
             {event.product.title.slice(0, 36)}
             {" — "}
-            {event.salesPerHour} ventes/h — {event.location.city}
+            {event.salesPerHour != null ? `${event.salesPerHour} ventes/h — ` : ""}
+            {event.location.city}
           </div>
         </Html>
       ) : null}

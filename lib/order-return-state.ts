@@ -8,6 +8,11 @@ export type SupplierReturnAction =
 
 export type BuyerReturnAction = "cancel" | "submit_tracking"
 
+/**
+ * Target status of a supplier action. This only says what the transition WOULD be: for `mark_refunded` (RECEIVED → REFUNDED)
+ * the caller must write `REFUNDED` only AFTER Stripe accepted the refund (D5) — a failed refund leaves the return in
+ * RECEIVED so the same action can be replayed; `REFUNDED` is not a state anything can leave.
+ */
 export function supplierActionToNextStatus(
   current: string,
   action: SupplierReturnAction

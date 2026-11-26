@@ -1,1 +1,0 @@
-{"version":3,"file":"route.d.ts","sourceRoot":"","sources":["../../../../../../../src/api/auth/mfa/factors/[id]/verify/route.ts"],"names":[],"mappings":"AAAA,OAAO,EACL,0BAA0B,EAC1B,cAAc,EACf,MAAM,0BAA0B,CAAA;AAGjC,OAAO,EAAE,8BAA8B,EAAE,MAAM,wBAAwB,CAAA;AAEvE,eAAO,MAAM,IAAI,GACf,KAAK,0BAA0B,CAAC,8BAA8B,CAAC,EAC/D,KAAK,cAAc,4BA6BpB,CAAA"}

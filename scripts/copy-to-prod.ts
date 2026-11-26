@@ -12,6 +12,7 @@
 import "dotenv/config"
 
 import { Prisma, PrismaClient } from "@prisma/client"
+import { withListingPresenceSource } from "../lib/listing-presence/declare"
 import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
 /** Map DB JSON nulls to Prisma input (read rows use `JsonValue` with `null`). */
@@ -244,11 +245,11 @@ async function main() {
     for (const row of affiliateProducts) {
       try {
         const data = affiliateProductPayload(row)
-        await prodDb.affiliateProduct.upsert({
+        await withListingPresenceSource(prodDb, { source: "script" }, (tx) => tx.affiliateProduct.upsert({
           where: { id: row.id },
           create: data,
           update: data,
-        })
+        }))
         counts.affiliateProducts++
       } catch (e) {
         logErr(`AffiliateProduct ${row.id}`, e)

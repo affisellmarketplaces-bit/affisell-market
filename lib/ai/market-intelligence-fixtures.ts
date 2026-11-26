@@ -1,6 +1,10 @@
 import type { MarketCategorySlug, MarketDataSnapshot } from "@/lib/ai/smart-margin-types"
 
-/** Curated 2026 market snapshots — cron refreshes TTL, fixtures are fallback baseline. */
+/**
+ * THREE hand-written demo snapshots (iPhone 17 Pro, JBL Tune Flex, AirPods Pro 3) — not market data. The numbers (price,
+ * competition, trend, `dataQuality` …) were typed by a developer; no scraper or API produced or refreshes them, and the
+ * `dataQuality` values (0.9–0.94) are editorial, not a measured completeness. Everything else falls back to the heuristic.
+ */
 export const MARKET_FIXTURES_2026: Record<string, Omit<MarketDataSnapshot, "productKey" | "fetchedAt" | "source">> = {
   "iphone-17-pro": {
     category: "hightech",
@@ -88,6 +92,7 @@ export function buildHeuristicMarket(args: {
     supplierLeadTimeHours: 72,
     fetchedAt: new Date().toISOString(),
     source: "heuristic",
+    origin: "heuristic",
   }
 }
 
@@ -100,5 +105,6 @@ export function snapshotFromFixture(
     ...fixture,
     fetchedAt: new Date().toISOString(),
     source: "fixture",
+    origin: "fixture",
   }
 }

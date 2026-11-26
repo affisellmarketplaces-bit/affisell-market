@@ -50,6 +50,8 @@ export function PortalSignInForm({
   const resolvedCallback = safeCallback ?? defaultCallback
 
   const passwordResetDone = search.get("reset") === "1"
+  // Landing from the e-mail verification link (GET /api/auth/verify-email).
+  const emailVerifiedParam = search.get("email_verified")
   const oauthError = search.get("error")
   const resolvedError =
     error ??
@@ -136,6 +138,16 @@ export function PortalSignInForm({
         {passwordResetDone ? (
           <p className="mb-4 rounded-xl bg-emerald-50 px-3 py-2 text-center text-sm text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
             {t("passwordReset.resetSuccessLogin")}
+          </p>
+        ) : null}
+
+        {emailVerifiedParam === "1" ? (
+          <p className="mb-4 rounded-xl bg-emerald-50 px-3 py-2 text-center text-sm text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+            {t("emailVerification.done")}
+          </p>
+        ) : emailVerifiedParam === "invalid" || emailVerifiedParam === "expired" ? (
+          <p className="mb-4 rounded-xl bg-amber-50 px-3 py-2 text-center text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">
+            {t(emailVerifiedParam === "expired" ? "emailVerification.expired" : "emailVerification.invalid")}
           </p>
         ) : null}
 

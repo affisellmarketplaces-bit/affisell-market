@@ -4,6 +4,7 @@ import { NextResponse } from "next/server"
 
 import { getRedisUrl } from "@/lib/auto-order/redis"
 import { tryGetRedisClient } from "@/lib/radar/redis"
+import { redisKey } from "@/lib/redis-namespace"
 
 const WINDOW_SEC = 60
 const MAX_PER_WINDOW = 5
@@ -33,7 +34,7 @@ export function radarClientIp(req: Request): string {
  */
 export async function assertRadarScanRateLimit(req: Request): Promise<NextResponse | null> {
   const ip = radarClientIp(req)
-  const key = `radar:scan:rate:${ip}`
+  const key = redisKey(`radar:scan:rate:${ip}`)
 
   if (getRedisUrl()) {
     try {

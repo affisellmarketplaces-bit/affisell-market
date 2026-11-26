@@ -139,7 +139,7 @@ export function ResellerQuotesComparator({
           <span>
             {tQuotes("winner")}{" "}
             <strong>
-              {accepted.supplierName || accepted.supplierEmail || t("common.supplierFallback")}
+              {accepted.supplierName || t("common.supplierAffisell")}
             </strong>{" "}
             — {accepted.price}€ · MOQ {accepted.moq}
           </span>
@@ -185,7 +185,7 @@ export function ResellerQuotesComparator({
                     }`}
                   >
                     <td className="px-3 py-3 font-medium text-zinc-900">
-                      {q.supplierName || q.supplierEmail || t("common.supplierFallback")}
+                      {q.supplierName || t("common.supplierAffisell")}
                       {q.status !== "pending" ? (
                         <span className="ml-2 text-[10px] uppercase text-zinc-400">
                           {tStatus(q.status as "pending" | "accepted" | "rejected")}

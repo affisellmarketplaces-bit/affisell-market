@@ -165,6 +165,33 @@ describe.skipIf(!RUN_DB)("money e2e — real DB, mocked Stripe", { timeout: 180_
     expect(supplier.amountCents + affiliate.amountCents + split.platformFeeCents).toBe(s.wholesale + s.markup)
   })
 
+  it("settles EVERY order of a multi-line cart paid by one charge (Order.stripeChargeId is unique)", async () => {
+    const s: Scenario = { name: "cart", wholesale: 3_000, commissionBps: 1000, markup: 900, categoryBps: 1200 }
+    const base = `cs_e2e_${stamp}_cart`
+    const a = await seedOrder(s, "cart-a", { stripeSessionId: `${base}:line:0` })
+    const b = await seedOrder(s, "cart-b", { stripeSessionId: `${base}:line:1` })
+
+    // the second one used to fail with a unique violation on stripeChargeId: no payout for that line
+    await expect(schedule(session(base), a.order.id)).resolves.toMatchObject({ scheduled: true })
+    await expect(schedule(session(base), b.order.id)).resolves.toMatchObject({ scheduled: true })
+
+    expect(await attemptsOf(a.order.id)).toHaveLength(2)
+    expect(await attemptsOf(b.order.id)).toHaveLength(2)
+    const [rowA, rowB] = await Promise.all([
+      prisma.order.findUnique({ where: { id: a.order.id }, select: { stripeChargeId: true, paymentSettlementStatus: true } }),
+      prisma.order.findUnique({ where: { id: b.order.id }, select: { stripeChargeId: true, paymentSettlementStatus: true } }),
+    ])
+    expect(rowA!.stripeChargeId).toBe(`ch_pi_${base}`)
+    expect(rowB!.stripeChargeId).toBeNull() // found through its session, never a second copy of the unique id
+    expect(rowB!.paymentSettlementStatus).toBe(rowA!.paymentSettlementStatus)
+
+    // and a replay of the first one keeps its charge id
+    await schedule(session(base), a.order.id)
+    expect((await prisma.order.findUnique({ where: { id: a.order.id }, select: { stripeChargeId: true } }))!.stripeChargeId).toBe(
+      `ch_pi_${base}`
+    )
+  })
+
   it("is idempotent: scheduling twice never duplicates or changes the payout", async () => {
     const s: Scenario = { name: "idem", wholesale: 4_990, commissionBps: 1200, markup: 1_510, categoryBps: 1200 }
     const { order } = await seedOrder(s, "idem")

@@ -1,3 +1,5 @@
+import { stockFromSource } from "@/lib/import-stock"
+
 /**
  * Maps `/api/supplier/import-url` product payload to `executeSupplierProductsImport` row shape.
  */
@@ -41,7 +43,10 @@ export function mapScrapedProductForImportSave(
     },
     specs: raw.specs ?? {},
     tags: raw.tags ?? [],
-    stock: Math.max(0, Math.round(num(raw.stock) || 99)),
+    // Never a fallback quantity (was 99): only what the source reported, with its provenance.
+    ...(raw.stockProvenance === "source"
+      ? stockFromSource(raw.stock)
+      : { stock: 0, stockProvenance: "not_provided" as const }),
     sku: typeof raw.sku === "string" ? raw.sku : "",
     source_url: typeof raw.source_url === "string" ? raw.source_url : "",
     category: typeof raw.category === "string" ? raw.category : "",

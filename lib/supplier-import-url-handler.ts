@@ -23,6 +23,7 @@ import { extractBigBuyProductId, getBigBuyProduct } from "@/lib/bigbuy-lookup"
 import { extractCjProductId, getCjProduct } from "@/lib/cj-dropshipping-lookup"
 import { convertCnyToEur, convertUsdToEur } from "@/lib/currency-conversion"
 import { extract1688Id, get1688 } from "@/lib/onebound"
+import { sourceQuantity, stockFromSource, stockFromVariantQuantities, type StockProvenance } from "@/lib/import-stock"
 import { checkCatalogDuplicate } from "@/lib/catalog-duplicate-check"
 
 type ReviewSentiment = "positive" | "neutral" | "negative"
@@ -77,6 +78,8 @@ export type SupplierScrapedProduct = {
   category: string
   sku: string
   stock: number
+  /** Where `stock` comes from (lib/import-stock.ts). Absent = « not provided » (fail closed). */
+  stockProvenance?: StockProvenance
   shipping: {
     from_country: string
     delivery_time: string
@@ -354,6 +357,7 @@ function baselineProduct(url: string, platform: Platform): ImportedProduct {
     category: "",
     sku: "",
     stock: 0,
+    stockProvenance: "not_provided",
     shipping: {
       from_country: "Unknown",
       delivery_time: "7-14 days",
@@ -638,6 +642,7 @@ function mergeAliExpressParsed(parsed: AliExpressParseInput, url: string): Impor
   out.brand = parsed.brand
   out.sku = parsed.sku
   out.stock = parsed.stock
+  out.stockProvenance = parsed.stockProvenance ?? "not_provided"
   out.variants = parsed.variants
   out.colors = parsed.colors
   out.sizes = parsed.sizes
@@ -695,7 +700,8 @@ function parseAERData(aerData: Record<string, unknown>, url: string): ImportedPr
     .slice(0, 12)
   out.brand = txt(productInfo.storeName)
   out.sku = `AE-${url.match(/item\/(\d+)\.html/)?.[1] ?? ""}`
-  out.stock = num(productInfo.totalAvailQuantity) || 999
+  // A quantity only when the page really carries one — never a fallback number (founder decision 2026-11-19).
+  Object.assign(out, stockFromSource(productInfo.totalAvailQuantity))
   out.shipping = {
     from_country: txt(freightInfo.shipFrom) || "China",
     delivery_time: txt(freightInfo.deliveryTimeDesc) || "15-25 days",
@@ -738,7 +744,10 @@ function parseAERData(aerData: Record<string, unknown>, url: string): ImportedPr
         ),
       ].map((name) => ({ name, value: name }))
       if (persist.minPriceCents > 0) out.price = persist.minPriceCents / 100
-      if (persist.totalStock > 0) out.stock = persist.totalStock
+      if (persist.totalStock > 0) {
+        out.stock = persist.totalStock
+        out.stockProvenance = "source"
+      }
     }
   } else {
     const variants = (Array.isArray(skuModule.productSKUPropertyList)
@@ -758,7 +767,7 @@ function parseAERData(aerData: Record<string, unknown>, url: string): ImportedPr
           type: propName,
           image: txt(v.skuPropertyImagePath) ? hdImage(txt(v.skuPropertyImagePath)) : "",
           price: prices[0] || 0,
-          stock: 50,
+          stock: 0, // per-value quantity unknown on the page (was a fixed 50)
           sku: `AE-${txt(v.propertyValueId)}`,
           attributes: { [propName]: name },
         }
@@ -928,7 +937,9 @@ function parseSchemaProduct(
 
   out.brand = txt(asRec(p.brand).name)
   out.sku = txt(p.sku)
-  out.stock = txt(offers.availability).includes("InStock") ? 999 : 0
+  // « InStock » is an availability, not a quantity: no number is invented from it.
+  out.stock = 0
+  out.stockProvenance = "not_provided"
   out.category = txt(p.category) || "General"
   const video = p.video
   out.videos = collectVideoUrls(
@@ -958,7 +969,7 @@ async function scrapeShopify(url: string): Promise<ImportedProduct> {
       type: "Variant",
       image: "",
       price: num(v.price),
-      stock: Math.max(0, Math.round(num(v.inventory_quantity))),
+      stock: sourceQuantity(v.inventory_quantity) ?? 0,
       sku: txt(v.sku),
       attributes: {},
     }
@@ -966,7 +977,7 @@ async function scrapeShopify(url: string): Promise<ImportedProduct> {
   out.price = out.variants[0]?.price || 0
   out.original_price = num(asRec(variants[0]).compare_at_price) || out.price
   out.sku = txt(asRec(variants[0]).sku)
-  out.stock = Math.max(0, Math.round(num(asRec(variants[0]).inventory_quantity)))
+  Object.assign(out, stockFromVariantQuantities(variants.map((v) => asRec(v).inventory_quantity)))
   out.brand = txt(p.vendor)
   out.category = txt(p.product_type) || "Shopify Product"
   const media = Array.isArray(p.media) ? p.media : []
@@ -1011,8 +1022,12 @@ async function import1688Product(url: string): Promise<ImportedProduct> {
       attributes: {},
     }))
   )
-  out.stock =
-    out.variants.reduce((sum, v) => sum + v.stock, 0) || 999
+  // OneBound writes 0 when a SKU has no quantity, so a total of 0 can not be told from « unknown ».
+  {
+    const total = out.variants.reduce((sum, v) => sum + v.stock, 0)
+    out.stock = total
+    out.stockProvenance = total > 0 ? "source" : "not_provided"
+  }
   out.brand = data.supplier
   out.sku = `1688-${extract1688Id(url) ?? ""}`
   out.specs = data.moq > 1 ? { MOQ: String(data.moq) } : {}
@@ -1045,12 +1060,13 @@ async function importCjProduct(url: string): Promise<ImportedProduct> {
       type: "Variant",
       image: "",
       price: await convertUsdToEur(v.priceUsd),
-      stock: 999,
+      stock: 0, // CJ's product lookup returns no quantity
       sku: v.sku,
       attributes: {},
     }))
   )
-  out.stock = 999
+  out.stock = 0
+  out.stockProvenance = "not_provided"
   out.sku = `cj-${extractCjProductId(url) ?? ""}`
   out.category = data.category || "CJ Dropshipping Product"
   out.shipping = {
@@ -1074,7 +1090,8 @@ async function importBigBuyProduct(url: string): Promise<ImportedProduct> {
   out.original_price = data.priceEur
   out.currency = "EUR"
   out.images = data.images.slice(0, 12)
-  out.stock = 999
+  out.stock = 0 // BigBuy's lookup returns no quantity
+  out.stockProvenance = "not_provided"
   out.sku = data.sku || `bigbuy-${extractBigBuyProductId(url) ?? ""}`
   out.category = "BigBuy Product"
   out.brand = "BigBuy"

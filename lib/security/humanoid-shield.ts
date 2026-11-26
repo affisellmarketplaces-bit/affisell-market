@@ -4,6 +4,7 @@ import {
   HUMAN_PASS_COOKIE,
   verifyHumanPassToken,
 } from "@/lib/security/human-pass"
+import { redisKey } from "@/lib/redis-namespace"
 
 export type ShieldAction = "ALLOW" | "CHALLENGE" | "BLOCK"
 
@@ -124,11 +125,18 @@ async function getRedis() {
   }
 }
 
+// Every key goes through `redisKey` (lib/redis-namespace.ts): "" in production (keys unchanged), `preview:` on a Preview, so a Preview
+// can neither read production's IP bans and shield logs nor write its own into them.
+const SHIELD_BAN_KEY_PREFIX = "affisell:shield:ban:"
+
 function redisBanKey(ip: string): string {
-  return `affisell:shield:ban:${ip}`
+  return redisKey(`${SHIELD_BAN_KEY_PREFIX}${ip}`)
 }
 
-const SHIELD_REDIS_LOG_KEY = "affisell:shield:logs"
+/** Redis list holding the recent shield events (also read / written by `app/api/security/logs`). */
+export function shieldLogsRedisKey(): string {
+  return redisKey("affisell:shield:logs")
+}
 const MAX_SHIELD_LOGS = 500
 
 function pushShieldEvent(entry: ShieldEventLog): void {
@@ -144,8 +152,8 @@ async function persistShieldEvent(entry: ShieldEventLog): Promise<void> {
   const redis = await getRedis()
   if (!redis) return
   try {
-    await redis.lpush(SHIELD_REDIS_LOG_KEY, JSON.stringify(entry))
-    await redis.ltrim(SHIELD_REDIS_LOG_KEY, 0, MAX_SHIELD_LOGS - 1)
+    await redis.lpush(shieldLogsRedisKey(), JSON.stringify(entry))
+    await redis.ltrim(shieldLogsRedisKey(), 0, MAX_SHIELD_LOGS - 1)
   } catch {
     // memory fallback only
   }
@@ -205,7 +213,8 @@ export class HumanoidShield {
     const redis = await getRedis()
     if (!redis) return []
     try {
-      const keys = await redis.keys("affisell:shield:ban:*")
+      const banKeyPrefix = redisKey(SHIELD_BAN_KEY_PREFIX)
+      const keys = await redis.keys(`${banKeyPrefix}*`)
       if (!Array.isArray(keys) || keys.length === 0) return []
       const now = Date.now()
       const bans: Array<{ ip: string; blockedUntil: number }> = []
@@ -213,7 +222,7 @@ export class HumanoidShield {
         if (typeof key !== "string") continue
         const raw = await redis.get(key)
         const until = Number(raw)
-        const ip = key.replace("affisell:shield:ban:", "")
+        const ip = key.startsWith(banKeyPrefix) ? key.slice(banKeyPrefix.length) : key
         if (Number.isFinite(until) && until > now) {
           bans.push({ ip, blockedUntil: until })
           HumanoidShield.blockedUntil.set(ip, until)

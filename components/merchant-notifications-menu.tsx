@@ -16,6 +16,9 @@ import { isProductRequestNotifType } from "@/lib/product-request-notif-constants
 import { SUPPLIER_INVITE_NOTIF } from "@/lib/supplier-invite-notif-constants"
 import { SUPPLIER_AFFILIATE_INVITE_NOTIF } from "@/lib/supplier-affiliate-invite-notif-constants"
 import { SUPPLIER_PRICE_CHANGE_NOTIF } from "@/lib/affiliate-wholesale-change-notif-constants"
+import { PROFIT_ALERT_NOTIF } from "@/lib/intelligence/profit-alert-types"
+import { UNSELLABLE_DIGEST_NOTIF, UNSELLABLE_LIST_PATH, UNSELLABLE_LISTING_NOTIF } from "@/lib/reseller-replacement/unsellable-alerts"
+import { SUPPLIER_BLOCKED_DEMAND_NOTIF, SUPPLIER_BLOCKED_DEMAND_PATH } from "@/lib/supplier-demand-alerts/blocked-demand"
 import type { MerchantNotificationOrderSummary } from "@/lib/merchant-notification-order-summary-types"
 import { computeAnchoredPanelPosition, type AnchoredPanelPosition } from "@/lib/anchored-panel-position"
 import { cn } from "@/lib/utils"
@@ -77,6 +80,9 @@ const config: Record<
     showOrdersLink: (n) =>
       n.type === "NEW_SALE" ||
       n.type === SUPPLIER_PRICE_CHANGE_NOTIF ||
+      n.type === PROFIT_ALERT_NOTIF ||
+      n.type === UNSELLABLE_LISTING_NOTIF ||
+      n.type === UNSELLABLE_DIGEST_NOTIF ||
       n.type === SUPPLIER_INVITE_NOTIF.CATALOG_LIVE ||
       n.type === SUPPLIER_INVITE_NOTIF.NEW_SUPPLIER_CATALOG ||
       isProductRequestNotifType(n.type),
@@ -130,8 +136,27 @@ function resolveNotificationLink(
     }
   }
 
+  if (role === "AFFILIATE" && n.type === UNSELLABLE_LISTING_NOTIF && n.orderId) {
+    return {
+      href: `/dashboard/affiliate/products/${encodeURIComponent(n.orderId)}/replace`,
+      label: t("viewReplacement"),
+    }
+  }
+
+  if (role === "AFFILIATE" && n.type === UNSELLABLE_DIGEST_NOTIF) {
+    return { href: UNSELLABLE_LIST_PATH, label: t("viewUnsellableList") }
+  }
+
+  if (role === "AFFILIATE" && n.type === PROFIT_ALERT_NOTIF) {
+    return { href: "/dashboard/affiliate/opportunities", label: t("viewProfitAlert") }
+  }
+
   if (role === "AFFILIATE" && n.type === SUPPLIER_INVITE_NOTIF.REGISTERED) {
     return { href: "/dashboard/affiliate/invite-supplier", label: t("viewInvitation") }
+  }
+
+  if (role === "SUPPLIER" && n.type === SUPPLIER_BLOCKED_DEMAND_NOTIF) {
+    return { href: SUPPLIER_BLOCKED_DEMAND_PATH, label: t("viewBlockedDemand") }
   }
 
   if (

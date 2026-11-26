@@ -30,7 +30,7 @@ import {
   donaPublicWelcome,
   resolveDonaPublicAudience,
 } from "@/lib/dona/dona-audience"
-import { tMessage } from "@/lib/i18n-pick-message"
+import { useMessagePicker } from "@/hooks/use-message-picker"
 
 function shouldHideWidget(pathname: string): boolean {
   return pathname.startsWith("/dashboard") || pathname.startsWith("/admin")
@@ -39,6 +39,7 @@ function shouldHideWidget(pathname: string): boolean {
 export function DonaPublicWidget() {
   const pathname = usePathname() ?? ""
   const locale = useAppLocale()
+  const pick = useMessagePicker()
   const audience = useMemo(() => resolveDonaPublicAudience(pathname), [pathname])
   const [isOpen, setIsOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -65,11 +66,11 @@ export function DonaPublicWidget() {
   })
 
   const busy = status === "submitted" || status === "streaming"
-  const placeholder = useMemo(() => donaPublicPlaceholder(audience, locale), [audience, locale])
-  const welcome = useMemo(() => donaPublicWelcome(audience, locale), [audience, locale])
-  const badge = useMemo(() => donaPublicBadge(audience, locale), [audience, locale])
+  const placeholder = useMemo(() => donaPublicPlaceholder(audience, pick), [audience, pick])
+  const welcome = useMemo(() => donaPublicWelcome(audience, pick), [audience, pick])
+  const badge = useMemo(() => donaPublicBadge(audience, pick), [audience, pick])
   const visibleMessages = useMemo(() => filterRenderableMessages(messages), [messages])
-  const errorText = donaResolvedError(error, locale, donaGenericError(locale))
+  const errorText = donaResolvedError(error, locale, donaGenericError(pick))
   // A sign-up request gets real buttons under Dona's answer, whatever link the model wrote.
   const signupCta = useMemo(
     () =>
@@ -81,16 +82,16 @@ export function DonaPublicWidget() {
 
   const copy = useMemo(
     () => ({
-      dialogLabel: tMessage(locale, "donaWidget.public.dialogLabel"),
-      headerTitle: tMessage(locale, "donaWidget.public.headerTitle"),
-      typingLabel: tMessage(locale, "donaWidget.public.typing"),
-      sendAria: tMessage(locale, "donaWidget.public.sendAria"),
-      closeAria: tMessage(locale, "donaWidget.public.closeAria"),
-      openFabAria: tMessage(locale, "donaWidget.public.openFabAria"),
-      trustFooter: tMessage(locale, "donaWidget.public.trustFooter"),
-      localeBadge: tMessage(locale, "donaWidget.public.localeBadge"),
+      dialogLabel: pick("donaWidget.public.dialogLabel"),
+      headerTitle: pick("donaWidget.public.headerTitle"),
+      typingLabel: pick("donaWidget.public.typing"),
+      sendAria: pick("donaWidget.public.sendAria"),
+      closeAria: pick("donaWidget.public.closeAria"),
+      openFabAria: pick("donaWidget.public.openFabAria"),
+      trustFooter: pick("donaWidget.public.trustFooter"),
+      localeBadge: pick("donaWidget.public.localeBadge"),
     }),
-    [locale]
+    [pick]
   )
 
   useEffect(() => {

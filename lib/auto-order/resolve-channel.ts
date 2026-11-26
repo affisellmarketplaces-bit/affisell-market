@@ -2,6 +2,7 @@ import type { Product, SupplierChannelType } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
 import { channelRequiresAuthorization, isSupplierAuthorizedForChannel } from "@/lib/supplier-auto-buy-authorization.server"
+import { isExternalPurchaseEnabled } from "@/lib/procurement/external-purchase-switch"
 
 export type ResolvedChannel = {
   channel: SupplierChannelType
@@ -31,6 +32,17 @@ export async function resolveFulfillmentChannel(
 
   const authorize = async (candidate: ResolvedChannel): Promise<ResolvedChannel | null> => {
     if (!channelRequiresAuthorization(candidate.channel)) return candidate
+    // A sourcing channel spends real money on an external site: never while the single purchase switch is off. The
+    // line then falls back to the native/manual path, exactly as for an unauthorised supplier.
+    if (!isExternalPurchaseEnabled()) {
+      console.log("[resolve-fulfillment-channel]", {
+        productId: product.id,
+        supplierId: product.supplierId,
+        channel: candidate.channel,
+        result: "blocked_external_purchase_disabled",
+      })
+      return null
+    }
     const allowed = await isSupplierAuthorizedForChannel(product.supplierId, candidate.channel)
     if (allowed) return candidate
     console.log("[resolve-fulfillment-channel]", {

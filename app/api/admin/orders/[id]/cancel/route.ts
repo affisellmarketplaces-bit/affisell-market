@@ -26,6 +26,13 @@ export async function POST(req: NextRequest, ctx: Ctx) {
 
   const result = await cancelMarketplaceOrderByAdmin(orderId, parsed.data.cancelReason)
   if (!result.ok) {
+    if (result.refundFailed) {
+      // The buyer paid and Stripe did not refund: the order is NOT marked refunded; repeating the cancel replays the refund.
+      return NextResponse.json(
+        { error: result.error ?? "refund_failed", refundFailed: true, retryable: result.retryable ?? false },
+        { status: 502 }
+      )
+    }
     return NextResponse.json({ error: result.error ?? "cancel_failed" }, { status: 400 })
   }
 

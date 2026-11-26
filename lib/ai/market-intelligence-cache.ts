@@ -3,6 +3,7 @@ import "server-only"
 import { Redis } from "@upstash/redis"
 
 import type { MarketDataSnapshot } from "@/lib/ai/smart-margin-types"
+import { redisKey } from "@/lib/redis-namespace"
 
 export const MARKET_REDIS_PREFIX = "market:"
 export const MARKET_REDIS_TTL_SEC = 6 * 60 * 60
@@ -19,7 +20,7 @@ function getRedis(): Redis | null {
 }
 
 export function marketRedisKey(productKey: string): string {
-  return `${MARKET_REDIS_PREFIX}${productKey}`
+  return redisKey(`${MARKET_REDIS_PREFIX}${productKey}`)
 }
 
 function pruneMemory(): void {

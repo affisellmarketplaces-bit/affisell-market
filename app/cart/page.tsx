@@ -20,9 +20,10 @@ import { CartRolloutCheckoutNote } from "@/components/marketplace/cart-rollout-c
 import { useVisitorCheckoutRegion } from "@/hooks/use-visitor-checkout-region"
 import { CartCheckoutAutoOpen } from "@/components/cart/cart-checkout-auto-open"
 import { COLORS, isMulticolorSwatch } from "@/lib/product-catalog-constants"
-import { normalizeCartVariantSignature, parseCartVariantSignature } from "@/lib/cart-variant"
+import { parseCartVariantSignature } from "@/lib/cart-variant"
 import { guestCartLineId, parseGuestCartLineId } from "@/lib/guest-cart-line-id"
 import {
+  guestItemVariantSignature,
   patchGuestCartItemImageUrl,
   readGuestCart,
   removeGuestCartItem,
@@ -35,6 +36,7 @@ import { StripeCheckoutWarmup } from "@/components/checkout/stripe-checkout-warm
 import { useStorefrontHost } from "@/components/storefront/storefront-host-context"
 import { useCheckoutHandoff } from "@/hooks/use-checkout-handoff"
 import { dispatchCartUpdated } from "@/lib/buyer-cart-count-client"
+import { checkoutStockMessage, parseCheckoutStockRefusal } from "@/lib/checkout-stock-client"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { buyerExploreHref, buyerListingHref } from "@/lib/storefront-buyer-links"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/stripe-minimum"
@@ -96,7 +98,7 @@ function guestToLine(item: GuestCartItem): CartLine {
     id: guestCartLineId(item),
     qty: item.qty,
     sellerName: item.sellerName ?? null,
-    variantSignature: normalizeCartVariantSignature(item.selectedColor, item.selectedSize),
+    variantSignature: guestItemVariantSignature(item),
     selectedColor: item.selectedColor?.trim() || null,
     selectedSize: item.selectedSize?.trim() || null,
     product: {
@@ -110,19 +112,25 @@ function guestToLine(item: GuestCartItem): CartLine {
 
 function selectionChips(
   row: CartLine,
-  labels: { color: string; size: string }
-): { kind: "color" | "size"; label: string; value: string }[] {
-  const out: { kind: "color" | "size"; label: string; value: string }[] = []
+  labels: { color: string; size: string; storage: string }
+): { kind: "color" | "size" | "storage"; label: string; value: string }[] {
+  const out: { kind: "color" | "size" | "storage"; label: string; value: string }[] = []
+  // The capacity chosen beside a size lives in the signature only (`g:`): shown as chosen, never inferred.
+  const storage = parseCartVariantSignature(row.variantSignature).storage
   if (row.selectedColor?.trim()) {
     out.push({ kind: "color", label: labels.color, value: row.selectedColor.trim() })
   }
   if (row.selectedSize?.trim()) {
     out.push({ kind: "size", label: labels.size, value: row.selectedSize.trim() })
   }
-  if (out.length > 0) return out
+  if (out.length > 0) {
+    if (storage) out.push({ kind: "storage", label: labels.storage, value: storage })
+    return out
+  }
   const p = parseCartVariantSignature(row.variantSignature)
   if (p.color) out.push({ kind: "color", label: labels.color, value: p.color })
   if (p.size) out.push({ kind: "size", label: labels.size, value: p.size })
+  if (storage) out.push({ kind: "storage", label: labels.storage, value: storage })
   return out
 }
 
@@ -155,6 +163,7 @@ async function fetchSession(signal?: AbortSignal): Promise<AuthSession> {
 
 export default function CartPage() {
   const t = useTranslations("cart")
+  const tStock = useTranslations("cart.stock")
   const router = useRouter()
   const { isStoreHost } = useStorefrontHost()
   const { country: visitorCountry, checkoutAvailable, loading: visitorRegionLoading } =
@@ -173,7 +182,7 @@ export default function CartPage() {
   const guestImagesResolvedKey = useRef("")
   const { overlay: checkoutHandoff, beginHandoff, endHandoff } = useCheckoutHandoff()
   const selectionLabels = useMemo(
-    () => ({ color: t("colorLabel"), size: t("sizeLabel") }),
+    () => ({ color: t("colorLabel"), size: t("sizeLabel"), storage: t("storageLabel") }),
     [t]
   )
 
@@ -432,6 +441,11 @@ export default function CartPage() {
         return
       }
       endHandoff()
+      const stockRefusal = res.status === 409 ? parseCheckoutStockRefusal(data) : null
+      if (stockRefusal) {
+        setCheckoutError(checkoutStockMessage(stockRefusal, tStock))
+        return
+      }
       if (res.status === 409 && data.error === "OUT_OF_STOCK_VERIFIED") {
         setGhostOos({
           productName: data.productName,

@@ -20,6 +20,7 @@ export async function POST(req: Request) {
     quantity?: number
     selectedColor?: string | null
     selectedSize?: string | null
+    selectedStorage?: string | null
   }
   const affiliateProductId = typeof body.productId === "string" ? body.productId.trim() : ""
   if (!affiliateProductId) {
@@ -31,7 +32,9 @@ export async function POST(req: Request) {
 
   const colorRaw = typeof body.selectedColor === "string" ? body.selectedColor.trim() : ""
   const sizeRaw = typeof body.selectedSize === "string" ? body.selectedSize.trim() : ""
-  const variantSignature = normalizeCartVariantSignature(colorRaw || null, sizeRaw || null)
+  const storageRaw = typeof body.selectedStorage === "string" ? body.selectedStorage.trim() : ""
+  // The capacity joins the key only beside a size (a product with both): otherwise the size slot already carries it.
+  const variantSignature = normalizeCartVariantSignature(colorRaw || null, sizeRaw || null, sizeRaw ? storageRaw || null : null)
   const selectedColor = colorRaw ? colorRaw.slice(0, 48) : null
   const selectedSize = sizeRaw ? sizeRaw.slice(0, 40) : null
 

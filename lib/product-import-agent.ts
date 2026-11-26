@@ -182,6 +182,7 @@ function applyAeSkuMatrixToScraped(
       colors: colors.length > 0 ? colors : product.colors,
       sizes: product.sizes.length > 0 ? product.sizes : sizesFromBullets,
       stock: persist.totalStock > 0 ? persist.totalStock : product.stock,
+      stockProvenance: persist.totalStock > 0 ? ("source" as const) : product.stockProvenance,
       tags:
         colors.length > 0
           ? Array.from(new Set([...product.tags, "ae-skus"]))
@@ -257,6 +258,7 @@ function applyAeSkuMatrixToScraped(
     colors,
     sizes,
     stock: persist.totalStock > 0 ? persist.totalStock : product.stock,
+    stockProvenance: persist.totalStock > 0 ? ("source" as const) : product.stockProvenance,
     basePrice: suggested,
     costPrice: minEur,
     suggested_price: suggested,
@@ -291,6 +293,7 @@ function aliExpressToScraped(
     category: "AliExpress",
     sku: `ae-${mapped.aliexpressProductId}`,
     stock: mapped.stock,
+    stockProvenance: mapped.stockProvenance,
     shipping: {
       from_country: "China",
       delivery_time: "15-25 days",

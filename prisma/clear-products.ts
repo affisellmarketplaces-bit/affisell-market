@@ -5,6 +5,7 @@
 
 import { config } from "dotenv"
 import { PrismaClient } from "@prisma/client"
+import { withListingPresenceSource } from "../lib/listing-presence/declare"
 import { assertNotProductionByAccident } from "../scripts/lib/production-guard.mjs"
 
 config({ path: ".env.local" })
@@ -21,7 +22,7 @@ async function main() {
 
   await prisma.$transaction(async (tx) => {
     await tx.order.deleteMany()
-    await tx.affiliateProduct.deleteMany()
+    await withListingPresenceSource(tx, { source: "script" }, (tx) => tx.affiliateProduct.deleteMany())
     await tx.product.deleteMany()
   })
 

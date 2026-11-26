@@ -7,6 +7,7 @@ import { existsSync } from "node:fs"
 import { resolve } from "node:path"
 
 import { PrismaClient } from "@prisma/client"
+import { withListingPresenceSource } from "../lib/listing-presence/declare"
 import { config as loadEnv } from "dotenv"
 import { assertNotProductionByAccident } from "./lib/production-guard.mjs"
 
@@ -76,7 +77,7 @@ async function main() {
 
   const sellingPriceCents = product.basePriceCents + TARGET_MARGIN_CENTS
 
-  const listing = await prisma.affiliateProduct.upsert({
+  const listing = await withListingPresenceSource(prisma, { source: "script" }, (tx) => tx.affiliateProduct.upsert({
     where: {
       affiliateId_productId: {
         affiliateId: affiliate.id,
@@ -98,7 +99,7 @@ async function main() {
       isListed: true,
     },
     select: { id: true, marginCents: true, sellingPriceCents: true },
-  })
+  }))
 
   console.log("[ensure-seo-parasite]", {
     productId: product.id,

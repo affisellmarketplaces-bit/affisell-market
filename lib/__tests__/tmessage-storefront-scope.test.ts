@@ -11,12 +11,13 @@ import {
 } from "@/lib/i18n-slim-client-messages"
 
 /**
- * In the browser, `tMessage()` reads only the messages the page's provider received (`#i18n-catalog`, PR #15). On a
+ * In the browser, `tMessage()` (`#i18n-catalog`, PR #15) and `useMessagePicker()` read only the messages the page's
+ * provider received. On a
  * merchant custom domain those are SLIMMED (`slimClientMessagesForDedicatedStorefront`) while the server still reads
  * the full catalogs: a key outside the slim set renders translated on the server and as its fallback in the browser —
  * a hydration mismatch and the wrong text, with no error anywhere.
  *
- * Tripwire: every namespace `tMessage()` reads outside the server must either be sent to dedicated storefronts, or be
+ * Tripwire: every namespace `tMessage()` or a message picker reads outside the server must either be sent to dedicated storefronts, or be
  * listed below with the reason it never renders on one (each reason checked against its importers on 2026-11-26). A new namespace fails here until someone decides which.
  * (Path-specific sets — e.g. `Product` only on the PDP — are not modelled; this catches the new-namespace case.)
  */
@@ -56,7 +57,11 @@ function tMessageNamespaces(): Map<string, Set<string>> {
       const rel = path.relative(root, file).split(path.sep).join("/")
       if (SERVER_ONLY(rel)) continue
       const src = fs.readFileSync(file, "utf8")
-      for (const m of src.matchAll(/\btMessage\(\s*[^,()]+,\s*[`"']([A-Za-z]+)[.`"']/g)) {
+      const reads = [...src.matchAll(/\btMessage\(\s*[^,()]+,\s*[`"']([A-Za-z]+)[.`"']/g)]
+      // `pick("ns.key")` from `useMessagePicker()` reads the same provider messages. Only in files that use it: other
+      // functions are also called `pick`.
+      if (/useMessagePicker|DonaMessagePicker/.test(src)) reads.push(...src.matchAll(/\bpick\(\s*[`"']([A-Za-z]+)[.`"']/g))
+      for (const m of reads) {
         const set = byNamespace.get(m[1]) ?? new Set<string>()
         set.add(rel)
         byNamespace.set(m[1], set)

@@ -1,9 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
 
+import { buyerAccountRequiresSignIn } from "@/lib/buyer-account-ownership.server"
 import { identifyBuyerForCheckout } from "@/lib/buyer-identify"
 import { createBuyerCheckoutMagicToken } from "@/lib/buyer-checkout-magic"
 import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
 import { extractMarketplaceCheckoutCustomer } from "@/lib/marketplace-checkout-session"
+import { safeAuth } from "@/lib/safe-auth"
 import { getStripeClient } from "@/lib/stripe"
 
 export const runtime = "nodejs"
@@ -44,6 +46,24 @@ export async function POST(req: NextRequest) {
         status: identified.status,
       })
       return NextResponse.json({ error: identified.error, code: "identify_failed" }, { status: identified.status })
+    }
+
+    // The e-mail on a Stripe session is typed by the payer, so a paid session proves a payment, not ownership
+    // of that address. An account with an owner or with history other than THIS payment is never opened here.
+    if (!identified.isNew) {
+      const current = await safeAuth()
+      const alreadySignedIn = current?.user?.id === identified.userId
+      if (
+        !alreadySignedIn &&
+        (await buyerAccountRequiresSignIn(identified.userId, { ignoreStripeSessionId: session.id }))
+      ) {
+        console.log("[post-checkout-buyer]", {
+          sessionId,
+          userId: identified.userId,
+          result: "sign_in_required",
+        })
+        return NextResponse.json({ error: "sign_in_required", code: "sign_in_required" }, { status: 403 })
+      }
     }
 
     const checkoutMagic = createBuyerCheckoutMagicToken(identified.userId, {

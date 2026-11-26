@@ -9,6 +9,7 @@ import type { PasswordResetPortal } from "@/emails/password-reset"
 import { maskEmailForLog } from "@/lib/emails/mask-email"
 import { sendPasswordResetEmail } from "@/lib/emails/send-password-reset"
 import { isValidEmailIdentifier } from "@/lib/auth-login-portal"
+import { checkPasswordPolicy } from "@/lib/password-policy"
 import { prisma } from "@/lib/prisma"
 
 const TOKEN_TTL_MS = 60 * 60 * 1000
@@ -31,7 +32,8 @@ export async function requestPasswordReset(emailRaw: string): Promise<void> {
     select: { id: true, email: true, name: true, role: true },
   })
   if (!user) {
-    console.log("[auth-forgot-password]", { email, result: "unknown_email" })
+    // Never the address in clear: logs are kept and shipped to third parties (Logtail, Sentry breadcrumbs).
+    console.log("[auth-forgot-password]", { email: maskEmailForLog(email), result: "unknown_email" })
     return
   }
 
@@ -81,14 +83,11 @@ export async function resetPasswordWithToken(
   if (token.length < 16) {
     return { ok: false, error: "invalid_token" }
   }
-  if (passwordRaw.length < 8) {
-    return { ok: false, error: "password_too_short" }
-  }
 
   const tokenHash = hashResetToken(token)
   const row = await prisma.passwordResetToken.findUnique({
     where: { tokenHash },
-    select: { id: true, userId: true, expiresAt: true },
+    select: { id: true, userId: true, expiresAt: true, user: { select: { email: true } } },
   })
 
   if (!row || row.expiresAt.getTime() < Date.now()) {
@@ -98,16 +97,31 @@ export async function resetPasswordWithToken(
     return { ok: false, error: "invalid_token" }
   }
 
+  // Same rule as the signup (lib/password-policy.ts). Checked after the token so an invalid link says so first.
+  const policy = checkPasswordPolicy(passwordRaw, { email: row.user?.email })
+  if (!policy.ok) {
+    return { ok: false, error: policy.error }
+  }
+
   const hash = await bcrypt.hash(passwordRaw, 10)
 
-  await prisma.$transaction([
-    prisma.user.update({
-      where: { id: row.userId },
-      data: { password: hash },
-    }),
-    prisma.passwordResetToken.deleteMany({ where: { userId: row.userId } }),
-  ])
+  // The token is CONSUMED in the same transaction as the password write, and only if it still exists and is unexpired:
+  // two concurrent submissions of one link can no longer both set a password (the second finds nothing to delete).
+  const applied = await prisma.$transaction(async (tx) => {
+    const consumed = await tx.passwordResetToken.deleteMany({
+      where: { id: row.id, expiresAt: { gte: new Date() } },
+    })
+    if (consumed.count !== 1) return false
+    await tx.user.update({ where: { id: row.userId }, data: { password: hash } })
+    await tx.passwordResetToken.deleteMany({ where: { userId: row.userId } })
+    return true
+  })
+  if (!applied) {
+    return { ok: false, error: "invalid_token" }
+  }
 
-  console.log("[auth-reset-password]", { userId: row.userId, result: "ok" })
+  // Every session opened before this reset ends at its next check (lib/auth-session-revocation.ts: the password
+  // fingerprint changed).
+  console.log("[auth-reset-password]", { userId: row.userId, result: "ok", sessions: "revoked_at_next_check" })
   return { ok: true }
 }

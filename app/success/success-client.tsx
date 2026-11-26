@@ -7,6 +7,7 @@ import {
   PaymentSuccessScreen,
   type PaymentSuccessPayload,
 } from "@/components/checkout/payment-success-screen"
+import { shouldKeepVerifying } from "@/lib/checkout-success-outcome"
 import { notifyBuyerPersonalizationRefresh } from "@/lib/buyer-personalization-refresh.client"
 import { dispatchCartUpdated } from "@/lib/buyer-cart-count-client"
 import { removeGuestCartListings } from "@/lib/guest-cart"
@@ -164,7 +165,7 @@ export function SuccessClient({ sessionId, initialPayload }: Props) {
           void ensureBuyerSessionAfterCheckout(sessionId)
         }
 
-        if (data.paid && !data.fulfilled && attempts < VERIFY_MAX_ATTEMPTS) {
+        if (shouldKeepVerifying(data) && attempts < VERIFY_MAX_ATTEMPTS) {
           attempts += 1
           window.setTimeout(() => {
             if (!cancelled) void runVerify()

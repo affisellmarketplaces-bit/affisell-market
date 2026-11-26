@@ -46,7 +46,7 @@ async function main() {
       .readdirSync(path.join(root, "prisma", "migrations"), { withFileTypes: true })
       .filter((d) => d.isDirectory()).length
     const n = applied[0]?.n ?? 0
-    if (n < local) fail(`schema is behind: ${n}/${local} migrations applied. Run: DATABASE_URL="<branch url>" npx prisma migrate deploy`)
+    if (n < local) fail(`schema is behind: ${n}/${local} migrations applied. Run: DATABASE_URL="<branch url>" npm run schema:migrate -- --expect-endpoint <ep-id> (never a bare npx prisma migrate deploy: it targets the default database)`)
     console.log(`✓ schema up to date (${n}/${local} migrations)`)
 
     const [users, orders] = await Promise.all([prisma.user.count(), prisma.order.count()])

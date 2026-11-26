@@ -122,6 +122,7 @@ export function ListingGalleryColumn({
     selectedSize,
     setSelectedSize,
     sizeOptions,
+    sizeOptionStock,
     availableStock,
     purchaseQty,
     setPurchaseQty,
@@ -281,6 +282,7 @@ export function ListingGalleryColumn({
             return row != null && row.stock <= 0
           }}
           sizeOptions={sizeOptions}
+          getSizeStock={sizeOptionStock}
           selectedSize={selectedSize}
           onSelectSize={setSelectedSize}
           availableStock={availableStock}

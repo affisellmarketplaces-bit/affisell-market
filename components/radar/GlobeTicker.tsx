@@ -25,6 +25,7 @@ export function GlobeTicker({ events }: Props) {
     <span key={e.id} className="inline-flex shrink-0 items-center gap-2 text-xs text-white/70">
       <span aria-hidden>🔥</span>
       {e.product.title.slice(0, 30)}
+      {e.synthetic ? ` (${t("demoEvent")})` : ""}
       {" — "}
       {e.location.city}
       {" — "}

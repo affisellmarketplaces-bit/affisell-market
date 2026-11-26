@@ -29,6 +29,11 @@ import {
 import { computeSplitStatusFromAttempts } from "@/lib/transfers/compute-split-status"
 import { alertSplitTransferFailed } from "@/lib/transfers/split-slack-alert"
 import { logStripeWebhookError, logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
+import {
+  ENGINE_JOB_ATTRIBUTION_SELECT,
+  jobAttributionOf,
+  jobSupplierOrderCoversOrder,
+} from "@/lib/fulfillment/engine-job-attribution"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
 import * as Sentry from "@sentry/nextjs"
@@ -196,7 +201,7 @@ async function processOneAttempt(
           autoBuyLog: { select: { status: true } },
           supplierFulfillmentLinks: {
             select: {
-              supplierFulfillmentOrder: { select: { status: true } },
+              supplierFulfillmentOrder: { select: { status: true, ...ENGINE_JOB_ATTRIBUTION_SELECT } },
             },
           },
         },
@@ -277,9 +282,13 @@ async function processOneAttempt(
     payoutEligibleAt: attempt.order.payoutEligibleAt,
     fulfillmentStatus: attempt.order.fulfillmentStatus,
     autoBuyLogStatus: attempt.order.autoBuyLog?.status ?? null,
-    supplierJobStatuses: attempt.order.supplierFulfillmentLinks.map(
-      (l) => l.supplierFulfillmentOrder.status
-    ),
+    // Only the jobs whose supplier order really covers THIS order count as "upstream funded" (an AliExpress job buys its first
+    // line only: the second order of a cart must not be released on the strength of the first one's purchase).
+    supplierJobStatuses: attempt.order.supplierFulfillmentLinks
+      .filter((l) =>
+        jobSupplierOrderCoversOrder(jobAttributionOf(l.supplierFulfillmentOrder), attempt.orderId)
+      )
+      .map((l) => l.supplierFulfillmentOrder.status),
     returns: attempt.order.returns,
   })
 
@@ -388,23 +397,41 @@ async function processOneAttempt(
     // The attempt and its order were read at the start of this run, BEFORE the Stripe account call: a refund, a
     // cancellation or a Lightning payout may have landed since. Re-read the order and its refunds now, as late as
     // possible, and pay only what is still owed.
-    const fresh = await prisma.order.findUnique({
-      where: { id: attempt.orderId },
-      select: {
-        status: true,
-        paymentSettlementStatus: true,
-        payoutStatus: true,
-        totalCents: true,
-        subtotalCents: true,
-        sellingPriceCents: true,
-        taxCents: true,
-        currency: true,
-        stripeChargeId: true,
-        stripePaymentIntentId: true,
-        stripeSessionId: true,
-        stripeRefunds: { select: { stripeRefundId: true, amountCents: true } },
-      },
-    })
+    // The dispute ledger is asked again too, and BEFORE the order is read: a dispute outcome commits its ledger row and
+    // the order together, so the order read afterwards is never older than what the ledger said. If either read fails
+    // nothing is paid and no attempt is consumed.
+    let release
+    try {
+      const openDisputeHold = await hasOpenDisputeHold(attempt.orderId)
+      const order = await prisma.order.findUnique({
+        where: { id: attempt.orderId },
+        select: {
+          status: true,
+          paymentSettlementStatus: true,
+          payoutStatus: true,
+          totalCents: true,
+          subtotalCents: true,
+          sellingPriceCents: true,
+          taxCents: true,
+          currency: true,
+          stripeChargeId: true,
+          stripePaymentIntentId: true,
+          stripeSessionId: true,
+          stripeRefunds: { select: { stripeRefundId: true, amountCents: true } },
+        },
+      })
+      release = { openDisputeHold, order }
+    } catch (readErr) {
+      logStripeWebhookError({
+        level: "error",
+        metric: "transfer_release_read_failed",
+        orderId: attempt.orderId,
+        role: attempt.role,
+        error: readErr instanceof Error ? readErr.message : String(readErr),
+      })
+      return "held"
+    }
+    const fresh = release.order
     if (!fresh) return "held"
     if (fresh.payoutStatus === "PAID" || fresh.payoutStatus === "PROCESSING") {
       console.log("[transfer-gating]", { orderId: attempt.orderId, role: attempt.role, reason: "lightning_at_release" })
@@ -417,8 +444,8 @@ async function processOneAttempt(
       })
       return "skipped"
     }
-    // A dispute opened since the attempt was loaded (D7): held, attempt kept PENDING.
-    if (isOrderPayoutHeldForDispute(fresh, await hasOpenDisputeHold(attempt.orderId))) {
+    if (isOrderPayoutHeldForDispute(fresh, release.openDisputeHold)) {
+      // Same rule as the early guard: the attempt stays PENDING, nothing is cancelled and no counter is consumed.
       console.log("[transfer-gating]", { orderId: attempt.orderId, role: attempt.role, reason: "dispute_open_at_release" })
       return "held"
     }

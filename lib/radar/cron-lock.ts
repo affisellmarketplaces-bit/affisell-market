@@ -1,6 +1,7 @@
 import "server-only"
 
 import { tryGetRedisClient } from "@/lib/radar/redis"
+import { redisKey } from "@/lib/redis-namespace"
 
 type MemoryLock = { expiresAt: number }
 
@@ -28,7 +29,8 @@ export async function acquireCronLock(
   const redis = tryGetRedisClient()
   if (redis) {
     try {
-      const ok = await redis.set(key, "1", "EX", ttlSec, "NX")
+      // Namespaced: a Preview cron run must never hold (or be refused by) production's lock.
+      const ok = await redis.set(redisKey(key), "1", "EX", ttlSec, "NX")
       return { acquired: ok === "OK", backend: "redis" }
     } catch (err) {
       console.warn("[radar/cron-lock]", {
@@ -53,7 +55,7 @@ export async function releaseCronLock(key: string): Promise<void> {
   const redis = tryGetRedisClient()
   if (redis) {
     try {
-      await redis.del(key)
+      await redis.del(redisKey(key))
     } catch (err) {
       console.warn("[radar/cron-lock]", {
         key,

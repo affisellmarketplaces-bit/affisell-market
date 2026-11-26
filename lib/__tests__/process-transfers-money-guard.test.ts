@@ -19,6 +19,11 @@ const state: {
   existing: Array<Record<string, unknown>>
   freshReads: number
   openDisputeHolds: number
+  /** Seen from the 2nd ledger read on (the read just before the Stripe call); `null` = same. */
+  lateDisputeHolds: number | null
+  /** The ledger can not be read from the 2nd read on. */
+  lateLedgerFails: boolean
+  disputeReads: number
   /** Stripe's own view of the charge's refunds; `null` = mirrors our rows (consistent, all succeeded). */
   stripeRefunds: Array<{ id: string; amount: number; status: string; metadata?: Record<string, string> }> | null
   charge: Record<string, unknown>
@@ -30,13 +35,16 @@ const state: {
 } = {
   attempt: {},
   others: [],
+  openDisputeHolds: 0,
+  lateDisputeHolds: null,
+  lateLedgerFails: false,
+  disputeReads: 0,
   freshOrder: null,
   refunds: [],
   refundsAfter: null,
   orderAfter: null,
   existing: [],
   freshReads: 0,
-  openDisputeHolds: 0,
   stripeRefunds: null,
   charge: {},
   stripeDown: false,
@@ -135,7 +143,13 @@ vi.mock("@/lib/prisma", () => {
       findMany: async () => [],
     },
     // Dispute ledger (ProcessedWebhook rows `dispute:…`): `count` is what `hasOpenDisputeHold` reads.
-    processedWebhook: { count: async () => state.openDisputeHolds },
+    processedWebhook: {
+      count: async () => {
+        state.disputeReads += 1
+        if (state.disputeReads > 1 && state.lateLedgerFails) throw new Error("ledger down")
+        return state.disputeReads > 1 && state.lateDisputeHolds !== null ? state.lateDisputeHolds : state.openDisputeHolds
+      },
+    },
     user: { updateMany: async () => ({}) },
     $transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn(prisma),
   }
@@ -191,6 +205,10 @@ describe("runProcessTransfersJob — last-line money guard", () => {
     updates.length = 0
     ledger.length = 0
     state.others = []
+    state.openDisputeHolds = 0
+    state.lateDisputeHolds = null
+    state.lateLedgerFails = false
+    state.disputeReads = 0
     state.freshOrder = null
     state.refunds = []
     state.refundsAfter = null
@@ -286,6 +304,37 @@ describe("runProcessTransfersJob — last-line money guard", () => {
     expect(transfersCreate).toHaveBeenCalledTimes(1)
   })
 
+  // Finalisation master doc, D7: while a dispute (chargeback) is open nothing is released, and nothing is cancelled either.
+  describe("open dispute", () => {
+    it("holds the transfer when the dispute ledger has an open row, even if another writer set the status back to shipped", async () => {
+      const { supersedePendingTransferAttempt } = await import("@/lib/payout-settlement")
+      const supersede = supersedePendingTransferAttempt as unknown as ReturnType<typeof vi.fn>
+      supersede.mockClear()
+      state.openDisputeHolds = 1
+      const outcome = await runOnce(attempt({}, { status: "shipped", paymentSettlementStatus: "PAID" }))
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(outcome.held).toBe(1)
+      expect(outcome.success).toBe(0)
+      // The attempt stays PENDING for a later release (won) — it is neither failed nor superseded.
+      expect(updates).toEqual([])
+      expect(supersede).not.toHaveBeenCalled()
+    })
+
+    it("holds the transfer when the order status is disputed, even with no ledger row", async () => {
+      state.openDisputeHolds = 0
+      const outcome = await runOnce(attempt({}, { status: "disputed", paymentSettlementStatus: "PAID" }))
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(outcome.held).toBe(1)
+      expect(updates).toEqual([])
+    })
+
+    it("pays again once the dispute is no longer open (ledger closed, status restored)", async () => {
+      state.openDisputeHolds = 0
+      await runOnce(attempt({}, { status: "shipped", paymentSettlementStatus: "PAID" }))
+      expect(transfersCreate).toHaveBeenCalledTimes(1)
+    })
+  })
+
   // ── Scenarios added by the financial audit (2026-11-26) ──────────────────────────────────────────────────────────
   // Charged total of the fixture order: 13 000 (subtotal, no tax). A 6 500 refund = half of the sale.
 
@@ -377,34 +426,40 @@ describe("runProcessTransfersJob — last-line money guard", () => {
     expect(clawbackPartial).not.toHaveBeenCalled()
     expect(clawbackFull).not.toHaveBeenCalled()
   })
-  // Finalisation master doc, D7: while a dispute (chargeback) is open nothing is released, and nothing is cancelled either.
-  describe("open dispute", () => {
-    it("holds the transfer when the dispute ledger has an open row, even if another writer set the status back to shipped", async () => {
+
+  // Both sides together: the audit's last read before money leaves must also ask the dispute ledger.
+  describe("dispute opening while the run is under way", () => {
+    const superseding = async () => {
       const { supersedePendingTransferAttempt } = await import("@/lib/payout-settlement")
       const supersede = supersedePendingTransferAttempt as unknown as ReturnType<typeof vi.fn>
       supersede.mockClear()
-      state.openDisputeHolds = 1
-      const outcome = await runOnce(attempt({}, { status: "shipped", paymentSettlementStatus: "PAID" }))
+      return supersede
+    }
+
+    it("a ledger row appearing after the first check holds the transfer at release; nothing consumed or superseded", async () => {
+      const supersede = await superseding()
+      state.lateDisputeHolds = 1
+      const outcome = await runOnce(attempt())
       expect(transfersCreate).not.toHaveBeenCalled()
       expect(outcome.held).toBe(1)
-      expect(outcome.success).toBe(0)
-      // The attempt stays PENDING for a later release (won) — it is neither failed nor superseded.
       expect(updates).toEqual([])
       expect(supersede).not.toHaveBeenCalled()
     })
 
-    it("holds the transfer when the order status is disputed, even with no ledger row", async () => {
-      state.openDisputeHolds = 0
-      const outcome = await runOnce(attempt({}, { status: "disputed", paymentSettlementStatus: "PAID" }))
+    it("a status turned disputed between the two reads holds the transfer", async () => {
+      state.freshOrder = { ...(attempt().order as Record<string, unknown>), status: "disputed" }
+      const outcome = await runOnce(attempt())
       expect(transfersCreate).not.toHaveBeenCalled()
       expect(outcome.held).toBe(1)
       expect(updates).toEqual([])
     })
 
-    it("pays again once the dispute is no longer open (ledger closed, status restored)", async () => {
-      state.openDisputeHolds = 0
-      await runOnce(attempt({}, { status: "shipped", paymentSettlementStatus: "PAID" }))
-      expect(transfersCreate).toHaveBeenCalledTimes(1)
+    it("an unreadable ledger at release pays nothing and consumes no attempt", async () => {
+      state.lateLedgerFails = true
+      const outcome = await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(outcome.held).toBe(1)
+      expect(updates).toEqual([])
     })
   })
 

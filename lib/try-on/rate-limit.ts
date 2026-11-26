@@ -8,6 +8,7 @@ import { isAffisellPlusUser } from "@/lib/try-on/is-affisell-plus"
 import { clientIpFromRequest } from "@/lib/logger"
 import { hashClientIp } from "@/lib/try-on/result-hash"
 import { prisma } from "@/lib/prisma"
+import { redisKey } from "@/lib/redis-namespace"
 
 type RateLimitUser = {
   id: string
@@ -33,7 +34,7 @@ function getMinuteLimiter(): Ratelimit | null {
   minuteLimiter = new Ratelimit({
     redis,
     limiter: Ratelimit.slidingWindow(5, "1 m"),
-    prefix: "tryon:min",
+    prefix: redisKey("tryon:min"), // namespaced: a Preview must not spend production's per-minute budget (lib/redis-namespace.ts)
     analytics: true,
   })
   return minuteLimiter
@@ -46,7 +47,7 @@ function getDayLimiter(): Ratelimit | null {
   dayLimiter = new Ratelimit({
     redis,
     limiter: Ratelimit.slidingWindow(10, "1 d"),
-    prefix: "tryon:day",
+    prefix: redisKey("tryon:day"),
     analytics: true,
   })
   return dayLimiter

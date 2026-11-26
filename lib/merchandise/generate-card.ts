@@ -4,7 +4,9 @@ import path from "path"
 import sharp from "sharp"
 
 import type { MerchCategoryTemplate } from "@/lib/merchandise/templates"
+import { fetchPublicImageBytes } from "@/lib/safe-remote-image.server"
 import { getAbsoluteUrl } from "@/lib/site-url"
+import { isImageSniff, sniffUploadBytes } from "@/lib/upload-content-sniff"
 
 export type MerchCardProduct = {
   id: string
@@ -26,17 +28,62 @@ function escapeXml(s: string) {
     .replace(/'/g, "&apos;")
 }
 
-async function subjectBufferFromImageUrl(firstUrl: string): Promise<Buffer> {
-  const res = await fetch(firstUrl)
-  if (!res.ok) {
-    return sharp({
-      create: { width: 160, height: 160, channels: 3, background: "#ffffff" },
-    })
-      .png()
-      .toBuffer()
+const CARD_SOURCE_MAX_BYTES = 8 * 1024 * 1024
+const CARD_SOURCE_MAX_PIXELS = 40_000_000
+
+function whiteTile(): Promise<Buffer> {
+  return sharp({
+    create: { width: 160, height: 160, channels: 3, background: "#ffffff" },
+  })
+    .png()
+    .toBuffer()
+}
+
+/**
+ * Bytes of a product photo. The URL was typed by a supplier, so it is NOT fetched with a bare `fetch`: a path of our own
+ * site is read from `public/`, anything else goes through the connection-time SSRF guard (private/loopback/metadata
+ * addresses, redirects, size, time). null when it cannot be had.
+ */
+async function productImageBytes(rawUrl: string): Promise<Buffer | null> {
+  const url = rawUrl.trim()
+  if (url.startsWith("/") && !url.startsWith("//")) {
+    const publicDir = path.join(process.cwd(), "public")
+    const file = path.resolve(publicDir, `.${url.split(/[?#]/)[0]}`)
+    if (file.startsWith(publicDir + path.sep)) {
+      try {
+        return await fs.readFile(file)
+      } catch {
+        /* not bundled with the function: fall back to the site URL below */
+      }
+    }
   }
-  const buf = Buffer.from(await res.arrayBuffer())
-  return sharp(buf).png().toBuffer()
+  try {
+    return await fetchPublicImageBytes(absoluteImageUrl(url), {
+      maxBytes: CARD_SOURCE_MAX_BYTES,
+      timeoutMs: 8_000,
+      maxRedirects: 3,
+      allowHttp: true,
+    })
+  } catch (error) {
+    console.warn("[merchandise]", { result: "image_fetch_refused", message: error instanceof Error ? error.message : String(error) })
+    return null
+  }
+}
+
+/** Never throws: a photo that cannot be fetched, is not a plain JPEG/PNG/WebP/GIF or does not decode gives a white tile. */
+async function subjectBufferFromImageUrl(rawUrl: string): Promise<Buffer> {
+  const bytes = await productImageBytes(rawUrl)
+  if (bytes) {
+    const sniffed = sniffUploadBytes(bytes)
+    if (sniffed && isImageSniff(sniffed.kind)) {
+      try {
+        return await sharp(bytes, { failOn: "error", limitInputPixels: CARD_SOURCE_MAX_PIXELS }).png().toBuffer()
+      } catch {
+        /* undecodable or over the pixel limit */
+      }
+    }
+  }
+  return whiteTile()
 }
 
 function cachePathForProduct(productId: string) {
@@ -64,10 +111,9 @@ export async function generateCategoryCard(
   const shapeLayer = await sharp(shapeFile).resize(400, 400).png().toBuffer()
 
   const rawUrl = product.images[0]?.trim()
-  const firstUrl = rawUrl ? absoluteImageUrl(rawUrl) : ""
   let subject: Buffer
 
-  if (!firstUrl) {
+  if (!rawUrl) {
     subject = await sharp({
       create: {
         width: 120,
@@ -80,7 +126,7 @@ export async function generateCategoryCard(
       .toBuffer()
   } else {
     /** Sharp-only on serverless (imgly-node models exceed Vercel 250MB function limit). */
-    subject = await subjectBufferFromImageUrl(firstUrl)
+    subject = await subjectBufferFromImageUrl(rawUrl)
   }
 
   const maxW = 240

@@ -114,3 +114,17 @@ nécessaire, à reprendre après cette PR.
 - **Frais de litige Stripe** : attribués à personne (alerte).
 - **Rejeu tardif** des événements au-delà de la fenêtre de nouvel essai de Stripe : non porté (cron `replay-failed-*`
   de la ligne parallèle).
+
+## 6. Dans la branche de finalisation (fusion du 2026-11-26)
+
+Ce document décrit `main`. Dans `release/finalisation-2026-11-13`, trois points diffèrent :
+
+- **Paiement d'un panier :** l'identifiant de charge n'est enregistré que sur **une** commande du panier (colonne
+  unique). Les autres lignes sont vérifiées contre le paiement de la session Checkout de base
+  (`checkout.sessions.retrieve`) ; session illisible = retenue.
+- **Ligne payée sans commande** (`payment.unallocated_line`) : ses remboursements (marqueur automatique, ou
+  remboursement manuel enregistré comme preuve) ne sont comparés à aucune commande. Tout autre remboursement inexpliqué
+  retient les virements du paiement. Un remboursement **ambigu**, que le webhook n'applique à rien, retient donc
+  désormais ces virements (`STRIPE_CHECK_*` sur la tentative, journal `transfer_held_stripe_check`, **sans alerte
+  ops**) jusqu'à ce qu'une personne le rapproche.
+- **Rejeu tardif** des webhooks échoués : présent ici (`replay-failed-stripe-webhooks`).

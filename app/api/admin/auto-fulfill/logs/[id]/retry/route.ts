@@ -18,7 +18,7 @@ export async function POST(
   const result = await retryAdminAutoBuyFulfillmentLog(id)
 
   if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: result.status })
+    return NextResponse.json({ error: result.error, detail: result.detail }, { status: result.status })
   }
 
   return NextResponse.json({

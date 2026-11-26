@@ -1,5 +1,5 @@
 import { inngest } from "@/inngest/client"
-import { fulfillAffisellOrderWithAliExpress } from "@/lib/aliexpress-fulfill-order"
+import { fulfillAffisellOrderWithAliExpress, isNeverRetryFulfillError } from "@/lib/aliexpress-fulfill-order"
 import { ORDER_PAID_EVENT } from "@/lib/fulfillment/order-paid-queue"
 
 export const processOrderPaid = inngest.createFunction(
@@ -19,9 +19,10 @@ export const processOrderPaid = inngest.createFunction(
 
     if (!result.ok) {
       const retryable =
-        result.error.includes("rate") ||
-        result.error.includes("limit") ||
-        result.error.includes("timeout")
+        !isNeverRetryFulfillError(result.error) &&
+        (result.error.includes("rate") ||
+          result.error.includes("limit") ||
+          result.error.includes("timeout"))
       if (retryable) throw new Error(result.error)
       console.log("[inngest/order.paid]", { result: "non_retryable", orderId, error: result.error })
     }

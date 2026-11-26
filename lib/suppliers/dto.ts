@@ -41,6 +41,11 @@ export type SupplierOrderResult = {
   rawRequest?: unknown
   rawResponse?: unknown
   errorMessage?: string
+  /**
+   * With status FAILED: true = a request WAS sent and its outcome is unknown (the supplier may have created the order).
+   * The caller must not retry nor try another channel. Absent / false = the order was definitely not created.
+   */
+  outcomeUncertain?: boolean
 }
 
 export type { OrderStatusDTO } from "@/lib/suppliers/base.adapter"

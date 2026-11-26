@@ -1,6 +1,9 @@
 import "server-only"
 
+import type { Prisma } from "@prisma/client"
+
 import { cancelAuctionsForListings } from "@/lib/auction-listing-lifecycle"
+import { declareListingPresenceSource } from "@/lib/listing-presence/record.server"
 import { primaryProductImage } from "@/lib/product-images"
 import { prisma } from "@/lib/prisma"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
@@ -132,6 +135,7 @@ export async function deleteSupplierProduct(
   }
 
   await prisma.$transaction([
+    declareListingPresenceSource(prisma, { source: "supplier_withdrawal", actorId: supplierId }) as Prisma.PrismaPromise<unknown>,
     prisma.affiliateProduct.deleteMany({ where: { productId } }),
     prisma.product.delete({ where: { id: productId, supplierId } }),
   ])
@@ -225,6 +229,7 @@ export async function recallSupplierProduct(
   const listingIds = listedRows.map((r) => r.id)
 
   await prisma.$transaction([
+    declareListingPresenceSource(prisma, { source: "supplier_withdrawal", actorId: supplierId }) as Prisma.PrismaPromise<unknown>,
     prisma.product.update({
       where: { id: productId, supplierId },
       data: { active: false, isDraft: true },

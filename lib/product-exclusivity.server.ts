@@ -15,6 +15,7 @@ import {
 } from "@/lib/product-exclusivity-shared"
 import { primaryProductImage } from "@/lib/product-images"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
+import { declareListingPresenceSource } from "@/lib/listing-presence/record.server"
 
 export const EXCLUSIVITY_NOTIF = {
   GRANTED: "EXCLUSIVITY_GRANTED",
@@ -125,6 +126,7 @@ export async function grantProductExclusivity(args: {
     })
 
     if (others.length > 0) {
+      await declareListingPresenceSource(tx, { source: "exclusivity", actorId: args.affiliateId })
       await tx.affiliateProduct.updateMany({
         where: { id: { in: others.map((o) => o.id) } },
         data: { isListed: false, isFeatured: false, auctionEligible: false },

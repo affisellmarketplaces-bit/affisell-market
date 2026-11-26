@@ -5,6 +5,7 @@ import { absolutizeCdnImageUrl } from "@/lib/cdn-image-url"
 import { resolveColorSwatchMeta } from "@/lib/color-name-hex"
 import { sanitizeAeVariantColor } from "@/lib/fulfillment/ae-skus-to-product-variants"
 import type { ProductVariantInput } from "@/lib/product-variant-sku"
+import { resolveImportedStock, stockUnconfirmedAttribute, type StockProvenance } from "@/lib/import-stock"
 import type { SupplierScrapedProduct } from "@/lib/supplier-import-url-handler"
 import {
   extractVideoUrls,
@@ -69,6 +70,8 @@ export type DropForgeCompletePreview = {
   category: string
   categoryId?: string
   stock: number
+  /** Where `stock` comes from (lib/import-stock.ts). Absent = « not provided »: never sellable as is. */
+  stockProvenance?: StockProvenance
   platform: string
   marketplaceLabel: string
   method: string
@@ -187,7 +190,11 @@ export function mergeScrapedProducts(
     brand: primary.brand.trim() || secondary.brand,
     category: primary.category.trim() || secondary.category,
     sku: primary.sku.trim() || secondary.sku,
-    stock: primary.stock > 0 ? primary.stock : secondary.stock,
+    ...(primary.stockProvenance === "source"
+      ? { stock: primary.stock, stockProvenance: "source" as const }
+      : secondary.stockProvenance === "source"
+        ? { stock: secondary.stock, stockProvenance: "source" as const }
+        : { stock: 0, stockProvenance: "not_provided" as const }),
     shipping: {
       from_country:
         primary.shipping.from_country || secondary.shipping.from_country,
@@ -324,6 +331,8 @@ export function buildDropForgeProductPersistFields(preview: DropForgeCompletePre
   basePriceCents: number
   compareAt: Prisma.Decimal | null
   stock: number
+  /** False = the source gave no usable quantity: stock 0, marker attribute written, product kept a draft. */
+  stockConfirmed: boolean
   shippingCountry: string | null
   warehouseType: string | null
   deliveryMin: number
@@ -398,6 +407,14 @@ export function buildDropForgeProductPersistFields(preview: DropForgeCompletePre
       label: k.slice(0, 120),
     }))
 
+  // Never a fallback quantity (was 99): the SKU matrix total or the source's own figure, else stock 0 + marker.
+  const importStock = resolveImportedStock(
+    preview.skuVariants?.totalStock && preview.skuVariants.totalStock > 0
+      ? { stock: preview.skuVariants.totalStock, stockProvenance: "source" as const }
+      : { stock: preview.stock, stockProvenance: preview.stockProvenance }
+  )
+  if (!importStock.confirmed) attributes.push(stockUnconfirmedAttribute())
+
   if (preview.brand && preview.brand !== "Generic") {
     attributes.unshift({
       key: "brand",
@@ -446,12 +463,8 @@ export function buildDropForgeProductPersistFields(preview: DropForgeCompletePre
     tags,
     basePriceCents: costCents,
     compareAt,
-    stock:
-      preview.skuVariants?.totalStock && preview.skuVariants.totalStock > 0
-        ? preview.skuVariants.totalStock
-        : preview.stock > 0
-          ? preview.stock
-          : 99,
+    stock: importStock.stock,
+    stockConfirmed: importStock.confirmed,
     shippingCountry: shipCc || null,
     warehouseType:
       shipCc === "CN" || /china|cn/i.test(preview.shipping.from_country)

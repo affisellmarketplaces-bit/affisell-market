@@ -1,141 +1,32 @@
 #!/usr/bin/env node
 /**
- * Safe PROD seed for World Radar (Neon market_intelli).
- * Interactive confirmation required — never runs unattended.
+ * Thin launcher kept so the documented command `node scripts/seed-prod-safe.mjs` still lands on the single gate (RSK-90, lot A).
  *
- * Usage: npm run radar:seed:prod
+ * It resolves nothing, asks nothing, loads no env file, injects no variable and prints no result of its own. The previous version
+ * resolved a target, asked the operator to type "PROD", then started a child that loaded the env files again with `override: true`
+ * and resolved ANOTHER target: the target confirmed was not necessarily the target used. The gate now lives in the program that
+ * writes (scripts/radar-seed-run.ts); this file only forwards its arguments and its exit status.
+ *
+ * `npm run radar:seed:prod` runs `scripts/seed-world-radar.ts --expect-class production` directly and does not go through here.
+ * Every class of target is disabled in this version: expect exit 3 (`production_seed_disabled`).
+ *
+ * Exit status: the child's own code; a signal that killed it is reported as 128 + the signal number (never as a refusal); a failure
+ * to start `npm` is 1. As everywhere, only a final line `state=refused` proves that nothing was written.
  */
-import { createInterface } from "node:readline"
-import { existsSync } from "node:fs"
-import { resolve } from "node:path"
 import { spawnSync } from "node:child_process"
-import { config as loadEnv } from "dotenv"
+import { constants } from "node:os"
+import { resolve } from "node:path"
 
 const root = resolve(import.meta.dirname, "..")
-for (const name of [".env.pre-local-merge.bak", ".env", ".env.local"]) {
-  const path = resolve(root, name)
-  if (existsSync(path)) loadEnv({ path, override: true })
-}
 
-const PRIORITY_COUNT = 31 // all WORLD_RADAR_COUNTRIES when seed:world runs without --countries
-
-function maskUrl(url) {
-  try {
-    const u = new URL(url)
-    if (u.password) u.password = "***"
-    return u.toString()
-  } catch {
-    return url.replace(/:\/\/([^:/@]+):([^@]+)@/, "://$1:***@")
-  }
-}
-
-function neonHostLabel(url) {
-  try {
-    const host = new URL(url).hostname
-    const ep = host.match(/^(ep-[a-z0-9-]+)/i)
-    return ep ? ep[1] : host
-  } catch {
-    return "unknown-host"
-  }
-}
-
-function resolveProdUrl() {
-  return (
-    process.env.DATABASE_URL_UNPOOLED?.trim() ||
-    process.env.RADAR_DATABASE_URL?.trim() ||
-    process.env.DATABASE_URL?.trim() ||
-    ""
-  )
-}
-
-function assertLooksLikeProdNeon(url) {
-  const lower = url.toLowerCase()
-  if (!lower.includes("neon.tech")) {
-    throw new Error(
-      "URL does not contain neon.tech — refusing to seed (set DATABASE_URL_UNPOOLED to Neon prod)."
-    )
-  }
-  // Accept Neon hosts; market_intelli is schema-level (same DB as Affisell).
-  if (/localhost|127\.0\.0\.1|:5433|:5434/.test(lower)) {
-    throw new Error("Looks like a local Docker URL — refusing to seed as PROD.")
-  }
-}
-
-function ask(question) {
-  const rl = createInterface({ input: process.stdin, output: process.stdout })
-  return new Promise((resolveAsk) => {
-    rl.question(question, (answer) => {
-      rl.close()
-      resolveAsk(answer.trim())
-    })
-  })
-}
-
-async function main() {
-  const url = resolveProdUrl()
-  if (!url) {
-    console.error(
-      "[seed-prod-safe] Missing DATABASE_URL_UNPOOLED (or RADAR_DATABASE_URL / DATABASE_URL) in .env.local"
-    )
-    process.exit(1)
-  }
-
-  try {
-    assertLooksLikeProdNeon(url)
-  } catch (err) {
-    console.error("[seed-prod-safe]", err instanceof Error ? err.message : err)
-    process.exit(1)
-  }
-
-  const host = neonHostLabel(url)
-  console.log("")
-  console.log("═══════════════════════════════════════════════════")
-  console.log("  WORLD RADAR — PROD SEED (SAFE)")
-  console.log("═══════════════════════════════════════════════════")
-  console.log(`  Host:  ${host}`)
-  console.log(`  URL:   ${maskUrl(url)}`)
-  console.log(`  Pays:  all ${PRIORITY_COUNT} enabled markets (WORLD_RADAR_COUNTRIES)`)
-  console.log("═══════════════════════════════════════════════════")
-  console.log("")
-
-  const answer = await ask(
-    `Tu vas seed la PROD Neon (${host}...), pas la dev. Tape PROD pour continuer: `
-  )
-  if (answer !== "PROD") {
-    console.log("[seed-prod-safe] Aborted — confirmation PROD required.")
-    process.exit(0)
-  }
-
-  console.log("[seed-prod-safe] Running npm run radar:seed:world …")
-  const env = {
-    ...process.env,
-    DATABASE_URL_UNPOOLED: url,
-    DATABASE_URL: process.env.DATABASE_URL?.trim() || url,
-    RADAR_DATABASE_URL: process.env.RADAR_DATABASE_URL?.trim() || url,
-  }
-
-  const result = spawnSync("npm", ["run", "radar:seed:world"], {
-    cwd: root,
-    env,
-    stdio: "inherit",
-    shell: false,
-  })
-
-  if ((result.status ?? 1) !== 0) {
-    console.error("[seed-prod-safe] Seed failed. If schema missing: npm run radar:db:push")
-    process.exit(result.status ?? 1)
-  }
-
-  console.log("")
-  console.log(`[PROD] ✅ Seeded ${PRIORITY_COUNT} countries × ~20 winners`)
-  console.log("")
-  console.log("Va vérifier (session Pro requise):")
-  console.log("  https://affisell.com/api/radar?country=FR  → doit retourner 20 winners")
-  console.log("  https://affisell.com/radar?country=FR")
-  console.log("")
-}
-
-main().catch((err) => {
-  console.error("[seed-prod-safe]", err instanceof Error ? err.message : err)
-  process.exit(1)
+const result = spawnSync("npm", ["run", "radar:seed:prod", "--", ...process.argv.slice(2)], {
+  cwd: root,
+  env: process.env,
+  stdio: "inherit",
+  shell: false,
 })
+
+// A failure to start `npm` is a failure; a signal is 128 + its number (the shell convention), never a success.
+if (result.error) process.exit(1)
+if (result.signal) process.exit(128 + (constants.signals[result.signal] ?? 1))
+process.exit(result.status ?? 1)

@@ -184,6 +184,7 @@ async function processCheckoutSessionCompleted(
     let primaryOrderId = orderIds[0]!
     let scheduledAny = false
     let lastReason: string | null = null
+    let closedCount = 0
 
     try {
       for (const orderId of orderIds) {
@@ -193,11 +194,25 @@ async function processCheckoutSessionCompleted(
           primaryOrderId = orderId
         } else {
           lastReason = scheduled.reason ?? null
+          if (scheduled.reason === "order_closed") closedCount += 1
           if (scheduled.reason === "already_settled") {
             scheduledAny = true
             primaryOrderId = orderId
           }
         }
+      }
+
+      if (!scheduledAny && closedCount === orderIds.length) {
+        // Every order of the session is refunded / cancelled (typically a REPLAY of an old failed event): nothing is
+        // reopened, nothing is paid out, and the event ends as an explicit, idempotent "skipped" instead of looping as
+        // "failed" (finalisation review #9).
+        logStripeWebhookInfo({
+          metric: "checkout_event_skipped_orders_closed",
+          eventId: event.id,
+          sessionId: session.id,
+          orderCount: orderIds.length,
+        })
+        return { orderId: primaryOrderId, status: "skipped", error: "orders_closed" }
       }
 
       if (!scheduledAny) {
@@ -412,8 +427,10 @@ export async function processStripeWebhookEvent(event: Stripe.Event): Promise<We
         if (race && isReplayableWebhookRecord(race)) {
           // Replay of a previously failed event: claim the row (row lock) so two concurrent Stripe retries can not
           // both process it. The loser sees a non-"failed" status after the winner commits and treats it as a duplicate.
+          // Claim the row under the status it was READ with: `failed` (handler threw) or `failed_not_replayed` (the late replay
+          // cron judged it unsafe and an operator resent the event on purpose).
           const claimed = await tx.processedWebhook.updateMany({
-            where: { id: event.id, status: "failed" },
+            where: { id: event.id, status: race.status },
             data: { status: "processing", error: null },
           })
           if (claimed.count !== 1) {
