@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { rateLimitClientKey, rateLimitResponseAsync } from "@/lib/api-rate-limit"
 import { applyCopilotAction } from "@/lib/reseller-action-plan.server"
+import { assertSameSiteRequestOrigin } from "@/lib/request-origin-guard"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -14,6 +15,9 @@ const ID = /^(reprice|pause|fix_margins):[A-Za-z0-9_-]{6,64}$/
  * that no longer applies (409 stale). Recorded in AuditLog; undo via POST ./undo.
  */
 export async function POST(req: Request) {
+  // Cookie-authenticated write: refuse a cross-site origin (defense in depth on top of SameSite=lax).
+  const originBlock = assertSameSiteRequestOrigin(req)
+  if (originBlock) return originBlock
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   if (String(session.user.role ?? "").toUpperCase() !== "AFFILIATE") {
