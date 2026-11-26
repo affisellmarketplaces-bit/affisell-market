@@ -125,6 +125,9 @@ function isAffiliateSwipeSchemaError(e: unknown): boolean {
   )
 }
 
+/** Upper bound on the pages read to fill the feed past products the net-margin guard rejects. */
+export const SWIPE_GUARD_MAX_PAGES = 4
+
 export async function loadSwipeFeedProducts(
   affiliateId: string,
   filters: SwipeFeedFilters,
@@ -136,26 +139,25 @@ export async function loadSwipeFeedProducts(
     { createdAt: "desc" },
   ]
 
+  // The net-margin guard filters AFTER the query: read pages until `limit` recommendable products are found (bounded),
+  // so a first page of unprofitable products never leaves the feed empty while good ones exist further on.
+  const loadGuarded = async (where: Prisma.ProductWhereInput): Promise<SwipeFeedProduct[]> => {
+    const pageSize = limit * 2
+    const out: SwipeFeedProduct[] = []
+    for (let page = 0; page < SWIPE_GUARD_MAX_PAGES && out.length < limit; page++) {
+      const rows = await prisma.product.findMany({ where, orderBy, skip: page * pageSize, take: pageSize, select: productSelect })
+      out.push(...mapSwipeFeedRows(rows))
+      if (rows.length < pageSize) break
+    }
+    return out.slice(0, limit)
+  }
+
   try {
-    const where = await buildSwipeFeedWhere(affiliateId, filters, { excludeSkipped: true })
-    const rows = await prisma.product.findMany({
-      where,
-      orderBy,
-      take: limit,
-      select: productSelect,
-    })
-    return mapSwipeFeedRows(rows)
+    return await loadGuarded(await buildSwipeFeedWhere(affiliateId, filters, { excludeSkipped: true }))
   } catch (e) {
     if (!isAffiliateSwipeSchemaError(e)) throw e
     console.warn("[swipe-feed] AffiliateSwipe unavailable — loading without skip filter")
-    const where = await buildSwipeFeedWhere(affiliateId, filters, { excludeSkipped: false })
-    const rows = await prisma.product.findMany({
-      where,
-      orderBy,
-      take: limit,
-      select: productSelect,
-    })
-    return mapSwipeFeedRows(rows)
+    return loadGuarded(await buildSwipeFeedWhere(affiliateId, filters, { excludeSkipped: false }))
   }
 }
 
