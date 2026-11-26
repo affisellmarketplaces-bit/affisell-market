@@ -2376,6 +2376,7 @@
       "supplierCommission": "Supplier commission",
       "estimatedRevenue": "Estimated reseller earnings",
       "estimatedRevenueHint": "Commission + margin at {markupPct}% suggested markup",
+      "estimatedRevenueNetHint": "Net after Affisell's {feePct}% fee · gross {gross} (commission + margin at {markupPct}% markup)",
       "sortRevenueDesc": "Reseller earnings · high → low",
       "supplierSheetAria": "Supplier product page"
     },

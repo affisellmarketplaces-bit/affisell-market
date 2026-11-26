@@ -2376,6 +2376,7 @@
       "supplierCommission": "Comisión del proveedor",
       "estimatedRevenue": "Ganancias estimadas del reseller",
       "estimatedRevenueHint": "Comisión + margen con {markupPct}% de margen sugerido",
+      "estimatedRevenueNetHint": "Neto tras la comisión de Affisell del {feePct} % · bruto {gross} (comisión + margen con {markupPct} % de recargo)",
       "sortRevenueDesc": "Ganancias de reseller · alto → bajo",
       "supplierSheetAria": "Página de producto del proveedor"
     },

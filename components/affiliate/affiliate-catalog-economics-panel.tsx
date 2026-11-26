@@ -43,7 +43,7 @@ export function AffiliateCatalogEconomicsPanel({
           {money(economics.commissionCents, { maximumFractionDigits: 0 })} ({economics.commissionRatePct}%)
         </EconomicsChip>
         <EconomicsChip tone={tone} accent="revenue">
-          ≈{money(economics.totalPartnerGainCents, { maximumFractionDigits: 0 })}
+          ≈{money(economics.netPartnerGainCents, { maximumFractionDigits: 0 })}
         </EconomicsChip>
       </div>
     )
@@ -158,7 +158,7 @@ export function AffiliateCatalogEconomicsPanel({
             isDark ? "text-white" : "text-emerald-900 dark:text-emerald-100"
           )}
         >
-          {money(economics.totalPartnerGainCents, { maximumFractionDigits: 0 })}
+          {money(economics.netPartnerGainCents, { maximumFractionDigits: 0 })}
         </p>
         <p
           className={cn(
@@ -166,8 +166,10 @@ export function AffiliateCatalogEconomicsPanel({
             isDark ? "text-zinc-400" : "text-emerald-800/70 dark:text-emerald-200/70"
           )}
         >
-          {t("estimatedRevenueHint", {
+          {t("estimatedRevenueNetHint", {
             markupPct: Math.round(economics.suggestedMarkupRate * 100),
+            feePct: Math.round(economics.resellerFeeBps / 100),
+            gross: money(economics.totalPartnerGainCents, { maximumFractionDigits: 0 }),
           })}
         </p>
       </div>

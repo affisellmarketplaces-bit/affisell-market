@@ -1,8 +1,12 @@
+import { RESELLER_PLATFORM_FEE_BPS, computeSaleSplit } from "@/lib/money/sale-split"
+
 /** Default markup when affiliate has not set a selling price yet (swipe feed + quick list). */
 export const DEFAULT_AFFILIATE_CATALOG_MARKUP_RATE = 0.3
 
 export type AffiliateCatalogEconomicsOptions = {
   markupRate?: number
+  /** Affisell's rate on the reseller's earnings (bps). Defaults to the standard 20 % (negotiated rates are lower). */
+  resellerFeeBps?: number | null
   /** When the affiliate already has a listing, use their configured selling price. */
   listedSellingPriceCents?: number | null
 }
@@ -60,7 +64,16 @@ export type AffiliateCatalogCardEconomics = {
   markupMarginCents: number
   commissionRatePct: number
   commissionCents: number
+  /** Commission + markup BEFORE Affisell's fee on the reseller side. */
   totalPartnerGainCents: number
+  /** Affisell's fee on the reseller's earnings, at {@link resellerFeeBps}. */
+  resellerFeeCents: number
+  resellerFeeBps: number
+  /**
+   * What the reseller actually receives per sale (commission + markup − Affisell fee) — the same amount the transfer
+   * pays (`netAffiliateTransferCents`), computed by the canonical split (`lib/money/sale-split.ts`).
+   */
+  netPartnerGainCents: number
   suggestedMarkupRate: number
   /** @deprecated use clientPriceCents */
   suggestedSellingPriceCents: number
@@ -87,6 +100,17 @@ export function buildAffiliateCatalogCardEconomics(
       : 0
     : markupRate
 
+  const resellerFeeBps = Math.round(
+    Number.isFinite(options?.resellerFeeBps ?? NaN) ? (options!.resellerFeeBps as number) : RESELLER_PLATFORM_FEE_BPS
+  )
+  const split = computeSaleSplit({
+    wholesaleCents: basePriceCents,
+    commissionBps: Math.round((Number(commissionRate) || 0) * 100),
+    markupCents: markupMarginCents,
+    supplierFeeBps: 0, // supplier side: irrelevant to what the reseller receives
+    resellerFeeBps,
+  })
+
   return {
     supplierPriceCents: basePriceCents,
     clientPriceCents: clientPrice,
@@ -95,6 +119,9 @@ export function buildAffiliateCatalogCardEconomics(
     commissionRatePct: Math.round(Number(commissionRate) || 0),
     commissionCents,
     totalPartnerGainCents: commissionCents + markupMarginCents,
+    resellerFeeCents: split.resellerFeeCents,
+    resellerFeeBps,
+    netPartnerGainCents: split.resellerPayoutCents,
     suggestedMarkupRate: effectiveMarkupRate,
     suggestedSellingPriceCents: clientPrice,
   }

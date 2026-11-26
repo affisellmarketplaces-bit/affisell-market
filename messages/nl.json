@@ -2376,6 +2376,7 @@
       "supplierCommission": "Leverancierscommissie",
       "estimatedRevenue": "Geschatte reseller-inkomsten",
       "estimatedRevenueHint": "Commissie + marge bij {markupPct}% aanbevolen opslag",
+      "estimatedRevenueNetHint": "Netto na {feePct}% Affisell-vergoeding · bruto {gross} (commissie + marge bij {markupPct}% opslag)",
       "sortRevenueDesc": "Reseller-inkomsten · hoog → laag",
       "supplierSheetAria": "Leveranciersproductpagina"
     },
