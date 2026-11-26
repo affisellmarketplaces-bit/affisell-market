@@ -4,11 +4,17 @@ import Stripe from "stripe"
 import {
   checkTransferBudget,
   moneyGuardMode,
+  orderChargedTotalCents,
   orderTransferCeilingCents,
   PAYOUT_EXCEEDS_LINE_ERROR,
 } from "@/lib/money/split-guard"
 import { evaluateTransferReleaseForRole } from "@/lib/order-transfer-gating"
 import { isOrderClosedForPayout, settlementAfterTransfersSucceeded } from "@/lib/orders/payment-state"
+import {
+  matchExistingTransfer,
+  payableAfterRefunds,
+  type ExistingTransfer,
+} from "@/lib/transfers/payable-after-refunds"
 import {
   marketplaceRoleAlreadySettled,
   recordStripePayoutSettlement,
@@ -119,6 +125,54 @@ async function notifyTerminalFailure(args: {
     errorCode: args.errorCode,
     attempts: args.attempts,
   })
+}
+
+/** Never throws: a failure here is alerted and left to the reconciliation, the transfer itself already happened. */
+async function clawBackRefundsDuringTransfer(orderId: string, role: string, seenRefundIds: ReadonlySet<string>) {
+  try {
+    const after = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: {
+        status: true,
+        paymentSettlementStatus: true,
+        totalCents: true,
+        subtotalCents: true,
+        sellingPriceCents: true,
+        taxCents: true,
+        stripeRefunds: { select: { stripeRefundId: true, amountCents: true } },
+      },
+    })
+    const late = (after?.stripeRefunds ?? []).filter((r) => !seenRefundIds.has(r.stripeRefundId))
+    if (!after || late.length === 0) return
+    logStripeWebhookError({
+      level: "error",
+      metric: "refund_during_transfer",
+      orderId,
+      role,
+      amount: late.reduce((n, r) => n + r.amountCents, 0),
+    })
+    const { clawbackOrderPayoutsOnPartialRefund, clawbackOrderPayoutsOnRefund } = await import("@/lib/order-payout")
+    if (isOrderClosedForPayout(after)) {
+      await clawbackOrderPayoutsOnRefund(orderId)
+      return
+    }
+    const total = orderChargedTotalCents(after)
+    for (const r of late) {
+      await clawbackOrderPayoutsOnPartialRefund(orderId, {
+        stripeRefundId: r.stripeRefundId,
+        refundAmountCents: r.amountCents,
+        orderTotalCents: total,
+      })
+    }
+  } catch (err) {
+    logStripeWebhookError({
+      level: "error",
+      metric: "refund_during_transfer_clawback_failed",
+      orderId,
+      role,
+      error: err instanceof Error ? err.message : String(err),
+    })
+  }
 }
 
 async function processOneAttempt(
@@ -278,21 +332,97 @@ async function processOneAttempt(
       }
     }
 
-    const sourceTransaction = attempt.order.stripeChargeId ?? undefined
-    const transfer = await stripe.transfers.create(
-      {
-        amount: attempt.amountCents,
-        currency: "eur",
-        destination: attempt.destination,
-        transfer_group: attempt.orderId,
-        ...(sourceTransaction ? { source_transaction: sourceTransaction } : {}),
-        metadata: {
-          orderId: attempt.orderId,
-          role: attempt.role,
-        },
+    // ── Last read before money leaves ──────────────────────────────────────────────────────────────────────────
+    // The attempt and its order were read at the start of this run, BEFORE the Stripe account call: a refund, a
+    // cancellation or a Lightning payout may have landed since. Re-read the order and its refunds now, as late as
+    // possible, and pay only what is still owed.
+    const fresh = await prisma.order.findUnique({
+      where: { id: attempt.orderId },
+      select: {
+        status: true,
+        paymentSettlementStatus: true,
+        payoutStatus: true,
+        totalCents: true,
+        subtotalCents: true,
+        sellingPriceCents: true,
+        taxCents: true,
+        stripeRefunds: { select: { stripeRefundId: true, amountCents: true } },
       },
-      { idempotencyKey: idempotencyKey(attempt.orderId, attempt.role) }
-    )
+    })
+    if (!fresh) return "held"
+    if (fresh.payoutStatus === "PAID" || fresh.payoutStatus === "PROCESSING") {
+      console.log("[transfer-gating]", { orderId: attempt.orderId, role: attempt.role, reason: "lightning_at_release" })
+      return "skipped"
+    }
+    if (isOrderClosedForPayout(fresh)) {
+      console.log("[transfer-gating]", { orderId: attempt.orderId, role: attempt.role, reason: "order_closed_at_release" })
+      await prisma.$transaction(async (tx) => {
+        await supersedePendingTransferAttempt(tx, attempt.orderId, attempt.role, "ORDER_CLOSED")
+      })
+      return "skipped"
+    }
+    const refundsAtRelease = fresh.stripeRefunds
+    const { payableCents, refundShareCents } = payableAfterRefunds({
+      scheduledCents: attempt.amountCents,
+      refundCents: refundsAtRelease.map((r) => r.amountCents),
+      orderChargedTotalCents: orderChargedTotalCents(fresh),
+    })
+    if (payableCents < 1) {
+      await prisma.$transaction(async (tx) => {
+        await supersedePendingTransferAttempt(tx, attempt.orderId, attempt.role, "REFUNDED_SHARE")
+      })
+      return "skipped"
+    }
+
+    // ── A transfer this attempt already created? (crash between the Stripe call and its record) ────────────────
+    // The idempotency key protects a replay for ~24 h only; after that a second call would pay twice. Stripe's list
+    // is searched first; if the search itself fails, nothing is created (held, retried on the next run).
+    let existing: ExistingTransfer | null
+    try {
+      const page = await stripe.transfers.list({ transfer_group: attempt.orderId, limit: 100 })
+      existing = matchExistingTransfer(page.data, { role: attempt.role, destination: attempt.destination })
+    } catch (searchErr) {
+      logStripeWebhookError({
+        level: "error",
+        metric: "transfer_search_failed",
+        orderId: attempt.orderId,
+        role: attempt.role,
+        error: searchErr instanceof Error ? searchErr.message : String(searchErr),
+      })
+      return "held"
+    }
+    if (existing && existing.amount > payableCents) {
+      // Money already left above what is owed now (a refund landed after the lost call): record the truth, alert.
+      logStripeWebhookError({
+        level: "error",
+        metric: "adopted_transfer_exceeds_payable",
+        orderId: attempt.orderId,
+        role: attempt.role,
+        amount: existing.amount,
+        excessCents: existing.amount - payableCents,
+      })
+    }
+
+    const sourceTransaction = attempt.order.stripeChargeId ?? undefined
+    const transfer = existing
+      ? { id: existing.id, amount: existing.amount }
+      : await stripe.transfers.create(
+          {
+            amount: payableCents,
+            currency: "eur",
+            destination: attempt.destination,
+            transfer_group: attempt.orderId,
+            ...(sourceTransaction ? { source_transaction: sourceTransaction } : {}),
+            metadata: {
+              orderId: attempt.orderId,
+              role: attempt.role,
+              scheduledCents: String(attempt.amountCents),
+              refundShareCents: String(refundShareCents),
+            },
+          },
+          { idempotencyKey: idempotencyKey(attempt.orderId, attempt.role) },
+        )
+    const transferredCents = existing ? existing.amount : payableCents
 
     const paidAt = new Date()
     const beneficiaryRole = attempt.role as "SUPPLIER" | "AFFILIATE"
@@ -316,13 +446,19 @@ async function processOneAttempt(
         orderId: attempt.orderId,
         beneficiaryRole,
         userId,
-        amountCents: attempt.amountCents,
+        // What really moved (after refunds), not the scheduled share: the ledger explains every cent.
+        amountCents: transferredCents,
         stripeTransferId: transfer.id,
         payoutRail: "connect",
         productName: attempt.order.product?.name ?? null,
         paidAt,
       })
     })
+
+    // ── A refund that landed WHILE the transfer was in flight ────────────────────────────────────────────────────
+    // Its webhook ran when this role was not yet recorded as paid, so its clawback found nothing to take back. Now that
+    // the transfer is recorded, apply that clawback (same functions, idempotent ledger keys per refund).
+    await clawBackRefundsDuringTransfer(attempt.orderId, attempt.role, new Set(refundsAtRelease.map((r) => r.stripeRefundId)))
 
     logStripeWebhookInfo({
       level: "info",

@@ -9,7 +9,8 @@ type Row = {
   platformCommissionCents: number
   paymentSettlementStatus: string
 }
-const { orders, recordedRefunds, orderUpdates, reverse, clawbackFull, clawbackPartial } = vi.hoisted(() => ({
+const { orders, recordedRefunds, orderUpdates, reverse, clawbackFull, clawbackPartial, superseded } = vi.hoisted(() => ({
+  superseded: [] as Array<{ orderId: string; role: string; errorCode: string }>,
   orders: {} as Record<string, Row>,
   recordedRefunds: [] as Array<{ orderId: string; stripeRefundId: string; amountCents: number }>,
   orderUpdates: [] as Array<{ id: string; data: Record<string, unknown> }>,
@@ -31,8 +32,15 @@ vi.mock("@/lib/payout-reversal-safety", () => ({
   markRefundPendingClawback: vi.fn(async () => {}),
 }))
 vi.mock("@/lib/stripe", () => ({ getStripeClient: () => ({}) }))
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
+vi.mock("@/lib/prisma", () => {
+  const prisma = {
+    $transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn(prisma),
+    transferAttempt: {
+      updateMany: async (args: { where: { orderId: string; role: string; status: string }; data: { errorCode: string } }) => {
+        superseded.push({ orderId: args.where.orderId, role: args.where.role, errorCode: args.data.errorCode })
+        return { count: 1 }
+      },
+    },
     order: {
       findMany: async () => Object.values(orders).map((o) => ({ id: o.id })),
       findUnique: async ({ where }: { where: { id: string } }) => orders[where.id] ?? null,
@@ -49,8 +57,9 @@ vi.mock("@/lib/prisma", () => ({
         return data
       },
     },
-  },
-}))
+  }
+  return { prisma }
+})
 
 import { handleStripeChargeRefundedWithCommission } from "@/lib/stripe-commission-refund"
 
@@ -85,6 +94,7 @@ describe("refund of a multi-order charge (A 30 €, B 10 €)", () => {
     reverse.mockClear()
     clawbackFull.mockClear()
     clawbackPartial.mockClear()
+    superseded.length = 0
   })
 
   it("applies a refund only to the order it names", async () => {
@@ -118,5 +128,20 @@ describe("refund of a multi-order charge (A 30 €, B 10 €)", () => {
     await handleStripeChargeRefundedWithCommission(charge([{ id: "re_A", amount: 3000 }], 3000))
     expect(clawbackFull).not.toHaveBeenCalled()
     expect(orderUpdates.find((u) => u.id === "A")?.data.paymentSettlementStatus).toBe("PARTIALLY_REFUNDED")
+  })
+
+  it("a FULL refund cancels the transfers that have not left yet, for both roles", async () => {
+    await handleStripeChargeRefundedWithCommission(charge([{ id: "re_A", amount: 3000, orderId: "A" }], 3000))
+    expect(superseded).toEqual([
+      { orderId: "A", role: "SUPPLIER", errorCode: "ORDER_REFUNDED" },
+      { orderId: "A", role: "AFFILIATE", errorCode: "ORDER_REFUNDED" },
+    ])
+  })
+
+  it("a PARTIAL refund leaves them pending (the release pays only what is still owed)", async () => {
+    orders.A = { ...row("A", 3000), totalCents: 3000, subtotalCents: 3000, taxCents: 600 }
+    delete orders.B
+    await handleStripeChargeRefundedWithCommission(charge([{ id: "re_A", amount: 3000 }], 3000))
+    expect(superseded).toEqual([])
   })
 })
