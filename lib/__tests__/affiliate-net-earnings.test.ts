@@ -21,7 +21,7 @@ describe("reseller net earnings shown = reseller transfer", () => {
   it("matches netAffiliateTransferCents + computePhase1OrderFees cent for cent", () => {
     let cases = 0
     for (const base of [100, 999, 1_250, 4_990, 12_345, 99_999]) {
-      for (const commissionPct of [0, 5, 10, 12.5, 30]) {
+      for (const commissionPct of [0, 5, 10, 12.5, 30, 60, 100]) {
         for (const listed of [null, base, base + 1, Math.round(base * 1.3), base * 2 + 7]) {
           for (const feeBps of [undefined, 0, 1_000, 2_000]) {
             const e = buildAffiliateCatalogCardEconomics(base, commissionPct, {
@@ -48,7 +48,7 @@ describe("reseller net earnings shown = reseller transfer", () => {
         }
       }
     }
-    expect(cases).toBe(600)
+    expect(cases).toBe(840)
   })
 
   it("standard case: 30 € wholesale, 10 % commission, 30 % markup -> 12 € gross, 9.60 € net", () => {

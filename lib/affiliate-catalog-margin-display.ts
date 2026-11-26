@@ -1,4 +1,4 @@
-import { RESELLER_PLATFORM_FEE_BPS, computeSaleSplit } from "@/lib/money/sale-split"
+import { computePhase1OrderFees, resolveAffiliatePlatformFeeBps } from "@/lib/marketplace-phase1-fees"
 
 /** Default markup when affiliate has not set a selling price yet (swipe feed + quick list). */
 export const DEFAULT_AFFILIATE_CATALOG_MARKUP_RATE = 0.3
@@ -71,7 +71,7 @@ export type AffiliateCatalogCardEconomics = {
   resellerFeeBps: number
   /**
    * What the reseller actually receives per sale (commission + markup − Affisell fee) — the same amount the transfer
-   * pays (`netAffiliateTransferCents`), computed by the canonical split (`lib/money/sale-split.ts`).
+   * pays (`netAffiliateTransferCents`), with the fee from the settlement's own `computePhase1OrderFees`.
    */
   netPartnerGainCents: number
   suggestedMarkupRate: number
@@ -100,16 +100,18 @@ export function buildAffiliateCatalogCardEconomics(
       : 0
     : markupRate
 
-  const resellerFeeBps = Math.round(
-    Number.isFinite(options?.resellerFeeBps ?? NaN) ? (options!.resellerFeeBps as number) : RESELLER_PLATFORM_FEE_BPS
+  // Affisell's fee on the reseller side, computed by the SETTLEMENT function itself (same rounding, same clamp).
+  // Not lib/money/sale-split.ts: it caps the commission at 50 %, the settlement does not.
+  const resellerFeeBps = resolveAffiliatePlatformFeeBps(
+    Number.isFinite(options?.resellerFeeBps ?? NaN) ? (options!.resellerFeeBps as number) : null
   )
-  const split = computeSaleSplit({
-    wholesaleCents: basePriceCents,
-    commissionBps: Math.round((Number(commissionRate) || 0) * 100),
-    markupCents: markupMarginCents,
-    supplierFeeBps: 0, // supplier side: irrelevant to what the reseller receives
-    resellerFeeBps,
+  const { affiliateFeeCents: resellerFeeCents } = computePhase1OrderFees({
+    wholesaleTotalCents: basePriceCents,
+    affiliateCommissionCents: commissionCents,
+    affiliateMarginRetainedCents: markupMarginCents,
+    affiliatePlatformFeeBps: resellerFeeBps,
   })
+  const totalPartnerGainCents = commissionCents + markupMarginCents
 
   return {
     supplierPriceCents: basePriceCents,
@@ -118,10 +120,10 @@ export function buildAffiliateCatalogCardEconomics(
     markupMarginCents,
     commissionRatePct: Math.round(Number(commissionRate) || 0),
     commissionCents,
-    totalPartnerGainCents: commissionCents + markupMarginCents,
-    resellerFeeCents: split.resellerFeeCents,
+    totalPartnerGainCents,
+    resellerFeeCents,
     resellerFeeBps,
-    netPartnerGainCents: split.resellerPayoutCents,
+    netPartnerGainCents: Math.max(0, totalPartnerGainCents - resellerFeeCents),
     suggestedMarkupRate: effectiveMarkupRate,
     suggestedSellingPriceCents: clientPrice,
   }
