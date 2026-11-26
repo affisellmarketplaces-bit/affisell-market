@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import { auth } from "@/auth"
 import { calculateTrustScoreBreakdown } from "@/lib/trust-score"
+import { isLightningLocked, lightningToggleDecision } from "@/lib/payouts/lightning-lock"
 import { prisma } from "@/lib/prisma"
 import { assertSameSiteRequestOrigin } from "@/lib/request-origin-guard"
 
@@ -39,6 +40,7 @@ export async function GET() {
   return NextResponse.json({
     trustScore: profile.trustScore,
     lightningEnabled: profile.lightningEnabled,
+    lightningLocked: isLightningLocked(),
     breakdown,
   })
 }
@@ -65,6 +67,16 @@ export async function PATCH(req: Request) {
   const parsed = patchSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid body", details: parsed.error.flatten() }, { status: 400 })
+  }
+
+  // Temporary lock (lib/payouts/lightning-lock.ts): checked before anything is read or written.
+  const lock = lightningToggleDecision(parsed.data.lightningEnabled)
+  if (!lock.allowed) {
+    console.warn("[lightning-payout-settings] refused_locked", { supplierId: session.user.id })
+    return NextResponse.json(
+      { error: lock.error, message: lock.message, lightningLocked: true },
+      { status: 409 }
+    )
   }
 
   const supplierId = session.user.id

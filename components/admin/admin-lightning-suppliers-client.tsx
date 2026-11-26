@@ -97,12 +97,13 @@ export function AdminLightningSuppliersClient({ initial }: Props) {
       })
       const data = (await res.json().catch(() => ({}))) as {
         error?: string
+        message?: string
         lightningEnabled?: boolean
         lightningAdminOverride?: boolean
         trustScore?: number
       }
       if (!res.ok) {
-        toast.error(data.error ?? "Mise à jour impossible")
+        toast.error(data.message ?? data.error ?? "Mise à jour impossible")
         return
       }
 
