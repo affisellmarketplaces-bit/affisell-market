@@ -49,6 +49,9 @@ const order = {
   payoutEligibleAt: new Date("2026-11-01T00:00:00Z"),
   paidAt: new Date("2026-10-20T00:00:00Z"),
   affiliateProductId: "lst_1",
+  totalCents: null,
+  taxCents: 0,
+  shippingCents: 0,
   product: { categoryId: "cat_a" },
   affiliate: { affiliatePlatformFeeBps: null },
 }
@@ -159,6 +162,19 @@ describe("loadCopilotAccuracy (order snapshot + payout ledger)", () => {
     await loadSupplierReliability(["sup_1"], now)
     const supplierCall = findMany.mock.calls.find((c) => JSON.stringify(c[0].where).includes("sup_1"))!
     expect(supplierCall[0].orderBy).toEqual({ paidAt: "desc" })
+  })
+
+  it("a partial refund on a taxed sale is measured against what the buyer PAID (TTC), not the pre-tax line", async () => {
+    // 13 000 HT + 2 600 VAT = 15 600 paid; 7 800 refunded = exactly half.
+    db.orders = [{ ...order, affiliatePayoutCents: 3_200, totalCents: 15_600, taxCents: 2_600, shippingCents: 0 }]
+    db.attempts = [
+      { orderId: "ord_000001", amountCents: 3_200, reversedAmountCents: 0, status: "PENDING", stripeTransferId: null },
+    ]
+    db.ledger = []
+    db.reversals = []
+    db.refunds = [{ orderId: "ord_000001", _sum: { amountCents: 7_800 } }]
+    const { rows } = await loadCopilotAccuracy({ affiliateId: "aff_1", now })
+    expect(rows[0]).toMatchObject({ dueCents: 1_600 })
   })
 
   it("never throws", async () => {

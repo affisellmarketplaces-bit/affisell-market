@@ -53,6 +53,9 @@ async function loadOrderAccounting(where: Prisma.OrderWhereInput, now: Date): Pr
       quantity: true,
       basePriceCents: true,
       sellingPriceCents: true,
+      totalCents: true,
+      taxCents: true,
+      shippingCents: true,
       commissionCents: true,
       affiliatePayoutCents: true,
       affiliateMarginRetainedCents: true,
@@ -159,7 +162,10 @@ async function loadOrderAccounting(where: Prisma.OrderWhereInput, now: Date): Pr
     const moved = p ? [...p.moved.values()].reduce((a, b) => a + b, 0) : 0
     const reversed = p ? [...p.reversedByTransfer.values()].reduce((a, b) => a + b, 0) : 0
     const refunded = refundedAmount.get(o.id) ?? 0
-    const refundedShare = o.sellingPriceCents > 0 ? Math.min(1, refunded / o.sellingPriceCents) : 0
+    // Stripe refunds are what the BUYER got back (tax included): compare them with what the buyer paid, never with
+    // the pre-tax line, or a partially refunded taxed sale would look more refunded than it is.
+    const paidByBuyer = o.totalCents ?? o.sellingPriceCents + o.taxCents + o.shippingCents
+    const refundedShare = paidByBuyer > 0 ? Math.min(1, refunded / paidByBuyer) : 0
     const row = accountOrder({
       orderId: o.id,
       categoryId: o.product?.categoryId ?? null,
