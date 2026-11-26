@@ -146,6 +146,26 @@ async function loadSource(
   }
 }
 
+/**
+ * Pages of one source over a window, in the projection's deterministic order — shared by the projection and the
+ * read-only reconciliation (`journal-reconcile.server.ts`), so both see exactly the same events. Stops at the end of
+ * the window or at {@link JOURNAL_MAX_PAGES} (then `truncated` is reported by the caller).
+ */
+export async function* iterateJournalSource(
+  source: JournalSource,
+  since: Date,
+  until: Date
+): AsyncGenerator<{ page: number; rows: number; events: ServerEventInput[] }> {
+  for (let page = 0; page < JOURNAL_MAX_PAGES; page++) {
+    const { rows, events } = await loadSource(source, since, until, {
+      skip: page * JOURNAL_PAGE_SIZE,
+      take: JOURNAL_PAGE_SIZE,
+    })
+    yield { page, rows, events }
+    if (rows < JOURNAL_PAGE_SIZE) return
+  }
+}
+
 export async function projectBusinessJournal(args: {
   since: Date
   until?: Date
@@ -165,16 +185,11 @@ export async function projectBusinessJournal(args: {
   for (const source of args.sources ?? JOURNAL_SOURCES) {
     const totals = { rows: 0, events: 0, written: 0, duplicates: 0, truncated: false, error: null as string | null }
     try {
-      for (let page = 0; ; page++) {
-        if (page >= JOURNAL_MAX_PAGES) {
-          totals.truncated = true
-          console.warn("[events-journal]", { source, result: "truncated", rows: totals.rows, hint: "narrow the window" })
-          break
-        }
-        const { rows, events } = await loadSource(source, args.since, until, {
-          skip: page * JOURNAL_PAGE_SIZE,
-          take: JOURNAL_PAGE_SIZE,
-        })
+      let lastPage = -1
+      let lastRows = 0
+      for await (const { page, rows, events } of iterateJournalSource(source, args.since, until)) {
+        lastPage = page
+        lastRows = rows
         totals.rows += rows
         totals.events += events.length
         if (!args.dryRun && events.length > 0) {
@@ -187,7 +202,10 @@ export async function projectBusinessJournal(args: {
             break
           }
         }
-        if (rows < JOURNAL_PAGE_SIZE) break
+      }
+      if (!totals.error && lastPage === JOURNAL_MAX_PAGES - 1 && lastRows === JOURNAL_PAGE_SIZE) {
+        totals.truncated = true
+        console.warn("[events-journal]", { source, result: "truncated", rows: totals.rows, hint: "narrow the window" })
       }
     } catch (e) {
       totals.error = e instanceof Error ? e.message : String(e)
