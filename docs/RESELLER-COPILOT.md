@@ -184,7 +184,8 @@ Hard rules:
 
 **Deployment order** (same procedure as every schema change, `docs/DEPLOY-SCHEMA-CHANGES.md`):
 
-1. Run `schema:migrate` on staging, then on production (migration `20261126100000_reseller_autonomy_rule`).
+1. Follow `docs/MIGRATION-AUTONOMY.md`: `schema:migrate` on staging, the catalog and limit checks, then on production
+   (migration `20261126100000_reseller_autonomy_rule`).
 2. Run `schema:verify`.
 3. Merge.
 
