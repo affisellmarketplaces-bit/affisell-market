@@ -16,7 +16,7 @@ export function resolveBinaryCopyLocale(locale: string): "en" | "fr" {
   return locale === "fr" ? "fr" : "en"
 }
 
-export { pickBinaryLabel, type BinaryLabel } from "@/lib/i18n-pick-message"
+export { pickBinaryLabel, type BinaryLabel } from "@/lib/i18n-binary-label"
 
 export function intlLocaleTag(locale: AppLocale): string {
   const tags: Record<AppLocale, string> = {

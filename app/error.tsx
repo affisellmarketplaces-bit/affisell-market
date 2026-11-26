@@ -4,17 +4,8 @@ import * as Sentry from "@sentry/nextjs"
 import Link from "next/link"
 import { useEffect, useMemo } from "react"
 
-import en from "@/messages/en.json"
-import fr from "@/messages/fr.json"
 import { LOCALE_COOKIE } from "@/lib/i18n-locale"
-
-type ErrorCopy = {
-  label: string
-  title: string
-  body: string
-  retry: string
-  home: string
-}
+import { PAGE_ERROR_COPY, type PageErrorCopy } from "@/lib/page-error-copy"
 
 function readLocaleFromDocument(): "fr" | "en" {
   if (typeof document === "undefined") return "en"
@@ -38,10 +29,7 @@ export default function AppError({
 }) {
   const locale = useMemo(() => readLocaleFromDocument(), [])
 
-  const t: ErrorCopy = useMemo(() => {
-    const pack = locale === "fr" ? fr : en
-    return pack.errors.page as ErrorCopy
-  }, [locale])
+  const t: PageErrorCopy = PAGE_ERROR_COPY[locale]
 
   useEffect(() => {
     console.error("[app error]", {

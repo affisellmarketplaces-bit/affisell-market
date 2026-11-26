@@ -108,11 +108,17 @@ vi.mock("@/lib/prisma", () => {
         updates.push(data)
         return {}
       },
-      // The lease claim (one run at a time), its renewal before create, and the conditional failure write.
+      // The lease claim / renewal (#28, scripted) and every other conditional write (#13 semantics: a status
+      // condition that no longer matches writes nothing).
       updateMany: async (args: { where: Record<string, unknown>; data: Record<string, unknown> }) => {
         updateManyCalls.push(args)
-        const scripted = state.updateManyResults.shift()
-        return { count: scripted ?? state.claimCount }
+        if (args.where.OR !== undefined || args.where.lastAttemptAt !== undefined) {
+          const scripted = state.updateManyResults.shift()
+          return { count: scripted ?? state.claimCount }
+        }
+        if (args.where.status && state.attempt.status !== args.where.status) return { count: 0 }
+        updates.push(args.data)
+        return { count: 1 }
       },
     },
     order: {
@@ -201,6 +207,36 @@ describe("runProcessTransfersJob — last-line money guard", () => {
     updateManyCalls.length = 0
     chargesRetrieve.mockClear()
     delete process.env.MONEY_GUARD_MODE
+  })
+
+  // A3 hotfix (2026-11-25): an order Lightning holds (in flight, or kept PROCESSING after an uncertain transfer) is
+  // never paid alongside it, and the attempt is not consumed.
+  it("never calls Stripe while Lightning holds the order (payoutStatus PROCESSING)", async () => {
+    await runOnce(attempt({}, { payoutStatus: "PROCESSING" }))
+    expect(transfersCreate).not.toHaveBeenCalled()
+    expect(updates).toHaveLength(0)
+  })
+
+  // A3 hotfix: Lightning records the leg SUCCESS while our call fails on the shared idempotency key → the failure
+  // handler must not put that attempt back to PENDING (it would be paid again once the key expires).
+  it("a Stripe failure never reverts an attempt a racing rail already marked SUCCESS", async () => {
+    transfersCreate.mockImplementationOnce(async () => {
+      state.attempt.status = "SUCCESS"
+      throw Object.assign(new Error("Keys for idempotent requests can only be used with the same parameters"), {
+        type: "StripeIdempotencyError",
+      })
+    })
+    await runOnce(attempt())
+    expect(transfersCreate).toHaveBeenCalledTimes(1)
+    expect(updates.some((u) => u.status === "PENDING" || u.status === "FAILED")).toBe(false)
+  })
+
+  it("a Stripe failure on a still-PENDING attempt is recorded as before", async () => {
+    transfersCreate.mockImplementationOnce(async () => {
+      throw new Error("network")
+    })
+    await runOnce(attempt())
+    expect(updates.some((u) => u.status === "PENDING" && u.attempts === 1)).toBe(true)
   })
 
   it("sends a normal transfer with a stable idempotency key", async () => {
@@ -464,12 +500,16 @@ describe("runProcessTransfersJob — last-line money guard", () => {
 
     it("a Stripe failure never overwrites a SUCCESS recorded by another run (conditional write)", async () => {
       transfersCreate.mockImplementationOnce(async () => {
+        // Meanwhile another run (or Lightning, #13) paid this leg and recorded it: the row is SUCCESS now.
+        state.attempt.status = "SUCCESS"
         throw new Error("idempotency key in use")
       })
       await runOnce(attempt())
       const failureWrite = updateManyCalls.find((c) => c.data.status === "PENDING" || c.data.status === "FAILED")
       expect(failureWrite?.where).toMatchObject({ id: "att_1", status: "PENDING" })
+      // The write is conditioned on PENDING, so against the SUCCESS row it changes nothing.
       expect(updates.some((u) => u.status === "PENDING" || u.status === "FAILED")).toBe(false)
+      expect(state.attempt.status).toBe("SUCCESS")
     })
   })
 

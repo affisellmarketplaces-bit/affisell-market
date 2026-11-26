@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { LightningPayoutSettings } from "@/components/supplier/lightning-payout-settings"
 import { requireSupplierSession } from "@/lib/dashboard-session"
+import { isLightningLocked } from "@/lib/payouts/lightning-lock"
 import { calculateTrustScoreBreakdown } from "@/lib/trust-score"
 import { prisma } from "@/lib/prisma"
 
@@ -52,6 +53,7 @@ export default async function SupplierPayoutSettingsPage() {
         <LightningPayoutSettings
           initialTrustScore={profile.trustScore}
           initialLightningEnabled={profile.lightningEnabled}
+          lightningLocked={isLightningLocked()}
         />
 
         <div className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-400">

@@ -216,6 +216,17 @@ async function processOneAttempt(
     return "skipped"
   }
 
+  // Lightning holds the order (in flight, or kept PROCESSING because a transfer's outcome is unknown): never pay
+  // alongside it — the attempt stays PENDING, no counter consumed (A3 hotfix, 2026-11-25).
+  if (attempt.order.payoutStatus === "PROCESSING") {
+    console.log("[transfer-gating]", {
+      orderId: attempt.orderId,
+      role: attempt.role,
+      reason: "lightning_processing",
+    })
+    return "skipped"
+  }
+
   // A refunded / cancelled order must not release a transfer: cancel the pending attempt instead of paying out of a
   // charge that went back to the buyer (finalisation master doc, D1/D3).
   if (isOrderClosedForPayout(attempt.order)) {
@@ -604,8 +615,9 @@ async function processOneAttempt(
 
     const terminal = nextAttempts >= MAX_ATTEMPTS
 
-    // Only a still-PENDING attempt is marked: another run may have recorded a SUCCESS meanwhile (same idempotency key),
-    // and a failure must never overwrite it.
+    // Conditional — two reasons, one rule: (1) a racing rail (Lightning, A3 hotfix #13) may have recorded this leg SUCCESS
+    // while our Stripe call failed (shared idempotency key, other parameters = idempotency error); (2) another run of this
+    // job (lease outlived, #28) may have recorded a SUCCESS meanwhile. A failure never overwrites a SUCCESS.
     await prisma.transferAttempt.updateMany({
       where: { id: attempt.id, status: "PENDING" },
       data: {
