@@ -161,7 +161,18 @@ Hard rules:
   `fix_margins` and `reprice`, a price-rise cap ≤ 25 % (`maxPriceIncreaseBps` ≤ 2 500) and 1 to 50 runs per week.
 - **A grant needs `consent: true`.** The UI shows the exact sentence with the limits, and the grant is written to
   AuditLog (`copilot.autonomy.grant`) with those limits.
+- **A grant and its audit entry are one transaction**: a grant that could not be recorded does not exist (same for
+  a revocation).
 - **Revocation is one click** (`copilot.autonomy.revoke`). The row is kept with `revokedAt` for the trail.
+- **Checked at the moment of each use.** Before every automatic action, one conditional `UPDATE … RETURNING` on the
+  rule row (`reserveAutoRun`) checks that the grant is still active, takes one slot of the quota and returns the
+  limits in force at that instant. Two concurrent runs serialise on the row lock (measured: 20 concurrent
+  reservations against a quota of 3 grant exactly 3). A grant revoked mid-batch, or a tightened limit, applies to the
+  very next action. An unused slot (limit exceeded, apply refused) is given back.
+- **Quota window**: `maxRunsPerWeek` counts per 7-day window starting at the window's first run
+  (`autoRunsWindowStart`, `autoRunsInWindow`). Re-granting never refills a quota already used.
+- **The price checked is the price written.** The apply recomputes the plan and refuses (stale) if it suggests any
+  price other than the one checked against the limit.
 - **Never automatic**, whatever is granted: pausing a product, payments, transfers, anything irreversible.
 - **Same guarded path as a click.** The autopilot uses the plan recomputed at that moment and the conditional
   write, and records each action in AuditLog with `source: "auto"`. Each action is notified (`COPILOT_AUTO_ACTION`)

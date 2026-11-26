@@ -4,16 +4,44 @@ const state = vi.hoisted(() => ({
   rules: [] as Array<Record<string, unknown>>,
   plan: [] as Array<Record<string, unknown>>,
   autoRuns: 0,
+  used: 0,
+  revokeAfter: Infinity,
+  reserveBps: null as number | null,
+  resellers: ["aff_000001"] as string[],
   applied: [] as string[],
+  applyArgs: [] as Array<Record<string, unknown>>,
   notifications: 0,
+  txFails: false,
 }))
 vi.mock("server-only", () => ({}))
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    $queryRaw: vi.fn(async (strings: TemplateStringsArray) =>
-      strings.join("?").includes("DISTINCT") ? [{ affiliateId: "aff_000001" }] : state.rules,
-    ),
-    $executeRaw: vi.fn(async () => 1),
+    $queryRaw: vi.fn(async (strings: TemplateStringsArray, ...values: unknown[]) => {
+      const sql = strings.join("?")
+      if (sql.includes("DISTINCT")) {
+        const [cursor, size] = values as [string, number]
+        return state.resellers
+          .filter((id) => id > cursor)
+          .slice(0, size)
+          .map((affiliateId) => ({ affiliateId }))
+      }
+      if (sql.includes("RETURNING")) {
+        // Atomic reservation: grant still active and a slot left, at the moment of use.
+        const r = state.rules[0]!
+        if (r.revokedAt || state.used >= state.revokeAfter || state.used >= (r.maxRunsPerWeek as number)) return []
+        state.used += 1
+        return [{ ...r, maxPriceIncreaseBps: state.reserveBps ?? r.maxPriceIncreaseBps, autoRunsInWindow: state.used }]
+      }
+      return state.rules
+    }),
+    $executeRaw: vi.fn(async (strings: TemplateStringsArray) => {
+      if (strings.join("?").includes("GREATEST")) state.used = Math.max(0, state.used - 1)
+      return 1
+    }),
+    $transaction: vi.fn(async (ops: Array<Promise<unknown>>) => {
+      if (state.txFails) throw new Error("audit write failed")
+      return Promise.all(ops)
+    }),
     auditLog: { count: vi.fn(async () => state.autoRuns), create: vi.fn(async () => ({})) },
     notification: {
       create: vi.fn(async () => {
@@ -25,14 +53,15 @@ vi.mock("@/lib/prisma", () => ({
 }))
 vi.mock("@/lib/reseller-action-plan.server", () => ({
   loadResellerActionPlan: vi.fn(async () => ({ actions: state.plan, listingsChecked: 1, estimated: true })),
-  applyCopilotAction: vi.fn(async ({ actionId, source }: { actionId: string; source: string }) => {
-    state.applied.push(`${actionId}@${source}`)
+  applyCopilotAction: vi.fn(async (args: { actionId: string; source: string }) => {
+    state.applyArgs.push(args)
+    state.applied.push(`${args.actionId}@${args.source}`)
     return { ok: true, auditId: `aud_${state.applied.length}` }
   }),
 }))
 
 import { decideAutoApply, parseGrant, type AutonomyRule } from "@/lib/copilot-autonomy"
-import { runAutopilot, runAutopilotForReseller } from "@/lib/copilot-autonomy.server"
+import { grantAutonomy, runAutopilot, runAutopilotForReseller } from "@/lib/copilot-autonomy.server"
 import type { PlannedAction } from "@/lib/reseller-action-plan"
 
 const action = (over: Partial<PlannedAction>): PlannedAction => ({
@@ -138,8 +167,14 @@ describe("autopilot runner", () => {
       action({ id: "reprice:lst_000006", listingId: "lst_000006" }),
     ]
     state.autoRuns = 0
+    state.used = 0
+    state.revokeAfter = Infinity
+    state.reserveBps = null
+    state.resellers = ["aff_000001"]
     state.applied = []
+    state.applyArgs = []
     state.notifications = 0
+    state.txFails = false
   })
 
   it("applies only what the grant allows, through the guarded path, notifies each, stops at the weekly cap", async () => {
@@ -164,5 +199,46 @@ describe("autopilot runner", () => {
     expect(await runAutopilot({ env: {} })).toEqual({ enabled: false, resellers: 0, applied: 0 })
     expect(state.applied).toEqual([])
     expect((await runAutopilot({ env: { COPILOT_AUTOPILOT: "on" } })).applied).toBe(2)
+  })
+
+  it("a grant revoked DURING the batch stops the next actions (checked at the moment of each use)", async () => {
+    state.revokeAfter = 1
+    const r = await runAutopilotForReseller("aff_000001")
+    expect(state.applied).toEqual(["reprice:lst_000001@auto"])
+    expect(r.skipped).toEqual(expect.arrayContaining([{ actionId: "reprice:lst_000005", reason: "weekly_limit" }]))
+  })
+
+  it("the limit IN FORCE at the moment of use wins; an unused slot is given back", async () => {
+    state.reserveBps = 500 // tightened to +5 % after the batch started: the +8 % suggestion is refused
+    const r = await runAutopilotForReseller("aff_000001")
+    expect(state.applied).toEqual([])
+    expect(r.skipped.filter((s) => s.reason === "price_limit").length).toBeGreaterThanOrEqual(3)
+    expect(state.used).toBe(0)
+  })
+
+  it("the apply must write EXACTLY the price that was checked against the limit", async () => {
+    await runAutopilotForReseller("aff_000001")
+    expect(state.applyArgs[0]).toMatchObject({ actionId: "reprice:lst_000001", expectedSuggestedPriceCents: 5400 })
+  })
+
+  it("weekly quota is consumed atomically: a second concurrent run gets no slot", async () => {
+    const [a, b] = await Promise.all([runAutopilotForReseller("aff_000001"), runAutopilotForReseller("aff_000001")])
+    expect(a.applied.length + b.applied.length).toBe(2)
+  })
+
+  it("every reseller with a grant is processed, beyond the first page", async () => {
+    state.resellers = ["aff_000001", "aff_000002", "aff_000003"]
+    state.rules[0]!.maxRunsPerWeek = 50
+    const r = await runAutopilot({ env: { COPILOT_AUTOPILOT: "on" }, limit: 1 })
+    expect(r.resellers).toBe(3)
+  })
+
+  it("a grant whose audit entry cannot be written is not granted (one transaction)", async () => {
+    state.txFails = true
+    const r = await grantAutonomy({
+      affiliateId: "aff_000001",
+      rule: { actionType: "reprice", maxPriceIncreaseBps: 1000, maxRunsPerWeek: 5 },
+    })
+    expect(r).toEqual({ ok: false, reason: "failed" })
   })
 })

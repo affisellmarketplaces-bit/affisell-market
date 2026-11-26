@@ -4,7 +4,6 @@ import { randomUUID } from "node:crypto"
 
 import { Prisma } from "@prisma/client"
 
-import { COPILOT_APPLY_ACTION } from "@/lib/copilot-audit-actions"
 import {
   decideAutoApply,
   isAutoEligibleType,
@@ -73,7 +72,9 @@ export async function grantAutonomy(args: {
 }): Promise<{ ok: true } | { ok: false; reason: "unavailable" | "failed" }> {
   const { actionType, maxPriceIncreaseBps, maxRunsPerWeek } = args.rule
   try {
-    await prisma.$executeRaw`
+    // Grant + its audit trail in ONE transaction: a grant that could not be recorded does not exist.
+    await prisma.$transaction([
+      prisma.$executeRaw`
       INSERT INTO "ResellerAutonomyRule"
         ("id", "affiliateId", "actionType", "maxPriceIncreaseBps", "maxRunsPerWeek", "grantedAt", "revokedAt", "updatedAt")
       VALUES (${randomUUID()}, ${args.affiliateId}, ${actionType}, ${maxPriceIncreaseBps}, ${maxRunsPerWeek}, NOW(), NULL, NOW())
@@ -82,16 +83,19 @@ export async function grantAutonomy(args: {
         "maxRunsPerWeek" = EXCLUDED."maxRunsPerWeek",
         "grantedAt" = NOW(),
         "revokedAt" = NULL,
-        "updatedAt" = NOW()`
-    await prisma.auditLog.create({
-      data: {
-        action: AUTONOMY_GRANT_ACTION,
-        entityType: "ResellerAutonomyRule",
-        entityId: `${args.affiliateId}:${actionType}`,
-        actorId: args.affiliateId,
-        payload: { actionType, maxPriceIncreaseBps, maxRunsPerWeek },
-      },
-    })
+        -- Re-granting never refills the quota already used in the current window.
+        "autoRunsInWindow" = LEAST("ResellerAutonomyRule"."autoRunsInWindow", EXCLUDED."maxRunsPerWeek"),
+        "updatedAt" = NOW()`,
+      prisma.auditLog.create({
+        data: {
+          action: AUTONOMY_GRANT_ACTION,
+          entityType: "ResellerAutonomyRule",
+          entityId: `${args.affiliateId}:${actionType}`,
+          actorId: args.affiliateId,
+          payload: { actionType, maxPriceIncreaseBps, maxRunsPerWeek },
+        },
+      }),
+    ])
     return { ok: true }
   } catch (e) {
     if (isMissingTable(e)) return { ok: false, reason: "unavailable" }
@@ -105,18 +109,20 @@ export async function revokeAutonomy(args: {
   actionType: AutoEligibleType
 }): Promise<{ ok: true } | { ok: false; reason: "unavailable" | "failed" }> {
   try {
-    await prisma.$executeRaw`
+    await prisma.$transaction([
+      prisma.$executeRaw`
       UPDATE "ResellerAutonomyRule" SET "revokedAt" = NOW(), "updatedAt" = NOW()
-      WHERE "affiliateId" = ${args.affiliateId} AND "actionType" = ${args.actionType} AND "revokedAt" IS NULL`
-    await prisma.auditLog.create({
-      data: {
-        action: AUTONOMY_REVOKE_ACTION,
-        entityType: "ResellerAutonomyRule",
-        entityId: `${args.affiliateId}:${args.actionType}`,
-        actorId: args.affiliateId,
-        payload: { actionType: args.actionType },
-      },
-    })
+      WHERE "affiliateId" = ${args.affiliateId} AND "actionType" = ${args.actionType} AND "revokedAt" IS NULL`,
+      prisma.auditLog.create({
+        data: {
+          action: AUTONOMY_REVOKE_ACTION,
+          entityType: "ResellerAutonomyRule",
+          entityId: `${args.affiliateId}:${args.actionType}`,
+          actorId: args.affiliateId,
+          payload: { actionType: args.actionType },
+        },
+      }),
+    ])
     return { ok: true }
   } catch (e) {
     if (isMissingTable(e)) return { ok: false, reason: "unavailable" }
@@ -130,15 +136,44 @@ export function isAutopilotEnabled(env: Record<string, string | undefined> = pro
   return env.COPILOT_AUTOPILOT === "on"
 }
 
-async function autoRunsLast7Days(affiliateId: string, type: string, now: Date): Promise<number> {
-  return prisma.auditLog.count({
-    where: {
-      action: COPILOT_APPLY_ACTION,
-      actorId: affiliateId,
-      createdAt: { gte: new Date(now.getTime() - AUTO_RUN_WINDOW_MS) },
-      AND: [{ payload: { path: ["source"], equals: "auto" } }, { payload: { path: ["type"], equals: type } }],
-    },
-  })
+type ReservedRow = { maxPriceIncreaseBps: number; maxRunsPerWeek: number; grantedAt: Date; autoRunsInWindow: number }
+
+/**
+ * Reserve ONE run of `type` for this reseller, atomically. A single conditional UPDATE (row-locked) checks, at the
+ * moment of use, that the grant is still active and the window quota not reached, consumes the slot, and returns the
+ * limits IN FORCE NOW. Two concurrent cron runs serialise on the row lock: they can never both take the last slot, a
+ * grant revoked a second ago is never used, and a tightened limit applies immediately. `null` = no slot.
+ */
+export async function reserveAutoRun(affiliateId: string, type: AutoEligibleType): Promise<AutonomyRule | null> {
+  const rows = await prisma.$queryRaw<ReservedRow[]>`
+    UPDATE "ResellerAutonomyRule" SET
+      "autoRunsInWindow" = CASE
+        WHEN "autoRunsWindowStart" IS NULL OR "autoRunsWindowStart" <= NOW() - INTERVAL '7 days' THEN 1
+        ELSE "autoRunsInWindow" + 1 END,
+      "autoRunsWindowStart" = CASE
+        WHEN "autoRunsWindowStart" IS NULL OR "autoRunsWindowStart" <= NOW() - INTERVAL '7 days' THEN NOW()
+        ELSE "autoRunsWindowStart" END,
+      "updatedAt" = NOW()
+    WHERE "affiliateId" = ${affiliateId} AND "actionType" = ${type} AND "revokedAt" IS NULL
+      AND ("autoRunsWindowStart" IS NULL OR "autoRunsWindowStart" <= NOW() - INTERVAL '7 days'
+           OR "autoRunsInWindow" < "maxRunsPerWeek")
+    RETURNING "maxPriceIncreaseBps", "maxRunsPerWeek", "grantedAt", "autoRunsInWindow"`
+  const r = rows[0]
+  if (!r) return null
+  return {
+    actionType: type,
+    maxPriceIncreaseBps: r.maxPriceIncreaseBps,
+    maxRunsPerWeek: r.maxRunsPerWeek,
+    grantedAt: r.grantedAt.toISOString(),
+    revokedAt: null,
+  }
+}
+
+/** Give back a reserved slot that was not used (limit exceeded or apply refused). Never throws. */
+async function releaseAutoRun(affiliateId: string, type: AutoEligibleType): Promise<void> {
+  await prisma.$executeRaw`
+    UPDATE "ResellerAutonomyRule" SET "autoRunsInWindow" = GREATEST(0, "autoRunsInWindow" - 1), "updatedAt" = NOW()
+    WHERE "affiliateId" = ${affiliateId} AND "actionType" = ${type}`.catch(() => undefined)
 }
 
 export type AutopilotReport = {
@@ -159,21 +194,39 @@ export async function runAutopilotForReseller(affiliateId: string, now: Date = n
     const active = new Map(rules.filter((r) => !r.revokedAt).map((r) => [r.actionType, r]))
     if (active.size === 0) return report
     const plan = await loadResellerActionPlan(affiliateId, now)
-    const runs = new Map<string, number>()
     for (const action of plan.actions) {
-      if (!isAutoEligibleType(action.type) || !active.has(action.type)) continue
-      if (!runs.has(action.type)) runs.set(action.type, await autoRunsLast7Days(affiliateId, action.type, now))
-      const decision = decideAutoApply({ action, rule: active.get(action.type), runsLast7Days: runs.get(action.type)! })
+      const type = action.type
+      if (!isAutoEligibleType(type) || !active.has(type)) continue
+      // Cheap pre-check with the rule read at the start (no slot taken for an action that cannot pass anyway).
+      const pre = decideAutoApply({ action, rule: active.get(type), runsLast7Days: 0 })
+      if (!pre.allowed) {
+        report.skipped.push({ actionId: action.id, reason: pre.reason })
+        continue
+      }
+      // Authoritative check at the moment of use: grant still active, quota slot taken atomically, CURRENT limits.
+      const rule = await reserveAutoRun(affiliateId, type)
+      if (!rule) {
+        report.skipped.push({ actionId: action.id, reason: "weekly_limit" })
+        continue
+      }
+      const decision = decideAutoApply({ action, rule, runsLast7Days: 0 })
       if (!decision.allowed) {
+        await releaseAutoRun(affiliateId, type)
         report.skipped.push({ actionId: action.id, reason: decision.reason })
         continue
       }
-      const r = await applyCopilotAction({ affiliateId, actionId: action.id, source: "auto" })
+      // The apply recomputes the plan; it writes only if it suggests EXACTLY the price checked against the limit.
+      const r = await applyCopilotAction({
+        affiliateId,
+        actionId: action.id,
+        source: "auto",
+        expectedSuggestedPriceCents: type === "reprice" ? (action.suggestedPriceCents ?? null) : undefined,
+      })
       if (!r.ok) {
+        await releaseAutoRun(affiliateId, type)
         report.skipped.push({ actionId: action.id, reason: "apply_failed" })
         continue
       }
-      runs.set(action.type, runs.get(action.type)! + 1)
       report.applied.push({ actionId: action.id, auditId: r.auditId })
       await prisma.notification
         .create({
@@ -202,17 +255,28 @@ export async function runAutopilot(args: { env?: Record<string, string | undefin
   applied: number
 }> {
   if (!isAutopilotEnabled(args.env)) return { enabled: false, resellers: 0, applied: 0 }
-  let ids: string[] = []
-  try {
-    const rows = await prisma.$queryRaw<Array<{ affiliateId: string }>>`
-      SELECT DISTINCT "affiliateId" FROM "ResellerAutonomyRule" WHERE "revokedAt" IS NULL
-      ORDER BY "affiliateId" LIMIT ${Math.min(500, Math.max(1, args.limit ?? 200))}`
-    ids = rows.map((r) => r.affiliateId)
-  } catch (e) {
-    if (!isMissingTable(e)) console.error("[copilot-autonomy] list failed", e instanceof Error ? e.message : e)
-    return { enabled: true, resellers: 0, applied: 0 }
-  }
+  // Keyset pagination over EVERY reseller with an active grant (pages of `limit`): nobody past the first page is ever
+  // left out, and a reseller granted during the run is picked up if their id sorts after the cursor.
+  const pageSize = Math.min(500, Math.max(1, args.limit ?? 200))
+  let cursor = ""
+  let resellers = 0
   let applied = 0
-  for (const id of ids) applied += (await runAutopilotForReseller(id)).applied.length
-  return { enabled: true, resellers: ids.length, applied }
+  for (;;) {
+    let ids: string[]
+    try {
+      const rows = await prisma.$queryRaw<Array<{ affiliateId: string }>>`
+        SELECT DISTINCT "affiliateId" FROM "ResellerAutonomyRule"
+        WHERE "revokedAt" IS NULL AND "affiliateId" > ${cursor}
+        ORDER BY "affiliateId" LIMIT ${pageSize}`
+      ids = rows.map((r) => r.affiliateId)
+    } catch (e) {
+      if (!isMissingTable(e)) console.error("[copilot-autonomy] list failed", e instanceof Error ? e.message : e)
+      break
+    }
+    for (const id of ids) applied += (await runAutopilotForReseller(id)).applied.length
+    resellers += ids.length
+    if (ids.length < pageSize) break
+    cursor = ids[ids.length - 1]!
+  }
+  return { enabled: true, resellers, applied }
 }

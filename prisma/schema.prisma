@@ -389,6 +389,8 @@ model ResellerAutonomyRule {
   maxRunsPerWeek      Int       @default(5)
   grantedAt           DateTime  @default(now())
   revokedAt           DateTime?
+  autoRunsWindowStart DateTime?
+  autoRunsInWindow    Int       @default(0)
   updatedAt           DateTime  @updatedAt
 
   @@unique([affiliateId, actionType])

@@ -63,8 +63,8 @@ export type AutoDecision =
     }
 
 /**
- * May this planned action be applied automatically now? `runsLast7Days` = automatic applications of this type for
- * this reseller in the last 7 days (from AuditLog).
+ * May this planned action be applied automatically now? `runsLast7Days` = runs already used in the current window
+ * (the runner passes 0 once `reserveAutoRun` has taken the slot atomically — the database is the quota authority).
  */
 export function decideAutoApply(args: {
   action: PlannedAction

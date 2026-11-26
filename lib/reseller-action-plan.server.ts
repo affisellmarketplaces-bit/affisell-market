@@ -221,6 +221,11 @@ export async function applyCopilotAction(args: {
   actionId: string
   /** "auto" = applied by the copilot under an explicit autonomy grant (recorded as such). Default "manual". */
   source?: "manual" | "auto"
+  /**
+   * Price the caller decided on (the autopilot checked it against the reseller's limit). If the plan recomputed here
+   * suggests ANY other price, nothing is written (stale): a limit is never checked on one price and applied to another.
+   */
+  expectedSuggestedPriceCents?: number | null
 }): Promise<ApplyResult> {
   // 1. Read the listing FIRST: its updatedAt is the version the write will require. The plan is computed AFTER this
   //    read, so any edit landing in between makes the plan see the new state AND the conditional write fail (stale) —
@@ -237,6 +242,9 @@ export async function applyCopilotAction(args: {
   if (action.autonomy !== "one_click" || action.listingId !== listingId) return { ok: false, reason: "not_one_click" }
   // 2. The plan must describe the row that was read (same price): otherwise it is stale.
   if (action.currentPriceCents != null && action.currentPriceCents !== listing.sellingPriceCents) {
+    return { ok: false, reason: "stale" }
+  }
+  if (args.expectedSuggestedPriceCents !== undefined && action.suggestedPriceCents !== args.expectedSuggestedPriceCents) {
     return { ok: false, reason: "stale" }
   }
   const before = toState(listing as StateRow)
