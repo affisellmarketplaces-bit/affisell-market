@@ -216,7 +216,17 @@ async function afterListingChange(affiliateId: string, listingId: string) {
  * Apply ONE prepared action, by id, for the signed-in reseller. The plan is recomputed first: an action that no longer
  * exists (prices moved, already fixed) is refused as `stale`, never applied from an old screen.
  */
-export async function applyCopilotAction(args: { affiliateId: string; actionId: string }): Promise<ApplyResult> {
+export async function applyCopilotAction(args: {
+  affiliateId: string
+  actionId: string
+  /** "auto" = applied by the copilot under an explicit autonomy grant (recorded as such). Default "manual". */
+  source?: "manual" | "auto"
+  /**
+   * Price the caller decided on (the autopilot checked it against the reseller's limit). If the plan recomputed here
+   * suggests ANY other price, nothing is written (stale): a limit is never checked on one price and applied to another.
+   */
+  expectedSuggestedPriceCents?: number | null
+}): Promise<ApplyResult> {
   // 1. Read the listing FIRST: its updatedAt is the version the write will require. The plan is computed AFTER this
   //    read, so any edit landing in between makes the plan see the new state AND the conditional write fail (stale) —
   //    an action is never applied on a version older than the one it was computed from.
@@ -232,6 +242,9 @@ export async function applyCopilotAction(args: { affiliateId: string; actionId: 
   if (action.autonomy !== "one_click" || action.listingId !== listingId) return { ok: false, reason: "not_one_click" }
   // 2. The plan must describe the row that was read (same price): otherwise it is stale.
   if (action.currentPriceCents != null && action.currentPriceCents !== listing.sellingPriceCents) {
+    return { ok: false, reason: "stale" }
+  }
+  if (args.expectedSuggestedPriceCents !== undefined && action.suggestedPriceCents !== args.expectedSuggestedPriceCents) {
     return { ok: false, reason: "stale" }
   }
   const before = toState(listing as StateRow)
@@ -266,7 +279,16 @@ export async function applyCopilotAction(args: { affiliateId: string; actionId: 
         entityId: action.listingId,
         actorId: args.affiliateId,
         payload: JSON.parse(
-          JSON.stringify({ actionId: action.id, type: action.type, reasons: action.reasons, before, after }),
+          JSON.stringify({
+            actionId: action.id,
+            type: action.type,
+            reasons: action.reasons,
+            source: args.source ?? "manual",
+            expectedNetNowCents: action.expectedNetNowCents ?? null,
+            expectedNetAfterCents: action.expectedNetAfterCents ?? null,
+            before,
+            after,
+          }),
         ),
       },
       select: { id: true },

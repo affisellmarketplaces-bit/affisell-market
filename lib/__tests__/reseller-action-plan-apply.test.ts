@@ -195,6 +195,18 @@ describe("copilot apply / undo", () => {
     })
   })
 
+  it("autopilot: a price different from the one checked against the reseller's limit is never written", async () => {
+    const r = await applyCopilotAction({
+      affiliateId: AFF,
+      actionId: "reprice:lst_000001",
+      source: "auto",
+      expectedSuggestedPriceCents: 999_999,
+    })
+    expect(r).toEqual({ ok: false, reason: "stale" })
+    expect(db.listings.get("lst_000001")!.sellingPriceCents).toBe(5300)
+    expect(db.audit).toHaveLength(0)
+  })
+
   it("refuses a stale action (the plan no longer contains it) and an action of another reseller", async () => {
     db.listings.get("lst_000001")!.sellingPriceCents = 9000 // already healthy: no reprice in the plan any more
     expect(await applyCopilotAction({ affiliateId: AFF, actionId: "reprice:lst_000001" })).toEqual({
