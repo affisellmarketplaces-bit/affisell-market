@@ -4,6 +4,7 @@ import {
   classifyStripeHealthOrder,
 } from "@/lib/admin/stripe-health/classify-order"
 import type { StripeHealthOrderRow, StripeHealthStatus } from "@/lib/admin/stripe-health/types"
+import { DISPUTE_HOLD_ID_PREFIX } from "@/lib/orders/dispute-hold.server"
 import { prisma } from "@/lib/prisma"
 
 const MS_PER_DAY = 86_400_000
@@ -45,7 +46,9 @@ export async function loadStripeHealthOrders(
     orderIds.length === 0
       ? []
       : await prisma.processedWebhook.findMany({
-          where: { orderId: { in: orderIds } },
+          // Only Stripe EVENT rows: the dispute ledger (`dispute:…` rows, same `orderId` column) is not a webhook outcome
+          // and would otherwise become the "latest webhook" and hide an earlier failed checkout event (review C3).
+          where: { orderId: { in: orderIds }, NOT: { id: { startsWith: DISPUTE_HOLD_ID_PREFIX } } },
           orderBy: { createdAt: "desc" },
         })
 

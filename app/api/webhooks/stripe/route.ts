@@ -4,6 +4,7 @@ import type Stripe from "stripe"
 
 import { prisma } from "@/lib/prisma"
 import { processStripeWebhookEvent } from "@/lib/stripe-webhook-processor"
+import { isDuplicateWebhookRecord } from "@/lib/stripe-webhook-replay"
 import { enqueueProcessTransfersJob } from "@/lib/transfers/enqueue-job"
 import {
   captureStripeWebhookException,
@@ -60,7 +61,7 @@ export async function POST(req: NextRequest) {
   }
 
   const existing = await prisma.processedWebhook.findUnique({ where: { id: event.id } })
-  if (existing) {
+  if (existing && isDuplicateWebhookRecord(existing)) {
     logStripeWebhookInfo({
       level: "info",
       metric: "webhook_duplicate_early",

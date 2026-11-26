@@ -51,6 +51,68 @@ export function statusAfterPaymentConfirmed(current: string | null | undefined):
 }
 
 /**
+ * Order status written while a payment dispute (chargeback) is open on the charge (finalisation master doc, D7).
+ * `Order.status` is a free string, so this needs no migration; it is also in `POST_PAYMENT_ORDER_STATUSES` above, so a
+ * late `checkout.session.completed` replay can not move the order back to "paid".
+ */
+export const DISPUTED_ORDER_STATUS = "disputed"
+
+/** True when the order status says a dispute is open. The dispute ledger (`dispute-hold.server.ts`) is the authority. */
+export function isOrderDisputed(order: OrderPaymentSnapshot): boolean {
+  return norm(order.status).toLowerCase() === DISPUTED_ORDER_STATUS
+}
+
+/**
+ * True when no payout may be released: a dispute is open on the charge. The caller passes `openDisputeHold` (the open
+ * row of the dispute ledger) because another writer of `Order.status` (tracking webhook, supplier route) can overwrite
+ * "disputed" while the dispute is still open: the hold must not depend on the status alone. A held order keeps its
+ * pending transfers (nothing is cancelled): they are released once the dispute is won, superseded if it is lost.
+ */
+export function isOrderPayoutHeldForDispute(order: OrderPaymentSnapshot, openDisputeHold: boolean): boolean {
+  return openDisputeHold || isOrderDisputed(order)
+}
+
+/**
+ * Status to write when a dispute opens: "disputed", except for an order that is already closed (refunded / cancelled:
+ * never reopened) or already disputed (nothing to write). `null` = leave the status alone.
+ */
+export function statusWhenDisputeOpens(order: OrderPaymentSnapshot): string | null {
+  if (isOrderClosedForPayout(order)) return null
+  if (isOrderDisputed(order)) return null
+  return DISPUTED_ORDER_STATUS
+}
+
+export type OrderStatusFacts = OrderPaymentSnapshot & {
+  shippedAt?: Date | null
+  trackingNumber?: string | null
+  supplierPreparingAt?: Date | null
+}
+
+/**
+ * The status an order had before the dispute, rebuilt from its own facts. Only used when the ledger did not keep the
+ * exact previous status. Statuses actually written by the code base before payment are paid → preparing → shipped.
+ */
+export function statusBeforeDispute(order: OrderStatusFacts): string {
+  if (order.shippedAt || norm(order.trackingNumber) !== "") return "shipped"
+  if (order.supplierPreparingAt) return "preparing"
+  return "paid"
+}
+
+/**
+ * Status to write when a dispute is won / closed without a loss. Only an order still "disputed" is restored: if another
+ * writer already moved it (e.g. shipped), or it was refunded meanwhile, the status is left alone (`null`).
+ * `previousStatus` = the exact status the ledger recorded when the hold was opened (ignored when empty, closed or disputed).
+ */
+export function statusWhenDisputeReleased(order: OrderStatusFacts, previousStatus?: string | null): string | null {
+  if (!isOrderDisputed(order)) return null
+  const previous = norm(previousStatus)
+  if (previous !== "" && !isOrderClosedForPayout({ status: previous }) && previous.toLowerCase() !== DISPUTED_ORDER_STATUS) {
+    return previous
+  }
+  return statusBeforeDispute(order)
+}
+
+/**
  * Settlement status to write when transfers are scheduled. Only a missing / PENDING settlement becomes PAID; PAID stays
  * PAID, and anything later (SETTLED, PARTIALLY_REFUNDED, refund states) is kept instead of being reset.
  */
