@@ -10,6 +10,7 @@ import {
 } from "@/lib/money/split-guard"
 import { evaluateTransferReleaseForRole } from "@/lib/order-transfer-gating"
 import { hasOpenDisputeHold } from "@/lib/orders/dispute-hold.server"
+import { verifyReleaseWithStripe } from "@/lib/transfers/stripe-release-check.server"
 import {
   isOrderClosedForPayout,
   isOrderPayoutHeldForDispute,
@@ -38,6 +39,8 @@ import { getStripeClient } from "@/lib/stripe"
 import * as Sentry from "@sentry/nextjs"
 
 const MAX_ATTEMPTS = 3
+/** A run owns an attempt for this long (far above the Stripe client's own timeouts); a crashed run's lease expires. */
+export const TRANSFER_LEASE_MS = 5 * 60 * 1000
 
 export type ProcessTransfersResult = {
   processed: number
@@ -299,6 +302,25 @@ async function processOneAttempt(
     return "held"
   }
 
+  // ── Claim the attempt (one run at a time) ────────────────────────────────────────────────────────────────────
+  // The cron and the webhook-triggered release can run the same attempt at once. Both would call Stripe (the shared
+  // idempotency key prevents a second transfer only if both requests are IDENTICAL), and the loser's error path could
+  // overwrite a SUCCESS. A conditional update takes a short lease on the row: only the run whose update matches goes on.
+  // Attempts are not consumed (a held attempt must stay retryable); the lease expires by itself.
+  const leaseNow = new Date()
+  const claimed = await prisma.transferAttempt.updateMany({
+    where: {
+      id: attempt.id,
+      status: "PENDING",
+      OR: [{ lastAttemptAt: null }, { lastAttemptAt: { lt: new Date(leaseNow.getTime() - TRANSFER_LEASE_MS) } }],
+    },
+    data: { lastAttemptAt: leaseNow },
+  })
+  if (claimed.count !== 1) {
+    console.log("[transfer-gating]", { orderId: attempt.orderId, role: attempt.role, reason: "claimed_by_another_run" })
+    return "skipped"
+  }
+
   const stripe = getStripeClient()
   const now = new Date()
   const nextAttempts = attempt.attempts + 1
@@ -391,6 +413,10 @@ async function processOneAttempt(
           subtotalCents: true,
           sellingPriceCents: true,
           taxCents: true,
+          currency: true,
+          stripeChargeId: true,
+          stripePaymentIntentId: true,
+          stripeSessionId: true,
           stripeRefunds: { select: { stripeRefundId: true, amountCents: true } },
         },
       })
@@ -423,6 +449,33 @@ async function processOneAttempt(
       console.log("[transfer-gating]", { orderId: attempt.orderId, role: attempt.role, reason: "dispute_open_at_release" })
       return "held"
     }
+
+    // ── Stripe itself must agree with our rows (a refund whose webhook never arrived, a dispute we did not record) ──
+    const stripeCheck = await verifyReleaseWithStripe(
+      stripe,
+      { id: attempt.orderId, ...fresh },
+      fresh.stripeRefunds,
+    )
+    if (!stripeCheck.ok) {
+      logStripeWebhookError({
+        level: "error",
+        metric: "transfer_held_stripe_check",
+        orderId: attempt.orderId,
+        role: attempt.role,
+        reason: stripeCheck.reason,
+        detail: stripeCheck.detail,
+      })
+      // Explainable trace on the attempt itself; it stays PENDING and its attempts are not consumed.
+      await prisma.transferAttempt.update({
+        where: { id: attempt.id },
+        data: {
+          errorCode: `STRIPE_CHECK_${stripeCheck.reason.toUpperCase()}`,
+          errorMessage: stripeCheck.detail.slice(0, 500),
+        },
+      })
+      return "held"
+    }
+
     const refundsAtRelease = fresh.stripeRefunds
     const { payableCents, refundShareCents } = payableAfterRefunds({
       scheduledCents: attempt.amountCents,
@@ -465,6 +518,28 @@ async function processOneAttempt(
       })
     }
 
+    // ── Still ours? (fencing) ────────────────────────────────────────────────────────────────────────────────────
+    // Each Stripe call above may take up to ~240 s (SDK defaults: 80 s timeout, 2 network retries), so a run can outlive
+    // its 5-minute lease and another worker can claim the attempt meanwhile. Right before money leaves, renew the lease
+    // ONLY if it is still the one this run took; otherwise stop without creating anything. The renewed lease covers the
+    // create call itself (≤ ~240 s < 5 min). Two concurrent creates would still share the idempotency key, but this run
+    // no longer relies on that alone.
+    if (!existing) {
+      const renewed = await prisma.transferAttempt.updateMany({
+        where: { id: attempt.id, status: "PENDING", lastAttemptAt: leaseNow },
+        data: { lastAttemptAt: new Date() },
+      })
+      if (renewed.count !== 1) {
+        logStripeWebhookError({
+          level: "error",
+          metric: "transfer_lease_lost_before_create",
+          orderId: attempt.orderId,
+          role: attempt.role,
+        })
+        return "skipped"
+      }
+    }
+
     const sourceTransaction = attempt.order.stripeChargeId ?? undefined
     const transfer = existing
       ? { id: existing.id, amount: existing.amount }
@@ -480,6 +555,7 @@ async function processOneAttempt(
               role: attempt.role,
               scheduledCents: String(attempt.amountCents),
               refundShareCents: String(refundShareCents),
+              stripeCheckedRefundCents: String(stripeCheck.stripeRefundCents),
             },
           },
           { idempotencyKey: idempotencyKey(attempt.orderId, attempt.role) },
@@ -566,8 +642,9 @@ async function processOneAttempt(
 
     const terminal = nextAttempts >= MAX_ATTEMPTS
 
-    // Conditional (A3 hotfix, 2026-11-25): a racing rail (Lightning) may have recorded this leg SUCCESS while our
-    // Stripe call failed (shared idempotency key, other parameters = idempotency error). Never put it back to PENDING.
+    // Conditional — two reasons, one rule: (1) a racing rail (Lightning, A3 hotfix #13) may have recorded this leg SUCCESS
+    // while our Stripe call failed (shared idempotency key, other parameters = idempotency error); (2) another run of this
+    // job (lease outlived, #28) may have recorded a SUCCESS meanwhile. A failure never overwrites a SUCCESS.
     await prisma.transferAttempt.updateMany({
       where: { id: attempt.id, status: "PENDING" },
       data: {

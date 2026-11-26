@@ -110,4 +110,15 @@ describe("allocateDisputeLoss", () => {
       allocateDisputeLoss({ disputeAmountCents: 100, disputeCurrency: "eur", orders: [order("o1", 100, null)] }).kind
     ).toBe("full")
   })
+
+  it("a dispute on a PARTIALLY refunded order (Stripe disputes what is left) is never applied automatically", () => {
+    // 130 € charged, 65 € refunded, the bank disputes the remaining 65 €: no automatic clawback on a guess.
+    expect(
+      allocateDisputeLoss({
+        disputeAmountCents: 6_500,
+        disputeCurrency: "eur",
+        orders: [{ id: "ord_1", chargedTotalCents: 13_000, currency: "EUR" }],
+      }),
+    ).toEqual({ kind: "manual", reason: "partial_dispute" })
+  })
 })

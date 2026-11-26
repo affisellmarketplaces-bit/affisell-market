@@ -24,6 +24,14 @@ const state: {
   /** The ledger can not be read from the 2nd read on. */
   lateLedgerFails: boolean
   disputeReads: number
+  /** Stripe's own view of the charge's refunds; `null` = mirrors our rows (consistent, all succeeded). */
+  stripeRefunds: Array<{ id: string; amount: number; status: string; metadata?: Record<string, string> }> | null
+  charge: Record<string, unknown>
+  stripeDown: boolean
+  claimCount: number
+  /** Scripted results of successive updateMany calls (claim, renewal, …); then `claimCount`. */
+  updateManyResults: number[]
+  stripeDisputes: Array<{ id: string; status: string }>
 } = {
   attempt: {},
   others: [],
@@ -37,8 +45,15 @@ const state: {
   orderAfter: null,
   existing: [],
   freshReads: 0,
+  stripeRefunds: null,
+  charge: {},
+  stripeDown: false,
+  claimCount: 1,
+  updateManyResults: [],
+  stripeDisputes: [],
 }
 const updates: Array<Record<string, unknown>> = []
+const updateManyCalls: Array<{ where: Record<string, unknown>; data: Record<string, unknown> }> = []
 
 vi.mock("@sentry/nextjs", () => ({ captureMessage: vi.fn() }))
 vi.mock("@/lib/ops-webhook", () => ({ opsWebhookAlert: vi.fn(async () => {}) }))
@@ -57,10 +72,34 @@ vi.mock("@/lib/payout-settlement", () => ({
   }),
   supersedePendingTransferAttempt: vi.fn(async () => {}),
 }))
+const chargesRetrieve = vi.fn(async (id: string) => {
+  if (state.stripeDown) throw new Error("stripe unavailable")
+  return { id, status: "succeeded", captured: true, disputed: false, currency: "eur", ...state.charge }
+})
 vi.mock("@/lib/stripe", () => ({
   getStripeClient: () => ({
     accounts: { retrieve: async () => ({ capabilities: { transfers: "active" } }) },
     transfers: { create: transfersCreate, list: transfersList },
+    charges: { retrieve: chargesRetrieve },
+    paymentIntents: { retrieve: async () => ({ latest_charge: "ch_1" }) },
+    disputes: {
+      list: () => ({
+        async *[Symbol.asyncIterator]() {
+          for (const d of state.stripeDisputes) yield d
+        },
+      }),
+    },
+    refunds: {
+      // Async-iterable like the SDK's auto-paging list.
+      list: () => ({
+        async *[Symbol.asyncIterator]() {
+          const rows =
+            state.stripeRefunds ??
+            state.refunds.map((r) => ({ id: r.stripeRefundId, amount: r.amountCents, status: "succeeded" }))
+          for (const r of rows) yield r
+        },
+      }),
+    },
   }),
 }))
 vi.mock("@/lib/order-payout", () => ({
@@ -77,9 +116,16 @@ vi.mock("@/lib/prisma", () => {
         updates.push(data)
         return {}
       },
-      updateMany: async ({ where, data }: { where: { status?: string }; data: Record<string, unknown> }) => {
-        if (where.status && state.attempt.status !== where.status) return { count: 0 }
-        updates.push(data)
+      // The lease claim / renewal (#28, scripted) and every other conditional write (#13 semantics: a status
+      // condition that no longer matches writes nothing).
+      updateMany: async (args: { where: Record<string, unknown>; data: Record<string, unknown> }) => {
+        updateManyCalls.push(args)
+        if (args.where.OR !== undefined || args.where.lastAttemptAt !== undefined) {
+          const scripted = state.updateManyResults.shift()
+          return { count: scripted ?? state.claimCount }
+        }
+        if (args.where.status && state.attempt.status !== args.where.status) return { count: 0 }
+        updates.push(args.data)
         return { count: 1 }
       },
     },
@@ -169,6 +215,15 @@ describe("runProcessTransfersJob — last-line money guard", () => {
     state.orderAfter = null
     state.existing = []
     state.freshReads = 0
+    state.openDisputeHolds = 0
+    state.stripeRefunds = null
+    state.charge = {}
+    state.stripeDown = false
+    state.claimCount = 1
+    state.updateManyResults = []
+    state.stripeDisputes = []
+    updateManyCalls.length = 0
+    chargesRetrieve.mockClear()
     delete process.env.MONEY_GUARD_MODE
   })
 
@@ -405,6 +460,136 @@ describe("runProcessTransfersJob — last-line money guard", () => {
       expect(transfersCreate).not.toHaveBeenCalled()
       expect(outcome.held).toBe(1)
       expect(updates).toEqual([])
+    })
+  })
+
+  // ── D7 + reconciliation with Stripe at release (2026-11-26) ────────────────────────────────────────────────────────
+  describe("Stripe is asked before the money leaves", () => {
+    const heldWith = (code: string) => {
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(updates.some((u) => u.errorCode === code && u.status === undefined)).toBe(true)
+      expect(updates.some((u) => u.status === "FAILED" || u.status === "SUCCESS")).toBe(false)
+    }
+
+    it("a refund at Stripe whose webhook never reached us: HELD, never paid in full", async () => {
+      state.stripeRefunds = [{ id: "re_lost", amount: 6_500, status: "succeeded" }]
+      await runOnce(attempt())
+      heldWith("STRIPE_CHECK_REFUND_NOT_RECORDED")
+    })
+
+    it("a PENDING refund at Stripe counts as money going back (held until recorded)", async () => {
+      state.stripeRefunds = [{ id: "re_p", amount: 1_000, status: "pending" }]
+      await runOnce(attempt())
+      heldWith("STRIPE_CHECK_REFUND_NOT_RECORDED")
+    })
+
+    it("failed and canceled refunds are not refunds: the full share is paid", async () => {
+      state.stripeRefunds = [
+        { id: "re_f", amount: 6_500, status: "failed" },
+        { id: "re_c", amount: 6_500, status: "canceled" },
+      ]
+      await runOnce(attempt())
+      expect((transfersCreate.mock.calls[0] as unknown as [{ amount: number }])[0].amount).toBe(3_200)
+    })
+
+    it("Stripe and our rows agree on two partial refunds: paid exactly payableAfterRefunds", async () => {
+      state.refunds = [
+        { stripeRefundId: "re_1", amountCents: 1_001 },
+        { stripeRefundId: "re_2", amountCents: 1_001 },
+      ]
+      await runOnce(attempt({}, { paymentSettlementStatus: "PARTIALLY_REFUNDED" }))
+      expect((transfersCreate.mock.calls[0] as unknown as [{ amount: number }])[0].amount).toBe(3_200 - 2 * 246)
+    })
+
+    it("amounts disagree: HELD", async () => {
+      state.refunds = [{ stripeRefundId: "re_1", amountCents: 1_000 }]
+      state.stripeRefunds = [{ id: "re_1", amount: 1_500, status: "succeeded" }]
+      await runOnce(attempt({}, { paymentSettlementStatus: "PARTIALLY_REFUNDED" }))
+      heldWith("STRIPE_CHECK_REFUND_AMOUNT_MISMATCH")
+    })
+
+    it("a refund we recorded that FAILED at Stripe: HELD (our rows are wrong)", async () => {
+      state.refunds = [{ stripeRefundId: "re_1", amountCents: 1_000 }]
+      state.stripeRefunds = [{ id: "re_1", amount: 1_000, status: "failed" }]
+      await runOnce(attempt({}, { paymentSettlementStatus: "PARTIALLY_REFUNDED" }))
+      heldWith("STRIPE_CHECK_RECORDED_REFUND_NOT_AT_STRIPE")
+    })
+
+    it("the charge is DISPUTED at Stripe though no dispute webhook reached us: HELD", async () => {
+      state.charge = { disputed: true }
+      await runOnce(attempt())
+      heldWith("STRIPE_CHECK_CHARGE_DISPUTED")
+    })
+
+    it("Stripe unavailable: HELD, attempts not consumed", async () => {
+      state.stripeDown = true
+      await runOnce(attempt())
+      heldWith("STRIPE_CHECK_STRIPE_UNAVAILABLE")
+    })
+
+    it("a dispute opened after the attempt was loaded is seen by the late read", async () => {
+      state.freshOrder = { ...(attempt().order as Record<string, unknown>), status: "disputed" }
+      await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(chargesRetrieve).not.toHaveBeenCalled()
+    })
+
+    it("another run holds the attempt (lease): this one does nothing at all", async () => {
+      state.claimCount = 0
+      await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(chargesRetrieve).not.toHaveBeenCalled()
+      expect(updates).toEqual([])
+    })
+  })
+
+  describe("lease outlived (a run slower than 5 min)", () => {
+    it("another worker took the attempt over meanwhile: this run creates NOTHING", async () => {
+      state.updateManyResults = [1, 0] // claim won, renewal before create refused
+      await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      // The renewal is conditioned on THIS run's lease timestamp.
+      expect(updateManyCalls[1]!.where).toMatchObject({ id: "att_1", status: "PENDING" })
+      expect(updateManyCalls[1]!.where.lastAttemptAt).toBeInstanceOf(Date)
+    })
+
+    it("a Stripe failure never overwrites a SUCCESS recorded by another run (conditional write)", async () => {
+      transfersCreate.mockImplementationOnce(async () => {
+        // Meanwhile another run (or Lightning, #13) paid this leg and recorded it: the row is SUCCESS now.
+        state.attempt.status = "SUCCESS"
+        throw new Error("idempotency key in use")
+      })
+      await runOnce(attempt())
+      const failureWrite = updateManyCalls.find((c) => c.data.status === "PENDING" || c.data.status === "FAILED")
+      expect(failureWrite?.where).toMatchObject({ id: "att_1", status: "PENDING" })
+      // The write is conditioned on PENDING, so against the SUCCESS row it changes nothing.
+      expect(updates.some((u) => u.status === "PENDING" || u.status === "FAILED")).toBe(false)
+      expect(state.attempt.status).toBe("SUCCESS")
+    })
+  })
+
+  describe("disputes decided by their LIVE status at Stripe", () => {
+    it("a dispute WON (charge still flagged disputed): the money goes", async () => {
+      state.charge = { disputed: true }
+      state.stripeDisputes = [{ id: "dp_1", status: "won" }]
+      await runOnce(attempt())
+      expect(transfersCreate).toHaveBeenCalledTimes(1)
+    })
+
+    it("a dispute still OPEN at Stripe: held", async () => {
+      state.charge = { disputed: true }
+      state.stripeDisputes = [{ id: "dp_1", status: "won" }, { id: "dp_2", status: "needs_response" }]
+      await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(updates.some((u) => u.errorCode === "STRIPE_CHECK_CHARGE_DISPUTED")).toBe(true)
+    })
+
+    it("a dispute LOST at Stripe that our D7 never applied: held", async () => {
+      state.charge = { disputed: true }
+      state.stripeDisputes = [{ id: "dp_1", status: "lost" }]
+      await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(updates.some((u) => u.errorCode === "STRIPE_CHECK_DISPUTE_LOST_NOT_APPLIED")).toBe(true)
     })
   })
 })

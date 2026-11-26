@@ -33,6 +33,12 @@ vi.mock("@/lib/stripe", () => ({
   getStripeClient: () => ({
     paymentIntents: { retrieve: async (id: string) => ({ latest_charge: `ch_${id}` }) },
     accounts: { retrieve: async () => ({ capabilities: { transfers: "active" } }) },
+    // Release check before every transfer: a captured charge with no refund and no dispute at Stripe (auto-paging lists).
+    charges: {
+      retrieve: async (id: string) => ({ id, status: "succeeded", captured: true, disputed: false, currency: "eur" }),
+    },
+    refunds: { list: () => ({ async *[Symbol.asyncIterator]() {} }) },
+    disputes: { list: () => ({ async *[Symbol.asyncIterator]() {} }) },
     transfers: {
       create: transfersCreate,
       list: async (q: { transfer_group?: string }) => ({ data: createdTransfers.filter((t) => t.transfer_group === q.transfer_group) }),

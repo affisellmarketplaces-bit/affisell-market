@@ -30,6 +30,13 @@ vi.mock("@/lib/stripe", () => ({
     // One charge per payment intent (Order.stripeChargeId is unique in the schema).
     paymentIntents: { retrieve: async (id: string) => ({ latest_charge: `ch_${id}` }) },
     accounts: { retrieve: async () => ({ capabilities: { transfers: "active" } }) },
+    // Release check (#28): every scenario here pays a captured charge with no refund and no dispute at Stripe.
+    // Real SDK shapes, auto-paging lists.
+    charges: {
+      retrieve: async (id: string) => ({ id, status: "succeeded", captured: true, disputed: false, currency: "eur" }),
+    },
+    refunds: { list: () => ({ async *[Symbol.asyncIterator]() {} }) },
+    disputes: { list: () => ({ async *[Symbol.asyncIterator]() {} }) },
     // Lost-call adoption (#26): before creating, the job asks Stripe what already exists for the transfer group.
     // The fake answers with what it really created — never an invented transfer.
     transfers: {
