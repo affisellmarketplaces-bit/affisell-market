@@ -19,6 +19,7 @@ import { useTranslations } from "next-intl"
 import { AffiliatePromoProductCard } from "@/components/affiliate/affiliate-promo-product-card"
 import type { SwipeFeedProduct } from "@/lib/affiliate-swipe-feed-types"
 import { cn } from "@/lib/utils"
+import { buildAffiliateCatalogCardEconomics } from "@/lib/affiliate-catalog-margin-display"
 
 const SWIPE_THRESHOLD = 72
 const VELOCITY_COMMIT = 420
@@ -60,10 +61,10 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
   const leftGlow = useTransform(x, [-120, 0], [0.35, 0])
 
   const sellingCents = Math.round(product.basePriceCents * (1 + markupRate))
-  const displayMargin =
-    product.marginCents > 0
-      ? product.marginCents
-      : Math.max(0, sellingCents - product.basePriceCents)
+  // ESTIMATED net per sale at the reseller's chosen markup, after Affisell's fee (same figure as the catalog panel).
+  const displayMargin = buildAffiliateCatalogCardEconomics(product.basePriceCents, product.commissionRate, {
+    markupRate,
+  }).netPartnerGainCents
 
   const flyOut = useCallback(
     async (direction: "left" | "right") => {

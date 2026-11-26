@@ -1,4 +1,8 @@
-import { estimateTotalPartnerGainCents } from "@/lib/affiliate-catalog-margin-display"
+import {
+  buildAffiliateCatalogCardEconomics,
+  estimateNetPartnerGainCents,
+} from "@/lib/affiliate-catalog-margin-display"
+import { isRecommendable, marginGuardForEconomics } from "@/lib/reseller-margin-guard"
 import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
 import {
@@ -158,6 +162,10 @@ export async function loadAffiliateOpportunityPulsePicks(
     })
     const supplierLabel =
       supplier.store?.name?.trim() || supplier.email.trim() || "Fournisseur"
+    // Net-margin guard: an opportunity Affisell pushes must leave the reseller a real expected net.
+    if (!isRecommendable(marginGuardForEconomics(buildAffiliateCatalogCardEconomics(row.basePriceCents, commissionRate)))) {
+      continue
+    }
 
     picks.push({
       productId: row.id,
@@ -165,7 +173,7 @@ export async function loadAffiliateOpportunityPulsePicks(
       imageUrl: primaryProductImage(row.images ?? []) || null,
       basePriceCents: row.basePriceCents,
       commissionRate: Math.round(commissionRate),
-      marginCents: estimateTotalPartnerGainCents(row.basePriceCents, commissionRate),
+      marginCents: estimateNetPartnerGainCents(row.basePriceCents, commissionRate),
       affiliateCreatorsWatching: countById.get(productId) ?? 0,
       listingId: listing?.id ?? null,
       isInStore: Boolean(listing),

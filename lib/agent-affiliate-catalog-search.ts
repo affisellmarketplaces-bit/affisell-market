@@ -6,9 +6,9 @@ import type {
 } from "@/lib/agent-affiliate-product-card-types"
 import {
   buildAffiliateCatalogCardEconomics,
-  estimateTotalPartnerGainCents,
   listedSellingPriceFromAffiliateProducts,
 } from "@/lib/affiliate-catalog-margin-display"
+import { compareForRecommendation, isRecommendable, marginGuardForEconomics } from "@/lib/reseller-margin-guard"
 import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
 import { primaryProductImage } from "@/lib/product-images"
@@ -32,40 +32,35 @@ type DiscoverRow = {
 
 type ProductFindRow = DiscoverRow & { variants?: unknown }
 
-function resellerGainCents(row: DiscoverRow, displayCommission: number): number {
-  return estimateTotalPartnerGainCents(row.basePriceCents, displayCommission, {
+function displayCommissionPct(row: DiscoverRow): number {
+  return affiliateCommissionDisplayPct({
+    commissionRate: Number(row.commissionRate) || 0,
+    variants: row.variants,
+    basePriceCents: row.basePriceCents,
+  })
+}
+
+function rowEconomics(row: DiscoverRow) {
+  return buildAffiliateCatalogCardEconomics(row.basePriceCents, displayCommissionPct(row), {
     listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(row.affiliateProducts),
   })
 }
 
+/** Net-margin guard first (recommendable before insufficient), then expected net — not the gross before fees. */
 function sortByResellerGain(rows: DiscoverRow[]): DiscoverRow[] {
-  return [...rows].sort((a, b) => {
-    const commA = affiliateCommissionDisplayPct({
-      commissionRate: Number(a.commissionRate) || 0,
-      variants: a.variants,
-      basePriceCents: a.basePriceCents,
-    })
-    const commB = affiliateCommissionDisplayPct({
-      commissionRate: Number(b.commissionRate) || 0,
-      variants: b.variants,
-      basePriceCents: b.basePriceCents,
-    })
-    return resellerGainCents(b, commB) - resellerGainCents(a, commA)
-  })
+  const verdicts = new Map(rows.map((r) => [r, marginGuardForEconomics(rowEconomics(r))]))
+  return [...rows].sort((a, b) => compareForRecommendation(verdicts.get(a)!, verdicts.get(b)!))
+}
+
+/** Suggestions the reseller did not search for: never propose an insufficiently profitable product. */
+function recommendableOnly(rows: DiscoverRow[]): DiscoverRow[] {
+  return rows.filter((r) => isRecommendable(marginGuardForEconomics(rowEconomics(r))))
 }
 
 function mapRow(row: DiscoverRow): AffiliateAgentProductCard {
   const listing = row.affiliateProducts[0]
   const supplierLabel = row.supplier.store?.name?.trim() || row.supplier.email
-  const displayCommission = affiliateCommissionDisplayPct({
-    commissionRate: Number(row.commissionRate) || 0,
-    variants: row.variants,
-    basePriceCents: row.basePriceCents,
-  })
-  const listedPrice = listedSellingPriceFromAffiliateProducts(row.affiliateProducts)
-  const economics = buildAffiliateCatalogCardEconomics(row.basePriceCents, displayCommission, {
-    listedSellingPriceCents: listedPrice,
-  })
+  const economics = rowEconomics(row)
   return {
     id: row.id,
     name: row.name,
@@ -73,8 +68,10 @@ function mapRow(row: DiscoverRow): AffiliateAgentProductCard {
     description: trimDescription(row.description ?? ""),
     supplierLabel,
     basePriceCents: row.basePriceCents,
-    commissionRate: displayCommission,
-    marginCents: economics.totalPartnerGainCents,
+    commissionRate: displayCommissionPct(row),
+    marginCents: economics.netPartnerGainCents,
+    grossGainCents: economics.totalPartnerGainCents,
+    marginGuard: marginGuardForEconomics(economics).level,
     clientPriceCents: economics.clientPriceCents,
     usesListedPrice: economics.usesListedPrice,
     isInStore: Boolean(listing),
@@ -149,7 +146,7 @@ async function findSimilarSupplierProducts(
       })
     )
   )
-  return sorted.slice(0, 3).map(mapRow)
+  return recommendableOnly(sorted).slice(0, 3).map(mapRow)
 }
 
 /** Recherche le catalogue fournisseur pour aider l'affilié à choisir des SKU à promouvoir. */

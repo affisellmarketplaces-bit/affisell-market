@@ -1,4 +1,5 @@
 import type { AffiliateAgentProductCard } from "@/lib/agent-affiliate-product-card-types"
+import { buildAffiliateCatalogCardEconomics } from "@/lib/affiliate-catalog-margin-display"
 
 export type ParsedCatalogHighlights = {
   bestSellers: AffiliateAgentProductCard[]
@@ -16,7 +17,8 @@ function highlightRowToCard(o: Record<string, unknown>): AffiliateAgentProductCa
   const marginCents =
     typeof o.marginCents === "number"
       ? o.marginCents
-      : Math.max(0, Math.round((basePriceCents * commissionRate) / 100))
+      : // Net the reseller keeps (after Affisell's fee) — the same figure the cards show.
+        buildAffiliateCatalogCardEconomics(basePriceCents, commissionRate).netPartnerGainCents
 
   return {
     id,

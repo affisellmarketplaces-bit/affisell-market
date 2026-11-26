@@ -47,7 +47,19 @@ export function estimateMarkupMarginCents(
   return Math.max(0, Math.round(clientPriceCents) - Math.round(basePriceCents))
 }
 
-/** Commission + markup — headline reseller earnings for catalog cards and high-margin sort. */
+/**
+ * ESTIMATED net the reseller keeps per sale (commission + markup − Affisell's reseller fee): what every reseller
+ * surface shows and sorts by. An estimate — the final amount depends on the actual sale (refunds claw it back).
+ */
+export function estimateNetPartnerGainCents(
+  basePriceCents: number,
+  commissionRate: number,
+  options?: AffiliateCatalogEconomicsOptions
+): number {
+  return buildAffiliateCatalogCardEconomics(basePriceCents, commissionRate, options).netPartnerGainCents
+}
+
+/** Commission + markup BEFORE Affisell's fee. Prefer {@link estimateNetPartnerGainCents} for anything shown or ranked. */
 export function estimateTotalPartnerGainCents(
   basePriceCents: number,
   commissionRate: number,

@@ -6,11 +6,9 @@ import { buildAffiliateCatalogProductWhere } from "@/lib/affiliate-catalog-query
 import type { SwipeFeedFilters, SwipeFeedProduct } from "@/lib/affiliate-swipe-feed-types"
 import { primaryProductImage } from "@/lib/product-images"
 import { prisma } from "@/lib/prisma"
+import { buildAffiliateCatalogCardEconomics } from "@/lib/affiliate-catalog-margin-display"
+import { isRecommendable, marginGuardForEconomics } from "@/lib/reseller-margin-guard"
 
-function estimateMarginCents(basePriceCents: number, commissionRate: number): number {
-  const pct = Number(commissionRate) || 0
-  return Math.max(0, Math.round((basePriceCents * pct) / 100))
-}
 
 function supplierLabel(row: {
   supplier: { email: string; store: { name: string } | null }
@@ -78,9 +76,12 @@ function mapSwipeFeedRows(
     supplier: { email: string; isVerifiedSupplier: boolean; store: { name: string } | null }
   }>
 ): SwipeFeedProduct[] {
-  return rows.map((p) => {
+  return rows.flatMap((p) => {
     const commissionRate = Math.round(Number(p.commissionRate) || 0)
-    return {
+    const economics = buildAffiliateCatalogCardEconomics(p.basePriceCents, commissionRate)
+    // The swipe feed is a recommendation feed: the net-margin guard keeps out products that leave too little.
+    if (!isRecommendable(marginGuardForEconomics(economics))) return []
+    return [{
       id: p.id,
       name: p.name,
       imageUrl: primaryProductImage(p.images as string[]) || null,
@@ -88,11 +89,12 @@ function mapSwipeFeedRows(
       categories: p.categories,
       basePriceCents: p.basePriceCents,
       commissionRate,
-      marginCents: estimateMarginCents(p.basePriceCents, commissionRate),
+      // ESTIMATED net per sale at the default markup (after Affisell's fee) — was the commission alone.
+      marginCents: economics.netPartnerGainCents,
       supplierLabel: supplierLabel(p),
       isVerifiedSupplier: p.supplier.isVerifiedSupplier,
       deliveryMax: p.deliveryMax,
-    }
+    }]
   })
 }
 
