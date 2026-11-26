@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 /**
  * Finalisation master doc, D7: the two OTHER payout releases (Lightning instant payout, Légion 2% override) must also
@@ -13,8 +13,13 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     order: {
       findUnique: async () => state.order,
+      update: async () => ({}),
       updateMany: async () => ({ count: 1 }),
     },
+    // What Lightning's paid-leg guard and per-leg recording read and write (A3 hotfix): nothing paid yet.
+    transferAttempt: { count: async () => 0, findMany: async () => [] },
+    merchantPayoutLedger: { count: async () => 0 },
+    $transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn({ transferAttempt: { upsert: async () => ({}) } }),
     processedWebhook: { count: async () => state.openHolds },
     supplierProfile: { findUnique: async () => ({ trustScore: 90, lightningEnabled: true, lightningAdminOverride: false }) },
     user: { findUnique: async () => ({ stripeAccountId: "acct_x" }) },
@@ -37,7 +42,13 @@ import { payLegionOverrideForOrder } from "@/lib/legion/pay-referral-override"
 import { triggerLightningPayout } from "@/lib/stripe-lightning"
 
 describe("Lightning instant payout", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
   beforeEach(() => {
+    // These cases are about what Lightning refuses once it is UNLOCKED; the lock itself is covered by lightning-lock.test.ts.
+    vi.stubEnv("LIGHTNING_PAYOUTS_MODE", "enabled")
     transfersCreate.mockClear()
     state.openHolds = 0
     state.order = {
@@ -84,8 +95,8 @@ describe("Lightning instant payout", () => {
   })
 
   it("is not blocked when no dispute is open (the guard does not break the normal path)", async () => {
-    const result = await triggerLightningPayout("ord_1")
-    expect(result.success === false && result.reason === "dispute_open").toBe(false)
+    expect(await triggerLightningPayout("ord_1")).toEqual({ success: true })
+    expect(transfersCreate).toHaveBeenCalledTimes(2)
   })
 
   // Finalisation review #8: after a LOST dispute the ledger row is terminal and the order is refunded, but its
