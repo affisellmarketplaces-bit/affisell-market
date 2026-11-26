@@ -126,7 +126,9 @@ async function loadOrderAccounting(where: Prisma.OrderWhereInput, now: Date): Pr
     const p = get(t.orderId)
     p.attempt = t
     if (t.status === "SUCCESS" && t.stripeTransferId) {
-      p.moved.set(t.stripeTransferId, Math.max(p.moved.get(t.stripeTransferId) ?? 0, t.amountCents))
+      // The ledger records what really MOVED; the attempt keeps the SCHEDULED share (#26 pays less when part of the
+      // sale was refunded before the payout). The ledger wins; the attempt only fills a transfer the ledger lacks.
+      if (!p.moved.has(t.stripeTransferId)) p.moved.set(t.stripeTransferId, t.amountCents)
       if (t.reversedAmountCents > 0) p.reversedByTransfer.set(t.stripeTransferId, t.reversedAmountCents)
     }
   }
