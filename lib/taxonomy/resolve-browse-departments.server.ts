@@ -85,3 +85,20 @@ export async function loadBrowseDepartmentsCached(locale: AppLocale): Promise<Br
     revalidate: 300,
   })()
 }
+
+/**
+ * Home variant: never throws. The department bar is optional on the home page; when the database is unreachable (cache
+ * miss during an outage) it simply does not appear. It used to reject the whole marketplace section, so the error
+ * boundary replaced the ENTIRE home page with "We hit a snag".
+ */
+export async function loadBrowseDepartmentsSafe(locale: AppLocale): Promise<BrowseDepartmentsPayload> {
+  try {
+    return await loadBrowseDepartmentsCached(locale)
+  } catch (error) {
+    console.warn("[taxonomy/browse-departments] unavailable — home renders without the department bar", {
+      locale,
+      error_name: error instanceof Error ? error.name : typeof error,
+    })
+    return { departments: [], locale }
+  }
+}
