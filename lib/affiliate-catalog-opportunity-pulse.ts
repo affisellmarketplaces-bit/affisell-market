@@ -2,6 +2,7 @@ import {
   buildAffiliateCatalogCardEconomics,
   estimateNetPartnerGainCents,
 } from "@/lib/affiliate-catalog-margin-display"
+import { loadProductRefundRates } from "@/lib/events/journal-metrics.server"
 import { isRecommendable, marginGuardForEconomics } from "@/lib/reseller-margin-guard"
 import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
@@ -144,6 +145,8 @@ export async function loadAffiliateOpportunityPulsePicks(
 
   const byId = new Map(products.map((row) => [row.id, row]))
   const countById = new Map(ranked.map((row) => [row.productId, row.affiliateViewerCount]))
+  // Measured refund rates from the business journal (S2); the guard's default when there is no data yet.
+  const refundRates = await loadProductRefundRates(productIds)
 
   const picks: AffiliateOpportunityPulseCard[] = []
   for (const { productId } of ranked) {
@@ -163,7 +166,10 @@ export async function loadAffiliateOpportunityPulsePicks(
     const supplierLabel =
       supplier.store?.name?.trim() || supplier.email.trim() || "Fournisseur"
     // Net-margin guard: an opportunity Affisell pushes must leave the reseller a real expected net.
-    if (!isRecommendable(marginGuardForEconomics(buildAffiliateCatalogCardEconomics(row.basePriceCents, commissionRate)))) {
+    const verdict = marginGuardForEconomics(buildAffiliateCatalogCardEconomics(row.basePriceCents, commissionRate), {
+      expectedRefundRate: refundRates.get(row.id),
+    })
+    if (!isRecommendable(verdict)) {
       continue
     }
 
