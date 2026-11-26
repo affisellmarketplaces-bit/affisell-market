@@ -7,9 +7,8 @@ import { ListingBrowseSignalsRecorder } from "@/components/marketplace/listing-b
 import { OutOfStockModal } from "@/components/checkout/OutOfStockModal"
 import { StripeCheckoutWarmup } from "@/components/checkout/stripe-checkout-warmup"
 import { MobilePdpPersistentBuyBar } from "@/components/product/mobile-pdp-persistent-buy-bar"
-import { appMessagesForLocale } from "@/lib/i18n-app-messages"
-import { useLocale } from "next-intl"
-import type { AppLocale } from "@/lib/i18n-locale"
+import type { AppMessages } from "@/lib/i18n-app-messages"
+import { useMessages } from "next-intl"
 import { ListingBreadcrumbNav } from "./components/ListingBreadcrumbNav"
 import { ListingGalleryColumn } from "./components/ListingGalleryColumn"
 import { ListingSidebarColumn } from "./components/ListingSidebarColumn"
@@ -49,8 +48,9 @@ export function MarketplaceListingDetail(props: ListingDetailProps) {
     tryOnGarmentUrl,
   } = props
 
-  const locale = useLocale() as AppLocale
-  const messages = appMessagesForLocale(locale)
+  // The provider's messages (Breadcrumb/Product/cart/checkout/wishlist guaranteed by <IntlScope> on the page) — not
+  // appMessagesForLocale, which bundled all eight catalogs into the product page.
+  const messages = useMessages() as unknown as AppMessages
   const reduceMotion = useReducedMotion()
   const ctrl = useListingDetailController(props)
   const {

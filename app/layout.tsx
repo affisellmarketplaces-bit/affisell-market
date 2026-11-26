@@ -14,6 +14,7 @@ import { getCachedSession } from "@/lib/get-cached-session"
 import { PWA_SPLASH_IMAGES } from "@/lib/pwa-splash-images"
 import { bootstrapRootShell } from "@/lib/safe-root-bootstrap"
 import { slimClientMessagesForDedicatedStorefront } from "@/lib/i18n-slim-client-messages"
+import { PRIVATE_SURFACE_NAMESPACES, omitNamespaces } from "@/lib/i18n-client-scope"
 import { isBuyerPremiumHomePath } from "@/lib/buyer-premium-home-path"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { getStoreHostBrand } from "@/lib/storefront-host-brand.server"
@@ -79,7 +80,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
    */
   const clientMessages = isCustomDomain
     ? slimClientMessagesForDedicatedStorefront(messages, pathname)
-    : messages
+    : // Every page: only what public client code reads (~47% lighter); /dashboard and /admin add the rest (<IntlScope>).
+      omitNamespaces(messages, PRIVATE_SURFACE_NAMESPACES)
 
   return (
     <html lang={locale} translate="no" suppressHydrationWarning>

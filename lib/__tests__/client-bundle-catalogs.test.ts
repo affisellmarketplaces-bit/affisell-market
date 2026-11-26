@@ -18,14 +18,7 @@ const SKIP_DIRS = new Set(["node_modules", ".next", ".git", "medusa-backend", "e
 const EXTS = ["", ".ts", ".tsx", ".js", ".mjs", "/index.ts", "/index.tsx"]
 
 /** Known debt — remove an entry when it is fixed; never add one (use useTranslations / a small copy module). */
-const KNOWN_OFFENDERS = new Set([
-  // Product page: messages come from appMessagesForLocale; custom-domain storefronts get slimmed provider messages,
-  // so moving to useMessages() needs the slim list checked first.
-  "app/marketplace/[id]/marketplace-listing-detail.tsx",
-  "app/marketplace/[id]/use-listing-detail-controller.ts",
-  // Builds its own provider from the full client bundles (lib/i18n-messages-client.ts).
-  "components/navigation/locale-intl-provider.tsx",
-])
+const KNOWN_OFFENDERS = new Set<string>([])
 
 function sourceFiles(dir: string, out: string[] = []): string[] {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {

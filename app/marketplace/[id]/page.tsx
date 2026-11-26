@@ -84,6 +84,8 @@ import {
 } from "@/lib/e2e-ltv-loop-fixtures"
 
 import { MarketplaceListingDetail } from "./marketplace-listing-detail"
+import { IntlScope } from "@/components/providers/intl-scope"
+import { PDP_NAMESPACES } from "@/lib/i18n-client-scope"
 
 export const revalidate = 60
 
@@ -543,89 +545,92 @@ export default async function MarketplaceListingPage({
       rolloutOnly={rolloutOnly}
       productJsonLd={productJsonLd}
     >
-      <MarketplaceListingDetail
-        brandedStorefront={Boolean(storeSlug)}
-          audience="customer"
-          listingId={listing.id}
-          productId={listing.product.id}
-          listingKind={listing.product.listingKind ?? "PHYSICAL"}
-          promotedColor={listing.promotedColor}
-          promotedSize={listing.promotedSize}
-          name={displayName}
-          description={listingDescriptionForDisplay}
-          descriptionBullets={descriptionBullets}
-          descriptionIllustrationImages={descriptionIllustrationImages}
-          descriptionIllustrationVideos={descriptionIllustrationVideos}
-          productSpecs={productSpecs}
-          sellerLabel={sellerLabel}
-          partnerLabel={partnerLabel}
-          isVerifiedSupplier={listing.product.supplier.isVerifiedSupplier}
-          supplierTrustTier={listing.product.supplier.supplierTrustTier}
-          storefront={storefront}
-          gallery={galleryForPdp}
-          categories={categories}
-          colorNames={colorNames}
-          storageOptions={storageOptions}
-          customColumns={customCols}
-          tags={tags}
-          variants={variants}
-          colorImages={colorImages}
-          colorDisplayLabels={colorDisplayLabels}
-          shipping={shipping}
-          buyerShipToCountry={visitorCountry ?? "FR"}
-          listingPriceCents={listing.sellingPriceCents}
-          variantPricing={parseAffiliateVariantPricingJson(listing.variantPricing)}
-          basePriceCents={p.basePriceCents}
-          stock={listing.product.stock}
-          lastStockCheck={p.lastStockCheck ?? null}
-          lastStockStatus={p.lastStockStatus ?? null}
-          battleId={flashOffer?.battleId ?? null}
-          flashPercent={flashOffer?.flashPercent ?? null}
-          flashPrice={flashOffer?.flashPrice ?? null}
-          flashEndsAt={flashOffer?.flashEndsAt ?? null}
-          isBattleWinner={flashOffer?.isWinner ?? false}
-          priceReferenceEur={flashOffer?.priceReferenceEur ?? null}
-          battleResellerName={flashOffer ? battleResellerDisplay : null}
-          retailPriceEur={retailPriceEur}
-          has3D={has3D}
-          arModel={arModel}
-          compactCrossSellSlot={
-            <Suspense key="pdp-cross-sell-compact" fallback={null}>
-              <PdpCrossSellCompactStream {...crossSellStreamArgs} />
-            </Suspense>
-          }
-          crossSellFooterSlot={
-            <Suspense key="pdp-cross-sell-footer" fallback={<PdpCrossSellRailSkeleton />}>
-              <PdpCrossSellFooterStream {...crossSellStreamArgs} />
-            </Suspense>
-          }
-          initialRewardBalanceCents={
-            buyerUserId ? (rewardBalanceRow?.buyerRewardBalanceCents ?? 0) : undefined
-          }
-          reviewSummary={{
-            count: listing.product.reviewCount,
-            average: listing.product.averageRating,
-            sentiment: listing.product.reviewSentiment,
-            ugcCount: listing.product.ugcCount,
-          }}
-          buyerRewardBadge={buyerRewardBadge}
-          offerBadge={offerBadge}
-          writeReviewOrderId={writeReviewOrderId}
-          openWriteReview={sp.writeReview === "true" && Boolean(writeReviewOrderId)}
-          viewsLast24h={viewsLast24h}
-          affiliateCreatorsWatching={displayAffiliateCreatorsWatching}
-          crossSocialProof={crossSocialProof}
-          salesCount={confirmedSales}
-          galleryListingVideoUrl={resolveGalleryListingVideoUrl({
-            videoAdUrl: p.videoAdUrl,
-            productVideoUrl: p.videos?.[0]?.videoUrl ?? null,
-            descriptionIllustrationVideos,
-          })}
-          tryOnEnabled={Boolean(p.tryOnEnabled)}
-          tryOnGarmentUrl={p.tryOnGarmentUrl ?? null}
-          tryOnFeatureEnabled={tryOnFeatureEnabled}
-          storeLayoutImmersive={storeSlug ? storeLayoutImmersive : false}
-        />
+      {/* Product-page namespaces (useMessages) even after a soft navigation on a slimmed storefront host. */}
+      <IntlScope namespaces={PDP_NAMESPACES}>
+        <MarketplaceListingDetail
+          brandedStorefront={Boolean(storeSlug)}
+            audience="customer"
+            listingId={listing.id}
+            productId={listing.product.id}
+            listingKind={listing.product.listingKind ?? "PHYSICAL"}
+            promotedColor={listing.promotedColor}
+            promotedSize={listing.promotedSize}
+            name={displayName}
+            description={listingDescriptionForDisplay}
+            descriptionBullets={descriptionBullets}
+            descriptionIllustrationImages={descriptionIllustrationImages}
+            descriptionIllustrationVideos={descriptionIllustrationVideos}
+            productSpecs={productSpecs}
+            sellerLabel={sellerLabel}
+            partnerLabel={partnerLabel}
+            isVerifiedSupplier={listing.product.supplier.isVerifiedSupplier}
+            supplierTrustTier={listing.product.supplier.supplierTrustTier}
+            storefront={storefront}
+            gallery={galleryForPdp}
+            categories={categories}
+            colorNames={colorNames}
+            storageOptions={storageOptions}
+            customColumns={customCols}
+            tags={tags}
+            variants={variants}
+            colorImages={colorImages}
+            colorDisplayLabels={colorDisplayLabels}
+            shipping={shipping}
+            buyerShipToCountry={visitorCountry ?? "FR"}
+            listingPriceCents={listing.sellingPriceCents}
+            variantPricing={parseAffiliateVariantPricingJson(listing.variantPricing)}
+            basePriceCents={p.basePriceCents}
+            stock={listing.product.stock}
+            lastStockCheck={p.lastStockCheck ?? null}
+            lastStockStatus={p.lastStockStatus ?? null}
+            battleId={flashOffer?.battleId ?? null}
+            flashPercent={flashOffer?.flashPercent ?? null}
+            flashPrice={flashOffer?.flashPrice ?? null}
+            flashEndsAt={flashOffer?.flashEndsAt ?? null}
+            isBattleWinner={flashOffer?.isWinner ?? false}
+            priceReferenceEur={flashOffer?.priceReferenceEur ?? null}
+            battleResellerName={flashOffer ? battleResellerDisplay : null}
+            retailPriceEur={retailPriceEur}
+            has3D={has3D}
+            arModel={arModel}
+            compactCrossSellSlot={
+              <Suspense key="pdp-cross-sell-compact" fallback={null}>
+                <PdpCrossSellCompactStream {...crossSellStreamArgs} />
+              </Suspense>
+            }
+            crossSellFooterSlot={
+              <Suspense key="pdp-cross-sell-footer" fallback={<PdpCrossSellRailSkeleton />}>
+                <PdpCrossSellFooterStream {...crossSellStreamArgs} />
+              </Suspense>
+            }
+            initialRewardBalanceCents={
+              buyerUserId ? (rewardBalanceRow?.buyerRewardBalanceCents ?? 0) : undefined
+            }
+            reviewSummary={{
+              count: listing.product.reviewCount,
+              average: listing.product.averageRating,
+              sentiment: listing.product.reviewSentiment,
+              ugcCount: listing.product.ugcCount,
+            }}
+            buyerRewardBadge={buyerRewardBadge}
+            offerBadge={offerBadge}
+            writeReviewOrderId={writeReviewOrderId}
+            openWriteReview={sp.writeReview === "true" && Boolean(writeReviewOrderId)}
+            viewsLast24h={viewsLast24h}
+            affiliateCreatorsWatching={displayAffiliateCreatorsWatching}
+            crossSocialProof={crossSocialProof}
+            salesCount={confirmedSales}
+            galleryListingVideoUrl={resolveGalleryListingVideoUrl({
+              videoAdUrl: p.videoAdUrl,
+              productVideoUrl: p.videos?.[0]?.videoUrl ?? null,
+              descriptionIllustrationVideos,
+            })}
+            tryOnEnabled={Boolean(p.tryOnEnabled)}
+            tryOnGarmentUrl={p.tryOnGarmentUrl ?? null}
+            tryOnFeatureEnabled={tryOnFeatureEnabled}
+            storeLayoutImmersive={storeSlug ? storeLayoutImmersive : false}
+          />
+      </IntlScope>
     </MarketplaceListingPageShell>
   )
 }
