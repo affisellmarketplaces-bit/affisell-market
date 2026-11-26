@@ -2376,6 +2376,7 @@
       "supplierCommission": "Commission fournisseur",
       "estimatedRevenue": "Revenu revendeur estimé",
       "estimatedRevenueHint": "Commission + marge à {markupPct}% markup suggéré",
+      "estimatedRevenueNetHint": "Net après frais Affisell de {feePct} % · brut {gross} (commission + marge à {markupPct} % de majoration)",
       "sortRevenueDesc": "Revenu revendeur · haut → bas",
       "supplierSheetAria": "Fiche fournisseur"
     },

@@ -55,7 +55,7 @@ import {
 } from "@/lib/affiliate-catalog-listing-state"
 import {
   buildAffiliateCatalogCardEconomicsFromProduct,
-  estimateTotalPartnerGainCents,
+  estimateNetPartnerGainCents,
   listedSellingPriceFromAffiliateProducts,
 } from "@/lib/affiliate-catalog-margin-display"
 import { affiliateListingPreviewHref } from "@/lib/affiliate-store-preview-access"
@@ -709,10 +709,10 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
       switch (discoverSort) {
         case "commission-desc":
           return (
-            estimateTotalPartnerGainCents(b.basePriceCents, b.commissionRate, {
+            estimateNetPartnerGainCents(b.basePriceCents, b.commissionRate, {
               listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(b.affiliateProducts),
             }) -
-            estimateTotalPartnerGainCents(a.basePriceCents, a.commissionRate, {
+            estimateNetPartnerGainCents(a.basePriceCents, a.commissionRate, {
               listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(a.affiliateProducts),
             })
           )

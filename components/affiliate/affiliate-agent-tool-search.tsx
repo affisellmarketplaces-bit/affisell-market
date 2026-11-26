@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl"
 
 import { AffiliateAgentProductCards } from "@/components/affiliate/affiliate-agent-product-cards"
+import { buildAffiliateCatalogCardEconomics } from "@/lib/affiliate-catalog-margin-display"
 import type {
   AffiliateAgentProductCard,
   AffiliateAgentSearchToolResult,
@@ -28,7 +29,8 @@ function cardFromParsed(
   const marginCents =
     typeof o.marginCents === "number"
       ? o.marginCents
-      : Math.max(0, Math.round((basePriceCents * commissionRate) / 100))
+      : // Net the reseller keeps (after Affisell's fee) — the same figure the cards show.
+        buildAffiliateCatalogCardEconomics(basePriceCents, commissionRate).netPartnerGainCents
   const clientPriceCents =
     typeof o.clientPriceCents === "number" && o.clientPriceCents > 0
       ? o.clientPriceCents

@@ -2376,6 +2376,7 @@
       "supplierCommission": "Lieferantenprovision",
       "estimatedRevenue": "Geschätzte Reseller-Einnahmen",
       "estimatedRevenueHint": "Provision + Marge bei {markupPct}% empfohlenem Aufschlag",
+      "estimatedRevenueNetHint": "Netto nach {feePct} % Affisell-Gebühr · brutto {gross} (Provision + Marge bei {markupPct} % Aufschlag)",
       "sortRevenueDesc": "Reseller-Einnahmen · hoch → niedrig",
       "supplierSheetAria": "Lieferanten-Produktseite"
     },

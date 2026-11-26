@@ -2376,6 +2376,7 @@
       "supplierCommission": "供应商佣金",
       "estimatedRevenue": "预估分销商收益",
       "estimatedRevenueHint": "佣金 + 利润（按建议加价 {markupPct}% 计算）",
+      "estimatedRevenueNetHint": "扣除 Affisell {feePct}% 费用后的净收入 · 毛收入 {gross}（佣金 + {markupPct}% 加价的利润）",
       "sortRevenueDesc": "分销收益 · 从高到低",
       "supplierSheetAria": "供应商商品页"
     },

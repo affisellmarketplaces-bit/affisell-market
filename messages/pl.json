@@ -2376,6 +2376,7 @@
       "supplierCommission": "Prowizja dostawcy",
       "estimatedRevenue": "Szacowane zarobki resellera",
       "estimatedRevenueHint": "Prowizja + marża przy sugerowanej marży {markupPct}%",
+      "estimatedRevenueNetHint": "Netto po prowizji Affisell {feePct}% · brutto {gross} (prowizja + marża przy narzucie {markupPct}%)",
       "sortRevenueDesc": "Zarobki resellera · od najwyższych",
       "supplierSheetAria": "Strona produktu dostawcy"
     },

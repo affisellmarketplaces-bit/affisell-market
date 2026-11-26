@@ -108,7 +108,7 @@ export function AffiliatePromoProductCard({
         <ul className="flex flex-wrap gap-1.5">
           <li>
             <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/80 dark:text-emerald-300">
-              Marge {formatStoreCurrencyFromCents(marginCents, { maximumFractionDigits: 0 })}
+              Net estimé {formatStoreCurrencyFromCents(marginCents, { maximumFractionDigits: 0 })}
             </span>
           </li>
           <li>

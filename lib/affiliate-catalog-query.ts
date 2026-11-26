@@ -1,9 +1,11 @@
 import type { Prisma } from "@prisma/client"
 
 import {
-  estimateTotalPartnerGainCents,
+  buildAffiliateCatalogCardEconomics,
+  estimateNetPartnerGainCents,
   listedSellingPriceFromAffiliateProducts,
 } from "@/lib/affiliate-catalog-margin-display"
+import { isRecommendable, marginGuardForEconomics } from "@/lib/reseller-margin-guard"
 import {
   catalogAddedSinceDate,
   parseCatalogAddedWindow,
@@ -89,7 +91,7 @@ function mapProductToHighlight(
     imageUrl: primaryProductImage(p.images) || null,
     basePriceCents: p.basePriceCents,
     commissionRate: Math.round(Number(p.commissionRate) || 0),
-    marginCents: estimateTotalPartnerGainCents(p.basePriceCents, p.commissionRate, {
+    marginCents: estimateNetPartnerGainCents(p.basePriceCents, p.commissionRate, {
       listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(p.affiliateProducts),
     }),
     soldCount,
@@ -200,10 +202,10 @@ export async function loadAffiliateCatalogProducts(
   if (sort === "commission-desc") {
     products.sort(
       (a, b) =>
-        estimateTotalPartnerGainCents(b.basePriceCents, b.commissionRate, {
+        estimateNetPartnerGainCents(b.basePriceCents, b.commissionRate, {
           listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(b.affiliateProducts),
         }) -
-        estimateTotalPartnerGainCents(a.basePriceCents, a.commissionRate, {
+        estimateNetPartnerGainCents(a.basePriceCents, a.commissionRate, {
           listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(a.affiliateProducts),
         })
     )
@@ -288,10 +290,10 @@ export async function loadAffiliateCatalogHighlights(
 
   const marginSorted = [...marginRows].sort(
     (a, b) =>
-      estimateTotalPartnerGainCents(b.basePriceCents, b.commissionRate, {
+      estimateNetPartnerGainCents(b.basePriceCents, b.commissionRate, {
         listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(b.affiliateProducts),
       }) -
-      estimateTotalPartnerGainCents(a.basePriceCents, a.commissionRate, {
+      estimateNetPartnerGainCents(a.basePriceCents, a.commissionRate, {
         listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(a.affiliateProducts),
       })
   )
@@ -301,6 +303,18 @@ export async function loadAffiliateCatalogHighlights(
       mapProductToHighlight(p, soldMap.get(p.id) ?? 0)
     ),
     newArrivals: newRows.slice(0, limit).map((p) => mapProductToHighlight(p, 0)),
-    highMargin: marginSorted.slice(0, limit).map((p) => mapProductToHighlight(p, 0)),
+    // "High margin" is a recommendation: never surface a product the net-margin guard rejects.
+    highMargin: marginSorted
+      .filter((p) =>
+        isRecommendable(
+          marginGuardForEconomics(
+            buildAffiliateCatalogCardEconomics(p.basePriceCents, p.commissionRate, {
+              listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(p.affiliateProducts),
+            })
+          )
+        )
+      )
+      .slice(0, limit)
+      .map((p) => mapProductToHighlight(p, 0)),
   }
 }
