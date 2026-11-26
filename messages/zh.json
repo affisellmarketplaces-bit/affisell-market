@@ -2819,7 +2819,11 @@
       "errorExpired": "撤销期限（7 天）已过。",
       "errorGeneric": "操作失败，请重试。",
       "estimateNote": "仅为估算，并非保证收益。每项行动都由您点击执行，7 天内可撤销。",
-      "trackRecord": "以往：此类行动中有 {beneficial}/{evaluated} 项对您有利"
+      "trackRecord": "以往：此类行动中有 {beneficial}/{evaluated} 项对您有利",
+      "actionAnticipateCostRise": "提前应对供应商成本上涨",
+      "reasonCostRiseForecast": "供应商成本持续上涨",
+      "forecastLine": "若趋势不变且不做调整：约 {days} 天后利润变薄，{horizon} 天后每笔销售 {net}。",
+      "forecastPrice": "为保持盈利应规划的价格：{price}。"
     },
     "copilotResults": {
       "eyebrow": "副驾驶可靠性",

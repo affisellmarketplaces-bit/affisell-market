@@ -23,17 +23,20 @@ const COST_HISTORY_MAX_ROWS = 5_000
 export const UNDO_WINDOW_MS = 7 * 86_400_000
 
 import { COPILOT_APPLY_ACTION, COPILOT_UNDO_ACTION } from "@/lib/copilot-audit-actions"
+import { forecastMarginErosion, type CostObservation } from "@/lib/margin-erosion-forecast"
 
 export { COPILOT_APPLY_ACTION, COPILOT_UNDO_ACTION }
 
 type OrderSignals = {
   momentum: Map<string, { recent: number; previous: number }>
   costHistory: Map<string, number[]>
+  /** Same observations, dated (for the trend). */
+  costSeries: Map<string, CostObservation[]>
 }
 
 /** Paid orders (all resellers: market demand; base SKU only for unit costs). Read-only, never throws. */
 async function loadOrderSignals(productIds: string[], now: Date): Promise<OrderSignals> {
-  const out: OrderSignals = { momentum: new Map(), costHistory: new Map() }
+  const out: OrderSignals = { momentum: new Map(), costHistory: new Map(), costSeries: new Map() }
   if (productIds.length === 0) return out
   const day = 86_400_000
   const recentSince = new Date(now.getTime() - MOMENTUM_RECENT_DAYS * day)
@@ -57,7 +60,7 @@ async function loadOrderSignals(productIds: string[], now: Date): Promise<OrderS
           variantLabel: null,
           quantity: { gt: 0 },
         },
-        select: { productId: true, basePriceCents: true, quantity: true },
+        select: { productId: true, basePriceCents: true, quantity: true, paidAt: true },
         orderBy: { paidAt: "desc" },
         take: COST_HISTORY_MAX_ROWS,
       }),
@@ -70,8 +73,14 @@ async function loadOrderSignals(productIds: string[], now: Date): Promise<OrderS
     }
     for (const o of costs) {
       const list = out.costHistory.get(o.productId) ?? []
-      list.push(Math.round(o.basePriceCents / o.quantity))
+      const unitCents = Math.round(o.basePriceCents / o.quantity)
+      list.push(unitCents)
       out.costHistory.set(o.productId, list)
+      if (o.paidAt) {
+        const dated = out.costSeries.get(o.productId) ?? []
+        dated.push({ at: o.paidAt, unitCents })
+        out.costSeries.set(o.productId, dated)
+      }
     }
   } catch (e) {
     console.warn("[reseller-action-plan] order signals unavailable", e instanceof Error ? e.message : e)
@@ -124,6 +133,17 @@ export async function loadResellerActionPlan(affiliateId: string, now: Date = ne
           historyUnitCents: signals.costHistory.get(l.productId) ?? [],
         }),
         traffic: detectTrafficWithoutSales({ clicks: l.clicks, conversions: l.conversions }),
+        erosion: l.hasVariantPricing
+          ? null
+          : forecastMarginErosion({
+              observations: signals.costSeries.get(l.productId) ?? [],
+              supplierPriceCents: l.supplierPriceCents,
+              sellingPriceCents: l.sellingPriceCents,
+              commissionRatePct: l.commissionRatePct,
+              resellerFeeBps,
+              expectedRefundRate: l.guard.expectedRefundRate,
+              now,
+            }),
       }
     })
     const actions = buildActionPlan({
@@ -244,7 +264,10 @@ export async function applyCopilotAction(args: {
   if (action.currentPriceCents != null && action.currentPriceCents !== listing.sellingPriceCents) {
     return { ok: false, reason: "stale" }
   }
-  if (args.expectedSuggestedPriceCents !== undefined && action.suggestedPriceCents !== args.expectedSuggestedPriceCents) {
+  if (
+    args.expectedSuggestedPriceCents !== undefined &&
+    action.suggestedPriceCents !== args.expectedSuggestedPriceCents
+  ) {
     return { ok: false, reason: "stale" }
   }
   const before = toState(listing as StateRow)

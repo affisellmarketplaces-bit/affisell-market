@@ -2819,7 +2819,11 @@
       "errorExpired": "The undo window (7 days) has passed.",
       "errorGeneric": "Failed. Please try again.",
       "estimateNote": "Estimates, never guaranteed earnings. Every action happens on your click and can be undone for 7 days.",
-      "trackRecord": "So far: {beneficial}/{evaluated} actions of this kind were beneficial for you"
+      "trackRecord": "So far: {beneficial}/{evaluated} actions of this kind were beneficial for you",
+      "actionAnticipateCostRise": "Get ahead of the supplier's rising cost",
+      "reasonCostRiseForecast": "Supplier cost rising steadily",
+      "forecastLine": "If the trend continues unchanged: thin margin in ~{days} days, {net} per sale in {horizon} days.",
+      "forecastPrice": "Price to plan to stay profitable: {price}."
     },
     "copilotResults": {
       "eyebrow": "Copilot reliability",

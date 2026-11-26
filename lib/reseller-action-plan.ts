@@ -15,6 +15,7 @@ import { buildAffiliateCatalogCardEconomics } from "@/lib/affiliate-catalog-marg
 import { evaluateMarginGuard, THIN_EXPECTED_NET_CENTS, THIN_EXPECTED_NET_RATE } from "@/lib/reseller-margin-guard"
 import type { ListingHealthIssue } from "@/lib/reseller-opportunity-score"
 import type { CostDrift, DemandMomentum } from "@/lib/reseller-signals"
+import { EROSION_PROJECTION_DAYS, type MarginErosionForecast } from "@/lib/margin-erosion-forecast"
 
 /** A suggested price never raises the current one by more than this: beyond, the product needs a human decision. */
 export const REPRICE_MAX_INCREASE = 0.25
@@ -29,6 +30,7 @@ export type ActionType =
   | "list_opportunity"
   | "push_momentum"
   | "review_traffic"
+  | "anticipate_cost_rise"
 export type ActionAutonomy = "recommend" | "one_click"
 
 export type ActionReason =
@@ -38,6 +40,7 @@ export type ActionReason =
   | "demand_rising"
   | "traffic_without_sales"
   | "top_opportunity"
+  | "cost_rise_forecast"
 
 export type PlannedAction = {
   /** Deterministic: `${type}:${target}` — the apply endpoint recomputes the plan and matches on it. */
@@ -59,6 +62,14 @@ export type PlannedAction = {
   impactCents: number
   /** How this kind of action worked for THIS reseller before (before/after observation, see copilot-outcomes). */
   trackRecord?: { evaluated: number; beneficial: number; successRate: number | null }
+  /** anticipate_cost_rise only: the projection that motivates it (margin-erosion-forecast). */
+  forecast?: {
+    daysToThin: number
+    daysToInsufficient: number | null
+    daysToThinPessimistic: number | null
+    projectedNetCents: number
+    projectionDays: number
+  }
   estimated: true
 }
 
@@ -81,6 +92,8 @@ export type PlanListingInput = {
   momentum?: DemandMomentum | null
   costDrift?: CostDrift | null
   traffic?: { flagged: boolean; clicks: number; conversionRate: number } | null
+  /** Established rising supplier cost that turns this HEALTHY listing thin within the horizon (null otherwise). */
+  erosion?: MarginErosionForecast | null
 }
 
 export type PlanOpportunityInput = {
@@ -234,6 +247,35 @@ export function buildActionPlan(args: {
       })
     }
 
+    // Healthy today, but the supplier's price is rising steadily: say WHEN it stops paying, before it does. Advice
+    // only (the cost has not risen yet): the reseller decides; never one-click, never automatic.
+    if (l.erosion?.daysToThin != null) {
+      const e = l.erosion
+      const priceToPlan = l.hasVariantPricing
+        ? null
+        : suggestHealthyPrice({ ...l, supplierPriceCents: e.projectedSupplierPriceCents })
+      actions.push({
+        ...base,
+        id: `anticipate_cost_rise:${l.listingId}`,
+        type: "anticipate_cost_rise",
+        autonomy: "recommend",
+        reversible: true,
+        reasons: ["cost_rise_forecast"],
+        currentPriceCents: l.sellingPriceCents,
+        ...(priceToPlan != null ? { suggestedPriceCents: priceToPlan } : {}),
+        expectedNetNowCents: l.expectedNetCents,
+        forecast: {
+          daysToThin: e.daysToThin!,
+          daysToInsufficient: e.daysToInsufficient,
+          daysToThinPessimistic: e.daysToThinPessimistic,
+          projectedNetCents: e.expectedNetProjectedCents,
+          projectionDays: EROSION_PROJECTION_DAYS,
+        },
+        // Net per sale at stake if nothing changes.
+        impactCents: Math.max(1, e.expectedNetNowCents - e.expectedNetProjectedCents),
+      })
+    }
+
     if (l.momentum?.rising && l.status === "ok") {
       actions.push({
         ...base,
@@ -270,6 +312,7 @@ export function buildActionPlan(args: {
     reprice: 2,
     review_refunds: 3,
     review_pricing: 3,
+    anticipate_cost_rise: 3,
     push_momentum: 4,
     list_opportunity: 5,
     review_traffic: 6,

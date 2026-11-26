@@ -22,6 +22,7 @@ const REASON_KEYS: Record<ActionReason, string> = {
   demand_rising: "reasonDemandRising",
   traffic_without_sales: "reasonTrafficWithoutSales",
   top_opportunity: "reasonTopOpportunity",
+  cost_rise_forecast: "reasonCostRiseForecast",
 }
 
 const ACTION_KEYS: Record<ActionType, string> = {
@@ -33,6 +34,7 @@ const ACTION_KEYS: Record<ActionType, string> = {
   push_momentum: "actionPushMomentum",
   list_opportunity: "actionListOpportunity",
   review_traffic: "actionReviewTraffic",
+  anticipate_cost_rise: "actionAnticipateCostRise",
 }
 
 type RowState =
@@ -140,6 +142,18 @@ export function AffiliateActionPlanCard({ actions, className }: { actions: Plann
                   >
                     {a.name}
                   </Link>
+                  {a.forecast ? (
+                    <p className="mt-0.5 text-xs text-amber-800 dark:text-amber-300" data-testid="action-forecast">
+                      {t("forecastLine", {
+                        days: a.forecast.daysToThin,
+                        horizon: a.forecast.projectionDays,
+                        net: euros(a.forecast.projectedNetCents, locale),
+                      })}
+                      {a.suggestedPriceCents != null
+                        ? ` ${t("forecastPrice", { price: euros(a.suggestedPriceCents, locale) })}`
+                        : ""}
+                    </p>
+                  ) : null}
                   {a.trackRecord?.successRate != null ? (
                     <p className="mt-0.5 text-[11px] text-zinc-500">
                       {t("trackRecord", { beneficial: a.trackRecord.beneficial, evaluated: a.trackRecord.evaluated })}

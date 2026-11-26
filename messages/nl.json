@@ -2819,7 +2819,11 @@
       "errorExpired": "De termijn om ongedaan te maken (7 dagen) is verstreken.",
       "errorGeneric": "Mislukt. Probeer het opnieuw.",
       "estimateNote": "Schattingen, nooit een gegarandeerde opbrengst. Elke actie gebeurt op jouw klik en kan 7 dagen ongedaan worden gemaakt.",
-      "trackRecord": "Tot nu toe: {beneficial}/{evaluated} acties van dit type waren gunstig voor jou"
+      "trackRecord": "Tot nu toe: {beneficial}/{evaluated} acties van dit type waren gunstig voor jou",
+      "actionAnticipateCostRise": "Vooruitlopen op de stijgende leveranciersprijs",
+      "reasonCostRiseForecast": "Leveranciersprijs stijgt gestaag",
+      "forecastLine": "Als de trend ongewijzigd doorzet: krappe marge over ~{days} dagen, {net} per verkoop over {horizon} dagen.",
+      "forecastPrice": "Te plannen prijs om rendabel te blijven: {price}."
     },
     "copilotResults": {
       "eyebrow": "Betrouwbaarheid van de copiloot",
