@@ -28,15 +28,43 @@ Fichiers : `lib/events/journal-mapping.ts` (correspondances pures), `lib/events/
 
 `lib/events/journal-metrics.server.ts` calcule les taux de remboursement mesurés par produit, lissés vers 10 % pour les petits échantillons. Le rail d'opportunités les transmet à la garde de marge nette (`lib/reseller-margin-guard.ts`) : un produit souvent remboursé cesse d'être recommandé. Sans données, le taux par défaut s'applique ; aucune erreur n'est possible.
 
-## Activation (fondateur, après les fusions)
+## Activation (fondateur, après les fusions) — procédure validée
 
-1. Vérifier que la migration `event_spine` est appliquée en production : `npm run schema:verify` (`docs/DEPLOY-SCHEMA-CHANGES.md`). **Aucune migration n'est ajoutée par S2.**
-2. Faire une reconstruction à blanc, qui ne fait que compter, en lecture seule :
-   `npx tsx --conditions=react-server scripts/events-journal-backfill.ts --since 2026-01-01`
-3. Reconstruire l'historique :
-   `EVENTS_JOURNAL=on AFFISELL_ALLOW_PRODUCTION_WRITES=<endpoint> npx tsx --conditions=react-server scripts/events-journal-backfill.ts --since 2026-01-01 --apply`
-4. Ajouter `EVENTS_JOURNAL=on` dans Vercel (Production), puis programmer `/api/cron/events-journal` toutes les heures (GitHub Actions, comme les autres crons, avec `CRON_SECRET`).
-5. **Retour arrière** : retirer `EVENTS_JOURNAL`. Les écritures s'arrêtent et la garde de marge revient au taux par défaut ; les événements déjà écrits restent, identifiables par `source = journal_projection`.
+Chaque étape produit une preuve à conserver (sortie de commande). On ne passe pas à l'étape suivante sans elle.
+Les étapes 1, 2, 3, 5 et 7 sont **en lecture seule**.
+
+| # | Étape | Commande | Preuve attendue |
+| --- | --- | --- | --- |
+| 1 | Structure S1 présente | `DATABASE_URL='<url prod>' npm run schema:verify` | code de sortie 0 (aucune migration ajoutée par S2) |
+| 2 | Reconstruction à blanc | `npx tsx --conditions=react-server scripts/events-journal-backfill.ts --since 2026-01-01` | `rows` / `events` par source, `truncated: false` partout |
+| 3 | État initial | `npx tsx --conditions=react-server scripts/events-journal-reconcile.ts --since 2026-01-01` | code 6 attendu (`missing` = tout, `orphans: 0`) |
+| 4 | Reconstruction | `EVENTS_JOURNAL=on AFFISELL_ALLOW_PRODUCTION_WRITES=<endpoint> npx tsx --conditions=react-server scripts/events-journal-backfill.ts --since 2026-01-01 --apply` | `written` = `events` de l'étape 2 ; `error: null` |
+| 5 | **Réconciliation** | même commande qu'à l'étape 3 | **code 0** : `missing: 0`, `orphans: 0`, `refundRates.maxAbsDiff: 0` |
+| 6 | Idempotence | relancer l'étape 4 | `written: 0`, `duplicates` = `events` |
+| 7 | Volume | si une source affiche `truncated: true` | relancer 4 puis 5 par fenêtres plus courtes (`--since … --until …`) |
+| 8 | Activation | `EVENTS_JOURNAL=on` dans Vercel (Production), puis le cron horaire `/api/cron/events-journal` (GitHub Actions + `CRON_SECRET`, comme les autres crons) | le lendemain : étape 5 sur les dernières 48 h → code 0 |
+
+**Reprise après interruption.** La projection est idempotente (`eventId` déterministe, `skipDuplicates`). Après
+une coupure (réseau, timeout, déploiement), on relance la même fenêtre, puis la réconciliation. Le test
+`events-journal-reconcile.test.ts` le démontre : une source qui échoue en cours de route est détectée
+(`missing`, dérive des taux), et une relance la complète.
+
+**Cohérence avec la garde de marge.** La réconciliation recalcule le taux de remboursement lissé de chaque produit,
+une fois à partir du journal et une fois à partir des tables sources. Un écart (`refundRates.drifts`) signifie que
+les recommandations liraient un taux faux. On ne passe pas à l'étape 8 tant qu'il en reste un.
+
+**Pagination.** La pagination se fait par pages de 1 000 lignes, dans un ordre déterministe, et s'arrête à
+500 000 lignes par source et par exécution. Au-delà, le résultat indique `truncated: true` et un message est
+journalisé : on découpe alors la fenêtre. Une ligne modifiée pendant la lecture (retours, avis) peut être
+manquée ; elle est rattrapée à l'exécution suivante, puisque le cron relit trois jours qui se chevauchent, et
+la réconciliation la signale entre-temps.
+
+**Retour arrière.** On retire `EVENTS_JOURNAL`, et deux choses se produisent :
+
+- les écritures s'arrêtent ;
+- la garde de marge et le copilote reviennent au taux par défaut **sans même lire les événements**.
+
+Les événements déjà écrits restent dans la table. Ils sont identifiables par `source = journal_projection`.
 
 ## Étapes suivantes
 
