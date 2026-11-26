@@ -2,8 +2,10 @@ import { cookies, headers } from "next/headers"
 
 import { DashboardAutoDraft } from "@/components/dashboard/dashboard-auto-draft"
 import { OAuthWelcomeToast } from "@/components/oauth-welcome-toast"
+import { IntlScope } from "@/components/providers/intl-scope"
 import { RadarUnlockBanner } from "@/components/radar/radar-unlock-banner"
 import { ResellerRequestAccessChrome } from "@/components/reseller/ResellerRequestAccessChrome"
+import { PRIVATE_SURFACE_NAMESPACES } from "@/lib/i18n-client-scope"
 import { OAUTH_WELCOME_COOKIE } from "@/lib/oauth-cookies"
 
 /** Auth + cookies on every merchant route — never static at build time. */
@@ -17,8 +19,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
     pathname.startsWith("/dashboard/admin") || pathname.startsWith("/admin")
   const welcome = jar.get(OAUTH_WELCOME_COOKIE)?.value
 
+  // The root layout only sends public namespaces (lib/i18n-client-scope.ts): add the private ones here.
   return (
-    <>
+    <IntlScope namespaces={PRIVATE_SURFACE_NAMESPACES}>
       {!isAdminSurface ? <RadarUnlockBanner /> : null}
       <DashboardAutoDraft />
       {welcome ? (
@@ -30,6 +33,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
       ) : null}
       {children}
       <ResellerRequestAccessChrome />
-    </>
+    </IntlScope>
   )
 }

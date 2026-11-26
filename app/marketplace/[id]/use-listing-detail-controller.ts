@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useLocale } from "next-intl"
+import { useLocale, useMessages } from "next-intl"
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
 import { useReducedMotion } from "framer-motion"
 import type { GhostOosPayload } from "@/components/checkout/OutOfStockModal"
@@ -18,7 +18,7 @@ import {
   isServiceListingKind,
 } from "@/lib/booking/types"
 import type { AppLocale } from "@/lib/i18n-locale"
-import { appMessagesForLocale } from "@/lib/i18n-app-messages"
+import type { AppMessages } from "@/lib/i18n-app-messages"
 import { shopListingPath } from "@/lib/affiliate-routes"
 import { buildMarketplaceColorMeta, shouldShowMarketplaceColorSwatches, shopperColorLabelsMatch } from "@/lib/marketplace-color-meta"
 import { shopperCategoryEyebrow } from "@/lib/product-shopper-tags"
@@ -101,7 +101,9 @@ export function useListingDetailController(props: ListingDetailProps) {
   const brand = storefrontPdpBrandClasses(brandedStorefront)
   const tryOnVariant =
     brandedStorefront && storeLayoutImmersive ? ("immersive" as const) : ("default" as const)
-  const messages = appMessagesForLocale(locale)
+  // The provider's messages (Breadcrumb/Product/cart/checkout/wishlist guaranteed by <IntlScope> on the page) — not
+  // appMessagesForLocale, which bundled all eight catalogs into the product page.
+  const messages = useMessages() as unknown as AppMessages
   const productT = messages.Product
   const checkoutSellerName =
     brandedStorefront && (partnerLabel?.trim() || storefront?.name?.trim())
