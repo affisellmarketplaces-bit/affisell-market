@@ -1,4 +1,5 @@
 import { computePhase1OrderFees, resolveAffiliatePlatformFeeBps } from "@/lib/marketplace-phase1-fees"
+import { clampSupplierCommissionRateBps } from "@/lib/supplier-commission-rate"
 
 /** Default markup when affiliate has not set a selling price yet (swipe feed + quick list). */
 export const DEFAULT_AFFILIATE_CATALOG_MARKUP_RATE = 0.3
@@ -35,8 +36,11 @@ export function estimateSupplierCommissionCents(
   basePriceCents: number,
   commissionRate: number
 ): number {
+  // Same path as the settlement: percent → whole bps, clamped to 0–100 %, then round(price × bps / 10 000). Rounding the
+  // raw percent instead was one cent off for rates with more than two decimals and unbounded above 100 %.
   const pct = Number(commissionRate) || 0
-  return Math.max(0, Math.round((basePriceCents * pct) / 100))
+  const bps = clampSupplierCommissionRateBps(Math.round(pct * 100))
+  return Math.max(0, Math.round((Math.max(0, Math.round(basePriceCents)) * bps) / 10_000))
 }
 
 /** Retail markup margin at client selling price. */
