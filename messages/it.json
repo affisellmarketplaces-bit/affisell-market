@@ -2819,7 +2819,11 @@
       "errorExpired": "Il termine per annullare (7 giorni) è scaduto.",
       "errorGeneric": "Operazione non riuscita. Riprova.",
       "estimateNote": "Stime, mai un guadagno garantito. Ogni azione avviene al tuo clic e si può annullare per 7 giorni.",
-      "trackRecord": "Finora: {beneficial}/{evaluated} azioni di questo tipo sono state vantaggiose per te"
+      "trackRecord": "Finora: {beneficial}/{evaluated} azioni di questo tipo sono state vantaggiose per te",
+      "actionAnticipateCostRise": "Anticipare l'aumento del costo del fornitore",
+      "reasonCostRiseForecast": "Costo del fornitore in aumento costante",
+      "forecastLine": "Se la tendenza continua invariata: margine ridotto tra ~{days} giorni, {net} per vendita tra {horizon} giorni.",
+      "forecastPrice": "Prezzo da prevedere per restare redditizio: {price}."
     },
     "copilotResults": {
       "eyebrow": "Affidabilità del copilota",

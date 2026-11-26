@@ -190,6 +190,38 @@ Hard rules:
 2. Run `schema:verify`.
 3. Merge.
 
+## 9. Anticipated loss of profitability (`lib/margin-erosion-forecast.ts`, action `anticipate_cost_rise`)
+
+The cost-drift signal says a supplier price **has** jumped. This one looks at the **trend** of the supplier's unit price
+and warns a reseller whose listing is still **healthy** that it will stop paying, and roughly when, if nothing changes.
+
+- **Observations**: supplier unit price on each paid order (base SKU, last 90 days), one value per day (the day's
+  median), so a busy day does not outweigh a quiet one.
+- **Trend**: Theil–Sen slope (median of pairwise slopes, robust to outliers and promotions) with Sen's one-sided 95 %
+  bounds. A forecast is made **only if the lower bound is above zero**: the rise is established.
+- **Projection**: today's supplier price + slope × days, put through the **same** net calculation as the settlement
+  (`buildAffiliateCatalogCardEconomics`, PR #17) and the **same** margin guard, at the listing's own price, fee and
+  expected refund rate. There is no second financial model.
+- **Output**: the number of days until « thin » (point trend, and with the pessimistic bound), until « insufficient »,
+  the expected net per sale in 30 days, and a **price to plan** that keeps the listing healthy at the projected cost
+  (not offered with per-variant prices).
+- **Gates**: ≥ 6 distinct days spanning ≥ 21 days; healthy today; thin within 60 days.
+- **Advice only.** The cost has not risen yet: `recommend`, never one-click, never automatic (not an auto-eligible
+  type, and the apply route's id pattern refuses it).
+- **Measured (2 000 synthetic series each, deterministic seed)**:
+
+  | Series | Alerts | Median lead time |
+  | --- | --- | --- |
+  | Flat prices, ±8 % noise | 0.3 % (false alarms) | — |
+  | Flat prices, ±15 % noise | 1.9 % (false alarms) | — |
+  | +12 c/day, ±8 % noise | 98.1 % | 39 days before « thin » |
+  | +12 c/day, ±15 % noise | 88.9 % | 38 days |
+  | +6 c/day (thin beyond the 60-day horizon) | 13.7 % | out of scope by design |
+
+  The tests pin a false-alarm rate under 5 % and a detection rate above 80 %. Real-data precision is a follow-up: a
+  read-only backtest over `Order` history (forecast at date D, check the level at D + days) once production is
+  reachable.
+
 ## Data access and rollback
 
 - `loadProductRiskContext` is read-only. It runs three grouped queries (product, category, supplier) whatever

@@ -2819,7 +2819,11 @@
       "errorExpired": "Le délai d'annulation (7 jours) est dépassé.",
       "errorGeneric": "Échec. Réessayez.",
       "estimateNote": "Estimations, jamais un gain garanti. Chaque action se fait sur votre clic et s'annule pendant 7 jours.",
-      "trackRecord": "Par le passé : {beneficial}/{evaluated} actions de ce type bénéfiques pour vous"
+      "trackRecord": "Par le passé : {beneficial}/{evaluated} actions de ce type bénéfiques pour vous",
+      "actionAnticipateCostRise": "Anticiper la hausse du coût fournisseur",
+      "reasonCostRiseForecast": "Coût fournisseur en hausse régulière",
+      "forecastLine": "Si la tendance continue sans changement : marge mince dans ~{days} jours, {net} par vente dans {horizon} jours.",
+      "forecastPrice": "Prix à prévoir pour rester rentable : {price}."
     },
     "copilotResults": {
       "eyebrow": "Fiabilité du copilote",

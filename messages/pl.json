@@ -2819,7 +2819,11 @@
       "errorExpired": "Minął termin cofnięcia (7 dni).",
       "errorGeneric": "Niepowodzenie. Spróbuj ponownie.",
       "estimateNote": "Szacunki, nigdy gwarantowany zysk. Każde działanie następuje po Twoim kliknięciu i można je cofnąć przez 7 dni.",
-      "trackRecord": "Dotąd: {beneficial}/{evaluated} działań tego typu było dla Ciebie korzystnych"
+      "trackRecord": "Dotąd: {beneficial}/{evaluated} działań tego typu było dla Ciebie korzystnych",
+      "actionAnticipateCostRise": "Wyprzedź rosnący koszt dostawcy",
+      "reasonCostRiseForecast": "Koszt dostawcy stale rośnie",
+      "forecastLine": "Jeśli trend utrzyma się bez zmian: niska marża za ~{days} dni, {net} na sprzedaży za {horizon} dni.",
+      "forecastPrice": "Cena do zaplanowania, by pozostać rentownym: {price}."
     },
     "copilotResults": {
       "eyebrow": "Wiarygodność kopilota",

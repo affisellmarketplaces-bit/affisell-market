@@ -2819,7 +2819,11 @@
       "errorExpired": "El plazo para deshacer (7 días) ha vencido.",
       "errorGeneric": "Error. Inténtalo de nuevo.",
       "estimateNote": "Estimaciones, nunca una ganancia garantizada. Cada acción se hace con tu clic y se puede deshacer durante 7 días.",
-      "trackRecord": "Hasta ahora: {beneficial}/{evaluated} acciones de este tipo fueron beneficiosas para ti"
+      "trackRecord": "Hasta ahora: {beneficial}/{evaluated} acciones de este tipo fueron beneficiosas para ti",
+      "actionAnticipateCostRise": "Anticiparse al aumento del coste del proveedor",
+      "reasonCostRiseForecast": "Coste del proveedor en aumento constante",
+      "forecastLine": "Si la tendencia continúa sin cambios: margen estrecho en ~{days} días, {net} por venta en {horizon} días.",
+      "forecastPrice": "Precio a prever para seguir siendo rentable: {price}."
     },
     "copilotResults": {
       "eyebrow": "Fiabilidad del copiloto",

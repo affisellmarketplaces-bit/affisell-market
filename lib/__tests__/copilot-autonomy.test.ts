@@ -154,6 +154,16 @@ describe("grants — explicit, per type, bounded", () => {
     ).toBe(true)
   })
 
+  it("an anticipated cost rise is advice only: never automatic, whatever is granted", () => {
+    expect(
+      decideAutoApply({
+        action: action({ type: "anticipate_cost_rise", id: "anticipate_cost_rise:lst_000001", autonomy: "recommend" }),
+        rule: rule(),
+        runsLast7Days: 0,
+      }),
+    ).toEqual({ allowed: false, reason: "not_eligible" })
+  })
+
   it("never automatic: pause, recommendations, and a grant for another type", () => {
     expect(
       decideAutoApply({ action: action({ type: "pause", id: "pause:lst_000001" }), rule: rule(), runsLast7Days: 0 }),

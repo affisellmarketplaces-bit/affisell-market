@@ -81,6 +81,39 @@ describe("action plan card", () => {
     expect(html).toContain("Par le passé : 9/12")
   })
 
+  it.each(LOCALES)(
+    "anticipated cost rise: forecast line with days, projected net and price to plan in %s",
+    (locale) => {
+      const a: PlannedAction = {
+        id: "anticipate_cost_rise:lst_000009",
+        type: "anticipate_cost_rise",
+        autonomy: "recommend",
+        reversible: true,
+        listingId: "lst_000009",
+        productId: "prod_000009",
+        name: "Produit 9",
+        reasons: ["cost_rise_forecast"],
+        currentPriceCents: 4500,
+        suggestedPriceCents: 4890,
+        expectedNetNowCents: 821,
+        forecast: {
+          daysToThin: 33,
+          daysToInsufficient: null,
+          daysToThinPessimistic: 21,
+          projectedNetCents: 520,
+          projectionDays: 30,
+        },
+        impactCents: 301,
+        estimated: true,
+      }
+      const html = render(locale, [a])
+      expect(html).not.toMatch(/actionPlan\.|\{days|\{net|\{price|\{horizon/)
+      expect(html).toContain('data-testid="action-forecast"')
+      expect(html).toContain("33")
+      expect(html).not.toContain(">Appliquer<") // advice only: never a one-click write
+    },
+  )
+
   it("renders nothing for an empty plan", () => {
     expect(render("fr", [])).toBe("")
   })

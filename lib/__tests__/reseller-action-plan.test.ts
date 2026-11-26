@@ -190,3 +190,55 @@ describe("action plan", () => {
     ).toEqual([])
   })
 })
+
+describe("anticipated margin erosion in the plan", () => {
+  const erosion = {
+    slopeCentsPerDay: 15,
+    slopeLowerCentsPerDay: 10,
+    slopeUpperCentsPerDay: 20,
+    observationDays: 30,
+    spanDays: 39,
+    levelNow: "healthy" as const,
+    expectedNetNowCents: 800,
+    expectedNetProjectedCents: 480,
+    projectedSupplierPriceCents: 4_250,
+    daysToThin: 33,
+    daysToInsufficient: null,
+    daysToThinPessimistic: 22,
+    estimated: true as const,
+  }
+
+  it("a healthy listing with an established cost rise gets ADVICE (recommend, never one-click) with the forecast", () => {
+    const l = listing({ sellingPriceCents: 4_500, supplierPriceCents: 3_800, erosion })
+    expect(l.status).toBe("ok")
+    const a = buildActionPlan({ listings: [l] }).find((x) => x.type === "anticipate_cost_rise")!
+    expect(a).toMatchObject({
+      autonomy: "recommend",
+      reasons: ["cost_rise_forecast"],
+      forecast: { daysToThin: 33, projectedNetCents: 480, projectionDays: 30 },
+      impactCents: 320,
+    })
+    // The price to plan keeps the listing healthy at the PROJECTED supplier price (same guard, same net).
+    const healthyAt = (price: number) =>
+      evaluateMarginGuard({
+        netGainCents: buildAffiliateCatalogCardEconomics(4_250, 10, { listedSellingPriceCents: price })
+          .netPartnerGainCents,
+        clientPriceCents: price,
+        expectedRefundRate: 0.1,
+      }).level
+    expect(a.suggestedPriceCents).toBeGreaterThan(4_500)
+    expect(healthyAt(a.suggestedPriceCents!)).toBe("healthy")
+  })
+
+  it("no forecast, no advice; per-variant prices: no single price is suggested", () => {
+    expect(
+      buildActionPlan({ listings: [listing({ sellingPriceCents: 4_500, supplierPriceCents: 3_800 })] }).some(
+        (x) => x.type === "anticipate_cost_rise",
+      ),
+    ).toBe(false)
+    const v = buildActionPlan({
+      listings: [listing({ sellingPriceCents: 4_500, supplierPriceCents: 3_800, erosion, hasVariantPricing: true })],
+    }).find((x) => x.type === "anticipate_cost_rise")!
+    expect(v.suggestedPriceCents).toBeUndefined()
+  })
+})

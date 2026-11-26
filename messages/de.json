@@ -2819,7 +2819,11 @@
       "errorExpired": "Die Frist zum Rückgängigmachen (7 Tage) ist abgelaufen.",
       "errorGeneric": "Fehlgeschlagen. Bitte erneut versuchen.",
       "estimateNote": "Schätzungen, nie ein garantierter Gewinn. Jede Maßnahme erfolgt auf Ihren Klick und ist 7 Tage lang rückgängig zu machen.",
-      "trackRecord": "Bisher: {beneficial}/{evaluated} Maßnahmen dieser Art waren für Sie vorteilhaft"
+      "trackRecord": "Bisher: {beneficial}/{evaluated} Maßnahmen dieser Art waren für Sie vorteilhaft",
+      "actionAnticipateCostRise": "Dem steigenden Lieferantenpreis zuvorkommen",
+      "reasonCostRiseForecast": "Lieferantenpreis steigt stetig",
+      "forecastLine": "Wenn sich der Trend unverändert fortsetzt: knappe Marge in ~{days} Tagen, {net} pro Verkauf in {horizon} Tagen.",
+      "forecastPrice": "Einzuplanender Preis, um rentabel zu bleiben: {price}."
     },
     "copilotResults": {
       "eyebrow": "Zuverlässigkeit des Copiloten",
