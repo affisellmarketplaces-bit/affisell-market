@@ -147,12 +147,24 @@ export async function loadProductRiskContext(
 
 export const LISTING_HEALTH_MAX_LISTINGS = 200
 
+function hasVariantPricing(raw: unknown): boolean {
+  return Boolean(raw) && typeof raw === "object" && !Array.isArray(raw) && Object.keys(raw as object).length > 0
+}
+
 export type ListingHealthRow = ListingHealth & {
   name: string
   sellingPriceCents: number
   supplierPriceCents: number
   commissionRatePct: number
   netGainCents: number
+  categoryId: string | null
+  supplierId: string | null
+  clicks: number
+  conversions: number
+  /** Supplier raised a SKU price since the reseller priced it (set by the wholesale-change notifier). */
+  marginReviewNeeded: boolean
+  /** Per-variant prices are set on this listing. */
+  hasVariantPricing: boolean
 }
 
 /**
@@ -171,6 +183,10 @@ export async function loadResellerListingHealth(
       select: {
         id: true,
         sellingPriceCents: true,
+        clicks: true,
+        conversions: true,
+        marginReviewNeeded: true,
+        variantPricing: true,
         product: {
           select: {
             id: true,
@@ -213,6 +229,12 @@ export async function loadResellerListingHealth(
         supplierPriceCents: l.product.basePriceCents,
         commissionRatePct: economics.commissionRatePct,
         netGainCents: economics.netPartnerGainCents,
+        categoryId: l.product.categoryId ?? null,
+        supplierId: l.product.supplierId ?? null,
+        clicks: l.clicks ?? 0,
+        conversions: l.conversions ?? 0,
+        marginReviewNeeded: l.marginReviewNeeded === true,
+        hasVariantPricing: hasVariantPricing(l.variantPricing),
       }
     })
     const byId = new Map(rows.map((r) => [r.listingId, r]))
