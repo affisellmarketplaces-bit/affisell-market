@@ -2781,6 +2781,22 @@
       "pendingVerification": "Oczekuje",
       "setDefault": "Ustaw jako domyślną",
       "delete": "Usuń"
+    },
+    "listingHealth": {
+      "eyebrow": "Kondycja Twoich produktów",
+      "titleAction": "{count, plural, one {# produkt nie przynosi już wystarczająco} few {# produkty nie przynoszą już wystarczająco} many {# produktów nie przynosi już wystarczająco} other {# produktu nie przynosi już wystarczająco}}",
+      "titleWatch": "{count, plural, one {# produkt do obserwacji} few {# produkty do obserwacji} many {# produktów do obserwacji} other {# produktu do obserwacji}}",
+      "hint": "Obliczone według Twojej ceny sprzedaży, z dzisiejszą ceną dostawcy i prowizją, po opłacie Affisell i oczekiwanych zwrotach.",
+      "statusAction": "Wymaga działania",
+      "statusWatch": "Obserwuj",
+      "issueSupplierPrice": "Cena dostawcy ≥ Twoja cena",
+      "issueNetInsufficient": "Zbyt niski zysk netto",
+      "issueNetThin": "Niska marża",
+      "issueRefundRising": "Rosnące zwroty",
+      "expectedNet": "Szac. netto / sprzedaż:",
+      "prices": "Twoja cena {selling} · dostawca {supplier}",
+      "estimateNote": "Szacunki, nie gwarantowany zysk.",
+      "review": "Przejrzyj moje produkty"
     }
   },
   "marketplace": {

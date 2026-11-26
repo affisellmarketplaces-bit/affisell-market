@@ -2781,6 +2781,22 @@
       "pendingVerification": "In afwachting",
       "setDefault": "Instellen als standaard",
       "delete": "Verwijderen"
+    },
+    "listingHealth": {
+      "eyebrow": "Gezondheid van je producten",
+      "titleAction": "{count, plural, one {# product levert niet meer genoeg op} other {# producten leveren niet meer genoeg op}}",
+      "titleWatch": "{count, plural, one {# product om in de gaten te houden} other {# producten om in de gaten te houden}}",
+      "hint": "Berekend tegen jouw verkoopprijs, met de leveranciersprijs en commissie van vandaag, na de Affisell-vergoeding en verwachte terugbetalingen.",
+      "statusAction": "Actie nodig",
+      "statusWatch": "In de gaten houden",
+      "issueSupplierPrice": "Leveranciersprijs ≥ jouw prijs",
+      "issueNetInsufficient": "Netto-opbrengst te laag",
+      "issueNetThin": "Dunne marge",
+      "issueRefundRising": "Terugbetalingen stijgen",
+      "expectedNet": "Geschat netto / verkoop:",
+      "prices": "Jouw prijs {selling} · leverancier {supplier}",
+      "estimateNote": "Schattingen, geen gegarandeerde opbrengst.",
+      "review": "Mijn producten bekijken"
     }
   },
   "marketplace": {

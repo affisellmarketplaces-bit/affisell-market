@@ -2781,6 +2781,22 @@
       "pendingVerification": "En attente",
       "setDefault": "Définir par défaut",
       "delete": "Supprimer"
+    },
+    "listingHealth": {
+      "eyebrow": "Santé de vos produits",
+      "titleAction": "{count, plural, one {# produit ne rapporte plus assez} other {# produits ne rapportent plus assez}}",
+      "titleWatch": "{count, plural, one {# produit à surveiller} other {# produits à surveiller}}",
+      "hint": "Calculé à votre prix de vente, avec le prix fournisseur et la commission d'aujourd'hui, après les frais Affisell et les remboursements attendus.",
+      "statusAction": "À corriger",
+      "statusWatch": "À surveiller",
+      "issueSupplierPrice": "Prix fournisseur ≥ votre prix",
+      "issueNetInsufficient": "Gain net trop faible",
+      "issueNetThin": "Marge mince",
+      "issueRefundRising": "Remboursements en hausse",
+      "expectedNet": "Net estimé / vente :",
+      "prices": "Votre prix {selling} · fournisseur {supplier}",
+      "estimateNote": "Estimations, pas un gain garanti.",
+      "review": "Revoir mes produits"
     }
   },
   "marketplace": {
