@@ -2818,7 +2818,31 @@
       "errorKyc": "Für die erneute Veröffentlichung ist eine Identitätsprüfung erforderlich.",
       "errorExpired": "Die Frist zum Rückgängigmachen (7 Tage) ist abgelaufen.",
       "errorGeneric": "Fehlgeschlagen. Bitte erneut versuchen.",
-      "estimateNote": "Schätzungen, nie ein garantierter Gewinn. Jede Maßnahme erfolgt auf Ihren Klick und ist 7 Tage lang rückgängig zu machen."
+      "estimateNote": "Schätzungen, nie ein garantierter Gewinn. Jede Maßnahme erfolgt auf Ihren Klick und ist 7 Tage lang rückgängig zu machen.",
+      "trackRecord": "Bisher: {beneficial}/{evaluated} Maßnahmen dieser Art waren für Sie vorteilhaft"
+    },
+    "copilotResults": {
+      "eyebrow": "Zuverlässigkeit des Copiloten",
+      "accuracyReliable": "Unsere Schätzungen sind bei Ihren {orders} Verkäufen zuverlässig",
+      "accuracyBiased": "Unsere Schätzungen weichen bei Ihren {orders} Verkäufen ab",
+      "accuracyImprecise": "Unsere Schätzungen sind bei Ihren {orders} Verkäufen ungenau",
+      "accuracyInsufficient": "Noch nicht genug Verkäufe für ein Urteil ({orders}/{min})",
+      "accuracyDetail": "Durchschnittliche Abweichung {mae} pro Verkauf, Verzerrung {bias}, {exact} % der Verkäufe auf 2 % genau.",
+      "amountEstimated": "Geschätzt",
+      "amountDue": "Geschuldet (berechnet)",
+      "amountPaid": "Ausgezahlt",
+      "amountOutstanding": "Noch offen",
+      "outcomesTitle": "Was Ihre Maßnahmen bewirkt haben",
+      "typeReprice": "Preis angepasst",
+      "typePause": "Pausiert",
+      "typeFixMargins": "Margen wiederhergestellt",
+      "typeOther": "Maßnahme",
+      "outcomeBeneficial": "Vorteilhaft",
+      "outcomeNeutral": "Neutral",
+      "outcomeUnfavourable": "Ungünstig",
+      "outcomeInsufficient": "Zu wenige Verkäufe",
+      "outcomeTooEarly": "Noch zu früh",
+      "note": "28 Tage vor und nach jeder Maßnahme: eine Beobachtung, kein Ursachenbeweis. „Ausgezahlt“ zählt nur tatsächlich überwiesenes Geld."
     }
   },
   "marketplace": {

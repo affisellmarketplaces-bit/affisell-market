@@ -2818,7 +2818,31 @@
       "errorKyc": "Per rimettere online questo prodotto serve la verifica dell'identità.",
       "errorExpired": "Il termine per annullare (7 giorni) è scaduto.",
       "errorGeneric": "Operazione non riuscita. Riprova.",
-      "estimateNote": "Stime, mai un guadagno garantito. Ogni azione avviene al tuo clic e si può annullare per 7 giorni."
+      "estimateNote": "Stime, mai un guadagno garantito. Ogni azione avviene al tuo clic e si può annullare per 7 giorni.",
+      "trackRecord": "Finora: {beneficial}/{evaluated} azioni di questo tipo sono state vantaggiose per te"
+    },
+    "copilotResults": {
+      "eyebrow": "Affidabilità del copilota",
+      "accuracyReliable": "Le nostre stime sono affidabili sulle tue {orders} vendite",
+      "accuracyBiased": "Le nostre stime sono sbilanciate sulle tue {orders} vendite",
+      "accuracyImprecise": "Le nostre stime sono imprecise sulle tue {orders} vendite",
+      "accuracyInsufficient": "Ancora troppe poche vendite per giudicare ({orders}/{min})",
+      "accuracyDetail": "Scarto medio {mae} per vendita, distorsione {bias}, {exact} % delle vendite esatte entro il 2 %.",
+      "amountEstimated": "Stimato",
+      "amountDue": "Dovuto (calcolato)",
+      "amountPaid": "Versato",
+      "amountOutstanding": "Ancora dovuto",
+      "outcomesTitle": "Cosa hanno prodotto le tue azioni",
+      "typeReprice": "Prezzo modificato",
+      "typePause": "In pausa",
+      "typeFixMargins": "Margini ripristinati",
+      "typeOther": "Azione",
+      "outcomeBeneficial": "Vantaggiosa",
+      "outcomeNeutral": "Neutra",
+      "outcomeUnfavourable": "Sfavorevole",
+      "outcomeInsufficient": "Vendite insufficienti",
+      "outcomeTooEarly": "Troppo presto",
+      "note": "28 giorni prima e dopo ogni azione: un'osservazione, non una prova di causa. «Versato» conta solo il denaro effettivamente trasferito."
     }
   },
   "marketplace": {

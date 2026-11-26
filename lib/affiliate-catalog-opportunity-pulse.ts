@@ -5,6 +5,8 @@ import {
 import { loadProductRiskContext } from "@/lib/reseller-copilot.server"
 import { scoreOpportunity, type OpportunityScore } from "@/lib/reseller-opportunity-score"
 import { estimateRefundRisk } from "@/lib/reseller-refund-risk"
+import { loadSupplierReliability } from "@/lib/copilot-insights.server"
+import { platformIndex, reliabilityMultiplier } from "@/lib/supplier-reliability"
 import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
 import {
@@ -161,6 +163,12 @@ export async function loadAffiliateOpportunityPulsePicks(
     }))
   )
 
+  // Supplier reliability index (delays, cancellations, refunds, price rises) — neutral when not enough data.
+  const reliability = await loadSupplierReliability(
+    products.map((p) => (p as { supplierId?: string | null }).supplierId ?? "").filter(Boolean)
+  )
+  const avgIndex = reliability.baseline ? platformIndex(reliability.baseline) : 0
+
   const candidates: Array<{ card: AffiliateOpportunityPulseCard; score: OpportunityScore }> = []
   for (const { productId } of ranked) {
     const row = byId.get(productId)
@@ -188,6 +196,12 @@ export async function loadAffiliateOpportunityPulsePicks(
       refundRisk: ctx.refundRisk,
       recentPurchases: ctx.recentPurchases,
       supplierRefundRate: ctx.supplierRefundRate,
+      supplierMultiplier: reliability.baseline
+        ? reliabilityMultiplier(
+            reliability.bySupplier.get((row as { supplierId?: string | null }).supplierId ?? ""),
+            avgIndex
+          )
+        : null,
     })
     if (!score.recommendable) {
       continue

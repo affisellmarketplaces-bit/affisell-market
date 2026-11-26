@@ -2818,7 +2818,31 @@
       "errorKyc": "重新上架此商品需要身份验证。",
       "errorExpired": "撤销期限（7 天）已过。",
       "errorGeneric": "操作失败，请重试。",
-      "estimateNote": "仅为估算，并非保证收益。每项行动都由您点击执行，7 天内可撤销。"
+      "estimateNote": "仅为估算，并非保证收益。每项行动都由您点击执行，7 天内可撤销。",
+      "trackRecord": "以往：此类行动中有 {beneficial}/{evaluated} 项对您有利"
+    },
+    "copilotResults": {
+      "eyebrow": "副驾驶可靠性",
+      "accuracyReliable": "在您的 {orders} 笔销售中，我们的估算可靠",
+      "accuracyBiased": "在您的 {orders} 笔销售中，我们的估算存在偏差",
+      "accuracyImprecise": "在您的 {orders} 笔销售中，我们的估算不够精确",
+      "accuracyInsufficient": "销售数量尚不足以判断（{orders}/{min}）",
+      "accuracyDetail": "每笔平均偏差 {mae}，系统偏差 {bias}，{exact}% 的销售误差在 2% 以内。",
+      "amountEstimated": "预估",
+      "amountDue": "应付（计算值）",
+      "amountPaid": "已支付",
+      "amountOutstanding": "尚欠",
+      "outcomesTitle": "您的行动效果",
+      "typeReprice": "已调价",
+      "typePause": "已暂停",
+      "typeFixMargins": "已恢复利润",
+      "typeOther": "行动",
+      "outcomeBeneficial": "有利",
+      "outcomeNeutral": "中性",
+      "outcomeUnfavourable": "不利",
+      "outcomeInsufficient": "销量不足",
+      "outcomeTooEarly": "为时尚早",
+      "note": "对比每项行动前后各 28 天：这是观察结果，不是因果证明。“已支付”仅计算实际转出的款项。"
     }
   },
   "marketplace": {

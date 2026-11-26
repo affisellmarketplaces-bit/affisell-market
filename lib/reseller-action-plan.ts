@@ -57,6 +57,8 @@ export type PlannedAction = {
   expectedNetAfterCents?: number
   /** Ordering only: estimated euros at stake per sale (or score for opportunities). */
   impactCents: number
+  /** How this kind of action worked for THIS reseller before (before/after observation, see copilot-outcomes). */
+  trackRecord?: { evaluated: number; beneficial: number; successRate: number | null }
   estimated: true
 }
 

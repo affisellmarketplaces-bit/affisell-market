@@ -7,6 +7,7 @@ import { AffiliateFirstListingCoachBanner } from "@/components/affiliate/affilia
 import { AffiliateHubHashRedirect } from "@/components/affiliate/affiliate-hub-hash-redirect"
 import { AffiliateHubLauncher } from "@/components/affiliate/affiliate-hub-launcher"
 import { AffiliateActionPlanCard } from "@/components/affiliate/affiliate-action-plan-card"
+import { AffiliateCopilotResultsCard } from "@/components/affiliate/affiliate-copilot-results-card"
 import { AffiliateKycPublishBanner } from "@/components/affiliate/affiliate-kyc-publish-banner"
 import { AffiliateOnboardingChecklist } from "@/components/affiliate/affiliate-onboarding-checklist"
 import { AffiliateOpportunityPulseRail } from "@/components/affiliate/affiliate-opportunity-pulse-rail"
@@ -18,6 +19,7 @@ import { parseAffiliateHubMode } from "@/lib/affiliate-routes"
 import { loadAffiliateFirstSaleProgress } from "@/lib/merchant-first-sale-progress"
 import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
 import { loadResellerActionPlan } from "@/lib/reseller-action-plan.server"
+import { loadActionOutcomes, loadCopilotAccuracy } from "@/lib/copilot-insights.server"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -43,7 +45,7 @@ export default async function AffiliateHubPage({ searchParams }: PageProps) {
   const hubMode = parseAffiliateHubMode(modeRaw)
   const showFirstListingCoach = isAffiliateOnboardingQuery(sp.onboarding)
 
-  const [gate, progress, opportunityPicks, actionPlan] = await Promise.all([
+  const [gate, progress, opportunityPicks, actionPlan, accuracy, outcomes] = await Promise.all([
     merchantVerificationGate(session.user.id),
     loadAffiliateFirstSaleProgress(session.user.id),
     loadAffiliateOpportunityPulsePicks(session.user.id, 3).catch((err) => {
@@ -52,6 +54,9 @@ export default async function AffiliateHubPage({ searchParams }: PageProps) {
     }),
     // What to fix, stop, reprice, push or list today (hub home only; never throws, estimates only).
     hubMode === "hub" ? loadResellerActionPlan(session.user.id) : Promise.resolve(null),
+    // Is the copilot right for this reseller? (estimated vs due vs paid; before/after of applied actions)
+    hubMode === "hub" ? loadCopilotAccuracy({ affiliateId: session.user.id }) : Promise.resolve(null),
+    hubMode === "hub" ? loadActionOutcomes(session.user.id) : Promise.resolve(null),
   ])
 
   const showSwipeCoachBanner = hubMode === "swipe" || showFirstListingCoach
@@ -97,6 +102,12 @@ export default async function AffiliateHubPage({ searchParams }: PageProps) {
       {hubMode === "hub" && actionPlan && actionPlan.actions.length > 0 ? (
         <div className="mx-auto max-w-3xl px-4 pt-2 sm:px-6">
           <AffiliateActionPlanCard actions={actionPlan.actions} />
+        </div>
+      ) : null}
+
+      {hubMode === "hub" && accuracy && outcomes ? (
+        <div className="mx-auto max-w-3xl px-4 pt-2 sm:px-6">
+          <AffiliateCopilotResultsCard accuracy={accuracy.overall} outcomes={outcomes.outcomes} />
         </div>
       ) : null}
 

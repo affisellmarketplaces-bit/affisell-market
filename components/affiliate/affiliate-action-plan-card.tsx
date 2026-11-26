@@ -140,6 +140,11 @@ export function AffiliateActionPlanCard({ actions, className }: { actions: Plann
                   >
                     {a.name}
                   </Link>
+                  {a.trackRecord?.successRate != null ? (
+                    <p className="mt-0.5 text-[11px] text-zinc-500">
+                      {t("trackRecord", { beneficial: a.trackRecord.beneficial, evaluated: a.trackRecord.evaluated })}
+                    </p>
+                  ) : null}
                   <ul className="mt-1 flex flex-wrap gap-1.5">
                     {a.reasons.map((r) => (
                       <li

@@ -2818,7 +2818,31 @@
       "errorKyc": "Se requiere verificación de identidad para volver a publicar este producto.",
       "errorExpired": "El plazo para deshacer (7 días) ha vencido.",
       "errorGeneric": "Error. Inténtalo de nuevo.",
-      "estimateNote": "Estimaciones, nunca una ganancia garantizada. Cada acción se hace con tu clic y se puede deshacer durante 7 días."
+      "estimateNote": "Estimaciones, nunca una ganancia garantizada. Cada acción se hace con tu clic y se puede deshacer durante 7 días.",
+      "trackRecord": "Hasta ahora: {beneficial}/{evaluated} acciones de este tipo fueron beneficiosas para ti"
+    },
+    "copilotResults": {
+      "eyebrow": "Fiabilidad del copiloto",
+      "accuracyReliable": "Nuestras estimaciones son fiables en tus {orders} ventas",
+      "accuracyBiased": "Nuestras estimaciones están desviadas en tus {orders} ventas",
+      "accuracyImprecise": "Nuestras estimaciones son imprecisas en tus {orders} ventas",
+      "accuracyInsufficient": "Aún no hay ventas suficientes para juzgar ({orders}/{min})",
+      "accuracyDetail": "Desviación media {mae} por venta, sesgo {bias}, {exact} % de ventas exactas con un margen del 2 %.",
+      "amountEstimated": "Estimado",
+      "amountDue": "Adeudado (calculado)",
+      "amountPaid": "Pagado",
+      "amountOutstanding": "Pendiente",
+      "outcomesTitle": "Qué dieron tus acciones",
+      "typeReprice": "Precio ajustado",
+      "typePause": "Pausado",
+      "typeFixMargins": "Márgenes restablecidos",
+      "typeOther": "Acción",
+      "outcomeBeneficial": "Beneficioso",
+      "outcomeNeutral": "Neutro",
+      "outcomeUnfavourable": "Desfavorable",
+      "outcomeInsufficient": "Pocas ventas",
+      "outcomeTooEarly": "Demasiado pronto",
+      "note": "28 días antes y después de cada acción: una observación, no una prueba de causa. «Pagado» solo cuenta el dinero realmente transferido."
     }
   },
   "marketplace": {

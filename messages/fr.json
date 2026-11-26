@@ -2818,7 +2818,31 @@
       "errorKyc": "Vérification d'identité requise pour remettre ce produit en ligne.",
       "errorExpired": "Le délai d'annulation (7 jours) est dépassé.",
       "errorGeneric": "Échec. Réessayez.",
-      "estimateNote": "Estimations, jamais un gain garanti. Chaque action se fait sur votre clic et s'annule pendant 7 jours."
+      "estimateNote": "Estimations, jamais un gain garanti. Chaque action se fait sur votre clic et s'annule pendant 7 jours.",
+      "trackRecord": "Par le passé : {beneficial}/{evaluated} actions de ce type bénéfiques pour vous"
+    },
+    "copilotResults": {
+      "eyebrow": "Fiabilité du copilote",
+      "accuracyReliable": "Nos estimations sont fiables sur vos {orders} ventes",
+      "accuracyBiased": "Nos estimations sont décalées sur vos {orders} ventes",
+      "accuracyImprecise": "Nos estimations sont imprécises sur vos {orders} ventes",
+      "accuracyInsufficient": "Pas encore assez de ventes pour juger ({orders}/{min})",
+      "accuracyDetail": "Écart moyen {mae} par vente, biais {bias}, {exact} % des ventes exactes à 2 % près.",
+      "amountEstimated": "Estimé",
+      "amountDue": "Dû (calculé)",
+      "amountPaid": "Versé",
+      "amountOutstanding": "Reste dû",
+      "outcomesTitle": "Ce qu'ont donné vos actions",
+      "typeReprice": "Prix ajusté",
+      "typePause": "Mise en pause",
+      "typeFixMargins": "Marges rétablies",
+      "typeOther": "Action",
+      "outcomeBeneficial": "Bénéfique",
+      "outcomeNeutral": "Neutre",
+      "outcomeUnfavourable": "Défavorable",
+      "outcomeInsufficient": "Pas assez de ventes",
+      "outcomeTooEarly": "Trop tôt pour juger",
+      "note": "Comparaison sur 28 jours avant/après chaque action : une observation, pas une preuve de cause. « Versé » ne compte que l'argent réellement viré."
     }
   },
   "marketplace": {
