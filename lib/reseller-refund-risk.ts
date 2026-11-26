@@ -105,6 +105,11 @@ export const REFUND_TREND_MIN_DELTA = 0.05
 /**
  * Has a product started being refunded more? Two-proportion z-test, recent window vs baseline window
  * (counts from the journal). Returns null when either window has too few sales to say anything.
+ *
+ * Counts must be by PURCHASE COHORT (a refund belongs to the window its order was paid in — see
+ * `loadProductRiskContext`): dated by refund date, late refunds of old orders would inflate the recent rate.
+ * A young cohort has not received all its refunds yet, so the test is conservative: it can miss an early rise,
+ * it does not raise false alarms from timing.
  */
 export function detectRefundTrend(recent: RefundCounts, baseline: RefundCounts): RefundTrend | null {
   const r = normalise(recent)

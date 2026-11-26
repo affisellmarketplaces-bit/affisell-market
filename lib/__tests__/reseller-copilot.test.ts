@@ -293,6 +293,19 @@ describe("risk context loader (journal S2)", () => {
     expect(queryRaw).toHaveBeenCalledTimes(3)
   })
 
+  it("dates each refund by its order's PURCHASE (cohort), not by the refund date", async () => {
+    queryRaw.mockResolvedValue([])
+    await loadProductRiskContext([{ id: "prod_aaaaaa", categoryId: null, supplierId: null }])
+    const [strings, ...values] = queryRaw.mock.calls[0]! as [TemplateStringsArray, ...unknown[]]
+    const fragments = values.map((v) =>
+      v && typeof v === "object" && "sql" in v ? String((v as { sql: string }).sql) : "?",
+    )
+    const productSql = strings.reduce((acc, s, i) => acc + s + (fragments[i] ?? ""), "")
+    expect(productSql).toMatch(/LEFT JOIN "AffisellTrackEvent" pu/)
+    expect(productSql).toMatch(/pu\."orderId" = e\."orderId"/)
+    expect(productSql).toMatch(/COALESCE\(pu\."occurredAt", e\."occurredAt"\)/)
+  })
+
   it("never throws: unavailable journal -> defaults", async () => {
     queryRaw.mockRejectedValue(new Error("relation does not exist"))
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined)

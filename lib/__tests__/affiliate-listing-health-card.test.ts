@@ -1,3 +1,5 @@
+import fs from "node:fs"
+
 import { createElement as h } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { NextIntlClientProvider, type AbstractIntlMessages } from "next-intl"
@@ -28,7 +30,7 @@ const bad = {
   netGainCents: eco.netPartnerGainCents,
 }
 
-function render(locale: string, listings: (typeof bad)[]) {
+function render(locale: (typeof LOCALES)[number], listings: (typeof bad)[]) {
   return renderToStaticMarkup(
     h(NextIntlClientProvider, {
       locale,
@@ -49,6 +51,15 @@ describe("listing health card", () => {
       expect(html).toContain("Lampe")
       expect(html).not.toMatch(/listingHealth\.|\{count|\{selling/)
     }
+  })
+
+  it("links each flagged listing to its edit page and the footer to an existing route (never a 404)", () => {
+    const html = render("fr", [bad])
+    expect(html).toContain('href="/dashboard/affiliate/products/l_bad/edit"')
+    expect(html).toContain('href="/dashboard/affiliate/catalog"')
+    expect(fs.existsSync("app/dashboard/affiliate/products/[id]/edit/page.tsx")).toBe(true)
+    expect(fs.existsSync("app/dashboard/affiliate/catalog/page.tsx")).toBe(true)
+    expect(fs.existsSync("app/dashboard/affiliate/products/page.tsx")).toBe(false)
   })
 
   it("renders nothing when every listing is healthy", () => {

@@ -88,12 +88,18 @@ export async function loadProductRiskContext(
   const recentSince = new Date(now.getTime() - RECENT_WINDOW_DAYS * 86_400_000)
   try {
     const kinds = Prisma.sql`e."eventType" IN ('purchase', 'refund') AND e."occurredAt" >= ${since} AND e."occurredAt" <= ${now}`
-    const recent = Prisma.sql`(e."occurredAt" >= ${recentSince})`
+    const cohortAt = Prisma.sql`COALESCE(pu."occurredAt", e."occurredAt")`
+    const cohortRecent = Prisma.sql`(${cohortAt} >= ${recentSince})`
     const [byProduct, byCategory, bySupplier] = await Promise.all([
+      // Per product, every event is dated by its PURCHASE (cohort): a refund today of an order paid 3 months ago
+      // belongs to that old cohort, not to the recent window — otherwise it would inflate the recent rate (false alarm).
       prisma.$queryRaw<CountRow[]>`
-        SELECT e."productId" AS key, e."eventType", ${recent} AS recent, COUNT(*) AS n
+        SELECT e."productId" AS key, e."eventType", ${cohortRecent} AS recent, COUNT(*) AS n
         FROM "AffisellTrackEvent" e
-        WHERE ${kinds} AND e."productId" IN (${Prisma.join(ids)})
+        LEFT JOIN "AffisellTrackEvent" pu
+          ON e."eventType" = 'refund' AND pu."eventType" = 'purchase' AND pu."orderId" = e."orderId"
+        WHERE e."eventType" IN ('purchase', 'refund') AND e."occurredAt" <= ${now}
+          AND ${cohortAt} >= ${since} AND e."productId" IN (${Prisma.join(ids)})
         GROUP BY 1, 2, 3`,
       categoryIds.length === 0
         ? Promise.resolve([] as CountRow[])

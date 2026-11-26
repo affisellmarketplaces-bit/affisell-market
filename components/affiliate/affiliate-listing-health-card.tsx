@@ -2,6 +2,7 @@ import Link from "next/link"
 import { AlertTriangle, Eye, ShieldCheck } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 
+import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import type { ListingHealthRow } from "@/lib/reseller-copilot.server"
 import type { ListingHealthIssue } from "@/lib/reseller-opportunity-score"
 import { cn } from "@/lib/utils"
@@ -69,7 +70,12 @@ export function AffiliateListingHealthCard({ listings, className }: Props) {
                 ) : (
                   <Eye className="size-4 shrink-0 text-zinc-500" aria-label={t("statusWatch")} />
                 )}
-                <span className="truncate">{l.name}</span>
+                <Link
+                  href={`/dashboard/affiliate/products/${encodeURIComponent(l.listingId)}/edit`}
+                  className="truncate underline-offset-2 hover:underline"
+                >
+                  {l.name}
+                </Link>
               </p>
               <ul className="mt-1 flex flex-wrap gap-1.5">
                 {l.issues.map((issue) => (
@@ -103,7 +109,7 @@ export function AffiliateListingHealthCard({ listings, className }: Props) {
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
         <p className="text-[11px] text-zinc-500 dark:text-zinc-500">{t("estimateNote")}</p>
         <Link
-          href="/dashboard/affiliate/products"
+          href={AFFILIATE_CATALOG_PATH}
           className="text-sm font-semibold text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
         >
           {t("review")}
