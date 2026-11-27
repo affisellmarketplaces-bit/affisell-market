@@ -16,9 +16,10 @@ const MARKERS: Array<[RegExp, string]> = [
   [/createOrderPath\s*\?\?\s*["']\/orders["']/, "partner REST create order"],
   [/purchase\/route|items\/route/, "China buying agent purchase"],
   [/issuing\.cards\.create/, "Stripe Issuing card (pays a supplier)"],
-  [/walletBalanceCents:\s*\{\s*decrement/, "supplier wallet debit"],
+  [/walletBalanceCents:\s*\{\s*decrement|"walletBalanceCents"\s*-/, "supplier wallet debit"],
+  [/supplier_pay_|transfers\.create\([\s\S]{0,400}providerId/, "Stripe Connect transfer to a supplier"],
 ]
-const GATED = /guardSupplierPurchase|supplierPurchaseDecision/
+const GATED = /guardSupplierPurchase|supplierPurchaseDecision|beginSupplierPurchase|chinaAgentPurchase\(/
 /** Code only: a marker inside a comment is not a purchase. */
 const code = (src: string) => src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`])\/\/.*$/gm, "$1")
 
@@ -59,6 +60,7 @@ describe("supplier purchase inventory", () => {
       "lib/china-buying/adapters/anovabuy.ts",
       "lib/fulfillment/stripe-issuing-card.ts",
       "lib/auto-order/payment/index.ts",
+      "lib/supplier-purchase/guard.server.ts",
     ]) {
       expect(found, f).toContain(f)
     }

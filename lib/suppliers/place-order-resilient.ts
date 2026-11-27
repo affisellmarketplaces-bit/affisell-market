@@ -32,6 +32,7 @@ export async function dispatchPlaceSupplierOrder(
       contactEmail: args.contactEmail,
       group: args.group,
       paymentReference: args.paymentReference,
+      purchaseClaimToken: args.purchaseClaimToken ?? null,
     })
     return { supplierOrderId: null, status: "PROCESSING", deferred: true }
   }
