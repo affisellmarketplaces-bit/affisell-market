@@ -4021,6 +4021,22 @@ model OpsScanSnapshot {
 /**
  * Stripe webhook idempotence (event.id = evt_…).
  */
+/// One row per supplier purchase key — a supplier order is placed at most once (lib/supplier-purchase/guard.server.ts).
+/// status: claimed | placed | rejected | uncertain. Only `rejected` may be claimed again. Accessed with raw SQL only.
+model SupplierPurchaseClaim {
+  id              String   @id
+  channel         String
+  path            String
+  status          String
+  supplierOrderId String?
+  error           String?  @db.Text
+  attempts        Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now())
+
+  @@index([status, updatedAt])
+}
+
 model ProcessedWebhook {
   id        String   @id
   orderId   String?

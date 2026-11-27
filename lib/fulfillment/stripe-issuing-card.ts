@@ -1,4 +1,5 @@
 import { getStripeClient } from "@/lib/stripe"
+import { supplierPurchaseDecision } from "@/lib/supplier-purchase/policy"
 
 export type VirtualCardResult =
   | { ok: true; cardId: string; last4: string; number: string; expMonth: number; expYear: number; cvc: string }
@@ -12,6 +13,9 @@ export function autoBuyCardAmountCents(aePriceCents: number, aeShippingCents: nu
 
 /** Create a single-use virtual card for AliExpress checkout (Stripe Issuing). */
 export async function createAutoBuyVirtualCard(amountCents: number): Promise<VirtualCardResult> {
+  // A spendable card only exists to pay a supplier: same fail-closed policy as the purchase.
+  const decision = supplierPurchaseDecision(process.env, "aliexpress")
+  if (!decision.allowed) return { ok: false, error: `supplier_purchase_blocked:${decision.reason}` }
   const cardholderId = process.env.STRIPE_ISSUING_CARDHOLDER_ID?.trim()
   if (!cardholderId) {
     return { ok: false, error: "STRIPE_ISSUING_CARDHOLDER_ID not configured" }

@@ -143,6 +143,9 @@ export async function runBlindDropshipFulfillment(orderId: string): Promise<void
         shipping,
         contact_email: contactEmail,
         reference,
+        // One purchase per (blind order, supplier): an Inngest retry of this step gets the stored id back instead of
+        // ordering again from the suppliers already done.
+        purchaseKeys: [`blind:${order.id}:${group.supplier.id}`],
         items: group.lines.map((it) => ({
           sku: it.supplierSkuAtOrder,
           quantity: it.quantity,

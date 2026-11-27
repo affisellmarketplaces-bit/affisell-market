@@ -21,6 +21,7 @@ function toPlaceOrderDto(input: PlaceSupplierOrderInput, contactEmail?: string):
       unitPriceCents: l.unitPriceCents ?? l.unitCostCents,
       productId: l.productId,
     })),
+    purchaseKeys: [...new Set(input.group.lines.map((l) => `order:${l.orderId}`))],
   }
 }
 

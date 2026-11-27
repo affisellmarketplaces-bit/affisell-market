@@ -150,6 +150,8 @@ export async function fulfillAffisellOrderWithAliExpress(
     quantity: order.quantity,
     shippingAddress,
     customerNote: `Affisell order ${order.id}`,
+    purchaseKeys: [`order:${order.id}`],
+    purchasePath: "aliexpress-fulfill-order",
   })
 
   if (!placed.ok) {

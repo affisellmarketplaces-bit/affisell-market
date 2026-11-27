@@ -29,6 +29,12 @@ const bodySchema = z.object({
     state: z.string().max(120).optional(),
   }),
   customerNote: z.string().max(500).optional(),
+  /**
+   * What this purchase is for — required, so a repeated or concurrent call never buys twice: the Affisell order it
+   * fulfils (`orderId`, shared with every other purchase path) or an explicit operator key (`idempotencyKey`).
+   */
+  orderId: z.string().min(1).max(64).optional(),
+  idempotencyKey: z.string().min(8).max(120).optional(),
 })
 
 /**
@@ -60,6 +66,10 @@ export async function POST(req: Request) {
   }
 
   const body = parsed.data
+  const purchaseKeys = body.orderId ? [`order:${body.orderId}`] : body.idempotencyKey ? [`ops:${body.idempotencyKey}`] : []
+  if (purchaseKeys.length === 0) {
+    return NextResponse.json({ ok: false, error: "orderId_or_idempotencyKey_required" }, { status: 400 })
+  }
   console.log("[aliexpress-order-create]", {
     result: "request",
     supplierProductId: body.supplierProductId,
@@ -74,6 +84,8 @@ export async function POST(req: Request) {
     quantity: body.quantity,
     shippingAddress: body.shippingAddress,
     customerNote: body.customerNote,
+    purchaseKeys,
+    purchasePath: "api-aliexpress-order-create",
   })
 
   if (!result.ok) {

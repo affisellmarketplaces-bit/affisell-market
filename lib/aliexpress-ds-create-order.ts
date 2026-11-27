@@ -18,6 +18,8 @@ import {
   callAliExpressSyncMethod,
 } from "@/lib/aliexpress-ds-sync"
 import { readAliExpressConfig } from "@/lib/aliexpress-config"
+import { guardRefusalCode, guardSupplierPurchase, type PurchaseSendOutcome } from "@/lib/supplier-purchase/guard.server"
+import { supplierPurchaseDecision } from "@/lib/supplier-purchase/policy"
 
 export type CreateAliExpressDsOrderInput = {
   supplierProductId: string
@@ -27,6 +29,13 @@ export type CreateAliExpressDsOrderInput = {
   customerNote?: string | null
   /** Optional AE logistics service name (from freight.calculate). */
   logisticsServiceName?: string | null
+  /**
+   * What is bought: `order:<Order.id>` per marketplace order line (see guardSupplierPurchase). Required: each key is
+   * bought at most once, whatever the path. No key = no purchase.
+   */
+  purchaseKeys: string[]
+  /** Code path, for the claim row and logs. */
+  purchasePath: string
 }
 
 export type CreateAliExpressDsOrderResult =
@@ -42,6 +51,8 @@ export type CreateAliExpressDsOrderResult =
       error: string
       methodAttempts: string[]
       debugPayload?: Record<string, unknown>
+      /** True when an order MAY exist at AliExpress (timeout, unreadable answer): never retry, never fall back. */
+      uncertain?: boolean
     }
 
 /** Official DS place-order methods (ae_sdk / Open Platform). */
@@ -225,6 +236,15 @@ export async function createAliExpressDsOrder(
     ...addrLog,
   })
 
+  const decision = supplierPurchaseDecision(process.env, "aliexpress")
+  if (!decision.allowed) {
+    console.log("[aliexpress-ds-create]", { result: "blocked_by_policy", reason: decision.reason, detail: decision.detail })
+    return { ok: false, error: `supplier_purchase_blocked:${decision.reason}`, methodAttempts: [] }
+  }
+  if (!input.purchaseKeys?.some((k) => k.trim())) {
+    return { ok: false, error: "supplier_purchase_missing_key", methodAttempts: [] }
+  }
+
   if (isAeDryRun()) {
     const dryId = `DRY_RUN_DS_${Date.now()}`
     console.log("[aliexpress-ds-create]", { result: "dry_run", aliexpressOrderId: dryId, ...addrLog })
@@ -264,25 +284,52 @@ export async function createAliExpressDsOrder(
   })
 
   const methodAttempts: string[] = []
-  let lastError = "aliexpress_ds_order_failed"
-  let lastPayload: Record<string, unknown> | undefined
+  type Result = CreateAliExpressDsOrderResult
 
-  const maxAttempts = 2
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    for (const host of ALIEXPRESS_DS_SYNC_HOSTS) {
-      const hostLabel = host.includes("api-sg") ? "sg" : "global"
-      for (const method of DS_ORDER_METHODS) {
-        const label = `${method}@${hostLabel}#${attempt}`
-        methodAttempts.push(label)
-        try {
-          const payload = await callAliExpressSyncMethod({
-            method,
-            bizParams: biz,
-            appKey: config.appKey,
-            appSecret: config.appSecret,
-            accessToken,
-            host,
-          })
+  const send = async (): Promise<PurchaseSendOutcome<Result>> => {
+    const fail = (kind: "rejected" | "uncertain", error: string, debugPayload?: Record<string, unknown>) => ({
+      kind,
+      error,
+      value: { ok: false as const, error, methodAttempts, debugPayload, uncertain: kind === "uncertain" },
+    })
+    const maxAttempts = 2
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      for (const host of ALIEXPRESS_DS_SYNC_HOSTS) {
+        const hostLabel = host.includes("api-sg") ? "sg" : "global"
+        for (const method of DS_ORDER_METHODS) {
+          const label = `${method}@${hostLabel}#${attempt}`
+          methodAttempts.push(label)
+          let payload: unknown
+          try {
+            payload = await callAliExpressSyncMethod({
+              method,
+              bizParams: biz,
+              appKey: config.appKey,
+              appSecret: config.appSecret,
+              accessToken,
+              host,
+            })
+          } catch (e) {
+            const message =
+              e instanceof AliExpressApiError ? e.message : e instanceof Error ? e.message : "aliexpress_ds_order_failed"
+            // Only an answer that says "this method / host does not exist for you" proves nothing was created: then,
+            // and only then, the next method or host may be tried. A rate-limit answer is a refusal too (backoff).
+            if (isRetryableMethodError(message)) {
+              console.log("[aliexpress-ds-create]", { result: "method_unavailable", method: label, message })
+              continue
+            }
+            const rateLimited = (e instanceof AliExpressApiError && e.rateLimited) || isRateLimitError(message)
+            if (rateLimited && e instanceof AliExpressApiError && attempt < maxAttempts) {
+              const delayMs = 800 * 2 ** (attempt - 1)
+              console.log("[aliexpress-ds-create]", { result: "rate_limit_backoff", attempt, delayMs, method: label })
+              await new Promise((r) => setTimeout(r, delayMs))
+              break
+            }
+            // Timeout, reset, 5xx, unreadable body…: the order MAY exist — stop here, never send it again.
+            console.log("[aliexpress-ds-create]", { result: "uncertain_stop", method: label, message, ...addrLog })
+            return fail("uncertain", `uncertain:${message}`, { method: label, productId, quantity: qty, error: message })
+          }
+
           const { orderId, trackingPreview } = extractOrderId(payload)
           if (orderId) {
             console.log("[aliexpress-ds-create]", {
@@ -292,14 +339,15 @@ export async function createAliExpressDsOrder(
               ...addrLog,
             })
             return {
-              ok: true,
-              aliexpressOrderId: orderId,
-              trackingPreview,
-              method: label,
+              kind: "placed",
+              supplierOrderId: orderId,
+              value: { ok: true, aliexpressOrderId: orderId, trackingPreview, method: label },
             }
           }
 
-          // Business failure without order id (address / stock / payment)
+          // An answer without an order id. Success flag set but no id readable = an order may exist (uncertain);
+          // otherwise AliExpress refused (address / stock / price / payment): rejected, and no other host is tried —
+          // the next host would receive the same order.
           const root = asRecord(payload) ?? {}
           const place =
             asRecord(root.aliexpress_trade_buy_placeorder_response) ??
@@ -309,87 +357,27 @@ export async function createAliExpressDsOrder(
           const bizMsg =
             pickString(result, ["error_code", "error_msg", "msg", "message", "sub_msg"]) ||
             "aliexpress_ds_order_id_missing"
-          lastError = bizMsg
-          lastPayload = {
-            method: label,
-            productId,
-            quantity: qty,
-            address: addrLog,
-            responseKeys: Object.keys(root),
-            bizMsg,
-          }
-          console.log("[aliexpress-ds-create]", {
-            result: "no_order_id",
-            method: label,
-            bizMsg,
-            ...addrLog,
-          })
-          // Don't retry other hosts for clear business errors
-          if (
-            bizMsg.includes("ADDRESS") ||
-            bizMsg.includes("INVENTORY") ||
-            bizMsg.includes("PRICE") ||
-            bizMsg.startsWith("A00")
-          ) {
-            return {
-              ok: false,
-              error: bizMsg,
-              methodAttempts,
-              debugPayload: lastPayload,
-            }
-          }
-        } catch (e) {
-          const message =
-            e instanceof AliExpressApiError
-              ? e.message
-              : e instanceof Error
-                ? e.message
-                : "aliexpress_ds_order_failed"
-          lastError = message
-          lastPayload = {
-            method: label,
-            productId,
-            quantity: qty,
-            address: addrLog,
-            error: message,
-          }
-
-          if (isRateLimitError(message) && attempt < maxAttempts) {
-            const delayMs = 800 * 2 ** (attempt - 1)
-            console.log("[aliexpress-ds-create]", {
-              result: "rate_limit_backoff",
-              attempt,
-              delayMs,
-              method: label,
-            })
-            await new Promise((r) => setTimeout(r, delayMs))
-            break
-          }
-
-          console.log("[aliexpress-ds-create]", {
-            result: isRetryableMethodError(message) ? "method_unavailable" : "method_error",
-            method: label,
-            message,
-            ...addrLog,
-          })
+          const debug = { method: label, productId, quantity: qty, address: addrLog, responseKeys: Object.keys(root), bizMsg }
+          const claimedSuccess = result.is_success === true || result.is_success === "true" || result.success === true
+          console.log("[aliexpress-ds-create]", { result: claimedSuccess ? "success_without_id" : "no_order_id", method: label, bizMsg, ...addrLog })
+          return claimedSuccess ? fail("uncertain", `uncertain:${bizMsg}`, debug) : fail("rejected", bizMsg, debug)
         }
       }
     }
+    // Every method / host said "not available" (or rate-limited): nothing was created.
+    console.log("[aliexpress-ds-create]", { result: "failed", error: "aliexpress_ds_methods_unavailable", methods: methodAttempts })
+    return fail("rejected", "aliexpress_ds_methods_unavailable")
   }
 
-  console.log("[aliexpress-ds-create]", {
-    result: "failed",
-    error: lastError,
-    methods: methodAttempts,
-    debugPayload: lastPayload,
-  })
-
-  return {
-    ok: false,
-    error: lastError,
-    methodAttempts,
-    debugPayload: lastPayload,
+  const guarded = await guardSupplierPurchase<Result>(
+    { channel: "aliexpress", path: input.purchasePath, keys: input.purchaseKeys },
+    send,
+  )
+  if (guarded.kind === "sent") return guarded.outcome.value
+  if (guarded.kind === "already_placed") {
+    return { ok: true, aliexpressOrderId: guarded.supplierOrderId, trackingPreview: null, method: "claim_replay" }
   }
+  return { ok: false, error: guardRefusalCode(guarded), methodAttempts: [], uncertain: guarded.kind === "in_flight_or_uncertain" }
 }
 
 /** @deprecated Prefer createAliExpressDsOrder — kept for auto-buy callers. */
@@ -407,7 +395,10 @@ export async function placeAliExpressDsOrder(input: {
     country?: string
     phone?: string
   }
-}): Promise<{ ok: true; aeOrderId: string } | { ok: false; error: string }> {
+  /** See CreateAliExpressDsOrderInput.purchaseKeys. */
+  purchaseKeys: string[]
+  purchasePath: string
+}): Promise<{ ok: true; aeOrderId: string } | { ok: false; error: string; uncertain?: boolean }> {
   const result = await createAliExpressDsOrder({
     supplierProductId: input.aeProductId,
     skuId: input.aeSkuId?.trim() || "0",
@@ -422,7 +413,9 @@ export async function placeAliExpressDsOrder(input: {
       country: input.shippingAddress.country,
       phone: input.shippingAddress.phone,
     },
+    purchaseKeys: input.purchaseKeys,
+    purchasePath: input.purchasePath,
   })
   if (result.ok) return { ok: true, aeOrderId: result.aliexpressOrderId }
-  return { ok: false, error: result.error }
+  return { ok: false, error: result.error, uncertain: result.uncertain }
 }

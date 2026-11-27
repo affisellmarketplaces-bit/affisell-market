@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { CjDropshippingSupplierAdapter, cjStatusToOrderStatus } from "@/lib/suppliers/adapters/cj-dropshipping.adapter"
 import type { SupplierContext } from "@/lib/suppliers/dto"
+import { setSupplierPurchaseClaimStoreForTests } from "@/lib/supplier-purchase/guard.server"
+import { memoryClaimStore } from "@/lib/supplier-purchase/memory-claim-store"
 
 function ctx(overrides: Partial<Record<string, unknown>> = {}): SupplierContext {
   return {
@@ -42,10 +44,16 @@ describe("CjDropshippingSupplierAdapter", () => {
   beforeEach(() => {
     fetchMock = vi.fn()
     vi.stubGlobal("fetch", fetchMock)
+    // Purchases are off by default (fail-closed): these tests exercise an explicitly enabled CJ channel.
+    vi.stubEnv("SUPPLIER_PURCHASES_ENABLED", "true")
+    vi.stubEnv("SUPPLIER_PURCHASE_CHANNELS", "cj")
+    setSupplierPurchaseClaimStoreForTests(memoryClaimStore())
   })
 
   afterEach(() => {
     vi.unstubAllGlobals()
+    vi.unstubAllEnvs()
+    setSupplierPurchaseClaimStoreForTests(null)
   })
 
   function jsonResponse(body: unknown, ok = true, status = 200) {

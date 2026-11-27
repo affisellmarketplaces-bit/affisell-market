@@ -1,3 +1,4 @@
+import { supplierPurchaseDecision } from "@/lib/supplier-purchase/policy"
 import type { ShippingAddressPayload } from "@/lib/auto-order/types"
 import { isAeDryRun } from "@/lib/fulfillment/ae-dry-run"
 import { clickAeVariantMappingOnPage } from "@/lib/fulfillment/ae-browser-variant-select"
@@ -16,6 +17,9 @@ export type AeBrowserCheckoutInput = {
   cardExpMonth: number
   cardExpYear: number
   cardCvc: string
+  /** Same purchase keys as the DS call it falls back from (`order:<id>`): see lib/supplier-purchase/guard.server.ts. */
+  purchaseKeys: string[]
+  purchasePath: string
 }
 
 export type AeBrowserCheckoutResult =
@@ -37,9 +41,15 @@ function browserAutomationEnabled(): boolean {
 export async function runAliExpressBrowserCheckout(
   input: AeBrowserCheckoutInput
 ): Promise<AeBrowserCheckoutResult> {
+  const decision = supplierPurchaseDecision(process.env, "aliexpress")
+  if (!decision.allowed) return { ok: false, error: `supplier_purchase_blocked:${decision.reason}` }
+  if (!input.purchaseKeys.some((k) => k.trim())) return { ok: false, error: "supplier_purchase_missing_key" }
   if (!browserAutomationEnabled()) {
     return { ok: false, error: "AE_BROWSER_AUTOMATION_NOT_CONFIGURED" }
   }
+  // NOTE: the real pay step is not implemented here (it answers AE_BROWSER_CHECKOUT_USE_DOCKER_WORKER). Whoever
+  // implements it MUST wrap it in guardSupplierPurchase({ channel: "aliexpress", keys: input.purchaseKeys }) — the
+  // inventory test lib/__tests__/supplier-purchase-inventory.test.ts fails otherwise.
 
   const listingUrl = (input.supplierUrl?.trim() || input.aeUrl).trim()
   const mapping = input.variantMapping ?? null

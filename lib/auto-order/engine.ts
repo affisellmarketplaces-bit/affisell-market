@@ -1,3 +1,4 @@
+import { supplierPurchaseKeysHeld } from "@/lib/supplier-purchase/guard.server"
 import type { Prisma } from "@prisma/client"
 
 import { applySupplierPlaceOrderResult } from "@/lib/auto-order/apply-place-result"
@@ -203,6 +204,19 @@ export async function runAutoFulfillmentBatch(stripeSessionId: string): Promise<
           },
         },
       })
+
+      // Paying the supplier is irreversible and happens before the guarded purchase call: never pay for orders a
+      // previous run (or another path) already bought, is buying, or left uncertain.
+      const held = await supplierPurchaseKeysHeld(group.lines.map((l) => `order:${l.orderId}`))
+      if (held.held) {
+        await prisma.supplierFulfillmentOrder.update({
+          where: { id: job.id },
+          data: { status: "FAILED", errorMessage: `supplier_purchase_already_claimed:${held.detail}`.slice(0, 2000) },
+        })
+        errors.push({ providerId: group.providerId, message: "supplier_purchase_already_claimed" })
+        jobResults.push({ jobId: job.id, status: "FAILED", error: "supplier_purchase_already_claimed" })
+        continue
+      }
 
       const payment = await executeSupplierPayment({
         method: group.paymentMethod,
