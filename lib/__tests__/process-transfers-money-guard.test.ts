@@ -380,6 +380,21 @@ describe("runProcessTransfersJob — last-line money guard", () => {
       expect(transfersCreate).toHaveBeenCalledTimes(1)
     })
 
+    it("the one earlier transfer was fully REVERSED (money came back): held for a person, neither adopted nor re-paid", async () => {
+      state.existing = [{ id: "tr_rev", amount: 3_200, destination: "acct_aff", metadata: { role: "AFFILIATE" }, reversed: true }]
+      await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(updates.some((u) => u.status === "SUCCESS")).toBe(false)
+      expect(updates.find((u) => u.errorCode === "EXISTING_TRANSFER_REVERSED")?.errorMessage).toContain("tr_rev")
+    })
+
+    it("no earlier transfer for this leg: a NEW legitimate payment is made (the guard does not block normal payouts)", async () => {
+      state.existing = [{ id: "tr_other_leg", amount: 9_000, destination: "acct_sup", metadata: { role: "SUPPLIER" } }]
+      await runOnce(attempt())
+      expect(transfersCreate).toHaveBeenCalledTimes(1)
+      expect(updates.some((u) => u.status === "SUCCESS" && u.stripeTransferId === "tr_new")).toBe(true)
+    })
+
     it("a group with more than 100 transfers and none found on the first page: held (the search proves nothing)", async () => {
       transfersList.mockImplementationOnce(async () => ({ data: [], has_more: true }) as never)
       await runOnce(attempt())

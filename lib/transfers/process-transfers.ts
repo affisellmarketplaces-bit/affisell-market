@@ -485,11 +485,19 @@ async function processOneAttempt(
       })
       return "held"
     }
-    if (several.length > 0 || unlisted) {
+    const reversedOnly = Boolean(existing?.reversed)
+    if (several.length > 0 || unlisted || reversedOnly) {
       // This beneficiary was ALREADY paid more than once for this order (a past double payment, possibly from another
       // rail or a legacy path), or Stripe's list is incomplete. Never adopt one at random, never pay again: a person
       // decides. The attempt stays PENDING with an explainable trace; its attempts are not consumed.
-      const code = several.length > 0 ? "EXISTING_TRANSFERS_SEVERAL" : "EXISTING_TRANSFERS_UNLISTED"
+      // reversedOnly: this leg WAS paid, then the transfer was fully reversed — paying again or calling it paid are both
+      // decisions about money that left and came back; a person makes them.
+      const code =
+        several.length > 0
+          ? "EXISTING_TRANSFERS_SEVERAL"
+          : reversedOnly
+            ? "EXISTING_TRANSFER_REVERSED"
+            : "EXISTING_TRANSFERS_UNLISTED"
       logStripeWebhookError({
         level: "error",
         metric: "transfer_held_existing_transfers",
@@ -504,7 +512,9 @@ async function processOneAttempt(
           errorCode: code,
           errorMessage: several.length
             ? `already paid ${several.length}x: ${several.map((t) => `${t.id}=${t.amount}`).join(", ")}`.slice(0, 500)
-            : "transfer group has more than 100 transfers; existing payment not provable",
+            : reversedOnly
+              ? `paid by ${existing!.id} then fully reversed`
+              : "transfer group has more than 100 transfers; existing payment not provable",
         },
       })
       return "held"

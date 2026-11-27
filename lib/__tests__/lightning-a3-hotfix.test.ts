@@ -12,7 +12,13 @@ const db = vi.hoisted(() => ({
   ledger: [] as Array<{ orderId: string; stripeTransferId: string }>,
   recordFails: false,
 }))
-const stripeCalls = vi.hoisted(() => ({ create: [] as Array<{ params: Record<string, unknown>; key: string }>, plan: [] as Array<"ok" | Error> }))
+const stripeCalls = vi.hoisted(() => ({
+  create: [] as Array<{ params: Record<string, unknown>; key: string }>,
+  plan: [] as Array<"ok" | Error>,
+  /** What Stripe holds for the order's group: transfers this fake really created, plus any seeded legacy ones. */
+  listed: [] as Array<Record<string, unknown>>,
+  listError: null as Error | null,
+}))
 const alerts = vi.hoisted(() => ({ list: [] as string[] }))
 
 vi.mock("@/lib/ops-webhook", () => ({ opsWebhookAlert: async (t: string) => { alerts.list.push(t); return { slack: false, discord: false } } }))
@@ -33,7 +39,13 @@ vi.mock("@/lib/stripe", () => ({
         stripeCalls.create.push({ params, key: opts.idempotencyKey })
         const next = stripeCalls.plan.shift() ?? "ok"
         if (next instanceof Error) throw next
-        return { id: `tr_${stripeCalls.create.length}` }
+        const id = `tr_${stripeCalls.create.length}`
+        stripeCalls.listed.push({ id, amount: params.amount, destination: params.destination, metadata: params.metadata })
+        return { id }
+      },
+      list: async () => {
+        if (stripeCalls.listError) throw stripeCalls.listError
+        return { data: stripeCalls.listed, has_more: false }
       },
     },
   }),
@@ -92,10 +104,27 @@ beforeEach(() => {
   db.recordFails = false
   stripeCalls.create = []
   stripeCalls.plan = []
+  stripeCalls.listed = []
+  stripeCalls.listError = null
   alerts.list = []
 })
 
 describe("Lightning A3 hotfix", () => {
+  it("a leg Stripe already paid with NO row here (legacy path, Test order 24/05/2026) is never paid again", async () => {
+    stripeCalls.listed = [{ id: "tr_legacy", amount: 8_736, destination: "acct_S", metadata: { orderId: "o1", role: "supplier" } }]
+    expect(await triggerLightningPayout("o1")).toEqual({ success: false, reason: "leg_already_paid:stripe_transfer" })
+    expect(stripeCalls.create).toHaveLength(0)
+  })
+
+  it("Stripe's transfer search failing pays nothing (no claim either)", async () => {
+    stripeCalls.listError = Object.assign(new Error("down"), { type: "StripeConnectionError" })
+    const r = (await triggerLightningPayout("o1")) as { success: boolean; reason?: string }
+    expect(r.success).toBe(false)
+    expect(r.reason).toMatch(/^stripe_transfer_search_failed:/)
+    expect(stripeCalls.create).toHaveLength(0)
+    expect(db.order?.payoutStatus).toBe("PENDING")
+  })
+
   it("A3: the supplier leg already paid by process-transfers → Lightning creates NOTHING", async () => {
     db.attempts[0] = { ...db.attempts[0], status: "SUCCESS", stripeTransferId: "tr_pt" }
     expect(await triggerLightningPayout("o1")).toEqual({ success: false, reason: "leg_already_paid:transfer_attempt" })
