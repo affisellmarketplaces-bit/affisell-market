@@ -342,6 +342,67 @@ describe("runProcessTransfersJob — last-line money guard", () => {
     expect(ledger[0]).toMatchObject({ amountCents: 3_200, stripeTransferId: "tr_lost" })
   })
 
+  describe("regression — Test order cmpjs9s0m0007th1idac73yny (24/05/2026: 4 × `supplier` then a 5th `SUPPLIER`)", () => {
+    // Four transfers of 87.36 € to the same account, written by a legacy path with a lowercase role and no source
+    // transaction; then process-transfers, whose search compared roles case-sensitively, saw none and paid a fifth.
+    const legacy = (id: string) => ({ id, amount: 8_736, destination: "acct_aff", metadata: { orderId: "ord_1", role: "affiliate" } })
+
+    it("several earlier transfers to this beneficiary: HELD with a trace — no fifth transfer, none adopted at random", async () => {
+      state.existing = [legacy("tr_l1"), legacy("tr_l2"), legacy("tr_l3"), legacy("tr_l4")]
+      await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(updates.some((u) => u.status === "SUCCESS")).toBe(false)
+      const trace = updates.find((u) => u.errorCode === "EXISTING_TRANSFERS_SEVERAL")
+      expect(trace?.errorMessage).toContain("already paid 4x")
+      expect(trace?.status).toBeUndefined() // stays PENDING, attempts not consumed
+      expect(ledger).toEqual([])
+    })
+
+    it("ONE earlier transfer written by another rail with a lowercase role (Lightning/legacy): adopted, never paid twice", async () => {
+      state.existing = [{ ...legacy("tr_lightning"), metadata: { orderId: "ord_1", role: "affiliate", lightning: "true" } }]
+      await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(updates.some((u) => u.status === "SUCCESS" && u.stripeTransferId === "tr_lightning")).toBe(true)
+    })
+
+    it("an earlier transfer to the same account with NO role in its metadata also counts as paid", async () => {
+      state.existing = [{ id: "tr_norole", amount: 3_200, destination: "acct_aff", metadata: {} }]
+      await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(updates.some((u) => u.status === "SUCCESS" && u.stripeTransferId === "tr_norole")).toBe(true)
+    })
+
+    it("the other role's transfers (other account) are not mistaken for this leg", async () => {
+      state.existing = [legacy("tr_l1"), { id: "tr_sup", amount: 9_000, destination: "acct_sup", metadata: { role: "supplier" } }].map(
+        (t) => (t.id === "tr_l1" ? { ...t, destination: "acct_sup", metadata: { role: "supplier" } } : t),
+      )
+      await runOnce(attempt())
+      expect(transfersCreate).toHaveBeenCalledTimes(1)
+    })
+
+    it("the one earlier transfer was fully REVERSED (money came back): held for a person, neither adopted nor re-paid", async () => {
+      state.existing = [{ id: "tr_rev", amount: 3_200, destination: "acct_aff", metadata: { role: "AFFILIATE" }, reversed: true }]
+      await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(updates.some((u) => u.status === "SUCCESS")).toBe(false)
+      expect(updates.find((u) => u.errorCode === "EXISTING_TRANSFER_REVERSED")?.errorMessage).toContain("tr_rev")
+    })
+
+    it("no earlier transfer for this leg: a NEW legitimate payment is made (the guard does not block normal payouts)", async () => {
+      state.existing = [{ id: "tr_other_leg", amount: 9_000, destination: "acct_sup", metadata: { role: "SUPPLIER" } }]
+      await runOnce(attempt())
+      expect(transfersCreate).toHaveBeenCalledTimes(1)
+      expect(updates.some((u) => u.status === "SUCCESS" && u.stripeTransferId === "tr_new")).toBe(true)
+    })
+
+    it("a group with more than 100 transfers and none found on the first page: held (the search proves nothing)", async () => {
+      transfersList.mockImplementationOnce(async () => ({ data: [], has_more: true }) as never)
+      await runOnce(attempt())
+      expect(transfersCreate).not.toHaveBeenCalled()
+      expect(updates.some((u) => u.errorCode === "EXISTING_TRANSFERS_UNLISTED")).toBe(true)
+    })
+  })
+
   it("Stripe search unavailable: nothing is created (held, retried next run)", async () => {
     transfersList.mockImplementationOnce(async () => {
       throw new Error("stripe down")

@@ -17,7 +17,7 @@ import {
   settlementAfterTransfersSucceeded,
 } from "@/lib/orders/payment-state"
 import {
-  matchExistingTransfer,
+  findExistingTransfers,
   payableAfterRefunds,
   type ExistingTransfer,
 } from "@/lib/transfers/payable-after-refunds"
@@ -466,9 +466,15 @@ async function processOneAttempt(
     // The idempotency key protects a replay for ~24 h only; after that a second call would pay twice. Stripe's list
     // is searched first; if the search itself fails, nothing is created (held, retried on the next run).
     let existing: ExistingTransfer | null
+    let several: ExistingTransfer[] = []
+    let unlisted = false
     try {
       const page = await stripe.transfers.list({ transfer_group: attempt.orderId, limit: 100 })
-      existing = matchExistingTransfer(page.data, { role: attempt.role, destination: attempt.destination })
+      const found = findExistingTransfers(page.data, { role: attempt.role, destination: attempt.destination })
+      existing = found.length === 1 ? found[0]! : null
+      if (found.length > 1) several = found
+      // More than 100 transfers in one order's group: the search is not exhaustive, so "none found" proves nothing.
+      unlisted = Boolean((page as { has_more?: boolean }).has_more) && found.length === 0
     } catch (searchErr) {
       logStripeWebhookError({
         level: "error",
@@ -476,6 +482,40 @@ async function processOneAttempt(
         orderId: attempt.orderId,
         role: attempt.role,
         error: searchErr instanceof Error ? searchErr.message : String(searchErr),
+      })
+      return "held"
+    }
+    const reversedOnly = Boolean(existing?.reversed)
+    if (several.length > 0 || unlisted || reversedOnly) {
+      // This beneficiary was ALREADY paid more than once for this order (a past double payment, possibly from another
+      // rail or a legacy path), or Stripe's list is incomplete. Never adopt one at random, never pay again: a person
+      // decides. The attempt stays PENDING with an explainable trace; its attempts are not consumed.
+      // reversedOnly: this leg WAS paid, then the transfer was fully reversed — paying again or calling it paid are both
+      // decisions about money that left and came back; a person makes them.
+      const code =
+        several.length > 0
+          ? "EXISTING_TRANSFERS_SEVERAL"
+          : reversedOnly
+            ? "EXISTING_TRANSFER_REVERSED"
+            : "EXISTING_TRANSFERS_UNLISTED"
+      logStripeWebhookError({
+        level: "error",
+        metric: "transfer_held_existing_transfers",
+        orderId: attempt.orderId,
+        role: attempt.role,
+        reason: code,
+        transferIds: several.map((t) => t.id).join(","),
+      })
+      await prisma.transferAttempt.update({
+        where: { id: attempt.id },
+        data: {
+          errorCode: code,
+          errorMessage: several.length
+            ? `already paid ${several.length}x: ${several.map((t) => `${t.id}=${t.amount}`).join(", ")}`.slice(0, 500)
+            : reversedOnly
+              ? `paid by ${existing!.id} then fully reversed`
+              : "transfer group has more than 100 transfers; existing payment not provable",
+        },
       })
       return "held"
     }
