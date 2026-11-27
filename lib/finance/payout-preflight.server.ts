@@ -1,3 +1,4 @@
+import { planDisputeReconciliation, type StripeDisputeLite } from "@/lib/finance/dispute-reconcile"
 import { evaluateOrderMoneyInvariants, summarizeMoneyInvariants } from "@/lib/finance/money-invariants"
 import type { MoneyInvariantViolation } from "@/lib/finance/money-invariants"
 import { loadOrderMoneySnapshots, type RawQueryable } from "@/lib/finance/money-invariants.server"
@@ -5,13 +6,27 @@ import type { PreflightInput } from "@/lib/finance/payout-preflight"
 import { findStripeTransferDuplicates, type StripeTransferLite } from "@/lib/finance/stripe-transfer-duplicates"
 import { checkEndpointSubscription, type WebhookEndpointLike } from "@/lib/stripe-webhook-required-events"
 
-/** The two Stripe reads the preflight needs (real SDK lists are async-iterable over every page). */
+type Window = { created: { gte: number }; limit: number }
+export type StripeRefundLite = {
+  id: string
+  amount: number
+  charge: string | { id: string } | null
+  status?: string | null
+}
+export type StripeDisputeListItem = { id: string; status: string; charge: string | { id: string } | null }
+export type StripeChargeLite = { id: string; created: number; status?: string | null }
+
+/** The Stripe reads the preflight needs — LIST calls only (real SDK lists are async-iterable over every page). */
 export type PreflightStripe = {
   webhookEndpoints: { list(params: { limit: number }): AsyncIterable<WebhookEndpointLike> }
-  transfers: { list(params: { created: { gte: number }; limit: number }): AsyncIterable<StripeTransferLite> }
+  transfers: { list(params: Window): AsyncIterable<StripeTransferLite> }
+  refunds: { list(params: Window): AsyncIterable<StripeRefundLite> }
+  disputes: { list(params: Window): AsyncIterable<StripeDisputeListItem> }
+  charges: { list(params: { limit: number }): AsyncIterable<StripeChargeLite> }
 }
 
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 300)
+const idOf = (v: string | { id: string } | null | undefined) => (typeof v === "string" ? v : (v?.id ?? null))
 
 export function stripeKeyMode(key: string | undefined | null): PreflightInput["keyMode"] {
   if (!key) return null
@@ -20,10 +35,22 @@ export function stripeKeyMode(key: string | undefined | null): PreflightInput["k
   return "unknown"
 }
 
+/** Every page or nothing: an error mid-pagination fails the whole read (a partial list is never judged). */
+async function collect<T>(it: AsyncIterable<T>): Promise<T[]> {
+  const out: T[] = []
+  for await (const x of it) out.push(x)
+  return out
+}
+
+async function first<T>(it: AsyncIterable<T>): Promise<T | null> {
+  for await (const x of it) return x
+  return null
+}
+
 /**
- * Reads everything the preflight judges — Stripe (webhook endpoints, transfers of the window) and the database
- * (SELECT only; the script runs it in a server-enforced read-only session). Each part fails on its own: its check is
- * then BLOCKED with the error, the others still run.
+ * Reads everything the preflight judges — Stripe (LIST calls only) and the database (SELECT only; the script runs it
+ * in a server-enforced read-only session). Each part fails on its own: its check is then BLOCKED with the error, the
+ * others still run.
  */
 export async function gatherPayoutPreflight(args: {
   stripe: PreflightStripe | null
@@ -38,94 +65,257 @@ export async function gatherPayoutPreflight(args: {
     invariants: null,
     duplicates: null,
     consistency: null,
+    refunds: null,
+    disputes: null,
+    freshness: null,
     errors: {},
   }
+  const errors = input.errors!
   const since = new Date(Date.now() - args.sinceDays * 86_400_000)
+  const win = { created: { gte: Math.floor(since.getTime() / 1000) }, limit: 100 }
 
   let transfers: StripeTransferLite[] | null = null
+  let refunds: StripeRefundLite[] | null = null
+  let disputes: StripeDisputeListItem[] | null = null
+  let latestCharge: StripeChargeLite | null | undefined
   if (!args.stripe) {
-    input.errors!.webhooks = input.errors!.duplicates = input.errors!.consistency = "no Stripe key"
+    for (const k of ["webhooks", "duplicates", "consistency", "refunds", "disputes", "freshness"] as const) {
+      errors[k] = "no Stripe key"
+    }
   } else {
+    const s = args.stripe
     try {
-      const eps: WebhookEndpointLike[] = []
-      for await (const ep of args.stripe.webhookEndpoints.list({ limit: 100 })) eps.push(ep)
-      input.webhooks = eps
+      input.webhooks = (await collect(s.webhookEndpoints.list({ limit: 100 })))
         .filter((ep) => !args.webhookUrlContains || ep.url.includes(args.webhookUrlContains))
         .map(checkEndpointSubscription)
     } catch (e) {
-      input.errors!.webhooks = errText(e)
+      errors.webhooks = errText(e)
     }
     try {
-      transfers = []
-      for await (const t of args.stripe.transfers.list({
-        created: { gte: Math.floor(since.getTime() / 1000) },
-        limit: 100,
-      })) {
-        transfers.push(t)
-      }
+      transfers = await collect(s.transfers.list(win))
       input.duplicates = findStripeTransferDuplicates(transfers)
     } catch (e) {
-      transfers = null
-      input.errors!.duplicates = input.errors!.consistency = errText(e)
+      errors.duplicates = errors.consistency = errText(e)
+    }
+    try {
+      refunds = await collect(s.refunds.list(win))
+    } catch (e) {
+      errors.refunds = errText(e)
+    }
+    try {
+      disputes = await collect(s.disputes.list(win))
+    } catch (e) {
+      errors.disputes = errText(e)
+    }
+    try {
+      latestCharge = await first(s.charges.list({ limit: 1 }))
+    } catch (e) {
+      errors.freshness = errText(e)
     }
   }
 
-  if (!args.db) {
-    input.errors!.invariants = "no database URL"
-    input.errors!.consistency ??= "no database URL"
+  const db = args.db
+  if (!db) {
+    for (const k of ["invariants", "consistency", "refunds", "disputes", "freshness"] as const) {
+      errors[k] ??= "no database URL"
+    }
     return input
   }
+  const q = <T>(sql: string, ...values: unknown[]) => db.$queryRawUnsafe<T>(sql, ...values)
+
   try {
     const violations: MoneyInvariantViolation[] = []
     let checked = 0
     let afterId: string | undefined
     for (;;) {
-      const page = await loadOrderMoneySnapshots(args.db, { since, afterId, limit: 500 })
-      for (const s of page.snapshots) violations.push(...evaluateOrderMoneyInvariants(s))
+      const page = await loadOrderMoneySnapshots(db, { since, afterId, limit: 500 })
+      for (const snap of page.snapshots) violations.push(...evaluateOrderMoneyInvariants(snap))
       checked += page.snapshots.length
       if (!page.nextAfterId) break
       afterId = page.nextAfterId
     }
     input.invariants = { summary: summarizeMoneyInvariants(checked, violations), violations }
   } catch (e) {
-    input.errors!.invariants = errText(e)
+    errors.invariants = errText(e)
   }
 
   if (transfers) {
     try {
-      const groups = [...new Set(transfers.map((t) => t.transfer_group).filter((g): g is string => Boolean(g)))]
-      const ours = new Set(
-        groups.length === 0
+      input.consistency = await checkTransfers(transfers, q)
+    } catch (e) {
+      errors.consistency = errText(e)
+    }
+  }
+
+  if (refunds) {
+    try {
+      const live = refunds.filter((r) => !r.status || r.status === "succeeded" || r.status === "pending")
+      const charges = [...new Set(live.map((r) => idOf(r.charge)).filter((c): c is string => Boolean(c)))]
+      const orders =
+        charges.length === 0
           ? []
-          : (
-              await args.db.$queryRawUnsafe<Array<{ id: string }>>(
-                `SELECT "id" FROM "Order" WHERE "id" = ANY($1::text[])`,
-                groups,
-              )
-            ).map((r) => r.id),
-      )
-      const orderTransfers = transfers.filter((t) => t.transfer_group && ours.has(t.transfer_group))
-      const ids = orderTransfers.map((t) => t.id)
+          : await q<Array<{ id: string; charge: string }>>(
+              `SELECT "id", "stripeChargeId" AS "charge" FROM "Order" WHERE "stripeChargeId" = ANY($1::text[])`,
+              charges,
+            )
+      const orderByCharge = new Map(orders.map((o) => [o.charge, o.id]))
+      const ours = live.filter((r) => orderByCharge.has(idOf(r.charge) ?? ""))
+      const ids = ours.map((r) => r.id)
       const recorded = new Set(
         ids.length === 0
           ? []
           : (
-              await args.db.$queryRawUnsafe<Array<{ id: string }>>(
-                `SELECT "stripeTransferId" AS "id" FROM "MerchantPayoutLedger" WHERE "stripeTransferId" = ANY($1::text[])
-                 UNION SELECT "stripeTransferId" FROM "TransferAttempt" WHERE "stripeTransferId" = ANY($1::text[])`,
+              await q<Array<{ id: string }>>(
+                `SELECT "stripeRefundId" AS "id" FROM "OrderStripeRefund" WHERE "stripeRefundId" = ANY($1::text[])`,
                 ids,
               )
             ).map((r) => r.id),
       )
-      input.consistency = {
-        orderTransfers: orderTransfers.length,
-        unrecorded: orderTransfers
-          .filter((t) => !recorded.has(t.id))
-          .map((t) => ({ transferId: t.id, transferGroup: t.transfer_group!, amount: t.amount })),
+      input.refunds = {
+        checked: ours.length,
+        unrecorded: ours
+          .filter((r) => !recorded.has(r.id))
+          .map((r) => ({ refundId: r.id, orderId: orderByCharge.get(idOf(r.charge)!)!, amount: r.amount })),
       }
     } catch (e) {
-      input.errors!.consistency = errText(e)
+      errors.refunds = errText(e)
     }
   }
+
+  if (disputes) {
+    try {
+      const lite: StripeDisputeLite[] = disputes.map((d) => ({ id: d.id, status: d.status, charge: idOf(d.charge) }))
+      const charges = [...new Set(lite.map((d) => d.charge).filter((c): c is string => Boolean(c)))]
+      const withOrder = new Set(
+        charges.length === 0
+          ? []
+          : (
+              await q<Array<{ charge: string }>>(
+                `SELECT "stripeChargeId" AS "charge" FROM "Order" WHERE "stripeChargeId" = ANY($1::text[])`,
+                charges,
+              )
+            ).map((r) => r.charge),
+      )
+      const holdRows =
+        lite.length === 0
+          ? []
+          : await q<Array<{ id: string; status: string }>>(
+              `SELECT "id", "status" FROM "ProcessedWebhook" WHERE "id" LIKE ANY($1::text[])`,
+              lite.map((d) => `dispute:${d.id}:%`),
+            )
+      const holds = new Map<string, string[]>()
+      for (const row of holdRows) {
+        const dp = row.id.split(":")[1] ?? ""
+        holds.set(dp, [...(holds.get(dp) ?? []), row.status])
+      }
+      input.disputes = {
+        seen: lite.filter((d) => d.charge && withOrder.has(d.charge)).length,
+        decisions: planDisputeReconciliation(lite, withOrder, holds),
+      }
+    } catch (e) {
+      errors.disputes = errText(e)
+    }
+  }
+
+  if (latestCharge !== undefined) {
+    try {
+      const rows = await q<Array<{ at: Date | string | null }>>(
+        `SELECT max("createdAt") AS "at" FROM "ProcessedWebhook" WHERE "id" LIKE 'evt_%'`,
+      )
+      const at = rows[0]?.at ?? null
+      input.freshness = {
+        latestChargeAt: latestCharge ? new Date(latestCharge.created * 1000).toISOString() : null,
+        latestWebhookAt: at === null ? null : new Date(at).toISOString(),
+      }
+    } catch (e) {
+      errors.freshness = errText(e)
+    }
+  }
+
   return input
+}
+
+/** Stripe transfers of OUR orders vs ledger + attempts: unrecorded, amount / destination mismatch, unknown account. */
+async function checkTransfers(
+  transfers: StripeTransferLite[],
+  q: <T>(sql: string, ...values: unknown[]) => Promise<T>,
+): Promise<NonNullable<PreflightInput["consistency"]>> {
+  const groups = [...new Set(transfers.map((t) => t.transfer_group).filter((g): g is string => Boolean(g)))]
+  const ours = new Set(
+    groups.length === 0
+      ? []
+      : (await q<Array<{ id: string }>>(`SELECT "id" FROM "Order" WHERE "id" = ANY($1::text[])`, groups)).map(
+          (r) => r.id,
+        ),
+  )
+  const mine = transfers.filter((t) => t.transfer_group && ours.has(t.transfer_group))
+  const out: NonNullable<PreflightInput["consistency"]> = {
+    orderTransfers: mine.length,
+    unrecorded: [],
+    mismatches: [],
+    unknownDestinations: [],
+    reversalsUnrecorded: [],
+  }
+  if (mine.length === 0) return out
+
+  const ids = mine.map((t) => t.id)
+  const dests = [...new Set(mine.map((t) => idOf(t.destination)).filter((d): d is string => Boolean(d)))]
+  const orderIds = [...new Set(mine.map((t) => t.transfer_group!))]
+  const [ledger, attempts, known, clawRows] = await Promise.all([
+    q<Array<{ id: string; amount: number }>>(
+      `SELECT "stripeTransferId" AS "id", "amountCents" AS "amount" FROM "MerchantPayoutLedger"
+       WHERE "stripeTransferId" = ANY($1::text[])`,
+      ids,
+    ),
+    q<Array<{ id: string; amount: number; destination: string }>>(
+      `SELECT "stripeTransferId" AS "id", "amountCents" AS "amount", "destination" FROM "TransferAttempt"
+       WHERE "stripeTransferId" = ANY($1::text[])`,
+      ids,
+    ),
+    q<Array<{ acct: string }>>(
+      `SELECT "stripeAccountId" AS "acct" FROM "User" WHERE "stripeAccountId" = ANY($1::text[])
+       UNION SELECT "stripeConnectAccountId" FROM "FulfillmentProvider" WHERE "stripeConnectAccountId" = ANY($1::text[])`,
+      dests,
+    ),
+    // CLAWBACK rows carry the clawback's own id, not the transfer's: compared per order.
+    q<Array<{ orderId: string; cents: number }>>(
+      `SELECT "orderId", coalesce(sum(abs("amountCents")), 0)::int AS "cents" FROM "MerchantPayoutLedger"
+       WHERE "entryType" = 'CLAWBACK' AND "orderId" = ANY($1::text[]) GROUP BY "orderId"`,
+      orderIds,
+    ),
+  ])
+  const ledgerById = new Map(ledger.map((r) => [r.id, r]))
+  const attemptById = new Map(attempts.map((r) => [r.id, r]))
+  const knownAccts = new Set(known.map((r) => r.acct))
+  const clawByOrder = new Map(clawRows.map((r) => [r.orderId, Number(r.cents)]))
+  const reversedByOrder = new Map<string, number>()
+  for (const t of mine) {
+    reversedByOrder.set(t.transfer_group!, (reversedByOrder.get(t.transfer_group!) ?? 0) + (t.amount_reversed ?? 0))
+  }
+
+  for (const t of mine) {
+    const dest = idOf(t.destination) ?? ""
+    const l = ledgerById.get(t.id)
+    const a = attemptById.get(t.id)
+    if (!l && !a) out.unrecorded.push({ transferId: t.id, transferGroup: t.transfer_group!, amount: t.amount })
+    const recordedAmount = l?.amount ?? a?.amount
+    if (recordedAmount !== undefined && Math.abs(Number(recordedAmount)) !== t.amount) {
+      out.mismatches!.push({
+        transferId: t.id,
+        kind: "amount",
+        stripe: String(t.amount),
+        recorded: String(recordedAmount),
+      })
+    }
+    if (a && a.destination !== dest) {
+      out.mismatches!.push({ transferId: t.id, kind: "destination", stripe: dest, recorded: a.destination })
+    }
+    if (!knownAccts.has(dest)) out.unknownDestinations!.push({ transferId: t.id, destination: dest })
+    const reversed = t.amount_reversed ?? 0
+    const clawed = clawByOrder.get(t.transfer_group!) ?? 0
+    if (reversed > 0 && clawed < (reversedByOrder.get(t.transfer_group!) ?? 0)) {
+      out.reversalsUnrecorded!.push({ transferId: t.id, reversedCents: reversed, clawedBackCents: clawed })
+    }
+  }
+  return out
 }
