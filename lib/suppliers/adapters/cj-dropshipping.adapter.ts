@@ -1,5 +1,6 @@
 import type { SupplierChannelType } from "@prisma/client"
 
+import { guardRefusalCode, guardSupplierPurchase } from "@/lib/supplier-purchase/guard.server"
 import { BaseSupplierAdapter, type OrderStatusDTO } from "@/lib/suppliers/base.adapter"
 import type { InventoryDTO, PlaceOrderDTO, SupplierOrderResult } from "@/lib/suppliers/dto"
 
@@ -141,56 +142,83 @@ export class CjDropshippingSupplierAdapter extends BaseSupplierAdapter {
         products: dto.lines.map((l) => ({ vid: l.sku, quantity: l.quantity })),
       }
 
+      // Authenticate BEFORE the purchase claim: a credentials / auth failure sends no order.
       try {
-        const created = await this.request<{ orderId?: string; orderNum?: string }>(
-          "/shopping/order/createOrderV2",
-          { method: "POST", body: JSON.stringify(rawRequest) }
-        )
-        if (!created?.orderId) {
-          return {
-            supplierOrderId: null,
-            status: "FAILED",
-            errorMessage: "cj_create_order_missing_id",
-            rawRequest,
-            rawResponse: created,
-          }
-        }
-
-        try {
-          await this.request("/shopping/pay/payment", {
-            method: "POST",
-            body: JSON.stringify({ orderId: created.orderId }),
-          })
-        } catch (payError) {
-          console.log("[cj-dropshipping-adapter]", {
-            result: "order_created_payment_failed",
-            orderId: created.orderId,
-            error: payError instanceof Error ? payError.message : String(payError),
-          })
-          return {
-            supplierOrderId: created.orderId,
-            status: "PROCESSING",
-            errorMessage:
-              payError instanceof Error ? `unpaid:${payError.message}` : "unpaid:unknown_error",
-            rawRequest,
-            rawResponse: created,
-          }
-        }
-
-        return {
-          supplierOrderId: created.orderId,
-          status: "PROCESSING",
-          rawRequest,
-          rawResponse: created,
-        }
+        await this.getAccessToken()
       } catch (e) {
-        return {
-          supplierOrderId: null,
-          status: "FAILED",
-          errorMessage: e instanceof Error ? e.message : String(e),
-          rawRequest,
-        }
+        return { supplierOrderId: null, status: "FAILED", errorMessage: e instanceof Error ? e.message : String(e), rawRequest }
       }
+
+      const keys = dto.purchaseKeys?.length ? dto.purchaseKeys : [`ref:${dto.reference}`]
+      const guarded = await guardSupplierPurchase<SupplierOrderResult>(
+        { channel: "cj", path: "cj-dropshipping.placeOrder", keys },
+        async () => {
+          let created: { orderId?: string; orderNum?: string } | null
+          try {
+            created = await this.request<{ orderId?: string; orderNum?: string }>("/shopping/order/createOrderV2", {
+              method: "POST",
+              body: JSON.stringify(rawRequest),
+            })
+          } catch (e) {
+            const message = e instanceof Error ? e.message : String(e)
+            const value: SupplierOrderResult = { supplierOrderId: null, status: "FAILED", errorMessage: message, rawRequest }
+            // CJ answered with a refusal (4xx, or 200 with result=false) → nothing created. Anything else (timeout,
+            // 5xx, reset, unreadable body) → an order MAY exist: uncertain, never re-sent automatically.
+            return isCjAnsweredRefusal(message)
+              ? { kind: "rejected", error: message, value }
+              : { kind: "uncertain", error: message, value: { ...value, errorMessage: `uncertain:${message}` } }
+          }
+          if (!created?.orderId) {
+            return {
+              kind: "uncertain",
+              error: "cj_create_order_missing_id",
+              value: {
+                supplierOrderId: null,
+                status: "FAILED",
+                errorMessage: "uncertain:cj_create_order_missing_id",
+                rawRequest,
+                rawResponse: created,
+              },
+            }
+          }
+
+          try {
+            await this.request("/shopping/pay/payment", {
+              method: "POST",
+              body: JSON.stringify({ orderId: created.orderId }),
+            })
+          } catch (payError) {
+            console.log("[cj-dropshipping-adapter]", {
+              result: "order_created_payment_failed",
+              orderId: created.orderId,
+              error: payError instanceof Error ? payError.message : String(payError),
+            })
+            // The order EXISTS (unpaid): it is placed — paying it later must not create a second one.
+            return {
+              kind: "placed",
+              supplierOrderId: created.orderId,
+              value: {
+                supplierOrderId: created.orderId,
+                status: "PROCESSING",
+                errorMessage: payError instanceof Error ? `unpaid:${payError.message}` : "unpaid:unknown_error",
+                rawRequest,
+                rawResponse: created,
+              },
+            }
+          }
+
+          return {
+            kind: "placed",
+            supplierOrderId: created.orderId,
+            value: { supplierOrderId: created.orderId, status: "PROCESSING", rawRequest, rawResponse: created },
+          }
+        },
+      )
+      if (guarded.kind === "sent") return guarded.outcome.value
+      if (guarded.kind === "already_placed") {
+        return { supplierOrderId: guarded.supplierOrderId, status: "PROCESSING", rawRequest, rawResponse: { claimReplay: true } }
+      }
+      return { supplierOrderId: null, status: "FAILED", errorMessage: guardRefusalCode(guarded), rawRequest }
     })
   }
 
@@ -239,4 +267,12 @@ export class CjDropshippingSupplierAdapter extends BaseSupplierAdapter {
       )
     })
   }
+}
+
+/** `cj_request_failed:<path>:<status>:…` with a 4xx status, or a 200 whose envelope said result=false. */
+export function isCjAnsweredRefusal(message: string): boolean {
+  const m = /^cj_request_failed:[^:]+:(\d{3}):/.exec(message)
+  if (!m) return false
+  const status = Number(m[1])
+  return status === 200 || (status >= 400 && status < 500)
 }

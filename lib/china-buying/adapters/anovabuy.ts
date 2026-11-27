@@ -1,3 +1,5 @@
+import { supplierPurchaseDecision } from "@/lib/supplier-purchase/policy"
+
 import type { ChinaBuyAdapterResult } from "@/lib/china-buying/adapters/superbuy"
 
 /**
@@ -9,6 +11,11 @@ export async function routeAnovabuyItem(args: {
   quantity: number
 }): Promise<ChinaBuyAdapterResult> {
   const apiKey = process.env.ANOVABUY_API_KEY?.trim()
+  if (apiKey) {
+    // A configured agent really buys: same fail-closed policy as every supplier purchase.
+    const decision = supplierPurchaseDecision(process.env, "china_agent")
+    if (!decision.allowed) return { ok: false, status: "API_FAIL", error: `supplier_purchase_blocked:${decision.reason}` }
+  }
   if (!apiKey) {
     return {
       ok: true,

@@ -1,3 +1,4 @@
+import { guardRefusalCode, guardSupplierPurchase } from "@/lib/supplier-purchase/guard.server"
 import type {
   BlindCreateOrderInput,
   BlindCreateOrderResult,
@@ -45,31 +46,52 @@ export class RestSupplierAdapter implements SupplierAdapter {
 
   async createOrder(data: BlindCreateOrderInput): Promise<BlindCreateOrderResult> {
     const path = this.cfg.createOrderPath ?? "/orders"
-    const res = await fetch(this.url(path), {
-      method: "POST",
-      headers: this.headers(),
-      body: JSON.stringify({
-        shipping: data.shipping,
-        items: data.items.map((i) => ({
-          sku: i.sku,
-          quantity: i.quantity,
-          /** Wholesale only (integer cents) — never affiliate retail. */
-          unit_price_cents: i.unit_price_cents,
-        })),
-        contact_email: data.contact_email,
-        reference: data.reference,
-      }),
-    })
-    if (!res.ok) {
-      const t = await res.text().catch(() => "")
-      throw new Error(`partner_create_order_failed:${res.status}:${t.slice(0, 500)}`)
-    }
-    const json = (await res.json().catch(() => null)) as { supplier_order_id?: string; id?: string; order_id?: string }
-    const supplier_order_id = json?.supplier_order_id ?? json?.order_id ?? json?.id
-    if (!supplier_order_id || typeof supplier_order_id !== "string") {
-      throw new Error("partner_create_order_missing_id")
-    }
-    return { supplier_order_id }
+    const keys = data.purchaseKeys?.length ? data.purchaseKeys : [`ref:${data.reference}@${this.url(path)}`]
+    const guarded = await guardSupplierPurchase<BlindCreateOrderResult | null>(
+      { channel: "partner_rest", path: "rest-adapter.createOrder", keys },
+      async () => {
+        let res: Response
+        try {
+          res = await fetch(this.url(path), {
+            method: "POST",
+            headers: this.headers(),
+            body: JSON.stringify({
+              shipping: data.shipping,
+              items: data.items.map((i) => ({
+                sku: i.sku,
+                quantity: i.quantity,
+                /** Wholesale only (integer cents) — never affiliate retail. */
+                unit_price_cents: i.unit_price_cents,
+              })),
+              contact_email: data.contact_email,
+              reference: data.reference,
+            }),
+          })
+        } catch (e) {
+          // No answer (timeout / reset): the partner may have created the order.
+          return { kind: "uncertain", error: `uncertain:partner_create_order_no_answer:${e instanceof Error ? e.message : String(e)}`, value: null }
+        }
+        if (!res.ok) {
+          const t = await res.text().catch(() => "")
+          const error = `partner_create_order_failed:${res.status}:${t.slice(0, 500)}`
+          // 4xx = the partner refused (nothing created); 5xx = unknown whether it was created.
+          return res.status >= 400 && res.status < 500
+            ? { kind: "rejected", error, value: null }
+            : { kind: "uncertain", error: `uncertain:${error}`, value: null }
+        }
+        const json = (await res.json().catch(() => null)) as { supplier_order_id?: string; id?: string; order_id?: string } | null
+        const supplier_order_id = json?.supplier_order_id ?? json?.order_id ?? json?.id
+        if (!supplier_order_id || typeof supplier_order_id !== "string") {
+          return { kind: "uncertain", error: "uncertain:partner_create_order_missing_id", value: null }
+        }
+        return { kind: "placed", supplierOrderId: supplier_order_id, value: { supplier_order_id } }
+      },
+    )
+    if (guarded.kind === "already_placed") return { supplier_order_id: guarded.supplierOrderId }
+    if (guarded.kind !== "sent") throw new Error(guardRefusalCode(guarded))
+    const o = guarded.outcome
+    if (o.kind === "placed") return { supplier_order_id: o.supplierOrderId }
+    throw new Error(o.error)
   }
 
   private pathWithId(template: string, id: string): string {

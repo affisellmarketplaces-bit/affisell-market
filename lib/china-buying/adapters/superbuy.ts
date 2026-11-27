@@ -1,3 +1,5 @@
+import { supplierPurchaseDecision } from "@/lib/supplier-purchase/policy"
+
 export type ChinaBuyAdapterResult =
   | { ok: true; status: "API_OK"; externalRef: string }
   | { ok: true; status: "STUB"; message: string }
@@ -13,6 +15,11 @@ export async function routeSuperbuyItem(args: {
   quantity: number
 }): Promise<ChinaBuyAdapterResult> {
   const apiKey = process.env.SUPERBUY_API_KEY?.trim()
+  if (apiKey) {
+    // A configured agent really buys: same fail-closed policy as every supplier purchase.
+    const decision = supplierPurchaseDecision(process.env, "china_agent")
+    if (!decision.allowed) return { ok: false, status: "API_FAIL", error: `supplier_purchase_blocked:${decision.reason}` }
+  }
   if (!apiKey) {
     return {
       ok: true,

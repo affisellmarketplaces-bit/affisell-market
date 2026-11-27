@@ -1,3 +1,4 @@
+import { supplierPurchaseDecision } from "@/lib/supplier-purchase/policy"
 import type { FulfillmentPaymentMethod } from "@prisma/client"
 import Stripe from "stripe"
 
@@ -17,6 +18,11 @@ export async function executeSupplierPayment(args: {
   batchId: string
   group: SupplierGroup
 }): Promise<PaymentResult> {
+  // Wallet debit and Stripe Connect transfer move money to a supplier: fail-closed policy.
+  if (args.method === "WALLET_PREPAID" || args.method === "STRIPE_CONNECT") {
+    const decision = supplierPurchaseDecision(process.env, "supplier_payment")
+    if (!decision.allowed) return { ok: false, error: `supplier_purchase_blocked:${decision.reason}` }
+  }
   switch (args.method) {
     case "NONE":
     case "INVOICE_NET30":
@@ -78,7 +84,9 @@ async function payStripeConnect(args: {
       currency: "eur",
       destination: dest,
       metadata: { autoFulfillmentBatchId: args.batchId, providerId: args.providerId },
-    } as Stripe.TransferCreateParams)
+    } as Stripe.TransferCreateParams,
+    // A re-run of the same batch must not pay the same supplier twice.
+    { idempotencyKey: `afb_supplier_pay_${args.batchId}_${args.providerId}` })
     return { ok: true, reference: transfer.id }
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "transfer_failed" }

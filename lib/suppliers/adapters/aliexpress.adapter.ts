@@ -54,6 +54,8 @@ export class AliExpressSupplierAdapter extends BaseSupplierAdapter {
         aeSkuId,
         quantity: line.quantity,
         shippingAddress: shipping,
+        purchaseKeys: dto.purchaseKeys?.length ? dto.purchaseKeys : [`ref:${dto.reference}`],
+        purchasePath: "aliexpress.adapter",
       })
 
       if (!placed.ok) {

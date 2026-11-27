@@ -70,6 +70,7 @@ export class BlindRestSupplierAdapter extends BaseSupplierAdapter {
         shipping: toBlindAddress(dto.shipping),
         contact_email: dto.contactEmail ?? "fulfillment@affisell.internal",
         reference: dto.reference,
+        purchaseKeys: dto.purchaseKeys,
         items: dto.lines.map((l) => ({
           sku: l.sku,
           quantity: l.quantity,

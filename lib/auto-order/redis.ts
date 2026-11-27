@@ -1,3 +1,4 @@
+import { anySupplierPurchaseAllowed } from "@/lib/supplier-purchase/policy"
 import type { ConnectionOptions } from "bullmq"
 import IORedis from "ioredis"
 
@@ -22,7 +23,7 @@ export function getRedisUrl(): string | null {
 }
 
 export function isAutoOrderQueueEnabled(): boolean {
-  return getRedisUrl() != null && process.env.AUTO_ORDER_ENABLED !== "false"
+  return getRedisUrl() != null && anySupplierPurchaseAllowed(process.env)
 }
 
 let warnedMissingUrl = false
