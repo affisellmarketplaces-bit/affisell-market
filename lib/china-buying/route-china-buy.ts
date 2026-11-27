@@ -47,7 +47,7 @@ function stubExtras(agentId: ChinaBuyingAgentId, sourceUrl: string) {
 
 async function callAgentAdapter(
   agentId: ChinaBuyingAgentId,
-  args: { sourceUrl: string; platform: string | null; quantity: number }
+  args: { sourceUrl: string; platform: string | null; quantity: number; purchaseKeys: string[] }
 ): Promise<{
   status: ChinaBuyRouteStatus
   externalRef?: string | null
@@ -133,6 +133,8 @@ export async function routeChinaBuy(input: RouteChinaBuyInput): Promise<RouteChi
     sourceUrl,
     platform: input.platform?.trim() ?? null,
     quantity,
+    // The ORDER when there is one (shared with every other purchase path), else this route's own key.
+    purchaseKeys: [input.orderId ? `order:${input.orderId}` : `china:${idempotencyKey}`],
   })
 
   const log = await prisma.chinaBuyRouteLog.create({

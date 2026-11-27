@@ -48,7 +48,7 @@ export class RestSupplierAdapter implements SupplierAdapter {
     const path = this.cfg.createOrderPath ?? "/orders"
     const keys = data.purchaseKeys?.length ? data.purchaseKeys : [`ref:${data.reference}@${this.url(path)}`]
     const guarded = await guardSupplierPurchase<BlindCreateOrderResult | null>(
-      { channel: "partner_rest", path: "rest-adapter.createOrder", keys },
+      { channel: "partner_rest", path: "rest-adapter.createOrder", keys, heldToken: data.purchaseClaimToken ?? null },
       async () => {
         let res: Response
         try {

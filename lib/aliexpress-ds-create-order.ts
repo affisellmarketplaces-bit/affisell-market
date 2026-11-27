@@ -36,6 +36,8 @@ export type CreateAliExpressDsOrderInput = {
   purchaseKeys: string[]
   /** Code path, for the claim row and logs. */
   purchasePath: string
+  /** Held claim token (batch engine, already paid): continue the claim instead of claiming again. */
+  purchaseClaimToken?: string | null
 }
 
 export type CreateAliExpressDsOrderResult =
@@ -370,7 +372,7 @@ export async function createAliExpressDsOrder(
   }
 
   const guarded = await guardSupplierPurchase<Result>(
-    { channel: "aliexpress", path: input.purchasePath, keys: input.purchaseKeys },
+    { channel: "aliexpress", path: input.purchasePath, keys: input.purchaseKeys, heldToken: input.purchaseClaimToken ?? null },
     send,
   )
   if (guarded.kind === "sent") return guarded.outcome.value
@@ -398,6 +400,7 @@ export async function placeAliExpressDsOrder(input: {
   /** See CreateAliExpressDsOrderInput.purchaseKeys. */
   purchaseKeys: string[]
   purchasePath: string
+  purchaseClaimToken?: string | null
 }): Promise<{ ok: true; aeOrderId: string } | { ok: false; error: string; uncertain?: boolean }> {
   const result = await createAliExpressDsOrder({
     supplierProductId: input.aeProductId,
@@ -415,6 +418,7 @@ export async function placeAliExpressDsOrder(input: {
     },
     purchaseKeys: input.purchaseKeys,
     purchasePath: input.purchasePath,
+    purchaseClaimToken: input.purchaseClaimToken ?? null,
   })
   if (result.ok) return { ok: true, aeOrderId: result.aliexpressOrderId }
   return { ok: false, error: result.error, uncertain: result.uncertain }

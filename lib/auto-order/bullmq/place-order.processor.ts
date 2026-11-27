@@ -1,3 +1,4 @@
+import { settleHeldAfterPlacement } from "@/lib/supplier-purchase/guard.server"
 import { placeOrderViaSupplierAdapter } from "@/lib/suppliers/place-order-bridge"
 import { isNonRetryablePlaceOrderError, NonRetryablePlaceOrderError } from "@/lib/suppliers/place-order-errors"
 import { loadIdempotentPlaceOrderResult } from "@/lib/suppliers/place-order-idempotency"
@@ -52,10 +53,12 @@ export async function processPlaceSupplierOrderJob(
       placed,
       paymentReference,
     })
+    await settleHeldClaimIfAny(data, placed)
     await finalizeAutoFulfillmentBatch(batchId)
     throw new NonRetryablePlaceOrderError(placed.errorMessage)
   }
 
+  await settleHeldClaimIfAny(data, placed)
   await applySupplierPlaceOrderResult({
     supplierFulfillmentOrderId,
     batchId,
@@ -66,4 +69,14 @@ export async function processPlaceSupplierOrderJob(
   })
 
   await finalizeAutoFulfillmentBatch(batchId)
+}
+
+/** The engine paid under a held claim: settle what an adapter without its own guard left claimed (no-op otherwise). */
+async function settleHeldClaimIfAny(
+  data: PlaceSupplierOrderJobData,
+  placed: { supplierOrderId: string | null; status: string; errorMessage?: string | null },
+): Promise<void> {
+  if (!data.purchaseClaimToken) return
+  const keys = [...new Set(data.group.lines.map((l) => `order:${l.orderId}`))]
+  await settleHeldAfterPlacement({ keys, token: data.purchaseClaimToken }, placed)
 }

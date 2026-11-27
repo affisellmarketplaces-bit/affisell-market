@@ -1,4 +1,4 @@
-import { supplierPurchaseDecision } from "@/lib/supplier-purchase/policy"
+import { chinaAgentPurchase } from "@/lib/china-buying/adapters/agent-purchase"
 
 import type { ChinaBuyAdapterResult } from "@/lib/china-buying/adapters/superbuy"
 
@@ -9,13 +9,10 @@ export async function routeAnovabuyItem(args: {
   sourceUrl: string
   platform: string | null
   quantity: number
+  /** What is bought (`order:<id>` or `china:<idempotencyKey>`) — the supplier-purchase claim keys. */
+  purchaseKeys: string[]
 }): Promise<ChinaBuyAdapterResult> {
   const apiKey = process.env.ANOVABUY_API_KEY?.trim()
-  if (apiKey) {
-    // A configured agent really buys: same fail-closed policy as every supplier purchase.
-    const decision = supplierPurchaseDecision(process.env, "china_agent")
-    if (!decision.allowed) return { ok: false, status: "API_FAIL", error: `supplier_purchase_blocked:${decision.reason}` }
-  }
   if (!apiKey) {
     return {
       ok: true,
@@ -24,37 +21,13 @@ export async function routeAnovabuyItem(args: {
     }
   }
 
-  try {
-    const res = await fetch("https://api.anovabuy.com/v1/purchase/route", {
-      method: "POST",
-      headers: {
-        "X-Api-Key": apiKey,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        product_url: args.sourceUrl,
-        platform: args.platform,
-        qty: args.quantity,
-      }),
-    })
-    const json = (await res.json().catch(() => ({}))) as {
-      ref?: string
-      error?: string
-    }
-    if (!res.ok) {
-      return {
-        ok: false,
-        status: "API_FAIL",
-        error: json.error ?? `anovabuy_${res.status}`,
-      }
-    }
-    return {
-      ok: true,
-      status: "API_OK",
-      externalRef: json.ref ?? `anovabuy_${Date.now()}`,
-    }
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e)
-    return { ok: false, status: "API_FAIL", error: message }
-  }
+  return chinaAgentPurchase({
+    agent: "anovabuy",
+    url: "https://api.anovabuy.com/v1/purchase/route",
+    headers: { "X-Api-Key": apiKey, "Content-Type": "application/json" },
+    body: { product_url: args.sourceUrl, platform: args.platform, qty: args.quantity },
+    purchaseKeys: args.purchaseKeys,
+    refOf: (j) => (typeof j.ref === "string" && j.ref ? j.ref : undefined),
+    errorOf: (j) => (typeof j.error === "string" ? j.error : undefined),
+  })
 }

@@ -131,6 +131,8 @@ describe("guardSupplierPurchase — at most once per key", () => {
       tryClaimAll: async () => Promise.reject(new Error('relation "SupplierPurchaseClaim" does not exist')),
       readAll: async () => Promise.reject(new Error("connection refused")),
       settleAll: async () => {},
+      recordPayment: async () => false,
+      debitWalletForClaim: async () => "already_paid_or_not_held",
     }
     const send = vi.fn()
     const r = await guardSupplierPurchase(
@@ -442,7 +444,7 @@ describe("other spending paths are closed by default", () => {
     vi.stubEnv("ANOVABUY_API_KEY", "k")
     const { routeSuperbuyItem } = await import("@/lib/china-buying/adapters/superbuy")
     const { routeAnovabuyItem } = await import("@/lib/china-buying/adapters/anovabuy")
-    const args = { sourceUrl: "https://1688.test/x", platform: null, quantity: 1 }
+    const args = { sourceUrl: "https://1688.test/x", platform: null, quantity: 1, purchaseKeys: ["order:o1"] }
     expect(await routeSuperbuyItem(args)).toMatchObject({ ok: false })
     expect(await routeAnovabuyItem(args)).toMatchObject({ ok: false })
     expect(fetchMock).not.toHaveBeenCalled()

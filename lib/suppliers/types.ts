@@ -27,6 +27,8 @@ export type BlindCreateOrderInput = {
   reference: string
   /** Supplier-purchase claim keys (not sent to the partner): see lib/supplier-purchase/guard.server.ts. */
   purchaseKeys?: string[]
+  /** Held claim token (batch engine): continue the claim instead of claiming again. */
+  purchaseClaimToken?: string | null
 }
 
 export type BlindCreateOrderResult = {

@@ -4031,6 +4031,9 @@ model SupplierPurchaseClaim {
   supplierOrderId String?
   error           String?  @db.Text
   attempts        Int      @default(1)
+  token           String?
+  paidCents       Int?
+  paymentRef      String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @default(now())
 

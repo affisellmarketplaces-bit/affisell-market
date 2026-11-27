@@ -151,7 +151,7 @@ export class CjDropshippingSupplierAdapter extends BaseSupplierAdapter {
 
       const keys = dto.purchaseKeys?.length ? dto.purchaseKeys : [`ref:${dto.reference}`]
       const guarded = await guardSupplierPurchase<SupplierOrderResult>(
-        { channel: "cj", path: "cj-dropshipping.placeOrder", keys },
+        { channel: "cj", path: "cj-dropshipping.placeOrder", keys, heldToken: dto.purchaseClaimToken ?? null },
         async () => {
           let created: { orderId?: string; orderNum?: string } | null
           try {

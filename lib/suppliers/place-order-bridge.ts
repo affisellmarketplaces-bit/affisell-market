@@ -22,6 +22,7 @@ function toPlaceOrderDto(input: PlaceSupplierOrderInput, contactEmail?: string):
       productId: l.productId,
     })),
     purchaseKeys: [...new Set(input.group.lines.map((l) => `order:${l.orderId}`))],
+    purchaseClaimToken: input.purchaseClaimToken ?? null,
   }
 }
 
