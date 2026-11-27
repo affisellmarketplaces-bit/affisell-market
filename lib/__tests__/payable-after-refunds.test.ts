@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { proportionalRefundShareCents } from "@/lib/transfer-reversal-amounts"
-import { matchExistingTransfer, payableAfterRefunds } from "@/lib/transfers/payable-after-refunds"
+import { findExistingTransfers, matchExistingTransfer, payableAfterRefunds } from "@/lib/transfers/payable-after-refunds"
 
 describe("payable after refunds", () => {
   it("refund-then-payout pays exactly what payout-then-clawback leaves (any order of events, any rounding)", () => {
@@ -36,6 +36,23 @@ describe("payable after refunds", () => {
       payableAfterRefunds({ scheduledCents: 3_200, refundCents: [13_000], orderChargedTotalCents: 13_000 })
         .payableCents,
     ).toBe(0)
+  })
+
+  it("role match ignores case and accepts a role-less transfer to the same account; several are all returned", () => {
+    const list = [
+      { id: "tr_1", amount: 8_736, destination: "acct_sup", metadata: { role: "supplier" } },
+      { id: "tr_2", amount: 8_736, destination: "acct_sup", metadata: { role: "SUPPLIER" } },
+      { id: "tr_3", amount: 8_736, destination: "acct_sup", metadata: {} },
+      { id: "tr_4", amount: 500, destination: "acct_sup", metadata: { role: "affiliate" } },
+      { id: "tr_5", amount: 8_736, destination: "acct_other", metadata: { role: "supplier" } },
+    ]
+    expect(findExistingTransfers(list, { role: "SUPPLIER", destination: "acct_sup" }).map((t) => t.id)).toEqual([
+      "tr_1",
+      "tr_2",
+      "tr_3",
+    ])
+    expect(matchExistingTransfer(list, { role: "SUPPLIER", destination: "acct_sup" })).toBeNull() // several → none adopted
+    expect(matchExistingTransfer(list.slice(0, 1), { role: "SUPPLIER", destination: "acct_sup" })?.id).toBe("tr_1")
   })
 
   it("an existing transfer matches only on the same role AND destination", () => {

@@ -27,26 +27,46 @@ export function payableAfterRefunds(args: {
 /** A Stripe transfer this attempt may already have created (a crash between the call and its record). */
 export type ExistingTransfer = { id: string; amount: number; reversed: boolean }
 
+type ListedTransfer = {
+  id: string
+  amount: number
+  destination: string | { id: string } | null
+  metadata?: Record<string, string | undefined> | null
+  reversed?: boolean
+}
+
 /**
- * Pick, among the transfers of the order's transfer group, the one this attempt created: same role in its metadata
- * and same destination. One attempt per (order, role) is a database invariant (`@@unique([orderId, role])`) and the
- * idempotency key is `transfer_{orderId}_{role}`, so there is at most one legitimate match.
+ * Every transfer of the order's transfer group that already paid THIS beneficiary: same destination, and a `role` in
+ * its metadata that is this role whatever its case — or no role at all. Rails write the role differently
+ * (process-transfers `SUPPLIER`, Lightning and the legacy Connect helper `supplier`), and a transfer to the same account
+ * in the same group with no role is still money this beneficiary received for this order. Fail-safe by design: the cost
+ * of a false match is a held payout for a person, the cost of a miss is paying twice — which is what happened on the
+ * Test order cmpjs9s0m0007th1idac73yny (24/05/2026: four `supplier` transfers, then a fifth `SUPPLIER` one).
  */
-export function matchExistingTransfer(
-  transfers: ReadonlyArray<{
-    id: string
-    amount: number
-    destination: string | { id: string } | null
-    metadata?: Record<string, string> | null
-    reversed?: boolean
-  }>,
+export function findExistingTransfers(
+  transfers: ReadonlyArray<ListedTransfer>,
   wanted: { role: string; destination: string },
-): ExistingTransfer | null {
+): ExistingTransfer[] {
+  const role = wanted.role.toUpperCase()
+  const out: ExistingTransfer[] = []
   for (const t of transfers) {
     const dest = typeof t.destination === "string" ? t.destination : (t.destination?.id ?? null)
-    if (t.metadata?.role === wanted.role && dest === wanted.destination) {
-      return { id: t.id, amount: t.amount, reversed: Boolean(t.reversed) }
-    }
+    if (dest !== wanted.destination) continue
+    const theirs = t.metadata?.role
+    if (theirs !== undefined && theirs !== null && theirs !== "" && theirs.toUpperCase() !== role) continue
+    out.push({ id: t.id, amount: t.amount, reversed: Boolean(t.reversed) })
   }
-  return null
+  return out
+}
+
+/**
+ * The one transfer this leg already has, or null. Several = an anomaly (a past double payment): callers must hold
+ * rather than adopt one at random — see `findExistingTransfers`.
+ */
+export function matchExistingTransfer(
+  transfers: ReadonlyArray<ListedTransfer>,
+  wanted: { role: string; destination: string },
+): ExistingTransfer | null {
+  const found = findExistingTransfers(transfers, wanted)
+  return found.length === 1 ? found[0]! : null
 }
