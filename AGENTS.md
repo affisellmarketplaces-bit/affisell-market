@@ -62,6 +62,26 @@
 - **Stripe side** (`lib/finance/stripe-transfer-duplicates.ts`): the ledger only shows what was recorded; `STRIPE_SECRET_KEY=… npm run report:stripe-duplicates -- [--days 365]` (READ-ONLY `transfers.list`) flags every beneficiary paid more than once for one order (same group + destination, role case-insensitive). First run on Stripe Test (2026-11-27): 5 orders, 8 extra transfers, 698.88 EUR, all 24/05/2026.
 - **One verdict before a payout cycle** (`lib/finance/payout-preflight*.ts`): `STRIPE_SECRET_KEY=… DATABASE_URL='<url>' npm run preflight:payouts -- [--days 120] [--webhook-url affisell] [--json]` — PASS (0) · WARNING (1) · BLOCKED (2). Eight checks, all required for a PASS: key mode; webhook subscription (money events missing = BLOCKED); ledger invariants (critical/high = BLOCKED); Stripe duplicates (any = BLOCKED); Stripe ↔ ledger (a transfer of our order that nothing records, a different amount or destination, or a destination that is no Connect account of ours = BLOCKED; a reversal without CLAWBACK = WARNING; a batch-engine supplier payment — `metadata.purchaseClaimToken`, no `transfer_group` — paid twice for one claim, or not recorded on its `SupplierPurchaseClaim`, or with the claim table missing = BLOCKED); Stripe refunds on our charges not in `OrderStripeRefund` (missed `charge.refunded`) = BLOCKED; Stripe disputes on our charges without their D7 hold (`planDisputeReconciliation`) = BLOCKED; webhook freshness (a charge newer than the last processed `evt_` webhook by > 1 h, or no webhook at all) = BLOCKED. A check that cannot run — including an error in the middle of a pagination — is BLOCKED (no data ≠ no problem; a partial list is never judged). READ-ONLY on both sides (Stripe LIST calls only). `assertPayoutPreflightAllows(result)` is the future gate: refuses BLOCKED, any BLOCKED check whatever the verdict field says, a missing/incomplete result, or one older than 15 min — **not wired to any payout path yet**. SQL proof: `scripts/sql/test-payout-preflight.ts` (local PostgreSQL).
 - **Proof**: `lib/__tests__/money-invariants.test.ts` (pure, mutation-checked) and `scripts/sql/test-money-invariants.ts` (seeds scenarios in a LOCAL PostgreSQL, runs the report's exact SQL through psql, cleans up).
+
+## Ship to panel — city autocomplete
+
+- Buyer types a city in the "Ship to" panel (`components/marketplace/ShipToLanguagePanel.tsx`), gets live suggestions via `/api/geo/city-suggest` → `lib/city-suggest.ts`. Display/personalization only — no city-level shipping field on `Product`, so it never filters the catalog (only the country does).
+- Default provider: **Photon** (free OSM geocoder, no key). Set `GOOGLE_PLACES_API_KEY` to switch to Google Places (New) Autocomplete instead — better postcode/typo handling, paid beyond Google's free monthly credit. No other code change needed.
+
+## Subscriptions (Pro, Radar, Growth) — granted from the CURRENT Stripe state (`lib/subscription-state.ts`)
+
+- `customer.subscription.updated` / `.deleted` are applied by `applySubscriptionEventFromCurrentState` (`lib/stripe-webhook-processor.ts`): it re-reads the subscription with `stripe.subscriptions.retrieve` and grants only on `active` / `trialing`; anything else, or a subscription Stripe no longer knows (404), removes the plans. The event's embedded status is logged (`[subscription-state]`, with `stale: true` when it differs) but never decides — so a delayed `updated: active` after `deleted`, a repeated delivery or concurrent deliveries all converge on what Stripe says now. A failed read throws: the webhook is recorded `failed`, Stripe retries, nothing is applied from the stale copy.
+- The three checkout activations (`activate{Pro,Radar,Growth}FromCheckoutSession`) also refuse a subscription that is no longer entitling (`subscription_not_entitling`): a replayed `checkout.session.completed` cannot re-grant a cancelled plan.
+- Proof: `lib/__tests__/subscription-state-guard.test.ts` (delivery-order scenarios, mutation-checked).
+
+## i18n (FR / EN)
+
+- Cookie `affisell_locale` drives UI on most routes (`/marketplace`, `/dashboard`, `/discover`, etc.).
+- URL prefix `/fr` only on `/`, `/agent`, `/creators`, `/partners` — switcher updates path + cookie there.
+- Elsewhere: cookie + full navigation (`window.location.replace`) so server + client next-intl remount with the selected locale.
+- Switcher: header (public/supplier/affiliate), `app/login|signup/layout`, Pulse immersive pages, Légion `@username` vitrines.
+- Buyer chrome wired to next-intl includes Légion storefront, cookie banner, Ghost Checkout OOS, Battle flash price.
+
 ## Supplier purchases — one central lock, OFF by default (`lib/supplier-purchase/*`)
 
 - **Every path that spends money at a supplier goes through it**: AliExpress DS API (`createAliExpressDsOrder` — auto-buy, BullMQ worker, admin retry, `POST /api/orders/[id]/fulfill`, `POST /api/aliexpress/order/create`, the AliExpress adapter of the batch engine), the AliExpress browser checkout and the Stripe Issuing card that pays it, CJ (create + pay), blind-dropship partner REST (`RestSupplierAdapter.createOrder`), China buying agents (Superbuy / Anovabuy), and the engine's supplier payment (wallet debit, Stripe Connect transfer). `lib/__tests__/supplier-purchase-inventory.test.ts` fails if a file with a purchase marker does not call the policy or the guard.
@@ -71,11 +91,6 @@
 - **Batch engine = ONE held claim** across payment and placement: the engine claims (policies for `supplier_payment` AND the adapter's channel checked first), pays under the claim — wallet debit and the claim's `paidCents` stamp in ONE transaction, only if not paid yet; Stripe Connect with idempotency key `supplier_pay_<token>` — then the adapter (inline, or in the BullMQ worker via `purchaseClaimToken`) continues the claim with its token and settles. A crash between payment and placement leaves "claimed, paid": refused automatically. A `rejected` on a paid claim is stored `uncertain` (the database refuses paid + rejected). China agents go through `chinaAgentPurchase` (claim `order:<id>` or `china:<key>`; an answer without reference is `uncertain`, no invented reference).
 - **Reconciliation**: `npm run report:supplier-purchase-claims` (READ-ONLY, exit 2 when a claim needs a decision) and `npm run resolve:supplier-purchase-claim -- --key … --as placed|rejected|refunded [--apply]` (dry-run by default, production-guarded). Impact of the default lock before deploying: `npm run report:supplier-purchase-impact` (READ-ONLY). Full inventory (11 entry points → 7 choke points), commercial consequences, re-enable procedure, migration proof: `docs/SUPPLIER-PURCHASES.md`.
 - **Before enabling anything**: apply the migration (`schema:migrate`, owner), then set the two variables for ONE channel, then watch `[supplier-purchase]` logs. Proof: `lib/__tests__/supplier-purchase-gate.test.ts` (policy table, concurrency, replay, every path closed by default; mutation-checked) and `scripts/sql/test-supplier-purchase-claim.ts` (the exact SQL on a local PostgreSQL, two sessions racing).
-## Subscriptions (Pro, Radar, Growth) — granted from the CURRENT Stripe state (`lib/subscription-state.ts`)
-
-- `customer.subscription.updated` / `.deleted` are applied by `applySubscriptionEventFromCurrentState` (`lib/stripe-webhook-processor.ts`): it re-reads the subscription with `stripe.subscriptions.retrieve` and grants only on `active` / `trialing`; anything else, or a subscription Stripe no longer knows (404), removes the plans. The event's embedded status is logged (`[subscription-state]`, with `stale: true` when it differs) but never decides — so a delayed `updated: active` after `deleted`, a repeated delivery or concurrent deliveries all converge on what Stripe says now. A failed read throws: the webhook is recorded `failed`, Stripe retries, nothing is applied from the stale copy.
-- The three checkout activations (`activate{Pro,Radar,Growth}FromCheckoutSession`) also refuse a subscription that is no longer entitling (`subscription_not_entitling`): a replayed `checkout.session.completed` cannot re-grant a cancelled plan.
-- Proof: `lib/__tests__/subscription-state-guard.test.ts` (delivery-order scenarios, mutation-checked).
 
 ## Checkout deliverability — never charge for a line that cannot ship (`lib/checkout/deliverability*.ts`)
 
@@ -84,19 +99,6 @@
 - **Switch `CHECKOUT_DELIVERABILITY_MODE`** = `off` | `warn` | `enforce` (**default enforce**, anything unrecognised = enforce); `warn` logs `[checkout-deliverability] would_refuse_if_enforced`.
 - **Window between check and payment** (a channel closed after the session was created): the purchase guard still refuses at fulfilment time, and the engine flags the paid order `MANUAL_REQUIRED` (`paid_order_not_purchasable`) — it never looks "in progress". `report:supplier-purchase-impact` lists such orders.
 - Proof: `lib/__tests__/checkout-deliverability.test.ts` (dependency table per product type, mixed cart, modes, the route, a source scan that fails if any `checkout.sessions.create` / `paymentIntents.create` file other than the 4 Affisell-service payments lacks the gate before Stripe; mutation-checked). Read-only ops checks: `docs/OPERATIONS-READ-ONLY-CHECKS.md`.
-
-## Ship to panel — city autocomplete
-
-- Buyer types a city in the "Ship to" panel (`components/marketplace/ShipToLanguagePanel.tsx`), gets live suggestions via `/api/geo/city-suggest` → `lib/city-suggest.ts`. Display/personalization only — no city-level shipping field on `Product`, so it never filters the catalog (only the country does).
-- Default provider: **Photon** (free OSM geocoder, no key). Set `GOOGLE_PLACES_API_KEY` to switch to Google Places (New) Autocomplete instead — better postcode/typo handling, paid beyond Google's free monthly credit. No other code change needed.
-
-## i18n (FR / EN)
-
-- Cookie `affisell_locale` drives UI on most routes (`/marketplace`, `/dashboard`, `/discover`, etc.).
-- URL prefix `/fr` only on `/`, `/agent`, `/creators`, `/partners` — switcher updates path + cookie there.
-- Elsewhere: cookie + full navigation (`window.location.replace`) so server + client next-intl remount with the selected locale.
-- Switcher: header (public/supplier/affiliate), `app/login|signup/layout`, Pulse immersive pages, Légion `@username` vitrines.
-- Buyer chrome wired to next-intl includes Légion storefront, cookie banner, Ghost Checkout OOS, Battle flash price.
 
 ## Demo Lab (`/demo`)
 
