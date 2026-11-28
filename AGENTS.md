@@ -60,6 +60,12 @@
 - Buyer types a city in the "Ship to" panel (`components/marketplace/ShipToLanguagePanel.tsx`), gets live suggestions via `/api/geo/city-suggest` → `lib/city-suggest.ts`. Display/personalization only — no city-level shipping field on `Product`, so it never filters the catalog (only the country does).
 - Default provider: **Photon** (free OSM geocoder, no key). Set `GOOGLE_PLACES_API_KEY` to switch to Google Places (New) Autocomplete instead — better postcode/typo handling, paid beyond Google's free monthly credit. No other code change needed.
 
+## Subscriptions (Pro, Radar, Growth) — granted from the CURRENT Stripe state (`lib/subscription-state.ts`)
+
+- `customer.subscription.updated` / `.deleted` are applied by `applySubscriptionEventFromCurrentState` (`lib/stripe-webhook-processor.ts`): it re-reads the subscription with `stripe.subscriptions.retrieve` and grants only on `active` / `trialing`; anything else, or a subscription Stripe no longer knows (404), removes the plans. The event's embedded status is logged (`[subscription-state]`, with `stale: true` when it differs) but never decides — so a delayed `updated: active` after `deleted`, a repeated delivery or concurrent deliveries all converge on what Stripe says now. A failed read throws: the webhook is recorded `failed`, Stripe retries, nothing is applied from the stale copy.
+- The three checkout activations (`activate{Pro,Radar,Growth}FromCheckoutSession`) also refuse a subscription that is no longer entitling (`subscription_not_entitling`): a replayed `checkout.session.completed` cannot re-grant a cancelled plan.
+- Proof: `lib/__tests__/subscription-state-guard.test.ts` (delivery-order scenarios, mutation-checked).
+
 ## i18n (FR / EN)
 
 - Cookie `affisell_locale` drives UI on most routes (`/marketplace`, `/dashboard`, `/discover`, etc.).
