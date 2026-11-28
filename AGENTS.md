@@ -55,6 +55,19 @@
 - **A developer machine never writes to PRODUCTION by accident** (S1.6.1). `.env` / `.env.local` hold the production URL and `@prisma/client` loads `.env` by itself, so a laptop-launched tool used to act on production silently (a unit test wrote fake AliExpress tokens into `PlatformOAuthCredential`). Rule: *developer machine (a secret `.env*` file is present — never on Vercel/Railway/CI) + a URL naming the production endpoint + no `AFFISELL_ALLOW_PRODUCTION_WRITES=<ep-id>` naming it* = refused. Applied in: every standalone script that creates a Prisma client (`scripts/lib/production-guard.mjs` → `assertNotProductionByAccident()` right before the client; a test fails for any new script that neither calls it nor is on the verified read-only list in `lib/__tests__/production-guard.test.ts`), the Prisma CLI write commands (`prisma.config.ts`), `lib/prisma.ts` / `lib/prisma-radar.ts` writes (`lib/developer-production-guard.ts`; reads still pass, the fulfillment client is judged on its own direct URL), and the auto-order worker (+ shared Redis). Vitest never sees `.env` (`vitest-env/no-real-datastores.ts`). `status` / `schema:verify` / `verify:event-spine` run in a server-enforced read-only session. Details: `docs/DEPLOY-SCHEMA-CHANGES.md` §10.
 - **`next build` never writes to a database, and a local/CI `npm run build` cannot reach one.** `lib/build-write-guard.ts` is the outermost extension of every Prisma client (`lib/prisma.ts`, `lib/prisma-radar.ts`; a test fails if any other file creates a client): while Next reports `phase-production-build` (`isNextProductionBuildPhase()`), only known reads pass — create/update/delete, `$executeRaw*` and non-read-only `$queryRaw*` throw `BuildPhaseWriteBlockedError` BEFORE any connection; no override, and it does not depend on `VERCEL` / `VERCEL_ENV`. `npm run build` goes through `scripts/build-isolated.mjs`: on a real Vercel builder (`VERCEL=1` and NO secret `.env*` file in the working directory) nothing changes; elsewhere — including `vercel build` run on a laptop, which also sets `VERCEL=1` — every database/Redis credential (by name or by value shape, including those Next would load from `.env*`) and `SENTRY_AUTH_TOKEN` is set to an empty string for `next build` (Next never overrides a defined variable). `AFFISELL_BUILD_ALLOW_DB=1` keeps a NON-production database and refuses if any production URL is present. Next.js telemetry is off by default (`NEXT_TELEMETRY_DISABLED=1`). **Vercel pipeline (`scripts/vercel-build.mjs`, S1.6.1)**: `prisma generate` → `schema-deploy.mjs verify` (READ-ONLY: the database session itself is `default_transaction_read_only=on`) → `check:client-prisma` → `npm run build`, and it STOPS at the first failing step. **The Vercel build never migrates**: `BUILD_RUN_MIGRATIONS` is gone (not read, not in `vercel.json`) and `schema-deploy.mjs migrate` refuses to run in any Vercel context. Migrating is a separate step done by hand BEFORE the push (`schema:migrate -- --expect-endpoint <ep>`, staging for Previews too); a push whose migration was not applied fails at `verify` (exit 5) and the old code keeps serving. The build loads no `.env*`, runs no `db:unlock`, no repair SQL, nothing that marks a migration applied (`fix-p3009` / `deploy-repair.sql` and the cron's self-healing are gone; `/api/cron/migrate` is a read-only diagnostic). A Preview build whose database is not provably the staging branch (`ep-shy-wind-…`) is REFUSED; Production refuses staging/local; `VERCEL=1` on a developer machine is refused. Measured (network-denied build with every real credential loaded): no Redis/KV attempt; the only outbound requests were Next.js telemetry and the Sentry plugin's telemetry (both switched off now) plus the Sentry CLI source-map upload, which stays on Vercel (the three `SENTRY_*` variables exist in Production).
 
+## Ship to panel — city autocomplete
+
+- Buyer types a city in the "Ship to" panel (`components/marketplace/ShipToLanguagePanel.tsx`), gets live suggestions via `/api/geo/city-suggest` → `lib/city-suggest.ts`. Display/personalization only — no city-level shipping field on `Product`, so it never filters the catalog (only the country does).
+- Default provider: **Photon** (free OSM geocoder, no key). Set `GOOGLE_PLACES_API_KEY` to switch to Google Places (New) Autocomplete instead — better postcode/typo handling, paid beyond Google's free monthly credit. No other code change needed.
+
+## i18n (FR / EN)
+
+- Cookie `affisell_locale` drives UI on most routes (`/marketplace`, `/dashboard`, `/discover`, etc.).
+- URL prefix `/fr` only on `/`, `/agent`, `/creators`, `/partners` — switcher updates path + cookie there.
+- Elsewhere: cookie + full navigation (`window.location.replace`) so server + client next-intl remount with the selected locale.
+- Switcher: header (public/supplier/affiliate), `app/login|signup/layout`, Pulse immersive pages, Légion `@username` vitrines.
+- Buyer chrome wired to next-intl includes Légion storefront, cookie banner, Ghost Checkout OOS, Battle flash price.
+
 ## Supplier purchases — one central lock, OFF by default (`lib/supplier-purchase/*`)
 
 - **Every path that spends money at a supplier goes through it**: AliExpress DS API (`createAliExpressDsOrder` — auto-buy, BullMQ worker, admin retry, `POST /api/orders/[id]/fulfill`, `POST /api/aliexpress/order/create`, the AliExpress adapter of the batch engine), the AliExpress browser checkout and the Stripe Issuing card that pays it, CJ (create + pay), blind-dropship partner REST (`RestSupplierAdapter.createOrder`), China buying agents (Superbuy / Anovabuy), and the engine's supplier payment (wallet debit, Stripe Connect transfer). `lib/__tests__/supplier-purchase-inventory.test.ts` fails if a file with a purchase marker does not call the policy or the guard.
@@ -72,19 +85,6 @@
 - **Switch `CHECKOUT_DELIVERABILITY_MODE`** = `off` | `warn` | `enforce` (**default enforce**, anything unrecognised = enforce); `warn` logs `[checkout-deliverability] would_refuse_if_enforced`.
 - **Window between check and payment** (a channel closed after the session was created): the purchase guard still refuses at fulfilment time, and the engine flags the paid order `MANUAL_REQUIRED` (`paid_order_not_purchasable`) — it never looks "in progress". `report:supplier-purchase-impact` lists such orders.
 - Proof: `lib/__tests__/checkout-deliverability.test.ts` (dependency table per product type, mixed cart, modes, the route, a source scan that fails if any `checkout.sessions.create` / `paymentIntents.create` file other than the 4 Affisell-service payments lacks the gate before Stripe; mutation-checked). Read-only ops checks: `docs/OPERATIONS-READ-ONLY-CHECKS.md`.
-
-## Ship to panel — city autocomplete
-
-- Buyer types a city in the "Ship to" panel (`components/marketplace/ShipToLanguagePanel.tsx`), gets live suggestions via `/api/geo/city-suggest` → `lib/city-suggest.ts`. Display/personalization only — no city-level shipping field on `Product`, so it never filters the catalog (only the country does).
-- Default provider: **Photon** (free OSM geocoder, no key). Set `GOOGLE_PLACES_API_KEY` to switch to Google Places (New) Autocomplete instead — better postcode/typo handling, paid beyond Google's free monthly credit. No other code change needed.
-
-## i18n (FR / EN)
-
-- Cookie `affisell_locale` drives UI on most routes (`/marketplace`, `/dashboard`, `/discover`, etc.).
-- URL prefix `/fr` only on `/`, `/agent`, `/creators`, `/partners` — switcher updates path + cookie there.
-- Elsewhere: cookie + full navigation (`window.location.replace`) so server + client next-intl remount with the selected locale.
-- Switcher: header (public/supplier/affiliate), `app/login|signup/layout`, Pulse immersive pages, Légion `@username` vitrines.
-- Buyer chrome wired to next-intl includes Légion storefront, cookie banner, Ghost Checkout OOS, Battle flash price.
 
 ## Demo Lab (`/demo`)
 
