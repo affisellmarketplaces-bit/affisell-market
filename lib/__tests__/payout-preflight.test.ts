@@ -169,6 +169,8 @@ type FakeWorld = {
   refundsRecorded?: string[]
   holds?: Array<{ id: string; status: string }>
   lastWebhookAt?: string | null
+  /** paymentRef values recorded on supplier-purchase claims; undefined = the table does not exist. */
+  claimTable?: string[]
 }
 
 /** Answers the gatherer's real SQL from an in-memory world (the SQL itself runs on PostgreSQL in scripts/sql/). */
@@ -195,6 +197,9 @@ function fakeDb(w: FakeWorld): RawQueryable {
         return out((w.refundsRecorded ?? []).filter((r) => arr.includes(r)).map((id) => ({ id })))
       if (sql.includes("LIKE ANY")) return out(w.holds ?? [])
       if (sql.includes('max("createdAt")')) return out([{ at: w.lastWebhookAt ?? null }])
+      if (sql.includes("to_regclass")) return out([{ exists: w.claimTable !== undefined }])
+      if (sql.includes('FROM "SupplierPurchaseClaim"'))
+        return out((w.claimTable ?? []).filter((r) => arr.includes(r)).map((ref) => ({ ref })))
       throw new Error(`unexpected SQL in test: ${sql.slice(0, 60)}`)
     },
   }
@@ -315,6 +320,44 @@ describe("gatherPayoutPreflight → evaluatePayoutPreflight (integration)", () =
       lastWebhookAt: fresh,
     })
     expect(r.checks.find((x) => x.id === "stripe_ledger_consistency")?.status).toBe("WARNING")
+  })
+
+  it("supplier payments: one purchase paid twice, or paid outside the lock → BLOCKED; recorded once → PASS", async () => {
+    const sup = (id: string, token: string, extra: Record<string, unknown> = {}) => ({
+      id,
+      amount: 1_000,
+      created: 1,
+      destination: "acct_sup",
+      transfer_group: null,
+      metadata: { purchaseClaimToken: token, providerId: "p" },
+      ...extra,
+    })
+    const w = { orders: [], lastWebhookAt: fresh }
+    const twice = await run(stripe({ transfers: [sup("tr_s1", "tok_a"), sup("tr_s2", "tok_a")] }), {
+      ...w,
+      claimTable: ["tr_s1"],
+    })
+    const c1 = twice.checks.find((x) => x.id === "stripe_ledger_consistency")!
+    expect(c1.status).toBe("BLOCKED")
+    expect(c1.evidence.join(" ")).toContain("paid twice (claim tok_a): tr_s1, tr_s2")
+    const reversedSecond = await run(
+      stripe({ transfers: [sup("tr_s1", "tok_a"), sup("tr_s2", "tok_a", { amount_reversed: 1_000 })] }),
+      {
+        ...w,
+        claimTable: ["tr_s1"],
+      },
+    )
+    expect(reversedSecond.checks.find((x) => x.id === "stripe_ledger_consistency")?.status).toBe("PASS")
+    const noTable = await run(stripe({ transfers: [sup("tr_s3", "tok_b")] }), w)
+    expect(noTable.checks.find((x) => x.id === "stripe_ledger_consistency")?.evidence.join(" ")).toContain(
+      "claim table missing",
+    )
+    const outside = await run(stripe({ transfers: [sup("tr_s5", "tok_d")] }), { ...w, claimTable: ["tr_other"] })
+    const c2 = outside.checks.find((x) => x.id === "stripe_ledger_consistency")!
+    expect(c2.status).toBe("BLOCKED")
+    expect(c2.evidence.join(" ")).toContain("tr_s5 (claim tok_d): not recorded on its claim")
+    const ok = await run(stripe({ transfers: [sup("tr_s4", "tok_c")] }), { ...w, claimTable: ["tr_s4"] })
+    expect(ok.checks.find((x) => x.id === "stripe_ledger_consistency")?.status).toBe("PASS")
   })
 
   it("a Stripe refund the platform never recorded (missed charge.refunded) → BLOCKED", async () => {

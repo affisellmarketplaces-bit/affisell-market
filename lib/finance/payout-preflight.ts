@@ -58,6 +58,13 @@ export type PreflightInput = {
     unknownDestinations?: Array<{ transferId: string; destination: string }>
     /** Reversed at Stripe (fully or partly) without a CLAWBACK row of that amount. */
     reversalsUnrecorded?: Array<{ transferId: string; reversedCents: number; clawedBackCents: number }>
+    /**
+     * Supplier payments of the batch engine (no transfer_group; metadata.purchaseClaimToken): more than one live
+     * transfer for one claim token = the same purchase paid twice; a transfer whose claim does not record it = a
+     * supplier payment outside the lock (or the claim table is missing).
+     */
+    supplierPaymentDuplicates?: Array<{ token: string; transferIds: string[] }>
+    supplierPaymentsUnrecorded?: Array<{ transferId: string; token: string; reason: string }>
   } | null
   /** Stripe refunds on charges of our orders vs OrderStripeRefund rows (a missed charge.refunded webhook). */
   refunds: { checked: number; unrecorded: Array<{ refundId: string; orderId: string; amount: number }> } | null
@@ -192,18 +199,22 @@ export function evaluatePayoutPreflight(input: PreflightInput, now: Date = new D
     const mismatches = input.consistency.mismatches ?? []
     const unknown = input.consistency.unknownDestinations ?? []
     const reversals = input.consistency.reversalsUnrecorded ?? []
-    const blocking = unrecorded.length + mismatches.length + unknown.length
+    const supDup = input.consistency.supplierPaymentDuplicates ?? []
+    const supUnrec = input.consistency.supplierPaymentsUnrecorded ?? []
+    const blocking = unrecorded.length + mismatches.length + unknown.length + supDup.length + supUnrec.length
     checks.push({
       id: "stripe_ledger_consistency",
       status: blocking > 0 ? "BLOCKED" : reversals.length > 0 ? "WARNING" : "PASS",
       summary:
         blocking + reversals.length > 0
-          ? `${orderTransfers} Stripe transfers of our orders: ${unrecorded.length} unrecorded, ${mismatches.length} amount/destination mismatches, ${unknown.length} to an unknown account, ${reversals.length} reversals not clawed back`
+          ? `${orderTransfers} Stripe transfers of our orders: ${unrecorded.length} unrecorded, ${mismatches.length} amount/destination mismatches, ${unknown.length} to an unknown account, ${reversals.length} reversals not clawed back; supplier payments: ${supDup.length} paid twice, ${supUnrec.length} outside the purchase lock`
           : `${orderTransfers} Stripe transfers of our orders, all recorded with the same amount and destination`,
       evidence: [
         ...unrecorded.map((u) => `unrecorded ${u.transferId} (${u.transferGroup}, ${u.amount})`),
         ...mismatches.map((m) => `${m.kind} mismatch ${m.transferId}: Stripe ${m.stripe} ≠ recorded ${m.recorded}`),
         ...unknown.map((u) => `unknown destination ${u.transferId} → ${u.destination}`),
+        ...supDup.map((d) => `supplier purchase paid twice (claim ${d.token}): ${d.transferIds.join(", ")}`),
+        ...supUnrec.map((u) => `supplier payment ${u.transferId} (claim ${u.token}): ${u.reason}`),
         ...reversals.map(
           (r) => `reversal ${r.transferId}: ${r.reversedCents} reversed, ${r.clawedBackCents} clawed back`,
         ),

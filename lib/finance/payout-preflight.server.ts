@@ -256,6 +256,7 @@ async function checkTransfers(
     unknownDestinations: [],
     reversalsUnrecorded: [],
   }
+  await checkSupplierPayments(transfers, q, out)
   if (mine.length === 0) return out
 
   const ids = mine.map((t) => t.id)
@@ -318,4 +319,57 @@ async function checkTransfers(
     }
   }
   return out
+}
+
+/**
+ * Batch-engine supplier payments (metadata.purchaseClaimToken, see lib/auto-order/payment): one live transfer per
+ * claim token, and each one recorded on its claim (SupplierPurchaseClaim.paymentRef). The claim table ships with the
+ * supplier-purchase lock: if it does not exist, any such transfer is reported as outside the lock.
+ */
+async function checkSupplierPayments(
+  transfers: StripeTransferLite[],
+  q: <T>(sql: string, ...values: unknown[]) => Promise<T>,
+  out: NonNullable<PreflightInput["consistency"]>,
+): Promise<void> {
+  const live = transfers.filter((t) => t.metadata?.purchaseClaimToken && (t.amount_reversed ?? 0) < t.amount)
+  out.supplierPaymentDuplicates = []
+  out.supplierPaymentsUnrecorded = []
+  if (live.length === 0) return
+  const byToken = new Map<string, string[]>()
+  for (const t of live) {
+    const token = t.metadata!.purchaseClaimToken!
+    byToken.set(token, [...(byToken.get(token) ?? []), t.id])
+  }
+  for (const [token, ids] of byToken)
+    if (ids.length > 1) out.supplierPaymentDuplicates.push({ token, transferIds: ids })
+  const [{ exists }] = await q<Array<{ exists: boolean }>>(
+    `SELECT to_regclass('"SupplierPurchaseClaim"') IS NOT NULL AS "exists"`,
+  )
+  if (!exists) {
+    for (const t of live) {
+      out.supplierPaymentsUnrecorded.push({
+        transferId: t.id,
+        token: t.metadata!.purchaseClaimToken!,
+        reason: "claim table missing",
+      })
+    }
+    return
+  }
+  const recorded = new Set(
+    (
+      await q<Array<{ ref: string }>>(
+        `SELECT DISTINCT "paymentRef" AS "ref" FROM "SupplierPurchaseClaim" WHERE "paymentRef" = ANY($1::text[])`,
+        live.map((t) => t.id),
+      )
+    ).map((r) => r.ref),
+  )
+  for (const t of live) {
+    if (!recorded.has(t.id)) {
+      out.supplierPaymentsUnrecorded.push({
+        transferId: t.id,
+        token: t.metadata!.purchaseClaimToken!,
+        reason: "not recorded on its claim",
+      })
+    }
+  }
 }
