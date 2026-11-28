@@ -11,6 +11,7 @@ beforeEach(() => {
   // Supplier purchases are off by default (fail-closed): these payload tests run with partner_rest enabled.
   vi.stubEnv("SUPPLIER_PURCHASES_ENABLED", "true")
   vi.stubEnv("SUPPLIER_PURCHASE_CHANNELS", "partner_rest")
+  vi.stubEnv("SUPPLIER_PURCHASE_DAILY_LIMITS", "partner_rest=unlimited")
   setSupplierPurchaseClaimStoreForTests(memoryClaimStore())
 })
 

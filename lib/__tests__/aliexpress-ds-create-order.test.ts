@@ -22,6 +22,7 @@ describe("createAliExpressDsOrder payload", () => {
     vi.stubEnv("ENCRYPTION_KEY", "")
     vi.stubEnv("SUPPLIER_PURCHASES_ENABLED", "true")
     vi.stubEnv("SUPPLIER_PURCHASE_CHANNELS", "aliexpress")
+    vi.stubEnv("SUPPLIER_PURCHASE_DAILY_LIMITS", "aliexpress=unlimited,cj=unlimited,partner_rest=unlimited,china_agent=unlimited,supplier_payment=unlimited")
     setSupplierPurchaseClaimStoreForTests(memoryClaimStore())
 
     const fetchMock = vi.fn(async (url: string) => {

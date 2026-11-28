@@ -33,15 +33,27 @@ export type LineDeliverability =
       closedChannels: SupplierPurchaseChannel[]
     }
 
+/**
+ * `quotaUsed`: purchases already started in the last 24 h per channel (read by the server). A channel whose daily
+ * quota is used up is closed for checkout too — it would only end as a paid order nobody can buy. A finite quota with
+ * no count given (the count could not be read) is closed: fail-closed.
+ */
 export function decideLineDeliverability(
   deps: PurchaseDependency[] | null,
   env: Record<string, string | undefined>,
+  quotaUsed: Partial<Record<SupplierPurchaseChannel, number>> = {},
 ): LineDeliverability {
   if (deps === null) {
     // Could not determine how the line ships (lookup failed): never take money for an order we cannot vouch for.
     return { deliverable: false, dependencies: [], reason: "fulfillment_unknown", closedChannels: [] }
   }
-  const closed = [...new Set(deps.map((d) => d.channel))].filter((c) => !supplierPurchaseDecision(env, c).allowed)
+  const closed = [...new Set(deps.map((d) => d.channel))].filter((c) => {
+    const decision = supplierPurchaseDecision(env, c)
+    if (!decision.allowed) return true
+    if (decision.dailyLimit === null) return false
+    const used = quotaUsed[c]
+    return used === undefined || used >= decision.dailyLimit
+  })
   return closed.length === 0
     ? { deliverable: true, dependencies: deps }
     : { deliverable: false, dependencies: deps, reason: "supplier_channel_closed", closedChannels: closed }

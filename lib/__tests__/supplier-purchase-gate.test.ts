@@ -12,7 +12,12 @@ import { anySupplierPurchaseAllowed, supplierPurchaseDecision } from "@/lib/supp
 import { isCjAnsweredRefusal, CjDropshippingSupplierAdapter } from "@/lib/suppliers/adapters/cj-dropshipping.adapter"
 import { RestSupplierAdapter } from "@/lib/suppliers/rest-adapter"
 
-const ON = { SUPPLIER_PURCHASES_ENABLED: "true", SUPPLIER_PURCHASE_CHANNELS: "aliexpress,cj,partner_rest" }
+const ON = {
+  SUPPLIER_PURCHASES_ENABLED: "true",
+  SUPPLIER_PURCHASE_DAILY_LIMITS:
+    "aliexpress=unlimited,cj=unlimited,partner_rest=unlimited,china_agent=unlimited,supplier_payment=unlimited",
+  SUPPLIER_PURCHASE_CHANNELS: "aliexpress,cj,partner_rest",
+}
 
 describe("supplierPurchaseDecision — fail-closed", () => {
   it("nothing set → refused (the production default)", () => {
@@ -215,6 +220,10 @@ describe("createAliExpressDsOrder — guarded", () => {
   it("AUTO_ORDER_ENABLED=false (the documented disable) also blocks the ops route path", async () => {
     vi.stubEnv("SUPPLIER_PURCHASES_ENABLED", "true")
     vi.stubEnv("SUPPLIER_PURCHASE_CHANNELS", "aliexpress")
+    vi.stubEnv(
+      "SUPPLIER_PURCHASE_DAILY_LIMITS",
+      "aliexpress=unlimited,cj=unlimited,partner_rest=unlimited,china_agent=unlimited,supplier_payment=unlimited",
+    )
     vi.stubEnv("AUTO_ORDER_ENABLED", "false")
     expect((await createAliExpressDsOrder(aeInput())).ok).toBe(false)
     expect(fetchMock).not.toHaveBeenCalled()
@@ -224,6 +233,10 @@ describe("createAliExpressDsOrder — guarded", () => {
     beforeEach(() => {
       vi.stubEnv("SUPPLIER_PURCHASES_ENABLED", "true")
       vi.stubEnv("SUPPLIER_PURCHASE_CHANNELS", "aliexpress")
+      vi.stubEnv(
+        "SUPPLIER_PURCHASE_DAILY_LIMITS",
+        "aliexpress=unlimited,cj=unlimited,partner_rest=unlimited,china_agent=unlimited,supplier_payment=unlimited",
+      )
     })
 
     it("a timeout on the first call stops: ONE place-order request, and a retry sends nothing", async () => {
@@ -340,6 +353,10 @@ describe("CJ adapter — guarded", () => {
   it("a 5xx on create is uncertain: the batch re-run does NOT create (or pay) a second order", async () => {
     vi.stubEnv("SUPPLIER_PURCHASES_ENABLED", "true")
     vi.stubEnv("SUPPLIER_PURCHASE_CHANNELS", "cj")
+    vi.stubEnv(
+      "SUPPLIER_PURCHASE_DAILY_LIMITS",
+      "aliexpress=unlimited,cj=unlimited,partner_rest=unlimited,china_agent=unlimited,supplier_payment=unlimited",
+    )
     fetchMock.mockImplementation(async (url: string) => {
       if (String(url).includes("getAccessToken")) return res({ result: true, data: { accessToken: "t" } })
       return res({ result: false, message: "gateway" }, false, 502)
@@ -394,6 +411,10 @@ describe("RestSupplierAdapter.createOrder — guarded", () => {
   it("Inngest step retry after success → stored id, partner called once", async () => {
     vi.stubEnv("SUPPLIER_PURCHASES_ENABLED", "true")
     vi.stubEnv("SUPPLIER_PURCHASE_CHANNELS", "partner_rest")
+    vi.stubEnv(
+      "SUPPLIER_PURCHASE_DAILY_LIMITS",
+      "aliexpress=unlimited,cj=unlimited,partner_rest=unlimited,china_agent=unlimited,supplier_payment=unlimited",
+    )
     const a = new RestSupplierAdapter("https://partner.test", "k", {})
     expect(await a.createOrder(input)).toEqual({ supplier_order_id: "p_1" })
     expect(await a.createOrder(input)).toEqual({ supplier_order_id: "p_1" })
@@ -457,5 +478,127 @@ describe("other spending paths are closed by default", () => {
     vi.stubEnv("REDIS_URL", "redis://x")
     const { isAutoOrderQueueEnabled } = await import("@/lib/auto-order/redis")
     expect(isAutoOrderQueueEnabled()).toBe(false)
+  })
+})
+
+describe("daily quota — a channel never opens without a stated limit, and the limit holds under concurrency", () => {
+  const BASE = { SUPPLIER_PURCHASES_ENABLED: "true", SUPPLIER_PURCHASE_CHANNELS: "cj,aliexpress" }
+  const ok = async () => ({ kind: "placed" as const, supplierOrderId: `so_${Math.random()}`, value: null })
+
+  it("policy: absent / missing entry / invalid → refused; a stated limit (or explicit unlimited) is carried", () => {
+    expect(supplierPurchaseDecision(BASE, "cj")).toMatchObject({ allowed: false, reason: "daily_limit_absent" })
+    expect(supplierPurchaseDecision({ ...BASE, SUPPLIER_PURCHASE_DAILY_LIMITS: "aliexpress=3" }, "cj")).toMatchObject({
+      allowed: false,
+      reason: "daily_limit_absent",
+    })
+    for (const bad of [
+      "cj",
+      "cj=",
+      "cj=-1",
+      "cj=1.5",
+      "cj=01",
+      "cj=Unlimited",
+      "cj=10001",
+      "cj=2,cj=3",
+      "ebay=1",
+      "cj=2;",
+    ]) {
+      expect(supplierPurchaseDecision({ ...BASE, SUPPLIER_PURCHASE_DAILY_LIMITS: bad }, "cj"), bad).toMatchObject({
+        allowed: false,
+        reason: "daily_limit_invalid",
+      })
+    }
+    expect(
+      supplierPurchaseDecision({ ...BASE, SUPPLIER_PURCHASE_DAILY_LIMITS: " cj = 5 , aliexpress=unlimited" }, "cj"),
+    ).toEqual({
+      allowed: true,
+      channel: "cj",
+      dailyLimit: 5,
+    })
+    expect(
+      supplierPurchaseDecision({ ...BASE, SUPPLIER_PURCHASE_DAILY_LIMITS: "cj=5,aliexpress=unlimited" }, "aliexpress"),
+    ).toEqual({ allowed: true, channel: "aliexpress", dailyLimit: null })
+    // 0 = channel listed but closed for purchases (e.g. paused while keeping the rest of the config)
+    expect(supplierPurchaseDecision({ ...BASE, SUPPLIER_PURCHASE_DAILY_LIMITS: "cj=0" }, "cj")).toMatchObject({
+      allowed: true,
+      dailyLimit: 0,
+    })
+  })
+
+  it("limit 2: the third different order is refused (daily_limit_reached), never sent", async () => {
+    const store = memoryClaimStore()
+    const env = { ...BASE, SUPPLIER_PURCHASE_DAILY_LIMITS: "cj=2" }
+    let sends = 0
+    const buy = (k: string) =>
+      guardSupplierPurchase({ channel: "cj", path: "t", keys: [k], env, store }, async () => {
+        sends++
+        return ok()
+      })
+    expect((await buy("order:1")).kind).toBe("sent")
+    expect((await buy("order:2")).kind).toBe("sent")
+    const third = await buy("order:3")
+    expect(third).toMatchObject({ kind: "blocked", decision: { reason: "daily_limit_reached" } })
+    expect(sends).toBe(2)
+    expect(store.rows.has("order:3")).toBe(false)
+  })
+
+  it("10 concurrent different orders with limit 3 → exactly 3 sent", async () => {
+    const store = memoryClaimStore()
+    const env = { ...BASE, SUPPLIER_PURCHASE_DAILY_LIMITS: "cj=3" }
+    let sends = 0
+    const rs = await Promise.all(
+      Array.from({ length: 10 }, (_, i) =>
+        guardSupplierPurchase({ channel: "cj", path: "t", keys: [`order:c${i}`], env, store }, async () => {
+          sends++
+          await new Promise((r) => setTimeout(r, 5))
+          return ok()
+        }),
+      ),
+    )
+    expect(sends).toBe(3)
+    expect(rs.filter((r) => r.kind === "blocked")).toHaveLength(7)
+  })
+
+  it("a replay of an order already placed still gets its stored id when the quota is used up", async () => {
+    const store = memoryClaimStore()
+    const env = { ...BASE, SUPPLIER_PURCHASE_DAILY_LIMITS: "cj=1" }
+    const first = await guardSupplierPurchase(
+      { channel: "cj", path: "t", keys: ["order:r"], env, store },
+      async () => ({
+        kind: "placed",
+        supplierOrderId: "so_r",
+        value: null,
+      }),
+    )
+    expect(first.kind).toBe("sent")
+    const replay = await guardSupplierPurchase({ channel: "cj", path: "t", keys: ["order:r"], env, store }, ok)
+    expect(replay).toEqual({ kind: "already_placed", supplierOrderId: "so_r" })
+  })
+
+  it("a supplier refusal does not consume the quota; other channels have their own quota", async () => {
+    const store = memoryClaimStore()
+    const env = { ...BASE, SUPPLIER_PURCHASE_DAILY_LIMITS: "cj=1,aliexpress=1" }
+    const no = await guardSupplierPurchase({ channel: "cj", path: "t", keys: ["order:n"], env, store }, async () => ({
+      kind: "rejected",
+      error: "out of stock",
+      value: null,
+    }))
+    expect(no.kind).toBe("sent")
+    expect((await guardSupplierPurchase({ channel: "cj", path: "t", keys: ["order:y"], env, store }, ok)).kind).toBe(
+      "sent",
+    )
+    expect((await guardSupplierPurchase({ channel: "cj", path: "t", keys: ["order:z"], env, store }, ok)).kind).toBe(
+      "blocked",
+    )
+    expect(
+      (await guardSupplierPurchase({ channel: "aliexpress", path: "t", keys: ["order:ae"], env, store }, ok)).kind,
+    ).toBe("sent")
+  })
+
+  it("limit 0 → nothing is ever sent on that channel", async () => {
+    const store = memoryClaimStore()
+    const env = { ...BASE, SUPPLIER_PURCHASE_DAILY_LIMITS: "cj=0" }
+    const r = await guardSupplierPurchase({ channel: "cj", path: "t", keys: ["order:0"], env, store }, ok)
+    expect(r).toMatchObject({ kind: "blocked", decision: { reason: "daily_limit_reached" } })
   })
 })
