@@ -47,7 +47,27 @@ export STRIPE_SECRET_KEY='sk_test_…'           # rk_ (restricted, read-only) k
 - It touches no existing table: there is no lock on live tables and no backfill. It runs in milliseconds.
 - The previous code never reads this table, so the migration is safe to apply BEFORE the code that uses it.
 
-0. **Read-only pre-checks** (staging URL in the environment only, never in a file):
+0. **One command, PASS / BLOCKED with evidence** (read-only, server-enforced; staging URL in the environment only):
+   ```
+   DATABASE_URL='<staging>' DIRECT_URL='<staging direct>' npm run preflight:migration -- \
+     --migration 20261127120000_supplier_purchase_claim --expect-endpoint ep-shy-wind-<rest> \
+     --creates SupplierPurchaseClaim --backup-branch staging-before-20261127
+   ```
+   **What it checks**:
+   - endpoint, from the URL and from the server;
+   - the session is read-only;
+   - no failed migration;
+   - no migration diverged from the repository;
+   - **exactly this one** migration pending (`migrate deploy` applies ALL pending ones);
+   - no other checksum ever recorded for it;
+   - the table is absent;
+   - Prisma's lock is free;
+   - long transactions are reported;
+   - a backup is stated (MANUAL: check it in the Neon console).
+
+   **Exit codes**: 0 = PASS, 2 = BLOCKED. Proven on PostgreSQL with 13 scenarios: `scripts/sql/test-preflight-migration.ts`.
+
+   **The same checks by hand**:
    ```
    export DATABASE_URL='<staging pooled>' DIRECT_URL='<staging direct>'
    export PGOPTIONS="-c default_transaction_read_only=on"   # the server refuses any write from these psql checks
