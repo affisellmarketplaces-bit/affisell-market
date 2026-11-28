@@ -4,6 +4,8 @@ import { captureException } from "@sentry/nextjs"
 import { AliExpressClient } from "@/lib/aliexpress-open-api"
 import { isAeDryRun } from "@/lib/fulfillment/ae-dry-run"
 import { placeAliExpressDsOrder } from "@/lib/fulfillment/ae-ds-order"
+import { isSupplierPurchaseGuardError } from "@/lib/supplier-purchase/guard.server"
+import { anySupplierPurchaseAllowed, supplierPurchaseDecision } from "@/lib/supplier-purchase/policy"
 import { enqueueAutoBuyJob } from "@/lib/fulfillment/bullmq/auto-buy.queue"
 import { acquireAutoBuyRateLimit } from "@/lib/fulfillment/rate-limit"
 import {
@@ -30,11 +32,18 @@ function startOfTodayUtc(): Date {
   return d
 }
 
+/**
+ * Early gate (before any FulfillmentLog / card / queue work): fail-closed, same policy as the purchase itself
+ * (lib/supplier-purchase/policy.ts). The real lock is in each purchase call; this only avoids starting work that would
+ * be refused.
+ */
 export function isAutoBuyDisabled(): boolean {
-  return (
-    process.env.DISABLE_AUTO_BUY === "true" ||
-    process.env.AUTO_ORDER_ENABLED === "false"
-  )
+  return !supplierPurchaseDecision(process.env, "aliexpress").allowed
+}
+
+/** Engine / queue gate: is ANY supplier channel allowed to buy? */
+export function isAnySupplierPurchaseAllowed(): boolean {
+  return anySupplierPurchaseAllowed(process.env)
 }
 
 function logAutoBuy(metric: string, payload: Record<string, unknown>) {
@@ -399,6 +408,8 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
     aeSkuId,
     quantity: log.order.quantity,
     shippingAddress,
+    purchaseKeys: [`order:${log.orderId}`],
+    purchasePath: "auto-buy",
   })
 
   let aeOrderId: string | null = null
@@ -406,7 +417,9 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
 
   if (ds.ok) {
     aeOrderId = ds.aeOrderId
-  } else if (virtualCardId && cardNumber) {
+  } else if (virtualCardId && cardNumber && !ds.uncertain && !isSupplierPurchaseGuardError(ds.error)) {
+    // Browser fallback ONLY after a clear refusal by the DS API: never after an uncertain answer (an order may exist)
+    // nor after the purchase guard refused (policy off, already bought, in flight).
     const { runAliExpressBrowserCheckout } = await import("@/lib/fulfillment/ae-browser-checkout")
     const browser = await runAliExpressBrowserCheckout({
       aeUrl: link.aeUrl,
@@ -419,6 +432,8 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
       cardExpMonth,
       cardExpYear,
       cardCvc,
+      purchaseKeys: [`order:${log.orderId}`],
+      purchasePath: "auto-buy-browser",
     })
     if (!browser.ok) {
       await failAutoBuy(log.id, log.orderId, `${ds.error}; ${browser.error}`, nextAttempt, virtualCardId)

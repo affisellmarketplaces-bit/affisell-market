@@ -1,3 +1,4 @@
+import { ENTITLING_SUBSCRIPTION_STATUSES } from "@/lib/subscription-state"
 import type Stripe from "stripe"
 
 import { prisma } from "@/lib/prisma"
@@ -140,6 +141,12 @@ export async function activateProFromCheckoutSession(session: Stripe.Checkout.Se
 
   const stripe = getStripeClient()
   const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+  // A late or replayed checkout.session.completed must not re-grant a plan whose subscription has since been cancelled:
+  // grant only what Stripe says is entitling NOW (lib/subscription-state.ts).
+  if (!ENTITLING_SUBSCRIPTION_STATUSES.has(subscription.status)) {
+    console.log("[video-paywall]", { sessionId: session.id, subscriptionId, status: subscription.status, result: "skipped_not_entitling" })
+    return { activated: false as const, reason: "subscription_not_entitling" }
+  }
   if (!subscriptionHasProPrice(subscription)) {
     console.log("[video-paywall]", {
       sessionId: session.id,

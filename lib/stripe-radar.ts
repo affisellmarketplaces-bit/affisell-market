@@ -1,3 +1,4 @@
+import { ENTITLING_SUBSCRIPTION_STATUSES } from "@/lib/subscription-state"
 import type Stripe from "stripe"
 
 import type { RadarCheckoutPlanId } from "@/lib/radar/plans"
@@ -147,6 +148,12 @@ export async function activateRadarFromCheckoutSession(session: Stripe.Checkout.
 
   const stripe = getStripeClient()
   const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+  // A late or replayed checkout.session.completed must not re-grant a plan whose subscription has since been cancelled:
+  // grant only what Stripe says is entitling NOW (lib/subscription-state.ts).
+  if (!ENTITLING_SUBSCRIPTION_STATUSES.has(subscription.status)) {
+    console.log("[radar-paywall]", { sessionId: session.id, subscriptionId, status: subscription.status, result: "skipped_not_entitling" })
+    return { activated: false as const, reason: "subscription_not_entitling" }
+  }
   const plan = planFromMeta ?? radarPlanFromSubscription(subscription)
   if (!plan) {
     console.log("[radar-paywall]", {

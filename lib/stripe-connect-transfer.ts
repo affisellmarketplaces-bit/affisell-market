@@ -1,45 +1,13 @@
 import Stripe from "stripe"
 
 import { assertTransfersActive } from "@/lib/stripe-marketplace-commission-split"
-import { logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
-import { getStripeClient } from "@/lib/stripe"
 
 export { assertTransfersActive as assertConnectTransfersActive }
 
-export async function createConnectTransfer(args: {
-  orderId: string
-  role: "supplier" | "affiliate"
-  amount: number
-  destination: string
-  sourceTransaction?: string
-}) {
-  const stripe = getStripeClient()
-  await assertTransfersActive(args.destination)
-
-  const transfer = await stripe.transfers.create(
-    {
-      amount: args.amount,
-      currency: "eur",
-      destination: args.destination,
-      transfer_group: args.orderId,
-      ...(args.sourceTransaction ? { source_transaction: args.sourceTransaction } : {}),
-      metadata: { orderId: args.orderId, role: args.role },
-    },
-    { idempotencyKey: `tr_${args.orderId}_${args.role}` }
-  )
-
-  logStripeWebhookInfo({
-    level: "info",
-    metric: "transfer_created",
-    orderId: args.orderId,
-    role: args.role,
-    amount: args.amount,
-    destination: args.destination,
-    id: transfer.id,
-  })
-
-  return transfer
-}
+// `createConnectTransfer` was removed (2026-11-27): no caller left, and its idempotency key `tr_<order>_<role>` and
+// lowercase `role` differed from process-transfers (`transfer_<order>_<ROLE>`), so a call next to the job could pay the
+// same leg twice — the pattern of Test order cmpjs9s0m0007th1idac73yny. Every marketplace leg goes through
+// lib/transfers/process-transfers.ts (or Lightning, behind its lock).
 
 export function isAffiliateOnboardingRequiredError(error: unknown): string | null {
   if (!(error instanceof Error)) return null

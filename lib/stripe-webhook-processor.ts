@@ -243,22 +243,12 @@ async function dispatchStripeEvent(
   switch (event.type) {
     case "checkout.session.completed":
       return processCheckoutSessionCompleted(event, tx)
-    case "customer.subscription.updated": {
-      const sub = event.data.object as Stripe.Subscription
-      const { syncRadarFromSubscription } = await import("@/lib/stripe-radar")
-      await syncRadarFromSubscription(sub)
-      const { syncGrowthFromSubscription } = await import("@/lib/stripe-growth")
-      await syncGrowthFromSubscription(sub)
-      await syncProFromSubscriptionUpdate(sub)
-      return { orderId: null, status: "success", error: null }
-    }
+    case "customer.subscription.updated":
     case "customer.subscription.deleted": {
-      const sub = event.data.object as Stripe.Subscription
-      const { deactivateRadarFromSubscription } = await import("@/lib/stripe-radar")
-      await deactivateRadarFromSubscription(sub)
-      const { deactivateGrowthFromSubscription } = await import("@/lib/stripe-growth")
-      await deactivateGrowthFromSubscription(sub)
-      await deactivateProFromSubscription(sub)
+      // Both events are applied from the subscription's CURRENT state at Stripe (lib/subscription-state.ts): a delayed
+      // "updated: active" arriving after "deleted" can no longer re-grant a cancelled plan, and a repeated or
+      // concurrent delivery converges on the same result.
+      await applySubscriptionEventFromCurrentState(event)
       return { orderId: null, status: "success", error: null }
     }
     case "invoice.payment_failed": {
@@ -479,4 +469,41 @@ export async function processStripeWebhookEvent(event: Stripe.Event): Promise<We
   })
 
   return { orderId, duplicate: false, handled: true, status }
+}
+
+/** See lib/subscription-state.ts. Exported for tests. */
+export async function applySubscriptionEventFromCurrentState(
+  event: Stripe.Event,
+  retrieve?: (id: string) => Promise<Stripe.Subscription>,
+): Promise<"grant_or_refresh" | "remove"> {
+  const { decideSubscriptionTransition, logSubscriptionTransition, readCurrentSubscription } = await import(
+    "@/lib/subscription-state"
+  )
+  const eventSub = event.data.object as Stripe.Subscription
+  const read = retrieve ?? ((id: string) => getStripeClient().subscriptions.retrieve(id))
+  const current = await readCurrentSubscription(eventSub.id, read)
+  const transition = decideSubscriptionTransition(current)
+  logSubscriptionTransition({
+    eventId: event.id,
+    eventType: event.type,
+    subscriptionId: eventSub.id,
+    eventStatus: eventSub.status ?? null,
+    current,
+    transition,
+  })
+  const { syncRadarFromSubscription, deactivateRadarFromSubscription } = await import("@/lib/stripe-radar")
+  const { syncGrowthFromSubscription, deactivateGrowthFromSubscription } = await import("@/lib/stripe-growth")
+  if (transition === "grant_or_refresh" && current.kind === "current") {
+    const sub = current.subscription
+    await syncRadarFromSubscription(sub)
+    await syncGrowthFromSubscription(sub)
+    await syncProFromSubscriptionUpdate(sub)
+  } else {
+    // Removal uses the freshest copy available (price ids identify which plan to remove).
+    const sub = current.kind === "current" ? current.subscription : eventSub
+    await deactivateRadarFromSubscription(sub)
+    await deactivateGrowthFromSubscription(sub)
+    await deactivateProFromSubscription(sub)
+  }
+  return transition
 }

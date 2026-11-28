@@ -1,3 +1,4 @@
+import { findExistingTransfers } from "@/lib/transfers/payable-after-refunds"
 import { isLightningLocked } from "@/lib/payouts/lightning-lock"
 import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
@@ -245,6 +246,25 @@ export async function triggerLightningPayout(orderId: string): Promise<Lightning
     const evidence = await paidLegEvidence(orderId)
     if (evidence) {
       return { success: false, reason: `leg_already_paid:${evidence}` }
+    }
+
+    // …and what Stripe itself holds: a legacy path may have paid without any row here (Test order
+    // cmpjs9s0m0007th1idac73yny, 24/05/2026). Same rule as the job (findExistingTransfers: destination + role whatever
+    // its case, or none). A search that fails or is not exhaustive pays nothing.
+    try {
+      const page = await stripe.transfers.list({ transfer_group: orderId, limit: 100 })
+      const legs = [
+        { role: "SUPPLIER", destination: supplierDestination },
+        { role: "AFFILIATE", destination: affiliateDestination },
+      ]
+      if (legs.some((leg) => findExistingTransfers(page.data, leg).length > 0)) {
+        return { success: false, reason: "leg_already_paid:stripe_transfer" }
+      }
+      if ((page as { has_more?: boolean }).has_more) {
+        return { success: false, reason: "stripe_transfer_search_incomplete" }
+      }
+    } catch (searchErr) {
+      return { success: false, reason: `stripe_transfer_search_failed:${stripeErrorCode(searchErr)}` }
     }
 
     // Claim BEFORE any Stripe call; process-transfers skips a PROCESSING order (lib/transfers/process-transfers.ts).

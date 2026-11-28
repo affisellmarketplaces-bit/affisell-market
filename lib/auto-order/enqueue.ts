@@ -1,3 +1,4 @@
+import { anySupplierPurchaseAllowed } from "@/lib/supplier-purchase/policy"
 import { enqueueAutoFulfillmentBatch } from "@/lib/auto-order/engine"
 import { publishAutoOrderEvent } from "@/lib/auto-order/queue"
 import { logAutoOrder } from "@/lib/auto-order/telemetry"
@@ -7,7 +8,8 @@ import { triggerFulfillmentOrchestratorForSession } from "@/lib/fulfillment/orch
 
 /** Idempotent batch row + async worker (BullMQ when REDIS_URL set, else Inngest). */
 export async function triggerAutoFulfillmentForStripeSession(stripeSessionId: string): Promise<void> {
-  if (process.env.AUTO_ORDER_ENABLED === "false") return
+  // Fail-closed early gate (same policy as the purchase itself): nothing is queued unless a channel may buy.
+  if (!anySupplierPurchaseAllowed(process.env)) return
 
   const batchId = await enqueueAutoFulfillmentBatch(stripeSessionId)
   if (!batchId) return

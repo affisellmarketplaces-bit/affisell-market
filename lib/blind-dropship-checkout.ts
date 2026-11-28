@@ -1,3 +1,4 @@
+import { assertCheckoutDeliverable } from "@/lib/checkout/deliverability.server"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
@@ -117,6 +118,15 @@ export async function blindDropshipCheckoutPOST(parsed: unknown): Promise<Respon
       lineSettlement,
     })
   }
+
+  // Every blind-dropship line is bought from the partner's REST API after payment: refuse the payment while that
+  // channel is closed (plus whatever else the product itself would need).
+  const deliverabilityGate = await assertCheckoutDeliverable(
+    "blind_dropship",
+    lines.map((l) => ({ productId: l.listing.productId, ref: l.affiliateProductId })),
+    [{ channel: "partner_rest", via: "blind_dropship" }],
+  )
+  if (deliverabilityGate) return deliverabilityGate
 
   const orderSettlement = aggregateBlindOrderSettlement(lines.map((l) => l.lineSettlement))
   const totalPaidCents = orderSettlement.sellingPriceCents
