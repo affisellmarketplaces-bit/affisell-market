@@ -1,3 +1,4 @@
+import { assertCheckoutDeliverable } from "@/lib/checkout/deliverability.server"
 import { randomUUID } from "crypto"
 
 import type Stripe from "stripe"
@@ -218,6 +219,9 @@ export async function createResellerOrder(
 
   if (commerce.availableStock <= 0) {
     return { success: false, error: "out_of_stock" }
+  }
+  if (await assertCheckoutDeliverable("reseller_boutique", [{ productId: listing.product.id, ref: productId }])) {
+    return { success: false, error: "out_of_stock" } // "temporarily unavailable" for the buyer (409 at the route)
   }
 
   if (

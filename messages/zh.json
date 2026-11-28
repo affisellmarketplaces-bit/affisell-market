@@ -921,7 +921,9 @@
       "signInFailed": "身份识别后登录失败。",
       "networkError": "网络不可用。请再试一次。"
     },
-    "tryPulse": "试试 Affisell Pulse"
+    "tryPulse": "试试 Affisell Pulse",
+    "productTemporarilyUnavailable": "一件或多件商品目前无法配送。请将其从购物车中移除后支付其余商品——不可用的商品绝不会向您收费。",
+    "lineTemporarilyUnavailable": "暂时无法供货"
   },
   "buyerBestsellers": {
     "metaTitle": "畅销榜 · 7天",

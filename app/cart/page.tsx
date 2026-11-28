@@ -166,6 +166,24 @@ export default function CartPage() {
   const [loading, setLoading] = useState(true)
   const [checkoutBusy, setCheckoutBusy] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
+  /** Lines the server refused to charge (their supplier channel cannot ship them now) — flagged in the list. */
+  const [unavailableLineIds, setUnavailableLineIds] = useState<string[]>([])
+  const hasUnavailableLine = lines.some((l) => unavailableLineIds.includes(l.product.id))
+  const lineIdsKey = lines.map((l) => l.product.id).sort().join(",")
+  useEffect(() => {
+    // Advisory pre-check so the buyer sees an unavailable line BEFORE paying; the payment path still decides.
+    if (!lineIdsKey) return
+    let cancelled = false
+    fetch(`/api/checkout/deliverability?ids=${encodeURIComponent(lineIdsKey)}`, { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { unavailableProductIds?: string[] } | null) => {
+        if (!cancelled && d && Array.isArray(d.unavailableProductIds)) setUnavailableLineIds(d.unavailableProductIds)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [lineIdsKey])
   const [ghostOos, setGhostOos] = useState<GhostOosPayload | null>(null)
   const [identityOpen, setIdentityOpen] = useState(false)
   const [rewardBalanceCents, setRewardBalanceCents] = useState(0)
@@ -402,6 +420,7 @@ export default function CartPage() {
     setCheckoutError(null)
     beginHandoff("redirecting")
     try {
+      setUnavailableLineIds([])
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -426,6 +445,7 @@ export default function CartPage() {
         productName?: string
         alternatives?: GhostOosPayload["alternatives"]
         coupon?: string
+        unavailableProductIds?: string[]
       }
       if (data.url) {
         window.location.href = data.url
@@ -438,6 +458,11 @@ export default function CartPage() {
           alternatives: data.alternatives,
           coupon: data.coupon,
         })
+        return
+      }
+      if (res.status === 409 && data.error === "PRODUCT_TEMPORARILY_UNAVAILABLE") {
+        setUnavailableLineIds(Array.isArray(data.unavailableProductIds) ? data.unavailableProductIds : [])
+        setCheckoutError(t("productTemporarilyUnavailable"))
         return
       }
       if (data.error === "checkout_minimum_not_met") {
@@ -454,7 +479,7 @@ export default function CartPage() {
   }
 
   async function checkout() {
-    if (lines.length === 0 || checkoutBlocked || checkoutBelowMinimum) return
+    if (lines.length === 0 || checkoutBlocked || checkoutBelowMinimum || hasUnavailableLine) return
     if (!isCustomerBuyer) {
       setIdentityOpen(true)
       return
@@ -591,6 +616,15 @@ export default function CartPage() {
                         <h3 className="font-semibold leading-snug text-zinc-900 dark:text-zinc-100">
                           {row.product.title}
                         </h3>
+                        {unavailableLineIds.includes(row.product.id) ? (
+                          <p
+                            role="status"
+                            data-testid="cart-line-unavailable"
+                            className="mt-1 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-950/50 dark:text-amber-200"
+                          >
+                            {t("lineTemporarilyUnavailable")}
+                          </p>
+                        ) : null}
                         <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
                           {t("byPartnerStore", { store: row.sellerName || t("verifiedPartner") })}
                         </p>
@@ -740,6 +774,11 @@ export default function CartPage() {
               {t("checkoutMinimumNotMet", { min: MIN_CARD_EUR.toFixed(2) })}
             </p>
           ) : null}
+          {hasUnavailableLine && !checkoutError ? (
+            <p role="status" className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100">
+              {t("productTemporarilyUnavailable")}
+            </p>
+          ) : null}
           {checkoutError ? (
             <p className="mb-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-100">
               {checkoutError}
@@ -755,7 +794,7 @@ export default function CartPage() {
           </div>
           <button
             type="button"
-            disabled={checkoutBusy || checkoutBlocked || checkoutBelowMinimum}
+            disabled={checkoutBusy || checkoutBlocked || checkoutBelowMinimum || hasUnavailableLine}
             onClick={() => void checkout()}
             className="mb-3 hidden w-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3.5 text-sm font-semibold text-white shadow-md transition hover:opacity-95 active:scale-[0.98] disabled:opacity-60 md:block"
           >
