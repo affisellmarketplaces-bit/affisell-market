@@ -1,3 +1,4 @@
+import { assertCheckoutDeliverable } from "@/lib/checkout/deliverability.server"
 import { randomUUID } from "node:crypto"
 import { NextResponse } from "next/server"
 
@@ -412,6 +413,13 @@ async function checkoutFromItems(
   for (const ghostGate of ghostGates) {
     if (ghostGate instanceof NextResponse) return ghostGate
   }
+  // Server authority: never take money for a line that can only ship through a closed supplier-purchase channel.
+  // A mixed cart is refused whole (the buyer removes the flagged lines) — never half-charged.
+  const deliverabilityGate = await assertCheckoutDeliverable(
+    "cart",
+    loaded.map((l) => ({ productId: l.listing.product.id, ref: l.affiliateProductId })),
+  )
+  if (deliverabilityGate) return deliverabilityGate
 
   const lineSubtotalsCents = loaded.map((l, i) => {
     const n = normalized[i]!
@@ -624,6 +632,8 @@ export async function marketplaceCheckoutPOST(
   ])
 
   if (ghostGate instanceof NextResponse) return ghostGate
+  const deliverabilityGate = await assertCheckoutDeliverable("single", [{ productId: product.id, ref: listing.id }])
+  if (deliverabilityGate) return deliverabilityGate
 
   const buyerUserId = options?.buyerUserId?.trim() || session?.user?.id?.trim() || ""
 

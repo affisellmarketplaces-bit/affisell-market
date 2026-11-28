@@ -44,6 +44,11 @@ export type PlaceSupplierOrderInput = {
   shipping: ShippingAddressPayload
   contactEmail: string
   group: SupplierGroup
+  /**
+   * Token of the supplier-purchase claim the batch engine holds for this group (it paid under it). The adapter
+   * continues that claim instead of claiming again — see lib/supplier-purchase/guard.server.ts.
+   */
+  purchaseClaimToken?: string | null
 }
 
 export type PlaceSupplierOrderResult = {

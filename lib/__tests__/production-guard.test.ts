@@ -151,6 +151,10 @@ describe("INVARIANT — every standalone tool that creates its own Prisma client
     "scripts/unlock-migrations.ts",
     "scripts/verify-category-suggestions.ts",
     "scripts/verify-event-spine.ts",
+    // supplier-purchase lock (#35) — kept at the end so it never collides with other PRs adding tools above
+    "scripts/report-supplier-purchase-claims.ts",
+    "scripts/report-supplier-purchase-impact.ts",
+    "scripts/preflight-migration.ts",
   ]
 
   function sourceFiles(dir: string, out: string[] = []): string[] {

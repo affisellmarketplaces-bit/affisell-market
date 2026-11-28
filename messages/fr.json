@@ -921,7 +921,9 @@
       "signInFailed": "Connexion impossible après identification.",
       "networkError": "Réseau indisponible. Réessayez."
     },
-    "tryPulse": "Essayer Affisell Pulse"
+    "tryPulse": "Essayer Affisell Pulse",
+    "productTemporarilyUnavailable": "Un ou plusieurs articles ne peuvent pas être livrés pour le moment. Retirez-les du panier pour payer le reste — vous ne serez pas débité pour un article indisponible.",
+    "lineTemporarilyUnavailable": "Momentanément indisponible"
   },
   "buyerBestsellers": {
     "metaTitle": "Meilleures ventes · 7 jours",

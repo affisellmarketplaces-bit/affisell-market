@@ -921,7 +921,9 @@
       "signInFailed": "Sign-in failed after identification.",
       "networkError": "Network unavailable. Try again."
     },
-    "tryPulse": "Try Affisell Pulse"
+    "tryPulse": "Try Affisell Pulse",
+    "productTemporarilyUnavailable": "One or more items can't be delivered right now. Remove them from your cart to pay for the rest — you will never be charged for an unavailable item.",
+    "lineTemporarilyUnavailable": "Temporarily unavailable"
   },
   "buyerBestsellers": {
     "metaTitle": "Top sellers · 7 days",

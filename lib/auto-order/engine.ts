@@ -1,3 +1,12 @@
+import {
+  beginSupplierPurchase,
+  guardRefusalCode,
+  settleHeldAfterPlacement,
+  settleHeldSupplierPurchase,
+  type HeldClaim,
+} from "@/lib/supplier-purchase/guard.server"
+import { purchaseChannelForProviderType } from "@/lib/supplier-purchase/channels"
+import { supplierPurchaseDecision, type SupplierPurchaseChannel } from "@/lib/supplier-purchase/policy"
 import type { Prisma } from "@prisma/client"
 
 import { applySupplierPlaceOrderResult } from "@/lib/auto-order/apply-place-result"
@@ -5,7 +14,7 @@ import { finalizeAutoFulfillmentBatch } from "@/lib/auto-order/batch-finalize"
 import { assertCircuitClosed, recordCircuitFailure } from "@/lib/auto-order/circuit-breaker"
 import { isAutoOrderQueueEnabled } from "@/lib/auto-order/redis"
 import { dispatchPlaceSupplierOrder } from "@/lib/suppliers/place-order-resilient"
-import { executeSupplierPayment } from "@/lib/auto-order/payment"
+import { executeSupplierPayment, MONEY_PAYMENT_METHODS } from "@/lib/auto-order/payment"
 import { resolveFulfillmentChannel } from "@/lib/auto-order/resolve-channel"
 import { logAutoOrder } from "@/lib/auto-order/telemetry"
 import type { BatchRunResult, ShippingAddressPayload, SupplierGroup } from "@/lib/auto-order/types"
@@ -204,14 +213,67 @@ export async function runAutoFulfillmentBatch(stripeSessionId: string): Promise<
         },
       })
 
+      // ONE claim covers the whole purchase of this group — payment, then placement (inline or in the BullMQ
+      // worker) — so a retry, a concurrent run or a resumed run can neither pay twice nor order twice
+      // (lib/supplier-purchase/guard.server.ts). Both policies are checked BEFORE anything, so money never leaves for
+      // an order the adapter would then refuse.
+      const keys = [...new Set(group.lines.map((l) => `order:${l.orderId}`))]
+      const adapterChannel = purchaseChannelForProviderType(group.channel)
+      const paysMoney = MONEY_PAYMENT_METHODS.has(group.paymentMethod)
+      let held: HeldClaim | null = null
+      if (adapterChannel || paysMoney) {
+        const needed: SupplierPurchaseChannel[] = [
+          ...(paysMoney ? (["supplier_payment"] as const) : []),
+          ...(adapterChannel ? [adapterChannel] : []),
+        ]
+        const refused = needed
+          .map((c) => supplierPurchaseDecision(process.env, c))
+          .find((d) => !d.allowed)
+        const begun = refused
+          ? null
+          : await beginSupplierPurchase({ channel: adapterChannel ?? "supplier_payment", path: "auto-order.engine", keys })
+        if (refused || !begun || begun.kind !== "claimed") {
+          const code = refused
+            ? `supplier_purchase_blocked:${(refused as { reason: string }).reason}`
+            : begun!.kind === "already_placed"
+              ? `supplier_purchase_already_placed:${begun!.supplierOrderId}`
+              : guardRefusalCode(begun as Exclude<typeof begun, { kind: "claimed" } | { kind: "already_placed" } | null>)
+          await prisma.supplierFulfillmentOrder.update({
+            where: { id: job.id },
+            data: { status: "FAILED", errorMessage: code.slice(0, 2000) },
+          })
+          // Paid, but nothing will buy it (channel closed after checkout, or already / uncertainly bought): say so on
+          // the order so it is handled by a human — never left looking "in progress".
+          if (!code.startsWith("supplier_purchase_already_placed")) {
+            for (const l of group.lines) {
+              await prisma.order.update({
+                where: { id: l.orderId },
+                data: {
+                  fulfillmentStatus: "MANUAL_REQUIRED",
+                  fulfillmentErrors: [{ supplierPurchase: code }] as Prisma.InputJsonValue,
+                },
+              })
+            }
+            logAutoOrder("paid_order_not_purchasable", { batchId: batch.id, providerId: group.providerId, code })
+          }
+          errors.push({ providerId: group.providerId, message: code })
+          jobResults.push({ jobId: job.id, status: "FAILED", error: code })
+          continue
+        }
+        held = begun.held
+      }
+
       const payment = await executeSupplierPayment({
         method: group.paymentMethod,
         providerId: group.providerId,
         batchId: batch.id,
         group,
+        held,
       })
 
       if (!payment.ok) {
+        // Nothing paid for sure → the claim may be tried again later; money may have moved → uncertain (reconcile).
+        if (held) await settleHeldSupplierPurchase(held, payment.moneyMayHaveMoved ? "uncertain" : "rejected", payment.error ?? null)
         await prisma.supplierFulfillmentOrder.update({
           where: { id: job.id },
           data: {
@@ -243,7 +305,11 @@ export async function runAutoFulfillmentBatch(stripeSessionId: string): Promise<
         contactEmail,
         group,
         paymentReference: payment.reference ?? null,
+        purchaseClaimToken: held?.token ?? null,
       })
+      // Inline placement: settle what an adapter without its own guard left claimed (no-op otherwise). A deferred
+      // placement is settled by the worker (place-order.processor.ts).
+      if (held && !placed.deferred) await settleHeldAfterPlacement(held, placed)
 
       if (placed.deferred) {
         asyncPlacePending += 1

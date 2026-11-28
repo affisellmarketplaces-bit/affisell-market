@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process"
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 
@@ -14,6 +14,9 @@ import {
   detectDeployContext,
   parseCli,
   runSchemaDeploy,
+  parsePreviewPolicy,
+  PREVIEW_POLICY_FILE,
+  previewWaiver,
 } from "../../scripts/schema-deploy.mjs"
 
 /**
@@ -578,4 +581,70 @@ describe("the real script (subprocess)", () => {
     expect(result.stderr).toMatch(/migration state is not readable/)
     expect(result.stdout + result.stderr).not.toMatch(/migrated and verified|✓ \[schema\]/)
   }, 120_000)
+})
+
+describe("preview waiver — a Preview may build without a pending migration ONLY if it is declared fail-closed", () => {
+  const POLICY = JSON.stringify({
+    version: 1,
+    previewMayRunWithout: {
+      "20261007140000_event_spine": { why: "table missing = refused", proofTest: "lib/__tests__/x.test.ts", proofTitle: "missing table" },
+    },
+  })
+  const withPolicy = (s: ReturnType<typeof scripted>, raw: string) => ({ ...s.deps, readPreviewPolicy: () => raw })
+  const PENDING_TWO = PENDING.replace("20261007140000_event_spine", "20261007140000_event_spine\n20261127120000_supplier_purchase_claim")
+
+  it("Preview on staging, every pending migration declared → warning, the catalog is still checked, exit 0", async () => {
+    const s = scripted({ status: [fail(PENDING)], verify: [VERIFIED] })
+    expect(await runSchemaDeploy("verify", staging, withPolicy(s, POLICY))).toBe(EXIT.OK)
+    expect(s.calls).toEqual(["status", "verify"])
+    expect(s.logs.join("\n")).toMatch(/⚠ PREVIEW WITHOUT 20261007140000_event_spine/)
+  })
+
+  it("undeclared (or only partly declared) pending migration → exit 5, the code needs it", async () => {
+    for (const status of [PENDING, PENDING_TWO]) {
+      const s = scripted({ status: [fail(status)] })
+      const raw = status === PENDING ? "" : POLICY
+      expect(await runSchemaDeploy("verify", staging, withPolicy(s, raw))).toBe(EXIT.VERIFY_FAILED)
+      expect(s.logs.join("\n")).toMatch(/required by this code/)
+    }
+  })
+
+  it("production and local runs ignore the declaration: strict", async () => {
+    const prod = { env: { ...VERCEL_PROD, DATABASE_URL: PROD }, developerMachine: false, retryDelaysMs: [1] }
+    const prodStatus = PENDING.replace(/ep-shy-wind-aly4bmc7/g, "ep-misty-sea-al1ne07p")
+    for (const [opts, status] of [
+      [prod, prodStatus],
+      [local, PENDING],
+    ] as const) {
+      const s = scripted({ status: [fail(status)] })
+      expect(await runSchemaDeploy("verify", opts, withPolicy(s, POLICY))).toBe(EXIT.VERIFY_FAILED)
+      expect(s.calls).toEqual(["status"])
+    }
+  })
+
+  it("malformed / wrong version / incomplete entries → nothing declared → strict", () => {
+    const pre = { kind: "vercel-preview" as const, vercelEnv: "preview" }
+    for (const raw of [
+      "{",
+      JSON.stringify({ version: 2, previewMayRunWithout: { "20261007140000_event_spine": { why: "a b", proofTest: "x.ts", proofTitle: "t t t" } } }),
+      JSON.stringify({ version: 1, previewMayRunWithout: { "20261007140000_event_spine": { why: "ok ok" } } }),
+      JSON.stringify({ version: 1, previewMayRunWithout: { "../evil": { why: "a b c", proofTest: "x.ts", proofTitle: "t t t" } } }),
+    ]) {
+      expect(previewWaiver({ context: pre, branch: "staging", pending: ["20261007140000_event_spine"], policy: parsePreviewPolicy(raw) }).ok).toBe(false)
+    }
+    // pending list unreadable, or the database not provably staging → strict
+    const policy = parsePreviewPolicy(POLICY)
+    expect(previewWaiver({ context: pre, branch: "staging", pending: [], policy }).ok).toBe(false)
+    expect(previewWaiver({ context: pre, branch: "unknown", pending: ["20261007140000_event_spine"], policy }).ok).toBe(false)
+  })
+
+  it("the real policy file: every declared migration exists and its proof test exists and contains the proof title", () => {
+    const policy = parsePreviewPolicy(readFileSync(join(process.cwd(), PREVIEW_POLICY_FILE), "utf8"))
+    const raw = JSON.parse(readFileSync(join(process.cwd(), PREVIEW_POLICY_FILE), "utf8"))
+    expect(Object.keys(policy)).toEqual(Object.keys(raw.previewMayRunWithout)) // no malformed entry silently ignored
+    for (const [name, e] of Object.entries(policy)) {
+      expect(existsSync(join(process.cwd(), "prisma/migrations", name, "migration.sql")), name).toBe(true)
+      expect(readFileSync(join(process.cwd(), e.proofTest), "utf8"), `${name} proof`).toContain(e.proofTitle)
+    }
+  })
 })

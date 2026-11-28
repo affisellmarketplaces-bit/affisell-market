@@ -1,13 +1,25 @@
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { blindDropshipSupplierContactEmail } from "@/lib/blind-dropship-contact"
 import { RestSupplierAdapter } from "@/lib/suppliers/rest-adapter"
+import { setSupplierPurchaseClaimStoreForTests } from "@/lib/supplier-purchase/guard.server"
+import { memoryClaimStore } from "@/lib/supplier-purchase/memory-claim-store"
 
 const originalFetch = globalThis.fetch
+
+beforeEach(() => {
+  // Supplier purchases are off by default (fail-closed): these payload tests run with partner_rest enabled.
+  vi.stubEnv("SUPPLIER_PURCHASES_ENABLED", "true")
+  vi.stubEnv("SUPPLIER_PURCHASE_CHANNELS", "partner_rest")
+  vi.stubEnv("SUPPLIER_PURCHASE_DAILY_LIMITS", "partner_rest=unlimited")
+  setSupplierPurchaseClaimStoreForTests(memoryClaimStore())
+})
 
 afterEach(() => {
   globalThis.fetch = originalFetch
   vi.restoreAllMocks()
+  vi.unstubAllEnvs()
+  setSupplierPurchaseClaimStoreForTests(null)
 })
 
 describe("blind dropship supplier payloads", () => {

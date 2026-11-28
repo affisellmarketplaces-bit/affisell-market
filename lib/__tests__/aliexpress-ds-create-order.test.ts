@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { createAliExpressDsOrder } from "@/lib/aliexpress-ds-create-order"
+import { setSupplierPurchaseClaimStoreForTests } from "@/lib/supplier-purchase/guard.server"
+import { memoryClaimStore } from "@/lib/supplier-purchase/memory-claim-store"
 
 describe("createAliExpressDsOrder payload", () => {
   afterEach(() => {
@@ -18,6 +20,10 @@ describe("createAliExpressDsOrder payload", () => {
     vi.stubEnv("ALIEXPRESS_ENV", "sandbox")
     vi.stubEnv("AE_DRY_RUN", "false")
     vi.stubEnv("ENCRYPTION_KEY", "")
+    vi.stubEnv("SUPPLIER_PURCHASES_ENABLED", "true")
+    vi.stubEnv("SUPPLIER_PURCHASE_CHANNELS", "aliexpress")
+    vi.stubEnv("SUPPLIER_PURCHASE_DAILY_LIMITS", "aliexpress=unlimited,cj=unlimited,partner_rest=unlimited,china_agent=unlimited,supplier_payment=unlimited")
+    setSupplierPurchaseClaimStoreForTests(memoryClaimStore())
 
     const fetchMock = vi.fn(async (url: string) => {
       const u = String(url)
@@ -74,6 +80,8 @@ describe("createAliExpressDsOrder payload", () => {
         countryCode: "FR",
         state: "IDF",
       },
+      purchaseKeys: ["order:test_1"],
+      purchasePath: "test",
     })
 
     expect(result.ok).toBe(true)

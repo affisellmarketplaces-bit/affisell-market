@@ -31,6 +31,10 @@ export const placeOrderDtoSchema = z.object({
   shipping: shippingAddressSchema,
   contactEmail: z.string().email().optional(),
   lines: z.array(placeOrderLineSchema).min(1).max(50),
+  /** What is bought (`order:<Order.id>` per line) — the supplier-purchase claim keys (lib/supplier-purchase/guard.server.ts). */
+  purchaseKeys: z.array(z.string().min(1).max(300)).max(50).optional(),
+  /** Held claim token (batch engine): continue the claim instead of claiming again. */
+  purchaseClaimToken: z.string().min(1).max(100).nullable().optional(),
 })
 
 export type PlaceOrderDTO = z.infer<typeof placeOrderDtoSchema>

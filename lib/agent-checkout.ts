@@ -1,3 +1,4 @@
+import { assertCheckoutDeliverable } from "@/lib/checkout/deliverability.server"
 import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing-display"
 import { ensureGhostStockSchema } from "@/lib/ghost/ensure-ghost-schema"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
@@ -70,6 +71,8 @@ export async function createCheckoutSession(productId: string, userId?: string) 
   const listing = await loadAgentListing(id)
 
   if (!listing) return null
+  // Same server gate as the marketplace checkout (the agent never sells a line that cannot ship).
+  if (await assertCheckoutDeliverable("agent", [{ productId: listing.productId, ref: id }])) return null
 
   const name = listingDisplayTitle(listing.customTitle, listing.product.name)
   const images = stripeProductImages(listingGalleryUrls(listing.customImages, listing.product.images)) ?? []

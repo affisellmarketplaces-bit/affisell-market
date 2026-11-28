@@ -74,6 +74,14 @@ export function runSteps(steps, run) {
   return { code: 0, ran }
 }
 
+/** Human reading of an exit code in the STOPPED line (137 = killed by SIGKILL, in practice the out-of-memory killer). */
+export function exitHint(code) {
+  if (code === 137) return " = killed by SIGKILL: most likely OUT OF MEMORY — see the [build] line above for the peak"
+  if (code === 5) return " = schema not up to date: a migration is not applied to this database"
+  if (code === 2) return " = refused"
+  return ""
+}
+
 function main() {
   const env = process.env
   const plan = planVercelBuild(env, { developerMachine: hasDeveloperEnvFiles(process.cwd()) })
@@ -89,10 +97,11 @@ function main() {
   const result = runSteps(plan.steps, (step) => {
     console.log(`\n> [${step.name}] ${step.command}`)
     // A spawn failure (status null) is a failure too.
-    return spawnSync(step.command, { shell: true, stdio: "inherit", env }).status ?? 1
+    const r = spawnSync(step.command, { shell: true, stdio: "inherit", env })
+    return r.status ?? (r.signal ? 128 + (r.signal === "SIGKILL" ? 9 : 15) : 1)
   })
   if (result.code !== 0) {
-    console.error(`\n✗ Vercel build STOPPED at "${result.failed?.name}" (exit ${result.code}). Nothing after it ran: no application build, no deployment.`)
+    console.error(`\n✗ Vercel build STOPPED at "${result.failed?.name}" (exit ${result.code}${exitHint(result.code)}). Nothing after it ran: no application build, no deployment.`)
     return result.code
   }
   console.log("\nNext.js build completed")
