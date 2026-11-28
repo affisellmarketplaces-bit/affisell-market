@@ -64,6 +64,7 @@ export STRIPE_SECRET_KEY='sk_test_…'           # rk_ (restricted, read-only) k
    `staging-before-20261127`. This is instant and free, and it is the restore point.
 2. **Apply** (owner, explicit approval):
    ```
+   unset PGOPTIONS   # only the pre-checks are read-only; the migration itself must write
    npm run schema:migrate -- --expect-endpoint ep-shy-wind-<rest>
    ```
    It refuses unless Prisma itself names that endpoint, runs `migrate deploy`, then checks the status again and the
