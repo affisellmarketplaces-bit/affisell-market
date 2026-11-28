@@ -49,7 +49,8 @@ export STRIPE_SECRET_KEY='sk_test_…'           # rk_ (restricted, read-only) k
    ```
    It refuses unless Prisma itself names that endpoint.
 3. `npm run schema:verify` → 0.
-4. **Fail-closed check on staging**: with `SUPPLIER_PURCHASES_ENABLED` unset, `npm run report:supplier-purchase-claims`
+4. **Fail-closed check on staging** (also: with a channel listed but no `SUPPLIER_PURCHASE_DAILY_LIMITS` entry, the
+   log must say `daily_limit_absent`): with `SUPPLIER_PURCHASES_ENABLED` unset, `npm run report:supplier-purchase-claims`
    → 0 open claims. The first Preview built on it must show `[supplier-purchase] blocked_by_policy` for any purchase
    attempt.
 5. Only after approval: the same steps on production, with `--confirm-production`.

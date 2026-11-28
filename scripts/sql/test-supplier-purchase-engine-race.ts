@@ -14,6 +14,8 @@ import { PsqlSession } from "./lib/psql-session"
 
 process.env.SUPPLIER_PURCHASES_ENABLED = "true"
 process.env.SUPPLIER_PURCHASE_CHANNELS = "cj,supplier_payment"
+process.env.SUPPLIER_PURCHASE_DAILY_LIMITS =
+  "aliexpress=unlimited,cj=unlimited,partner_rest=unlimited,china_agent=unlimited,supplier_payment=unlimited"
 
 const host = process.env.PGHOST ?? ""
 if (!/^(\/|localhost$|127\.0\.0\.1$)/.test(host)) {
@@ -181,6 +183,55 @@ async function main() {
       } finally {
         psql(`ALTER TABLE "SupplierPurchaseClaim_hidden" RENAME TO "SupplierPurchaseClaim"`)
       }
+    }
+
+    // 5. Daily quota under REAL concurrency: 10 sessions, 10 different orders, limit = 3 new purchases → exactly 3
+    //    supplier calls; a replay of a placed order still gets its stored id once the quota is used up.
+    {
+      const baseline = Number(
+        psql(`SELECT count(DISTINCT "token") FROM "SupplierPurchaseClaim" WHERE "channel" = 'partner_rest'
+              AND "status" <> 'rejected' AND "updatedAt" >= now() - interval '24 hours'`),
+      )
+      const env = {
+        SUPPLIER_PURCHASES_ENABLED: "true",
+        SUPPLIER_PURCHASE_CHANNELS: "partner_rest",
+        SUPPLIER_PURCHASE_DAILY_LIMITS: `partner_rest=${baseline + 3}`,
+      }
+      const calls = { n: 0 }
+      const rs = await Promise.all(
+        Array.from({ length: 10 }, (_, i) =>
+          guardSupplierPurchase(
+            { channel: "partner_rest", path: "quota-race", keys: [`order:${P}_q${i}`], env, store: open() },
+            async () => {
+              calls.n += 1
+              await sleep(50)
+              return { kind: "placed" as const, supplierOrderId: `so_q${i}`, value: null }
+            },
+          ),
+        ),
+      )
+      const blocked = rs.filter((r) => r.kind === "blocked" && r.decision.reason === "daily_limit_reached").length
+      check(
+        "quota race: 10 concurrent orders, limit 3 → exactly 3 supplier calls, 7 refused",
+        calls.n === 3 && blocked === 7,
+        {
+          calls: calls.n,
+          kinds: rs.map((r) => (r.kind === "blocked" ? r.decision.reason : r.kind)),
+        },
+      )
+      const placedIdx = rs.findIndex((r) => r.kind === "sent")
+      const replay = await guardSupplierPurchase(
+        { channel: "partner_rest", path: "quota-race", keys: [`order:${P}_q${placedIdx}`], env, store: open() },
+        async () => {
+          calls.n += 1
+          return { kind: "placed" as const, supplierOrderId: "never", value: null }
+        },
+      )
+      check(
+        "quota used up: a replay of a placed order gets its stored id, nothing re-sent",
+        replay.kind === "already_placed" && replay.supplierOrderId === `so_q${placedIdx}` && calls.n === 3,
+        replay,
+      )
     }
   } finally {
     await Promise.all(sessions.map((s) => s.close()))

@@ -1,6 +1,12 @@
 import type { ClaimRow, ClaimStore } from "@/lib/supplier-purchase/guard.server"
 
-type Row = ClaimRow & { channel: string; path: string; paymentRef: string | null; error: string | null }
+type Row = ClaimRow & {
+  channel: string
+  path: string
+  paymentRef: string | null
+  error: string | null
+  updatedAt: number
+}
 
 /**
  * In-memory ClaimStore with the SAME semantics as the SQL one (all-or-nothing claim, only an unpaid `rejected` is
@@ -18,9 +24,18 @@ export function memoryClaimStore(wallets: Record<string, number> = {}): ClaimSto
   return {
     rows,
     wallets,
-    async tryClaimAll(keys, channel, path, token) {
+    async tryClaimAll(keys, channel, path, token, dailyLimit) {
       if (keys.some((k) => rows.has(k) && !(rows.get(k)!.status === "rejected" && rows.get(k)!.paidCents == null)))
         return false
+      if (dailyLimit !== undefined && dailyLimit !== null) {
+        const since = Date.now() - 24 * 3600_000
+        const tokens = new Set(
+          [...rows.values()]
+            .filter((r) => r.channel === channel && r.status !== "rejected" && r.updatedAt >= since)
+            .map((r) => r.token),
+        )
+        if (tokens.size >= dailyLimit) return "daily_limit_reached"
+      }
       for (const k of keys) {
         const prev = rows.get(k)
         rows.set(k, {
@@ -33,6 +48,7 @@ export function memoryClaimStore(wallets: Record<string, number> = {}): ClaimSto
           error: null,
           channel,
           path,
+          updatedAt: Date.now(),
         })
       }
       return true
@@ -50,6 +66,7 @@ export function memoryClaimStore(wallets: Record<string, number> = {}): ClaimSto
           status: paidRejected ? "uncertain" : status,
           supplierOrderId,
           error: paidRejected ? `paid_but_not_placed: ${error ?? ""}` : error,
+          updatedAt: Date.now(),
         })
       }
     },

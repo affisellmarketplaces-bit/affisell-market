@@ -21,6 +21,8 @@ const { memoryClaimStore } = await import("@/lib/supplier-purchase/memory-claim-
 const ON = {
   SUPPLIER_PURCHASES_ENABLED: "true",
   SUPPLIER_PURCHASE_CHANNELS: "cj,supplier_payment,china_agent",
+  SUPPLIER_PURCHASE_DAILY_LIMITS:
+    "aliexpress=unlimited,cj=unlimited,partner_rest=unlimited,china_agent=unlimited,supplier_payment=unlimited",
 }
 const group = (cost = 1_000) =>
   ({

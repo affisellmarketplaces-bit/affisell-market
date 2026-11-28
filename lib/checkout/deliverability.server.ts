@@ -12,6 +12,8 @@ import {
 } from "@/lib/checkout/deliverability"
 import { prisma } from "@/lib/prisma"
 import { purchaseChannelForProviderType } from "@/lib/supplier-purchase/channels"
+import { SUPPLIER_PURCHASE_CLAIM_SQL } from "@/lib/supplier-purchase/guard.server"
+import { supplierPurchaseDecision, type SupplierPurchaseChannel } from "@/lib/supplier-purchase/policy"
 
 const MONEY_METHODS = new Set(["WALLET_PREPAID", "STRIPE_CONNECT"])
 
@@ -84,8 +86,35 @@ export async function loadPurchaseDependencies(productId: string): Promise<Purch
   }
 }
 
+/**
+ * Read-only count of the purchases started in the last 24 h, for each dependency channel that is open with a finite
+ * daily quota. A channel whose count cannot be read is left out, so the pure decision treats it as closed.
+ */
+async function loadQuotaUsed(
+  deps: PurchaseDependency[] | null,
+): Promise<Partial<Record<SupplierPurchaseChannel, number>>> {
+  const out: Partial<Record<SupplierPurchaseChannel, number>> = {}
+  if (!deps) return out
+  for (const channel of new Set(deps.map((d) => d.channel))) {
+    const decision = supplierPurchaseDecision(process.env, channel)
+    if (!decision.allowed || decision.dailyLimit === null) continue
+    try {
+      const rows = await prisma.$queryRawUnsafe<Array<{ n: number }>>(SUPPLIER_PURCHASE_CLAIM_SQL.quotaCount, channel)
+      out[channel] = Number(rows[0]?.n ?? 0)
+    } catch (e) {
+      console.warn("[checkout-deliverability]", {
+        result: "quota_unreadable",
+        channel,
+        error: e instanceof Error ? e.message : String(e),
+      })
+    }
+  }
+  return out
+}
+
 export async function lineDeliverability(productId: string): Promise<LineDeliverability> {
-  return decideLineDeliverability(await loadPurchaseDependencies(productId), process.env)
+  const deps = await loadPurchaseDependencies(productId)
+  return decideLineDeliverability(deps, process.env, await loadQuotaUsed(deps))
 }
 
 /**

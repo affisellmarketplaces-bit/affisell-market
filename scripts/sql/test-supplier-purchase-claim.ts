@@ -51,6 +51,20 @@ WITH d AS (${bind(SQL.walletDebit, provider, cents)} RETURNING 1) INSERT INTO r 
 DO $$ BEGIN IF (SELECT n FROM r WHERE step = 'debit') <> 1 THEN RAISE EXCEPTION 'insufficient_wallet_balance'; END IF; END $$;
 COMMIT;`
 
+/**
+ * The guard's quota claim (sqlClaimStore.tryClaimAll with a dailyLimit) as ONE psql transaction, with a pause between
+ * the count and the insert — exactly the window two concurrent purchases race in. `lock=false` is the control: the
+ * same transaction without the per-channel lock, which must overshoot (proves the test can see the race at all).
+ */
+const quotaTx = (key: string, token: string, channel: string, limit: number, lock: boolean) => `
+BEGIN;
+${lock ? `${bind(SQL.quotaLock, channel)};` : ""}
+DO $$ BEGIN IF (${bind(SQL.quotaBlockedKeys, [key]).replace('count(*)::int AS "n"', "count(*)")}) > 0 THEN RAISE EXCEPTION 'conflict'; END IF; END $$;
+DO $$ BEGIN IF (${bind(SQL.quotaCount, channel).replace('count(DISTINCT "token")::int AS "n"', 'count(DISTINCT "token")')}) >= ${limit} THEN RAISE EXCEPTION 'daily_limit_reached'; END IF; END $$;
+SELECT pg_sleep(0.4);
+${bind(SQL.tryClaim, key, channel, "sql-quota", token)};
+COMMIT;`
+
 function session(sql: string): Promise<{ ok: boolean; out: string }> {
   return new Promise((resolve) => {
     const p = spawn("psql", ["-qAtX", "-v", "ON_ERROR_STOP=1", "-c", sql])
@@ -171,6 +185,33 @@ async function main() {
       const [ra, rb] = await Promise.all([a, b])
       const wins = Number(ra.out.split("\n")[0]) + Number(rb.out)
       check(`claim race round ${round}: one winner`, wins === 1, [ra.out, rb.out])
+    }
+
+    // 7b. RACE on the daily quota: 4 concurrent new purchases, limit 1, each pausing between count and insert
+    for (const lock of [true, false]) {
+      const ch = `${P}_q${lock ? "L" : "N"}`
+      const rs = await Promise.all(
+        [0, 1, 2, 3].map((i) => session(quotaTx(`${P}:q${lock}${i}`, `tq${lock}${i}`, ch, 1, lock))),
+      )
+      const committed = Number(psql(`SELECT count(*) FROM "SupplierPurchaseClaim" WHERE "channel" = ${lit(ch)}`))
+      if (lock)
+        check(
+          "quota race, with the per-channel lock: limit 1 → exactly 1 purchase claimed",
+          committed === 1 && rs.filter((r) => r.ok).length === 1,
+          rs,
+        )
+      else check("control, WITHOUT the lock: the same race overshoots (the test can see it)", committed > 1, committed)
+      psql(`DELETE FROM "SupplierPurchaseClaim" WHERE "channel" = ${lit(ch)}`)
+    }
+
+    // 7c. a supplier refusal does not consume the quota (limit 1, one rejected claim → a new purchase is still allowed)
+    {
+      const ch = `${P}_qR`
+      psql(bind(SQL.tryClaim, `${P}:qr0`, ch, "sql-quota", "tqr0"))
+      settle([`${P}:qr0`], "tqr0", "rejected", null)
+      const r = await session(quotaTx(`${P}:qr1`, "tqr1", ch, 1, true))
+      check("quota: a rejected claim does not count, a new purchase is allowed", r.ok, r)
+      psql(`DELETE FROM "SupplierPurchaseClaim" WHERE "channel" = ${lit(ch)}`)
     }
 
     // 8. database constraints (defence in depth, whatever the code does)

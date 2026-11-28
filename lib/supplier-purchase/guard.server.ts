@@ -58,9 +58,17 @@ export type SettleStatus = "placed" | "rejected" | "uncertain"
 export type ClaimStore = {
   /**
    * Claims EVERY key or none (one transaction), stamping `token`: true when THIS caller now holds them all, false when
-   * any key is held by someone else or already settled (then nothing was changed).
+   * any key is held by someone else or already settled (then nothing was changed). With a `dailyLimit`, the channel's
+   * purchases started in the last 24 h are counted UNDER a per-channel transaction lock in the same transaction, and
+   * "daily_limit_reached" is returned (nothing changed) when the quota is used up — concurrent claims cannot overshoot.
    */
-  tryClaimAll(keys: string[], channel: SupplierPurchaseChannel, path: string, token: string): Promise<boolean>
+  tryClaimAll(
+    keys: string[],
+    channel: SupplierPurchaseChannel,
+    path: string,
+    token: string,
+    dailyLimit?: number | null,
+  ): Promise<boolean | "daily_limit_reached">
   readAll(keys: string[]): Promise<Array<ClaimRow & { id: string }>>
   /** Settles only rows still `claimed` with this token. A `rejected` on a paid claim is stored as `uncertain`. */
   settleAll(
@@ -91,6 +99,14 @@ ON CONFLICT ("id") DO UPDATE SET "status" = 'claimed', "path" = EXCLUDED."path",
   "paidCents" = NULL, "paymentRef" = NULL, "attempts" = "SupplierPurchaseClaim"."attempts" + 1, "updatedAt" = now()
 WHERE "SupplierPurchaseClaim"."status" = 'rejected' AND "SupplierPurchaseClaim"."paidCents" IS NULL
 RETURNING "status", "supplierOrderId", "attempts"`,
+  /** Serialises quota checks per channel for the rest of the transaction (released at COMMIT / ROLLBACK). */
+  quotaLock: `SELECT pg_advisory_xact_lock(hashtext('affisell:supplier-purchase-quota:' || $1))`,
+  /** Purchases started on a channel in the last 24 h: one per claim token, a supplier refusal does not count. */
+  quotaCount: `SELECT count(DISTINCT "token")::int AS "n" FROM "SupplierPurchaseClaim"
+WHERE "channel" = $1 AND "status" <> 'rejected' AND "updatedAt" >= now() - interval '24 hours'`,
+  /** Keys that a claim could NOT take (held or settled): such a call is a conflict / replay, never a new purchase. */
+  quotaBlockedKeys: `SELECT count(*)::int AS "n" FROM "SupplierPurchaseClaim"
+WHERE "id" = ANY($1::text[]) AND NOT ("status" = 'rejected' AND "paidCents" IS NULL)`,
   readAll: `SELECT "id", "status", "supplierOrderId", "attempts", "token", "paidCents" FROM "SupplierPurchaseClaim" WHERE "id" = ANY($1::text[])`,
   settleAll: `UPDATE "SupplierPurchaseClaim"
 SET "status" = CASE WHEN $3 = 'rejected' AND "paidCents" IS NOT NULL THEN 'uncertain' ELSE $3 END,
@@ -120,9 +136,24 @@ class Rollback extends Error {
 
 export function sqlClaimStore(db: RawDbWithTx): ClaimStore {
   return {
-    async tryClaimAll(keys, channel, path, token) {
+    async tryClaimAll(keys, channel, path, token, dailyLimit) {
       try {
         await db.$transaction(async (tx) => {
+          if (dailyLimit !== undefined && dailyLimit !== null) {
+            await tx.$queryRawUnsafe(SUPPLIER_PURCHASE_CLAIM_SQL.quotaLock, channel)
+            // A replay or a conflict (some key already held / placed) is not a new purchase: let the normal path
+            // answer it (stored supplier order id, or refused as in flight) instead of reporting the quota.
+            const [held] = await tx.$queryRawUnsafe<Array<{ n: number }>>(
+              SUPPLIER_PURCHASE_CLAIM_SQL.quotaBlockedKeys,
+              keys,
+            )
+            if (Number(held?.n ?? 0) > 0) throw new Rollback("conflict")
+            const [{ n }] = await tx.$queryRawUnsafe<Array<{ n: number }>>(
+              SUPPLIER_PURCHASE_CLAIM_SQL.quotaCount,
+              channel,
+            )
+            if (Number(n) >= dailyLimit) throw new Rollback("daily_limit_reached")
+          }
           for (const key of [...keys].sort()) {
             const rows = await tx.$queryRawUnsafe<ClaimRow[]>(
               SUPPLIER_PURCHASE_CLAIM_SQL.tryClaim,
@@ -136,7 +167,7 @@ export function sqlClaimStore(db: RawDbWithTx): ClaimStore {
         })
         return true
       } catch (e) {
-        if (e instanceof Rollback) return false
+        if (e instanceof Rollback) return e.reason === "daily_limit_reached" ? "daily_limit_reached" : false
         throw e
       }
     },
@@ -238,15 +269,25 @@ export async function beginSupplierPurchase(args: {
   const ctx = { channel: args.channel, path: args.path, keys }
   const token = randomUUID()
   let store: ClaimStore
-  let claimed: boolean
+  let claimed: boolean | "daily_limit_reached"
   try {
     store = args.store ?? (await appClaimStore())
-    claimed = await store.tryClaimAll(keys, args.channel, args.path, token)
+    claimed = await store.tryClaimAll(keys, args.channel, args.path, token, decision.dailyLimit)
   } catch (e) {
     log("claim_store_unavailable", { ...ctx, error: errText(e) })
     return { kind: "claim_store_unavailable", error: errText(e) }
   }
-  if (claimed) return { kind: "claimed", held: { keys, token }, store }
+  if (claimed === "daily_limit_reached") {
+    const refused = {
+      allowed: false as const,
+      channel: args.channel,
+      reason: "daily_limit_reached" as const,
+      detail: `${args.channel}: ${decision.dailyLimit} purchase(s) per 24 h already started`,
+    }
+    log("blocked_by_policy", { ...ctx, reason: refused.reason, detail: refused.detail })
+    return { kind: "blocked", decision: refused }
+  }
+  if (claimed === true) return { kind: "claimed", held: { keys, token }, store }
 
   let existing: Array<ClaimRow & { id: string }>
   try {

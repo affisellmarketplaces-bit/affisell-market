@@ -53,6 +53,14 @@ place-order methods are called from a single module.
   channel in `SUPPLIER_PURCHASE_CHANNELS` (`aliexpress`, `cj`, `partner_rest`, `china_agent`, `supplier_payment`).
   `DISABLE_AUTO_BUY` (other than absent / `false`) or `AUTO_ORDER_ENABLED` (other than absent / `true`) stops
   everything. Absent, misspelt, ambiguous or unknown → refused.
+- **Daily quota (canary by construction)**: an open channel also needs an entry in `SUPPLIER_PURCHASE_DAILY_LIMITS`
+  — `channel=N` (N = purchases STARTED in the last 24 h, 0–10000; a supplier refusal does not count) or
+  `channel=unlimited`, comma-separated. No entry = refused (`daily_limit_absent`). The count and the claim happen in
+  ONE transaction under a per-channel lock (`pg_advisory_xact_lock`, released at commit), so concurrent purchases can
+  never overshoot it — proven on PostgreSQL with a control run that overshoots without the lock
+  (`scripts/sql/test-supplier-purchase-claim.ts`, 7b). Quota used up → `daily_limit_reached`: nothing sent, the
+  engine flags the order `MANUAL_REQUIRED`, and checkout refuses new lines depending on that channel. A replay of an
+  order already placed still gets its stored id. `channel=0` = listed but paused.
 - **Claim** (`lib/supplier-purchase/guard.server.ts`, table `SupplierPurchaseClaim`): one row per **order**, holding a
   random token.
   - Allowed transitions: `claimed` → `placed` | `rejected` | `uncertain`.
@@ -90,8 +98,9 @@ place-order methods are called from a single module.
 - **Re-enabling a channel, explicitly and under control** (owner, once, per channel):
   1. migration applied (§4);
   2. `npm run report:supplier-purchase-claims` → nothing open;
-  3. set `SUPPLIER_PURCHASES_ENABLED=true` and `SUPPLIER_PURCHASE_CHANNELS=<one channel>` (e.g. `cj`), plus
-     `supplier_payment` if the engine pays that supplier;
+  3. set `SUPPLIER_PURCHASES_ENABLED=true`, `SUPPLIER_PURCHASE_CHANNELS=<one channel>` (e.g. `cj`), plus
+     `supplier_payment` if the engine pays that supplier, and a SMALL quota for each, e.g.
+     `SUPPLIER_PURCHASE_DAILY_LIMITS=cj=3,supplier_payment=3` — raise it only after the first orders reconcile;
   4. redeploy, so the variables are certainly loaded;
   5. watch `[supplier-purchase]` logs for the first orders, then re-run the claims report;
   6. to close again, remove the channel from the list (or `SUPPLIER_PURCHASES_ENABLED`): effective at the next request.

@@ -47,6 +47,7 @@ describe("CjDropshippingSupplierAdapter", () => {
     // Purchases are off by default (fail-closed): these tests exercise an explicitly enabled CJ channel.
     vi.stubEnv("SUPPLIER_PURCHASES_ENABLED", "true")
     vi.stubEnv("SUPPLIER_PURCHASE_CHANNELS", "cj")
+    vi.stubEnv("SUPPLIER_PURCHASE_DAILY_LIMITS", "aliexpress=unlimited,cj=unlimited,partner_rest=unlimited,china_agent=unlimited,supplier_payment=unlimited")
     setSupplierPurchaseClaimStoreForTests(memoryClaimStore())
   })
 

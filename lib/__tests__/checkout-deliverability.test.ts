@@ -129,7 +129,12 @@ describe("which purchases a paid order would trigger (same rules as the purchase
 })
 
 describe("decisions (pure)", () => {
-  const ON = { SUPPLIER_PURCHASES_ENABLED: "true", SUPPLIER_PURCHASE_CHANNELS: "aliexpress" }
+  const ON = {
+    SUPPLIER_PURCHASES_ENABLED: "true",
+    SUPPLIER_PURCHASE_DAILY_LIMITS:
+      "aliexpress=unlimited,cj=unlimited,partner_rest=unlimited,china_agent=unlimited,supplier_payment=unlimited",
+    SUPPLIER_PURCHASE_CHANNELS: "aliexpress",
+  }
   it("no dependency → deliverable even with every channel closed", () => {
     expect(decideLineDeliverability([], {}).deliverable).toBe(true)
   })
@@ -148,11 +153,30 @@ describe("decisions (pure)", () => {
       { channel: "supplier_payment" as const, via: "engine_payment" as const },
     ]
     expect(
-      decideLineDeliverability(deps, { SUPPLIER_PURCHASES_ENABLED: "true", SUPPLIER_PURCHASE_CHANNELS: "cj" }),
+      decideLineDeliverability(deps, {
+        SUPPLIER_PURCHASES_ENABLED: "true",
+        SUPPLIER_PURCHASE_DAILY_LIMITS:
+          "aliexpress=unlimited,cj=unlimited,partner_rest=unlimited,china_agent=unlimited,supplier_payment=unlimited",
+        SUPPLIER_PURCHASE_CHANNELS: "cj",
+      }),
     ).toMatchObject({
       deliverable: false,
       closedChannels: ["supplier_payment"],
     })
+  })
+  it("daily quota: used up, or unreadable → closed for checkout; below it, or unlimited → open", () => {
+    const deps = [{ channel: "cj" as const, via: "engine" as const }]
+    const env = {
+      SUPPLIER_PURCHASES_ENABLED: "true",
+      SUPPLIER_PURCHASE_CHANNELS: "cj",
+      SUPPLIER_PURCHASE_DAILY_LIMITS: "cj=3",
+    }
+    expect(decideLineDeliverability(deps, env, { cj: 2 }).deliverable).toBe(true)
+    expect(decideLineDeliverability(deps, env, { cj: 3 })).toMatchObject({ deliverable: false, closedChannels: ["cj"] })
+    expect(decideLineDeliverability(deps, env, {})).toMatchObject({ deliverable: false, closedChannels: ["cj"] })
+    expect(
+      decideLineDeliverability(deps, { ...env, SUPPLIER_PURCHASE_DAILY_LIMITS: "cj=unlimited" }, {}).deliverable,
+    ).toBe(true)
   })
   it("unknown → refused", () => {
     expect(decideLineDeliverability(null, ON)).toMatchObject({ deliverable: false, reason: "fulfillment_unknown" })
@@ -207,8 +231,16 @@ describe("the server gate (what every payment path calls)", () => {
   it("channel open → the same cart passes; closing it again (between two checks) refuses again", async () => {
     vi.stubEnv("SUPPLIER_PURCHASES_ENABLED", "true")
     vi.stubEnv("SUPPLIER_PURCHASE_CHANNELS", "aliexpress")
+    vi.stubEnv(
+      "SUPPLIER_PURCHASE_DAILY_LIMITS",
+      "aliexpress=unlimited,cj=unlimited,partner_rest=unlimited,china_agent=unlimited,supplier_payment=unlimited",
+    )
     expect(await assertCheckoutDeliverable("cart", [{ productId: "p_autobuy", ref: "l" }])).toBeNull()
     vi.stubEnv("SUPPLIER_PURCHASE_CHANNELS", "cj")
+    vi.stubEnv(
+      "SUPPLIER_PURCHASE_DAILY_LIMITS",
+      "aliexpress=unlimited,cj=unlimited,partner_rest=unlimited,china_agent=unlimited,supplier_payment=unlimited",
+    )
     expect((await assertCheckoutDeliverable("cart", [{ productId: "p_autobuy", ref: "l" }]))?.status).toBe(409)
   })
 
