@@ -64,6 +64,7 @@ INSERT INTO "ProcessedWebhook"("id","status","createdAt") VALUES ('evt_${P}','su
 function cleanup() {
   psql(`
 DELETE FROM "ProcessedWebhook" WHERE "id" LIKE 'evt_${P}%' OR "id" LIKE 'dispute:dp_${P}%';
+DO $$ BEGIN IF to_regclass('"SupplierPurchaseClaim"') IS NOT NULL THEN DELETE FROM "SupplierPurchaseClaim" WHERE "id" LIKE 'order:${P}%'; END IF; END $$;
 DELETE FROM "OrderStripeRefund" WHERE "id" LIKE '${P}%';
 DELETE FROM "MerchantPayoutLedger" WHERE "id" LIKE '${P}%';
 DELETE FROM "TransferAttempt" WHERE "id" LIKE '${P}%';
@@ -150,6 +151,36 @@ async function main() {
       "dispute_holds",
     )
     check("open dispute with its hold → PASS", r.status === "PASS", r)
+    const hasClaimTable = psql(`SELECT to_regclass('"SupplierPurchaseClaim"') IS NOT NULL`) === "t"
+    if (!hasClaimTable)
+      console.log("SKIP supplier-payment checks: SupplierPurchaseClaim table absent (it ships with #35)")
+    const supTr = {
+      id: `tr_${P}_sup`,
+      amount: 1000,
+      created: now,
+      destination: "acct_x",
+      transfer_group: null,
+      metadata: { purchaseClaimToken: `tok_${P}` },
+    }
+    if (hasClaimTable) {
+      r = await status(stripe({ transfers: [supTr] }), "stripe_ledger_consistency")
+      check(
+        "supplier payment not recorded on any claim → BLOCKED",
+        r.status === "BLOCKED" && r.evidence.join(" ").includes("not recorded on its claim"),
+        r,
+      )
+      psql(
+        `INSERT INTO "SupplierPurchaseClaim"("id","channel","path","status","supplierOrderId","token","paidCents","paymentRef") VALUES ('order:${P}_sup','cj','t','placed','cj_1','tok_${P}',1000,'tr_${P}_sup')`,
+      )
+      r = await status(stripe({ transfers: [supTr] }), "stripe_ledger_consistency")
+      check("supplier payment recorded on its claim → PASS", r.status === "PASS", r)
+      r = await status(stripe({ transfers: [supTr, { ...supTr, id: `tr_${P}_sup2` }] }), "stripe_ledger_consistency")
+      check(
+        "the same claim paid twice → BLOCKED",
+        r.status === "BLOCKED" && r.evidence.join(" ").includes("paid twice"),
+        r,
+      )
+    }
     r = await status(stripe({}), "webhook_freshness")
     check("recent webhook → PASS", r.status === "PASS", r)
     psql(`UPDATE "ProcessedWebhook" SET "createdAt" = now() - interval '5 hours' WHERE "id" = 'evt_${P}'`)
