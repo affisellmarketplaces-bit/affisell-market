@@ -24,7 +24,8 @@
  *   - local                                                           `--expect-endpoint` for `migrate`; production also `--confirm-production`
  */
 import { spawnSync } from "node:child_process"
-import { resolve } from "node:path"
+import { readFileSync } from "node:fs"
+import { join, resolve } from "node:path"
 import { setTimeout as sleepMs } from "node:timers/promises"
 import { fileURLToPath } from "node:url"
 
@@ -197,6 +198,60 @@ function failedMigrationGuidance(names) {
   ].join("\n")
 }
 
+/* ---------------------------------------------------------------------------------------------------------------
+ * Preview waiver — the ONLY case where a pending migration does not stop a build. Pure — no I/O.
+ *
+ * Production, local runs and anything unproven stay strict. A Vercel PREVIEW on the provably-staging database may run
+ * without a pending migration only if EVERY pending migration is declared in `prisma/migration-preview-policy.json`
+ * (`previewMayRunWithout`) with a reason and a test proving the code is safe while the table is missing (fail-closed).
+ * An unknown, malformed or partially declared state is strict. The waiver never applies a migration and never hides
+ * one: it is logged as a warning, and `schema:migrate` on staging is still the way to make the Preview complete.
+ * ------------------------------------------------------------------------------------------------------------- */
+
+export const PREVIEW_POLICY_FILE = "prisma/migration-preview-policy.json"
+
+/** @returns {Record<string, { why: string, proofTest: string, proofTitle: string }>} only well-formed entries */
+export function parsePreviewPolicy(raw) {
+  /** @type {Record<string, { why: string, proofTest: string, proofTitle: string }>} */
+  const out = {}
+  let doc
+  try {
+    doc = JSON.parse(String(raw ?? ""))
+  } catch {
+    return out
+  }
+  const entries = doc && typeof doc === "object" && doc.version === 1 ? doc.previewMayRunWithout : null
+  if (!entries || typeof entries !== "object") return out
+  for (const [name, e] of Object.entries(entries)) {
+    if (!/^\d{14}_[a-z0-9_]+$/.test(name) || !e || typeof e !== "object") continue
+    const { why, proofTest, proofTitle } = /** @type {Record<string, unknown>} */ (e)
+    if ([why, proofTest, proofTitle].every((v) => typeof v === "string" && v.trim().length >= 3)) {
+      out[name] = { why: String(why), proofTest: String(proofTest), proofTitle: String(proofTitle) }
+    }
+  }
+  return out
+}
+
+/**
+ * @param {{ context: ReturnType<typeof detectDeployContext>, branch: string, pending: string[], policy: ReturnType<typeof parsePreviewPolicy> }} input
+ * @returns {{ ok: true, lines: string[] } | { ok: false, reason: string }}
+ */
+export function previewWaiver({ context, branch, pending, policy }) {
+  if (context.kind !== "vercel-preview") return { ok: false, reason: "only a Vercel Preview can run without a pending migration" }
+  if (branch !== "staging") return { ok: false, reason: "the Preview database is not provably the staging branch" }
+  if (pending.length === 0) return { ok: false, reason: "Prisma could not list the pending migrations" }
+  const undeclared = pending.filter((name) => !policy[name])
+  if (undeclared.length > 0) {
+    return { ok: false, reason: `required by this code (not declared preview-optional): ${undeclared.join(", ")}` }
+  }
+  return {
+    ok: true,
+    lines: pending.map(
+      (name) => `PREVIEW WITHOUT ${name} (declared preview-optional: ${policy[name].why}; proof: ${policy[name].proofTest}) — apply it to staging with schema:migrate`
+    ),
+  }
+}
+
 /**
  * @typedef {{ status: number | null, text: string }} StepResult
  * @typedef {{
@@ -258,10 +313,19 @@ export async function runSchemaDeploy(command, options, deps) {
   if (command === "verify") {
     if (!isUpToDate(before.text)) {
       const pending = parsePendingMigrations(before.text)
-      error(
-        `✗ [schema] the schema is NOT up to date: ${pending.length > 0 ? `${pending.join(", ")} not applied` : "Prisma could not confirm it"}.\n${tail(before.text)}`
-      )
-      return EXIT.VERIFY_FAILED
+      const waiver = previewWaiver({
+        context,
+        branch: target.branch,
+        pending,
+        policy: parsePreviewPolicy(deps.readPreviewPolicy ? deps.readPreviewPolicy() : ""),
+      })
+      if (!waiver.ok) {
+        error(
+          `✗ [schema] the schema is NOT up to date: ${pending.length > 0 ? `${pending.join(", ")} not applied` : "Prisma could not confirm it"} (${waiver.reason}).\n${tail(before.text)}`
+        )
+        return EXIT.VERIFY_FAILED
+      }
+      for (const line of waiver.lines) log(`[schema] ⚠ ${line}`)
     }
   } else if (isUpToDate(before.text)) {
     log("[schema] no pending migration")
@@ -373,6 +437,13 @@ function createRealDeps(env, cwd) {
       prisma(subcommand, target) {
         config ??= createExplicitConfig(cwd)
         return runPrisma(subcommand, childEnv(target, subcommand !== "deploy"), config.configPath, cwd, [], subcommand === "deploy" ? 10 * 60_000 : 3 * 60_000)
+      },
+      readPreviewPolicy() {
+        try {
+          return readFileSync(join(cwd, PREVIEW_POLICY_FILE), "utf8")
+        } catch {
+          return "" // no file = nothing declared = strict
+        }
       },
       verify(target) {
         const result = spawnSync("npx", ["tsx", "scripts/verify-event-spine.ts"], {

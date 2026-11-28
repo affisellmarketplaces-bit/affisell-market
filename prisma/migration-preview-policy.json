@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "$comment": "Pending migrations a Vercel PREVIEW (staging database only) may build without. Production and local runs ignore this file and stay strict. Each entry needs a reason and a test proving the code is fail-closed while the migration is missing. An undeclared pending migration blocks the Preview. See docs/DEPLOY-SCHEMA-CHANGES.md.",
+  "previewMayRunWithout": {}
+}

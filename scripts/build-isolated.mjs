@@ -28,6 +28,7 @@ import { fileURLToPath } from "node:url"
 import { parse as parseDotenv } from "dotenv"
 
 import { parseDatabaseUrl } from "./env-shared.mjs"
+import { describeExit, describeMachine, readMemory, startMemorySampler } from "./lib/build-diagnostics.mjs"
 
 /** Files Next.js loads for `next build` (NODE_ENV=production), most specific first. */
 export const NEXT_BUILD_ENV_FILES = [".env.production.local", ".env.local", ".env.production", ".env"]
@@ -207,16 +208,40 @@ export function nextBuildEnv(env) {
   return { ...env, NEXT_TELEMETRY_DISABLED: env.NEXT_TELEMETRY_DISABLED ?? "1" }
 }
 
-function runNextBuild(env, root) {
-  const nextBin = createRequire(import.meta.url).resolve("next/dist/bin/next")
+/**
+ * Runs a command and reports how it ended in ONE explicit line (signal, duration, peak memory vs the machine limit):
+ * a process killed by the kernel is never reported as a bare "exit 1". Exported for tests.
+ * @returns {Promise<number>} the exit code (128 + signal number when killed)
+ */
+export function runAndReport(command, args, options, log = console.log, logError = console.error) {
+  const memory = readMemory()
+  log(describeMachine(memory))
+  const sampler = startMemorySampler()
+  const started = Date.now()
   return new Promise((resolveExit) => {
-    const child = spawn(process.execPath, [nextBin, "build"], { cwd: root, env: nextBuildEnv(env), stdio: "inherit" })
-    child.on("exit", (code, signal) => resolveExit(code ?? (signal ? 1 : 0)))
+    const child = spawn(command, args, { stdio: "inherit", ...options })
+    child.on("exit", (code, signal) => {
+      const r = describeExit({
+        code,
+        signal,
+        peakBytes: sampler.stop(),
+        limitBytes: memory.limitBytes,
+        seconds: Math.round((Date.now() - started) / 1000),
+      })
+      ;(r.exitCode === 0 ? log : logError)(r.line)
+      resolveExit(r.exitCode)
+    })
     child.on("error", (error) => {
-      console.error("[build] could not start next build:", error.message)
+      sampler.stop()
+      logError("[build] could not start next build:", error.message)
       resolveExit(1)
     })
   })
+}
+
+function runNextBuild(env, root) {
+  const nextBin = createRequire(import.meta.url).resolve("next/dist/bin/next")
+  return runAndReport(process.execPath, [nextBin, "build"], { cwd: root, env: nextBuildEnv(env) })
 }
 
 async function main() {

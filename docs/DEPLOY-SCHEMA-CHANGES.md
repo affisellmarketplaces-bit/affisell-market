@@ -215,3 +215,16 @@ poste de développeur  +  une URL qui nomme l'endpoint de PRODUCTION  +  pas de 
 - **Non couvert, volontairement** : Redis écrit par le serveur de développement (compteurs de limitation de débit, caches : sans enjeu métier) ;
   `scripts/verify-launch-ready.mjs`, qui crée une session de paiement Stripe non payée avec la clé locale (sonde « live » voulue, sans débit) ;
   les envois d'e-mails de `email-manual-suppliers.ts --send` (en simulation par défaut).
+
+## 11. Politique de `schema:verify` selon l'environnement (Previews sans migration)
+
+| Contexte | Migration en attente | Résultat |
+|---|---|---|
+| Production (`VERCEL_ENV=production`) | n'importe laquelle | **bloqué** (exit 5) — inchangé, le fichier ci-dessous est ignoré |
+| Exécution locale / CI (`schema:verify` à la main) | n'importe laquelle | **bloqué** (exit 5) |
+| Preview sur la base **staging prouvée** | toutes déclarées dans `prisma/migration-preview-policy.json` | **avertissement** `⚠ PREVIEW WITHOUT …`, la vérification du catalogue tourne quand même, le build continue |
+| Preview | au moins une non déclarée, liste illisible, ou base non prouvée staging | **bloqué** (exit 5) |
+
+- **Déclaration par migration, pas par PR** : une PR qui ajoute une migration et dont le code reste sûr tant que la table manque (fail-closed : table absente = refus, jamais d'écriture à moitié) peut l'ajouter à `previewMayRunWithout` avec `why`, `proofTest` (un fichier de test existant) et `proofTitle` (le titre du test qui le prouve). `lib/__tests__/schema-deploy.test.ts` échoue si une entrée est mal formée, si la migration n'existe pas, ou si le test de preuve ne contient pas ce titre. Sans déclaration, la migration est considérée **requise**.
+- **Ce que la dérogation ne fait jamais** : appliquer une migration, toucher la production, ou masquer l'écart (il est journalisé à chaque build). Pour obtenir une Preview complète, on applique toujours la migration sur staging avec `schema:migrate` (procédure §5, approbation du propriétaire).
+- **Ne pas déclarer** une migration dont le code lit la table sans repli (une page qui planterait), ni une migration qui modifie une table existante : dans ces cas, la Preview doit attendre la migration sur staging.
