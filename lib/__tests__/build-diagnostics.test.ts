@@ -30,6 +30,10 @@ describe("build diagnostics — a stopped build says why", () => {
     const fs2: Record<string, string> = { "/sys/fs/cgroup/memory.max": String(8 * GB), "/sys/fs/cgroup/memory.current": String(GB) }
     expect(readMemory((p) => fs2[p] ?? null)).toEqual({ source: "cgroup2", limitBytes: 8 * GB, usedBytes: GB })
     expect(readMemory((p) => ({ "/sys/fs/cgroup/memory.max": "max", "/sys/fs/cgroup/memory.current": "5" })[p] ?? null).limitBytes).toBeNull()
+    // no cgroup limit → bounded by the machine's MemTotal
+    const withMem = (p: string) =>
+      ({ "/sys/fs/cgroup/memory.max": "max", "/sys/fs/cgroup/memory.current": "5", "/proc/meminfo": "MemTotal: 8000000 kB\n" })[p] ?? null
+    expect(readMemory(withMem).limitBytes).toBe(8000000 * 1024)
     const fs1: Record<string, string> = {
       "/sys/fs/cgroup/memory/memory.usage_in_bytes": "100",
       "/sys/fs/cgroup/memory/memory.limit_in_bytes": "9223372036854771712",

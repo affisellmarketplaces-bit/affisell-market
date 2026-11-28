@@ -36,12 +36,18 @@ export function parseMeminfo(text, key) {
  * @returns {{ source: "cgroup2" | "cgroup1" | "meminfo" | "none", limitBytes: number | null, usedBytes: number | null }}
  */
 export function readMemory(readFile = read) {
+  const total = parseMeminfo(readFile("/proc/meminfo"), "MemTotal")
   const v2limit = readFile("/sys/fs/cgroup/memory.max")
   const v2used = readFile("/sys/fs/cgroup/memory.current")
-  if (v2used !== null) return { source: "cgroup2", limitBytes: limitOf(v2limit), usedBytes: Number(v2used) || null }
+  // A cgroup without its own limit is bounded by the machine: fall back to MemTotal rather than "unknown".
+  if (v2used !== null) return { source: "cgroup2", limitBytes: limitOf(v2limit) ?? total, usedBytes: Number(v2used) || null }
   const v1used = readFile("/sys/fs/cgroup/memory/memory.usage_in_bytes")
   if (v1used !== null) {
-    return { source: "cgroup1", limitBytes: limitOf(readFile("/sys/fs/cgroup/memory/memory.limit_in_bytes")), usedBytes: Number(v1used) || null }
+    return {
+      source: "cgroup1",
+      limitBytes: limitOf(readFile("/sys/fs/cgroup/memory/memory.limit_in_bytes")) ?? total,
+      usedBytes: Number(v1used) || null,
+    }
   }
   const meminfo = readFile("/proc/meminfo")
   if (meminfo !== null) {
