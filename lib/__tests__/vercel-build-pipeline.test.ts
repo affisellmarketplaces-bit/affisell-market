@@ -233,8 +233,20 @@ describe("what the audit found dangerous is gone from every automatic path", () 
       }
     }
     for (const dir of ["app", "lib", "scripts", "prisma", ".github"]) walk(join(root, dir))
+    /**
+     * Local test harnesses that must fabricate a `_prisma_migrations` history to test the migration preflight. Allowed
+     * ONLY because each one provably refuses any non-local host and writes only in a database it creates and drops.
+     */
+    const LOCAL_FIXTURES = ["scripts/sql/test-preflight-migration.ts"]
+    for (const fixture of LOCAL_FIXTURES) {
+      const code = read(fixture)
+      expect(code, fixture).toMatch(/if \(!\/\^\(\\\/\|localhost\$\|127\\\.0\\\.0\\\.1\$\)\/\.test\(host\)\)/)
+      expect(code, fixture).toMatch(/CREATE DATABASE \$\{db\}/)
+      expect(code, fixture).toMatch(/DROP DATABASE IF EXISTS \$\{db\} WITH \(FORCE\)/)
+    }
     const offenders = files
       .filter((file) => !file.includes(`${join("prisma", "migrations")}`))
+      .filter((file) => !LOCAL_FIXTURES.includes(relative(root, file)))
       .filter((file) => {
         const code = codeOf(readFileSync(file, "utf8"))
         return /(UPDATE|INSERT\s+INTO|DELETE\s+FROM)\s+"_prisma_migrations"/i.test(code) || /["'`]--applied["'`]/.test(code)
