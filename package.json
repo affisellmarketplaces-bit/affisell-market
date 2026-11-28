@@ -58,6 +58,7 @@
     "db:local:up": "docker compose up -d",
     "worker:auto-order": "tsx workers/auto-order-worker.ts",
     "report:supplier-purchase-claims": "tsx scripts/report-supplier-purchase-claims.ts",
+    "preflight:migration": "tsx scripts/preflight-migration.ts",
     "report:supplier-purchase-impact": "tsx scripts/report-supplier-purchase-impact.ts",
     "resolve:supplier-purchase-claim": "tsx scripts/resolve-supplier-purchase-claim.ts",
     "db:local:down": "docker compose down",
