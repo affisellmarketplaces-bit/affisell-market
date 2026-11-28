@@ -50,6 +50,7 @@ export STRIPE_SECRET_KEY='sk_test_…'           # rk_ (restricted, read-only) k
 0. **Read-only pre-checks** (staging URL in the environment only, never in a file):
    ```
    export DATABASE_URL='<staging pooled>' DIRECT_URL='<staging direct>'
+   export PGOPTIONS="-c default_transaction_read_only=on"   # the server refuses any write from these psql checks
    node scripts/prisma-explicit-db.mjs status          # expect: exactly 1 pending = 20261127120000_supplier_purchase_claim, 0 failed
    psql "$DIRECT_URL" -Atc "SELECT to_regclass('\"SupplierPurchaseClaim\"')"                        # expect: empty (table absent)
    psql "$DIRECT_URL" -Atc "SELECT migration_name, checksum, finished_at FROM _prisma_migrations WHERE migration_name LIKE '20261127%'"   # expect: no row
