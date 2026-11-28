@@ -242,6 +242,20 @@ export async function runAutoFulfillmentBatch(stripeSessionId: string): Promise<
             where: { id: job.id },
             data: { status: "FAILED", errorMessage: code.slice(0, 2000) },
           })
+          // Paid, but nothing will buy it (channel closed after checkout, or already / uncertainly bought): say so on
+          // the order so it is handled by a human — never left looking "in progress".
+          if (!code.startsWith("supplier_purchase_already_placed")) {
+            for (const l of group.lines) {
+              await prisma.order.update({
+                where: { id: l.orderId },
+                data: {
+                  fulfillmentStatus: "MANUAL_REQUIRED",
+                  fulfillmentErrors: [{ supplierPurchase: code }] as Prisma.InputJsonValue,
+                },
+              })
+            }
+            logAutoOrder("paid_order_not_purchasable", { batchId: batch.id, providerId: group.providerId, code })
+          }
           errors.push({ providerId: group.providerId, message: code })
           jobResults.push({ jobId: job.id, status: "FAILED", error: code })
           continue

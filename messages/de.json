@@ -921,7 +921,9 @@
       "signInFailed": "Anmeldung nach Identifizierung fehlgeschlagen.",
       "networkError": "Netzwerk nicht verfügbar. Versuchen Sie es erneut."
     },
-    "tryPulse": "Affisell Pulse ausprobieren"
+    "tryPulse": "Affisell Pulse ausprobieren",
+    "productTemporarilyUnavailable": "Ein oder mehrere Artikel können derzeit nicht geliefert werden. Entferne sie aus dem Warenkorb, um den Rest zu bezahlen – ein nicht verfügbarer Artikel wird nie berechnet.",
+    "lineTemporarilyUnavailable": "Vorübergehend nicht verfügbar"
   },
   "buyerBestsellers": {
     "metaTitle": "Bestseller · 7 Tage",

@@ -100,6 +100,11 @@ export async function startFastCheckout(
       }
     }
 
+    if (res.status === 409 && data.error === "PRODUCT_TEMPORARILY_UNAVAILABLE") {
+      // The server refused to charge: this product cannot be delivered right now (its supplier channel is closed).
+      return { ok: false, status: "error", message: data.message ?? "PRODUCT_TEMPORARILY_UNAVAILABLE" }
+    }
+
     if (res.status === 409 && data.error === "FLASH_EXPIRED") {
       return {
         ok: false,

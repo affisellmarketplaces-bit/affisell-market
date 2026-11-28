@@ -921,7 +921,9 @@
       "signInFailed": "Inloggen mislukt na identificatie.",
       "networkError": "Netwerk onbereikbaar. Probeer opnieuw."
     },
-    "tryPulse": "Probeer Affisell Pulse"
+    "tryPulse": "Probeer Affisell Pulse",
+    "productTemporarilyUnavailable": "Een of meer artikelen kunnen nu niet worden geleverd. Verwijder ze uit je winkelwagen om de rest te betalen — je betaalt nooit voor een niet-beschikbaar artikel.",
+    "lineTemporarilyUnavailable": "Tijdelijk niet beschikbaar"
   },
   "buyerBestsellers": {
     "metaTitle": "Bestverkocht · 7 dagen",

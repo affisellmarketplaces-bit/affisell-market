@@ -921,7 +921,9 @@
       "signInFailed": "Błąd logowania po identyfikacji.",
       "networkError": "Brak połączenia z siecią. Spróbuj ponownie."
     },
-    "tryPulse": "Wypróbuj Affisell Pulse"
+    "tryPulse": "Wypróbuj Affisell Pulse",
+    "productTemporarilyUnavailable": "Jednego lub kilku produktów nie można teraz dostarczyć. Usuń je z koszyka, aby zapłacić za resztę — nigdy nie zapłacisz za niedostępny produkt.",
+    "lineTemporarilyUnavailable": "Chwilowo niedostępny"
   },
   "buyerBestsellers": {
     "metaTitle": "Najlepiej sprzedające się · 7 dni",
